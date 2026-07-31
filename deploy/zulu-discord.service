@@ -1,0 +1,16 @@
+[Unit]
+Description=ZULU Discord bot
+After=network.target zulu-server.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/zulu
+ExecStart=/home/ubuntu/zulu/venv/bin/python /home/ubuntu/zulu/zulu_discord.py
+Restart=always
+RestartSec=5
+StandardOutput=append:/home/ubuntu/zulu/zulu-discord.log
+StandardError=append:/home/ubuntu/zulu/zulu-discord.log
+
+[Install]
+WantedBy=multi-user.target

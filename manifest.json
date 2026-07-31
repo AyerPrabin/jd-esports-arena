@@ -1,0 +1,15 @@
+{
+  "name": "JD Esports Arena",
+  "short_name": "JD Arena",
+  "description": "Free Fire tournaments, live schedules and registration for JD Esports Arena.",
+  "start_url": "/",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#05080f",
+  "theme_color": "#05080f",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

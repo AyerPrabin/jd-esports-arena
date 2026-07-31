@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 440" width="440" height="440">
+  <defs>
+    <linearGradient id="zg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e9d28c"/><stop offset="48%" stop-color="#c9a84c"/><stop offset="100%" stop-color="#8f7331"/>
+    </linearGradient>
+    <radialGradient id="zsweep" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#c9a84c" stop-opacity="0.55"/><stop offset="55%" stop-color="#c9a84c" stop-opacity="0.12"/><stop offset="100%" stop-color="#c9a84c" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <path d="M220 220 L220 78 A142 142 0 0 1 320 120 Z" fill="url(#zsweep)">
+    <animateTransform attributeName="transform" type="rotate" from="0 220 220" to="360 220 220" dur="5s" repeatCount="indefinite"/>
+  </path>
+  <circle cx="220" cy="220" r="158" fill="none" stroke="#c9a84c" stroke-opacity="0.16" stroke-width="2"/>
+  <circle cx="220" cy="220" r="150" fill="none" stroke="url(#zg)" stroke-width="3"/>
+  <circle cx="220" cy="220" r="138" fill="none" stroke="#c9a84c" stroke-opacity="0.4" stroke-width="7" stroke-dasharray="1.6 16.5"/>
+  <g stroke="url(#zg)" stroke-width="3.5">
+    <line x1="220" y1="60" x2="220" y2="86"/><line x1="380" y1="220" x2="354" y2="220"/>
+    <line x1="220" y1="380" x2="220" y2="354"/><line x1="60" y1="220" x2="86" y2="220"/>
+  </g>
+  <circle cx="220" cy="220" r="104" fill="none" stroke="#c9a84c" stroke-opacity="0.22" stroke-width="1"/>
+  <g stroke="url(#zg)" stroke-width="19" stroke-linecap="square" fill="none">
+    <line x1="174" y1="176" x2="266" y2="176"/><line x1="266" y1="176" x2="174" y2="264"/><line x1="174" y1="264" x2="266" y2="264"/>
+  </g>
+  <circle cx="220" cy="98" r="3.4" fill="#5aab8a"><animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/></circle>
+</svg>

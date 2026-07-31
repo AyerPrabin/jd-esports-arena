@@ -1,0 +1,54 @@
+# Secrets — never commit real API keys / tokens
+zulu_secrets.py
+zulu-key.js
+
+# Owner-only private strategy dossier
+zulu_private.py
+zulu-private.js
+
+# Runtime state (personal memory, visitor feedback, live registrations) — not source, not for git history
+zulu_memory.json
+feedback.json
+registrations.json
+announce_state.json
+zulu_promo_state.json
+zulu_draft_state.json
+zulu_sponsor_state.json
+zulu_pending_knowledge.json
+zulu_learned_knowledge.json
+
+# Prize payout records (eSewa numbers/names) — private, must never reach the published site
+payouts.json
+
+# Rolling safety backups written by safe_write_json
+*.bak
+*.bak.json
+
+# Raw/unedited screen recordings — not for git history; compressed public
+# highlights live in gameplay/ and are tracked (see the negation below)
+*.mp4
+!gameplay/*.mp4
+
+# Python
+__pycache__/
+*.pyc
+
+# Editors / OS
+.DS_Store
+
+# Editor-local MCP config (project ref only, no secrets, but not for git history)
+.vscode/
+
+# Local LLM tooling (GBs of binaries/weights — never belongs in this repo)
+*.gguf
+llama-server/
+
+# Supabase CLI local link cache
+supabase/.temp/
+
+# jd-stock parts-catalog ingestion — raw supplier files + parsed cache, never for git history
+jdstock_catalog/
+zulu_parts_catalog.json
+
+# Assessment script's saved session data — generated at runtime, not source
+15710802_502IT_data.xlsx

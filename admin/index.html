@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23060a14' stroke='%23c9a84c' stroke-width='4'/><text x='50' y='68' text-anchor='middle' font-family='Georgia' font-size='52' font-weight='700' fill='%23c9a84c'>Z</text></svg>">
+<title>JD Arena — Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#05080f;--bg-2:#0a0e1a;--panel:#0e1424;--panel-2:#121a2e;--line:#1c2840;--gold:#c9a84c;--gold-l:#e2c97e;--gold-m:#7e6630;--cream:#f4efe6;--silver:#aab4cc;--body:#7e8eb0;--warm-l:#e3ab7e;--red:#e36b6b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:'Inter',sans-serif;font-weight:300;line-height:1.6}
+.wrap{max-width:860px;margin:0 auto;padding:28px 22px 80px}
+h1{font-family:'Playfair Display',serif;font-weight:700;font-size:1.7rem;margin:0 0 4px}
+.sub{color:var(--gold-l);font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:24px}
+h2{font-family:'Playfair Display',serif;font-weight:600;font-size:1.25rem;margin:34px 0 14px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;position:relative}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f{display:flex;flex-direction:column;gap:5px}
+.f.full{grid-column:1/-1}
+label{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--silver)}
+input,select,textarea{background:var(--bg-2);border:1px solid var(--line);border-radius:9px;padding:9px 11px;color:var(--cream);font-family:inherit;font-size:.9rem;outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+select{cursor:pointer}
+.del{position:absolute;top:14px;right:14px;background:rgba(227,107,107,.12);border:1px solid rgba(227,107,107,.4);color:var(--red);border-radius:8px;padding:5px 10px;font-size:.74rem;cursor:pointer}
+.btn{background:var(--gold);color:#0a0a12;border:none;border-radius:30px;padding:11px 22px;font-weight:700;font-size:.86rem;cursor:pointer;transition:transform .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--cream)}
+.btn.ghost:hover{border-color:var(--gold)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0}
+textarea#out{width:100%;height:300px;font-family:'JetBrains Mono',monospace;font-size:.78rem;line-height:1.5;margin-top:12px;resize:vertical}
+.hint{color:var(--body);font-size:.84rem;margin:6px 0 0}
+.tag{display:inline-block;font-size:.66rem;padding:2px 9px;border-radius:20px;border:1px solid var(--gold-m);color:var(--gold-l);margin-left:8px;text-transform:uppercase;letter-spacing:.08em}
+.bo3-tbl{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
+.bo3-tbl th{font-size:.64rem;letter-spacing:.06em;text-transform:uppercase;color:var(--silver);padding:6px 5px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+.bo3-tbl td{padding:5px;border-bottom:1px solid var(--line)}
+.bo3-tbl input{width:100%;min-width:56px;padding:6px 7px;font-size:.82rem}
+.bo3-tbl td:first-child input{min-width:120px}
+.bo3-tbl .bo3-tot{font-weight:700;color:var(--gold-l);text-align:center;white-space:nowrap}
+.rosterlist{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.rrow{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--line);border-radius:10px}
+.rrow-top{display:flex;gap:8px;align-items:center}
+.rrow-top input{flex:1}
+.rrow .del{position:static;padding:6px 10px}
+.rmembers{width:100%;font-size:.78rem}
+.rfx-label{display:flex;align-items:center;gap:8px;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--silver)}
+.rfx{background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:6px 8px;color:var(--cream);font-family:inherit;font-size:.78rem;text-transform:none;letter-spacing:normal}
+.rlogo{width:36px;height:36px;border-radius:8px;object-fit:cover;background:var(--bg-2);border:1px solid var(--line);flex-shrink:0}
+.rlogo-btn{background:var(--bg-2);border:1px solid var(--line);border-radius:8px;color:var(--silver);font-size:.68rem;padding:8px 10px;cursor:pointer;white-space:nowrap}
+.rlogo-btn:hover{border-color:var(--gold)}
+/* gate */
+#gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:99;flex-direction:column;gap:16px;padding:20px}
+#gate h1{text-align:center}
+#gate input{max-width:280px;text-align:center}
+.ok{color:#5aab8a}.err{color:var(--red)}
+#msg{font-size:.86rem;min-height:20px}
+.dsum{font-family:'Playfair Display',serif;font-weight:600;font-size:1.25rem;margin:34px 0 14px;border-bottom:1px solid var(--line);padding-bottom:8px;cursor:pointer;list-style:none}
+.dsum::-webkit-details-marker{display:none}
+.dsum::before{content:'▸ ';color:var(--gold-l);font-size:.9rem}
+details[open]>.dsum::before{content:'▾ '}
+.dsum-sm{font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;color:var(--silver);cursor:pointer;list-style:none;display:inline-block}
+.dsum-sm::-webkit-details-marker{display:none}
+.dsum-sm::before{content:'▸ ';color:var(--gold-l)}
+details[open]>.dsum-sm::before{content:'▾ '}
+.live-count{color:var(--gold-l);font-weight:600}
+.modal-overlay{position:fixed;inset:0;background:rgba(2,4,10,.72);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.modal-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;max-width:720px;width:100%;position:relative}
+.modal-close{position:absolute;top:14px;right:14px;background:transparent;border:1px solid var(--line);color:var(--cream);border-radius:8px;padding:5px 10px;font-size:.86rem;cursor:pointer}
+.modal-close:hover{border-color:var(--gold)}
+.online-count{font-family:'Playfair Display',serif;font-size:2.1rem;font-weight:700;color:var(--gold-l)}
+.online-chip{display:inline-block;font-size:.76rem;padding:4px 11px;border-radius:20px;background:var(--bg-2);border:1px solid var(--line);color:var(--cream);margin:3px 4px 0 0}
+.up-search{max-width:260px}
+</style>
+</head>
+<body>
+<div id="gate">
+  <h1>JD Arena — Editor</h1>
+  <div class="sub" style="text-align:center">Owner only</div>
+  <input id="code" type="password" placeholder="Admin passcode" autocomplete="off" onkeydown="if(event.key==='Enter')unlock()">
+  <button class="btn" onclick="unlock()">Unlock</button>
+  <div id="gate-msg" class="hint">You'll only need to type this once — it's remembered on this device from now on.</div>
+  <a class="btn ghost" href="/" style="margin-top:4px">← Back to site</a>
+</div>
+
+<div id="users-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeUsersPopup()">✕</button>
+    <h2 style="margin:0 0 4px">Users</h2>
+    <div class="sub" style="margin-bottom:18px">Online now · registered accounts</div>
+    <div class="card">
+      <label>Online right now</label>
+      <div class="online-count"><span id="users-online-count">0</span></div>
+      <p class="hint" style="margin:2px 0 8px">Live via real-time presence — updates on its own as people open/close the site, nothing to refresh. Self-reported by the visitor's browser (same soft-trust model as the rest of the site), so treat it as a good estimate, not an audited count.</p>
+      <div id="users-online-list"></div>
+    </div>
+    <div id="up-summary" class="hint" style="margin:12px 0 0"></div>
+    <div class="row">
+      <button class="btn ghost" onclick="loadAllPlayers()">↻ Load registered players</button>
+      <input class="up-search" id="up-search" placeholder="Search username / tag / email" oninput="renderAllPlayers()">
+      <div id="up-msg" class="hint"></div>
+    </div>
+    <div id="up-list" style="overflow-x:auto;max-height:380px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<div class="wrap" id="app" style="display:none">
+  <h1>JD Arena — Editor <span class="tag">tournaments.json</span></h1>
+  <div class="sub">Add & edit cards · publish</div>
+
+  <div class="row">
+    <a class="btn ghost" href="/">← Back to site</a>
+    <button class="btn" onclick="loadLive()">↻ Load current</button>
+    <label class="btn ghost" style="cursor:pointer">⤴ Upload file<input type="file" accept=".json" onchange="loadFile(event)" hidden></label>
+    <button class="btn ghost" onclick="changePasscode()">🔑 Change passcode</button>
+    <button class="btn ghost" onclick="openUsersPopup()">👥 Users</button>
+    <div id="msg"></div>
+  </div>
+
+  <div class="row">
+    <button class="btn" onclick="publishNow()">🚀 Publish changes</button>
+    <div id="publish-top-msg" class="hint"></div>
+  </div>
+  <p class="hint" style="margin-top:-8px">Edit any event's Name, Date, Time, etc. below, then hit this button — that's the only step needed to make it live.</p>
+
+  <div class="f full" style="margin-bottom:8px">
+    <label>Brand tagline</label>
+    <input id="tagline" placeholder="JD Esports Arena · AyerFire">
+  </div>
+
+  <h2>Tournaments</h2>
+  <div id="tlist"></div>
+  <button class="btn ghost" onclick="addT()">+ Add Event</button>
+
+  <details>
+  <summary class="dsum">Best-of-3 Results <span class="tag">round-by-round · rank arrows</span></summary>
+  <p class="hint">Kills + points per round (Best of 3) for one tournament's bracket — the live site shows one bracket at a time. Picking a different tournament here doesn't touch the others' data, it's just which one is currently on display.</p>
+  <div class="grid">
+    <div class="f full"><label>Tournament</label><select id="bo3-tourney" onchange="onBo3TourneyChange()"></select></div>
+    <div class="f full"><label>Bracket title (optional)</label><input id="bo3-title" placeholder="e.g. JD Free Fire Open #1 — Finals"></div>
+  </div>
+  <div class="row">
+    <button class="btn ghost" onclick="loadBo3Roster()">Load squads from roster</button>
+    <button class="btn ghost" onclick="addBo3Team()">+ Add squad</button>
+  </div>
+  <div id="bo3list" style="overflow-x:auto"></div>
+  <div class="row">
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.86rem"><input type="checkbox" id="bo3-published" style="width:auto" onchange="data.bo3.published=this.checked">Published (shows on the live site once you publish tournaments.json)</label>
+  </div>
+  <p class="hint">Publishing here only takes effect once you <b>Generate</b> and then <b>🚀 Publish to GitHub</b> (or Download and commit manually) below. Do that first and confirm the live site shows it — <i>then</i> use "Notify players" below. Notifying before the publish is live sends players to a stale or empty board.</p>
+  <div class="row">
+    <button class="btn ghost" onclick="notifyBo3Results()">🔔 Notify players</button>
+    <div id="bo3-msg" class="hint"></div>
+  </div>
+  <p class="hint">Only players who <b>registered in-app</b> for the selected tournament get notified — the squad names typed into the table above are for display only and may not exactly match who's in that list (see SUPABASE_SETUP.md's "Known gap").</p>
+  <div class="row">
+    <button class="btn" onclick="archiveResults()">📦 Archive results</button>
+  </div>
+  <p class="hint">Once these scores are truly final, click this to permanently save each squad's placement/kills/points (and any prize won) to player career stats — this is what powers player profiles, rank tiers, and career totals. Safe to re-run if you correct a score before moving on to a new bracket; it overwrites this tournament's archived rows rather than duplicating them.</p>
+  </details>
+
+  <details>
+  <summary class="dsum">Match Recap <span class="tag">AI-written · Gemini</span></summary>
+  <p class="hint">Generates a hype/roast-style recap (English + Nepali) from a tournament's <b>archived</b> results — archive results above first. Admin-triggered only, never automatic: the free Gemini tier is rate-limited to a small number of requests/day, so review the output here and edit freely before sending anything.</p>
+  <div class="grid">
+    <div class="f full"><label>Tournament</label><select id="mr-tourney"></select></div>
+  </div>
+  <div class="row">
+    <button class="btn ghost" onclick="generateMatchRecap()">🎙️ Generate recap</button>
+    <div id="mr-msg" class="hint"></div>
+  </div>
+  <div class="f full"><label>English</label><textarea id="mr-english" rows="4" placeholder="Generated recap appears here…"></textarea></div>
+  <div class="f full"><label>Nepali</label><textarea id="mr-nepali" rows="4" placeholder="Generated recap appears here…"></textarea></div>
+  <div class="row">
+    <button class="btn" onclick="sendRecapToAnnouncement()">📣 Send to players</button>
+  </div>
+  <p class="hint">Copies the recap into Send Announcement below (title pre-filled), where you can still edit it and pick who it goes to before it actually sends.</p>
+  </details>
+
+  <h2 id="ai-recommendations">AI Recommendations <span class="tag">payments/reports/flags: you decide</span></h2>
+  <p class="hint">ZULU's AI council independently judges pending items and votes — shown here as a majority verdict with each model's reasoning. Payment approval, report/ban, and anomaly-flag triage NEVER happen by themselves: Confirm calls the exact same approve/dismiss/ban actions you'd use manually elsewhere on this page, and you have to look at the actual evidence before Confirm unlocks. <b>Cancel-tournament is the one exception</b> — a free/low-turnout tournament with no financial stakes gets cancelled and published automatically when the council agrees, no click needed (you can turn this back to recommend-only via AUTO_EXECUTE_CANCEL_TOURNAMENT in zulu_secrets.py). You still get a Discord DM and a history entry below for every auto-cancel, same as everything else here.</p>
+  <div class="grid">
+    <div class="f"><label>ZULU server URL</label><input id="ai-server-url" placeholder="e.g. https://xxxx.trycloudflare.com or http://localhost:5005" oninput="localStorage.setItem('jd_zulu_ai_url',this.value)"></div>
+    <div class="f"><label>ZULU SECRET_KEY</label><input id="ai-server-key" type="password" placeholder="from zulu_secrets.py" oninput="localStorage.setItem('jd_zulu_ai_key',this.value)"></div>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="runAiReview()">🤖 Run AI Review</button>
+    <button class="btn ghost" onclick="loadAiRecommendations()">↻ Load recommendations</button>
+    <div id="ai-msg" class="hint"></div>
+  </div>
+  <div id="ai-list"></div>
+
+  <h3 style="margin:22px 0 6px;font-family:'Playfair Display',serif;font-weight:600;font-size:1.02rem;color:var(--gold-l)">Auto-cancel history</h3>
+  <p class="hint">Cancellations ZULU already executed on its own — informational only, nothing to confirm here.</p>
+  <div class="row">
+    <button class="btn ghost" onclick="loadAiHistory()">↻ Load history</button>
+    <div id="ai-history-msg" class="hint"></div>
+  </div>
+  <div id="ai-history-list"></div>
+
+  <h2 id="room-codes">Room Codes <span class="tag">notifies registered players</span></h2>
+  <p class="hint">Pick the event, enter the Room ID + password, then either send it right now or stage it — a staged code releases itself to everyone registered in-app ~5 minutes before kickoff, nobody else can see it either way.</p>
+  <div class="grid">
+    <div class="f full"><label>Tournament</label><select id="rc-tourney" onchange="loadRcStatus()"></select></div>
+    <div class="f"><label>Room ID</label><input id="rc-room-id" placeholder="e.g. 8829371"></div>
+    <div class="f"><label>Room password</label><input id="rc-room-pass" placeholder="e.g. jd2026"></div>
+  </div>
+  <div id="rc-status" class="hint"></div>
+  <div class="row">
+    <button class="btn" onclick="sendRoomCode()">Send Room Code now</button>
+    <button class="btn ghost" onclick="stageRoomCode()">💾 Stage for auto-release (~5 min before)</button>
+    <div id="rc-msg" class="hint"></div>
+  </div>
+
+  <h2 id="reviews">Reviews <span class="tag">moderate · public trust feature</span></h2>
+  <p class="hint">Anyone who was confirmed/approved for a tournament can leave a public star rating + comment once it's marked "completed" — no pre-approval queue, but you can remove an abusive or spam one here after the fact.</p>
+  <div class="grid">
+    <div class="f full"><label>Tournament</label><select id="rv-tourney"></select></div>
+  </div>
+  <div class="row">
+    <button class="btn ghost" onclick="loadReviewsAdmin()">↻ Load reviews</button>
+    <div id="rv-msg" class="hint"></div>
+  </div>
+  <div id="rv-list"></div>
+
+  <h2 id="reports">Reports <span class="tag">private until actioned</span></h2>
+  <p class="hint">Players can report a squad/player (with an optional evidence link) for anything — emulator misdeclaration, cheating, no-shows. Reports are never public; only a ban resulting from one shows up on the public ban list.</p>
+  <div class="row">
+    <select id="rp-status"><option value="pending">Pending</option><option value="actioned">Actioned</option><option value="dismissed">Dismissed</option><option value="">All</option></select>
+    <button class="btn ghost" onclick="loadReportsAdmin()">↻ Load reports</button>
+    <div id="rp-msg" class="hint"></div>
+  </div>
+  <div id="rp-list"></div>
+
+  <h2 id="ban-list">Ban List <span class="tag">public · blocks re-registration</span></h2>
+  <p class="hint">Banning someone here (via a report above, or directly) actually blocks their account from registering for future tournaments — not just a name on a page. The list itself (tag/username, reason, date — never contact info) is public.</p>
+  <div class="row">
+    <button class="btn ghost" onclick="loadBanListAdmin()">↻ Load ban list</button>
+    <div id="bl-msg" class="hint"></div>
+  </div>
+  <div id="bl-list"></div>
+  <div class="grid" style="margin-top:10px">
+    <div class="f"><label>Ban directly (tag / username / email)</label><input id="bl-identifier" placeholder="e.g. JD-7F3K2"></div>
+    <div class="f"><label>Reason (shown publicly)</label><input id="bl-reason" placeholder="e.g. Confirmed emulator use in a mobile-only bracket"></div>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="banDirectly()">🚫 Ban</button>
+  </div>
+
+  <h2 id="anomaly-flags">Anomaly Flags <span class="tag">cheating signal · never auto-bans</span></h2>
+  <p class="hint">When you archive results, any squad whose kills spike well past their own season average (needs at least 2 prior appearances to judge) gets flagged here automatically. This never bans or blocks anyone by itself — it's just a "look at this" signal. Review the replay/context yourself, then use Reports/Ban List above if action is warranted.</p>
+  <div class="row">
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.86rem"><input type="checkbox" id="af-unreviewed-only" style="width:auto" checked>Unreviewed only</label>
+    <button class="btn ghost" onclick="loadFlagsAdmin()">↻ Load flags</button>
+    <div id="af-msg" class="hint"></div>
+  </div>
+  <div id="af-list"></div>
+
+  <h2 id="announce">Send Announcement <span class="tag">any message, any players</span></h2>
+  <p class="hint">Write anything and send it — leave "Only send to" blank to reach every player on the site, or list a few to reach just them.</p>
+  <div class="grid">
+    <div class="f full"><label>Title</label><input id="an-title" placeholder="e.g. Discord's back up!"></div>
+    <div class="f full"><label>Message</label><textarea id="an-body" rows="3" placeholder="What do you want to tell them?"></textarea></div>
+    <div class="f full"><label>Only send to specific players? (optional)</label><input id="an-recipients" placeholder="e.g. JD-7F3K2, @someuser, someone@email.com — comma separated"></div>
+  </div>
+  <div class="row">
+    <button class="btn" onclick="sendAnnouncement()">📣 Send</button>
+    <div id="an-msg" class="hint"></div>
+  </div>
+
+  <h2 id="pending-payments">Pending Payments <span class="tag">paid tournaments</span></h2>
+  <p class="hint">Screenshot-verify paid in-app registrations before they count as registered — pending players don't get room codes, reminders, or results notifications until you approve them here. Uses the passcode you entered to open this page.</p>
+  <div class="grid">
+    <div class="f full"><label>Tournament</label><select id="pp-tourney" onchange="loadPendingPayments()"></select></div>
+  </div>
+  <div class="row">
+    <button class="btn ghost" onclick="loadPendingPayments()">↻ Load pending</button>
+    <div id="pp-msg" class="hint"></div>
+  </div>
+  <div id="pp-list"></div>
+
+  <details>
+  <summary class="dsum">Admin Alerts <span class="tag">new signups</span></summary>
+  <p class="hint">Subscribes THIS device to a push alert every time someone new signs up on the site, naming their username. Needs the same OneSignal + <code>ADMIN_SECRET</code> setup as Room Codes, plus a one-time Supabase Database Webhook — see <code>SUPABASE_SETUP.md</code>.</p>
+  <div class="row">
+    <button class="btn ghost" id="admin-push-btn" onclick="enableAdminPush()">🔔 Enable admin alerts</button>
+  </div>
+  </details>
+
+  <details>
+  <summary class="dsum">Advanced <span class="tag">raw JSON · manual publish</span></summary>
+  <p class="hint">Only needed if the "🚀 Publish changes" button above fails — e.g. if it reports a GitHub error. Click <b>Generate JSON</b>, then either retry <b>🚀 Publish to GitHub</b> here or <b>Download</b> and replace <code>tournaments.json</code> in GitHub yourself.</p>
+  <div class="row">
+    <button class="btn" onclick="gen()">Generate JSON</button>
+    <button class="btn ghost" onclick="copyOut()">Copy</button>
+    <button class="btn ghost" onclick="download()">Download tournaments.json</button>
+  </div>
+  <textarea id="out" spellcheck="false" placeholder="Generated JSON appears here…"></textarea>
+  <div class="row">
+    <button class="btn" onclick="publishToGitHub()">🚀 Publish to GitHub</button>
+    <div id="publish-msg" class="hint"></div>
+  </div>
+  </details>
+</div>
+
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* ── one passcode, not two ── typing anything here just saves it as the admin passcode
+   and opens the editor; there's nothing to check it against client-side (this file is
+   public page source either way, so a client-side check would be theater, not security).
+   The real gate is server-side: Room Codes / Notify players send this same value as
+   x-admin-secret, and the Edge Function only acts on it if it matches the ADMIN_SECRET secret —
+   type the wrong thing and those two actions will fail with "Unauthorized", nothing else
+   is exposed by getting into the editor UI itself. Remembered via localStorage so this is
+   ever only typed once per device; "🔑 Change passcode" clears it. */
+function unlock(){
+  const v=document.getElementById('code').value.trim();
+  if(!v){document.getElementById('gate-msg').innerHTML='<span class="err">Enter your admin passcode.</span>';return;}
+  localStorage.setItem('jd_admin_secret',v);
+  document.getElementById('gate').style.display='none';
+  document.getElementById('app').style.display='';
+  loadLive();
+}
+function changePasscode(){
+  if(!confirm('Clear the saved admin passcode on this device? You\'ll need to re-enter it to send room codes or notify players again.'))return;
+  localStorage.removeItem('jd_admin_secret');
+  document.getElementById('app').style.display='none';
+  document.getElementById('code').value='';
+  document.getElementById('gate-msg').innerHTML='';
+  document.getElementById('gate').style.display='';
+}
+function adminSecret(){return (localStorage.getItem('jd_admin_secret')||'').trim();}
+
+/* ── Users popup: "online now" via the same Realtime Presence channel jd-website's
+   index.html joins (jd-online) — the admin side never calls .track() itself, so it
+   never counts itself as a visitor, just listens and renders presenceState() on every
+   sync. "Registered players" is a separate on-demand list from the list-players Edge
+   Function (admin-only, service-role — full account list, not just one tournament's
+   roster like list-registrations). ── */
+let _usersPresenceChannel=null;
+let _onlineTags=new Set(); // lowercased player_tag/username of everyone the presence sync currently reports — cross-referenced onto the registered-players table below so "online" isn't just a number, it's visible per row too
+function connectPresence(){
+  if(!sb||_usersPresenceChannel)return;
+  _usersPresenceChannel=sb.channel('jd-online');
+  _usersPresenceChannel.on('presence',{event:'sync'},()=>renderOnlineUsers(_usersPresenceChannel.presenceState()));
+  _usersPresenceChannel.subscribe();
+}
+function renderOnlineUsers(state){
+  const entries=Object.values(state||{}).flat();
+  _onlineTags=new Set();
+  for(const e of entries){if(e.tag)_onlineTags.add(String(e.tag).toLowerCase());if(e.username)_onlineTags.add(String(e.username).toLowerCase());}
+  const countEl=document.getElementById('users-online-count');if(countEl)countEl.textContent=entries.length;
+  const box=document.getElementById('users-online-list');if(!box)return;
+  box.innerHTML=entries.length?entries.map(e=>`<span class="online-chip">${e.username?('@'+esc(e.username)):(e.tag?esc(e.tag):'Anonymous visitor')}</span>`).join(''):'<p class="hint" style="margin:0">Nobody online right now.</p>';
+  renderAllPlayers(); // re-render so online dots on the registered table stay current too
+  updateUsersSummary();
+}
+function openUsersPopup(){
+  document.getElementById('users-modal').style.display='flex';
+  connectPresence();
+  if(!_allPlayers.length)loadAllPlayers();
+}
+function closeUsersPopup(){document.getElementById('users-modal').style.display='none';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('users-modal').style.display==='flex')closeUsersPopup();});
+document.getElementById('users-modal')?.addEventListener('click',e=>{if(e.target.id==='users-modal')closeUsersPopup();});
+function upMsg(t,c){const el=document.getElementById('up-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+function updateUsersSummary(){
+  const el=document.getElementById('up-summary');if(!el)return;
+  const totalRegs=_allPlayers.reduce((s,p)=>s+(p.reg_count||0),0);
+  el.textContent=_allPlayers.length?`${_allPlayers.length} registered player(s) · ${totalRegs} confirmed tournament registration(s) · ${_onlineTags.size?_onlineTags.size+' currently online (of these)':''}`.replace(/ · $/,''):'';
+}
+let _allPlayers=[];
+async function loadAllPlayers(){
+  const secret=adminSecret();
+  if(!secret){upMsg('Enter the admin passcode first.','err');return;}
+  upMsg('Loading…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/list-players',{headers:{'x-admin-secret':secret}});
+    if(!r.ok)throw new Error(await r.text());
+    _allPlayers=await r.json();
+    renderAllPlayers();
+    updateUsersSummary();
+    upMsg(_allPlayers.length+' registered player(s).','ok');
+  }catch(e){upMsg('Could not load: '+e.message,'err');}
+}
+function fmtLastSeen(iso){
+  if(!iso)return'Never';
+  const d=new Date(iso),diffH=(Date.now()-d.getTime())/36e5;
+  if(diffH<24)return d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+  return d.toLocaleDateString();
+}
+function renderAllPlayers(){
+  const box=document.getElementById('up-list');if(!box)return;
+  const f=(document.getElementById('up-search').value||'').trim().toLowerCase();
+  const rows=_allPlayers.filter(p=>!f||(p.username||'').toLowerCase().includes(f)||(p.player_tag||'').toLowerCase().includes(f)||(p.email||'').toLowerCase().includes(f));
+  box.innerHTML=rows.length?`<table class="bo3-tbl"><thead><tr><th></th><th>Player</th><th>Tag</th><th>Email</th><th>Discord</th><th>Joined</th><th>Last seen</th><th>Regs</th></tr></thead><tbody>${rows.map(p=>{
+    const online=(p.player_tag&&_onlineTags.has(String(p.player_tag).toLowerCase()))||(p.username&&_onlineTags.has(String(p.username).toLowerCase()));
+    return `<tr><td>${online?'<span class="ok" title="Online now">●</span>':''}</td><td>${esc(p.username||'—')}</td><td>${esc(p.player_tag||'—')}</td><td>${esc(p.email||'—')}</td><td>${p.discord_username?('@'+esc(p.discord_username)):'—'}</td><td>${esc(new Date(p.created_at).toLocaleDateString())}</td><td>${esc(fmtLastSeen(p.last_sign_in_at))}</td><td>${p.reg_count||0}</td></tr>`;
+  }).join('')}</tbody></table>`:`<p class="hint">No players${f?' match "'+esc(f)+'"':' yet'}.</p>`;
+}
+
+function bo3Default(){return {tournament:'',title:'',published:false,teams:[]};}
+function bo3Round(){return {kills:0,pts:0};}
+let data={tagline:'JD Esports Arena · AyerFire',tournaments:[],bo3:bo3Default()};
+let _loadedSnapshot=null; // tournaments.json exactly as last fetched from the live site — lets Publish detect a stale tab about to overwrite newer changes (e.g. a team someone else added)
+(function(){if(adminSecret()){document.getElementById('gate').style.display='none';document.getElementById('app').style.display='';loadLive();}})();
+const STATUSES=['upcoming','live','completed','cancelled'];
+const REG_TYPES=['whatsapp','discord','url'];
+const PLATFORM_MODES=[['mixed','Mixed (any device)'],['mobile','Mobile only'],['emulator','Emulator only']];
+const SQUAD_EFFECTS=[['','None'],['gold','👑 Champion (Gold)'],['fire','🔥 Fire'],['ice','❄️ Ice'],['neon','💜 Neon'],['rainbow','🌈 Rainbow']]; /* shown wherever this squad's chip appears on the live site — see squadFx() in index.html */
+const PLACEHOLDER_LOGO="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23121a2e'/%3E%3Ctext x='20' y='26' text-anchor='middle' font-family='Inter' font-size='16' fill='%237e8eb0'%3E%3F%3C/text%3E%3C/svg%3E";
+const MAX_LOGO_PX=128;
+const EDGE_FN_BASE='https://cnoxvqvpmgowdiyrrusv.supabase.co/functions/v1'; // Supabase Edge Functions (moved off Netlify)
+const SUPABASE_URL='https://cnoxvqvpmgowdiyrrusv.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil'; // safe to expose — RLS-protected, same as jd-arena.html
+const sb=(typeof supabase!=='undefined'&&SUPABASE_URL&&SUPABASE_ANON_KEY)?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+const TF=[['name','Name','text'],['game','Game / mode','text'],['date','Date (display)','text'],['time','Time','text'],['start','Start (ISO, for countdown)','text'],['prize','Prize pool','text'],['entry','Entry fee','text'],['platform','Platform','text'],['slots','Slots (max squads)','number'],['format','Format','text'],['register_url','Register URL','text'],['winner','Winner (if done)','text']];
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function safeUrl(u){u=String(u||'').trim();return /^(https?:\/\/|mailto:|tel:)/i.test(u)?u:'';}
+
+/* ── one picker drives Date + Time + Start together, so the countdown on the live
+   site (which only ever reads "start") can never be forgotten the way it could
+   when Date/Time/Start were three separate hand-typed fields. The wall-clock value
+   typed into the picker is treated AS Nepal time directly (not the admin's own
+   browser timezone) and tagged with the +05:45 offset, matching every existing
+   "start" value in tournaments.json. ── */
+const NPT_OFFSET='+05:45';
+function isoToLocalInputValue(iso){
+  const m=String(iso||'').match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/);
+  return m?m[1]:'';
+}
+function startFieldsFromLocal(value){
+  const m=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if(!m)return null;
+  const[,y,mo,d,h,mi]=m;
+  const start=`${y}-${mo}-${d}T${h}:${mi}:00${NPT_OFFSET}`;
+  const dt=new Date(Date.UTC(+y,+mo-1,+d));
+  const date=dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'});
+  const h24=+h,hh12=(h24%12)||12,ampm=h24<12?'AM':'PM';
+  const time=`${hh12}:${mi} ${ampm} NPT`;
+  return {start,date,time};
+}
+
+let _liveCounts=new Map(); // tournament name -> real confirmed+approved registration count, from get_public_roster()
+async function loadLiveCounts(){
+  if(!sb)return;
+  const {data:rows,error}=await sb.rpc('get_public_roster');
+  if(error)return;
+  _liveCounts=new Map();
+  for(const r of rows||[])_liveCounts.set(r.tournament_slug,(_liveCounts.get(r.tournament_slug)||0)+1);
+  renderT();
+}
+function renderT(){
+  document.getElementById('tlist').innerHTML=data.tournaments.map((t,i)=>{
+    const fields=TF.map(([k,lbl,type])=>{
+      return `<div class="f ${['format','register_url','name'].includes(k)?'full':''}"><label>${lbl}</label><input data-i="${i}" data-k="${k}" type="${type}" value="${esc(t[k]??'')}"></div>`;
+    }).join('');
+    const sel=`<div class="f"><label>Status</label><select data-i="${i}" data-k="status">${STATUSES.map(s=>`<option ${(t.status||'upcoming')===s?'selected':''}>${s}</option>`).join('')}</select></div>`;
+    const reg=`<div class="f"><label>Register via</label><select data-i="${i}" data-k="register_type">${REG_TYPES.map(s=>`<option ${(t.register_type||'whatsapp')===s?'selected':''}>${s}</option>`).join('')}</select></div>`;
+    const platMode=`<div class="f"><label>Device eligibility <span class="tag">enforced server-side</span></label><select data-i="${i}" data-k="platform_mode">${PLATFORM_MODES.map(([v,lbl])=>`<option value="${v}" ${(t.platform_mode||'mixed')===v?'selected':''}>${lbl}</option>`).join('')}</select><p class="hint" style="margin:4px 0 0">Mobile/Emulator-only actually blocks the wrong device at registration (not just a display label) — see the "Platform" text field below for what players see.</p></div>`;
+    const startPicker=`<div class="f full"><label>Event start (Nepal date &amp; time) <span class="tag">sets Date, Time &amp; the live countdown together</span></label><input type="datetime-local" data-i="${i}" data-startpicker="1" value="${esc(isoToLocalInputValue(t.start))}"><p class="hint" style="margin:4px 0 0">Leave blank only if the date is genuinely TBA — without it the live site shows no countdown and won't auto-flip this event to "live".</p></div>`;
+    const teams=t.teams||[];
+    const live=_liveCounts.get(t.name)||0;
+    const liveLine=sb?`<div class="f full"><label>Squads actually registered</label><p class="hint" style="margin:0"><span class="live-count">${live}${t.slots?'/'+t.slots:''}</span> — real players who signed up in the app. This is the number that matters; it updates on its own as people join.</p></div>`:'';
+    const roster=`${liveLine}<details class="f full"><summary class="dsum-sm">Manual squad list <span class="tag">for special effects</span></summary><p class="hint">Also doubles as a display fallback if Supabase is ever unreachable, or if nobody's registered live yet for this event. Click "↻ Load from live roster" to pull in real registered squads here so you can give one an effect — it won't duplicate the live count above.</p><div class="row" style="margin:0 0 8px"><button class="btn ghost" style="font-size:.72rem;padding:7px 12px" onclick="loadSquadsFromRoster(${i})">↻ Load from live roster</button></div><div class="rosterlist">${teams.map((tm,mi)=>`<div class="rrow"><div class="rrow-top"><img class="rlogo" src="${tm.logo||PLACEHOLDER_LOGO}" alt=""><input data-ti="${i}" data-mi="${mi}" data-field="name" value="${esc(tm.name)}" placeholder="Squad name"><label class="rlogo-btn">Logo<input type="file" accept="image/*" hidden onchange="onTeamLogo(event,${i},${mi})"></label><button class="del" onclick="delTeam(${i},${mi})">✕</button></div><input class="rmembers" data-ti="${i}" data-mi="${mi}" data-field="members" value="${esc(Array.isArray(tm.members)?tm.members.join(', '):(tm.members||''))}" placeholder="Members, comma separated — e.g. PlayerA, PlayerB, PlayerC, PlayerD"><label class="rfx-label">Special effect <select class="rfx" data-ti="${i}" data-mi="${mi}" data-field="effect">${SQUAD_EFFECTS.map(([v,lbl])=>`<option value="${v}" ${(tm.effect||'')===v?'selected':''}>${lbl}</option>`).join('')}</select></label></div>`).join('')||'<p class="hint" style="margin:0">Empty.</p>'}</div><button class="btn ghost" style="margin-top:8px" onclick="addTeam(${i})">+ Add squad</button></details>`;
+    return `<div class="card"><button class="del" onclick="delT(${i})">Delete</button><button class="btn ghost" style="position:absolute;top:14px;right:92px;font-size:.72rem;padding:7px 12px" onclick="jumpToRoomCode(${i})">📨 Send Room Code</button><div class="grid">${sel}${reg}${platMode}${startPicker}${fields}${roster}</div></div>`;
+  }).join('')||'<p class="hint">No tournaments yet — click "+ Add Event".</p>';
+}
+function renderAll(){document.getElementById('tagline').value=data.tagline||'';renderT();renderBo3();renderRcTourney();renderPpTourney();renderRvTourney();renderMrTourney();loadLiveCounts();}
+
+// live two-way binding (no re-render on keystroke, so focus stays)
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='tagline'){data.tagline=t.value;return;}
+  if(t.id==='bo3-title'){data.bo3=data.bo3||bo3Default();data.bo3.title=t.value;return;}
+  if(t.dataset.startpicker!==undefined){
+    const i=+t.dataset.i,f=startFieldsFromLocal(t.value);
+    if(!f){data.tournaments[i].start='';return;} // cleared — leave existing Date/Time text alone, just drop the countdown
+    Object.assign(data.tournaments[i],f);
+    const card=t.closest('.card');
+    if(card){
+      const dEl=card.querySelector('input[data-k="date"]');if(dEl)dEl.value=f.date;
+      const tEl=card.querySelector('input[data-k="time"]');if(tEl)tEl.value=f.time;
+      const sEl=card.querySelector('input[data-k="start"]');if(sEl)sEl.value=f.start;
+    }
+    return;
+  }
+  if(t.dataset.ti!==undefined&&t.dataset.mi!==undefined){const ti=+t.dataset.ti,mi=+t.dataset.mi;data.tournaments[ti].teams[mi][t.dataset.field||'name']=t.value;}
+  else if(t.dataset.i!==undefined){const i=+t.dataset.i,k=t.dataset.k;data.tournaments[i][k]=(t.type==='number')?(t.value===''?'':+t.value):t.value;}
+  else if(t.dataset.bi!==undefined&&t.dataset.bri!==undefined){
+    const i=+t.dataset.bi,ri=+t.dataset.bri,k=t.dataset.brk;
+    data.bo3.teams[i].r[ri][k]=t.value===''?0:+t.value;
+    const tr=t.closest('tr'),tot=tr&&tr.querySelector('.bo3-tot');
+    if(tot)tot.textContent=bo3Total(data.bo3.teams[i]);
+  }
+  else if(t.dataset.bi!==undefined&&t.dataset.bk!==undefined){const i=+t.dataset.bi,k=t.dataset.bk;data.bo3.teams[i][k]=t.value;}
+});
+
+function addT(){data.tournaments.push({name:'New Tournament',game:'Free Fire BR · Squad',date:'TBA',time:'TBA',start:'',status:'upcoming',prize:'Bragging rights + shoutout',entry:'Free',platform:'Mobile only',platform_mode:'mixed',slots:12,format:'BR · 4 matches',register_type:'whatsapp',register_url:'',winner:'',teams:[]});renderT();window.scrollBy(0,200);}
+function delT(i){if(confirm('Delete this tournament?')){data.tournaments.splice(i,1);renderT();}}
+function addTeam(ti){data.tournaments[ti].teams=data.tournaments[ti].teams||[];data.tournaments[ti].teams.push({name:'',logo:'',members:''});renderT();}
+function delTeam(ti,mi){data.tournaments[ti].teams.splice(mi,1);renderT();}
+/* Pulls real registered squads (same get_public_roster() RPC as loadBo3Roster())
+   into this tournament's Manual squad list so an already-registered squad can get
+   a special effect assigned — not just squads typed in from scratch. Existing
+   effect/logo/members for a name that's still registered are kept; anyone no
+   longer in the live roster (left, got rejected, etc.) drops off the list here too. */
+async function loadSquadsFromRoster(ti){
+  const t=data.tournaments[ti];if(!t)return;
+  if(!sb){msg('Supabase isn\'t configured on this deploy — nothing to load.','err');return;}
+  msg('Loading live roster…','');
+  const {data:rows,error}=await sb.rpc('get_public_roster');
+  if(error){msg('Could not load live roster: '+error.message,'err');return;}
+  const roster=(rows||[]).filter(r=>r.tournament_slug===t.name).map(r=>({name:r.squad_name||'Squad',logo:r.squad_logo||''}));
+  const existing=new Map((t.teams||[]).map(x=>[x.name,x]));
+  t.teams=roster.map(r=>{const ex=existing.get(r.name);return {name:r.name,logo:r.logo||(ex&&ex.logo)||'',members:(ex&&ex.members)||'',effect:(ex&&ex.effect)||''};});
+  renderT();
+  msg('Loaded '+t.teams.length+' squad(s) from the live roster for "'+t.name+'" — existing effects for matching names were kept.','ok');
+}
+function onTeamLogo(e,ti,mi){
+  const f=e.target.files[0];if(!f)return;
+  const img=new Image();
+  const reader=new FileReader();
+  reader.onload=()=>{
+    img.onload=()=>{
+      const scale=Math.min(1,MAX_LOGO_PX/Math.max(img.width,img.height));
+      const w=Math.max(1,Math.round(img.width*scale)),h=Math.max(1,Math.round(img.height*scale));
+      const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      data.tournaments[ti].teams[mi].logo=cv.toDataURL('image/png');
+      renderT();
+    };
+    img.src=reader.result;
+  };
+  reader.readAsDataURL(f);
+}
+function bo3Total(t){return (t.r||[]).reduce((s,x)=>s+(+((x&&x.pts)||0)),0);}
+function renderBo3(){
+  data.bo3=data.bo3||bo3Default();
+  const sel=document.getElementById('bo3-tourney');
+  if(sel)sel.innerHTML=data.tournaments.map(t=>`<option value="${esc(t.name)}" ${data.bo3.tournament===t.name?'selected':''}>${esc(t.name)}</option>`).join('')||'<option value="">No tournaments yet</option>';
+  const ti=document.getElementById('bo3-title');if(ti)ti.value=data.bo3.title||'';
+  const pub=document.getElementById('bo3-published');if(pub)pub.checked=!!data.bo3.published;
+  const teams=data.bo3.teams=data.bo3.teams||[];
+  const box=document.getElementById('bo3list');if(!box)return;
+  if(!teams.length){box.innerHTML='<p class="hint">No squads yet — "Load squads from roster" or "+ Add squad".</p>';return;}
+  box.innerHTML=`<table class="bo3-tbl"><thead><tr><th>Squad</th><th>R1 Kills</th><th>R1 Pts</th><th>R2 Kills</th><th>R2 Pts</th><th>R3 Kills</th><th>R3 Pts</th><th>Total</th><th>Prize won (NPR)</th><th></th></tr></thead><tbody>${teams.map((tm,i)=>{
+    tm.r=tm.r||[bo3Round(),bo3Round(),bo3Round()];
+    const rounds=[0,1,2].map(ri=>`<td><input data-bi="${i}" data-bri="${ri}" data-brk="kills" type="number" value="${esc(tm.r[ri].kills??0)}"></td><td><input data-bi="${i}" data-bri="${ri}" data-brk="pts" type="number" value="${esc(tm.r[ri].pts??0)}"></td>`).join('');
+    return `<tr><td><input data-bi="${i}" data-bk="team" value="${esc(tm.team)}" placeholder="Squad name"></td>${rounds}<td class="bo3-tot">${bo3Total(tm)}</td><td><input data-bi="${i}" data-bk="prize_won" type="number" placeholder="0" value="${esc(tm.prize_won??'')}" style="min-width:80px"></td><td><button class="del" style="position:static;padding:6px 9px" onclick="delBo3Team(${i})">✕</button></td></tr>`;
+  }).join('')}</tbody></table>`;
+}
+/* Final placement per squad — same ranking rule as index.html's bo3Standings()
+   (points desc, kills as tiebreak) but only the final rank/kills/points are
+   needed here since this feeds archive-results, not the round-by-round board. */
+function bo3FinalStandings(bo3){
+  const teams=(bo3&&bo3.teams)||[];
+  const rows=teams.map(t=>{
+    let pts=0,kills=0;
+    for(const r of (t.r||[])){pts+=+((r&&r.pts)||0);kills+=+((r&&r.kills)||0);}
+    return {team:t.team,pts,kills,prize_won:+(t.prize_won||0)};
+  }).filter(r=>r.team);
+  rows.sort((a,b)=>b.pts-a.pts||b.kills-a.kills||String(a.team).localeCompare(String(b.team)));
+  return rows.map((r,i)=>({squad_name:r.team,placement:i+1,kills:r.kills,points:r.pts,prize_won:r.prize_won}));
+}
+async function archiveResults(){
+  data.bo3=data.bo3||bo3Default();
+  const name=data.bo3.tournament,secret=adminSecret();
+  if(!secret){bo3Msg('Enter the admin passcode first.','err');return;}
+  if(!name){bo3Msg('Pick a tournament first.','err');return;}
+  const results=bo3FinalStandings(data.bo3);
+  if(!results.length){bo3Msg('No squads with scores to archive yet.','err');return;}
+  if(!confirm('Permanently archive these final standings for "'+name+'" into player career stats? This can be re-run later if scores change (it overwrites this tournament\'s archived rows), but only do this once results are truly final.'))return;
+  bo3Msg('Archiving…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/archive-results',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({tournament_slug:name,results})});
+    if(!r.ok)throw new Error(await r.text());
+    const d=await r.json();
+    bo3Msg('Archived '+d.archived+' squad result(s) — these now count toward player career stats and rank.'+(d.flagged?' ⚠️ '+d.flagged+' squad(s) flagged for anomaly review — see Anomaly Flags below.':''),'ok');
+    // Auto-draft the match recap the moment results go final, instead of making the admin
+    // navigate to Match Recap, re-pick the same tournament, and click Generate separately.
+    // Still stops short of auto-sending -- generateMatchRecap() only fills the text boxes,
+    // "📣 Send to players" is a separate human click, since AI-written copy going out to
+    // every player deserves a read-over first (tone/translation quality can vary per run).
+    const mrSel=document.getElementById('mr-tourney');
+    if(mrSel){mrSel.value=name;await generateMatchRecap();}
+  }catch(e){bo3Msg('Failed: '+e.message,'err');}
+}
+
+/* ── match recap (Gemini) ── */
+function renderMrTourney(){
+  const sel=document.getElementById('mr-tourney');if(!sel)return;
+  sel.innerHTML=data.tournaments.map(t=>`<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('')||'<option value="">No tournaments yet</option>';
+}
+function mrMsg(t,c){const el=document.getElementById('mr-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+async function generateMatchRecap(){
+  const secret=adminSecret(),name=document.getElementById('mr-tourney').value;
+  if(!secret){mrMsg('Enter the admin passcode first.','err');return;}
+  if(!name){mrMsg('Pick a tournament first.','err');return;}
+  mrMsg('Generating… (this calls Gemini, uses one of your daily requests)','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/generate-match-recap',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({tournament_slug:name})});
+    if(!r.ok)throw new Error(await r.text());
+    const d=await r.json();
+    document.getElementById('mr-english').value=d.english||'';
+    document.getElementById('mr-nepali').value=d.nepali||'';
+    mrMsg('Generated — review and edit before sending.','ok');
+  }catch(e){mrMsg('Failed: '+e.message,'err');}
+}
+function sendRecapToAnnouncement(){
+  const en=document.getElementById('mr-english').value||'';
+  const ne=document.getElementById('mr-nepali').value||'';
+  if(!en&&!ne){mrMsg('Generate a recap first.','err');return;}
+  document.getElementById('an-title').value='🎙️ Match Recap: '+(document.getElementById('mr-tourney').value||'');
+  document.getElementById('an-body').value=en+(ne?('\n\n'+ne):'');
+  document.getElementById('announce').scrollIntoView({behavior:'smooth',block:'start'});
+  mrMsg('Copied into Send Announcement below — edit and pick recipients there, nothing sent yet.','ok');
+}
+function onBo3TourneyChange(){data.bo3=data.bo3||bo3Default();data.bo3.tournament=document.getElementById('bo3-tourney').value;}
+/* Pulls the REAL registered roster live from Supabase (same get_public_roster()
+   RPC jd-arena.html uses) instead of tournaments.json's teams field — that field
+   is no longer what the live site displays/maintains, so reading it here would
+   silently load stale or empty data. Falls back to tournaments.json's teams only
+   if Supabase isn't configured on this deploy, so this still works offline. */
+async function loadBo3Roster(){
+  data.bo3=data.bo3||bo3Default();
+  const tname=data.bo3.tournament||(document.getElementById('bo3-tourney')||{}).value;
+  const t=data.tournaments.find(x=>x.name===tname);
+  if(!t){bo3Msg('Pick a tournament first.','err');return;}
+  const existing=new Map((data.bo3.teams||[]).map(x=>[x.team,x]));
+  let roster=null;
+  if(sb){
+    bo3Msg('Loading live roster…');
+    const {data:rows,error}=await sb.rpc('get_public_roster');
+    if(!error)roster=(rows||[]).filter(r=>r.tournament_slug===tname).map(r=>({name:r.squad_name||'Squad',logo:r.squad_logo||''}));
+  }
+  if(roster===null)roster=t.teams||[]; // Supabase unavailable — fall back to the JSON field
+  data.bo3.teams=roster.map(tm=>existing.get(tm.name)||{team:tm.name,logo:tm.logo||'',r:[bo3Round(),bo3Round(),bo3Round()]});
+  renderBo3();
+  bo3Msg('Loaded '+data.bo3.teams.length+' squad(s) from the '+(sb?'live roster':'roster')+' — existing round scores for matching names were kept.','ok');
+}
+function addBo3Team(){data.bo3=data.bo3||bo3Default();data.bo3.teams=data.bo3.teams||[];data.bo3.teams.push({team:'',logo:'',r:[bo3Round(),bo3Round(),bo3Round()]});renderBo3();}
+function delBo3Team(i){data.bo3.teams.splice(i,1);renderBo3();}
+function bo3Msg(t,c){const el=document.getElementById('bo3-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+
+let _lastCleanDropped=0; // count of fully-blank squad rows silently dropped by the last clean() — surfaced by gen() so a name that went blank by accident doesn't just vanish unexplained
+function clean(){
+  _lastCleanDropped=0;
+  // drop empty optional fields so the JSON stays tidy
+  const out={tagline:data.tagline||'JD Esports Arena · AyerFire',tournaments:data.tournaments.map(t=>{const o={};for(const[k]of TF){if(t[k]!==''&&t[k]!=null)o[k]=t[k];}o.status=t.status||'upcoming';if(t.register_type&&t.register_type!=='whatsapp')o.register_type=t.register_type;if(t.platform_mode&&t.platform_mode!=='mixed')o.platform_mode=t.platform_mode;if('register_url' in o){const s=safeUrl(o.register_url);if(s)o.register_url=s;else delete o.register_url;}
+    // A squad only gets dropped here if EVERY field on it is empty (a throwaway
+    // "+ Add squad" row nobody filled in) — a squad that still has a logo or
+    // members but whose name field is blank (e.g. cleared by accident) is kept
+    // rather than silently discarded, so that data isn't lost without a trace.
+    const teams=(t.teams||[]).map(tm=>{const name=String(tm.name||'').trim();const logo=tm.logo||'';const members=(Array.isArray(tm.members)?tm.members:String(tm.members||'').split(',')).map(s=>String(s).trim()).filter(Boolean);const o2={name,logo};if(members.length)o2.members=members;if(tm.effect)o2.effect=tm.effect;return o2;}).filter(tm=>{const keep=tm.name||tm.logo||tm.effect||(tm.members&&tm.members.length);if(!keep)_lastCleanDropped++;return keep;});o.teams=teams;o.registered=teams.length;return o;})};
+  const B=data.bo3||{};
+  if(B.tournament||(B.teams&&B.teams.length)){
+    out.bo3={tournament:B.tournament||'',title:(B.title||'').trim(),published:!!B.published,teams:(B.teams||[]).map(tm=>({team:String(tm.team||'').trim(),logo:tm.logo||'',r:[0,1,2].map(i=>({kills:+((tm.r&&tm.r[i]&&tm.r[i].kills)||0),pts:+((tm.r&&tm.r[i]&&tm.r[i].pts)||0)}))})).filter(tm=>{const keep=tm.team||tm.logo||tm.r.some(r=>r.kills||r.pts);if(!keep)_lastCleanDropped++;return keep;})};
+  }
+  return out;
+}
+function gen(){document.getElementById('out').value=JSON.stringify(clean(),null,2);msg('Generated. Publish, download, or copy below.','ok');}
+function copyOut(){const o=document.getElementById('out');if(!o.value)gen();o.select();navigator.clipboard.writeText(o.value).then(()=>msg('Copied to clipboard.','ok')).catch(()=>msg('Select the text and copy manually.',''));}
+/* Several mobile browsers (iOS Safari in particular) silently no-op a download click on an
+   <a> that was never attached to the page — desktop is lenient about this, mobile often
+   isn't. Attaching it, clicking, then removing it fixes that; revoking the blob URL after a
+   beat avoids leaking memory without racing the browser's own read of it. */
+function downloadBlob(text,filename){
+  const blob=new Blob([text],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function download(){if(!document.getElementById('out').value)gen();downloadBlob(document.getElementById('out').value,'tournaments.json');msg('Downloaded tournaments.json — now replace it in your repo. On mobile, if nothing appeared, use Copy above and paste it into GitHub\'s in-browser editor instead — that always works.','ok');}
+
+/* ── one-click publish, fully server-side — the publish-tournaments Edge Function
+   holds the GitHub token in its own secret. Nothing GitHub-related ever touches this
+   browser: no prompt, no localStorage, just the same admin passcode as everything else. ── */
+function publishMsg(t,c){
+  const html='<span class="'+(c||'')+'">'+t+'</span>';
+  const el=document.getElementById('publish-msg');if(el)el.innerHTML=html;
+  const el2=document.getElementById('publish-top-msg');if(el2)el2.innerHTML=html;
+}
+async function publishToGitHub(){
+  gen();
+  const secret=adminSecret();
+  if(!secret){publishMsg('Enter the admin passcode first.','err');return;}
+  if(_lastCleanDropped>0&&!confirm(_lastCleanDropped+' completely blank squad row(s) (no name, logo, or members/scores) will be left out of this publish — that\'s normal for an unused "+ Add squad" row, but Cancel first if you expected one of them to have a name. Publish anyway?')){
+    publishMsg('Publish cancelled.','');return;
+  }
+  /* Publish always uploads this whole in-memory copy, overwriting the live file — if the
+     live file changed since we loaded it (another publish, or a stale tab catching up),
+     that upload silently erases whatever changed (e.g. a newly added team). Catch that here
+     instead of finding out after the fact. */
+  if(_loadedSnapshot!=null){
+    try{
+      const same=(/^https?:$/.test(location.protocol))?new URL('/tournaments.json',location.href).href:null;
+      const r=await fetch(same||'/tournaments.json',{cache:'no-store'});
+      if(r.ok){
+        const live=await r.json();
+        if(JSON.stringify(live)!==JSON.stringify(_loadedSnapshot)){
+          if(!confirm("The live tournaments.json has changed since you loaded it in this editor (e.g. published from another tab, or a team was added elsewhere).\n\nPublishing now will overwrite that with what you see here, erasing those changes.\n\nClick Cancel, then “↻ Load current” to pick up the latest data first — you'll need to redo your edit on top of it. Publish anyway?")){
+            publishMsg('Publish cancelled — click "↻ Load current" to pick up the latest data first.','');
+            return;
+          }
+        }
+      }
+    }catch(e){/* couldn't check — don't block publishing over a network hiccup */}
+  }
+  // Captured before _loadedSnapshot is overwritten below, so we can tell a fresh
+  // bo3 publish (unpublished -> published) from a republish of already-live results.
+  const prevBo3Published=!!(_loadedSnapshot&&_loadedSnapshot.bo3&&_loadedSnapshot.bo3.published);
+  publishMsg('Publishing…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/publish-tournaments',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({content:document.getElementById('out').value})});
+    if(!r.ok)throw new Error(await r.text());
+    const d=await r.json().catch(()=>({}));
+    let published=null;
+    try{published=JSON.parse(document.getElementById('out').value);_loadedSnapshot=published;}catch(x){} // what we just published is now the live baseline
+    let resultMsg=d.warning?('Published, but: '+d.warning):'Published! Live on the site once your host redeploys (usually under a minute).';
+    /* Auto-notify players the moment bo3 results go from unpublished to published,
+       instead of relying on a separate "🔔 Notify players" click that's order-dependent
+       (must happen after this publish, easy to forget or run out of order) — see
+       notifyBo3Results() below, which this reuses via the same publish-results Edge
+       Function. Only fires on the false->true transition, never on a republish of
+       already-live results (e.g. fixing a squad name typo), so it can't double-notify. */
+    const newBo3=published&&published.bo3;
+    if(newBo3&&newBo3.published&&newBo3.tournament&&!prevBo3Published){
+      try{
+        const nr=await fetch(EDGE_FN_BASE+'/publish-results',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({tournament_slug:newBo3.tournament})});
+        const nd=await nr.json().catch(()=>({}));
+        resultMsg+=nr.ok?(' Notified '+nd.sent+' player(s) about results.'):' (Results notification failed — use "🔔 Notify players" below to retry.)';
+      }catch(e){resultMsg+=' (Results notification failed — use "🔔 Notify players" below to retry.)';}
+    }
+    publishMsg(resultMsg,d.warning?'err':'ok');
+  }catch(e){publishMsg('Publish failed: '+e.message,'err');}
+}
+/* the single top-level "Publish changes" button — same publish path as the
+   Advanced section, just without making the admin open it or think about JSON */
+async function publishNow(){
+  await publishToGitHub();
+}
+
+function loadLive(){
+  const same=(/^https?:$/.test(location.protocol))?new URL('/tournaments.json',location.href).href:null;
+  fetch(same||'/tournaments.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(d=>{data={tagline:d.tagline||'JD Esports Arena · AyerFire',tournaments:d.tournaments||[],bo3:d.bo3||bo3Default()};_loadedSnapshot=d;renderAll();msg('Loaded current tournaments.json.','ok');}).catch(()=>{if(!data.tournaments.length){addT();}_loadedSnapshot=null;renderAll();msg('No tournaments.json found — starting fresh.','');});
+}
+function loadFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);data={tagline:d.tagline||'JD Esports Arena · AyerFire',tournaments:d.tournaments||[],bo3:d.bo3||bo3Default()};_loadedSnapshot=null;renderAll();msg('Loaded from file.','ok');}catch(x){msg('That file is not valid JSON.','err');}};r.readAsText(f);}
+function msg(t,c){document.getElementById('msg').innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+
+/* ── room codes: calls the send-room-code / list-registrations Edge Functions.
+   The admin passcode (see unlock()/adminSecret() above) is kept in localStorage on this
+   machine only — it's never written into this HTML file. ── */
+
+/* ── admin push alerts: subscribes THIS device with a fixed external_id ('admin') so the
+   notify-admin-signup Edge Function (triggered by a Supabase Database Webhook on new
+   players) can target it. Same ONESIGNAL_APP_ID as jd-arena.html — the REST API key stays
+   server-side only, in Edge Function secrets. ── */
+const ONESIGNAL_APP_ID='4170bab6-90d6-494b-8412-bdafc47d08a1'; /* ← same OneSignal App ID as jd-arena.html. Leave '' to hide this. */
+if(ONESIGNAL_APP_ID){
+  window.OneSignalDeferred=window.OneSignalDeferred||[];
+  OneSignalDeferred.push(async function(OneSignal){
+    await OneSignal.init({appId:ONESIGNAL_APP_ID});
+    window._oneSignal=OneSignal;
+    await OneSignal.login('admin');
+    updateAdminPushBtn();
+  });
+}
+async function enableAdminPush(){
+  if(!ONESIGNAL_APP_ID){alert("Set ONESIGNAL_APP_ID in this file's <script> first (same value as jd-arena.html).");return;}
+  if(!window._oneSignal){alert('Still loading — try again in a second.');return;}
+  await window._oneSignal.Notifications.requestPermission();
+  updateAdminPushBtn();
+}
+function updateAdminPushBtn(){
+  const b=document.getElementById('admin-push-btn');if(!b)return;
+  const on=window._oneSignal&&window._oneSignal.Notifications&&window._oneSignal.Notifications.permission;
+  b.textContent=on?'🔔 Admin alerts on':'🔔 Enable admin alerts';
+}
+function jumpToRoomCode(i){
+  const t=data.tournaments[i];if(!t)return;
+  renderRcTourney();
+  const sel=document.getElementById('rc-tourney');
+  if(sel)sel.value=t.name;
+  loadRcStatus(); // renderRcTourney() already checked status for its default selection, not this one
+  const heading=document.getElementById('room-codes');
+  if(heading)heading.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function renderRcTourney(){
+  const sel=document.getElementById('rc-tourney');if(!sel)return;
+  sel.innerHTML=data.tournaments.map(t=>`<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('')||'<option value="">No tournaments yet</option>';
+  loadRcStatus();
+}
+function rcMsg(t,c){document.getElementById('rc-msg').innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+async function sendRoomCode(){
+  const name=document.getElementById('rc-tourney').value,secret=adminSecret();
+  const room_id=document.getElementById('rc-room-id').value.trim(),room_pass=document.getElementById('rc-room-pass').value.trim();
+  if(!secret){rcMsg('Enter the admin passcode first.','err');return;}
+  if(!name||!room_id){rcMsg('Pick a tournament and enter a Room ID.','err');return;}
+  if(!confirm('Send this room code to everyone registered for "'+name+'"?'))return;
+  rcMsg('Sending…','');
+  try{
+    const body={tournament_slug:name,room_id,room_pass};
+    const r=await fetch(EDGE_FN_BASE+'/send-room-code',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify(body)});
+    if(!r.ok)throw new Error(await r.text());
+    const d=await r.json();
+    let out='Sent to '+d.sent+' player(s)'+(d.emailed!=null?' · '+d.emailed+' emailed':'')+(d.pushed!=null?' · '+d.pushed+' pushed':'')+(d.discorded!=null?' · '+d.discorded+' DMed on Discord':'')+'.';
+    if(d.unresolved&&d.unresolved.length)out+=' Not found: '+esc(d.unresolved.join(', '))+'.';
+    rcMsg(out,'ok');
+    loadRcStatus(); // reflect that the server also marked any staged row as sent
+  }catch(e){rcMsg('Failed: '+e.message,'err');}
+}
+async function stageRoomCode(){
+  const name=document.getElementById('rc-tourney').value,secret=adminSecret();
+  const room_id=document.getElementById('rc-room-id').value.trim(),room_pass=document.getElementById('rc-room-pass').value.trim();
+  if(!secret){rcMsg('Enter the admin passcode first.','err');return;}
+  if(!name||!room_id){rcMsg('Pick a tournament and enter a Room ID.','err');return;}
+  rcMsg('Staging…','');
+  try{
+    const body={tournament_slug:name,room_id,room_pass};
+    const r=await fetch(EDGE_FN_BASE+'/stage-room-code',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify(body)});
+    if(!r.ok)throw new Error(await r.text());
+    rcMsg('Staged — releases automatically to registered players ~5 minutes before kickoff. Use "Send Room Code now" instead if you need it out immediately.','ok');
+    loadRcStatus();
+  }catch(e){rcMsg('Failed: '+e.message,'err');}
+}
+async function loadRcStatus(){
+  const name=document.getElementById('rc-tourney').value,secret=adminSecret();
+  const el=document.getElementById('rc-status');
+  if(!el)return;
+  el.textContent='';
+  if(!name||!secret)return;
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/stage-room-code?tournament_slug='+encodeURIComponent(name),{headers:{'x-admin-secret':secret}});
+    if(!r.ok)return;
+    const d=await r.json();
+    if(!d)return;
+    el.textContent=d.sent_at?('Already sent at '+new Date(d.sent_at).toLocaleTimeString()+'.'):'Staged, not sent yet — will auto-release ~5 minutes before kickoff.';
+  }catch(e){/* status is a convenience — a fetch hiccup here shouldn't block anything */}
+}
+
+function anMsg(t,c){const el=document.getElementById('an-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+async function sendAnnouncement(){
+  const secret=adminSecret();
+  const title=document.getElementById('an-title').value.trim();
+  const body=document.getElementById('an-body').value.trim();
+  const recipientsRaw=document.getElementById('an-recipients').value.trim();
+  const player_tags=recipientsRaw?recipientsRaw.split(',').map(s=>s.trim().replace(/^@/,'')).filter(Boolean):[];
+  if(!secret){anMsg('Enter the admin passcode first.','err');return;}
+  if(!title||!body){anMsg('Write a title and a message first.','err');return;}
+  const who=player_tags.length?player_tags.length+' selected player(s)':'EVERYONE on the site';
+  if(!confirm('Send this to '+who+'?'))return;
+  anMsg('Sending…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/send-notification',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({title,body,player_tags})});
+    if(!r.ok)throw new Error(await r.text());
+    const d=await r.json();
+    let out='Sent to '+d.sent+' player(s)'+(d.emailed!=null?' · '+d.emailed+' emailed':'')+(d.pushed!=null?' · '+d.pushed+' pushed':'')+(d.discorded!=null?' · '+d.discorded+' DMed on Discord':'')+'.';
+    if(d.unresolved&&d.unresolved.length)out+=' Not found: '+esc(d.unresolved.join(', '))+'.';
+    anMsg(out,'ok');
+  }catch(e){anMsg('Failed: '+e.message,'err');}
+}
+
+function renderPpTourney(){
+  const sel=document.getElementById('pp-tourney');if(!sel)return;
+  sel.innerHTML=data.tournaments.map(t=>`<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('')||'<option value="">No tournaments yet</option>';
+}
+function ppMsg(t,c){const el=document.getElementById('pp-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+let _pendingRegs=[];
+async function loadPendingPayments(){
+  const name=document.getElementById('pp-tourney').value,secret=adminSecret();
+  if(!secret){ppMsg('Enter the admin passcode first.','err');return;}
+  if(!name){ppMsg('Pick a tournament first.','err');return;}
+  ppMsg('Loading…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/list-registrations?tournament_slug='+encodeURIComponent(name)+'&status=pending',{headers:{'x-admin-secret':secret}});
+    if(!r.ok)throw new Error(await r.text());
+    _pendingRegs=await r.json();
+    renderPendingPayments();
+    ppMsg(_pendingRegs.length+' pending registration(s).','ok');
+  }catch(e){ppMsg('Could not load: '+e.message,'err');}
+}
+function renderPendingPayments(){
+  const box=document.getElementById('pp-list');if(!box)return;
+  box.innerHTML=_pendingRegs.length?_pendingRegs.map(r=>{
+    const p=r.players||{};
+    const shot=r.payment_screenshot?`<div class="f full"><label>Payment screenshot</label><img src="${esc(r.payment_screenshot)}" alt="" style="max-width:220px;border-radius:8px;border:1px solid var(--line);cursor:pointer" onclick="window.open(this.src,'_blank')"></div>`:'<div class="f full"><label>Payment screenshot</label><p class="hint" style="margin:0">None uploaded.</p></div>';
+    return `<div class="card"><div class="grid">
+      <div class="f"><label>Player</label><input value="${esc((p.username?'@'+p.username+' ':'')+(p.player_tag||''))}" disabled></div>
+      <div class="f"><label>Email</label><input value="${esc(p.email||'')}" disabled></div>
+      <div class="f full"><label>Squad</label><input value="${esc(r.squad_name||'—')}" disabled></div>
+      ${shot}
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" onclick="approvePayment('${r.id}',true)">✓ Approve</button>
+      <button class="btn ghost" onclick="approvePayment('${r.id}',false)">✕ Reject</button>
+    </div></div>`;
+  }).join(''):'<p class="hint">No pending payments for this tournament — click "↻ Load pending".</p>';
+}
+async function approvePayment(id,approve){
+  const secret=adminSecret();
+  if(!secret){ppMsg('Enter the admin passcode first.','err');return;}
+  if(!confirm((approve?'Approve':'Reject')+' this registration?'))return;
+  ppMsg(approve?'Approving…':'Rejecting…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/approve-registration',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({registration_id:id,approve})});
+    if(!r.ok)throw new Error(await r.text());
+    _pendingRegs=_pendingRegs.filter(x=>x.id!==id);
+    renderPendingPayments();
+    if(approve)loadLiveCounts(); // approving moves it into the confirmed/approved count shown on each card
+    ppMsg(approve?'Approved.':'Rejected.','ok');
+  }catch(e){ppMsg('Failed: '+e.message,'err');}
+}
+
+/* ── reviews moderation: reading is public (get_tournament_reviews() is a plain
+   anon-callable RPC, no admin secret needed), only deleting requires it. ── */
+function renderRvTourney(){
+  const sel=document.getElementById('rv-tourney');if(!sel)return;
+  sel.innerHTML=data.tournaments.map(t=>`<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('')||'<option value="">No tournaments yet</option>';
+}
+function rvMsg(t,c){const el=document.getElementById('rv-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+let _reviewsAdmin=[];
+async function loadReviewsAdmin(){
+  const name=document.getElementById('rv-tourney').value,secret=adminSecret();
+  if(!secret){rvMsg('Enter the admin passcode first.','err');return;}
+  if(!name){rvMsg('Pick a tournament first.','err');return;}
+  rvMsg('Loading…','');
+  try{
+    // Via the admin-only list-reviews Edge Function (service role), not a direct client
+    // select — players' RLS only allows reading your OWN row, so a plain anon-key join to
+    // players(username) here would silently come back null for every reviewer.
+    const r=await fetch(EDGE_FN_BASE+'/list-reviews?tournament_slug='+encodeURIComponent(name),{headers:{'x-admin-secret':secret}});
+    if(!r.ok)throw new Error(await r.text());
+    _reviewsAdmin=await r.json();
+    renderReviewsAdmin();
+    rvMsg(_reviewsAdmin.length+' review(s).','ok');
+  }catch(e){rvMsg('Could not load: '+e.message,'err');}
+}
+function renderReviewsAdmin(){
+  const box=document.getElementById('rv-list');if(!box)return;
+  box.innerHTML=_reviewsAdmin.length?_reviewsAdmin.map(r=>{
+    const stars='★'.repeat(r.rating)+'☆'.repeat(5-r.rating);
+    const who=(r.players&&r.players.username)?'@'+esc(r.players.username):'player';
+    return `<div class="card" style="padding:12px"><div style="color:var(--gold-l)">${stars}</div><div style="margin:4px 0"><b>${who}</b>${r.comment?' — '+esc(r.comment):''}</div><div class="hint" style="margin:0 0 8px">${esc(new Date(r.created_at).toLocaleString())}</div><button class="del" style="position:static;padding:6px 10px" onclick="deleteReviewAdmin('${r.id}')">✕ Remove</button></div>`;
+  }).join(''):'<p class="hint">No reviews for this tournament yet.</p>';
+}
+async function deleteReviewAdmin(id){
+  const secret=adminSecret();
+  if(!secret){rvMsg('Enter the admin passcode first.','err');return;}
+  if(!confirm('Permanently remove this review?'))return;
+  rvMsg('Removing…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/delete-review',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({review_id:id})});
+    if(!r.ok)throw new Error(await r.text());
+    _reviewsAdmin=_reviewsAdmin.filter(x=>x.id!==id);
+    renderReviewsAdmin();
+    rvMsg('Removed.','ok');
+  }catch(e){rvMsg('Failed: '+e.message,'err');}
+}
+
+/* ── reports + ban list ── */
+function rpMsg(t,c){const el=document.getElementById('rp-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+let _reportsAdmin=[];
+async function loadReportsAdmin(){
+  const secret=adminSecret(),status=document.getElementById('rp-status').value;
+  if(!secret){rpMsg('Enter the admin passcode first.','err');return;}
+  rpMsg('Loading…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/list-reports'+(status?'?status='+encodeURIComponent(status):''),{headers:{'x-admin-secret':secret}});
+    if(!r.ok)throw new Error(await r.text());
+    _reportsAdmin=await r.json();
+    renderReportsAdmin();
+    rpMsg(_reportsAdmin.length+' report(s).','ok');
+  }catch(e){rpMsg('Could not load: '+e.message,'err');}
+}
+function renderReportsAdmin(){
+  const box=document.getElementById('rp-list');if(!box)return;
+  box.innerHTML=_reportsAdmin.length?_reportsAdmin.map(r=>{
+    const p=r.players||{};
+    const reporter=(p.username?'@'+esc(p.username):'')+(p.player_tag?' ('+esc(p.player_tag)+')':'');
+    const evidence=r.evidence_url?`<div class="f full"><label>Evidence</label><a href="${esc(r.evidence_url)}" target="_blank" rel="noopener" class="link">${esc(r.evidence_url)}</a></div>`:'';
+    const actions=r.status==='pending'?`<div class="row" style="margin-top:8px">
+        <input placeholder="Ban: tag/username/email" id="ban-id-${r.id}" style="max-width:200px">
+        <input placeholder="Public reason" id="ban-reason-${r.id}" style="max-width:220px">
+        <button class="btn" onclick="actionReport('${r.id}','ban')">🚫 Ban</button>
+        <button class="btn ghost" onclick="actionReport('${r.id}','dismiss')">Dismiss</button>
+      </div>`:`<p class="hint" style="margin-top:8px">Status: <b>${esc(r.status)}</b>${r.resolution_note?' — '+esc(r.resolution_note):''}</p>`;
+    return `<div class="card"><div class="grid">
+      <div class="f"><label>Reported</label><input value="${esc(r.reported)}" disabled></div>
+      <div class="f"><label>Reporter</label><input value="${esc(reporter||'—')}" disabled></div>
+      <div class="f full"><label>Tournament</label><input value="${esc(r.tournament_slug||'—')}" disabled></div>
+      <div class="f full"><label>Description</label><textarea disabled rows="2">${esc(r.description)}</textarea></div>
+      ${evidence}
+    </div>${actions}</div>`;
+  }).join(''):'<p class="hint">No reports match this filter.</p>';
+}
+async function actionReport(id,action){
+  const secret=adminSecret();
+  if(!secret){rpMsg('Enter the admin passcode first.','err');return;}
+  const body={report_id:id,action};
+  if(action==='ban'){
+    const ident=(document.getElementById('ban-id-'+id)||{}).value||'';
+    const reason=(document.getElementById('ban-reason-'+id)||{}).value||'';
+    if(!ident.trim()||!reason.trim()){rpMsg('Fill in who to ban and a public reason first.','err');return;}
+    if(!confirm('Ban "'+ident+'" and remove their future registration ability? This becomes visible on the public ban list.'))return;
+    body.ban_identifier=ident.trim();body.reason=reason.trim();
+  }else{
+    if(!confirm('Dismiss this report with no action?'))return;
+  }
+  rpMsg(action==='ban'?'Banning…':'Dismissing…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/action-report',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify(body)});
+    if(!r.ok)throw new Error(await r.text());
+    rpMsg(action==='ban'?'Banned.':'Dismissed.','ok');
+    loadReportsAdmin();
+  }catch(e){rpMsg('Failed: '+e.message,'err');}
+}
+function blMsg(t,c){const el=document.getElementById('bl-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+let _banListAdmin=[];
+async function loadBanListAdmin(){
+  if(!sb){blMsg("Supabase isn't configured on this deploy.",'err');return;}
+  blMsg('Loading…','');
+  try{
+    const {data,error}=await sb.rpc('get_public_ban_list');
+    if(error)throw error;
+    _banListAdmin=data||[];
+    renderBanListAdmin();
+    blMsg(_banListAdmin.length+' banned player(s).','ok');
+  }catch(e){blMsg('Could not load: '+e.message,'err');}
+}
+function renderBanListAdmin(){
+  const box=document.getElementById('bl-list');if(!box)return;
+  box.innerHTML=_banListAdmin.length?`<table class="bo3-tbl"><thead><tr><th>Player</th><th>Tag</th><th>Reason</th><th>Banned</th><th></th></tr></thead><tbody>${_banListAdmin.map(b=>`<tr><td>${esc(b.username||'—')}</td><td>${esc(b.player_tag||'—')}</td><td>${esc(b.reason)}</td><td>${esc(new Date(b.banned_at).toLocaleDateString())}</td><td><button class="del" style="position:static;padding:6px 10px" onclick="unbanAdmin('${esc(b.player_tag||b.username||'')}')">Unban</button></td></tr>`).join('')}</tbody></table>`:'<p class="hint">Nobody currently banned.</p>';
+}
+async function unbanAdmin(identifier){
+  const secret=adminSecret();
+  if(!secret){blMsg('Enter the admin passcode first.','err');return;}
+  if(!confirm('Lift the ban on "'+identifier+'"?'))return;
+  blMsg('Unbanning…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/unban-player',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({identifier})});
+    if(!r.ok)throw new Error(await r.text());
+    blMsg('Unbanned.','ok');
+    loadBanListAdmin();
+  }catch(e){blMsg('Failed: '+e.message,'err');}
+}
+async function banDirectly(){
+  const secret=adminSecret();
+  if(!secret){blMsg('Enter the admin passcode first.','err');return;}
+  const identifier=(document.getElementById('bl-identifier').value||'').trim();
+  const reason=(document.getElementById('bl-reason').value||'').trim();
+  if(!identifier||!reason){blMsg('Fill in who to ban and a public reason first.','err');return;}
+  if(!confirm('Ban "'+identifier+'"? This becomes visible on the public ban list and blocks future registrations.'))return;
+  blMsg('Banning…','');
+  try{
+    // action-report doubles as the direct-ban path too — report_id is nullable server-side
+    // for a direct ban (no underlying report), so pass a placeholder id it can ignore.
+    const r=await fetch(EDGE_FN_BASE+'/action-report',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({report_id:null,action:'ban',ban_identifier:identifier,reason})});
+    if(!r.ok)throw new Error(await r.text());
+    document.getElementById('bl-identifier').value='';document.getElementById('bl-reason').value='';
+    blMsg('Banned.','ok');
+    loadBanListAdmin();
+  }catch(e){blMsg('Failed: '+e.message,'err');}
+}
+
+/* ── anomaly flags ── */
+function afMsg(t,c){const el=document.getElementById('af-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+let _flagsAdmin=[];
+async function loadFlagsAdmin(){
+  const secret=adminSecret(),unreviewedOnly=document.getElementById('af-unreviewed-only').checked;
+  if(!secret){afMsg('Enter the admin passcode first.','err');return;}
+  afMsg('Loading…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/list-performance-flags'+(unreviewedOnly?'?unreviewed=1':''),{headers:{'x-admin-secret':secret}});
+    if(!r.ok)throw new Error(await r.text());
+    _flagsAdmin=await r.json();
+    renderFlagsAdmin();
+    afMsg(_flagsAdmin.length+' flag(s).','ok');
+  }catch(e){afMsg('Could not load: '+e.message,'err');}
+}
+function renderFlagsAdmin(){
+  const box=document.getElementById('af-list');if(!box)return;
+  box.innerHTML=_flagsAdmin.length?_flagsAdmin.map(f=>`<div class="card" style="padding:12px">
+    <div class="grid">
+      <div class="f"><label>Squad</label><input value="${esc(f.squad_name)}" disabled></div>
+      <div class="f"><label>Tournament</label><input value="${esc(f.tournament_slug)}" disabled></div>
+      <div class="f"><label>This match</label><input value="${f.kills} kills" disabled></div>
+      <div class="f"><label>Their own average</label><input value="${f.historical_avg_kills} kills over ${f.prior_appearances} match(es) · ${f.ratio}x" disabled></div>
+    </div>
+    ${f.reviewed?`<p class="hint" style="margin-top:8px">✓ Reviewed${f.admin_note?' — '+esc(f.admin_note):''}</p>`:`<div class="row" style="margin-top:8px"><input placeholder="Optional note" id="af-note-${f.id}" style="max-width:260px"><button class="btn ghost" onclick="reviewFlag('${f.id}')">Mark reviewed</button></div>`}
+  </div>`).join(''):'<p class="hint">No flags match this filter.</p>';
+}
+async function reviewFlag(id){
+  const secret=adminSecret();
+  if(!secret){afMsg('Enter the admin passcode first.','err');return;}
+  const admin_note=(document.getElementById('af-note-'+id)||{}).value||'';
+  afMsg('Saving…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/review-flag',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({flag_id:id,admin_note})});
+    if(!r.ok)throw new Error(await r.text());
+    afMsg('Saved.','ok');
+    loadFlagsAdmin();
+  }catch(e){afMsg('Failed: '+e.message,'err');}
+}
+
+/* ── AI recommendations: advisory only. Every Confirm below calls the EXACT SAME
+   Edge Function a human would call from the Pending Payments/Reports/Anomaly Flags/
+   Tournaments sections elsewhere on this page — this section never introduces a new
+   mutation path except for cancellation, which pre-fills the normal tournament-edit-and-
+   publish flow instead of touching tournaments.json directly. Confirm is disabled per-card
+   until "Show evidence" has been clicked, so a busy admin can't rubber-stamp a queue of
+   "3/4 agree" cards without actually looking at the underlying screenshot/report/stats. ── */
+function aiMsg(t,c){const el=document.getElementById('ai-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+let _aiRecs=[];
+const _aiExpanded=new Set();
+(function(){
+  const u=document.getElementById('ai-server-url'),k=document.getElementById('ai-server-key');
+  if(u)u.value=localStorage.getItem('jd_zulu_ai_url')||'';
+  if(k)k.value=localStorage.getItem('jd_zulu_ai_key')||'';
+})();
+async function runAiReview(){
+  const url=(document.getElementById('ai-server-url').value||'').trim().replace(/\/$/,'');
+  const key=document.getElementById('ai-server-key').value||'';
+  if(!url){aiMsg('Enter your ZULU server URL first (the cloudflared tunnel address, or http://localhost:5005 if running on this machine).','err');return;}
+  aiMsg('Running AI review — this can take a minute or two (several models judging several items)…','');
+  try{
+    const r=await fetch(url+'/admin/ai-review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key})});
+    if(!r.ok)throw new Error(await r.text());
+    const d=await r.json();
+    const parts=Object.entries(d.written||{}).map(([k,v])=>v+' '+k.replace(/_/g,' ')).join(', ');
+    aiMsg('Done — wrote: '+(parts||'nothing new')+'. Click "↻ Load recommendations" to see them.','ok');
+  }catch(e){aiMsg('Failed: '+e.message+' — check the URL/key, and that zulu_server.py is running and reachable.','err');}
+}
+async function loadAiRecommendations(){
+  const secret=adminSecret();
+  if(!secret){aiMsg('Enter the admin passcode first.','err');return;}
+  aiMsg('Loading…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/list-ai-recommendations?status=pending',{headers:{'x-admin-secret':secret}});
+    if(!r.ok)throw new Error(await r.text());
+    _aiRecs=await r.json();
+    renderAiRecommendations();
+    aiMsg(_aiRecs.length+' pending recommendation(s).','ok');
+  }catch(e){aiMsg('Could not load: '+e.message,'err');}
+}
+function aiFamilyVotesHtml(rec){
+  const fams=Object.entries(rec.family_votes||{});
+  if(!fams.length)return '';
+  return `<div class="f full"><label>Why (${esc(rec.agreement)})</label><div class="hint" style="margin:0">${fams.map(([fam,v])=>`<div>• <b>${esc(fam)}</b>: ${esc(v.verdict)} — ${esc(v.reason||'')}</div>`).join('')}</div></div>`;
+}
+function aiEvidenceHtml(rec){
+  const cs=rec.context_snapshot||{};
+  if(rec.kind==='cancel_tournament'){
+    return `<div class="grid"><div class="f"><label>Tournament</label><input value="${esc(rec.target_slug||'')}" disabled></div>
+      <div class="f"><label>Registered / slots</label><input value="${esc(cs.registered)}/${esc(cs.slots)}" disabled></div>
+      <div class="f"><label>Hours until start</label><input value="${esc(cs.hours_left)}" disabled></div>
+      <div class="f"><label>Entry fee</label><input value="${esc(cs.entry||'Free')}" disabled></div></div>`;
+  }
+  if(rec.kind==='review_flag'){
+    const f=_flagsAdmin.find(x=>x.id===rec.target_id);
+    return `<div class="grid"><div class="f"><label>Squad</label><input value="${esc((f&&f.squad_name)||cs.squad_name||'?')}" disabled></div>
+      <div class="f"><label>Tournament</label><input value="${esc(rec.target_slug||'')}" disabled></div>
+      <div class="f"><label>This match</label><input value="${esc((f&&f.kills)||cs.kills)} kills" disabled></div>
+      <div class="f"><label>Their own average</label><input value="${esc((f&&f.historical_avg_kills)||cs.historical_avg_kills)} kills over ${esc((f&&f.prior_appearances)||cs.prior_appearances)} match(es) · ${esc((f&&f.ratio)||cs.ratio)}x" disabled></div></div>
+      ${f?'':'<p class="hint">Load Anomaly Flags above to cross-check this squad full history.</p>'}`;
+  }
+  if(rec.kind==='resolve_report'){
+    const rp=_reportsAdmin.find(x=>x.id===rec.target_id);
+    if(!rp)return `<p class="hint">Load Reports above (status: pending) to see this report's full description and evidence link before deciding — not shown here from the recommendation alone.</p><p class="hint">Reported (as typed by reporter): <b>${esc(cs.reported||'?')}</b> · Evidence link provided: ${cs.has_evidence?'yes':'no'}</p>`;
+    return `<div class="grid"><div class="f"><label>Reported</label><input value="${esc(rp.reported)}" disabled></div>
+      <div class="f full"><label>Tournament</label><input value="${esc(rp.tournament_slug||'—')}" disabled></div>
+      <div class="f full"><label>Description</label><textarea disabled rows="2">${esc(rp.description)}</textarea></div>
+      ${rp.evidence_url?`<div class="f full"><label>Evidence</label><a href="${esc(rp.evidence_url)}" target="_blank" rel="noopener" class="link">${esc(rp.evidence_url)}</a></div>`:'<div class="f full"><label>Evidence</label><p class="hint" style="margin:0">None linked — AI verdict is text-only either way.</p></div>'}</div>`;
+  }
+  if(rec.kind==='approve_payment'){
+    const reg=_pendingRegs.find(x=>x.id===rec.target_id);
+    const shot=reg&&reg.payment_screenshot?`<div class="f full"><label>Payment screenshot</label><img src="${esc(reg.payment_screenshot)}" alt="" style="max-width:220px;border-radius:8px;border:1px solid var(--line);cursor:pointer" onclick="window.open(this.src,'_blank')"></div>`:`<p class="hint">Load Pending Payments above (this tournament) to see the actual screenshot — not shown here from the recommendation alone.</p>`;
+    return `<div class="grid"><div class="f"><label>Squad</label><input value="${esc(cs.squad_name||'')}" disabled></div>
+      <div class="f"><label>Expected entry fee</label><input value="${esc(cs.expected_entry||'')}" disabled></div>
+      <div class="f full"><label>AI-extracted from screenshot (verify yourself)</label><textarea disabled rows="3">${esc(cs.extracted_facts||'')}</textarea></div>
+      ${shot}</div>`;
+  }
+  return '';
+}
+function renderAiRecommendations(){
+  const box=document.getElementById('ai-list');if(!box)return;
+  const kindLabel={cancel_tournament:'Cancel tournament',approve_payment:'Payment',resolve_report:'Report',review_flag:'Anomaly flag'};
+  box.innerHTML=_aiRecs.length?_aiRecs.map(rec=>{
+    const expanded=_aiExpanded.has(rec.id);
+    const actionLabel=rec.kind==='cancel_tournament'?(rec.recommended_action==='cancel'?'Cancel it':'Keep it')
+      :rec.kind==='approve_payment'?(rec.recommended_action==='approve'?'Approve payment':'Reject payment')
+      :rec.kind==='resolve_report'?(rec.recommended_action==='ban'?'Ban (you verify identity)':'Dismiss report')
+      :(rec.recommended_action==='high_priority'?'Mark high priority':'Mark normal priority');
+    return `<div class="card">
+      <div class="row" style="justify-content:space-between"><b>${esc((kindLabel[rec.kind]||rec.kind))} ${rec.target_slug?'— '+esc(rec.target_slug):''}</b><span class="tag">${esc(rec.agreement)}</span></div>
+      <p class="hint" style="margin:4px 0">AI recommends: <b>${esc(actionLabel)}</b></p>
+      ${aiFamilyVotesHtml(rec)}
+      ${expanded?aiEvidenceHtml(rec):`<button class="btn ghost" onclick="_aiExpanded.add('${rec.id}');renderAiRecommendations();">👁 Show evidence</button>`}
+      <div class="row" style="margin-top:10px">
+        <button class="btn" ${expanded?'':'disabled'} onclick="confirmAiRecommendation('${rec.id}')">✓ Confirm: ${esc(actionLabel)}</button>
+        <button class="btn ghost" onclick="dismissAiRecommendation('${rec.id}')">Dismiss recommendation</button>
+      </div>
+    </div>`;
+  }).join(''):'<p class="hint">No pending recommendations — click "🤖 Run AI Review" then "↻ Load recommendations".</p>';
+}
+async function markAiResolved(id,status){
+  const secret=adminSecret();
+  await fetch(EDGE_FN_BASE+'/resolve-ai-recommendation',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({id,status})});
+  _aiRecs=_aiRecs.filter(x=>x.id!==id);
+  _aiExpanded.delete(id);
+  renderAiRecommendations();
+}
+async function dismissAiRecommendation(id){
+  const secret=adminSecret();
+  if(!secret){aiMsg('Enter the admin passcode first.','err');return;}
+  if(!confirm('Dismiss this recommendation with no action? (The underlying item stays exactly as it is — you can still act on it manually elsewhere.)'))return;
+  await markAiResolved(id,'dismissed');
+  aiMsg('Dismissed.','ok');
+}
+async function confirmAiRecommendation(id){
+  const secret=adminSecret();
+  if(!secret){aiMsg('Enter the admin passcode first.','err');return;}
+  const rec=_aiRecs.find(x=>x.id===id);
+  if(!rec)return;
+  if(rec.kind==='cancel_tournament'){
+    if(rec.recommended_action!=='cancel'){aiMsg('This recommendation was to KEEP the tournament — nothing to confirm here, just dismiss it.','err');return;}
+    const t=data.tournaments.find(x=>x.name===rec.target_slug);
+    if(!t){aiMsg('Could not find "'+rec.target_slug+'" in the currently loaded tournaments — click "↻ Load current" in Tournaments first.','err');return;}
+    if(!confirm('Set "'+rec.target_slug+'" to CANCELLED and publish immediately? Anyone already paid/registered will need a manual refund/follow-up — this does not handle that.'))return;
+    t.status='cancelled';
+    gen();
+    await publishToGitHub();
+    await markAiResolved(id,'confirmed');
+    aiMsg('Cancelled and published.','ok');
+    return;
+  }
+  if(rec.kind==='approve_payment'){
+    const approve=rec.recommended_action==='approve';
+    if(!confirm((approve?'Approve':'Reject')+' this registration, per the AI recommendation?'))return;
+    try{
+      const r=await fetch(EDGE_FN_BASE+'/approve-registration',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({registration_id:rec.target_id,approve})});
+      if(!r.ok)throw new Error(await r.text());
+      await markAiResolved(id,'confirmed');
+      aiMsg(approve?'Approved.':'Rejected.','ok');
+    }catch(e){aiMsg('Failed: '+e.message,'err');}
+    return;
+  }
+  if(rec.kind==='resolve_report'){
+    if(rec.recommended_action==='dismiss'){
+      if(!confirm('Dismiss this report, per the AI recommendation?'))return;
+      try{
+        const r=await fetch(EDGE_FN_BASE+'/action-report',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({report_id:rec.target_id,action:'dismiss'})});
+        if(!r.ok)throw new Error(await r.text());
+        await markAiResolved(id,'confirmed');
+        aiMsg('Dismissed.','ok');
+      }catch(e){aiMsg('Failed: '+e.message,'err');}
+      return;
+    }
+    // 'ban' verdict: identity resolution stays YOUR call, same ambiguous free-text match
+    // action-report already does — jump to Reports above to fill in who exactly and confirm there.
+    aiMsg('AI recommends banning over this report — scroll to Reports above, find it, and use the Ban action there (you confirm exactly who). This keeps identity resolution in your hands.','');
+    document.getElementById('reports').scrollIntoView({behavior:'smooth'});
+    return;
+  }
+  if(rec.kind==='review_flag'){
+    try{
+      const r=await fetch(EDGE_FN_BASE+'/review-flag',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({flag_id:rec.target_id,admin_note:'AI triage: '+rec.recommended_action+' ('+rec.agreement+')'})});
+      if(!r.ok)throw new Error(await r.text());
+      await markAiResolved(id,'confirmed');
+      aiMsg('Marked reviewed.','ok');
+    }catch(e){aiMsg('Failed: '+e.message,'err');}
+    return;
+  }
+}
+
+/* ── auto-cancel history: cancel_tournament recommendations reach 'confirmed' status
+   without ever going through confirmAiRecommendation() above (see AUTO_EXECUTE_CANCEL_
+   TOURNAMENT in zulu_server.py) — this is a read-only view of those, so there's still a
+   visible record here even if the Discord DM gets missed. ── */
+function aiHistoryMsg(t,c){const el=document.getElementById('ai-history-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+let _aiHistory=[];
+async function loadAiHistory(){
+  const secret=adminSecret();
+  if(!secret){aiHistoryMsg('Enter the admin passcode first.','err');return;}
+  aiHistoryMsg('Loading…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/list-ai-recommendations?status=confirmed&kind=cancel_tournament',{headers:{'x-admin-secret':secret}});
+    if(!r.ok)throw new Error(await r.text());
+    _aiHistory=await r.json();
+    renderAiHistory();
+    aiHistoryMsg(_aiHistory.length+' auto-cancelled tournament(s) on record.','ok');
+  }catch(e){aiHistoryMsg('Could not load: '+e.message,'err');}
+}
+function renderAiHistory(){
+  const box=document.getElementById('ai-history-list');if(!box)return;
+  box.innerHTML=_aiHistory.length?_aiHistory.map(rec=>{
+    const cs=rec.context_snapshot||{};
+    const when=rec.resolved_at?new Date(rec.resolved_at).toLocaleString():'—';
+    return `<div class="card" style="padding:12px">
+      <div class="row" style="justify-content:space-between"><b>${esc(rec.target_slug||'?')}</b><span class="tag">${esc(rec.agreement)}</span></div>
+      <p class="hint" style="margin:4px 0">Auto-cancelled ${esc(when)} — was ${esc(cs.registered)}/${esc(cs.slots)} registered, ${esc(cs.hours_left)}h before start.</p>
+      ${aiFamilyVotesHtml(rec)}
+    </div>`;
+  }).join(''):'<p class="hint">No auto-cancellations yet.</p>';
+}
+
+async function notifyBo3Results(){
+  data.bo3=data.bo3||bo3Default();
+  const name=data.bo3.tournament,secret=adminSecret();
+  if(!secret){bo3Msg('Enter the admin passcode first.','err');return;}
+  if(!name){bo3Msg('Pick a tournament first.','err');return;}
+  if(!confirm('Notify everyone self-registered in-app for "'+name+'" that results are up? Make sure you already published tournaments.json with these results published.'))return;
+  bo3Msg('Sending…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/publish-results',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({tournament_slug:name})});
+    if(!r.ok)throw new Error(await r.text());
+    const d=await r.json();
+    bo3Msg('Notified '+d.sent+' player(s)'+(d.emailed!=null?' · '+d.emailed+' emailed':'')+(d.pushed!=null?' · '+d.pushed+' pushed':'')+(d.discorded!=null?' · '+d.discorded+' DMed on Discord':'')+(d.note?' — '+esc(d.note):'')+'.','ok');
+  }catch(e){bo3Msg('Failed: '+e.message,'err');}
+}
+</script>
+</body>
+</html>

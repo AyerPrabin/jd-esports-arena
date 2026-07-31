@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#05080f">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23060a14' stroke='%23c9a84c' stroke-width='4'/><text x='50' y='68' text-anchor='middle' font-family='Georgia' font-size='52' font-weight='700' fill='%23c9a84c'>Z</text></svg>">
+<title>About — JD Esports Arena</title>
+<meta name="description" content="JD Esports Arena — free Free Fire BR tournaments for Nepal, live brackets, room-ID delivery and a season leaderboard, built and run by AyerFire.">
+<meta property="og:title" content="About — JD Esports Arena">
+<meta property="og:description" content="What JD Esports Arena is, how it works, and who builds it.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05080f;--bg-2:#0a0e1a;--panel:#0e1424;--line:#1c2840;
+  --gold:#c9a84c;--gold-l:#e2c97e;--gold-m:#7e6630;--cream:#f4efe6;--silver:#aab4cc;--body:#7e8eb0;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:'Inter',sans-serif;font-weight:300;line-height:1.65;overflow-x:hidden}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--gold-m)}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:720px;margin:0 auto;padding:0 22px}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(1100px 560px at 72% -12%,rgba(201,168,76,.10),transparent 60%),radial-gradient(820px 460px at 8% 112%,rgba(126,102,48,.10),transparent 60%);pointer-events:none;z-index:0}
+header,main,footer{position:relative;z-index:1}
+/* top bar */
+.bar{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+.brand b{font-family:'Playfair Display',serif;font-weight:700;font-size:1.05rem;letter-spacing:.01em}
+.brand span{display:block;font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-l)}
+.bar .back{font-size:.78rem;font-weight:600;padding:8px 15px;border:1px solid var(--gold-m);border-radius:30px;color:var(--gold-l);transition:.2s}
+.bar .back:hover{background:rgba(201,168,76,.12)}
+/* hero */
+.hero{padding:46px 0 14px}
+.hero .eye{font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold-l);margin-bottom:16px}
+.hero h1{font-family:'Playfair Display',serif;font-weight:700;font-size:clamp(2.3rem,8vw,3.6rem);line-height:1.04;margin:0 0 10px}
+.hero .role{color:var(--gold-l);font-size:.98rem;letter-spacing:.02em;margin-bottom:24px}
+.hero p{color:var(--body);font-size:1.04rem;max-width:620px;margin:0}
+.hero p strong{color:var(--cream);font-weight:500}
+/* facts */
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:38px 0 8px}
+@media(max-width:520px){.facts{grid-template-columns:1fr}}
+.fact{background:var(--panel);padding:18px 20px}
+.fact .k{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-l);margin-bottom:6px}
+.fact .v{color:var(--cream);font-size:.94rem;font-weight:400}
+/* contact */
+.sec-h{display:flex;align-items:baseline;gap:14px;margin:46px 0 22px}
+.sec-h h2{font-family:'Playfair Display',serif;font-weight:700;font-size:1.45rem;margin:0}
+.sec-h .ln{flex:1;height:1px;background:var(--line)}
+.contact{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.crow{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 17px;transition:transform .25s ease,border-color .25s ease}
+.crow:hover{transform:translateY(-3px);border-color:var(--gold)}
+.crow .ic{width:38px;height:38px;flex:none;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--gold-m));display:flex;align-items:center;justify-content:center;color:#0a0a12;font-weight:700;font-family:'Playfair Display',serif;font-size:.95rem}
+.crow .lbl{font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--silver)}
+.crow .val{color:var(--cream);font-size:.92rem;font-weight:500;word-break:break-word}
+/* footer */
+footer{border-top:1px solid var(--line);margin-top:54px;padding:30px 0 40px;text-align:center;color:var(--silver);font-size:.82rem}
+footer a{color:var(--gold-l)}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <div class="bar">
+    <div class="brand"><b>JD Esports Arena</b><span>by AyerFire</span></div>
+    <a class="back" href="/">← JD Arena</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="eye">About</div>
+    <h1>JD Esports Arena</h1>
+    <div class="role">Free Fire BR tournaments · Nepal · by AyerFire</div>
+    <p>JD Esports Arena is a home for competitive <strong>Free Fire</strong> in Nepal — live brackets, real prize pools, instant room-ID delivery, and a season leaderboard, run for free. Squads join a tournament over WhatsApp, Discord, or an in-app account; room codes land as a push alert or email the moment a match is about to start. Built and run solo, under the <strong>AyerFire</strong> banner.</p>
+  </section>
+
+  <div class="facts">
+    <div class="fact"><div class="k">Game</div><div class="v">Free Fire BR · Squad</div></div>
+    <div class="fact"><div class="k">Region</div><div class="v">Nepal</div></div>
+    <div class="fact"><div class="k">Entry</div><div class="v">Usually free</div></div>
+    <div class="fact"><div class="k">Room codes</div><div class="v">Push alert + email, instantly</div></div>
+  </div>
+
+  <section>
+    <div class="sec-h"><h2>Who builds it</h2><span class="ln"></span></div>
+    <div class="crow" style="align-items:flex-start;gap:16px;padding:20px">
+      <img src="/prabin.jpg" alt="Prabin Ayer" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--gold-m);flex:none">
+      <span><span class="val" style="display:block;margin-bottom:4px">Prabin Ayer</span><span style="color:var(--body);font-size:.88rem;line-height:1.6">London-based, with roots in <strong style="color:var(--cream)">Sudurpashchim, Nepal</strong>. Computing Science student at Coventry University London, building JD Esports Arena and AyerFire for the community back home, alongside <strong style="color:var(--cream)">ZULU</strong>, a personal AI system.</span></span>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>Contact</h2><span class="ln"></span></div>
+    <div class="contact">
+      <a class="crow" href="mailto:ayerprabin95@gmail.com"><span class="ic">@</span><span><span class="lbl">Email</span><br><span class="val">ayerprabin95@gmail.com</span></span></a>
+      <a class="crow" href="https://github.com/AyerPrabin" target="_blank" rel="noopener"><span class="ic">GH</span><span><span class="lbl">GitHub</span><br><span class="val">AyerPrabin</span></span></a>
+      <a class="crow" href="https://www.linkedin.com/in/ayerprabin" target="_blank" rel="noopener"><span class="ic">in</span><span><span class="lbl">LinkedIn</span><br><span class="val">ayerprabin</span></span></a>
+      <a class="crow" href="https://www.tiktok.com/@ayer_fire" target="_blank" rel="noopener"><span class="ic">TT</span><span><span class="lbl">TikTok</span><br><span class="val">@ayer_fire</span></span></a>
+      <a class="crow" href="https://instagram.com/ayerprabin" target="_blank" rel="noopener"><span class="ic">IG</span><span><span class="lbl">Instagram</span><br><span class="val">@ayerprabin</span></span></a>
+      <a class="crow" href="https://discord.gg/fd3sKj9NUb" target="_blank" rel="noopener"><span class="ic">DC</span><span><span class="lbl">Discord</span><br><span class="val">JD Esports Arena</span></span></a>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <div>JD Esports Arena · AyerFire — built by Prabin Ayer</div>
+  <div style="margin-top:8px"><a href="/">← Back to JD Esports Arena</a></div>
+</footer>
+</body>
+</html>

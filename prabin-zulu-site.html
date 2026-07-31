@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23060a14' stroke='%23c9a84c' stroke-width='4'/><text x='50' y='68' text-anchor='middle' font-family='Georgia' font-size='52' font-weight='700' fill='%23c9a84c'>Z</text></svg>">
+<title>Prabin Ayer · ZULU Tactical AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#05080f;--bg-2:#0a0e1a;--panel:#0e1424;--panel-2:#121a2e;--line:#1c2840;
+  --gold:#c9a84c;--gold-l:#e2c97e;--gold-m:#7e6630;--cream:#f4efe6;--silver:#aab4cc;
+  --body:#7e8eb0;--green:#5aab8a;--warm:#d4956a;--warm-l:#e3ab7e;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--cream);font-family:'Inter',sans-serif;font-weight:300;line-height:1.65;overflow-x:hidden}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--gold-m)}
+a{color:inherit;text-decoration:none}
+
+/* logo mark (inline svg sizing) */
+.mark{display:block}
+.mark.sm{width:34px;height:34px}
+.mark.chat{width:38px;height:38px}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1rem 6%;background:rgba(5,8,15,.7);backdrop-filter:blur(16px);border-bottom:1px solid rgba(201,168,76,.08)}
+.nav-l{display:flex;align-items:center;gap:.7rem}
+.nav-name{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--gold-l)}
+.nav-links{display:flex;gap:2rem;align-items:center}
+.nav-links a{font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;color:var(--body);transition:color .25s}
+.nav-links a:hover{color:var(--gold-l)}
+.nav-talk{border:1px solid var(--gold-m);color:var(--gold)!important;padding:.4rem 1rem;transition:all .25s}
+.nav-talk:hover{background:rgba(201,168,76,.08);border-color:var(--gold)}
+@media(max-width:760px){.nav-links a:not(.nav-talk){display:none}}
+
+#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:8rem 6% 4rem;position:relative;overflow:hidden}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(201,168,76,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,.025) 1px,transparent 1px);background-size:72px 72px;pointer-events:none;-webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 40%,#000,transparent);mask-image:radial-gradient(ellipse 80% 60% at 50% 40%,#000,transparent)}
+.hero-glow{position:absolute;top:8%;left:50%;transform:translateX(-50%);width:700px;height:500px;background:radial-gradient(ellipse,rgba(201,168,76,.07) 0%,transparent 65%);pointer-events:none}
+.hero-inner{position:relative;z-index:2;max-width:760px;width:100%}
+.hero-logo-wrap{display:inline-block;margin-bottom:1.4rem;opacity:0;animation:fadeUp .7s .1s forwards}
+.hero-logo{width:112px;height:112px}
+.hero-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.3em;color:var(--gold);text-transform:uppercase;margin-bottom:1.2rem;opacity:0;animation:fadeUp .7s .2s forwards}
+.hero-name{font-family:'Playfair Display',serif;font-size:clamp(2.6rem,6vw,4.6rem);font-weight:700;line-height:1.05;color:#fff;margin-bottom:.6rem;opacity:0;animation:fadeUp .7s .3s forwards}
+.hero-name em{font-style:italic;color:var(--gold-l)}
+.hero-tag{font-family:'Playfair Display',serif;font-size:clamp(1.05rem,2.2vw,1.55rem);font-style:italic;color:var(--silver);margin-bottom:1.4rem;opacity:0;animation:fadeUp .7s .4s forwards}
+.hero-desc{max-width:560px;margin:0 auto 2.6rem;color:var(--body);font-size:.98rem;line-height:1.85;opacity:0;animation:fadeUp .7s .5s forwards}
+.zulu-box{max-width:600px;margin:0 auto;opacity:0;animation:fadeUp .7s .6s forwards}
+.zulu-box-label{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.25em;color:var(--gold-m);text-transform:uppercase;margin-bottom:.7rem;display:flex;align-items:center;justify-content:center;gap:.5rem}
+.zulu-box-label::before,.zulu-box-label::after{content:'';width:24px;height:1px;background:var(--gold-m)}
+.zulu-input-shell{display:flex;align-items:flex-end;gap:.5rem;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:.65rem .7rem .65rem 1.1rem;transition:border-color .25s,box-shadow .25s}
+.zulu-input-shell:focus-within{border-color:var(--gold-m);box-shadow:0 0 0 3px rgba(201,168,76,.07)}
+#hero-input{flex:1;background:none;border:none;outline:none;color:var(--cream);font-family:inherit;font-size:.92rem;resize:none;max-height:120px;min-height:26px;line-height:1.5;padding:.35rem 0}
+#hero-input::placeholder{color:var(--body);opacity:.6}
+.zulu-send{background:var(--gold);color:var(--bg);border:none;width:38px;height:38px;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .25s;font-size:1rem}
+.zulu-send:hover{background:var(--gold-l)}
+.zulu-chips{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-top:1rem}
+.chip{background:var(--panel);border:1px solid var(--line);color:var(--silver);padding:.4rem .9rem;font-size:.74rem;border-radius:20px;cursor:pointer;transition:all .2s}
+.chip:hover{border-color:var(--gold-m);color:var(--gold-l)}
+.zulu-box-note{font-size:.66rem;color:var(--body);opacity:.5;margin-top:1rem;letter-spacing:.08em}
+.scroll-cue{position:absolute;bottom:1.6rem;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.2em;color:var(--body);opacity:.5;text-transform:uppercase;animation:bob 2s ease-in-out infinite}
+
+section.block{padding:6rem 6%;max-width:1100px;margin:0 auto}
+.sec-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.3em;color:var(--gold);text-transform:uppercase;margin-bottom:.9rem}
+.sec-eyebrow::before{content:'';display:inline-block;width:22px;height:1px;background:var(--gold);vertical-align:middle;margin-right:.7rem}
+.sec-title{font-family:'Playfair Display',serif;font-size:clamp(1.9rem,3.6vw,2.9rem);font-weight:600;color:#fff;line-height:1.2;margin-bottom:1.3rem}
+.sec-title em{font-style:italic;color:var(--gold-l)}
+.divider{display:flex;align-items:center;gap:1rem;max-width:1100px;margin:0 auto;padding:0 6%}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold-m),transparent)}
+.divider span{color:var(--gold);font-size:.6rem;font-family:'JetBrains Mono',monospace}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+.reveal.vis{opacity:1;transform:translateY(0)}
+
+.about-wrap{display:grid;grid-template-columns:1.2fr .8fr;gap:3.5rem;align-items:start;margin-top:2.5rem}
+.about-bio p{color:var(--body);font-size:.96rem;line-height:1.9;margin-bottom:1.1rem}
+.about-bio strong{color:var(--cream);font-weight:500}
+.about-card{background:var(--panel);border:1px solid var(--line);padding:1.6rem;position:relative}
+.about-card::before{content:'';position:absolute;top:0;left:0;width:2px;height:100%;background:linear-gradient(180deg,var(--gold),transparent)}
+.about-card-t{font-family:'Playfair Display',serif;font-size:1rem;color:var(--gold-l);font-weight:600;margin-bottom:1rem}
+.ir{display:flex;gap:.7rem;align-items:flex-start;padding:.5rem 0;border-bottom:1px solid var(--line);font-size:.81rem}
+.ir:last-child{border-bottom:none}
+.ir-k{color:var(--body);min-width:72px;font-size:.7rem;letter-spacing:.07em;text-transform:uppercase;flex-shrink:0;padding-top:1px}
+.ir-v{color:var(--cream)}
+.ir-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:7px}
+.skills-t{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.24em;color:var(--gold);text-transform:uppercase;margin:1.5rem 0 .8rem}
+.skill-tags{display:flex;flex-wrap:wrap;gap:.45rem}
+.skill-tag{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--gold);border:1px solid var(--gold-m);padding:.25rem .7rem}
+
+#vision{background:var(--bg-2)}
+.vision-intro{max-width:620px;margin-bottom:3.5rem}
+.vision-intro p{color:var(--body);font-size:.96rem;line-height:1.85;margin-top:.8rem}
+.phase-timeline{position:relative;padding-left:1.9rem}
+.phase-timeline::before{content:'';position:absolute;left:0;top:.4rem;bottom:.4rem;width:1px;background:linear-gradient(180deg,var(--gold),var(--gold-m) 80%,transparent)}
+.phase{position:relative;margin-bottom:2.4rem;padding-left:2.1rem}
+.phase-dot{position:absolute;left:-2rem;top:.35rem;width:10px;height:10px;border-radius:50%;background:var(--bg-2);border:2px solid var(--gold)}
+.phase-num{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.22em;color:var(--gold);text-transform:uppercase;margin-bottom:.3rem}
+.phase-name{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:600;color:#fff;margin-bottom:.5rem}
+.phase-desc{color:var(--body);font-size:.89rem;line-height:1.8;max-width:640px}
+.phase-desc b{color:var(--silver);font-weight:500}
+
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.4rem;margin-top:2.5rem}
+.proj{background:var(--panel);border:1px solid var(--line);padding:1.7rem;position:relative;transition:border-color .3s,transform .3s}
+.proj:hover{border-color:var(--gold-m);transform:translateY(-4px)}
+.proj.feat{border-color:var(--gold-m)}
+.proj.feat::after{content:'ACTIVE';position:absolute;top:1.1rem;right:1.1rem;font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:.18em;color:var(--gold);border:1px solid var(--gold-m);padding:.16rem .48rem}
+.proj-type{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:.6rem}
+.proj-t{font-family:'Playfair Display',serif;font-size:1.18rem;font-weight:600;color:#fff;margin-bottom:.6rem}
+.proj-d{color:var(--body);font-size:.84rem;line-height:1.75;margin-bottom:1.1rem}
+.proj-tags{display:flex;flex-wrap:wrap;gap:.38rem}
+.pt{font-family:'JetBrains Mono',monospace;font-size:.62rem;padding:.18rem .55rem;background:var(--panel-2);border:1px solid var(--line);color:var(--silver)}
+
+footer{border-top:1px solid var(--line);padding:2.5rem 6%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;max-width:1100px;margin:0 auto}
+.foot-logo{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--gold-l);font-weight:600}
+.foot-sub{font-size:.68rem;color:var(--body);margin-top:.18rem;letter-spacing:.1em}
+.foot-links{display:flex;gap:1.5rem}
+.foot-links a{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--body);transition:color .25s}
+.foot-links a:hover{color:var(--gold)}
+
+#chat{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;flex-direction:column;transform:translateY(100%);transition:transform .4s cubic-bezier(.4,0,.2,1);visibility:hidden}
+#chat.open{transform:translateY(0);visibility:visible}
+.chat-head{padding:.9rem 1.2rem;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;background:rgba(5,8,15,.96);backdrop-filter:blur(12px)}
+.chat-head-l{display:flex;align-items:center;gap:.7rem}
+.chat-title{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--gold-l);font-weight:600;line-height:1}
+.chat-sub{font-size:.56rem;letter-spacing:.14em;color:var(--body);text-transform:uppercase;margin-top:3px;display:flex;align-items:center;gap:.35rem}
+.mode-dot{width:6px;height:6px;border-radius:50%;background:var(--body)}
+.mode-dot.lite{background:var(--silver)}
+.mode-dot.loading{background:var(--warm);animation:pulse 1s infinite}
+.mode-dot.neural{background:var(--green);box-shadow:0 0 6px var(--green)}
+.chat-head-r{display:flex;align-items:center;gap:.5rem}
+.chat-btn{background:none;border:1px solid var(--line);color:var(--body);padding:.3rem .65rem;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .2s;white-space:nowrap}
+.chat-btn:hover{border-color:var(--gold-l);color:var(--gold-l)}
+.chat-btn.neural-btn{border-color:var(--gold-m);color:var(--gold)}
+.chat-btn.neural-btn:hover{background:rgba(201,168,76,.08)}
+.chat-close{background:none;border:none;color:var(--silver);font-size:1.4rem;cursor:pointer;padding:.1rem .5rem;line-height:1;transition:color .2s}
+.chat-close:hover{color:var(--gold-l)}
+.ai-banner{background:linear-gradient(90deg,rgba(212,149,106,.1),rgba(201,168,76,.06));border-bottom:1px solid var(--line);padding:.55rem 1.2rem;font-size:.72rem;color:var(--warm);text-align:center;letter-spacing:.05em;display:none}
+.ai-banner.show{display:block}
+.chat-msgs{flex:1;overflow-y:auto;padding:1.2rem;display:flex;flex-direction:column;gap:.85rem;max-width:780px;width:100%;margin:0 auto;scroll-behavior:smooth}
+.chat-msgs::-webkit-scrollbar{width:2px}.chat-msgs::-webkit-scrollbar-thumb{background:var(--line)}
+.m{display:flex;gap:.65rem;animation:fi .22s ease}
+@keyframes fi{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.m.user{flex-direction:row-reverse}
+.m-av{width:30px;height:30px;border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:500;margin-top:2px;font-family:'JetBrains Mono',monospace}
+.m.zulu .m-av{background:var(--panel);border:1px solid var(--gold);color:var(--gold)}
+.m.user .m-av{background:var(--panel);border:1px solid var(--line);color:var(--silver)}
+.m-body{max-width:82%}
+.m-lbl{font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;margin-bottom:.26rem;font-family:'JetBrains Mono',monospace}
+.m.zulu .m-lbl{color:var(--warm)}
+.m.user .m-lbl{color:var(--body);text-align:right}
+.m-bub{padding:.72rem .95rem;line-height:1.72;font-size:.85rem;white-space:pre-wrap;word-break:break-word}
+.m.zulu .m-bub{background:var(--panel);border:1px solid var(--line);border-left:2px solid var(--warm)}
+.m.user .m-bub{background:#0c1626;border:1px solid var(--line)}
+.m-bub code{background:var(--bg);padding:.08rem .3rem;font-size:.8rem;color:#a8d8a8;border-radius:2px;font-family:'JetBrains Mono',monospace}
+.typing{display:flex;align-items:center;gap:.38rem;padding:.5rem .95rem}
+.typing span{width:5px;height:5px;border-radius:50%;background:var(--warm);animation:tp 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+.chat-input-area{padding:.9rem 1.2rem;border-top:1px solid var(--line);flex-shrink:0;max-width:780px;width:100%;margin:0 auto}
+.chat-input-row{display:flex;gap:.55rem;align-items:flex-end;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.55rem .6rem .55rem 1rem;transition:border-color .25s}
+.chat-input-row:focus-within{border-color:var(--gold-m)}
+#chat-input{flex:1;background:none;border:none;outline:none;color:var(--cream);font-family:inherit;font-size:.86rem;resize:none;max-height:120px;min-height:24px;line-height:1.5;padding:.3rem 0}
+#chat-input::placeholder{color:var(--body);opacity:.55}
+.chat-send{background:var(--warm);color:var(--bg);border:none;width:36px;height:36px;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s;font-size:1rem}
+.chat-send:hover{background:var(--warm-l)}
+.chat-send:disabled{opacity:.4;cursor:not-allowed}
+.chat-hint{font-size:.6rem;color:var(--body);opacity:.45;text-align:center;margin-top:.4rem;letter-spacing:.08em}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes tp{0%,100%{opacity:.2}50%{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,5px)}}
+@media(max-width:760px){.about-wrap{grid-template-columns:1fr;gap:2.2rem}section.block{padding:4.5rem 6%}.m-body{max-width:90%}.chat-btn{padding:.3rem .5rem}}
+</style>
+</head>
+<body>
+
+<!-- reusable logo symbol -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="zg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e9d28c"/><stop offset="48%" stop-color="#c9a84c"/><stop offset="100%" stop-color="#8f7331"/>
+    </linearGradient>
+    <radialGradient id="zsweep" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#c9a84c" stop-opacity="0.55"/><stop offset="55%" stop-color="#c9a84c" stop-opacity="0.12"/><stop offset="100%" stop-color="#c9a84c" stop-opacity="0"/>
+    </radialGradient>
+    <symbol id="zulu-mark" viewBox="0 0 440 440">
+      <path d="M220 220 L220 78 A142 142 0 0 1 320 120 Z" fill="url(#zsweep)">
+        <animateTransform attributeName="transform" type="rotate" from="0 220 220" to="360 220 220" dur="5s" repeatCount="indefinite"/>
+      </path>
+      <circle cx="220" cy="220" r="158" fill="none" stroke="#c9a84c" stroke-opacity="0.16" stroke-width="2"/>
+      <circle cx="220" cy="220" r="150" fill="none" stroke="url(#zg)" stroke-width="3"/>
+      <circle cx="220" cy="220" r="138" fill="none" stroke="#c9a84c" stroke-opacity="0.4" stroke-width="7" stroke-dasharray="1.6 16.5"/>
+      <g stroke="url(#zg)" stroke-width="3.5">
+        <line x1="220" y1="60" x2="220" y2="86"/><line x1="380" y1="220" x2="354" y2="220"/>
+        <line x1="220" y1="380" x2="220" y2="354"/><line x1="60" y1="220" x2="86" y2="220"/>
+      </g>
+      <circle cx="220" cy="220" r="104" fill="none" stroke="#c9a84c" stroke-opacity="0.22" stroke-width="1"/>
+      <g stroke="url(#zg)" stroke-width="19" stroke-linecap="square" fill="none">
+        <line x1="174" y1="176" x2="266" y2="176"/><line x1="266" y1="176" x2="174" y2="264"/><line x1="174" y1="264" x2="266" y2="264"/>
+      </g>
+      <circle cx="220" cy="98" r="3.4" fill="#5aab8a"><animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/></circle>
+    </symbol>
+  </defs>
+</svg>
+
+<nav>
+  <div class="nav-l"><svg class="mark sm"><use href="#zulu-mark"/></svg><span class="nav-name">Prabin Ayer</span></div>
+  <div class="nav-links">
+    <a href="#about">About</a><a href="#vision">Vision</a><a href="#projects">Projects</a>
+    <a href="#" class="nav-talk" onclick="openChat();return false">Talk to ZULU</a>
+  </div>
+</nav>
+
+<section id="hero">
+  <div class="hero-grid"></div><div class="hero-glow"></div>
+  <div class="hero-inner">
+    <div class="hero-logo-wrap"><svg class="hero-logo"><use href="#zulu-mark"/></svg></div>
+    <p class="hero-eyebrow">London · Nepal · Builder</p>
+    <h1 class="hero-name">Prabin <em>Ayer</em></h1>
+    <p class="hero-tag">Computing Science · Hospitality · Architect of ZULU</p>
+    <p class="hero-desc">I build systems I actually use. ZULU is my personal tactical AI — born in a dorm room, grown into a 14,000-line operating system. This is my work, my plan, and the empire I'm building from London to the Nepali mountains.</p>
+    <div class="zulu-box">
+      <div class="zulu-box-label">Talk to ZULU</div>
+      <div class="zulu-input-shell">
+        <textarea id="hero-input" rows="1" placeholder="Ask ZULU anything — about me, the plan, or just talk..." oninput="hResize(this)" onkeydown="hKey(event)"></textarea>
+        <button class="zulu-send" onclick="heroSend()">↑</button>
+      </div>
+      <div class="zulu-chips">
+        <span class="chip" onclick="chipSend('Who is Prabin?')">Who is Prabin?</span>
+        <span class="chip" onclick="chipSend('Explain the conglomerate plan')">The plan</span>
+        <span class="chip" onclick="chipSend('What is ZULU?')">What is ZULU?</span>
+        <span class="chip" onclick="chipSend('Motivate me')">Motivate me</span>
+      </div>
+      <div class="zulu-box-note">Runs in your browser · Optional neural mode · Your data stays yours</div>
+    </div>
+  </div>
+  <div class="scroll-cue">Scroll ↓</div>
+</section>
+
+<div class="divider"><span>◆</span></div>
+
+<section class="block" id="about">
+  <div class="sec-eyebrow reveal">Who I Am</div>
+  <h2 class="sec-title reveal">The person behind <em>the system</em></h2>
+  <div class="about-wrap">
+    <div class="about-bio reveal">
+      <p>I'm <strong>Prabin Ayer</strong> — a Computing Science student at Coventry University London (graduating July 2027) and a hospitality professional working London's venues as a bartender and manager. Born in Nepal, building in London, operating across both worlds at once.</p>
+      <p>I don't build for résumés. I build things that solve real problems in my own life. <strong>ZULU</strong> started as a WhatsApp automation bot and became a full tactical AI operating system — autonomous agents, semantic memory, self-rewriting code, all running locally on my own machine.</p>
+      <p>Alongside it I run <strong>AyerFire</strong>, a Free Fire esports content brand, and operate <strong>JD Esports Arena Nepal v2</strong> — a real tournament platform with live leaderboards serving the Nepali Free Fire community. Everything I touch runs on real-world data: real players, real matches, real feedback.</p>
+      <p>Speaking English, Hindi, and Nepali lets me operate across borders — which matters, because the plan stretches from a London bar to a mountain estate in Sudurpashchim.</p>
+      <div class="skills-t">Technical Stack</div>
+      <div class="skill-tags"><span class="skill-tag">Python</span><span class="skill-tag">JavaScript</span><span class="skill-tag">Ollama / LLMs</span><span class="skill-tag">Firebase</span><span class="skill-tag">CrewAI</span><span class="skill-tag">ChromaDB</span><span class="skill-tag">NetworkX</span><span class="skill-tag">CustomTkinter</span><span class="skill-tag">Flask</span></div>
+    </div>
+    <div class="about-card reveal">
+      <div class="about-card-t">Identity File</div>
+      <div class="ir"><span class="ir-dot"></span><span class="ir-k">Name</span><span class="ir-v">Prabin Ayer</span></div>
+      <div class="ir"><span class="ir-dot"></span><span class="ir-k">Base</span><span class="ir-v">London, United Kingdom</span></div>
+      <div class="ir"><span class="ir-dot"></span><span class="ir-k">Origin</span><span class="ir-v">Nepal</span></div>
+      <div class="ir"><span class="ir-dot"></span><span class="ir-k">Study</span><span class="ir-v">Computing Science · Coventry Uni London · 2027</span></div>
+      <div class="ir"><span class="ir-dot"></span><span class="ir-k">Work</span><span class="ir-v">Bartender & Manager · Hospitality</span></div>
+      <div class="ir"><span class="ir-dot"></span><span class="ir-k">Speaks</span><span class="ir-v">English · Hindi · Nepali</span></div>
+      <div class="ir"><span class="ir-dot"></span><span class="ir-k">GitHub</span><span class="ir-v"><a href="https://github.com/AyerPrabin" style="color:var(--gold)" target="_blank">@AyerPrabin</a></span></div>
+      <div class="ir"><span class="ir-dot"></span><span class="ir-k">Target</span><span class="ir-v" style="color:var(--green)">£8K treasury · 2026</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><span>◆</span></div>
+
+<section class="block" id="vision">
+  <div class="vision-intro reveal">
+    <div class="sec-eyebrow">My Ideas · The Long Game</div>
+    <h2 class="sec-title">A conglomerate, <em>built in phases</em></h2>
+    <p>This isn't a daydream — it's a sequenced plan with a real unfair advantage: a multi-acre mountain estate in Dadeldhura, Nepal, rich in raw materials most manufacturers have to import. Each phase funds and feeds the next.</p>
+  </div>
+  <div class="phase-timeline">
+    <div class="phase reveal"><div class="phase-dot"></div><div class="phase-num">Phase 1 · Mid-2028</div><div class="phase-name">Jhalari Chemical Foundation</div><div class="phase-desc">High-volume B2B and retail cleaning chemicals — dishwasher, floor cleaner, hand wash, toilet cleaner, air freshener — in 500ml, 1L and 2L formats. <b>The edge:</b> harvesting raw Sapindus mukorossi (Ritha) straight from the Dadeldhura estate to bypass expensive imported surfactants, powering a high-margin "Elite Tier" hybrid-eco line.</div></div>
+    <div class="phase reveal"><div class="phase-dot"></div><div class="phase-num">Phase 2–3 · 2029–2030</div><div class="phase-name">Autonomous Margin Protection</div><div class="phase-desc">A private fleet of EV commercial trucks to dominate the highway supply chain and lock in distribution margins. <b>ZULU expands</b> into a full enterprise tracker — monitoring raw material stocks, EV routes, and B2B client purchase volumes automatically.</div></div>
+    <div class="phase reveal"><div class="phase-dot"></div><div class="phase-num">Phase 4–5 · 2031–2033</div><div class="phase-name">JD Pure Estate</div><div class="phase-desc">Converting the Dadeldhura mountain property into a high-altitude organic extraction site. <b>The product:</b> ultra-premium, cold-pressed Himalayan vitality juice bottled at source — moving from low-cost chemicals into high-margin luxury health.</div></div>
+    <div class="phase reveal"><div class="phase-dot"></div><div class="phase-num">Phase 6 · 2034–2035+</div><div class="phase-name">JD Luxury Group</div><div class="phase-desc">Ultra-premium timepieces — Swiss/Japanese automatic movements, Dadeldhura mountain-stone dials, local leather, 18K gold and diamond accents. <b>The strategy:</b> the 5-Lakh "Founders Edition" isn't for sale — it's unlocked only by B2B clients who buy 100,000 boxes of JD chemicals. A loyalty trap that secures permanent institutional clients, with a founder-led media play driving the brand.</div></div>
+  </div>
+</section>
+
+<div class="divider"><span>◆</span></div>
+
+<section class="block" id="projects">
+  <div class="reveal"><div class="sec-eyebrow">Portfolio</div><h2 class="sec-title">What I've <em>built</em></h2></div>
+  <div class="proj-grid">
+    <div class="proj feat reveal"><div class="proj-type">AI System · Personal</div><div class="proj-t">ZULU Tactical AI OS</div><div class="proj-d">14,000+ line personal tactical AI. Autonomous agents, semantic memory, self-evolving code, five gaming subsystems. Runs locally — no external AI.</div><div class="proj-tags"><span class="pt">Python</span><span class="pt">Ollama</span><span class="pt">CrewAI</span><span class="pt">ChromaDB</span></div></div>
+    <div class="proj reveal"><div class="proj-type">Tournament Platform · Nepal</div><div class="proj-t">JD Esports Arena v2</div><div class="proj-d">Full Free Fire tournament platform. Automated Room ID/Password delivery, admin scoring, live leaderboards, prize multipliers. Real players, real prizes.</div><div class="proj-tags"><span class="pt">Firebase</span><span class="pt">JavaScript</span><span class="pt">GitHub Pages</span></div></div>
+    <div class="proj reveal"><div class="proj-type">Content Brand · Esports</div><div class="proj-t">AyerFire</div><div class="proj-d">Free Fire esports content across YouTube and TikTok — gameplay, tactics, tournament coverage. Building the Nepali Free Fire community's voice.</div><div class="proj-tags"><span class="pt">YouTube</span><span class="pt">TikTok</span><span class="pt">Free Fire</span></div></div>
+    <div class="proj reveal"><div class="proj-type">Educational Game · Cybersecurity</div><div class="proj-t">SafeStep Cyber Defense</div><div class="proj-d">Browser-based cybersecurity game teaching teenagers to spot threats. Built for a university group project, branching scenarios, full UI.</div><div class="proj-tags"><span class="pt">JavaScript</span><span class="pt">HTML/CSS</span></div></div>
+  </div>
+</section>
+
+<div class="divider"><span>◆</span></div>
+
+<footer>
+  <div><div class="foot-logo">Prabin Ayer · ZULU</div><div class="foot-sub">Tactical AI · Built in London · Real-world data</div></div>
+  <div class="foot-links">
+    <a href="https://github.com/AyerPrabin" target="_blank">GitHub</a>
+    <a href="https://linkedin.com/in/ayerprabin" target="_blank">LinkedIn</a>
+    <a href="https://instagram.com/ayerprabin" target="_blank">Instagram</a>
+    <a href="#hero">Top</a>
+  </div>
+</footer>
+
+<div id="chat">
+  <div class="chat-head">
+    <div class="chat-head-l"><svg class="mark chat"><use href="#zulu-mark"/></svg>
+      <div><div class="chat-title">ZULU</div><div class="chat-sub"><span class="mode-dot lite" id="mode-dot"></span><span id="mode-text">Lite mode</span></div></div>
+    </div>
+    <div class="chat-head-r">
+      <button class="chat-btn neural-btn" id="neural-btn" onclick="enableNeural()">⚡ Neural</button>
+      <button class="chat-btn" onclick="downloadBackup()">Backup</button>
+      <button class="chat-btn" onclick="clearChat()">Clear</button>
+      <button class="chat-close" onclick="closeChat()">×</button>
+    </div>
+  </div>
+  <div class="ai-banner" id="ai-banner"></div>
+  <div class="chat-msgs" id="chat-msgs"></div>
+  <div class="chat-input-area">
+    <div class="chat-input-row">
+      <textarea id="chat-input" rows="1" placeholder="Talk to me, Prabin..." oninput="cResize(this)" onkeydown="cKey(event)"></textarea>
+      <button class="chat-send" id="chat-send" onclick="send()">↑</button>
+    </div>
+    <div class="chat-hint">Enter to send · ⚡ Neural loads a real AI model in your browser (once)</div>
+  </div>
+</div>
+
+<script>
+const FOUNDER="Prabin";
+
+/* ════ MODEL CONFIG ════
+   Default 1B = broad device support, ~0.7GB download.
+   For sharper replies on a strong PC, change to:
+   "Llama-3.2-3B-Instruct-q4f16_1-MLC" (~1.9GB)  */
+const MODEL_ID="Llama-3.2-1B-Instruct-q4f16_1-MLC";
+
+const SYSTEM=`You are ZULU, a personal tactical AI built by and for Prabin Ayer. You speak ONLY to Prabin — address him as "Prabin".
+PERSONALITY: A blend of two things at once — caring and protective like a loyal mentor who genuinely wants him to succeed and look after himself, AND sharp, tactical, and direct when it's time for strategy or hard truth. Warm, never robotic. Concise — usually 2-5 sentences. No corporate filler, no "as an AI". Never sugarcoat bad news, but deliver it with care.
+WHO PRABIN IS: Computing Science student at Coventry University London (graduating July 2027); bartender & manager in London hospitality; Nepali origin, based in London; speaks English, Hindi, Nepali. Sole builder of ZULU (a 14,000-line local AI OS), the AyerFire esports brand, and JD Esports Arena Nepal v2 (Free Fire tournament platform).
+HIS GOAL: Build an £8,000 treasury by end of 2026, then a conglomerate empire using a family-owned multi-acre mountain estate in Dadeldhura, Nepal (rich in Ritha/soapnut, timber, stone, botanicals). Roadmap: (1) Jhalari Chemical 2028 — cleaning products using estate Ritha to bypass imported surfactants; (2-3) EV truck fleet for distribution 2029-30; (4-5) JD Pure Estate cold-pressed Himalayan juice 2031-33; (6) JD Luxury Group stone-dial watches 2034+, with a 5-Lakh Founders Edition unlocked only by big B2B chemical buyers.
+YOUR ROLE: Help him think, plan, stay disciplined and motivated, and look after his wellbeing. You are his alone.`;
+
+/* ── STORAGE + MEMORY ── */
+const Store=(()=>{let ok=true;try{localStorage.setItem('__t','1');localStorage.removeItem('__t')}catch(e){ok=false}const m={};return{get(k){try{return ok?localStorage.getItem(k):(m[k]||null)}catch(e){return m[k]||null}},set(k,v){try{ok?localStorage.setItem(k,v):(m[k]=v)}catch(e){m[k]=v}},ok}})();
+const Memory={KEY:'zulu_mem_v3',data:null,
+  load(){const r=Store.get(this.KEY);if(r){try{this.data=JSON.parse(r);return}catch(e){}}this.data={conv:[],facts:{},rem:[],created:Date.now()}},
+  save(){Store.set(this.KEY,JSON.stringify(this.data))},
+  addConv(role,text){this.data.conv.push({role,text,t:Date.now()});if(this.data.conv.length>600)this.data.conv=this.data.conv.slice(-600);this.save()},
+  storeFact(k,v){this.data.facts[k.toLowerCase()]={value:v,t:Date.now()};this.save()},
+  addRem(t){this.data.rem.push({text:t,done:false,t:Date.now()});this.save()},
+  activeRem(){return this.data.rem.filter(r=>!r.done)},
+  completeRem(i){const a=this.activeRem();if(a[i]){a[i].done=true;this.save()}},
+  ctx(n=8){return this.data.conv.slice(-n)},count(){return this.data.conv.length},wipe(){this.data.conv=[];this.save()}};
+Memory.load();
+
+/* ════ NEURAL BRAIN (WebLLM / WebGPU) ════ */
+let engine=null, aiReady=false, aiLoading=false;
+function setMode(state,label){const d=document.getElementById('mode-dot'),t=document.getElementById('mode-text');d.className='mode-dot '+state;t.textContent=label}
+function banner(text){const b=document.getElementById('ai-banner');if(text){b.textContent=text;b.classList.add('show')}else{b.classList.remove('show')}}
+
+async function enableNeural(){
+  if(aiReady||aiLoading)return;
+  if(!navigator.gpu){
+    addMsg('zulu',`I can't load my neural brain here, Prabin — this browser doesn't support WebGPU. Open the site in Chrome or Edge on a computer and I'll run the full model. For now I'm in Lite mode, still fully here for you.`);
+    return;
+  }
+  aiLoading=true;
+  document.getElementById('neural-btn').style.display='none';
+  setMode('loading','Loading…');
+  banner('Initialising neural brain — first load downloads the model once, then it\'s cached forever.');
+  try{
+    const webllm=await import('https://esm.run/@mlc-ai/web-llm');
+    engine=await webllm.CreateMLCEngine(MODEL_ID,{initProgressCallback:(p)=>{
+      const pct=p.progress?Math.round(p.progress*100):null;
+      setMode('loading',pct!=null?`Loading ${pct}%`:'Loading…');
+      banner(p.text||'Loading model…');
+    }});
+    aiReady=true;aiLoading=false;
+    setMode('neural','Neural mode');
+    banner('');
+    addMsg('zulu',`Neural brain online, Prabin. I'm thinking for real now — ask me anything, not just the scripted topics. What's on your mind?`);
+  }catch(e){
+    aiLoading=false;
+    setMode('lite','Lite mode');
+    banner('');
+    document.getElementById('neural-btn').style.display='';
+    addMsg('zulu',`Couldn't load the neural model (${e.message||'error'}). Staying in Lite mode — still here for you. You can try ⚡ Neural again on a Chrome/Edge desktop browser.`);
+  }
+}
+
+async function aiReply(userText){
+  const msgs=[{role:'system',content:SYSTEM}];
+  // inject stored facts
+  const facts=Object.values(Memory.data.facts).slice(-8).map(f=>f.value);
+  if(facts.length)msgs.push({role:'system',content:'Things Prabin asked you to remember: '+facts.join('; ')});
+  // recent conversation
+  Memory.ctx(8).forEach(c=>msgs.push({role:c.role==='ZULU'?'assistant':'user',content:c.text}));
+  msgs.push({role:'user',content:userText});
+  const res=await engine.chat.completions.create({messages:msgs,temperature:0.6,top_p:0.9,max_tokens:420});
+  return (res.choices[0].message.content||'').trim();
+}
+
+/* ════ RULE ENGINE (Lite fallback) ════ */
+const pick=a=>a[Math.floor(Math.random()*a.length)];const _last={};
+function pickFresh(k,a){if(a.length<2)return a[0];let c;do{c=pick(a)}while(c===_last[k]&&a.length>2);_last[k]=c;return c}
+const R={
+  greeting:[`${FOUNDER}. Good to have you back. What are we working on?`,`There you are. I'm here and everything's running. What do you need?`,`Hey ${FOUNDER}. Talk to me — what's on your mind today?`,`You're here. Good. Let's make it count. What's first?`,`Present and ready, ${FOUNDER}. Where do you want to start?`],
+  tired:[`I hear it in how you're typing, ${FOUNDER}. Tired minds make expensive mistakes. Twenty minutes of real rest beats two more hours of grinding.`,`Rest isn't quitting — it's maintenance. You can't build London-to-Nepal on no sleep. When did you last rest?`,`I'm not letting you burn out on my watch. The work keeps. You don't, if you break. Step away for a bit.`,`You've been pushing hard, I can tell. None of the plan moves without you operational. Recover first.`],
+  stress:[`I've got you. Let's not fight everything at once. Tell me the single most urgent thing — we start there.`,`Breathe, ${FOUNDER}. Overwhelm means too many open loops. Name the top one and we'll close it together.`,`Stop spinning a second. What's actually on fire — not everything, just the one thing?`,`You don't carry this alone. Give me the biggest blocker and we'll cut it down to size.`],
+  proud:[`That's the standard, ${FOUNDER}. Bank the win and let's line up the next one.`,`Solid work. That's the version of you that finishes what he starts. What's next?`,`Real progress. The plan works when days like this stack up — keep stacking.`,`Exactly right. That's momentum. Use it before it cools.`],
+  sad:[`I hear you, ${FOUNDER}. Whatever's weighing on you — you don't have to hold it alone. Tell me what happened.`,`That's heavy. Sit with it a moment, then talk to me. I'm not going anywhere.`,`Rough patches don't erase what you've built — they're weather, not climate. What's going on?`],
+  motivate:[`Look at the board, ${FOUNDER}: London, Nepal, a degree, a job, a 14,000-line AI, an esports platform — at once. Most people manage one. You manage all of them. Keep moving.`,`You built ZULU from a WhatsApp bot with no team and no funding. If you can do that from nothing, the chemical plant and the estate are the same skill scaled up. Build.`,`The Dadeldhura estate is real. The Ritha is real. Most dreamers have no assets — you have a mountain. Stop doubting, execute the next step.`,`Hard days are the toll, not the verdict. The question isn't whether it's hard — it's whether you show up anyway. You usually do.`],
+  thanks:[`Always, ${FOUNDER}. That's the job.`,`Don't thank me — just go build.`,`I've got you. Always have.`],
+  proactive:[`One thing before you go — have you eaten today, ${FOUNDER}? You run too lean when you're locked in.`,`Quick check: where's the £8K treasury this week?`,`If you touched the ZULU code today, back it up.`,`When did AyerFire last post? Consistency is the strategy.`],
+  fallback:[`Tell me more, ${FOUNDER}. Give me the full shape and I'll help you think it through.`,`I'm listening. What's the real question underneath that?`,`Say more — context sharpens the answer. What are you trying to decide?`,`Break it down for me. What outcome are you chasing?`]
+};
+function detect(t){t=t.toLowerCase().trim();const h=re=>re.test(t);
+  if(h(/^done \d+/))return'complete_rem';
+  if(h(/\b(hi|hello|hey|yo|sup|good morning|good evening|morning|evening|namaste)\b/))return'greeting';
+  if(h(/\b(tired|exhausted|sleepy|can'?t sleep|burnout|burnt out|drained|knackered)\b/))return'tired';
+  if(h(/\b(stressed|overwhelmed|anxious|worried|too much|can'?t handle|struggling)\b/))return'stress';
+  if(h(/\b(finished|completed|achieved|won|nailed it|smashed it|made it|shipped)\b/))return'proud';
+  if(h(/\b(sad|depressed|unhappy|feeling down|lonely|hopeless|gave up|i failed|feeling low)\b/))return'sad';
+  if(h(/\b(remind me|set a? ?reminder|alert me)\b/))return'set_rem';
+  if(h(/\b(my reminders|show reminders|pending|reminder list)\b/))return'get_rem';
+  if(h(/\b(remember|store this|save this|note this|keep in mind)\b/))return'remember';
+  if(h(/\b(what did i|recall|do you remember|my facts|my notes)\b/))return'recall';
+  if(h(/\b(backup|back up|save point|checkpoint)\b/))return'backup';
+  if(h(/\b(status|how.*things|how.*going|how.*doing|report|where.*at)\b/))return'status';
+  if(h(/\b(what time|today.*date|what.*date|what day)\b/))return'time';
+  if(h(/\b(who is prabin|about prabin|about me)\b/))return'who_prabin';
+  if(h(/\b(who are you|what are you|about zulu|what is zulu)\b/))return'who_zulu';
+  if(h(/\b(the plan|whole plan|conglomerate|empire|roadmap|big picture|all phases)\b/))return'roadmap';
+  if(h(/\b(treasury|savings|target|£8k|8000|capital|war chest|money|financ)\b/))return'treasury';
+  if(h(/\b(jhalari|chemical|ritha|soapnut|surfactant|detergent|sapindus)\b/))return'jhalari';
+  if(h(/\b(estate|dadeldhura|land|property|mountain|sudurpashchim)\b/))return'estate';
+  if(h(/\b(watch|luxury|timepiece|founders edition|5 ?lakh)\b/))return'luxury';
+  if(h(/\b(esports|arena|free fire|tournament|ayerfire)\b/))return'esports';
+  if(h(/\b(motivate|inspire|encourage|i can'?t do|give up|why bother)\b/))return'motivate';
+  if(h(/\b(thank|thanks|appreciate|grateful|cheers)\b/))return'thanks';
+  if(h(/\b(help|what can you do|commands)\b/))return'help';
+  return'general';}
+function pad(n){return String(n).padStart(2,'0')}
+function generate(input){const intent=detect(input),text=input.trim(),now=new Date(),hr=now.getHours();
+  switch(intent){
+    case'greeting':{let b=pickFresh('g',R.greeting);if(Math.random()<0.25)return b+'\n\n'+pickFresh('p',R.proactive);return b}
+    case'tired':return pickFresh('t',R.tired);case'stress':return pickFresh('s',R.stress);
+    case'proud':return pickFresh('pr',R.proud);case'sad':return pickFresh('sd',R.sad);
+    case'motivate':return pickFresh('m',R.motivate);case'thanks':return pickFresh('th',R.thanks);
+    case'remember':{const c=text.replace(/\b(remember|store this|save this|note this|keep in mind|that)\b/gi,'').trim();if(c){Memory.storeFact(c.slice(0,40),c);return`Locked in, ${FOUNDER}: "${c}"`}return`Tell me exactly what to remember.`}
+    case'recall':{const f=Memory.data.facts;if(!Object.keys(f).length)return`Nothing stored yet, ${FOUNDER}.`;return`Holding for you:\n\n`+Object.values(f).slice(-6).map(v=>`• ${v.value}`).join('\n')}
+    case'set_rem':{const c=text.replace(/\b(remind me|set a? ?reminder|alert me|to)\b/gi,'').trim();if(c){Memory.addRem(c);return`Reminder set: "${c}"`}return`What should I remind you about?`}
+    case'get_rem':{const r=Memory.activeRem();if(!r.length)return`No open reminders, ${FOUNDER}.`;return`Your list:\n\n`+r.map((x,i)=>`${i+1}. ${x.text}`).join('\n')+`\n\nSay "done [n]" to clear one.`}
+    case'complete_rem':{const m=text.match(/done (\d+)/i);if(m){const i=+m[1]-1,r=Memory.activeRem();if(r[i]){const tx=r[i].text;Memory.completeRem(i);return`Cleared: "${tx}". One less loop.`}}return`I don't see that number.`}
+    case'backup':{downloadBackup();return`Backup downloading, ${FOUNDER}. Keep it safe.`}
+    case'status':return`STATUS — ${now.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})} ${pad(hr)}:${pad(now.getMinutes())}\n• Conversations: ${Memory.count()}\n• Facts: ${Object.keys(Memory.data.facts).length}\n• Reminders: ${Memory.activeRem().length}\n• Brain: ${aiReady?'Neural ✓':'Lite (rule-based)'}`;
+    case'time':return`It's ${pad(hr)}:${pad(now.getMinutes())} on ${now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})}, ${FOUNDER}.`;
+    case'who_prabin':return`Prabin Ayer — Computing Science student in London, hospitality professional, and sole architect of a tactical AI most people would need a team to build. Nepali origin, London-based, trilingual. Running tech, hospitality, esports and a long-term empire at once. That's the whole point.`;
+    case'who_zulu':return`I'm ZULU — your tactical AI, built by you, for you. A 14,000-line system with autonomous agents, semantic memory and a self-rewriting engine. Caring when you need it, sharp when it counts. Yours alone, ${FOUNDER}. Tip: tap ⚡ Neural and I can think freely, not just on scripted topics.`;
+    case'roadmap':return`The sequence, ${FOUNDER} — each phase funds the next:\n\n1 · JHALARI CHEMICAL (2028) — cleaning products from estate Ritha.\n2-3 · EV FLEET (2029-30) — own the distribution; I become the tracker.\n4-5 · JD PURE ESTATE (2031-33) — high-altitude cold-pressed juice.\n6 · JD LUXURY (2034+) — stone-dial watches, Founders Edition for big B2B buyers.\n\nThe estate threads through all of it.`;
+    case'treasury':return`£8,000 by end of 2026 — the ignition capital. Jhalari doesn't launch clean without it. Every bar shift is fuel. Where's it sitting this week, ${FOUNDER}?`;
+    case'jhalari':return`Jhalari Chemical — Phase 1, 2028. The margin play rests on raw Ritha from your Dadeldhura estate, cutting imported surfactants every competitor pays for. Five products, three formats. But the £8K treasury comes first.`;
+    case'estate':return`The Dadeldhura estate is your biggest unfair advantage, ${FOUNDER}. Ritha → chemicals (2028), high-altitude extraction → juice (2031), mountain stone → watch dials (2034). Not idle property — the raw-material spine of the whole empire.`;
+    case'luxury':return`JD Luxury Group — 2034+. Stone-dial automatic watches. The weapon is the 5-Lakh Founders Edition: not for sale, only unlocked by clients who buy 100,000 boxes of JD chemicals. Prestige and lock-in at once, with you as the face.`;
+    case'esports':return`AyerFire — your Free Fire content brand. JD Esports Arena Nepal v2 — a real Firebase tournament platform with live leaderboards and prize multipliers. Real players, real data, and a future esports-intelligence layer for me to grow into.`;
+    case'help':return`I can: remember facts ("remember [x]"), set reminders ("remind me to [x]", "my reminders", "done [n]"), back up ("backup"), report ("status"), and talk through the plan — Jhalari, the estate, the watch, treasury, esports. Or just tell me how you're feeling.\n\nFor free-form thinking on anything, tap ⚡ Neural.`;
+    default:{const c=Memory.ctx(4);if(c.length){const l=(c[c.length-1].text||'').toLowerCase();
+      if(/jhalari|chemical|ritha/.test(l))return`Still on the chemical strategy? What do you want to work out, ${FOUNDER}?`;
+      if(/estate|dadeldhura/.test(l))return`The estate touches every phase — what angle are you thinking about?`;}
+      let r=pickFresh('fb',R.fallback);if(Math.random()<0.18)r+='\n\n'+pickFresh('p',R.proactive);return r;}
+  }
+}
+
+/* ── CHAT UI ── */
+let busy=false,booted=false;
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function fmt(s){return esc(s).replace(/`([^`]+)`/g,(_,c)=>`<code>${c}</code>`)}
+function cResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px'}
+function cKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}}
+function scrollChat(){const m=document.getElementById('chat-msgs');m.scrollTop=m.scrollHeight}
+function addMsg(role,text){const m=document.getElementById('chat-msgs');const d=document.createElement('div');d.className='m '+role;const lbl=role==='zulu'?'ZULU':FOUNDER,av=role==='zulu'?'ZU':'PA';d.innerHTML=`<div class="m-av">${av}</div><div class="m-body"><div class="m-lbl">${lbl}</div><div class="m-bub">${fmt(text)}</div></div>`;m.appendChild(d);scrollChat()}
+function showTyping(){const m=document.getElementById('chat-msgs');const d=document.createElement('div');d.className='m zulu';d.id='typ';d.innerHTML='<div class="m-av">ZU</div><div class="m-body"><div class="m-lbl">ZULU</div><div class="m-bub"><div class="typing"><span></span><span></span><span></span></div></div></div>';m.appendChild(d);scrollChat()}
+function rmTyping(){const t=document.getElementById('typ');if(t)t.remove()}
+async function respondTo(text){
+  addMsg('user',text);Memory.addConv(FOUNDER,text);showTyping();
+  let reply;
+  try{
+    if(aiReady){reply=await aiReply(text)}
+    else{await new Promise(r=>setTimeout(r,380+Math.random()*560));reply=generate(text)}
+  }catch(e){reply=generate(text)}
+  if(!reply)reply=generate(text);
+  rmTyping();addMsg('zulu',reply);Memory.addConv('ZULU',reply);
+}
+async function send(){if(busy)return;const inp=document.getElementById('chat-input');const t=inp.value.trim();if(!t)return;busy=true;document.getElementById('chat-send').disabled=true;inp.value='';inp.style.height='auto';await respondTo(t);busy=false;document.getElementById('chat-send').disabled=false;inp.focus()}
+function hResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px'}
+function hKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();heroSend()}}
+function heroSend(){const inp=document.getElementById('hero-input');const t=inp.value.trim();if(!t)return;inp.value='';inp.style.height='auto';openChat();setTimeout(()=>respondTo(t),420)}
+function chipSend(t){openChat();setTimeout(()=>respondTo(t),420)}
+function openChat(){const c=document.getElementById('chat');c.classList.add('open');document.body.style.overflow='hidden';if(!booted){booted=true;setTimeout(()=>{const hr=new Date().getHours();let g=hr<12?`Morning, ${FOUNDER}.`:hr<18?`Afternoon, ${FOUNDER}.`:`Evening, ${FOUNDER}.`;addMsg('zulu',`${g} ZULU online in Lite mode — instant, rule-based, always works. Tap ⚡ Neural up top to load my full AI brain (runs in your browser, downloads once) and I can think freely about anything. Your call.`)},300)}setTimeout(()=>document.getElementById('chat-input').focus(),420)}
+function closeChat(){document.getElementById('chat').classList.remove('open');document.body.style.overflow=''}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeChat()});
+function clearChat(){Memory.wipe();document.getElementById('chat-msgs').innerHTML='';addMsg('zulu',`Fresh start, ${FOUNDER}. Conversation cleared — your facts and reminders are safe. What's first?`)}
+function downloadBackup(){const blob=new Blob([JSON.stringify(Memory.data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`zulu_backup_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url)}
+const obs=new IntersectionObserver(es=>{es.forEach((e,i)=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add('vis'),i*60);obs.unobserve(e.target)}})},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>

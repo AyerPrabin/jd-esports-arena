@@ -1,0 +1,7 @@
+{
+  "name": "jd-esports-arena",
+  "private": true,
+  "dependencies": {
+    "@supabase/supabase-js": "^2"
+  }
+}

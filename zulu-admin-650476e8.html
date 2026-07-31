@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23060a14' stroke='%23c9a84c' stroke-width='4'/><text x='50' y='68' text-anchor='middle' font-family='Georgia' font-size='52' font-weight='700' fill='%23c9a84c'>Z</text></svg>">
+<title>ZULU — Knowledge Review</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#05080f;--bg-2:#0a0e1a;--panel:#0e1424;--panel-2:#121a2e;--line:#1c2840;--gold:#c9a84c;--gold-l:#e2c97e;--gold-m:#7e6630;--cream:#f4efe6;--silver:#aab4cc;--body:#7e8eb0;--green:#5aab8a;--red:#e36b6b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:'Inter',sans-serif;font-weight:300;line-height:1.6}
+.wrap{max-width:760px;margin:0 auto;padding:28px 22px 80px}
+h1{font-family:'Playfair Display',serif;font-weight:700;font-size:1.7rem;margin:0 0 4px}
+.sub{color:var(--gold-l);font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:24px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+.bank{display:inline-block;font-size:.66rem;padding:2px 9px;border-radius:20px;border:1px solid var(--gold-m);color:var(--gold-l);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.answer{font-size:.95rem;margin:6px 0 10px}
+.keys{color:var(--body);font-size:.8rem;margin-bottom:10px}
+.excerpt{color:var(--body);font-size:.78rem;font-style:italic;border-left:2px solid var(--line);padding-left:10px;margin-bottom:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--gold);color:#0a0a12;border:none;border-radius:30px;padding:9px 20px;font-weight:700;font-size:.82rem;cursor:pointer;transition:transform .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn.reject{background:transparent;border:1px solid rgba(227,107,107,.4);color:var(--red)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--cream)}
+.hint{color:var(--body);font-size:.84rem;margin:6px 0 0}
+input{background:var(--bg-2);border:1px solid var(--line);border-radius:9px;padding:9px 11px;color:var(--cream);font-family:inherit;font-size:.9rem;outline:none;width:100%}
+input:focus{border-color:var(--gold)}
+#gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:99;flex-direction:column;gap:14px;padding:20px}
+#gate h1{text-align:center}
+#gate input,#gate .f{max-width:320px;width:100%}
+.f{display:flex;flex-direction:column;gap:5px;margin-bottom:4px}
+label{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--silver)}
+.ok{color:var(--green)}.err{color:var(--red)}
+#msg{font-size:.86rem;min-height:20px}
+.empty{color:var(--body);text-align:center;padding:40px 0}
+</style>
+</head>
+<body>
+<div id="gate">
+  <h1>ZULU — Knowledge Review</h1>
+  <div class="sub" style="text-align:center">Owner only</div>
+  <div class="f"><label>Server URL</label><input id="url" placeholder="http://localhost:5005"></div>
+  <div class="f"><label>Secret key</label><input id="key" type="password" placeholder="leave blank if server has none set" onkeydown="if(event.key==='Enter')unlock()"></div>
+  <button class="btn" onclick="unlock()">Connect</button>
+  <div id="gate-msg" class="hint"></div>
+</div>
+
+<div class="wrap" id="app" style="display:none">
+  <h1>ZULU — Knowledge Review</h1>
+  <div class="sub">Approve or reject what ZULU has learned</div>
+  <p class="hint">ZULU proposes new permanent knowledge here when it learns something general-purpose during a chat. Nothing goes live until you approve it — approving backs up the current learned-knowledge file first, then promotes the entry.</p>
+  <div class="row" style="margin:16px 0">
+    <button class="btn ghost" onclick="load()">↻ Refresh</button>
+    <button class="btn ghost" onclick="disconnect()">Disconnect</button>
+    <div id="msg"></div>
+  </div>
+  <div id="list"></div>
+</div>
+
+<script>
+let BASE = '', KEY = '';
+
+function unlock(){
+  BASE = (document.getElementById('url').value || '').trim().replace(/\/$/, '');
+  KEY = document.getElementById('key').value || '';
+  if(!BASE){ gmsg('Enter the ZULU server URL.', 'err'); return; }
+  localStorage.setItem('zulu_admin_url', BASE);
+  localStorage.setItem('zulu_admin_key', KEY);
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = '';
+  load();
+}
+function disconnect(){
+  localStorage.removeItem('zulu_admin_url');
+  localStorage.removeItem('zulu_admin_key');
+  location.reload();
+}
+function gmsg(t, c){ document.getElementById('gate-msg').innerHTML = '<span class="'+(c||'')+'">'+esc(t)+'</span>'; }
+function msg(t, c){ document.getElementById('msg').innerHTML = '<span class="'+(c||'')+'">'+esc(t)+'</span>'; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+async function api(path, opts){
+  const url = BASE + path + (path.includes('?') ? '&' : '?') + 'key=' + encodeURIComponent(KEY);
+  const res = await fetch(url, Object.assign({headers:{'Content-Type':'application/json'}}, opts||{}));
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+async function load(){
+  try{
+    const data = await api('/admin/pending_knowledge');
+    render(data.pending || []);
+    msg('Loaded ' + (data.pending||[]).length + ' pending item(s).', 'ok');
+  }catch(e){
+    msg('Could not reach the server (' + e.message + ').', 'err');
+  }
+}
+
+function render(items){
+  const list = document.getElementById('list');
+  if(!items.length){
+    list.innerHTML = '<p class="empty">Nothing pending — ZULU hasn\'t proposed anything new right now.</p>';
+    return;
+  }
+  list.innerHTML = items.map(e => `
+    <div class="card">
+      <span class="bank">${esc(e.bank || 'general')}</span>
+      <div class="answer">${esc(e.a || '')}</div>
+      <div class="keys">Triggers: ${(e.k||[]).map(esc).join(', ')}</div>
+      ${e.source_excerpt ? `<div class="excerpt">"${esc(e.source_excerpt)}"</div>` : ''}
+      <div class="row">
+        <button class="btn" onclick="act('${e.id}','approve')">Approve</button>
+        <button class="btn reject" onclick="act('${e.id}','reject')">Reject</button>
+      </div>
+    </div>`).join('');
+}
+
+async function act(id, action){
+  try{
+    await api('/admin/knowledge/' + action, {method:'POST', body: JSON.stringify({id})});
+    msg(action === 'approve' ? 'Approved — now live.' : 'Rejected.', 'ok');
+    load();
+  }catch(e){
+    msg('Action failed (' + e.message + ').', 'err');
+  }
+}
+
+(function init(){
+  const savedUrl = localStorage.getItem('zulu_admin_url');
+  if(savedUrl){
+    document.getElementById('url').value = savedUrl;
+    document.getElementById('key').value = localStorage.getItem('zulu_admin_key') || '';
+    unlock();
+  }
+})();
+</script>
+</body>
+</html>

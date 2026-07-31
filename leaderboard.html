@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07090F">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23060a14' stroke='%23c9a84c' stroke-width='4'/><text x='50' y='68' text-anchor='middle' font-family='Georgia' font-size='52' font-weight='700' fill='%23c9a84c'>Z</text></svg>">
+<title>Leaderboard — JD Esports Arena</title>
+<meta name="description" content="Full Best-of-3 standings for JD Esports Arena — Free Fire BR tournaments in Nepal.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090F;--bg-2:#0D111B;--panel:#111827;--panel-2:#151D2E;--line:rgba(255,200,80,.14);
+  --border:rgba(255,200,80,.18);--gold:#FFC83D;--gold-2:#FFAE00;--gold-l:#FFDD85;--gold-m:rgba(255,200,80,.42);
+  --cream:#FFFFFF;--silver:#A6AFC2;--body:#8A94A8;--green:#5aab8a;
+  --container:1100px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:'Inter',sans-serif;font-weight:400;line-height:1.6}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:var(--container);margin:0 auto;padding:0 28px}
+header{padding:20px clamp(20px,5vw,80px);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;justify-content:space-between;max-width:var(--container);margin:0 auto}
+.brand span{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.02em;display:block}
+.brand span span{font-family:'Inter',sans-serif;font-size:.68rem;font-weight:500;color:var(--gold-l);letter-spacing:.1em;text-transform:uppercase}
+.back-btn{background:transparent;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:30px;padding:8px 16px;font-size:.8rem;font-weight:600;transition:.2s}
+.back-btn:hover{background:rgba(255,200,61,.12)}
+main{padding:44px 0 80px}
+.sec-h{display:flex;align-items:baseline;gap:14px;margin-bottom:10px}
+.sec-h h1{font-family:'Bebas Neue',sans-serif;text-transform:uppercase;letter-spacing:.02em;font-size:clamp(2rem,4vw,3rem);margin:0}
+.sec-h .ln{flex:1;height:1px;background:var(--line)}
+.sub{color:var(--body);font-size:.92rem;margin:0 0 30px}
+.pts-table{width:100%;border-collapse:separate;border-spacing:0 6px;font-size:.9rem}
+.pts-table th{text-align:left;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-l);padding:10px 14px;font-weight:700}
+.pts-table td{padding:15px 14px;background:var(--panel);color:var(--cream);transition:.2s}
+.pts-table tr:hover td{background:var(--panel-2)}
+.pts-table td:first-child{border-radius:12px 0 0 12px}
+.pts-table td:last-child{border-radius:0 12px 12px 0}
+.pts-table .rk{color:var(--gold-l);font-family:'Bebas Neue',sans-serif;font-size:1.3rem}
+.pts-table tbody tr:nth-child(1) .rk{color:#FFD54A}
+.pts-table tbody tr:nth-child(2) .rk{color:#D9DEE8}
+.pts-table tbody tr:nth-child(3) .rk{color:#E3A15F}
+.pts-table .team{display:flex;align-items:center;gap:10px;font-weight:600}
+.pts-table .team img{width:26px;height:26px;border-radius:50%;object-fit:cover;background:#000;flex-shrink:0}
+.pts-table .num{text-align:right;color:var(--body)}
+.pts-table .tot{text-align:right;color:var(--gold-l);font-weight:700;font-size:1rem}
+.mv{font-weight:700;margin-left:5px;font-size:.8rem}
+.mv-up{color:var(--green)}
+.mv-down{color:#ff7676}
+.mv-same{color:var(--silver)}
+.empty-state{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:40px 24px;text-align:center;color:var(--body)}
+.points-note{margin-top:28px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;font-size:.86rem;color:var(--silver)}
+.points-note b{color:var(--gold-l)}
+footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8rem}
+@media(max-width:640px){.pts-table{font-size:.78rem}.pts-table th,.pts-table td{padding:9px 8px}.pts-table .team img{width:20px;height:20px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <a class="brand" href="/"><span>JD Esports Arena<span>by AyerFire</span></span></a>
+    <a class="back-btn" href="/">← Back to site</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="sec-h"><h1 id="lb-ttl">Season Leaderboard</h1><span class="ln"></span></div>
+  <p class="sub" id="lb-sub">Loading standings…</p>
+  <div id="lb-body"></div>
+  <div class="points-note"><b>How points work:</b> 1 point per kill, no cap, plus placement points — 1st 12 · 2nd 9 · 3rd 6 · 4th 5 · 5th 4 · 6th 3 · 7th 2 · 8th 1. Both add up to a squad's round total.</div>
+</main>
+
+<footer>JD Esports Arena · AyerFire</footer>
+
+<script>
+const TOURNAMENTS_URL='https://jdesport.co.uk/tournaments.json';
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+/* Same standings math as index.html's bo3Standings()/renderBo3Board() — kept in
+   sync deliberately rather than shared, since this is a separate static file with
+   no build step to import from. */
+function bo3Standings(bo3){
+  const teams=(bo3&&bo3.teams)||[];
+  const stageTotals=upto=>teams.map(t=>{
+    let pts=0,kills=0;
+    for(let i=0;i<=upto;i++){pts+=+((t.r&&t.r[i]&&t.r[i].pts)||0);kills+=+((t.r&&t.r[i]&&t.r[i].kills)||0);}
+    return {team:t.team,pts,kills};
+  });
+  const rankOf=stage=>{
+    const sorted=stage.slice().sort((a,b)=>b.pts-a.pts||b.kills-a.kills||String(a.team).localeCompare(String(b.team)));
+    const m=new Map();sorted.forEach((x,i)=>m.set(x.team,i+1));return m;
+  };
+  const s1=stageTotals(0),s2=stageTotals(1),s3=stageTotals(2);
+  const rk1=rankOf(s1),rk2=rankOf(s2),rk3=rankOf(s3);
+  const arrow=(cur,prev)=>cur==null||prev==null?'same':cur<prev?'up':cur>prev?'down':'same';
+  const totalOf=(stage,team)=>{const x=stage.find(s=>s.team===team);return x?x.pts:0;};
+  return teams.map(t=>({
+    team:t.team,logo:t.logo,
+    r1k:+((t.r&&t.r[0]&&t.r[0].kills)||0),
+    r2k:+((t.r&&t.r[1]&&t.r[1].kills)||0),
+    r3k:+((t.r&&t.r[2]&&t.r[2].kills)||0),
+    totalPts:totalOf(s3,t.team),
+    rank:rk3.get(t.team),
+    moveR2:arrow(rk2.get(t.team),rk1.get(t.team)),
+    moveR3:arrow(rk3.get(t.team),rk2.get(t.team))
+  })).sort((a,b)=>a.rank-b.rank);
+}
+function mvArrow(m){return m==='up'?'<span class="mv mv-up">▲</span>':m==='down'?'<span class="mv mv-down">▼</span>':'<span class="mv mv-same">–</span>';}
+function render(d){
+  const B=d.bo3;
+  const has=B&&B.published&&B.teams&&B.teams.length;
+  const sub=document.getElementById('lb-sub');
+  if(!has){
+    sub.textContent="No results published yet.";
+    document.getElementById('lb-body').innerHTML='<div class="empty-state">Standings show up here the moment results are published — check back once a bracket is underway.</div>';
+    return;
+  }
+  sub.textContent=B.title||B.tournament||'Best-of-3 standings';
+  const rows=bo3Standings(B);
+  document.getElementById('lb-body').innerHTML=`<table class="pts-table"><thead><tr><th>#</th><th>Squad</th><th class="num">R1 Kills</th><th class="num">R2 Kills</th><th class="num">R3 Kills</th><th class="num">Total</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="rk">${r.rank}</td><td class="team">${r.logo?`<img src="${esc(r.logo)}" alt="">`:''}${esc(r.team)}</td><td class="num">${r.r1k}</td><td class="num">${r.r2k}${mvArrow(r.moveR2)}</td><td class="num">${r.r3k}${mvArrow(r.moveR3)}</td><td class="tot">${r.totalPts}</td></tr>`).join('')}</tbody></table>`;
+}
+function load(){
+  const same=(/^https?:$/.test(location.protocol))?new URL('/tournaments.json',location.href).href:null;
+  const tryGet=u=>u?fetch(u,{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()):Promise.reject();
+  tryGet(same).catch(()=>tryGet(TOURNAMENTS_URL)).then(render).catch(()=>{
+    document.getElementById('lb-sub').textContent='Could not load standings right now.';
+  });
+}
+load();
+setInterval(()=>{if(!document.hidden)load();},45000);
+</script>
+</body>
+</html>

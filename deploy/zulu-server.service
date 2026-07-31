@@ -1,0 +1,16 @@
+[Unit]
+Description=ZULU Flask server (public/jdstock/portfolio chat, admin AI review)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/zulu
+ExecStart=/home/ubuntu/zulu/venv/bin/python /home/ubuntu/zulu/zulu_server.py
+Restart=always
+RestartSec=5
+StandardOutput=append:/home/ubuntu/zulu/zulu-server.log
+StandardError=append:/home/ubuntu/zulu/zulu-server.log
+
+[Install]
+WantedBy=multi-user.target
