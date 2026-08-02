@@ -80,8 +80,11 @@ details[open]>.dsum-sm::before{content:'▾ '}
   <img class="jdlogo-lg" src="/logo.png" alt="JD Esports Arena" width="64" height="64">
   <h1>JD Arena — Editor</h1>
   <div class="sub" style="text-align:center">Owner only</div>
+  <button class="btn" id="google-signin-btn" onclick="signInWithGoogle()">🔐 Sign in with Google</button>
+  <div id="google-msg" class="hint"></div>
+  <div class="hint" style="margin:10px 0 0">— or use the passcode —</div>
   <input id="code" type="password" placeholder="Admin passcode" autocomplete="off" onkeydown="if(event.key==='Enter')unlock()">
-  <button class="btn" onclick="unlock()">Unlock</button>
+  <button class="btn ghost" onclick="unlock()">Unlock</button>
   <div id="gate-msg" class="hint">You'll only need to type this once — it's remembered on this device from now on.</div>
   <a class="btn ghost" href="/" style="margin-top:4px">← Back to site</a>
 </div>
@@ -350,6 +353,42 @@ function changePasscode(){
 }
 function adminSecret(){return (localStorage.getItem('jd_admin_secret')||'').trim();}
 
+/* ── Sign in with Google: a second, server-verified way to populate the same
+   jd_admin_secret value unlock() sets by hand. admin-google-login (Edge Function)
+   is the actual gate — it re-checks the caller's Supabase session server-side and
+   only ever hands back ADMIN_SECRET when the signed-in email is the one allowed
+   admin address, so this stays exactly as secure as typing the passcode, just
+   without having to remember or type it. The passcode field above still works
+   on its own if Google sign-in is ever unreachable — this is additive, not a
+   replacement, so there's no way to get locked out of your own admin panel. */
+async function signInWithGoogle(){
+  const msg=document.getElementById('google-msg');
+  if(!sb){msg.innerHTML='<span class="err">Google sign-in unavailable here — use the passcode below.</span>';return;}
+  msg.innerHTML='Redirecting to Google…';
+  await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+'/admin/'}});
+}
+async function tryGoogleSession(){
+  if(!sb)return;
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session)return;
+  const msg=document.getElementById('google-msg');
+  msg.innerHTML='Checking your Google account…';
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/admin-google-login',{headers:{Authorization:'Bearer '+session.access_token}});
+    if(!r.ok){
+      msg.innerHTML='<span class="err">'+(r.status===403?'This Google account isn\'t authorized for admin access.':'Could not verify Google sign-in — use the passcode below.')+'</span>';
+      return;
+    }
+    const {secret}=await r.json();
+    localStorage.setItem('jd_admin_secret',secret);
+    document.getElementById('gate').style.display='none';
+    document.getElementById('app').style.display='';
+    loadLive();
+  }catch(e){
+    msg.innerHTML='<span class="err">Could not verify Google sign-in — use the passcode below.</span>';
+  }
+}
+
 /* ── Users popup: "online now" via the same Realtime Presence channel jd-website's
    index.html joins (jd-online) — the admin side never calls .track() itself, so it
    never counts itself as a visitor, just listens and renders presenceState() on every
@@ -462,6 +501,7 @@ const EDGE_FN_BASE='https://cnoxvqvpmgowdiyrrusv.supabase.co/functions/v1'; // S
 const SUPABASE_URL='https://cnoxvqvpmgowdiyrrusv.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil'; // safe to expose — RLS-protected, same as jd-arena.html
 const sb=(typeof supabase!=='undefined'&&SUPABASE_URL&&SUPABASE_ANON_KEY)?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+if(document.getElementById('gate').style.display!=='none')tryGoogleSession();
 const TF=[['name','Name','text'],['game','Game / mode','text'],['date','Date (display)','text'],['time','Time','text'],['start','Start (ISO, for countdown)','text'],['prize','Prize pool','text'],['entry','Entry fee','text'],['platform','Platform','text'],['slots','Slots (max squads)','number'],['format','Format','text'],['register_url','Register URL','text'],['winner','Winner (if done)','text']];
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
