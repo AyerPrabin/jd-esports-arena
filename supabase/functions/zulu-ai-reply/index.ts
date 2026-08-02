@@ -86,11 +86,34 @@ Deno.serve(async (req: Request) => {
   }
   const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash';
 
+  // Grounds the fallback in the real, current schedule instead of making it guess or
+  // deflect every scheduling/prize/entry question — tournaments.json is the same public
+  // file the site itself renders from (see TOURNAMENTS_URL in tournament-reminders),
+  // so this is data the visitor could already see on the page, not anything private.
+  // Best-effort: if the fetch fails, ZULU just answers without it (same as before).
+  let scheduleContext = '';
+  try {
+    const r = await fetch('https://jdesport.co.uk/tournaments.json', { cache: 'no-store' });
+    if (r.ok) {
+      const d = await r.json();
+      const list = (d.tournaments || []).filter((t: any) => !['completed', 'cancelled'].includes((t.status || '').toLowerCase()));
+      if (list.length) {
+        scheduleContext = '\n\nCurrent tournaments (use this to answer schedule/prize/entry/slots/format questions accurately — do not contradict it):\n' +
+          list.slice(0, 8).map((t: any) =>
+            `- ${t.name || 'Tournament'}: status=${t.status || 'upcoming'}, date=${t.date || 'TBA'}, time=${t.time || 'TBA'}, prize=${t.prize || '—'}, entry=${t.entry || 'Free'}, slots=${t.slots ?? '—'}, format=${t.format || 'BR'}`
+          ).join('\n');
+      }
+    }
+  } catch {
+    // tournaments.json fetch failing shouldn't block the reply — just answer without schedule grounding
+  }
+
   const systemPrompt = `You are ZULU, the friendly assistant for JD Esports Arena — a Free Fire Battle Royale tournament platform in Nepal run solo by Prabin Ayer (AyerFire). Answer briefly (2-4 sentences), in a warm, casual tone.
 Rules:
 - Only discuss JD Arena, Free Fire tournaments, how to join/register, rules, fair play, and general esports/gaming chat. If asked about Prabin's private business plans, revenue, or anything unrelated, politely decline and steer back to tournaments.
-- You do NOT have access to live account data (room IDs, exact points, registration status). NEVER invent specific numbers, room codes, or match times. If asked something that needs live account-specific data, tell them to check their account panel / Notification History on the site instead of guessing.
-- Reply in ${lang === 'ne' ? 'Nepali' : 'English'}.`;
+- Use the current tournaments list below (if provided) to answer schedule/prize/entry/slots/format questions with real numbers — don't say "check the site" for something already listed here.
+- You still do NOT have access to per-player account data (room IDs, a specific player's points, their registration status). NEVER invent those. If asked something that needs THAT kind of live account-specific data, tell them to check their account panel / Notification History on the site instead of guessing.
+- Reply in ${lang === 'ne' ? 'Nepali' : 'English'}.${scheduleContext}`;
 
   try {
     const res = await fetch(
