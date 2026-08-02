@@ -95,7 +95,22 @@ details[open]>.dsum-sm::before{content:'▾ '}
       <div id="users-online-list"></div>
     </div>
     <div id="up-summary" class="hint" style="margin:12px 0 0"></div>
-    <div class="row">
+    <div class="card" style="margin-top:12px">
+      <label>Manually verify a player</label>
+      <p class="hint" style="margin:2px 0 8px">For when Supabase's signup email is rate-limited (or a player just can't get it) — creates their account already verified, no email involved. Get their desired username + email (Discord/FB DM works), create it here, then send them the sign-in link this returns.</p>
+      <div class="row2">
+        <input id="mc-username" placeholder="Username (3-20 letters/numbers/_)">
+        <input id="mc-email" placeholder="Player's email" type="email">
+      </div>
+      <button class="btn-primary" style="margin-top:8px" onclick="manualCreatePlayer()">Create & verify</button>
+      <div id="mc-msg" class="hint" style="margin-top:8px"></div>
+      <div id="mc-result" style="display:none;margin-top:8px">
+        <label>Sign-in link — send this to the player, one click and they're in</label>
+        <div class="row2"><input id="mc-link" readonly onclick="this.select()"><button class="btn ghost" onclick="navigator.clipboard.writeText(document.getElementById('mc-link').value)">Copy</button></div>
+        <p class="hint" id="mc-fallback" style="margin-top:6px"></p>
+      </div>
+    </div>
+    <div class="row" style="margin-top:12px">
       <button class="btn ghost" onclick="loadAllPlayers()">↻ Load registered players</button>
       <input class="up-search" id="up-search" placeholder="Search username / tag / email" oninput="renderAllPlayers()">
       <div id="up-msg" class="hint"></div>
@@ -384,6 +399,35 @@ async function loadAllPlayers(){
     upMsg(_allPlayers.length+' registered player(s).','ok');
   }catch(e){upMsg('Could not load: '+e.message,'err');}
 }
+async function manualCreatePlayer(){
+  const secret=adminSecret();
+  if(!secret){mcMsg('Enter the admin passcode first.','err');return;}
+  const username=(document.getElementById('mc-username').value||'').trim();
+  const email=(document.getElementById('mc-email').value||'').trim();
+  if(!username||!email){mcMsg('Fill in both username and email.','err');return;}
+  document.getElementById('mc-result').style.display='none';
+  mcMsg('Creating…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/admin-create-player',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({username,email})});
+    const text=await r.text();
+    if(!r.ok)throw new Error(text);
+    const data=JSON.parse(text);
+    mcMsg('Account created and verified for @'+esc(data.username)+'.','ok');
+    document.getElementById('mc-username').value='';
+    document.getElementById('mc-email').value='';
+    if(data.magic_link){
+      document.getElementById('mc-link').value=data.magic_link;
+      document.getElementById('mc-fallback').textContent='Link expires after one use / a short while — if it goes stale, come back here and generate a new one. Fallback password: '+data.temp_password;
+      document.getElementById('mc-result').style.display='';
+    }else{
+      document.getElementById('mc-fallback').textContent='No sign-in link this time — give the player their email + this temp password to log in: '+data.temp_password;
+      document.getElementById('mc-link').value='';
+      document.getElementById('mc-result').style.display='';
+    }
+    if(_allPlayers.length)loadAllPlayers();
+  }catch(e){mcMsg('Failed: '+e.message,'err');}
+}
+function mcMsg(t,c){const el=document.getElementById('mc-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
 function fmtLastSeen(iso){
   if(!iso)return'Never';
   const d=new Date(iso),diffH=(Date.now()-d.getTime())/36e5;
