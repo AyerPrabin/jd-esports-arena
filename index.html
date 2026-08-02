@@ -1219,6 +1219,7 @@ function refresh(){const same=(/^https?:$/.test(location.protocol))?new URL('tou
    registration, and the Notification History inbox (where room IDs show up). */
 let _player=null;      // {id, email, tag}
 let _authView='login';
+let _googleFirstRun=false; // true only for the auto-opened "pick a username" prompt right after a Google sign-in; false when opened voluntarily via "Change username"
 let _notifUnread=0;
 let _notifHasLoadedOnce=false; // suppress the chime on the very first load (existing unread shouldn't "ding")
 let _gateActive=false; // true while the whole site sits behind the forced login/signup gate
@@ -1269,6 +1270,18 @@ function authRender(){
     const first=el.querySelector('input');if(first)setTimeout(()=>first.focus(),50);
     return;
   }
+  if(_player&&_authView==='chooseusername'){
+    el.innerHTML=`<h3>${esc(_googleFirstRun?'Welcome! Pick a username':'Change username')}</h3><p class="sub">${_googleFirstRun?"You signed in with Google — pick a username so squadmates can find you. You can change this later.":'Pick a new username.'}</p>
+      <label>Username</label><input id="au-username" autocomplete="off" maxlength="20" placeholder="3-20 letters, numbers, underscore" value="${esc(_player.username||'')}">
+      <div class="msg" id="au-uname-msg"></div>
+      <div class="msg" id="au-msg"></div>
+      <div class="row2"><button class="btn-primary" style="flex:1" onclick="authSetUsername()">Save username</button></div>
+      ${_googleFirstRun?'<p class="sub" style="margin-top:16px"><button class="link" onclick="authClose()">Skip for now</button></p>':'<p class="sub" style="margin-top:16px"><button class="link" onclick="_authView=\'login\';authRender();">Cancel</button></p>'}`;
+    const un=document.getElementById('au-username');
+    if(un){un.addEventListener('input',checkUsernameLive);un.select();}
+    setTimeout(()=>{const f=document.getElementById('au-username');if(f)f.focus();},50);
+    return;
+  }
   if(_player){
     let discordBlock;
     if(_player.discord_username){
@@ -1279,7 +1292,7 @@ function authRender(){
       discordBlock=`<button class="pm-btn" onclick="authLinkDiscord()"><span class="pm-btn-ic">💬</span><span class="pm-btn-txt">Link Discord</span><span class="pm-badge">Not connected</span></button><p class="pm-hint" style="margin-top:-8px">Receive Room IDs instantly there too.</p>`;
     }
     const verifiedBadge=_player.verified?'<span class="pm-verified">✓ Verified</span>':'';
-    el.innerHTML=`<h3 class="pm-title">Signed in</h3><div class="auth-tag">@${esc(_player.username||'…')}</div><div class="pm-meta"><span>${esc(_player.email)}</span>${_player.tag?`<span class="pm-dot">●</span><span>ID ${esc(_player.tag)}</span>`:''}${verifiedBadge}</div>${_player.tag?'<p class="pm-hint">Only needed if you register outside the app.</p>':''}<div id="career-stats"></div><button class="pm-btn" id="acct-push-btn" onclick="enablePush()"><span class="pm-btn-ic">🔔</span><span class="pm-btn-txt">Enable push alerts</span><span class="pm-toggle" id="acct-push-toggle"></span></button>${discordBlock}<div class="msg" id="au-msg"></div><button class="pm-btn" onclick="_authView='changepass';authRender();"><span class="pm-btn-ic">🔑</span><span class="pm-btn-txt">Change password</span></button><button class="pm-btn" onclick="openReportFlow()"><span class="pm-btn-ic">🚩</span><span class="pm-btn-txt">Report a player/squad</span></button><button class="pm-btn" onclick="authLogout()"><span class="pm-btn-ic">↩</span><span class="pm-btn-txt">Log out</span></button><button class="link pm-delete" onclick="authRequestDelete()">Delete account</button>`;
+    el.innerHTML=`<h3 class="pm-title">Signed in</h3><div class="auth-tag">@${esc(_player.username||'…')}</div><div class="pm-meta"><span>${esc(_player.email)}</span>${_player.tag?`<span class="pm-dot">●</span><span>ID ${esc(_player.tag)}</span>`:''}${verifiedBadge}</div>${_player.tag?'<p class="pm-hint">Only needed if you register outside the app.</p>':''}<div id="career-stats"></div><button class="pm-btn" id="acct-push-btn" onclick="enablePush()"><span class="pm-btn-ic">🔔</span><span class="pm-btn-txt">Enable push alerts</span><span class="pm-toggle" id="acct-push-toggle"></span></button>${discordBlock}<div class="msg" id="au-msg"></div><button class="pm-btn" onclick="authChangeUsername()"><span class="pm-btn-ic">✏️</span><span class="pm-btn-txt">Change username</span></button><button class="pm-btn" onclick="_authView='changepass';authRender();"><span class="pm-btn-ic">🔑</span><span class="pm-btn-txt">Change password</span></button><button class="pm-btn" onclick="openReportFlow()"><span class="pm-btn-ic">🚩</span><span class="pm-btn-txt">Report a player/squad</span></button><button class="pm-btn" onclick="authLogout()"><span class="pm-btn-ic">↩</span><span class="pm-btn-txt">Log out</span></button><button class="link pm-delete" onclick="authRequestDelete()">Delete account</button>`;
     updatePushBtn();
     loadCareerStats();
     return;
@@ -1348,9 +1361,26 @@ function checkUsernameLive(){
    table via the same trigger. */
 async function authGoogleSignIn(){
   authMsg('Redirecting to Google…',true);
+  // Google sends the browser away and fully back — a JS variable wouldn't survive that
+  // round trip, so this flag rides in sessionStorage instead. It's how the getSession()
+  // handler near the bottom of this file knows to auto-open the username prompt only for
+  // a sign-in that JUST completed, never for a plain returning-session page load.
+  sessionStorage.setItem('jd_google_flow','1');
   const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href.split('#')[0]}});
-  if(error)authMsg('Google sign-in isn\'t set up on this deploy yet.');
+  if(error){sessionStorage.removeItem('jd_google_flow');authMsg('Google sign-in isn\'t set up on this deploy yet.');}
 }
+async function authSetUsername(){
+  const uname=document.getElementById('au-username').value.trim();
+  if(!USERNAME_RE.test(uname)){authMsg('Pick a username: 3-20 letters, numbers, or underscore.');return;}
+  authMsg('Saving…',true);
+  const {error}=await sb.rpc('set_my_username',{new_username:uname});
+  if(error){authMsg(/duplicate|unique|taken|constraint/i.test(error.message)?'That username is taken — try another.':error.message);return;}
+  await authRefreshPlayer();
+  authMsg('Username saved!',true);
+  _authView='login';
+  setTimeout(authClose,900);
+}
+function authChangeUsername(){_googleFirstRun=false;_authView='chooseusername';authRender();}
 async function authSignup(){
   const uname=document.getElementById('au-username').value.trim();
   const email=document.getElementById('au-email').value.trim(),pass=document.getElementById('au-pass').value;
@@ -1547,7 +1577,23 @@ if(sb){
       });
     }
   });
-  sb.auth.getSession().then(({data:{session}})=>{if(session)authRefreshPlayer();else updateGate();});
+  sb.auth.getSession().then(({data:{session}})=>{
+    if(!session){updateGate();return;}
+    authRefreshPlayer().then(()=>{
+      // Only the sign-in that JUST completed (flag set in authGoogleSignIn, right before
+      // the redirect to Google) triggers this — a returning player who already has a
+      // session on a normal page load never gets interrupted by it.
+      if(sessionStorage.getItem('jd_google_flow')){
+        sessionStorage.removeItem('jd_google_flow');
+        if(_player&&/^player_[0-9a-f]{8}$/i.test(_player.username||'')){
+          _googleFirstRun=true;
+          _authView='chooseusername';
+          document.getElementById('auth-overlay').classList.add('open');
+          authRender();
+        }
+      }
+    });
+  });
 }else{
   const main=document.getElementById('main-content');if(main)main.style.display='';
   const header=document.querySelector('header');if(header)header.style.display='';
