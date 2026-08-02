@@ -1081,11 +1081,17 @@ function effectiveStatus(t){
   return s;
 }
 
+/* Polled every 5s (see the setInterval below) so slot counts/roster feel live without a
+   page reload — but re-writing arena-grid's innerHTML every tick would replay every squad
+   chip's entrance animation (.troster span's chipIn) and the slot-bar width transition on
+   every single poll, even when nothing changed. So the grid HTML is only actually written
+   when it differs from last time; ticks where nothing moved are a no-op past this point. */
+let _lastGridHTML=null;
 function render(d){
   _lastData=d;
   const grid=document.getElementById('arena-grid');if(!grid)return;
   const ts=d.tournaments||[];
-  grid.innerHTML=ts.length?ts.map(t=>{
+  const gridHTML=ts.length?ts.map(t=>{
     const st=effectiveStatus(t);
     const teams=teamsFor(t);
     const slots=+t.slots||0,reg=(sb&&_rosterLoaded)?teams.length:(teams.length||+t.registered||0),pct=slots?Math.min(100,Math.round(reg/slots*100)):0;
@@ -1108,9 +1114,13 @@ function render(d){
     const media=`<div class="tcard-media" style="background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%),url('${esc(t.image||'event-card.jpg')}')"></div>`;
     return `<div class="tcard" data-tname="${esc(t.name)}" onclick="cardTap(event,this)">${media}<div class="tcard-body"><span class="tbadge ${st}">${st==='live'?'● Live':(st==='cancelled'?'✕ Cancelled':st)}</span><div class="tname">${esc(t.name)}</div><div class="tgame">${esc(t.game||'Free Fire')}</div>${(st==='upcoming'&&t.start)?`<div class="tcount" data-start="${esc(t.start)}"></div><div class="tcount-bar"><span></span></div>`:''}<div class="tmeta"><div class="row"><span>Date</span><b>${esc(t.date||'TBA')}${t.time&&t.time!=='—'?' · '+esc(t.time):''}</b></div><div class="row"><span>Prize pool</span><b>${esc(t.prize||'—')}</b></div><div class="row"><span>Entry</span><b>${esc(t.entry||'Free')}</b></div><div class="row"><span>Format</span><b>${esc(t.format||'BR')}</b></div>${t.platform?`<div class="row"><span>Platform</span><b>📱 ${esc(t.platform)}</b></div>`:''}</div>${slots?`<div class="tslots"><span style="width:${pct}%"></span></div><button class="tslots-label" data-roster="${esc(t.name)}">${reg}/${slots} ${tr('sqview')}</button>`:''}${teams.length?`<div class="troster">${teams.map(tm=>{const fx=squadFx(tm);const cls=fx?' '+fx.cls:'';const badge=(fx&&fx.badge)?`<span class="fx-badge">${fx.badge}</span> `:'';const particles=fxParticlesHtml(fx);const nameHtml=fxNameHtml(fx,tm.name);return tm.logo?`<span class="${(fx?fx.cls:'')}"><img src="${esc(tm.logo)}" alt="">${badge}${nameHtml}${particles}</span>`:`<span class="nologo${cls}">${badge}${nameHtml}${particles}</span>`;}).join('')}</div>`:''}${btn}${inAppRegBtn(t,st,full)}</div></div>`;
   }).join(''):'<p style="text-align:center;color:var(--silver)">No tournaments posted yet — check back soon.</p>';
-  grid.querySelectorAll('[data-reg]').forEach(b=>b.onclick=()=>registerInApp(b.getAttribute('data-reg')));
-  grid.querySelectorAll('[data-checkin]').forEach(b=>b.onclick=()=>checkInForTournament(b.getAttribute('data-checkin')));
-  grid.querySelectorAll('[data-roster]').forEach(b=>b.onclick=e=>{e.stopPropagation();openRoster(b.getAttribute('data-roster'));});
+  if(gridHTML!==_lastGridHTML){
+    _lastGridHTML=gridHTML;
+    grid.innerHTML=gridHTML;
+    grid.querySelectorAll('[data-reg]').forEach(b=>b.onclick=()=>registerInApp(b.getAttribute('data-reg')));
+    grid.querySelectorAll('[data-checkin]').forEach(b=>b.onclick=()=>checkInForTournament(b.getAttribute('data-checkin')));
+    grid.querySelectorAll('[data-roster]').forEach(b=>b.onclick=e=>{e.stopPropagation();openRoster(b.getAttribute('data-roster'));});
+  }
   loadReviewSummaries();
   renderBo3Board(d);
   renderPredictBoard(d);
@@ -1277,6 +1287,8 @@ function authRender(){
   const gateIntro=_gateActive?'<div class="gate-intro"><b>JD Esports Arena</b><span>Sign in to see tournaments, prizes, and how to join.</span></div>':'';
   if(_authView==='signup'){
     el.innerHTML=gateIntro+`<h3>Create account</h3><p class="sub">Pick a username, then register for tournaments in-app.</p>
+      <button class="btn-ghost" style="width:100%;margin-bottom:14px" onclick="authGoogleSignIn()">🔐 Continue with Google</button>
+      <p class="sub" style="text-align:center;margin:-6px 0 14px">— or —</p>
       <label>Username</label><input id="au-username" autocomplete="off" maxlength="20" placeholder="3-20 letters, numbers, underscore">
       <div class="msg" id="au-uname-msg"></div>
       <label>Email</label><input id="au-email" type="email" autocomplete="email">
@@ -1294,6 +1306,8 @@ function authRender(){
       <p class="sub" style="margin-top:16px"><button class="link" onclick="authOpen('login')">Back to log in</button></p>`;
   }else{
     el.innerHTML=gateIntro+`<h3>Log in</h3><p class="sub">Log in to register and see your room IDs.</p>
+      <button class="btn-ghost" style="width:100%;margin-bottom:14px" onclick="authGoogleSignIn()">🔐 Continue with Google</button>
+      <p class="sub" style="text-align:center;margin:-6px 0 14px">— or —</p>
       <label>Email</label><input id="au-email" type="email" autocomplete="email">
       <label>Password</label><input id="au-pass" type="password" autocomplete="current-password">
       <div class="msg" id="au-msg"></div>
@@ -1322,6 +1336,21 @@ function checkUsernameLive(){
   },400);
 }
 
+/* Google sign-in for players (not just admin): same Supabase Google provider as the
+   admin gate, so once that's enabled this works too, no extra setup. Supabase marks
+   OAuth sign-ins as email-confirmed automatically — meaning a player who signs up this
+   way never touches the rate-limited confirmation mailer at all, unlike the email/
+   password path above. handle_new_user() already falls back to an auto-generated
+   'player_xxxxxxxx' username when there's no username in the OAuth metadata (see
+   coalesce(...) in schema.sql), so this never fails at account-creation time — it just
+   means a first-time Google player starts with a generic username they can change later.
+   Doesn't replace the email/password flow above; both create rows in the same players
+   table via the same trigger. */
+async function authGoogleSignIn(){
+  authMsg('Redirecting to Google…',true);
+  const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href.split('#')[0]}});
+  if(error)authMsg('Google sign-in isn\'t set up on this deploy yet.');
+}
 async function authSignup(){
   const uname=document.getElementById('au-username').value.trim();
   const email=document.getElementById('au-email').value.trim(),pass=document.getElementById('au-pass').value;
@@ -2006,7 +2035,10 @@ applyLang();refresh();loadPublicRoster();tick();updateAcctBtn();updateNotifHistB
 // Also re-checks the player's own registrations/notifications on the same tick — otherwise
 // a waitlist auto-promotion (or a room code, or anything else) sits invisible until they
 // happen to reload, which undercuts "you'll be confirmed automatically, nothing to do".
-setInterval(()=>{if(!document.hidden){refresh();loadPublicRoster();if(_player){loadMyRegs();loadNotifications(false);}}},45000);
+/* 5s so slot counts/roster changes show up close to instantly without a manual reload —
+   safe now that render() no-ops when nothing actually changed (see _lastGridHTML above),
+   so most of these ticks touch zero DOM. Still skipped entirely on a backgrounded tab. */
+setInterval(()=>{if(!document.hidden){refresh();loadPublicRoster();if(_player){loadMyRegs();loadNotifications(false);}}},5000);
 setInterval(tick,1000);
 
 /* ── scroll-reveal: fade+lift `.reveal` sections into view once, skipped entirely under
