@@ -36,6 +36,7 @@ html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--cream);font-family:'Inter',sans-serif;font-weight:400;line-height:1.6;overflow-x:hidden}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--gold)}
 a{color:inherit;text-decoration:none}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:6px}
 .wrap{max-width:var(--container);margin:0 auto;padding:0 28px}
 /* glow backdrop */
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(1200px 600px at 70% -10%,rgba(255,200,61,.10),transparent 60%),radial-gradient(900px 500px at 10% 110%,rgba(255,174,0,.10),transparent 60%);pointer-events:none;z-index:0}
@@ -54,6 +55,21 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .bar-nav{display:flex;align-items:center;gap:18px}
 .bar-nav a:not(.cta){font-size:.82rem;color:var(--silver);transition:.2s}
 .bar-nav a:not(.cta):hover{color:var(--gold-l)}
+.nav-toggle{display:none;position:relative;z-index:61;background:transparent;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:10px;width:38px;height:38px;align-items:center;justify-content:center;cursor:pointer;flex:none;font-size:1.1rem}
+.nav-toggle:hover{background:rgba(255,200,61,.12)}
+.nav-scrim{display:none;position:fixed;inset:0;background:rgba(5,7,12,.6);z-index:55;opacity:0;transition:opacity .3s}
+@media(max-width:640px){
+  .nav-toggle{display:inline-flex}
+  .bar-nav{position:fixed;top:0;right:0;bottom:0;width:min(80vw,320px);background:var(--bg-2);flex-direction:column;align-items:stretch;gap:6px;padding:90px 22px 28px;transform:translateX(100%);transition:transform .35s cubic-bezier(.16,1,.3,1);box-shadow:-20px 0 60px rgba(0,0,0,.5);z-index:60;overflow-y:auto}
+  .bar-nav.open{transform:translateX(0)}
+  .bar-nav>a,.bar-nav>.dl-wrap{width:100%}
+  .bar-nav .lang-btn{width:100%;text-align:left;padding:12px 16px}
+  .bar-nav .icon-btn{align-self:flex-start}
+  .bar-nav .dl-menu{position:static;width:100%;margin-top:4px;box-shadow:none}
+  .nav-scrim.open{display:block}
+  .nav-scrim.open{opacity:1}
+  body.nav-locked{overflow:hidden}
+}
 /* hero */
 .hero{position:relative;min-height:clamp(520px,78vh,900px);display:flex;align-items:center;padding:120px 0 70px;overflow:hidden;background:#000}
 .hero-bg{position:absolute;inset:0;background-image:url('hero.jpg');background-size:cover;background-position:78% 28%;z-index:0}
@@ -478,9 +494,11 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
       <img class="jdlogo" src="/logo.png" alt="JD Esports Arena" width="40" height="40">
       <span><b>JD Esports Arena</b><span>by AyerFire</span></span>
     </a>
+    <button class="nav-toggle" id="nav-toggle-btn" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="acct-nav">☰</button>
     <nav class="bar-nav" id="acct-nav"><a class="lang-btn" href="/leaderboard.html">🏆 Leaderboard</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="admin-btn" class="lang-btn" href="/admin/" style="display:none">🛠 Admin</a><button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History">🔔<span class="badge" id="notif-badge" hidden>0</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button></div></div></nav>
   </div>
 </header>
+<div class="nav-scrim" id="nav-scrim" onclick="closeMobileNav()"></div>
 
 <main id="main-content">
   <section class="hero">
@@ -1900,15 +1918,24 @@ async function loadNotifications(markSeenOnOpen){
 }
 
 /* ── preloader: shown from first paint, hidden once the page has actually finished
-   loading — with a small floor so it doesn't just flash on a fast connection ── */
+   loading — with a small floor so it doesn't just flash on a fast connection.
+   Only the first page view of a session pays that floor; a player bouncing between
+   this page and /leaderboard.html etc. within the same tab shouldn't see a mandatory
+   half-second gate on every single navigation. ── */
 (function(){
-  const MIN_MS=550;
+  const SEEN_KEY='jd_preloader_seen';
+  let seen=false;
+  try{seen=sessionStorage.getItem(SEEN_KEY)==='1';}catch(e){}
+  const MIN_MS=seen?0:550;
   const shownAt=Date.now();
   function hidePreloader(){
     const pl=document.getElementById('preloader');
     if(!pl)return;
     const wait=Math.max(0,MIN_MS-(Date.now()-shownAt));
-    setTimeout(()=>pl.classList.add('hide'),wait);
+    setTimeout(()=>{
+      pl.classList.add('hide');
+      try{sessionStorage.setItem(SEEN_KEY,'1');}catch(e){}
+    },wait);
   }
   if(document.readyState==='complete')hidePreloader();
   else window.addEventListener('load',hidePreloader);
@@ -1929,6 +1956,29 @@ window.addEventListener('appinstalled',()=>{_deferredInstall=null;markInstalled(
 function toggleDlMenu(e){if(e)e.stopPropagation();document.getElementById('dl-menu').classList.toggle('open');}
 function closeDlMenu(){const m=document.getElementById('dl-menu');if(m)m.classList.remove('open');}
 document.addEventListener('click',e=>{const wrap=document.getElementById('dl-wrap');if(wrap&&!wrap.contains(e.target))closeDlMenu();});
+/* mobile nav: the top bar's account/leaderboard/download links collapse into this
+   slide-in panel under 640px instead of wrapping into rows of tiny pills */
+function toggleMobileNav(){
+  const nav=document.getElementById('acct-nav'),scrim=document.getElementById('nav-scrim'),btn=document.getElementById('nav-toggle-btn');
+  const open=nav.classList.toggle('open');
+  scrim.classList.toggle('open',open);
+  document.body.classList.toggle('nav-locked',open);
+  btn.setAttribute('aria-expanded',open?'true':'false');
+  btn.textContent=open?'✕':'☰';
+}
+function closeMobileNav(){
+  document.getElementById('acct-nav').classList.remove('open');
+  document.getElementById('nav-scrim').classList.remove('open');
+  document.body.classList.remove('nav-locked');
+  const btn=document.getElementById('nav-toggle-btn');
+  btn.setAttribute('aria-expanded','false');
+  btn.textContent='☰';
+}
+document.getElementById('acct-nav').addEventListener('click',e=>{
+  if(e.target.closest('#dl-btn'))return; // opens the download submenu in place, shouldn't close the panel
+  if(e.target.closest('a,.lang-btn,.icon-btn,.dl-menu button'))closeMobileNav();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMobileNav();});
 function isIOSDevice(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
 function isAndroidDevice(){return /Android/i.test(navigator.userAgent);}
 /* one tap on mobile: skip the picker and go straight to the right install flow.
