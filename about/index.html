@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#05080f">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23060a14' stroke='%23c9a84c' stroke-width='4'/><text x='50' y='68' text-anchor='middle' font-family='Georgia' font-size='52' font-weight='700' fill='%23c9a84c'>Z</text></svg>">
+<link rel="icon" type="image/png" href="/favicon-64.png">
 <title>About — JD Esports Arena</title>
 <meta name="description" content="JD Esports Arena — free Free Fire BR tournaments for Nepal, live brackets, room-ID delivery and a season leaderboard, built and run by AyerFire.">
 <meta property="og:title" content="About — JD Esports Arena">
@@ -28,6 +28,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(1100px
 header,main,footer{position:relative;z-index:1}
 /* top bar */
 .bar{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+.brand{display:flex;align-items:center;gap:10px}
+.jdlogo{width:34px;height:34px;border-radius:8px;object-fit:cover;flex:none;display:block}
 .brand b{font-family:'Playfair Display',serif;font-weight:700;font-size:1.05rem;letter-spacing:.01em}
 .brand span{display:block;font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-l)}
 .bar .back{font-size:.78rem;font-weight:600;padding:8px 15px;border:1px solid var(--gold-m);border-radius:30px;color:var(--gold-l);transition:.2s}
@@ -63,7 +65,7 @@ footer a{color:var(--gold-l)}
 <body>
 <header class="wrap">
   <div class="bar">
-    <div class="brand"><b>JD Esports Arena</b><span>by AyerFire</span></div>
+    <div class="brand"><img class="jdlogo" src="/logo.png" alt="JD Esports Arena" width="34" height="34"><div><b>JD Esports Arena</b><span>by AyerFire</span></div></div>
     <a class="back" href="/">← JD Arena</a>
   </div>
 </header>

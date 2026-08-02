@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow, noarchive">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23060a14' stroke='%23c9a84c' stroke-width='4'/><text x='50' y='68' text-anchor='middle' font-family='Georgia' font-size='52' font-weight='700' fill='%23c9a84c'>Z</text></svg>">
+<link rel="icon" type="image/png" href="/favicon-64.png">
 <title>JD Arena — Editor</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
@@ -52,6 +52,8 @@ textarea#out{width:100%;height:300px;font-family:'JetBrains Mono',monospace;font
 /* gate */
 #gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:99;flex-direction:column;gap:16px;padding:20px}
 #gate h1{text-align:center}
+.jdlogo-lg{width:64px;height:64px;border-radius:14px;object-fit:cover;display:block}
+.jdlogo{width:32px;height:32px;border-radius:8px;object-fit:cover;display:block;flex:none}
 #gate input{max-width:280px;text-align:center}
 .ok{color:#5aab8a}.err{color:var(--red)}
 #msg{font-size:.86rem;min-height:20px}
@@ -75,6 +77,7 @@ details[open]>.dsum-sm::before{content:'▾ '}
 </head>
 <body>
 <div id="gate">
+  <img class="jdlogo-lg" src="/logo.png" alt="JD Esports Arena" width="64" height="64">
   <h1>JD Arena — Editor</h1>
   <div class="sub" style="text-align:center">Owner only</div>
   <input id="code" type="password" placeholder="Admin passcode" autocomplete="off" onkeydown="if(event.key==='Enter')unlock()">
@@ -120,7 +123,7 @@ details[open]>.dsum-sm::before{content:'▾ '}
 </div>
 
 <div class="wrap" id="app" style="display:none">
-  <h1>JD Arena — Editor <span class="tag">tournaments.json</span></h1>
+  <h1 style="display:flex;align-items:center;gap:10px"><img class="jdlogo" src="/logo.png" alt="" width="32" height="32">JD Arena — Editor <span class="tag">tournaments.json</span></h1>
   <div class="sub">Add & edit cards · publish</div>
 
   <div class="row">
