@@ -312,7 +312,6 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .dl-menu.open{display:flex;flex-direction:column;gap:2px}
 .dl-menu button{background:transparent;border:none;color:var(--cream);text-align:left;padding:9px 11px;border-radius:8px;font-size:.82rem;font-weight:500;cursor:pointer;font-family:inherit}
 .dl-menu button:hover{background:rgba(255,200,61,.12)}
-@media(max-width:640px){.bar-nav{gap:8px;flex-wrap:wrap;justify-content:flex-end}}
 /* ── accounts + notification history ── */
 .zoverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:60;display:none;align-items:center;justify-content:center;padding:20px}
 .zoverlay.open{display:flex}
@@ -497,8 +496,8 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
     <button class="nav-toggle" id="nav-toggle-btn" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="acct-nav">☰</button>
     <nav class="bar-nav" id="acct-nav"><a class="lang-btn" href="/leaderboard.html">🏆 Leaderboard</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="admin-btn" class="lang-btn" href="/admin/" style="display:none">🛠 Admin</a><button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History">🔔<span class="badge" id="notif-badge" hidden>0</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button></div></div></nav>
   </div>
+  <div class="nav-scrim" id="nav-scrim" onclick="closeMobileNav()"></div>
 </header>
-<div class="nav-scrim" id="nav-scrim" onclick="closeMobileNav()"></div>
 
 <main id="main-content">
   <section class="hero">
