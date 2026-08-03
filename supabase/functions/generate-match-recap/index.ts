@@ -1,10 +1,11 @@
 // Admin-only: generates a personality-driven match recap (English + Nepali) from a
-// tournament's archived final standings, via Google Gemini. Admin-triggered only,
-// never automatic on every score entry -- the free Gemini tier is rate-limited to a
-// small number of requests/day, so this stays a deliberate, reviewable action (the
-// admin panel shows the output before anyone sends it to players, same as the
-// existing Send Announcement flow it feeds into).
+// tournament's archived final standings, via a multi-provider AI fallback chain (see
+// _shared/ai.ts) -- Groq first, then Gemini and others, so this isn't limited to
+// Gemini's small free-tier quota. Admin-triggered only, never automatic on every score
+// entry -- the admin panel shows the output before anyone sends it to players, same as
+// the existing Send Announcement flow it feeds into.
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { askAI, type AIMessage } from '../_shared/ai.ts';
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -27,12 +28,6 @@ Deno.serve(async (req: Request) => {
   }
   const tournament_slug = String(payload.tournament_slug || '').trim();
   if (!tournament_slug) return new Response('tournament_slug is required', { status: 400, headers: CORS_HEADERS });
-
-  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-  if (!GEMINI_API_KEY) {
-    return new Response("GEMINI_API_KEY is not set in this function's secrets.", { status: 500, headers: CORS_HEADERS });
-  }
-  const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash';
 
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
   const { data: results, error } = await supabase
@@ -58,29 +53,19 @@ ENGLISH:
 NEPALI:
 <recap>`;
 
-  let text = '';
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-      },
-    );
-    if (!res.ok) return new Response('Gemini API error: ' + (await res.text()), { status: 502, headers: CORS_HEADERS });
-    const data = await res.json();
-    text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  } catch (e) {
-    return new Response('Could not reach Gemini: ' + (e instanceof Error ? e.message : String(e)), { status: 502, headers: CORS_HEADERS });
+  const messages: AIMessage[] = [{ role: 'user', content: prompt }];
+  const result = await askAI(messages);
+  if (!result) {
+    return new Response('No AI provider configured or all failed -- set at least GROQ_API_KEY or GEMINI_API_KEY in Edge Function secrets.', { status: 502, headers: CORS_HEADERS });
   }
+  const text = result.text;
 
   const enMatch = text.match(/ENGLISH:\s*([\s\S]*?)(?:\n?NEPALI:|$)/i);
   const neMatch = text.match(/NEPALI:\s*([\s\S]*)/i);
   const english = (enMatch ? enMatch[1] : text).trim();
   const nepali = (neMatch ? neMatch[1] : '').trim();
 
-  return new Response(JSON.stringify({ english, nepali }), {
+  return new Response(JSON.stringify({ english, nepali, provider: result.provider }), {
     status: 200,
     headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
   });

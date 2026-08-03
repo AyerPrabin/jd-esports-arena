@@ -487,34 +487,55 @@ registration rows fires this webhook separately, so everyone else gets announced
 more than once. Not deduped on purpose, to keep this simple — worth knowing before enabling
 it for a tournament where squads commonly self-register one member at a time.
 
-## 19. (Optional) Google Gemini — powers two features
-Both share the same `GEMINI_API_KEY`/`GEMINI_MODEL` secrets, so set these once:
+## 19. (Optional) AI providers — powers Match Recap and the ZULU AI fallback
+Both now go through a shared multi-provider helper (`supabase/functions/_shared/ai.ts`)
+instead of calling Gemini directly. It tries providers in order — **Groq first** (fast,
+generous free tier), then **Gemini**, then Cerebras/OpenRouter/Together/DeepSeek if you've
+set those too — and uses the first one that answers. Any provider whose key isn't set is
+skipped automatically, so you only need to set the ones you actually have. This is the fix
+for the old single-provider setup: Gemini's free tier alone is only ~20 requests/day (per
+`zulu_secrets.py`'s own notes), and both features used to share that one quota.
 
-1. Get a free API key at [aistudio.google.com](https://aistudio.google.com) → Get API key.
-2. Set it in **Supabase Dashboard → Edge Functions → Secrets**:
+(This is separate from the **AI Recommendations** panel in `/admin/` — that's powered by
+`zulu_server.py`'s own local council via `/admin/ai-review`, not by these Edge Function
+secrets. See the panel's own hint text for that setup.)
+
+1. Get a free **Groq** key at [console.groq.com](https://console.groq.com) — this is
+   the one that matters most: it's the fast, high-volume free tier the docs originally
+   promised. (You already have a `GROQ_API_KEY` in your local `zulu_secrets.py` — reuse
+   the same value here.)
+2. Optionally get a free **Gemini** key at [aistudio.google.com](https://aistudio.google.com)
+   → Get API key — kept as a fallback if Groq is unavailable.
+3. Set whichever of these you have in **Supabase Dashboard → Edge Functions → Secrets**
+   (each is independent — set one, some, or all):
 
 | Key | Value |
 |---|---|
-| `GEMINI_API_KEY` | your Gemini API key |
+| `GROQ_API_KEY` | your Groq API key — **set this one first** |
+| `GEMINI_API_KEY` | your Gemini API key (fallback) |
 | `GEMINI_MODEL` | optional — defaults to `gemini-2.5-flash` if unset |
+| `CEREBRAS_API_KEY` | optional — cloud.cerebras.ai |
+| `OPENROUTER_API_KEY` | optional — openrouter.ai (has free models) |
+| `TOGETHER_API_KEY` | optional — api.together.xyz |
+| `DEEPSEEK_API_KEY` | optional — api.deepseek.com |
+
+Nothing changes on the site until at least one of these is set — with none set, both
+features return their existing "not configured" message exactly as before.
 
 **Match Recap** (BO3 panel, admin-triggered only): writes a hype/roast-style match
 recap (English + Nepali) from a tournament's **archived** results (archive results
 first — see the Archive results button above). Review the output and edit freely
-before it goes anywhere near "Send to players" / Send Announcement.
+before it goes anywhere near "Send to players" / Send Announcement. The admin panel
+shows which provider actually answered (e.g. "Generated via groq").
 
 **ZULU AI fallback** (the chat widget, live for every visitor): when a question
-doesn't match any of ZULU's local patterns, it now asks Gemini instead of showing
+doesn't match any of ZULU's local patterns, it asks the AI chain instead of showing
 the old dead-end "I don't have that one yet" — scoped to JD Arena topics only, told
 never to invent specific room IDs/points/times it doesn't actually have access to.
+Already has its own rate limiting (`zulu_ai_reply_log` — see the migration of the same
+name), so it doesn't burn through Match Recap's quota unbounded.
 
-Both draw from the **same free-tier daily quota** (~20 requests/day per
-`zulu_secrets.py`'s own notes) — the chat fallback has no rate limit or per-visitor
-cap of its own yet, so a busy day of unusual questions can burn through the quota
-Match Recap also needs. Add a cap before this sees real traffic; not done here on
-purpose, called out as a known gap for now.
-
-3. Test: archive results for any tournament, then in `/admin/`'s **Match Recap**
+4. Test: archive results for any tournament, then in `/admin/`'s **Match Recap**
    section, pick that tournament and click **🎙️ Generate recap**.
 
 ## Known gap: Best-of-3 squad names are still typed by hand

@@ -73,6 +73,14 @@ details[open]>.dsum-sm::before{content:'▾ '}
 .online-count{font-family:'Playfair Display',serif;font-size:2.1rem;font-weight:700;color:var(--gold-l)}
 .online-chip{display:inline-block;font-size:.76rem;padding:4px 11px;border-radius:20px;background:var(--bg-2);border:1px solid var(--line);color:var(--cream);margin:3px 4px 0 0}
 .up-search{max-width:260px}
+/* ── motion: spring-eased micro-interactions (see setMsg/staggerReveal in the script) ── */
+.btn{transition:transform .15s cubic-bezier(.34,1.56,.64,1)}
+.btn:active{transform:scale(.94)}
+.btn.ghost:active{transform:scale(.95)}
+@keyframes msgIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.card{animation:cardIn .4s cubic-bezier(.22,1,.36,1) both}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.card{animation:none}.btn,.btn:active{transition:none;transform:none}}
 </style>
 </head>
 <body>
@@ -181,8 +189,8 @@ details[open]>.dsum-sm::before{content:'▾ '}
   </details>
 
   <details>
-  <summary class="dsum">Match Recap <span class="tag">AI-written · Gemini</span></summary>
-  <p class="hint">Generates a hype/roast-style recap (English + Nepali) from a tournament's <b>archived</b> results — archive results above first. Admin-triggered only, never automatic: the free Gemini tier is rate-limited to a small number of requests/day, so review the output here and edit freely before sending anything.</p>
+  <summary class="dsum">Match Recap <span class="tag">AI-written · multi-provider</span></summary>
+  <p class="hint">Generates a hype/roast-style recap (English + Nepali) from a tournament's <b>archived</b> results — archive results above first. Admin-triggered only, never automatic: tries Groq first, then Gemini and other configured providers, so it isn't limited to one free tier's small daily quota. Review the output here and edit freely before sending anything.</p>
   <div class="grid">
     <div class="f full"><label>Tournament</label><select id="mr-tourney"></select></div>
   </div>
@@ -421,7 +429,7 @@ function openUsersPopup(){
 function closeUsersPopup(){document.getElementById('users-modal').style.display='none';}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('users-modal').style.display==='flex')closeUsersPopup();});
 document.getElementById('users-modal')?.addEventListener('click',e=>{if(e.target.id==='users-modal')closeUsersPopup();});
-function upMsg(t,c){const el=document.getElementById('up-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+function upMsg(t,c){setMsg(document.getElementById('up-msg'),t,c);}
 function updateUsersSummary(){
   const el=document.getElementById('up-summary');if(!el)return;
   const totalRegs=_allPlayers.reduce((s,p)=>s+(p.reg_count||0),0);
@@ -469,7 +477,7 @@ async function manualCreatePlayer(){
     if(_allPlayers.length)loadAllPlayers();
   }catch(e){mcMsg('Failed: '+e.message,'err');}
 }
-function mcMsg(t,c){const el=document.getElementById('mc-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+function mcMsg(t,c){setMsg(document.getElementById('mc-msg'),t,c);}
 function fmtLastSeen(iso){
   if(!iso)return'Never';
   const d=new Date(iso),diffH=(Date.now()-d.getTime())/36e5;
@@ -506,6 +514,24 @@ const TF=[['name','Name','text'],['game','Game / mode','text'],['date','Date (di
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function safeUrl(u){u=String(u||'').trim();return /^(https?:\/\/|mailto:|tel:)/i.test(u)?u:'';}
+
+/* ── motion helpers: every xxMsg() feedback line and every rendered card list route
+   through these two so status changes read as alive instead of snapping in. cardIn's
+   cubic-bezier (see <style>) already gives each card a slight overshoot-and-settle;
+   staggerReveal just staggers WHEN that per-card animation starts, so a list arrives
+   as a ripple, not a flash. ── */
+const REDUCE_MOTION=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function setMsg(el,t,c){
+  if(!el)return;
+  el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';
+  if(REDUCE_MOTION)return;
+  el.style.animation='none';void el.offsetWidth;el.style.animation='msgIn .4s cubic-bezier(.34,1.56,.64,1)';
+}
+function staggerReveal(container,step){
+  if(!container||REDUCE_MOTION)return;
+  step=step??50;
+  [...container.children].forEach((el,i)=>{el.style.animationDelay=Math.min(i*step,480)+'ms';});
+}
 
 /* ── one picker drives Date + Time + Start together, so the countdown on the live
    site (which only ever reads "start") can never be forgotten the way it could
@@ -681,19 +707,19 @@ function renderMrTourney(){
   const sel=document.getElementById('mr-tourney');if(!sel)return;
   sel.innerHTML=data.tournaments.map(t=>`<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('')||'<option value="">No tournaments yet</option>';
 }
-function mrMsg(t,c){const el=document.getElementById('mr-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+function mrMsg(t,c){setMsg(document.getElementById('mr-msg'),t,c);}
 async function generateMatchRecap(){
   const secret=adminSecret(),name=document.getElementById('mr-tourney').value;
   if(!secret){mrMsg('Enter the admin passcode first.','err');return;}
   if(!name){mrMsg('Pick a tournament first.','err');return;}
-  mrMsg('Generating… (this calls Gemini, uses one of your daily requests)','');
+  mrMsg('Generating…','');
   try{
     const r=await fetch(EDGE_FN_BASE+'/generate-match-recap',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({tournament_slug:name})});
     if(!r.ok)throw new Error(await r.text());
     const d=await r.json();
     document.getElementById('mr-english').value=d.english||'';
     document.getElementById('mr-nepali').value=d.nepali||'';
-    mrMsg('Generated — review and edit before sending.','ok');
+    mrMsg('Generated via '+(d.provider||'AI')+' — review and edit before sending.','ok');
   }catch(e){mrMsg('Failed: '+e.message,'err');}
 }
 function sendRecapToAnnouncement(){
@@ -730,7 +756,7 @@ async function loadBo3Roster(){
 }
 function addBo3Team(){data.bo3=data.bo3||bo3Default();data.bo3.teams=data.bo3.teams||[];data.bo3.teams.push({team:'',logo:'',r:[bo3Round(),bo3Round(),bo3Round()]});renderBo3();}
 function delBo3Team(i){data.bo3.teams.splice(i,1);renderBo3();}
-function bo3Msg(t,c){const el=document.getElementById('bo3-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+function bo3Msg(t,c){setMsg(document.getElementById('bo3-msg'),t,c);}
 
 let _lastCleanDropped=0; // count of fully-blank squad rows silently dropped by the last clean() — surfaced by gen() so a name that went blank by accident doesn't just vanish unexplained
 function clean(){
@@ -770,9 +796,8 @@ function download(){if(!document.getElementById('out').value)gen();downloadBlob(
    holds the GitHub token in its own secret. Nothing GitHub-related ever touches this
    browser: no prompt, no localStorage, just the same admin passcode as everything else. ── */
 function publishMsg(t,c){
-  const html='<span class="'+(c||'')+'">'+t+'</span>';
-  const el=document.getElementById('publish-msg');if(el)el.innerHTML=html;
-  const el2=document.getElementById('publish-top-msg');if(el2)el2.innerHTML=html;
+  setMsg(document.getElementById('publish-msg'),t,c);
+  setMsg(document.getElementById('publish-top-msg'),t,c);
 }
 async function publishToGitHub(){
   gen();
@@ -884,7 +909,7 @@ function renderRcTourney(){
   sel.innerHTML=data.tournaments.map(t=>`<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('')||'<option value="">No tournaments yet</option>';
   loadRcStatus();
 }
-function rcMsg(t,c){document.getElementById('rc-msg').innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+function rcMsg(t,c){setMsg(document.getElementById('rc-msg'),t,c);}
 async function sendRoomCode(){
   const name=document.getElementById('rc-tourney').value,secret=adminSecret();
   const room_id=document.getElementById('rc-room-id').value.trim(),room_pass=document.getElementById('rc-room-pass').value.trim();
@@ -932,7 +957,7 @@ async function loadRcStatus(){
   }catch(e){/* status is a convenience — a fetch hiccup here shouldn't block anything */}
 }
 
-function anMsg(t,c){const el=document.getElementById('an-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+function anMsg(t,c){setMsg(document.getElementById('an-msg'),t,c);}
 async function sendAnnouncement(){
   const secret=adminSecret();
   const title=document.getElementById('an-title').value.trim();
@@ -958,7 +983,7 @@ function renderPpTourney(){
   const sel=document.getElementById('pp-tourney');if(!sel)return;
   sel.innerHTML=data.tournaments.map(t=>`<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('')||'<option value="">No tournaments yet</option>';
 }
-function ppMsg(t,c){const el=document.getElementById('pp-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+function ppMsg(t,c){setMsg(document.getElementById('pp-msg'),t,c);}
 let _pendingRegs=[];
 async function loadPendingPayments(){
   const name=document.getElementById('pp-tourney').value,secret=adminSecret();
@@ -989,6 +1014,7 @@ function renderPendingPayments(){
       <button class="btn ghost" onclick="approvePayment('${r.id}',false)">✕ Reject</button>
     </div></div>`;
   }).join(''):'<p class="hint">No pending payments for this tournament — click "↻ Load pending".</p>';
+  staggerReveal(box);
 }
 async function approvePayment(id,approve){
   const secret=adminSecret();
@@ -1011,7 +1037,7 @@ function renderRvTourney(){
   const sel=document.getElementById('rv-tourney');if(!sel)return;
   sel.innerHTML=data.tournaments.map(t=>`<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('')||'<option value="">No tournaments yet</option>';
 }
-function rvMsg(t,c){const el=document.getElementById('rv-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+function rvMsg(t,c){setMsg(document.getElementById('rv-msg'),t,c);}
 let _reviewsAdmin=[];
 async function loadReviewsAdmin(){
   const name=document.getElementById('rv-tourney').value,secret=adminSecret();
@@ -1036,6 +1062,7 @@ function renderReviewsAdmin(){
     const who=(r.players&&r.players.username)?'@'+esc(r.players.username):'player';
     return `<div class="card" style="padding:12px"><div style="color:var(--gold-l)">${stars}</div><div style="margin:4px 0"><b>${who}</b>${r.comment?' — '+esc(r.comment):''}</div><div class="hint" style="margin:0 0 8px">${esc(new Date(r.created_at).toLocaleString())}</div><button class="del" style="position:static;padding:6px 10px" onclick="deleteReviewAdmin('${r.id}')">✕ Remove</button></div>`;
   }).join(''):'<p class="hint">No reviews for this tournament yet.</p>';
+  staggerReveal(box);
 }
 async function deleteReviewAdmin(id){
   const secret=adminSecret();
@@ -1052,7 +1079,7 @@ async function deleteReviewAdmin(id){
 }
 
 /* ── reports + ban list ── */
-function rpMsg(t,c){const el=document.getElementById('rp-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+function rpMsg(t,c){setMsg(document.getElementById('rp-msg'),t,c);}
 let _reportsAdmin=[];
 async function loadReportsAdmin(){
   const secret=adminSecret(),status=document.getElementById('rp-status').value;
@@ -1086,6 +1113,7 @@ function renderReportsAdmin(){
       ${evidence}
     </div>${actions}</div>`;
   }).join(''):'<p class="hint">No reports match this filter.</p>';
+  staggerReveal(box);
 }
 async function actionReport(id,action){
   const secret=adminSecret();
@@ -1108,7 +1136,7 @@ async function actionReport(id,action){
     loadReportsAdmin();
   }catch(e){rpMsg('Failed: '+e.message,'err');}
 }
-function blMsg(t,c){const el=document.getElementById('bl-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+function blMsg(t,c){setMsg(document.getElementById('bl-msg'),t,c);}
 let _banListAdmin=[];
 async function loadBanListAdmin(){
   if(!sb){blMsg("Supabase isn't configured on this deploy.",'err');return;}
@@ -1157,7 +1185,7 @@ async function banDirectly(){
 }
 
 /* ── anomaly flags ── */
-function afMsg(t,c){const el=document.getElementById('af-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+function afMsg(t,c){setMsg(document.getElementById('af-msg'),t,c);}
 let _flagsAdmin=[];
 async function loadFlagsAdmin(){
   const secret=adminSecret(),unreviewedOnly=document.getElementById('af-unreviewed-only').checked;
@@ -1182,6 +1210,7 @@ function renderFlagsAdmin(){
     </div>
     ${f.reviewed?`<p class="hint" style="margin-top:8px">✓ Reviewed${f.admin_note?' — '+esc(f.admin_note):''}</p>`:`<div class="row" style="margin-top:8px"><input placeholder="Optional note" id="af-note-${f.id}" style="max-width:260px"><button class="btn ghost" onclick="reviewFlag('${f.id}')">Mark reviewed</button></div>`}
   </div>`).join(''):'<p class="hint">No flags match this filter.</p>';
+  staggerReveal(box);
 }
 async function reviewFlag(id){
   const secret=adminSecret();
@@ -1203,7 +1232,7 @@ async function reviewFlag(id){
    publish flow instead of touching tournaments.json directly. Confirm is disabled per-card
    until "Show evidence" has been clicked, so a busy admin can't rubber-stamp a queue of
    "3/4 agree" cards without actually looking at the underlying screenshot/report/stats. ── */
-function aiMsg(t,c){const el=document.getElementById('ai-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+function aiMsg(t,c){setMsg(document.getElementById('ai-msg'),t,c);}
 let _aiRecs=[];
 const _aiExpanded=new Set();
 (function(){
@@ -1295,6 +1324,7 @@ function renderAiRecommendations(){
       </div>
     </div>`;
   }).join(''):'<p class="hint">No pending recommendations — click "🤖 Run AI Review" then "↻ Load recommendations".</p>';
+  staggerReveal(box);
 }
 async function markAiResolved(id,status){
   const secret=adminSecret();
@@ -1370,7 +1400,7 @@ async function confirmAiRecommendation(id){
    without ever going through confirmAiRecommendation() above (see AUTO_EXECUTE_CANCEL_
    TOURNAMENT in zulu_server.py) — this is a read-only view of those, so there's still a
    visible record here even if the Discord DM gets missed. ── */
-function aiHistoryMsg(t,c){const el=document.getElementById('ai-history-msg');if(el)el.innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
+function aiHistoryMsg(t,c){setMsg(document.getElementById('ai-history-msg'),t,c);}
 let _aiHistory=[];
 async function loadAiHistory(){
   const secret=adminSecret();
@@ -1395,6 +1425,7 @@ function renderAiHistory(){
       ${aiFamilyVotesHtml(rec)}
     </div>`;
   }).join(''):'<p class="hint">No auto-cancellations yet.</p>';
+  staggerReveal(box);
 }
 
 async function notifyBo3Results(){

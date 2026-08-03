@@ -1,18 +1,21 @@
 // Public (no admin gate — every visitor's browser calls this, not just admin).
 // ZULU's last resort: called from zuluRespond() in index.html ONLY when the local
 // pattern-matched systems (zuluPersonalMatch/zuluPublic) have nothing, instead of the
-// old dead-end "I don't have that one yet" message. Calls Google Gemini with a system
-// prompt scoping it to JD Esports Arena topics.
+// old dead-end "I don't have that one yet" message. Tries multiple free-tier AI
+// providers (see _shared/ai.ts) with a system prompt scoping it to JD Esports Arena
+// topics -- Groq first (fast, generous free tier), falling back to Gemini and others,
+// so this isn't limited to one provider's small daily quota.
 //
 // Rate-limited via zulu_ai_reply_log (schema.sql): a per-IP burst cap (stop one client
-// hammering it) and a global daily cap (stop the shared free Gemini quota -- also used by
-// generate-match-recap and zulu_server.py's own council calls -- being exhausted by public
-// chat traffic alone). Both limits fail OPEN on a logging/count error (a Supabase hiccup
-// shouldn't take chat down) but fail CLOSED once a real cap is hit. Over a cap returns
-// {reply: null} with HTTP 200, same shape as "no Gemini key set"/"Gemini error" below --
-// index.html's zuluAsk() already treats a null reply as "fall back to the local canned
-// answer", so a maxed-out quota degrades gracefully instead of erroring visibly.
+// hammering it) and a global daily cap (stop the shared free quota -- also used by
+// generate-match-recap and zulu_server.py's own council calls -- being exhausted by
+// public chat traffic alone). Both limits fail OPEN on a logging/count error (a Supabase
+// hiccup shouldn't take chat down) but fail CLOSED once a real cap is hit. Over a cap
+// returns {reply: null} with HTTP 200, same shape as "no provider configured"/"AI error"
+// below -- index.html's zuluAsk() already treats a null reply as "fall back to the local
+// canned answer", so a maxed-out quota degrades gracefully instead of erroring visibly.
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { askAI, type AIMessage } from '../_shared/ai.ts';
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -23,8 +26,8 @@ const CORS_HEADERS: Record<string, string> = {
 const BURST_CAP = Number(Deno.env.get('ZULU_AI_REPLY_BURST_CAP') || '5');       // per IP
 const BURST_WINDOW_SEC = Number(Deno.env.get('ZULU_AI_REPLY_BURST_WINDOW_SEC') || '60');
 const DAILY_CAP = Number(Deno.env.get('ZULU_AI_REPLY_DAILY_CAP') || '15');      // global, all IPs
-// ^ 15, not Gemini's full ~20/day, deliberately leaves headroom for generate-match-recap
-// and zulu_server.py's admin-review council calls sharing the same key/quota.
+// ^ 15, not any single provider's full daily allowance, deliberately leaves headroom for
+// generate-match-recap and zulu_server.py's admin-review council calls sharing keys/quota.
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -69,22 +72,13 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Logged as an attempt (before calling Gemini, not after) so the cap bounds total
-    // Gemini calls regardless of whether this particular one succeeds.
+    // Logged as an attempt (before calling the AI, not after) so the cap bounds total
+    // calls regardless of whether this particular one succeeds.
     await supabase.from('zulu_ai_reply_log').insert({ ip });
   } catch {
     // Best-effort rate limiting: a Supabase hiccup here shouldn't take public chat down,
     // it just means this one request isn't counted/capped.
   }
-
-  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-  if (!GEMINI_API_KEY) {
-    return new Response(JSON.stringify({ reply: null, note: 'GEMINI_API_KEY not set' }), {
-      status: 200,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-    });
-  }
-  const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash';
 
   // Grounds the fallback in the real, current schedule instead of making it guess or
   // deflect every scheduling/prize/entry question — tournaments.json is the same public
@@ -115,27 +109,20 @@ Rules:
 - You still do NOT have access to per-player account data (room IDs, a specific player's points, their registration status). NEVER invent those. If asked something that needs THAT kind of live account-specific data, tell them to check their account panel / Notification History on the site instead of guessing.
 - Reply in ${lang === 'ne' ? 'Nepali' : 'English'}.${scheduleContext}`;
 
+  const messages: AIMessage[] = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: message },
+  ];
+
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          contents: [{ parts: [{ text: message }] }],
-        }),
-      },
-    );
-    if (!res.ok) {
-      return new Response(JSON.stringify({ reply: null, note: 'Gemini error: ' + (await res.text()) }), {
+    const result = await askAI(messages);
+    if (!result) {
+      return new Response(JSON.stringify({ reply: null, note: 'No AI provider configured or all failed -- set at least GROQ_API_KEY or GEMINI_API_KEY in Edge Function secrets.' }), {
         status: 200,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
     }
-    const data = await res.json();
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
-    return new Response(JSON.stringify({ reply }), {
+    return new Response(JSON.stringify({ reply: result.text, provider: result.provider }), {
       status: 200,
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
