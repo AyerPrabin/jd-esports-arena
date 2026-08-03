@@ -392,13 +392,12 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .pm-row-txt{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pm-row-chev{color:var(--pm-muted,#9CA8BE);font-size:1.1rem;flex:none}
 .pm-unlink{display:block;margin:-6px 0 14px;font-size:.76rem}
-.pm-deactivate{display:block;margin:6px auto 0;color:var(--warm-l,#FFC66B);font-size:.78rem}
 .pm-delete{display:block;margin:6px auto 0;color:var(--pm-danger,#FF6161);font-size:.78rem}
 /* .zmodal .link's unconditional underline (used elsewhere for plain text links)
    otherwise beats a bare .pm-delete rule on specificity -- match its specificity
    to actually override it down to hover-only. */
-.zmodal .link.pm-delete,.zmodal .link.pm-deactivate{text-decoration:none}
-.zmodal .link.pm-delete:hover,.zmodal .link.pm-deactivate:hover{text-decoration:underline}
+.zmodal .link.pm-delete{text-decoration:none}
+.zmodal .link.pm-delete:hover{text-decoration:underline}
 /* ── avatar (account panel) ── */
 .pm-avatar-wrap{position:relative;width:76px;height:76px;margin:0 0 10px}
 .pm-avatar{width:76px;height:76px;border-radius:50%;object-fit:cover;border:2px solid var(--pm-border,var(--gold-m));display:block;background:var(--pm-card,#1A2336)}
@@ -1335,7 +1334,7 @@ function authRender(){
         ${discordRow}
       </div>
       ${unlinkRow}
-      <p class="sub" style="text-align:center"><button class="link pm-deactivate" onclick="authDeactivateAccount()">Deactivate account</button> · <button class="link pm-delete" onclick="authRequestDelete()">Delete account</button></p>`;
+      <p class="sub" style="text-align:center"><button class="link pm-delete" onclick="authRequestDelete()">Delete account</button></p>`;
     }
     el.innerHTML=`<h3>Settings</h3><p class="sub">Reports, rules, downloads and other pages — not tied to your account.</p>
       ${accountOnlyBlock}
@@ -1343,6 +1342,7 @@ function authRender(){
         <button class="pm-row" onclick="openReportFlow()"><span class="pm-row-ic">🚩</span><span class="pm-row-txt">Report a player/squad</span><span class="pm-row-chev">›</span></button>
         <a class="pm-row" href="/leaderboard.html"><span class="pm-row-ic">🏆</span><span class="pm-row-txt">Leaderboard</span><span class="pm-row-chev">›</span></a>
         <a class="pm-row" href="/ban-list.html"><span class="pm-row-ic">🛡️</span><span class="pm-row-txt">Ban List</span><span class="pm-row-chev">›</span></a>
+        <a class="pm-row" href="/terms.html"><span class="pm-row-ic">📜</span><span class="pm-row-txt">Terms &amp; Conditions</span><span class="pm-row-chev">›</span></a>
         <a class="pm-row" href="${esc(MAIN_SITE_URL||'/about/')}"><span class="pm-row-ic">ℹ️</span><span class="pm-row-txt">About Us</span><span class="pm-row-chev">›</span></a>
       </div>
       <div class="pm-list">
@@ -1450,17 +1450,28 @@ async function authSetUsername(){
   setTimeout(authClose,900);
 }
 function authChangeUsername(){_googleFirstRun=false;_authView='chooseusername';authRender();}
-const AVATAR_MAX_PX=128; // same size/quality as squad logos — small enough to ride along on every players SELECT without bloating page loads
+const AVATAR_MAX_PX=128; // same size/quality as squad logos
+const AVATAR_SIGN_TTL=60*60*24; // signed URL good for a day — cheap to re-mint every page load, never stored anywhere
+/* Avatars live in the private `avatars` Storage bucket at {uid}/avatar.jpg (RLS: only the
+   owning auth.uid() can read/write that path) — never in the players table, and never public.
+   A plain <img src> can't send an auth header, so a signed URL (the auth baked into the query
+   string itself) is what makes a private file paintable in an <img> tag at all. */
+async function loadMyAvatarUrl(){
+  if(!_player)return;
+  const {data,error}=await sb.storage.from('avatars').createSignedUrl(`${_player.id}/avatar.jpg`,AVATAR_SIGN_TTL);
+  _player.avatar=(!error&&data)?data.signedUrl:null;
+}
 function authUploadAvatar(input){
   const f=input.files&&input.files[0];input.value='';
   if(!f)return;
   if(!f.type.startsWith('image/')){authMsg('Please choose an image file.');return;}
   resizeToDataUri(f,AVATAR_MAX_PX,0.85,async dataUri=>{
     authMsg('Uploading…',true);
-    const {error}=await sb.rpc('set_my_avatar',{new_avatar:dataUri});
+    const blob=await (await fetch(dataUri)).blob();
+    const {error}=await sb.storage.from('avatars').upload(`${_player.id}/avatar.jpg`,blob,{upsert:true,contentType:'image/jpeg'});
     if(error){authMsg(error.message);return;}
-    _player.avatar=dataUri;
-    const img=document.getElementById('pm-avatar-img');if(img)img.src=dataUri;
+    await loadMyAvatarUrl();
+    const img=document.getElementById('pm-avatar-img');if(img)img.src=_player.avatar||'/logo.png';
     updateAcctBtn();
     authMsg('Profile picture updated!',true);
   });
@@ -1549,18 +1560,6 @@ async function authUnlinkDiscord(){
    emailed link only re-authenticates the browser; it does NOT delete anything by itself —
    that only happens after (2) the user clicks "Yes, permanently delete" on the panel the
    link lands on (see the _deleteConfirmFlow branch in onAuthStateChange below). ── */
-async function authDeactivateAccount(){
-  if(!_player)return;
-  if(!confirm("Deactivate your account? You'll be signed out and your profile hidden until you log back in — logging in again automatically reactivates it. This is different from Delete, which is permanent."))return;
-  const {error}=await sb.rpc('deactivate_my_account');
-  if(error){authMsg(error.message);return;}
-  await sb.auth.signOut();
-  if(window._oneSignal)window._oneSignal.logout();
-  _player=null;_myRegs=new Map();_notifUnread=0;_discordLinkCode=null;
-  trackPresence();
-  updateAcctBtn();updateNotifHistBtn();updateGate();render(_lastData||ARENA_SAMPLE);
-  showMsg('Account deactivated','Log back in anytime to reactivate your account.');
-}
 async function authRequestDelete(){
   if(!_player)return;
   if(!confirm("This starts account deletion. We'll email a confirmation link to "+_player.email+" — nothing is deleted until you click it and confirm again. Continue?"))return;
@@ -1609,16 +1608,16 @@ async function authRefreshPlayer(){
   const {data:{user}}=await sb.auth.getUser();
   if(!user){_player=null;updateAcctBtn();updateGate();trackPresence();return;}
   let tag=null,uname=null;
-  const {data}=await sb.from('players').select('player_tag, username, discord_username, avatar').eq('id',user.id).single();
+  const {data}=await sb.from('players').select('player_tag, username, discord_username').eq('id',user.id).single();
   if(data){tag=data.player_tag;uname=data.username;}
-  _player={id:user.id,email:user.email,tag:tag,username:uname,discord_username:data&&data.discord_username||null,avatar:data&&data.avatar||null,verified:!!user.email_confirmed_at};
+  _player={id:user.id,email:user.email,tag:tag,username:uname,discord_username:data&&data.discord_username||null,avatar:null,verified:!!user.email_confirmed_at};
   updateAcctBtn();
   updateGate();
   trackPresence();
   if(window._oneSignal)window._oneSignal.login(_player.id);
-  sb.rpc('reactivate_my_account').then(({data:wasReactivated})=>{
-    if(wasReactivated)showMsg('Welcome back','Your account has been reactivated.');
-  });
+  await loadMyAvatarUrl();
+  updateAcctBtn();
+  const avImg=document.getElementById('pm-avatar-img');if(avImg&&_player.avatar)avImg.src=_player.avatar;
   await loadMyRegs();
   loadNotifications(false);
 }
