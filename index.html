@@ -1632,7 +1632,7 @@ function updateAcctBtn(){
     if(su)su.style.display='none';
     ac.classList.add('acct-btn-signed');
     ac.innerHTML=`<img class="acct-avatar-mini" src="${esc(_player.avatar||'/logo.png')}" alt="">${esc(_player.username||_player.tag||'Account')}`;
-    ac.onclick=()=>authOpen();
+    ac.onclick=()=>authOpen('login');
     if(ad)ad.style.display=((_player.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase())?'':'none';
   }else{
     if(su)su.style.display='';
