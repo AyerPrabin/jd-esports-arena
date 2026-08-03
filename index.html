@@ -2010,7 +2010,11 @@ function openReviewForm(box,name){
 }
 
 /* notification history */
-function notifHistOpen(){document.getElementById('notif-overlay').classList.add('open');loadNotifications(true);}
+function notifHistOpen(){
+  document.getElementById('notif-overlay').classList.add('open');
+  loadNotifications(true);
+  maybeAskPush(); // one click both opens history and, if push permission was never answered, prompts for it -- safe no-op if already granted/denied/not configured
+}
 function notifHistClose(){document.getElementById('notif-overlay').classList.remove('open');}
 
 /* squad roster modal — shows all `slots` positions for a tournament (filled ones with
