@@ -349,6 +349,10 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .msg-icon.err{background:linear-gradient(135deg,#ff8a8a,#ff7676);box-shadow:0 0 30px rgba(255,118,118,.35)}
 .zmodal .sub{color:var(--body);font-size:.82rem;margin-bottom:16px}
 .zmodal label{display:block;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--silver);margin:12px 0 5px}
+.zmodal label.tc-check{display:flex;align-items:flex-start;gap:8px;font-size:.8rem;text-transform:none;letter-spacing:normal;color:var(--pm-muted,#9CA8BE);margin:10px 0 4px;cursor:pointer}
+.zmodal .tc-check input{width:auto;flex:none;margin-top:2px;accent-color:var(--gold,#FFC83D)}
+.tc-check span{flex:1;min-width:0}
+.tc-check a{color:var(--gold-l);text-decoration:underline}
 .zmodal input,.zmodal select,.zmodal textarea{width:100%;background:var(--bg-2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;color:var(--cream);font-family:inherit;font-size:.9rem;outline:none;box-sizing:border-box}
 .zmodal input:focus,.zmodal select:focus,.zmodal textarea:focus{border-color:var(--gold)}
 .zmodal select{cursor:pointer}
@@ -1309,6 +1313,7 @@ function authRender(){
     el.innerHTML=`<h3>${esc(_googleFirstRun?'Welcome! Pick a username':'Change username')}</h3><p class="sub">${_googleFirstRun?"You signed in with Google — pick a username so squadmates can find you. You can change this later.":'Pick a new username.'}</p>
       <label>Username</label><input id="au-username" autocomplete="off" maxlength="20" placeholder="3-20 letters, numbers, underscore" value="${esc(_player.username||'')}">
       <div class="msg" id="au-uname-msg"></div>
+      ${_googleFirstRun?'<label class="tc-check"><input type="checkbox" id="au-tc-accept"><span>I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a></span></label>':''}
       <div class="msg" id="au-msg"></div>
       <div class="row2"><button class="btn-primary" style="flex:1" onclick="authSetUsername()">Save username</button></div>
       ${_googleFirstRun?'<p class="sub" style="margin-top:16px"><button class="link" onclick="authClose()">Skip for now</button></p>':'<p class="sub" style="margin-top:16px"><button class="link" onclick="_authView=\'login\';authRender();">Cancel</button></p>'}`;
@@ -1373,6 +1378,7 @@ function authRender(){
       <p class="sub" style="text-align:center;margin:-6px 0 14px">— or —</p>
       <label>Username</label><input id="au-username" autocomplete="off" maxlength="20" placeholder="3-20 letters, numbers, underscore">
       <div class="msg" id="au-uname-msg"></div>
+      <label class="tc-check"><input type="checkbox" id="au-tc-accept"><span>I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a></span></label>
       <label>Email</label><input id="au-email" type="email" autocomplete="email">
       <label>Password</label><input id="au-pass" type="password" autocomplete="new-password" placeholder="At least 6 characters">
       <div class="msg" id="au-msg"></div>
@@ -1441,6 +1447,8 @@ async function authGoogleSignIn(){
 async function authSetUsername(){
   const uname=document.getElementById('au-username').value.trim();
   if(!USERNAME_RE.test(uname)){authMsg('Pick a username: 3-20 letters, numbers, or underscore.');return;}
+  const tc=document.getElementById('au-tc-accept');
+  if(tc&&!tc.checked){authMsg('Please accept the Terms & Conditions to continue.');return;}
   authMsg('Saving…',true);
   const {error}=await sb.rpc('set_my_username',{new_username:uname});
   if(error){authMsg(/duplicate|unique|taken|constraint/i.test(error.message)?'That username is taken — try another.':error.message);return;}
@@ -1480,6 +1488,8 @@ async function authSignup(){
   const uname=document.getElementById('au-username').value.trim();
   const email=document.getElementById('au-email').value.trim(),pass=document.getElementById('au-pass').value;
   if(!USERNAME_RE.test(uname)){authMsg('Pick a username: 3-20 letters, numbers, or underscore.');return;}
+  const tc=document.getElementById('au-tc-accept');
+  if(tc&&!tc.checked){authMsg('Please accept the Terms & Conditions to continue.');return;}
   if(!email||pass.length<6){authMsg('Enter a valid email and a password of 6+ characters.');return;}
   authMsg('Checking username…',true);
   const {data:taken}=await sb.rpc('is_username_taken',{check_username:uname});
