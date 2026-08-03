@@ -296,6 +296,8 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .fb-in input:focus{border-color:var(--gold)}
 .fb-in button{background:var(--gold);color:#0a0a12;border:none;border-radius:10px;padding:0 16px;font-weight:700;cursor:pointer}
 .lang-btn{background:transparent;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:30px;padding:6px 13px;font-size:.76rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
+.lang-btn.acct-btn-signed{background:linear-gradient(100deg,var(--gold),var(--gold-2));color:#0a0a12;border-color:transparent;display:inline-flex;align-items:center;gap:7px;padding:4px 14px 4px 4px}
+.acct-avatar-mini{width:24px;height:24px;border-radius:50%;object-fit:cover;display:block;flex:none;border:1px solid rgba(0,0,0,.15)}
 .lang-btn:hover{background:rgba(255,200,61,.12)}
 /* the install/download button gets a solid fill so it reads as a real call-to-action
    rather than blending into the outline-styled nav buttons next to it */
@@ -304,9 +306,9 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .notify-btn{background:transparent;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:30px;padding:9px 18px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
 .notify-btn:hover{background:rgba(255,200,61,.12)}
 .notify-btn.on{background:var(--gold);color:#0a0a12;border-color:var(--gold)}
-.icon-btn{position:relative;background:transparent;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:30px;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;font-size:.95rem;cursor:pointer;transition:.2s;flex:none}
+.icon-btn{position:relative;background:transparent;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:30px;width:42px;height:42px;display:inline-flex;align-items:center;justify-content:center;font-size:1.2rem;cursor:pointer;transition:.2s;flex:none}
 .icon-btn:hover{background:rgba(255,200,61,.12)}
-.icon-btn .badge{position:absolute;top:-5px;right:-5px;background:var(--gold);color:#0a0a12;font-size:.6rem;font-weight:700;border-radius:10px;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1}
+.icon-btn .badge{position:absolute;top:-6px;right:-6px;background:var(--gold);color:#0a0a12;font-size:.66rem;font-weight:700;border-radius:10px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1}
 .dl-wrap{position:relative}
 @media(min-width:641px){body.signed-in .dl-wrap{display:none}}
 .dl-menu{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:6px;min-width:150px;z-index:30;box-shadow:0 12px 30px rgba(0,0,0,.5)}
@@ -1459,6 +1461,7 @@ function authUploadAvatar(input){
     if(error){authMsg(error.message);return;}
     _player.avatar=dataUri;
     const img=document.getElementById('pm-avatar-img');if(img)img.src=dataUri;
+    updateAcctBtn();
     authMsg('Profile picture updated!',true);
   });
 }
@@ -1627,11 +1630,13 @@ function updateAcctBtn(){
   if(st)st.style.display=_player?'':'none';
   if(_player){
     if(su)su.style.display='none';
-    ac.textContent='👤 '+(_player.username||_player.tag||'Account');
+    ac.classList.add('acct-btn-signed');
+    ac.innerHTML=`<img class="acct-avatar-mini" src="${esc(_player.avatar||'/logo.png')}" alt="">${esc(_player.username||_player.tag||'Account')}`;
     ac.onclick=()=>authOpen();
     if(ad)ad.style.display=((_player.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase())?'':'none';
   }else{
     if(su)su.style.display='';
+    ac.classList.remove('acct-btn-signed');
     ac.textContent='Login';
     ac.onclick=()=>authOpen('login');
     if(ad)ad.style.display='none';
