@@ -991,11 +991,32 @@ if(ONESIGNAL_APP_ID){
     updatePushBtn();
   });
 }
+/* iPhone/iPad only support push for a home-screen-installed app (Apple's own
+   restriction, not something we can work around) — Safari-tab visits never get a
+   working push subscription no matter what we do here, so detect that state and
+   tell the player how to fix it instead of the button silently doing nothing. */
+function isIosDevice(){return /iP(hone|od|ad)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
+function isStandaloneApp(){return window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}
 async function enablePush(){
   if(!ONESIGNAL_APP_ID){showMsg('Push not available',"Push notifications aren't set up on this deploy yet — email still works.");return;}
+  if(isIosDevice()&&!isStandaloneApp()){
+    showMsg('Install the app first',"On iPhone/iPad, Apple only sends notifications to installed apps: tap the Share icon in Safari, choose \"Add to Home Screen,\" then open JD Arena from that icon and tap this again.");
+    return;
+  }
   if(!window._oneSignal){showMsg('One sec','Still loading — try again in a second.');return;}
-  await window._oneSignal.Notifications.requestPermission();
+  if(typeof Notification==='function'&&Notification.permission==='denied'){
+    showMsg("Notifications are blocked","You blocked notifications for this site before — turn them back on in your browser or phone's site settings, then try again.",true);
+    return;
+  }
+  try{
+    await window._oneSignal.Notifications.requestPermission();
+  }catch(e){
+    showMsg('Could not enable push',"Something went wrong asking for permission — try again in a moment.",true);
+    updatePushBtn();
+    return;
+  }
   updatePushBtn();
+  if(window._oneSignal.Notifications.permission)showMsg('Push alerts on',"You'll get notified for room codes, reminders and announcements.");
 }
 function updatePushBtn(){
   const b=document.getElementById('acct-push-btn');if(!b)return;
