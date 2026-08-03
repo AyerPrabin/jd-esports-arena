@@ -2,23 +2,30 @@
 // cron.schedule + net.http_post — 5 minutes, not 15, specifically so the
 // room-code release below can land close to its 5-minutes-before-start
 // target instead of the ~15-minute window a slower tick would allow).
-// Four jobs share this one tick:
-//   1. Emails players a reminder 24 hours and 1 hour before a tournament they're
-//      registered for starts.
+// Five jobs share this one tick:
+//   1. Reminds players 24 hours and 1 hour before a tournament they're registered
+//      for starts (email + push + in-app).
 //   2. Nudges confirmed/approved players to check in ~30 minutes before start.
 //   3. Sweeps each tournament exactly once, ~10 minutes before start: anyone
 //      confirmed/approved who never checked in gets forfeited ('no_show'),
 //      which frees their slot — the existing promote_from_waitlist() trigger
 //      (schema.sql) picks that up with zero changes here, since it fires on
 //      ANY update that moves a row out of confirmed/approved.
-//   4. Auto-releases any room code the admin staged via stage-room-code
+//   4. Daily reminder: once per calendar day (UTC), for anyone registered whose
+//      tournament is further out than the 1h window above -- e.g. "5 days until
+//      X" the week after you register, so registered players get a steady daily
+//      nudge instead of just the last-minute 24h/1h ones. See DAILY_HORIZON_MS.
+//   5. Auto-releases any room code the admin staged via stage-room-code
 //      (jd-admin's "💾 Stage for auto-release"), ~5 minutes before start —
 //      see ROOM_CODE_RELEASE_MS below.
 // Reads ONLY the `registrations` table, so a player who never registered
 // in-app gets nothing, ever.
 //
 // Reminder dedup is a marker row in `notifications` (checked before sending) so
-// a cron tick can't double-email someone within the same window.
+// a cron tick can't double-send someone within the same window. The daily
+// reminder dedups the same way, except the window IS the calendar day: its title
+// bakes in today's date, so it's naturally a fresh title every day with no
+// separate marker needed.
 // Forfeit-sweep dedup is a row in `tournament_checkin_sweeps`: the first tick
 // whose insert actually lands runs the sweep for that tournament; every later
 // tick sees the unique-key conflict and skips. Without this, a re-forfeit
@@ -32,9 +39,14 @@
 // between ticks — or the admin beating the timer with a manual send, which also
 // sets sent_at — can't double-send.
 //
+// Every send here is email (if RESEND_API_KEY is set) + OneSignal push (if
+// ONESIGNAL_APP_ID/ONESIGNAL_API_KEY are set, targeting the player's external_id
+// the way index.html's OneSignal.login() sets it up) + always an in-app
+// `notifications` row regardless of either being configured.
+//
 // Guarded by CRON_SECRET since pg_net's call isn't a logged-in admin — this
-// function sends real emails, forfeits real registrations, and releases real
-// room codes, it must not be publicly triggerable.
+// function sends real emails/push, forfeits real registrations, and releases
+// real room codes, it must not be publicly triggerable.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 async function sendDiscordDM(token: string, discordUserId: string, content: string): Promise<boolean> {
@@ -52,6 +64,29 @@ async function sendDiscordDM(token: string, discordUserId: string, content: stri
     body: JSON.stringify({ content }),
   });
   return msgRes.ok;
+}
+
+// Shared by every push below (24h/1h/check-in reminders, forfeit notices, the daily
+// reminder, and room-code release) -- one OneSignal call per group of recipients,
+// same include_aliases/external_id targeting send-notification already uses for a
+// targeted (non-broadcast) send. Silently a no-op with no keys set or no recipients.
+async function sendPush(appId: string | undefined, apiKey: string | undefined, playerIds: string[], title: string, body: string): Promise<void> {
+  if (!appId || !apiKey || !playerIds.length) return;
+  try {
+    await fetch('https://api.onesignal.com/notifications', {
+      method: 'POST',
+      headers: { Authorization: `Key ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        app_id: appId,
+        target_channel: 'push',
+        include_aliases: { external_id: playerIds },
+        headings: { en: title },
+        contents: { en: body },
+      }),
+    });
+  } catch {
+    // push failing shouldn't block email/in-app delivery, which already happened
+  }
 }
 
 const WINDOWS = [
@@ -106,6 +141,9 @@ Deno.serve(async (req: Request) => {
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
   const resendKey = Deno.env.get('RESEND_API_KEY');
   const resendFrom = Deno.env.get('RESEND_FROM') || 'JD Arena <onboarding@resend.dev>';
+  const discordBotToken = Deno.env.get('DISCORD_BOT_TOKEN');
+  const oneSignalAppId = Deno.env.get('ONESIGNAL_APP_ID');
+  const oneSignalApiKey = Deno.env.get('ONESIGNAL_API_KEY');
   const now = Date.now();
 
   // ── 24h / 1h / check-in-nudge reminders ──
@@ -138,9 +176,10 @@ Deno.serve(async (req: Request) => {
       ? `${t.name} starts in 30 minutes — tap Check In on the tournament card or you may lose your spot to the waitlist.`
       : `${t.name} starts in ${w.label} (${t.date || ''}${t.time ? ' - ' + t.time : ''}). Make sure you're ready.`;
 
+    const pushIds: string[] = [];
     for (const reg of regs as any[]) {
       if (isCheckin && reg.checked_in_at) continue; // already checked in, nothing to nudge
-      if (!reg.players || !reg.players.email) continue;
+      if (!reg.players) continue;
       const { data: already } = await supabase
         .from('notifications')
         .select('id')
@@ -151,7 +190,8 @@ Deno.serve(async (req: Request) => {
       if (already && already.length) continue; // already reminded this player for this window
 
       await supabase.from('notifications').insert({ player_id: reg.player_id, tournament_slug: t.name, title, body });
-      if (!resendKey) continue;
+      pushIds.push(reg.player_id);
+      if (!resendKey || !reg.players.email) continue;
       try {
         const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
@@ -164,6 +204,7 @@ Deno.serve(async (req: Request) => {
         // already written, so this won't silently retry into a duplicate on the next tick
       }
     }
+    await sendPush(oneSignalAppId, oneSignalApiKey, pushIds, title, body);
   }
 
   // ── forfeit sweep — exactly once per tournament, see file header ──
@@ -208,12 +249,73 @@ Deno.serve(async (req: Request) => {
         // one player's email failing shouldn't block the rest
       }
     }
+    await sendPush(oneSignalAppId, oneSignalApiKey, (forfeitedRegs as any[]).map((r) => r.player_id), title, body);
+  }
+
+  // ── daily reminder — once per (tournament, calendar day, UTC) for anyone registered
+  // whose tournament is still more than the 1h window away. Anything closer than that
+  // already gets the tighter 24h/1h/check-in cadence above, so this only fires for the
+  // stretch further out (e.g. "5 days until X" the week you register). The date is baked
+  // into the notification title, so it's naturally a fresh, distinct title each day --
+  // that's what makes the per-player "already sent" check below a same-day dedup instead
+  // of needing a separate marker table, the same trick the 24h/1h reminders use per window.
+  let dailySent = 0;
+  const todayKey = new Date(now).toISOString().slice(0, 10); // YYYY-MM-DD, UTC
+  const DAILY_HORIZON_MS = 30 * 24 * 60 * 60 * 1000; // don't nag more than 30 days out
+  for (const t of tournaments) {
+    if (!t.start || ['completed', 'cancelled'].includes((t.status || '').toLowerCase())) continue;
+    const startMs = Date.parse(t.start);
+    if (isNaN(startMs)) continue;
+    const msUntil = startMs - now;
+    if (msUntil <= WINDOWS[1].ms) continue; // within the 1h window (or already started) -- handled above
+    if (msUntil > DAILY_HORIZON_MS) continue;
+    const daysLeft = Math.max(1, Math.ceil(msUntil / (24 * 60 * 60 * 1000)));
+
+    const { data: regs, error: regErr } = await supabase
+      .from('registrations')
+      .select('player_id, players(email)')
+      .eq('tournament_slug', t.name)
+      .in('status', ['confirmed', 'approved']);
+    if (regErr || !regs || !regs.length) continue;
+
+    const title = `${daysLeft} day${daysLeft === 1 ? '' : 's'} until ${t.name} — ${todayKey}`;
+    const body = `${t.name} starts in ${daysLeft} day${daysLeft === 1 ? '' : 's'} (${t.date || ''}${t.time ? ' · ' + t.time : ''}). See you there!`;
+
+    const toNotify: any[] = [];
+    for (const reg of regs as any[]) {
+      const { data: already } = await supabase
+        .from('notifications')
+        .select('id')
+        .eq('player_id', reg.player_id)
+        .eq('tournament_slug', t.name)
+        .eq('title', title)
+        .limit(1);
+      if (already && already.length) continue; // already sent today
+      toNotify.push(reg);
+    }
+    if (!toNotify.length) continue;
+
+    await supabase.from('notifications').insert(toNotify.map((reg) => ({ player_id: reg.player_id, tournament_slug: t.name, title, body })));
+    dailySent += toNotify.length;
+
+    if (resendKey) {
+      for (const reg of toNotify) {
+        if (!reg.players?.email) continue;
+        try {
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ from: resendFrom, to: reg.players.email, subject: title, html: `<p>${body}</p>` }),
+          });
+        } catch {
+          // one player's email failing shouldn't block the rest
+        }
+      }
+    }
+    await sendPush(oneSignalAppId, oneSignalApiKey, toNotify.map((r) => r.player_id), title, body);
   }
 
   // ── room code auto-release — exactly once per tournament, see file header ──
-  const discordBotToken = Deno.env.get('DISCORD_BOT_TOKEN');
-  const oneSignalAppId = Deno.env.get('ONESIGNAL_APP_ID');
-  const oneSignalApiKey = Deno.env.get('ONESIGNAL_API_KEY');
   let roomCodesSent = 0;
   const roomCodesReleased: string[] = [];
   for (const t of tournaments) {
@@ -272,23 +374,10 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    if (oneSignalAppId && oneSignalApiKey) {
-      try {
-        await fetch('https://api.onesignal.com/notifications', {
-          method: 'POST',
-          headers: { Authorization: `Key ${oneSignalApiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            app_id: oneSignalAppId,
-            target_channel: 'push',
-            include_aliases: { external_id: targets.map((tg) => tg.id) },
-            headings: { en: title },
-            contents: { en: `Room ID: ${staged.room_id}${staged.room_pass ? ' · Pass: ' + staged.room_pass : ''}` },
-          }),
-        });
-      } catch {
-        // push failing shouldn't block email/in-app delivery, which already happened above
-      }
-    }
+    await sendPush(
+      oneSignalAppId, oneSignalApiKey, targets.map((tg) => tg.id),
+      title, `Room ID: ${staged.room_id}${staged.room_pass ? ' · Pass: ' + staged.room_pass : ''}`,
+    );
 
     if (discordBotToken) {
       const dmText = `**Room code: ${t.name}**\nRoom ID: ${staged.room_id}${staged.room_pass ? `\nPassword: ${staged.room_pass}` : ''}\nDon't share this with anyone outside your squad.`;
@@ -303,7 +392,7 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  return new Response(JSON.stringify({ sent, due: due.length, forfeited, swept, roomCodesSent, roomCodesReleased }), {
+  return new Response(JSON.stringify({ sent, due: due.length, forfeited, swept, dailySent, roomCodesSent, roomCodesReleased }), {
     status: 200,
     headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
   });
