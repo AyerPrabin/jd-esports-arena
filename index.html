@@ -45,6 +45,7 @@ header{position:relative;z-index:20}
 /* top bar */
 header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .bar{display:flex;align-items:center;justify-content:space-between;padding:20px 0}
+.bar-right{display:flex;align-items:center;gap:14px}
 .brand{display:flex;align-items:center;gap:12px;text-align:left;margin-right:auto;flex-shrink:0}
 .brand .logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--gold-2));display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;color:#07090F;font-size:1.4rem}
 .brand b{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.03em;text-transform:uppercase}
@@ -64,7 +65,6 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
   .bar-nav.open{transform:translateX(0)}
   .bar-nav>a,.bar-nav>.dl-wrap{width:100%}
   .bar-nav .lang-btn{width:100%;text-align:left;padding:12px 16px}
-  .bar-nav .icon-btn{align-self:flex-start}
   .bar-nav .dl-menu{position:static;width:100%;margin-top:4px;box-shadow:none}
   .nav-scrim.open{display:block}
   .nav-scrim.open{opacity:1}
@@ -323,7 +323,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
   --pm-bg:#0A0F1C;--pm-bg2:#121A2B;--pm-card:#1A2336;--pm-border:rgba(255,210,90,.18);
   --pm-gold:#E8B44D;--pm-gold-b:#FFD76A;--pm-white:#F7F7F7;--pm-muted:#9CA8BE;
   --pm-danger:#FF6161;--pm-success:#5EDB95;
-  position:relative;overflow:hidden;
+  position:relative;overflow-y:auto;overflow-x:hidden;
   background:
     radial-gradient(120% 140% at 12% -10%,rgba(232,180,77,.10),transparent 55%),
     linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,0) 38%),
@@ -332,6 +332,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
   border-radius:26px;
   padding:28px;
   width:min(420px,100%);
+  max-height:calc(100vh - 40px);
   box-shadow:0 25px 80px rgba(0,0,0,.55);
   animation:pmFadeUp .35s ease;
 }
@@ -378,13 +379,24 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .pm-toggle.on::after{left:16px;background:var(--pm-success,#5EDB95)}
 .pm-badge{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--pm-muted,#9CA8BE);flex:none}
 .pm-badge-on{background:rgba(94,219,149,.14);color:var(--pm-success,#5EDB95)}
+/* ── row-list style (grouped card, one row per line, icon circle + chevron) ── */
+.pm-list{background:var(--pm-card,#1A2336);border:1px solid var(--pm-border,rgba(255,210,90,.18));border-radius:18px;overflow:hidden;margin-bottom:14px}
+.pm-row{display:flex;align-items:center;gap:14px;width:100%;padding:13px 16px;background:none;border:none;border-top:1px solid rgba(255,255,255,.07);color:var(--pm-white,#F7F7F7);font-family:'Inter',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;text-align:left;text-decoration:none;transition:.15s;box-sizing:border-box}
+.pm-list .pm-row:first-child{border-top:none}
+.pm-row:hover{background:rgba(255,255,255,.05)}
+.pm-row-static{cursor:default}
+.pm-row-static:hover{background:none}
+.pm-row-ic{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:1rem;flex:none;color:var(--pm-gold,#E8B44D)}
+.pm-row-txt{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-row-chev{color:var(--pm-muted,#9CA8BE);font-size:1.1rem;flex:none}
 .pm-unlink{display:block;margin:-6px 0 14px;font-size:.76rem}
+.pm-deactivate{display:block;margin:6px auto 0;color:var(--warm-l,#FFC66B);font-size:.78rem}
 .pm-delete{display:block;margin:6px auto 0;color:var(--pm-danger,#FF6161);font-size:.78rem}
 /* .zmodal .link's unconditional underline (used elsewhere for plain text links)
    otherwise beats a bare .pm-delete rule on specificity -- match its specificity
    to actually override it down to hover-only. */
-.zmodal .link.pm-delete{text-decoration:none}
-.zmodal .link.pm-delete:hover{text-decoration:underline}
+.zmodal .link.pm-delete,.zmodal .link.pm-deactivate{text-decoration:none}
+.zmodal .link.pm-delete:hover,.zmodal .link.pm-deactivate:hover{text-decoration:underline}
 /* ── avatar (account panel) ── */
 .pm-avatar-wrap{position:relative;width:76px;height:76px;margin:0 0 10px}
 .pm-avatar{width:76px;height:76px;border-radius:50%;object-fit:cover;border:2px solid var(--pm-border,var(--gold-m));display:block;background:var(--pm-card,#1A2336)}
@@ -508,8 +520,11 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
       <img class="jdlogo" src="/logo.png" alt="JD Esports Arena" width="40" height="40">
       <span><b>JD Esports Arena</b><span>by AyerFire</span></span>
     </a>
-    <button class="nav-toggle" id="nav-toggle-btn" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="acct-nav">☰</button>
-    <nav class="bar-nav" id="acct-nav"><a class="lang-btn" href="/leaderboard.html">🏆 Leaderboard</a><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none">⚙️ Settings</button><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="admin-btn" class="lang-btn" href="/admin/" style="display:none">🛠 Admin</a><button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History">🔔<span class="badge" id="notif-badge" hidden>0</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button></div></div></nav>
+    <div class="bar-right">
+      <button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History">🔔<span class="badge" id="notif-badge" hidden>0</span></button>
+      <button class="nav-toggle" id="nav-toggle-btn" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="acct-nav">☰</button>
+      <nav class="bar-nav" id="acct-nav"><a class="lang-btn" href="/leaderboard.html">🏆 Leaderboard</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="admin-btn" class="lang-btn" href="/admin/" style="display:none">🛠 Admin</a><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button></div></div><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none">⚙️ Settings</button></nav>
+    </div>
   </div>
   <div class="nav-scrim" id="nav-scrim" onclick="closeMobileNav()"></div>
 </header>
@@ -980,7 +995,7 @@ async function enablePush(){
 function updatePushBtn(){
   const b=document.getElementById('acct-push-btn');if(!b)return;
   const on=!!(window._oneSignal&&window._oneSignal.Notifications&&window._oneSignal.Notifications.permission);
-  const txt=b.querySelector('.pm-btn-txt');if(txt)txt.textContent=on?'Push alerts on':'Enable push alerts';
+  const txt=b.querySelector('.pm-row-txt');if(txt)txt.textContent=on?'Push alerts on':'Enable push alerts';
   b.classList.toggle('on',on);
   b.disabled=on;
   const tg=document.getElementById('acct-push-toggle');if(tg)tg.classList.toggle('on',on);
@@ -1302,32 +1317,49 @@ function authRender(){
     return;
   }
   if(_authView==='settings'){
-    const changePassBlock=_player?`<button class="pm-btn" onclick="_authView='changepass';authRender();"><span class="pm-btn-ic">🔑</span><span class="pm-btn-txt">Change password</span></button>`:'';
+    let accountOnlyBlock='';
+    if(_player){
+      let discordRow;
+      if(_player.discord_username){
+        discordRow=`<div class="pm-row pm-row-static"><span class="pm-row-ic">💬</span><span class="pm-row-txt">@${esc(_player.discord_username)}</span><span class="pm-badge pm-badge-on">Connected</span></div>`;
+      }else if(_discordLinkCode){
+        discordRow=`<div class="pm-row pm-row-static" style="flex-direction:column;align-items:flex-start;gap:4px"><div class="auth-tag" style="margin:0;font-family:'Courier New',monospace;word-break:break-all">${esc(_discordLinkCode)}</div><p class="pm-hint" style="margin:0">Type <code>!link ${esc(_discordLinkCode)}</code> in the JD Esports Arena Discord server — expires in 10 minutes.</p></div>`;
+      }else{
+        discordRow=`<button class="pm-row" onclick="authLinkDiscord()"><span class="pm-row-ic">💬</span><span class="pm-row-txt">Link Discord</span><span class="pm-badge">Not connected</span></button>`;
+      }
+      const unlinkRow=_player.discord_username?'<p class="sub" style="margin:-8px 0 14px"><button class="link pm-unlink" onclick="authUnlinkDiscord()">Unlink Discord</button></p>':'';
+      accountOnlyBlock=`<div class="pm-list">
+        <button class="pm-row" onclick="_authView='changepass';authRender();"><span class="pm-row-ic">🔑</span><span class="pm-row-txt">Change password</span><span class="pm-row-chev">›</span></button>
+        ${discordRow}
+      </div>
+      ${unlinkRow}
+      <p class="sub" style="text-align:center"><button class="link pm-deactivate" onclick="authDeactivateAccount()">Deactivate account</button> · <button class="link pm-delete" onclick="authRequestDelete()">Delete account</button></p>`;
+    }
     el.innerHTML=`<h3>Settings</h3><p class="sub">Reports, rules, downloads and other pages — not tied to your account.</p>
-      ${changePassBlock}
-      <button class="pm-btn" onclick="openReportFlow()"><span class="pm-btn-ic">🚩</span><span class="pm-btn-txt">Report a player/squad</span></button>
-      <a class="pm-btn" href="/leaderboard.html"><span class="pm-btn-ic">🏆</span><span class="pm-btn-txt">Leaderboard</span></a>
-      <a class="pm-btn" href="/ban-list.html"><span class="pm-btn-ic">🛡️</span><span class="pm-btn-txt">Ban List</span></a>
-      <a class="pm-btn" href="${esc(MAIN_SITE_URL||'/about/')}"><span class="pm-btn-ic">ℹ️</span><span class="pm-btn-txt">About Us</span></a>
-      <button class="pm-btn" onclick="downloadAndroid()"><span class="pm-btn-ic">🤖</span><span class="pm-btn-txt">Download for Android</span></button>
-      <button class="pm-btn" onclick="downloadIOS()"><span class="pm-btn-ic">🍎</span><span class="pm-btn-txt">Download for iPhone</span></button>
+      ${accountOnlyBlock}
+      <div class="pm-list">
+        <button class="pm-row" onclick="openReportFlow()"><span class="pm-row-ic">🚩</span><span class="pm-row-txt">Report a player/squad</span><span class="pm-row-chev">›</span></button>
+        <a class="pm-row" href="/leaderboard.html"><span class="pm-row-ic">🏆</span><span class="pm-row-txt">Leaderboard</span><span class="pm-row-chev">›</span></a>
+        <a class="pm-row" href="/ban-list.html"><span class="pm-row-ic">🛡️</span><span class="pm-row-txt">Ban List</span><span class="pm-row-chev">›</span></a>
+        <a class="pm-row" href="${esc(MAIN_SITE_URL||'/about/')}"><span class="pm-row-ic">ℹ️</span><span class="pm-row-txt">About Us</span><span class="pm-row-chev">›</span></a>
+      </div>
+      <div class="pm-list">
+        <button class="pm-row" onclick="downloadAndroid()"><span class="pm-row-ic">🤖</span><span class="pm-row-txt">Download for Android</span><span class="pm-row-chev">›</span></button>
+        <button class="pm-row" onclick="downloadIOS()"><span class="pm-row-ic">🍎</span><span class="pm-row-txt">Download for iPhone</span><span class="pm-row-chev">›</span></button>
+      </div>
       ${_player?'<p class="sub" style="margin-top:16px"><button class="link" onclick="_authView=\'login\';authRender();">Back to account</button></p>':''}`;
     return;
   }
   if(_player){
-    let discordBlock;
-    if(_player.discord_username){
-      discordBlock=`<div class="pm-btn pm-btn-static"><span class="pm-btn-ic">💬</span><span class="pm-btn-txt">@${esc(_player.discord_username)}</span><span class="pm-badge pm-badge-on">Connected</span></div><button class="link pm-unlink" onclick="authUnlinkDiscord()">Unlink Discord</button>`;
-    }else if(_discordLinkCode){
-      discordBlock=`<div class="auth-tag" style="margin-top:0;font-family:'Courier New',monospace;word-break:break-all">${esc(_discordLinkCode)}</div><p class="pm-hint">Type <code>!link ${esc(_discordLinkCode)}</code> in the JD Esports Arena Discord server — expires in 10 minutes.</p>`;
-    }else{
-      discordBlock=`<button class="pm-btn" onclick="authLinkDiscord()"><span class="pm-btn-ic">💬</span><span class="pm-btn-txt">Link Discord</span><span class="pm-badge">Not connected</span></button><p class="pm-hint" style="margin-top:-8px">Receive Room IDs instantly there too.</p>`;
-    }
     const verifiedBadge=_player.verified?'<span class="pm-verified">✓ Verified</span>':'';
     const avatarBlock=`<div class="pm-avatar-wrap"><img class="pm-avatar" id="pm-avatar-img" src="${esc(_player.avatar||'/logo.png')}" alt=""><button class="pm-avatar-edit" onclick="document.getElementById('pm-avatar-file').click()" aria-label="Change profile picture">📷</button><input type="file" id="pm-avatar-file" accept="image/*" style="display:none" onchange="authUploadAvatar(this)"></div>`;
     const regRows=[..._myRegs.entries()];
     const historyBlock=regRows.length?`<div class="pm-history"><div class="pm-history-title">Your registrations</div>${regRows.map(([slug,r])=>`<div class="pm-history-row"><span class="pm-history-name">${esc(slug)}</span>${r.squad_name?`<span class="pm-history-squad">${esc(r.squad_name)}</span>`:''}<span class="pm-history-status pm-status-${esc(r.status)}">${esc(r.status)}</span></div>`).join('')}</div>`:'';
-    el.innerHTML=`<h3 class="pm-title">Signed in</h3>${avatarBlock}<div class="auth-tag">@${esc(_player.username||'…')}</div><div class="pm-meta"><span>${esc(_player.email)}</span>${_player.tag?`<span class="pm-dot">●</span><span>ID ${esc(_player.tag)}</span>`:''}${verifiedBadge}</div>${_player.tag?'<p class="pm-hint">Only needed if you register outside the app.</p>':''}<div id="career-stats"></div><button class="pm-btn" id="acct-push-btn" onclick="enablePush()"><span class="pm-btn-ic">🔔</span><span class="pm-btn-txt">Enable push alerts</span><span class="pm-toggle" id="acct-push-toggle"></span></button>${discordBlock}<div class="msg" id="au-msg"></div>${historyBlock}<button class="pm-btn" onclick="authChangeUsername()"><span class="pm-btn-ic">✏️</span><span class="pm-btn-txt">Change username</span></button><button class="pm-btn" onclick="authLogout()"><span class="pm-btn-ic">↩</span><span class="pm-btn-txt">Log out</span></button><button class="link pm-delete" onclick="authRequestDelete()">Delete account</button>`;
+    el.innerHTML=`<h3 class="pm-title">Signed in</h3>${avatarBlock}<div class="auth-tag">@${esc(_player.username||'…')}</div><div class="pm-meta"><span>${esc(_player.email)}</span>${_player.tag?`<span class="pm-dot">●</span><span>ID ${esc(_player.tag)}</span>`:''}${verifiedBadge}</div>${_player.tag?'<p class="pm-hint">Only needed if you register outside the app.</p>':''}<div id="career-stats"></div><div class="msg" id="au-msg"></div>${historyBlock}<div class="pm-list">
+        <button class="pm-row" id="acct-push-btn" onclick="enablePush()"><span class="pm-row-ic">🔔</span><span class="pm-row-txt">Enable push alerts</span><span class="pm-toggle" id="acct-push-toggle"></span></button>
+        <button class="pm-row" onclick="authChangeUsername()"><span class="pm-row-ic">✏️</span><span class="pm-row-txt">Change username</span><span class="pm-row-chev">›</span></button>
+        <button class="pm-row" onclick="authLogout()"><span class="pm-row-ic">↩</span><span class="pm-row-txt">Log out</span><span class="pm-row-chev">›</span></button>
+      </div>`;
     updatePushBtn();
     loadCareerStats();
     return;
@@ -1514,6 +1546,18 @@ async function authUnlinkDiscord(){
    emailed link only re-authenticates the browser; it does NOT delete anything by itself —
    that only happens after (2) the user clicks "Yes, permanently delete" on the panel the
    link lands on (see the _deleteConfirmFlow branch in onAuthStateChange below). ── */
+async function authDeactivateAccount(){
+  if(!_player)return;
+  if(!confirm("Deactivate your account? You'll be signed out and your profile hidden until you log back in — logging in again automatically reactivates it. This is different from Delete, which is permanent."))return;
+  const {error}=await sb.rpc('deactivate_my_account');
+  if(error){authMsg(error.message);return;}
+  await sb.auth.signOut();
+  if(window._oneSignal)window._oneSignal.logout();
+  _player=null;_myRegs=new Map();_notifUnread=0;_discordLinkCode=null;
+  trackPresence();
+  updateAcctBtn();updateNotifHistBtn();updateGate();render(_lastData||ARENA_SAMPLE);
+  showMsg('Account deactivated','Log back in anytime to reactivate your account.');
+}
 async function authRequestDelete(){
   if(!_player)return;
   if(!confirm("This starts account deletion. We'll email a confirmation link to "+_player.email+" — nothing is deleted until you click it and confirm again. Continue?"))return;
@@ -1569,6 +1613,9 @@ async function authRefreshPlayer(){
   updateGate();
   trackPresence();
   if(window._oneSignal)window._oneSignal.login(_player.id);
+  sb.rpc('reactivate_my_account').then(({data:wasReactivated})=>{
+    if(wasReactivated)showMsg('Welcome back','Your account has been reactivated.');
+  });
   await loadMyRegs();
   loadNotifications(false);
 }
