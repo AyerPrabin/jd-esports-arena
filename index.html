@@ -494,7 +494,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
       <span><b>JD Esports Arena</b><span>by AyerFire</span></span>
     </a>
     <button class="nav-toggle" id="nav-toggle-btn" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="acct-nav">☰</button>
-    <nav class="bar-nav" id="acct-nav"><a class="lang-btn" href="/leaderboard.html">🏆 Leaderboard</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="admin-btn" class="lang-btn" href="/admin/" style="display:none">🛠 Admin</a><button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History">🔔<span class="badge" id="notif-badge" hidden>0</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button></div></div></nav>
+    <nav class="bar-nav" id="acct-nav"><a class="lang-btn" href="/leaderboard.html">🏆 Leaderboard</a><button class="lang-btn" onclick="settingsOpen()">⚙️ Settings</button><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="admin-btn" class="lang-btn" href="/admin/" style="display:none">🛠 Admin</a><button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History">🔔<span class="badge" id="notif-badge" hidden>0</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button></div></div></nav>
   </div>
   <div class="nav-scrim" id="nav-scrim" onclick="closeMobileNav()"></div>
 </header>
@@ -1246,6 +1246,11 @@ function updateGate(){
 }
 
 function authOpen(view){_authView=view||_authView||'login';document.getElementById('auth-overlay').classList.add('open');authRender();}
+/* Settings: report/leaderboard/ban-list/about — utility pages, not account state, so
+   this works whether or not you're logged in (unlike the account panel above it, which
+   only ever renders for a signed-in _player). Same modal/view system as everything else
+   here, just a view that isn't gated on auth state. */
+function settingsOpen(){_authView='settings';document.getElementById('auth-overlay').classList.add('open');authRender();}
 function authClose(){if(_gateActive)return;document.getElementById('auth-overlay').classList.remove('open');}
 function authMsg(t,ok){const m=document.getElementById('au-msg');if(m){m.textContent=t;m.className='msg '+(ok?'ok':'err');}}
 
@@ -1281,6 +1286,15 @@ function authRender(){
     setTimeout(()=>{const f=document.getElementById('au-username');if(f)f.focus();},50);
     return;
   }
+  if(_authView==='settings'){
+    el.innerHTML=`<h3>Settings</h3><p class="sub">Reports, rules, and other pages — not tied to your account.</p>
+      <button class="pm-btn" onclick="openReportFlow()"><span class="pm-btn-ic">🚩</span><span class="pm-btn-txt">Report a player/squad</span></button>
+      <a class="pm-btn" href="/leaderboard.html"><span class="pm-btn-ic">🏆</span><span class="pm-btn-txt">Leaderboard</span></a>
+      <a class="pm-btn" href="/ban-list.html"><span class="pm-btn-ic">🛡️</span><span class="pm-btn-txt">Ban List</span></a>
+      <a class="pm-btn" href="${esc(MAIN_SITE_URL||'/about/')}"><span class="pm-btn-ic">ℹ️</span><span class="pm-btn-txt">About Us</span></a>
+      ${_player?'<p class="sub" style="margin-top:16px"><button class="link" onclick="_authView=\'login\';authRender();">Back to account</button></p>':''}`;
+    return;
+  }
   if(_player){
     let discordBlock;
     if(_player.discord_username){
@@ -1291,7 +1305,7 @@ function authRender(){
       discordBlock=`<button class="pm-btn" onclick="authLinkDiscord()"><span class="pm-btn-ic">💬</span><span class="pm-btn-txt">Link Discord</span><span class="pm-badge">Not connected</span></button><p class="pm-hint" style="margin-top:-8px">Receive Room IDs instantly there too.</p>`;
     }
     const verifiedBadge=_player.verified?'<span class="pm-verified">✓ Verified</span>':'';
-    el.innerHTML=`<h3 class="pm-title">Signed in</h3><div class="auth-tag">@${esc(_player.username||'…')}</div><div class="pm-meta"><span>${esc(_player.email)}</span>${_player.tag?`<span class="pm-dot">●</span><span>ID ${esc(_player.tag)}</span>`:''}${verifiedBadge}</div>${_player.tag?'<p class="pm-hint">Only needed if you register outside the app.</p>':''}<div id="career-stats"></div><button class="pm-btn" id="acct-push-btn" onclick="enablePush()"><span class="pm-btn-ic">🔔</span><span class="pm-btn-txt">Enable push alerts</span><span class="pm-toggle" id="acct-push-toggle"></span></button>${discordBlock}<div class="msg" id="au-msg"></div><button class="pm-btn" onclick="authChangeUsername()"><span class="pm-btn-ic">✏️</span><span class="pm-btn-txt">Change username</span></button><button class="pm-btn" onclick="_authView='changepass';authRender();"><span class="pm-btn-ic">🔑</span><span class="pm-btn-txt">Change password</span></button><button class="pm-btn" onclick="openReportFlow()"><span class="pm-btn-ic">🚩</span><span class="pm-btn-txt">Report a player/squad</span></button><button class="pm-btn" onclick="authLogout()"><span class="pm-btn-ic">↩</span><span class="pm-btn-txt">Log out</span></button><button class="link pm-delete" onclick="authRequestDelete()">Delete account</button>`;
+    el.innerHTML=`<h3 class="pm-title">Signed in</h3><div class="auth-tag">@${esc(_player.username||'…')}</div><div class="pm-meta"><span>${esc(_player.email)}</span>${_player.tag?`<span class="pm-dot">●</span><span>ID ${esc(_player.tag)}</span>`:''}${verifiedBadge}</div>${_player.tag?'<p class="pm-hint">Only needed if you register outside the app.</p>':''}<div id="career-stats"></div><button class="pm-btn" id="acct-push-btn" onclick="enablePush()"><span class="pm-btn-ic">🔔</span><span class="pm-btn-txt">Enable push alerts</span><span class="pm-toggle" id="acct-push-toggle"></span></button>${discordBlock}<div class="msg" id="au-msg"></div><button class="pm-btn" onclick="authChangeUsername()"><span class="pm-btn-ic">✏️</span><span class="pm-btn-txt">Change username</span></button><button class="pm-btn" onclick="_authView='changepass';authRender();"><span class="pm-btn-ic">🔑</span><span class="pm-btn-txt">Change password</span></button><button class="pm-btn" onclick="authLogout()"><span class="pm-btn-ic">↩</span><span class="pm-btn-txt">Log out</span></button><button class="link pm-delete" onclick="authRequestDelete()">Delete account</button>`;
     updatePushBtn();
     loadCareerStats();
     return;
@@ -1474,7 +1488,7 @@ async function authRequestDelete(){
   authMsg("Check your email and click the link (it's sent via our normal sign-in email, that's expected) — you'll land back here to confirm deletion.",true);
 }
 
-function openReportFlow(){_authView='report';authRender();}
+function openReportFlow(){if(!_player){authOpen('login');return;}_authView='report';authRender();}
 async function submitPlayerReport(){
   const tournament_slug=(document.getElementById('rp-tournament')||{}).value||'';
   const reported=(document.getElementById('rp-reported')||{}).value||'';
