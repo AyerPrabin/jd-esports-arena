@@ -1356,8 +1356,7 @@ function authRender(){
         <button class="pm-row" onclick="_authView='changepass';authRender();"><span class="pm-row-ic">🔑</span><span class="pm-row-txt">Change password</span><span class="pm-row-chev">›</span></button>
         ${discordRow}
       </div>
-      ${unlinkRow}
-      <p class="sub" style="text-align:center"><button class="link pm-delete" onclick="authRequestDelete()">Delete account</button></p>`;
+      ${unlinkRow}`;
     }
     el.innerHTML=`<h3>Settings</h3><p class="sub">Reports, rules, downloads and other pages — not tied to your account.</p>
       ${accountOnlyBlock}
@@ -1372,7 +1371,9 @@ function authRender(){
         <button class="pm-row" onclick="downloadAndroid()"><span class="pm-row-ic">🤖</span><span class="pm-row-txt">Download for Android</span><span class="pm-row-chev">›</span></button>
         <button class="pm-row" onclick="downloadIOS()"><span class="pm-row-ic">🍎</span><span class="pm-row-txt">Download for iPhone</span><span class="pm-row-chev">›</span></button>
       </div>
-      ${_player?'<p class="sub" style="margin-top:16px"><button class="link" onclick="_authView=\'login\';authRender();">Back to account</button></p>':''}`;
+      ${_player?`<p class="sub" style="margin-top:16px"><button class="link" onclick="_authView='login';authRender();">Back to account</button></p>
+      <p class="sub" style="text-align:center;margin-top:28px"><button class="link" style="font-size:.68rem;color:var(--pm-muted,#9CA8BE)" onclick="const d=document.getElementById('acct-danger-zone');d.style.display=d.style.display==='none'?'block':'none';">Account management</button></p>
+      <div id="acct-danger-zone" style="display:none;text-align:center;margin-top:6px"><button class="link pm-delete" onclick="authRequestDelete()">Delete account</button></div>`:''}`;
     return;
   }
   if(_player){
