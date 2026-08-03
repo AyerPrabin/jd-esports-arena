@@ -1257,20 +1257,30 @@ let _googleFirstRun=false; // true only for the auto-opened "pick a username" pr
 let _notifUnread=0;
 let _notifHasLoadedOnce=false; // suppress the chime on the very first load (existing unread shouldn't "ding")
 let _gateActive=false; // true while the whole site sits behind the forced login/signup gate
+let _termsGateActive=false; // true while a signed-in player hasn't accepted the current Terms & Conditions yet
 
 /* Full login wall: nobody sees tournaments/prizes/how-to-join without an account. Runs
    after every _player change (see authRefreshPlayer) so it always reflects the real
    session state, not just page load. If accounts aren't configured on this deploy at all
    (sb is null), we deliberately DON'T gate — a config error should never lock everyone,
-   including the owner, out of the whole site. */
+   including the owner, out of the whole site.
+   Terms gate: covers accounts created before Terms & Conditions acceptance existed, or
+   anyone who never actually accepted it (e.g. the checkbox request failed silently) —
+   blocks the same way the login wall does, until they accept. */
 function updateGate(){
   _gateActive=FORCE_LOGIN_GATE&&!!sb&&!_player;
+  _termsGateActive=!_gateActive&&!!sb&&!!_player&&!_player.termsAccepted;
   const main=document.getElementById('main-content');if(main)main.style.display=_gateActive?'none':'';
   const header=document.querySelector('header');if(header)header.style.display=_gateActive?'none':'';
   const ov=document.getElementById('auth-overlay');if(!ov)return;
   const closeBtn=ov.querySelector('.fb-x');
   if(_gateActive){
     if(_authView!=='signup')_authView='login';
+    authRender();
+    ov.classList.add('open');
+    if(closeBtn)closeBtn.style.display='none';
+  }else if(_termsGateActive){
+    _authView='acceptterms';
     authRender();
     ov.classList.add('open');
     if(closeBtn)closeBtn.style.display='none';
@@ -1286,12 +1296,20 @@ function authOpen(view){_authView=view||_authView||'login';document.getElementBy
    only ever renders for a signed-in _player). Same modal/view system as everything else
    here, just a view that isn't gated on auth state. */
 function settingsOpen(){_authView='settings';document.getElementById('auth-overlay').classList.add('open');authRender();}
-function authClose(){if(_gateActive)return;document.getElementById('auth-overlay').classList.remove('open');}
+function authClose(){if(_gateActive||_termsGateActive)return;document.getElementById('auth-overlay').classList.remove('open');}
 function authMsg(t,ok){const m=document.getElementById('au-msg');if(m){m.textContent=t;m.className='msg '+(ok?'ok':'err');}}
 
 function authRender(){
   const el=document.getElementById('auth-body');if(!el)return;
   if(!sb){el.innerHTML='<h3>Accounts coming soon</h3><p class="sub">Sign-in isn\'t set up on this deploy yet.</p>';return;}
+  if(_termsGateActive){
+    el.innerHTML=`<h3>One more thing</h3><p class="sub">Please review and accept our Terms &amp; Conditions to keep using JD Esports Arena.</p>
+      <label class="tc-check"><input type="checkbox" id="au-tc-accept-gate"><span>I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a></span></label>
+      <div class="msg" id="au-msg"></div>
+      <div class="row2"><button class="btn-primary" style="flex:1" onclick="authAcceptTermsGate()">Continue</button></div>
+      <p class="sub" style="margin-top:16px"><button class="link" onclick="authLogout()">Log out instead</button></p>`;
+    return;
+  }
   if(_player&&_authView==='changepass'){
     el.innerHTML=`<h3>Change password</h3><p class="sub">Set a new password for your account.</p><label>New password</label><input id="au-newpass" type="password" placeholder="At least 6 characters"><div class="msg" id="au-msg"></div><div class="row2"><button class="btn-primary" style="flex:1" onclick="authSetNewPassword()">Save password</button></div><p class="sub" style="margin-top:16px"><button class="link" onclick="_authView='login';authRender();">Cancel</button></p>`;
     const first=el.querySelector('input');if(first)setTimeout(()=>first.focus(),50);
@@ -1452,6 +1470,7 @@ async function authSetUsername(){
   authMsg('Saving…',true);
   const {error}=await sb.rpc('set_my_username',{new_username:uname});
   if(error){authMsg(/duplicate|unique|taken|constraint/i.test(error.message)?'That username is taken — try another.':error.message);return;}
+  if(tc)await sb.rpc('accept_terms');
   await authRefreshPlayer();
   authMsg('Username saved!',true);
   _authView='login';
@@ -1500,6 +1519,7 @@ async function authSignup(){
   if(signUpData&&signUpData.session){
     // Email confirmation is off on this project — the account is live immediately, no
     // separate verify step, so this IS "account creation" and the right moment to ask for push.
+    await sb.rpc('accept_terms');
     await authRefreshPlayer();
     authClose();
     maybeAskPush();
@@ -1542,6 +1562,16 @@ async function authLogout(){
   _player=null;_myRegs=new Map();_notifUnread=0;_discordLinkCode=null;
   trackPresence();
   updateAcctBtn();updateNotifHistBtn();updateGate();render(_lastData||ARENA_SAMPLE);
+}
+async function authAcceptTermsGate(){
+  const cb=document.getElementById('au-tc-accept-gate');
+  if(!cb||!cb.checked){authMsg('Please accept the Terms & Conditions to continue.');return;}
+  authMsg('Saving…',true);
+  const {error}=await sb.rpc('accept_terms');
+  if(error){authMsg(error.message);return;}
+  _player.termsAccepted=true;
+  _authView='login';
+  updateGate();
 }
 
 /* ── Discord account linking ── generates a one-time code (see create_discord_link_code()
@@ -1618,9 +1648,9 @@ async function authRefreshPlayer(){
   const {data:{user}}=await sb.auth.getUser();
   if(!user){_player=null;updateAcctBtn();updateGate();trackPresence();return;}
   let tag=null,uname=null;
-  const {data}=await sb.from('players').select('player_tag, username, discord_username').eq('id',user.id).single();
+  const {data}=await sb.from('players').select('player_tag, username, discord_username, terms_accepted_at').eq('id',user.id).single();
   if(data){tag=data.player_tag;uname=data.username;}
-  _player={id:user.id,email:user.email,tag:tag,username:uname,discord_username:data&&data.discord_username||null,avatar:null,verified:!!user.email_confirmed_at};
+  _player={id:user.id,email:user.email,tag:tag,username:uname,discord_username:data&&data.discord_username||null,avatar:null,termsAccepted:!!(data&&data.terms_accepted_at),verified:!!user.email_confirmed_at};
   updateAcctBtn();
   updateGate();
   trackPresence();
