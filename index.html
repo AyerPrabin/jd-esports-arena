@@ -308,6 +308,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .icon-btn:hover{background:rgba(255,200,61,.12)}
 .icon-btn .badge{position:absolute;top:-5px;right:-5px;background:var(--gold);color:#0a0a12;font-size:.6rem;font-weight:700;border-radius:10px;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1}
 .dl-wrap{position:relative}
+@media(min-width:641px){body.signed-in .dl-wrap{display:none}}
 .dl-menu{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:6px;min-width:150px;z-index:30;box-shadow:0 12px 30px rgba(0,0,0,.5)}
 .dl-menu.open{display:flex;flex-direction:column;gap:2px}
 .dl-menu button{background:transparent;border:none;color:var(--cream);text-align:left;padding:9px 11px;border-radius:8px;font-size:.82rem;font-weight:500;cursor:pointer;font-family:inherit}
@@ -384,6 +385,20 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
    to actually override it down to hover-only. */
 .zmodal .link.pm-delete{text-decoration:none}
 .zmodal .link.pm-delete:hover{text-decoration:underline}
+/* ── avatar (account panel) ── */
+.pm-avatar-wrap{position:relative;width:76px;height:76px;margin:0 0 10px}
+.pm-avatar{width:76px;height:76px;border-radius:50%;object-fit:cover;border:2px solid var(--pm-border,var(--gold-m));display:block;background:var(--pm-card,#1A2336)}
+.pm-avatar-edit{position:absolute;right:-4px;bottom:-4px;width:28px;height:28px;border-radius:50%;background:var(--pm-gold,#E8B44D);border:2px solid var(--pm-bg-1,#0D111B);color:#141414;font-size:.78rem;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+/* ── registration history (account panel) ── */
+.pm-history{margin:4px 0 16px;border:1px solid var(--pm-border,rgba(255,210,90,.18));border-radius:14px;overflow:hidden}
+.pm-history-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pm-muted,#9CA8BE);padding:10px 14px 6px}
+.pm-history-row{display:flex;align-items:center;gap:8px;padding:8px 14px;border-top:1px solid var(--pm-border,rgba(255,210,90,.1));font-size:.82rem}
+.pm-history-name{flex:1;font-weight:600;color:var(--pm-white,#F7F7F7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-history-squad{color:var(--pm-muted,#9CA8BE);font-size:.76rem}
+.pm-history-status{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--pm-muted,#9CA8BE);flex:none}
+.pm-history-status.pm-status-confirmed{background:rgba(94,219,149,.14);color:var(--pm-success,#5EDB95)}
+.pm-history-status.pm-status-pending,.pm-history-status.pm-status-waitlisted{background:rgba(255,200,61,.14);color:var(--gold-l)}
+.pm-history-status.pm-status-rejected,.pm-history-status.pm-status-cancelled{background:rgba(255,97,97,.14);color:var(--pm-danger,#FF6161)}
 /* ── career stats / rank card (account panel) ── */
 @keyframes pmCardFloat{0%,100%{box-shadow:0 8px 24px rgba(0,0,0,.22)}50%{box-shadow:0 14px 34px rgba(0,0,0,.34)}}
 @keyframes pmBorderShimmer{0%,88%,100%{border-color:var(--pm-border,rgba(255,210,90,.18))}94%{border-color:var(--pm-gold-b,#FFD76A)}}
@@ -494,7 +509,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
       <span><b>JD Esports Arena</b><span>by AyerFire</span></span>
     </a>
     <button class="nav-toggle" id="nav-toggle-btn" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="acct-nav">☰</button>
-    <nav class="bar-nav" id="acct-nav"><a class="lang-btn" href="/leaderboard.html">🏆 Leaderboard</a><button class="lang-btn" onclick="settingsOpen()">⚙️ Settings</button><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="admin-btn" class="lang-btn" href="/admin/" style="display:none">🛠 Admin</a><button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History">🔔<span class="badge" id="notif-badge" hidden>0</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button></div></div></nav>
+    <nav class="bar-nav" id="acct-nav"><a class="lang-btn" href="/leaderboard.html">🏆 Leaderboard</a><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none">⚙️ Settings</button><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="admin-btn" class="lang-btn" href="/admin/" style="display:none">🛠 Admin</a><button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History">🔔<span class="badge" id="notif-badge" hidden>0</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button></div></div></nav>
   </div>
   <div class="nav-scrim" id="nav-scrim" onclick="closeMobileNav()"></div>
 </header>
@@ -1287,11 +1302,15 @@ function authRender(){
     return;
   }
   if(_authView==='settings'){
-    el.innerHTML=`<h3>Settings</h3><p class="sub">Reports, rules, and other pages — not tied to your account.</p>
+    const changePassBlock=_player?`<button class="pm-btn" onclick="_authView='changepass';authRender();"><span class="pm-btn-ic">🔑</span><span class="pm-btn-txt">Change password</span></button>`:'';
+    el.innerHTML=`<h3>Settings</h3><p class="sub">Reports, rules, downloads and other pages — not tied to your account.</p>
+      ${changePassBlock}
       <button class="pm-btn" onclick="openReportFlow()"><span class="pm-btn-ic">🚩</span><span class="pm-btn-txt">Report a player/squad</span></button>
       <a class="pm-btn" href="/leaderboard.html"><span class="pm-btn-ic">🏆</span><span class="pm-btn-txt">Leaderboard</span></a>
       <a class="pm-btn" href="/ban-list.html"><span class="pm-btn-ic">🛡️</span><span class="pm-btn-txt">Ban List</span></a>
       <a class="pm-btn" href="${esc(MAIN_SITE_URL||'/about/')}"><span class="pm-btn-ic">ℹ️</span><span class="pm-btn-txt">About Us</span></a>
+      <button class="pm-btn" onclick="downloadAndroid()"><span class="pm-btn-ic">🤖</span><span class="pm-btn-txt">Download for Android</span></button>
+      <button class="pm-btn" onclick="downloadIOS()"><span class="pm-btn-ic">🍎</span><span class="pm-btn-txt">Download for iPhone</span></button>
       ${_player?'<p class="sub" style="margin-top:16px"><button class="link" onclick="_authView=\'login\';authRender();">Back to account</button></p>':''}`;
     return;
   }
@@ -1305,7 +1324,10 @@ function authRender(){
       discordBlock=`<button class="pm-btn" onclick="authLinkDiscord()"><span class="pm-btn-ic">💬</span><span class="pm-btn-txt">Link Discord</span><span class="pm-badge">Not connected</span></button><p class="pm-hint" style="margin-top:-8px">Receive Room IDs instantly there too.</p>`;
     }
     const verifiedBadge=_player.verified?'<span class="pm-verified">✓ Verified</span>':'';
-    el.innerHTML=`<h3 class="pm-title">Signed in</h3><div class="auth-tag">@${esc(_player.username||'…')}</div><div class="pm-meta"><span>${esc(_player.email)}</span>${_player.tag?`<span class="pm-dot">●</span><span>ID ${esc(_player.tag)}</span>`:''}${verifiedBadge}</div>${_player.tag?'<p class="pm-hint">Only needed if you register outside the app.</p>':''}<div id="career-stats"></div><button class="pm-btn" id="acct-push-btn" onclick="enablePush()"><span class="pm-btn-ic">🔔</span><span class="pm-btn-txt">Enable push alerts</span><span class="pm-toggle" id="acct-push-toggle"></span></button>${discordBlock}<div class="msg" id="au-msg"></div><button class="pm-btn" onclick="authChangeUsername()"><span class="pm-btn-ic">✏️</span><span class="pm-btn-txt">Change username</span></button><button class="pm-btn" onclick="_authView='changepass';authRender();"><span class="pm-btn-ic">🔑</span><span class="pm-btn-txt">Change password</span></button><button class="pm-btn" onclick="authLogout()"><span class="pm-btn-ic">↩</span><span class="pm-btn-txt">Log out</span></button><button class="link pm-delete" onclick="authRequestDelete()">Delete account</button>`;
+    const avatarBlock=`<div class="pm-avatar-wrap"><img class="pm-avatar" id="pm-avatar-img" src="${esc(_player.avatar||'/logo.png')}" alt=""><button class="pm-avatar-edit" onclick="document.getElementById('pm-avatar-file').click()" aria-label="Change profile picture">📷</button><input type="file" id="pm-avatar-file" accept="image/*" style="display:none" onchange="authUploadAvatar(this)"></div>`;
+    const regRows=[..._myRegs.entries()];
+    const historyBlock=regRows.length?`<div class="pm-history"><div class="pm-history-title">Your registrations</div>${regRows.map(([slug,r])=>`<div class="pm-history-row"><span class="pm-history-name">${esc(slug)}</span>${r.squad_name?`<span class="pm-history-squad">${esc(r.squad_name)}</span>`:''}<span class="pm-history-status pm-status-${esc(r.status)}">${esc(r.status)}</span></div>`).join('')}</div>`:'';
+    el.innerHTML=`<h3 class="pm-title">Signed in</h3>${avatarBlock}<div class="auth-tag">@${esc(_player.username||'…')}</div><div class="pm-meta"><span>${esc(_player.email)}</span>${_player.tag?`<span class="pm-dot">●</span><span>ID ${esc(_player.tag)}</span>`:''}${verifiedBadge}</div>${_player.tag?'<p class="pm-hint">Only needed if you register outside the app.</p>':''}<div id="career-stats"></div><button class="pm-btn" id="acct-push-btn" onclick="enablePush()"><span class="pm-btn-ic">🔔</span><span class="pm-btn-txt">Enable push alerts</span><span class="pm-toggle" id="acct-push-toggle"></span></button>${discordBlock}<div class="msg" id="au-msg"></div>${historyBlock}<button class="pm-btn" onclick="authChangeUsername()"><span class="pm-btn-ic">✏️</span><span class="pm-btn-txt">Change username</span></button><button class="pm-btn" onclick="authLogout()"><span class="pm-btn-ic">↩</span><span class="pm-btn-txt">Log out</span></button><button class="link pm-delete" onclick="authRequestDelete()">Delete account</button>`;
     updatePushBtn();
     loadCareerStats();
     return;
@@ -1394,6 +1416,20 @@ async function authSetUsername(){
   setTimeout(authClose,900);
 }
 function authChangeUsername(){_googleFirstRun=false;_authView='chooseusername';authRender();}
+const AVATAR_MAX_PX=128; // same size/quality as squad logos — small enough to ride along on every players SELECT without bloating page loads
+function authUploadAvatar(input){
+  const f=input.files&&input.files[0];input.value='';
+  if(!f)return;
+  if(!f.type.startsWith('image/')){authMsg('Please choose an image file.');return;}
+  resizeToDataUri(f,AVATAR_MAX_PX,0.85,async dataUri=>{
+    authMsg('Uploading…',true);
+    const {error}=await sb.rpc('set_my_avatar',{new_avatar:dataUri});
+    if(error){authMsg(error.message);return;}
+    _player.avatar=dataUri;
+    const img=document.getElementById('pm-avatar-img');if(img)img.src=dataUri;
+    authMsg('Profile picture updated!',true);
+  });
+}
 async function authSignup(){
   const uname=document.getElementById('au-username').value.trim();
   const email=document.getElementById('au-email').value.trim(),pass=document.getElementById('au-pass').value;
@@ -1526,9 +1562,9 @@ async function authRefreshPlayer(){
   const {data:{user}}=await sb.auth.getUser();
   if(!user){_player=null;updateAcctBtn();updateGate();trackPresence();return;}
   let tag=null,uname=null;
-  const {data}=await sb.from('players').select('player_tag, username, discord_username').eq('id',user.id).single();
+  const {data}=await sb.from('players').select('player_tag, username, discord_username, avatar').eq('id',user.id).single();
   if(data){tag=data.player_tag;uname=data.username;}
-  _player={id:user.id,email:user.email,tag:tag,username:uname,discord_username:data&&data.discord_username||null,verified:!!user.email_confirmed_at};
+  _player={id:user.id,email:user.email,tag:tag,username:uname,discord_username:data&&data.discord_username||null,avatar:data&&data.avatar||null,verified:!!user.email_confirmed_at};
   updateAcctBtn();
   updateGate();
   trackPresence();
@@ -1538,8 +1574,10 @@ async function authRefreshPlayer(){
 }
 
 function updateAcctBtn(){
-  const su=document.getElementById('signup-btn'),ac=document.getElementById('acct-btn'),ad=document.getElementById('admin-btn');
+  const su=document.getElementById('signup-btn'),ac=document.getElementById('acct-btn'),ad=document.getElementById('admin-btn'),st=document.getElementById('settings-btn');
   if(!ac)return;
+  document.body.classList.toggle('signed-in',!!_player);
+  if(st)st.style.display=_player?'':'none';
   if(_player){
     if(su)su.style.display='none';
     ac.textContent='👤 '+(_player.username||_player.tag||'Account');
