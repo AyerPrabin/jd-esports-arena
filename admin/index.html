@@ -73,6 +73,29 @@ details[open]>.dsum-sm::before{content:'▾ '}
 .online-count{font-family:'Playfair Display',serif;font-size:2.1rem;font-weight:700;color:var(--gold-l)}
 .online-chip{display:inline-block;font-size:.76rem;padding:4px 11px;border-radius:20px;background:var(--bg-2);border:1px solid var(--line);color:var(--cream);margin:3px 4px 0 0}
 .up-search{max-width:260px}
+/* ── attention dashboard + sticky section nav ── */
+.dash-head{display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--silver)}
+.dash-refresh{background:transparent;border:1px solid var(--line);color:var(--silver);border-radius:8px;width:30px;height:28px;cursor:pointer}
+.dash-refresh:hover{border-color:var(--gold);color:var(--cream)}
+.dash{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
+.dash-tile{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:14px;border-radius:14px;background:var(--panel);border:1px solid var(--line);color:var(--cream);font-family:inherit;cursor:pointer;transition:transform .15s cubic-bezier(.34,1.56,.64,1),border-color .15s}
+.dash-tile:hover{transform:translateY(-2px);border-color:var(--gold-m)}
+.dash-tile b{font-family:'Playfair Display',serif;font-size:1.9rem;line-height:1;font-weight:700}
+.dash-tile b em{font-style:normal;font-size:.95rem;color:var(--body)}
+.dash-tile span{font-size:.78rem;font-weight:600}
+.dash-tile small{font-size:.7rem;color:var(--body)}
+.dash-tile.warn{border-color:rgba(227,171,126,.55);background:linear-gradient(160deg,rgba(227,171,126,.12),var(--panel) 70%)}.dash-tile.warn b{color:var(--warm-l)}
+.dash-tile.info{border-color:rgba(95,211,255,.45);background:linear-gradient(160deg,rgba(95,211,255,.1),var(--panel) 70%)}.dash-tile.info b{color:#8fdcff}
+.dash-tile.danger{border-color:rgba(227,107,107,.5);background:linear-gradient(160deg,rgba(227,107,107,.12),var(--panel) 70%)}.dash-tile.danger b{color:var(--red)}
+.dash-tile.ok b{color:#5aab8a}
+.dash-tile.stat b{color:var(--gold-l)}
+.dash-tile.loading{cursor:default;opacity:.6}
+.adm-nav{position:sticky;top:0;z-index:20;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:8px -22px 6px;padding:10px 22px;background:rgba(5,8,15,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.adm-nav::-webkit-scrollbar{display:none}
+.adm-nav a{flex:none;font-size:.76rem;color:var(--silver);text-decoration:none;padding:6px 11px;border-radius:999px;border:1px solid var(--line);white-space:nowrap;transition:.15s}
+.adm-nav a:hover,.adm-nav a.on{color:var(--cream);border-color:var(--gold);background:rgba(201,168,76,.1)}
+h2[id]{scroll-margin-top:64px}
+@media(max-width:640px){.dash{grid-template-columns:1fr 1fr}.adm-nav{margin:8px -22px 6px}}
 /* ── registered teams / ticket verification ── */
 .tm-summary{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
 .tm-summary span{font-size:.74rem;padding:4px 11px;border-radius:20px;background:var(--bg-2);border:1px solid var(--line);color:var(--silver)}
@@ -186,12 +209,19 @@ details[open]>.dsum-sm::before{content:'▾ '}
   </div>
   <p class="hint" style="margin-top:-8px">Edit any event's Name, Date, Time, etc. below, then hit this button — that's the only step needed to make it live.</p>
 
+  <div class="dash-head"><span>Needs your attention</span><button class="dash-refresh" onclick="loadDashboard()" title="Refresh">↻</button></div>
+  <div class="dash" id="dash"><div class="dash-tile loading"><b>…</b><span>Loading</span></div></div>
+
+  <nav class="adm-nav" id="adm-nav">
+    <a href="#tournaments">🏆 Tournaments</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
+  </nav>
+
   <div class="f full" style="margin-bottom:8px">
     <label>Brand tagline</label>
     <input id="tagline" placeholder="JD Esports Arena · AyerFire">
   </div>
 
-  <h2>Tournaments</h2>
+  <h2 id="tournaments">Tournaments</h2>
   <div id="tlist"></div>
   <button class="btn ghost" onclick="addT()">+ Add Event</button>
 
@@ -335,7 +365,7 @@ details[open]>.dsum-sm::before{content:'▾ '}
   <div id="af-list"></div>
 
   <h2 id="announce">Send Announcement <span class="tag">any message, any players</span></h2>
-  <p class="hint">Write anything and send it — leave "Only send to" blank to reach every player on the site, or list a few to reach just them.</p>
+  <p class="hint">Write anything and pick who gets it — everyone on the site, every confirmed team in one event, or just a few players. It lands in their inbox, by email, and as a push alert.</p>
   <div class="grid">
     <div class="f full"><label>Title</label><input id="an-title" placeholder="e.g. Discord's back up!"></div>
     <div class="f full"><label>Message</label><textarea id="an-body" rows="3" placeholder="What do you want to tell them?"></textarea></div>
@@ -923,8 +953,47 @@ async function fetchLatestDoc(){
   if(!d)throw new Error('no tournaments.json');
   return d;
 }
+/* ── "Needs your attention" dashboard: one glance at what's waiting, each tile jumps to
+   (and pre-loads) the section that handles it. Built from the same admin endpoints the
+   sections use — list-registrations per tournament (no status filter) + pending
+   list-reports — so the numbers always match what you see after clicking through. ── */
+let _dashBusy=false,_dashFirst={pending:'',unver:''};
+async function loadDashboard(){
+  const box=document.getElementById('dash'),secret=adminSecret();
+  if(!box||!secret||_dashBusy)return;
+  _dashBusy=true;
+  const open=data.tournaments.filter(t=>!['completed','cancelled'].includes(String(t.status||'upcoming').toLowerCase()));
+  try{
+    const per=await Promise.all(open.map(t=>fetch(EDGE_FN_BASE+'/list-registrations?tournament_slug='+encodeURIComponent(t.name),{headers:{'x-admin-secret':secret}}).then(r=>r.ok?r.json():[]).then(rows=>({t,rows})).catch(()=>({t,rows:[]}))));
+    const reports=await fetch(EDGE_FN_BASE+'/list-reports?status=pending',{headers:{'x-admin-secret':secret}}).then(r=>r.ok?r.json():[]).catch(()=>[]);
+    let active=0,slots=0,pending=0,unver=0,wait=0,firstPending='',firstUnver='';
+    for(const {t,rows} of per){
+      slots+=+t.slots||0;
+      for(const r of rows){
+        if(r.status==='confirmed'||r.status==='approved'){active++;if(!r.verified_at){unver++;if(!firstUnver)firstUnver=t.name;}}
+        else if(r.status==='pending'){pending++;if(!firstPending)firstPending=t.name;}
+        else if(r.status==='waitlisted')wait++;
+      }
+    }
+    _dashFirst={pending:firstPending,unver:firstUnver}; // looked up at click time, never inlined into onclick (names can contain quotes)
+    const tile=(n,label,cls,onclick,sub)=>`<button type="button" class="dash-tile ${n?cls:'ok'}" onclick="${onclick}"><b>${n}</b><span>${label}</span>${sub?`<small>${sub}</small>`:''}</button>`;
+    box.innerHTML=
+      tile(pending,'Pending payments','warn',`dashGo('pending-payments','pp-tourney',_dashFirst.pending,loadPendingPayments)`,pending?'screenshots to check':'all clear')+
+      tile(unver,'Unverified teams','info',`dashGo('teams','tm-tourney',_dashFirst.unver,loadTeamsAdmin)`,unver?'ask for ticket codes':'all verified')+
+      tile(reports.length,'Open reports','danger',`dashGo('reports',null,'',loadReportsAdmin)`,reports.length?'waiting on you':'nothing new')+
+      `<button type="button" class="dash-tile stat" onclick="dashGo('teams','tm-tourney','',loadTeamsAdmin)"><b>${active}${slots?'<em>/'+slots+'</em>':''}</b><span>Squads confirmed</span><small>${open.length} open event${open.length===1?'':'s'}${wait?' · '+wait+' waitlisted':''}</small></button>`;
+    staggerReveal(box);
+  }catch(e){box.innerHTML='<p class="hint">Could not load the dashboard: '+esc(e.message)+'</p>';}
+  _dashBusy=false;
+}
+function dashGo(sectionId,selectId,value,loader){
+  if(selectId&&value){const sel=document.getElementById(selectId);if(sel)sel.value=value;}
+  if(sectionId==='reports'){const st=document.getElementById('rp-status');if(st)st.value='pending';}
+  document.getElementById(sectionId).scrollIntoView({behavior:'smooth',block:'start'});
+  if(loader)loader();
+}
 function loadLive(){
-  fetchLatestDoc().then(d=>{data={tagline:d.tagline||'JD Esports Arena · AyerFire',tournaments:d.tournaments||[],bo3:d.bo3||bo3Default()};_loadedSnapshot=d;renderAll();msg('Loaded current tournaments.json.','ok');}).catch(()=>{if(!data.tournaments.length){addT();}_loadedSnapshot=null;renderAll();msg('No tournaments.json found — starting fresh.','');});
+  fetchLatestDoc().then(d=>{data={tagline:d.tagline||'JD Esports Arena · AyerFire',tournaments:d.tournaments||[],bo3:d.bo3||bo3Default()};_loadedSnapshot=d;renderAll();loadDashboard();msg('Loaded current tournaments.json.','ok');}).catch(()=>{if(!data.tournaments.length){addT();}_loadedSnapshot=null;renderAll();msg('No tournaments.json found — starting fresh.','');});
 }
 function loadFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);data={tagline:d.tagline||'JD Esports Arena · AyerFire',tournaments:d.tournaments||[],bo3:d.bo3||bo3Default()};_loadedSnapshot=null;renderAll();msg('Loaded from file.','ok');}catch(x){msg('That file is not valid JSON.','err');}};r.readAsText(f);}
 function msg(t,c){document.getElementById('msg').innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
@@ -1156,6 +1225,7 @@ async function approvePayment(id,approve){
     _pendingRegs=_pendingRegs.filter(x=>x.id!==id);
     renderPendingPayments();
     if(approve)loadLiveCounts(); // approving moves it into the confirmed/approved count shown on each card
+    loadDashboard();
     ppMsg(approve?'Approved.':'Rejected.','ok');
     if(document.getElementById('tm-tourney').value===document.getElementById('pp-tourney').value&&_teams.length)loadTeamsAdmin();
   }catch(e){ppMsg('Failed: '+e.message,'err');}
@@ -1191,6 +1261,7 @@ async function tmToggleVerified(id,btn){
     const d=await res.json();
     r.verified_at=d.verified_at;
     tmMsg((verified?'Verified ':'Un-verified ')+(r.squad_name||ticketCode(id))+' — saved.','ok');
+    loadDashboard();
   }catch(e){tmMsg('Could not save: '+e.message,'err');}
   renderTeamsAdmin();
 }
@@ -1257,6 +1328,7 @@ async function removeTeamAdmin(id){
     tmMsg('Removed '+who+'.','ok');
     loadLiveCounts();
     await loadTeamsAdmin(); // re-fetch: the waitlist trigger may have promoted someone
+    loadDashboard();
     tmMsg('Removed '+who+' — list refreshed.','ok');
   }catch(e){tmMsg('Failed: '+e.message,'err');}
 }
@@ -1672,6 +1744,12 @@ async function notifyBo3Results(){
     bo3Msg('Notified '+d.sent+' player(s)'+(d.emailed!=null?' · '+d.emailed+' emailed':'')+(d.pushed!=null?' · '+d.pushed+' pushed':'')+(d.discorded!=null?' · '+d.discorded+' DMed on Discord':'')+(d.note?' — '+esc(d.note):'')+'.','ok');
   }catch(e){bo3Msg('Failed: '+e.message,'err');}
 }
+(function(){ // light up the nav chip for whichever section is on screen
+  const links=[...document.querySelectorAll('#adm-nav a')];
+  if(!('IntersectionObserver' in window)||!links.length)return;
+  const io=new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting){links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id));}},{rootMargin:'-70px 0px -70% 0px'});
+  links.forEach(a=>{const h=document.getElementById(a.getAttribute('href').slice(1));if(h)io.observe(h);});
+})();
 updateAdminPushBtn(); // show blocked/iOS/unconfigured state right away, not only after OneSignal finishes loading
 </script>
 </body>

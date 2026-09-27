@@ -141,6 +141,40 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .tcard:hover{transform:translateY(-6px) scale(1.02);border-color:var(--gold);background:var(--panel-2);box-shadow:0 20px 60px rgba(0,0,0,.45),0 0 0 1px var(--glow)}
 .tcard-media{height:200px;background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%),url('event-card.jpg');background-size:cover;background-position:center 30%}
 .tcard-body{padding:22px 24px 24px}
+.tcard-media{position:relative}
+.tm-over{position:absolute;left:14px;right:14px;bottom:12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tm-prize{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:.04em;line-height:1;padding:7px 12px 5px;border-radius:10px;background:linear-gradient(135deg,var(--gold-l),var(--gold));color:#0a0a12;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+.tm-entry{font-size:.7rem;font-weight:700;letter-spacing:.04em;padding:6px 10px;border-radius:999px;background:rgba(5,8,15,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.18);color:var(--cream)}
+.tm-entry.free{border-color:rgba(94,219,149,.55);color:var(--green,#5EDB95)}
+.tm-urg{position:absolute;top:12px;right:12px;font-size:.68rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:6px 10px;border-radius:999px;box-shadow:0 6px 16px rgba(0,0,0,.4)}
+.tm-urg.hot{background:#ff5a2e;color:#fff;animation:urgPulse 1.8s ease-in-out infinite}
+.tm-urg.full{background:rgba(5,8,15,.8);color:var(--silver);border:1px solid rgba(255,255,255,.2)}
+@keyframes urgPulse{0%,100%{box-shadow:0 6px 16px rgba(0,0,0,.4),0 0 0 0 rgba(255,90,46,.6)}50%{box-shadow:0 6px 16px rgba(0,0,0,.4),0 0 0 7px rgba(255,90,46,0)}}
+.chip-more{font:inherit;font-size:.72rem;font-weight:700;padding:3px 11px;border-radius:20px;background:transparent;border:1px dashed var(--gold-m);color:var(--gold-l);cursor:pointer;opacity:0;animation:chipIn .4s ease .42s forwards}
+.chip-more:hover{border-style:solid;background:rgba(255,200,61,.08)}
+/* results podium */
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:6px auto 22px;max-width:520px}
+.podium:empty{display:none}
+.pod{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;text-align:center;opacity:0;animation:podUp .6s cubic-bezier(.22,1,.36,1) forwards}
+.pod.p1{animation-delay:.25s}.pod.p2{animation-delay:.1s}.pod.p3{animation-delay:.4s}
+@keyframes podUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.pod-av{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--panel-2);border:2px solid var(--line);font-weight:800;color:var(--gold-l);font-size:1.2rem;margin-bottom:6px}
+.pod-av img{width:100%;height:100%;object-fit:cover}
+.pod.p1 .pod-av{width:66px;height:66px;border-color:#FFD54A;box-shadow:0 0 24px rgba(255,213,74,.45)}
+.pod.p2 .pod-av{border-color:#D9DEE8}.pod.p3 .pod-av{border-color:#E3A15F}
+.pod-name{font-weight:700;font-size:.84rem;color:var(--cream);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pod-pts{font-size:.74rem;color:var(--gold-l);margin:2px 0 8px;font-variant-numeric:tabular-nums}
+.pod-block{width:100%;border-radius:12px 12px 4px 4px;display:flex;align-items:flex-start;justify-content:center;padding-top:8px;font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:rgba(10,10,18,.8)}
+.pod.p1 .pod-block{height:96px;background:linear-gradient(180deg,#FFE27A,#E8B44D)}
+.pod.p2 .pod-block{height:70px;background:linear-gradient(180deg,#EEF1F6,#AEB6C6)}
+.pod.p3 .pod-block{height:54px;background:linear-gradient(180deg,#F0B880,#B8773E)}
+.pod.mine .pod-name::after{content:' (you)';color:var(--green,#5EDB95);font-weight:600}
+.pts-table tr.mine td{background:rgba(94,219,149,.11)}
+.pts-table tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--green,#5EDB95)}
+.you{font-size:.6rem;font-weight:800;letter-spacing:.06em;padding:2px 6px;border-radius:6px;background:var(--green,#5EDB95);color:#0a0a12;margin-left:4px;vertical-align:middle}
+.bo3-more{text-align:center;margin:14px 0 0;font-size:.84rem}
+.bo3-more a{color:var(--gold-l);text-decoration:underline;text-underline-offset:3px}
+@media(prefers-reduced-motion:reduce){.pod,.chip-more{animation:none;opacity:1}.tm-urg.hot{animation:none}}
 .tbadge{display:inline-block;font-size:.64rem;letter-spacing:.13em;text-transform:uppercase;padding:4px 11px;border-radius:20px;font-weight:700;margin-bottom:14px}
 .tbadge.upcoming{background:rgba(255,200,61,.14);color:var(--gold-l);border:1px solid var(--gold-m)}
 .tbadge.live{background:rgba(227,107,107,.16);color:#ff7676;border:1px solid #ff7676;animation:tpulse 1.5s infinite}
@@ -425,6 +459,12 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .pm-history{margin:4px 0 16px;border:1px solid var(--pm-border,rgba(255,210,90,.18));border-radius:14px;overflow:hidden}
 .pm-history-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pm-muted,#9CA8BE);padding:10px 14px 6px}
 .pm-history-row{display:flex;align-items:center;gap:8px;padding:8px 14px;border-top:1px solid var(--pm-border,rgba(255,210,90,.1));font-size:.82rem}
+.pm-history-btn{width:100%;background:none;border-left:none;border-right:none;border-bottom:none;color:inherit;font-family:inherit;text-align:left;cursor:pointer;padding:10px 14px;gap:10px;transition:background .15s}
+.pm-history-btn:hover{background:rgba(255,255,255,.04)}
+.pm-history-logo{width:30px;height:30px;border-radius:8px;object-fit:cover;flex:none;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);font-size:.95rem}
+.pm-history-main{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}
+.pm-history-main .pm-history-squad{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pm-rank-sub b{color:var(--pm-gold-b,#FFD76A)}
 .pm-history-name{flex:1;font-weight:600;color:var(--pm-white,#F7F7F7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pm-history-squad{color:var(--pm-muted,#9CA8BE);font-size:.76rem}
 .pm-history-status{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--pm-muted,#9CA8BE);flex:none}
@@ -668,7 +708,9 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
   <section class="sec wrap" id="bo3board" style="display:none">
     <div class="sec-h"><h2 data-i18n="bo3ttl">Best of 3 Results</h2><span class="ln"></span><span class="tag" data-i18n="bo3tag">Round by round</span></div>
     <div id="bo3-title-line" class="live-hint" style="text-align:center;margin-bottom:14px"></div>
+    <div class="podium" id="bo3-podium"></div>
     <div style="overflow-x:auto"><table class="pts-table" id="bo3-table"></table></div>
+    <p class="bo3-more"><a href="/leaderboard.html">Full season leaderboard →</a></p>
   </section>
 
   <section class="sec wrap" id="predictboard" style="display:none">
@@ -931,7 +973,7 @@ function renderCareerStats(){
       <div class="pm-rank-icon">${icon}</div>
       <div class="pm-rank-text">
         <div class="career-tier${fx?' '+fx.cls:''}">${fx&&fx.badge?`<span class="fx-badge">${fx.badge}</span> `:''}${fxNameHtml(fx,tier.name+' Rank')}${fxParticlesHtml(fx)}</div>
-        <p class="pm-rank-sub">${nextTier?('Play tournaments to reach '+esc(nextTier.name)+'.'):'Highest rank — legendary status.'}</p>
+        <p class="pm-rank-sub">${nextTier?(`<b>${nextTier.min-points} pts</b> to ${TIER_ICONS[nextTier.name]||''} ${esc(nextTier.name)}`):'Highest rank — legendary status.'}</p>
       </div>
       <div class="pm-ring" style="--pct:${pct}"><span>${pct}%</span></div>
     </div>
@@ -1273,6 +1315,7 @@ function effectiveStatus(t){
    every single poll, even when nothing changed. So the grid HTML is only actually written
    when it differs from last time; ticks where nothing moved are a no-op past this point. */
 let _lastGridHTML=null;
+const CHIP_MAX=8; // squad chips shown on a card before collapsing into "+N more" (opens the full roster)
 function render(d){
   _lastData=d;
   const grid=document.getElementById('arena-grid');if(!grid)return;
@@ -1297,8 +1340,12 @@ function render(d){
       // say that when there's genuinely no way to register at all.
       else if(sb)btn='';
       else btn=`<span class="tbtn done">${st==='live'?tr('livenow'):tr('soon')}</span>`;}
-    const media=`<div class="tcard-media" style="background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%),url('${esc(t.image||'event-card.jpg')}')"></div>`;
-    return `<div class="tcard" data-tname="${esc(t.name)}" onclick="cardTap(event,this)">${media}<div class="tcard-body"><span class="tbadge ${st}">${st==='live'?'● Live':(st==='cancelled'?'✕ Cancelled':st)}</span><div class="tname">${esc(t.name)}</div><div class="tgame">${esc(t.game||'Free Fire')}</div>${(st==='upcoming'&&t.start)?`<div class="tcount" data-start="${esc(t.start)}"></div><div class="tcount-bar"><span></span></div>`:''}<div class="tmeta"><div class="row"><span>Date</span><b>${esc(t.date||'TBA')}${t.time&&t.time!=='—'?' · '+esc(t.time):''}</b></div><div class="row"><span>Prize pool</span><b>${esc(fmtPrize(t.prize))}</b></div><div class="row"><span>Entry</span><b>${esc(t.entry||'Free')}</b></div><div class="row"><span>Format</span><b>${esc(t.format||'BR')}</b></div>${t.platform?`<div class="row"><span>Platform</span><b>📱 ${esc(t.platform)}</b></div>`:''}</div>${slots?`<div class="tslots"><span style="width:${pct}%"></span></div><button class="tslots-label" data-roster="${esc(t.name)}">${reg}/${slots} ${tr('sqview')}</button>`:''}${teams.length?`<div class="troster">${teams.map(tm=>{const fx=squadFx(tm);const cls=fx?' '+fx.cls:'';const badge=(fx&&fx.badge)?`<span class="fx-badge">${fx.badge}</span> `:'';const particles=fxParticlesHtml(fx);const nameHtml=fxNameHtml(fx,tm.name);return tm.logo?`<span class="${(fx?fx.cls:'')}"><img src="${esc(tm.logo)}" alt="">${badge}${nameHtml}${particles}</span>`:`<span class="nologo${cls}">${badge}${nameHtml}${particles}</span>`;}).join('')}</div>`:''}${btn}${inAppRegBtn(t,st,full)}</div></div>`;
+    const left=slots?Math.max(0,slots-reg):null;
+    const open=st==='upcoming'||st==='live';
+    const urgency=(open&&slots&&!_myRegs.has(t.name))?(left===0?`<span class="tm-urg full">Full${(sb&&!isPaidTournament(t))?' · waitlist open':''}</span>`:(left<=3?`<span class="tm-urg hot">🔥 ${left} slot${left===1?'':'s'} left</span>`:'')):'';
+    const prizeTxt=fmtPrize(t.prize),entryTxt=String(t.entry||'Free');
+    const media=`<div class="tcard-media" style="background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%),url('${esc(t.image||'event-card.jpg')}')"><div class="tm-over">${prizeTxt!=='—'?`<span class="tm-prize">🏆 ${esc(prizeTxt)}</span>`:''}<span class="tm-entry${/^free$/i.test(entryTxt.trim())?' free':''}">${/^free$/i.test(entryTxt.trim())?'Free entry':'Entry '+esc(entryTxt)}</span></div>${urgency}</div>`;
+    return `<div class="tcard" data-tname="${esc(t.name)}" onclick="cardTap(event,this)">${media}<div class="tcard-body"><span class="tbadge ${st}">${st==='live'?'● Live':(st==='cancelled'?'✕ Cancelled':st)}</span><div class="tname">${esc(t.name)}</div><div class="tgame">${esc(t.game||'Free Fire')}</div>${(st==='upcoming'&&t.start)?`<div class="tcount" data-start="${esc(t.start)}"></div><div class="tcount-bar"><span></span></div>`:''}<div class="tmeta"><div class="row"><span>Date</span><b>${esc(t.date||'TBA')}${t.time&&t.time!=='—'?' · '+esc(t.time):''}</b></div><div class="row"><span>Format</span><b>${esc(t.format||'BR')}</b></div>${t.platform?`<div class="row"><span>Platform</span><b>📱 ${esc(t.platform)}</b></div>`:''}</div>${slots?`<div class="tslots"><span style="width:${pct}%"></span></div><button class="tslots-label" data-roster="${esc(t.name)}">${reg}/${slots} ${tr('sqview')}</button>`:''}${teams.length?`<div class="troster">${teams.slice(0,CHIP_MAX).map(tm=>{const fx=squadFx(tm);const cls=fx?' '+fx.cls:'';const badge=(fx&&fx.badge)?`<span class="fx-badge">${fx.badge}</span> `:'';const particles=fxParticlesHtml(fx);const nameHtml=fxNameHtml(fx,tm.name);return tm.logo?`<span class="${(fx?fx.cls:'')}"><img src="${esc(tm.logo)}" alt="">${badge}${nameHtml}${particles}</span>`:`<span class="nologo${cls}">${badge}${nameHtml}${particles}</span>`;}).join('')}${teams.length>CHIP_MAX?`<button type="button" class="chip-more" data-roster="${esc(t.name)}">+${teams.length-CHIP_MAX} more</button>`:''}</div>`:''}${btn}${inAppRegBtn(t,st,full)}</div></div>`;
   }).join(''):'<p style="text-align:center;color:var(--silver)">No tournaments posted yet — check back soon.</p>';
   if(gridHTML!==_lastGridHTML){
     _lastGridHTML=gridHTML;
@@ -1369,7 +1416,16 @@ function renderBo3Board(d){
   sec.style.display='';
   const tl=document.getElementById('bo3-title-line');if(tl)tl.textContent=B.title||B.tournament||'';
   const rows=bo3Standings(B);
-  document.getElementById('bo3-table').innerHTML=`<thead><tr><th>${tr('th_rank')}</th><th>${tr('th_team')}</th><th class="num">R1 ${tr('th_kills')}</th><th class="num">R2 ${tr('th_kills')}</th><th class="num">R3 ${tr('th_kills')}</th><th class="num">${tr('th_total')}</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="rk">${r.rank}</td><td>${esc(r.team)}</td><td class="num">${r.r1k}</td><td class="num">${r.r2k}${mvArrow(r.moveR2)}</td><td class="num">${r.r3k}${mvArrow(r.moveR3)}</td><td class="tot">${r.totalPts}</td></tr>`).join('')}</tbody>`;
+  // Top-3 podium (2nd · 1st · 3rd, the classic layout), logo or initial, only once
+  // there are at least 3 squads with points so it never shows an empty step.
+  const mySquad=((_myRegs.get(B.tournament)||{}).squad_name)||'';
+  const pod=document.getElementById('bo3-podium');
+  if(pod){
+    const top=rows.slice(0,3);
+    const step=(r,place)=>r?`<div class="pod p${place}${r.team===mySquad?' mine':''}"><div class="pod-av">${r.logo?`<img src="${esc(r.logo)}" alt="">`:esc(String(r.team||'?').trim().charAt(0).toUpperCase())}</div><div class="pod-name">${esc(r.team)}</div><div class="pod-pts">${r.totalPts} pts</div><div class="pod-block"><span>${place}</span></div></div>`:'';
+    pod.innerHTML=top.length>=3&&top.some(r=>r.totalPts>0)?step(top[1],2)+step(top[0],1)+step(top[2],3):'';
+  }
+  document.getElementById('bo3-table').innerHTML=`<thead><tr><th>${tr('th_rank')}</th><th>${tr('th_team')}</th><th class="num">R1 ${tr('th_kills')}</th><th class="num">R2 ${tr('th_kills')}</th><th class="num">R3 ${tr('th_kills')}</th><th class="num">${tr('th_total')}</th></tr></thead><tbody>${rows.map(r=>`<tr${r.team===mySquad?' class="mine"':''}><td class="rk">${r.rank}</td><td>${esc(r.team)}${r.team===mySquad?' <span class="you">YOU</span>':''}</td><td class="num">${r.r1k}</td><td class="num">${r.r2k}${mvArrow(r.moveR2)}</td><td class="num">${r.r3k}${mvArrow(r.moveR3)}</td><td class="tot">${r.totalPts}</td></tr>`).join('')}</tbody>`;
 }
 /* ── performance prediction: ranks currently-registered squads by season average
    points (get_tournament_squad_history()) and converts that to a win % via softmax —
@@ -1562,7 +1618,13 @@ function authRender(){
     const verifiedBadge=_player.verified?'<span class="pm-verified">✓ Verified</span>':'';
     const avatarBlock=`<div class="pm-avatar-wrap"><img class="pm-avatar" id="pm-avatar-img" src="${esc(_player.avatar||'/logo.png')}" alt=""><button class="pm-avatar-edit" onclick="document.getElementById('pm-avatar-file').click()" aria-label="Change profile picture">📷</button><input type="file" id="pm-avatar-file" accept="image/*" style="display:none" onchange="authUploadAvatar(this)"></div>`;
     const regRows=[..._myRegs.entries()];
-    const historyBlock=regRows.length?`<div class="pm-history"><div class="pm-history-title">Your registrations</div>${regRows.map(([slug,r])=>`<div class="pm-history-row"><span class="pm-history-name">${esc(slug)}</span>${r.squad_name?`<span class="pm-history-squad">${esc(r.squad_name)}</span>`:''}<span class="pm-history-status pm-status-${esc(r.status)}">${esc(r.status)}</span></div>`).join('')}</div>`:'';
+    // Upcoming/live first, then the rest; each row is a tap target that jumps to the card.
+    const tByName=new Map(((_lastData||{}).tournaments||[]).map(t=>[t.name,t]));
+    const stRank=n=>{const t=tByName.get(n);const st=t?effectiveStatus(t):'completed';return st==='live'?0:st==='upcoming'?1:2;};
+    regRows.sort((a,b)=>stRank(a[0])-stRank(b[0]));
+    const statusLabel=r=>r.checked_in_at&&(r.status==='confirmed'||r.status==='approved')?'checked in':r.status==='no_show'?'no-show':r.status;
+    const historyBlock=regRows.length?`<div class="pm-history"><div class="pm-history-title">Your tournaments</div>${regRows.map(([slug,r])=>{const t=tByName.get(slug);const st=t?effectiveStatus(t):'';const when=t&&t.date&&t.date!=='TBA'?esc(t.date)+(t.time&&t.time!=='TBA'?' · '+esc(t.time):''):'';
+      return `<button type="button" class="pm-history-row pm-history-btn" onclick="authClose();setTimeout(()=>nmJump(this.dataset.t),250)" data-t="${esc(slug)}">${r.squad_logo?`<img class="pm-history-logo" src="${esc(r.squad_logo)}" alt="">`:`<span class="pm-history-logo">${st==='live'?'🔴':st==='upcoming'?'⚔️':'🏁'}</span>`}<span class="pm-history-main"><span class="pm-history-name">${esc(slug)}</span><span class="pm-history-squad">${[r.squad_name&&esc(r.squad_name),when||(st&&esc(st)),esc(regTicketCode(r))].filter(Boolean).join(' · ')}</span></span><span class="pm-history-status pm-status-${esc(r.checked_in_at&&r.status==='confirmed'?'confirmed':r.status)}">${esc(statusLabel(r))}</span></button>`;}).join('')}</div>`:'';
     el.innerHTML=`<h3 class="pm-title">Signed in</h3>${avatarBlock}<div class="auth-tag">@${esc(_player.username||'…')}</div><div class="pm-meta"><span>${esc(_player.email)}</span>${_player.tag?`<span class="pm-dot">●</span><span>ID ${esc(_player.tag)}</span>`:''}${verifiedBadge}</div>${_player.tag?'<p class="pm-hint">Only needed if you register outside the app.</p>':''}<div id="career-stats"></div><div class="msg" id="au-msg"></div>${historyBlock}<div class="pm-list">
         <button class="pm-row" id="acct-push-btn" onclick="enablePush()"><span class="pm-row-ic">🔔</span><span class="pm-row-txt">Enable push alerts</span><span class="pm-toggle" id="acct-push-toggle"></span></button>
         <button class="pm-row" onclick="authChangeUsername()"><span class="pm-row-ic">✏️</span><span class="pm-row-txt">Change username</span><span class="pm-row-chev">›</span></button>
