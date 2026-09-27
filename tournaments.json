@@ -81,8 +81,9 @@
     {
       "name": "JD Free Fire Open #5",
       "game": "Free Fire BR · Squad",
-      "date": "TBA",
-      "time": "TBA",
+      "date": "Sun, Oct 11",
+      "time": "10:00 PM NPT",
+      "start": "2026-10-11T22:00:00+05:45",
       "prize": "450",
       "entry": "15",
       "platform": "Mobile only",
@@ -119,5 +120,5 @@
       }
     ]
   },
-  "_published_at": "2026-09-27T12:59:42.005Z"
+  "_published_at": "2026-09-27T13:20:35.033Z"
 }
