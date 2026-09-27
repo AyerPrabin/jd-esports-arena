@@ -2000,7 +2000,7 @@ hospitality/logistics (Leonardo Royal St Paul's, Sky Garden, Tesco); previously 
 The Cocktail Bar (Jan-Nov 2025, 5.0 TripAdvisor rating, 150+ guests/event); earlier bar experience
 in Mumbai.
 
-CONTACT: available for freelance work, responds within 24h. Email ayerprabin95@gmail.com, phone
+CONTACT: available for freelance work, responds within 24h. Email prabinayer7@gmail.com, phone
 +44 7775 773818, based in London, UK. GitHub/LinkedIn/Instagram/Facebook linked on contact.html.
 
 If someone signals interest in hiring/collaborating, warmly point them to the email above or

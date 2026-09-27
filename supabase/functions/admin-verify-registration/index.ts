@@ -42,10 +42,22 @@ Deno.serve(async (req: Request) => {
     .from('registrations')
     .update({ verified_at })
     .eq('id', registration_id)
-    .select('id')
+    .select('id, player_id, tournament_slug, squad_name')
     .maybeSingle();
   if (error) return new Response(error.message, { status: 500, headers: CORS_HEADERS });
   if (!data) return new Response('Registration not found (removed?)', { status: 404, headers: CORS_HEADERS });
+
+  // Tell the player (in-app inbox) when they're verified — best-effort, and only on
+  // verify, never on an un-verify (that's usually the admin correcting a mis-click).
+  if (verified) {
+    await supabase.from('notifications').insert({
+      player_id: data.player_id,
+      tournament_slug: data.tournament_slug,
+      title: '✅ Verified for ' + data.tournament_slug,
+      body: (data.squad_name ? 'Your squad "' + data.squad_name + '" is' : "You're") +
+        ' verified by the organiser. Check in 30 min before start, then your room code shows on the tournament card.',
+    });
+  }
 
   return new Response(JSON.stringify({ ok: true, verified_at }), {
     status: 200,
