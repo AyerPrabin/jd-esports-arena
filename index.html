@@ -474,6 +474,64 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 #notif-list{max-height:52vh;overflow-y:auto;overscroll-behavior:contain}
 .notif-push{display:flex;align-items:center;gap:10px;padding:10px 12px;margin:0 0 12px;border-radius:12px;border:1px solid var(--gold-m);background:rgba(255,200,61,.07);font-size:.8rem;color:var(--body)}
 .notif-push[hidden]{display:none}
+/* match ticket (registered card) */
+.mt{margin-top:10px;border:1px solid var(--gold-m);border-radius:14px;padding:12px;background:linear-gradient(160deg,rgba(255,200,61,.08),rgba(255,200,61,.02) 60%);position:relative}
+.mt-head{display:flex;align-items:center;gap:10px}
+.mt-logo{width:36px;height:36px;border-radius:10px;object-fit:cover;background:#000;flex:none;border:1px solid var(--gold-m)}
+.mt-logo-empty{display:flex;align-items:center;justify-content:center;color:var(--gold-l);font-weight:800;background:rgba(255,200,61,.1)}
+.mt-squad{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.mt-squad b{color:var(--cream);font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mt-squad small{color:var(--silver);font-size:.72rem}
+.mt-ver{color:var(--green,#5EDB95);font-weight:600}
+.mt-code{flex:none;font-family:'Courier New',monospace;font-size:.76rem;font-weight:700;letter-spacing:.03em;color:var(--gold-l);background:rgba(0,0,0,.35);border:1px dashed var(--gold-m);border-radius:8px;padding:6px 9px;cursor:pointer;transition:.15s}
+.mt-code:hover{border-style:solid}
+.mt-code.copied{border-color:var(--green,#5EDB95);color:var(--green,#5EDB95)}
+.mt-steps{list-style:none;display:flex;gap:4px;margin:12px 0 10px;padding:0;counter-reset:none}
+.mt-steps li{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.66rem;letter-spacing:.04em;text-transform:uppercase;color:var(--silver);position:relative;text-align:center}
+.mt-steps li+li::before{content:'';position:absolute;top:11px;right:50%;width:100%;height:2px;background:var(--line);z-index:0}
+.mt-steps li.done+li::before,.mt-steps li.done+li.done::before{background:var(--gold-m)}
+.mt-steps i{font-style:normal;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;background:var(--bg-2);border:1px solid var(--line);position:relative;z-index:1}
+.mt-steps li.done{color:var(--gold-l)}
+.mt-steps li.done i{background:var(--gold);color:#0a0a12;border-color:var(--gold)}
+.mt-steps li.now{color:var(--cream)}
+.mt-steps li.now i{border-color:var(--gold);color:var(--gold-l);box-shadow:0 0 0 3px rgba(255,200,61,.15);animation:mtNow 1.8s ease-in-out infinite}
+@keyframes mtNow{50%{box-shadow:0 0 0 6px rgba(255,200,61,0)}}
+.mt-next{font-size:.8rem;color:var(--silver);line-height:1.45}
+.mt-next b{color:var(--cream);font-weight:600}
+.mt-next.warn{color:var(--warm-l);margin-top:6px;font-size:.74rem;text-align:center}
+.mt-checkin{margin-top:0;animation:mtPulse 1.6s ease-in-out infinite}
+@keyframes mtPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,200,61,.5)}50%{box-shadow:0 0 0 8px rgba(255,200,61,0)}}
+.mt-room{border-radius:12px;background:rgba(94,219,149,.08);border:1px solid rgba(94,219,149,.4);padding:10px}
+.mt-room-h{display:flex;align-items:center;gap:8px;font-size:.78rem;font-weight:700;color:var(--green,#5EDB95);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+.mt-live-dot{width:8px;height:8px;border-radius:50%;background:var(--green,#5EDB95);box-shadow:0 0 0 0 rgba(94,219,149,.6);animation:mtDot 1.4s ease-out infinite}
+@keyframes mtDot{to{box-shadow:0 0 0 8px rgba(94,219,149,0)}}
+.mt-room-row{display:flex;gap:8px}
+.mt-copy{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:9px 10px;border-radius:10px;border:1px solid rgba(94,219,149,.35);background:rgba(0,0,0,.3);color:var(--cream);cursor:pointer;text-align:left;font-family:inherit;transition:.15s}
+.mt-copy span{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--silver)}
+.mt-copy b{font-family:'Courier New',monospace;font-size:1.05rem;letter-spacing:.04em;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.mt-copy em{font-style:normal;font-size:.66rem;color:var(--green,#5EDB95)}
+.mt-copy:active{transform:scale(.97)}
+.mt-copy.copied{border-color:var(--green,#5EDB95);background:rgba(94,219,149,.15)}
+.tcard.flash{animation:cardFlash 1.2s ease}
+@keyframes cardFlash{0%,100%{box-shadow:none}30%{box-shadow:0 0 0 2px var(--gold),0 0 30px rgba(255,200,61,.35)}}
+/* next-match bar */
+.next-match{position:fixed;left:20px;bottom:20px;z-index:49;display:flex;align-items:center;gap:8px;max-width:440px;padding:8px 8px 8px 14px;border-radius:16px;background:rgba(14,20,36,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--gold-m);box-shadow:0 12px 30px rgba(0,0,0,.5);opacity:0;transform:translateY(16px);transition:opacity .3s,transform .35s cubic-bezier(.22,1,.36,1)}
+.next-match.show{opacity:1;transform:none}
+.next-match[hidden]{display:none}
+.next-match.room{border-color:rgba(94,219,149,.6);box-shadow:0 12px 30px rgba(0,0,0,.5),0 0 22px rgba(94,219,149,.2)}
+.next-match.checkin{border-color:var(--gold);box-shadow:0 12px 30px rgba(0,0,0,.5),0 0 22px rgba(255,200,61,.25)}
+.nm-main{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;background:none;border:none;color:var(--cream);cursor:pointer;text-align:left;font-family:inherit;padding:0;line-height:1.25}
+.nm-main small{font-size:.64rem;text-transform:uppercase;letter-spacing:.07em;color:var(--gold-l);font-weight:700}
+.next-match.room .nm-main small{color:var(--green,#5EDB95)}
+.nm-main b{font-size:.86rem;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nm-count{font-size:.74rem;color:var(--silver);font-variant-numeric:tabular-nums}
+.nm-btn{flex:none;font-family:inherit;font-size:.76rem;font-weight:700;padding:9px 13px;border-radius:999px;border:none;cursor:pointer;background:var(--gold);color:#0a0a12;white-space:nowrap}
+.next-match.room .nm-btn{background:var(--green,#5EDB95)}
+.nm-btn.copied{filter:brightness(1.1)}
+.nm-x{flex:none;width:28px;height:28px;border-radius:50%;border:none;background:transparent;color:var(--silver);font-size:1.1rem;cursor:pointer;line-height:1}
+.nm-x:hover{color:var(--cream);background:rgba(255,255,255,.06)}
+@media(max-width:640px){.next-match{left:12px;right:12px;bottom:76px;max-width:none}}
+@media(prefers-reduced-motion:reduce){.mt-steps li.now i,.mt-checkin,.mt-live-dot,.tcard.flash{animation:none}.next-match{transition:none}}
 .reg-verified{flex:none;font-size:.66rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:rgba(94,219,149,.14);color:var(--green,#5EDB95);border:1px solid rgba(94,219,149,.35);white-space:nowrap}
 .notif-push.blocked,.notif-push.ios{border-color:rgba(255,170,110,.4);background:rgba(255,150,80,.07)}
 .notif-push-ic{font-size:1.1rem;flex:none}
@@ -678,6 +736,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 </footer>
 
 <div class="fab-nudge" id="fab-nudge" onclick="fbOpen()"><button class="fab-nudge-x" onclick="event.stopPropagation();dismissNudge()" aria-label="dismiss">×</button><span id="fab-nudge-text"></span></div>
+<div id="next-match" class="next-match" hidden></div>
 <button class="fab" id="fab" onclick="fbOpen()">💬 Ask ZULU</button>
 <div class="fb-panel" id="fb-panel">
   <div class="fb-head"><div><b>ZULU</b><span class="sub" id="z-sub">JD Arena assistant</span></div><button class="fb-x" onclick="fbClose()" aria-label="close">×</button></div>
@@ -1197,6 +1256,8 @@ function teamsFor(t){
 /* "upcoming" flips to "live" on its own once the start time passes — one less
    thing the admin has to remember to toggle. "live" -> "completed" stays a
    manual admin action since only a human can declare a winner. */
+// "500" / "1,000" typed bare in the editor reads as a currency amount, not a mystery number
+function fmtPrize(p){const v=String(p==null?'':p).trim();if(!v)return '—';return /^\d[\d,]*$/.test(v)?'Rs '+Number(v.replace(/,/g,'')).toLocaleString('en-IN'):v;}
 function effectiveStatus(t){
   const s=(t.status||'upcoming').toLowerCase();
   if(s==='upcoming'&&t.start){
@@ -1237,7 +1298,7 @@ function render(d){
       else if(sb)btn='';
       else btn=`<span class="tbtn done">${st==='live'?tr('livenow'):tr('soon')}</span>`;}
     const media=`<div class="tcard-media" style="background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%),url('${esc(t.image||'event-card.jpg')}')"></div>`;
-    return `<div class="tcard" data-tname="${esc(t.name)}" onclick="cardTap(event,this)">${media}<div class="tcard-body"><span class="tbadge ${st}">${st==='live'?'● Live':(st==='cancelled'?'✕ Cancelled':st)}</span><div class="tname">${esc(t.name)}</div><div class="tgame">${esc(t.game||'Free Fire')}</div>${(st==='upcoming'&&t.start)?`<div class="tcount" data-start="${esc(t.start)}"></div><div class="tcount-bar"><span></span></div>`:''}<div class="tmeta"><div class="row"><span>Date</span><b>${esc(t.date||'TBA')}${t.time&&t.time!=='—'?' · '+esc(t.time):''}</b></div><div class="row"><span>Prize pool</span><b>${esc(t.prize||'—')}</b></div><div class="row"><span>Entry</span><b>${esc(t.entry||'Free')}</b></div><div class="row"><span>Format</span><b>${esc(t.format||'BR')}</b></div>${t.platform?`<div class="row"><span>Platform</span><b>📱 ${esc(t.platform)}</b></div>`:''}</div>${slots?`<div class="tslots"><span style="width:${pct}%"></span></div><button class="tslots-label" data-roster="${esc(t.name)}">${reg}/${slots} ${tr('sqview')}</button>`:''}${teams.length?`<div class="troster">${teams.map(tm=>{const fx=squadFx(tm);const cls=fx?' '+fx.cls:'';const badge=(fx&&fx.badge)?`<span class="fx-badge">${fx.badge}</span> `:'';const particles=fxParticlesHtml(fx);const nameHtml=fxNameHtml(fx,tm.name);return tm.logo?`<span class="${(fx?fx.cls:'')}"><img src="${esc(tm.logo)}" alt="">${badge}${nameHtml}${particles}</span>`:`<span class="nologo${cls}">${badge}${nameHtml}${particles}</span>`;}).join('')}</div>`:''}${btn}${inAppRegBtn(t,st,full)}</div></div>`;
+    return `<div class="tcard" data-tname="${esc(t.name)}" onclick="cardTap(event,this)">${media}<div class="tcard-body"><span class="tbadge ${st}">${st==='live'?'● Live':(st==='cancelled'?'✕ Cancelled':st)}</span><div class="tname">${esc(t.name)}</div><div class="tgame">${esc(t.game||'Free Fire')}</div>${(st==='upcoming'&&t.start)?`<div class="tcount" data-start="${esc(t.start)}"></div><div class="tcount-bar"><span></span></div>`:''}<div class="tmeta"><div class="row"><span>Date</span><b>${esc(t.date||'TBA')}${t.time&&t.time!=='—'?' · '+esc(t.time):''}</b></div><div class="row"><span>Prize pool</span><b>${esc(fmtPrize(t.prize))}</b></div><div class="row"><span>Entry</span><b>${esc(t.entry||'Free')}</b></div><div class="row"><span>Format</span><b>${esc(t.format||'BR')}</b></div>${t.platform?`<div class="row"><span>Platform</span><b>📱 ${esc(t.platform)}</b></div>`:''}</div>${slots?`<div class="tslots"><span style="width:${pct}%"></span></div><button class="tslots-label" data-roster="${esc(t.name)}">${reg}/${slots} ${tr('sqview')}</button>`:''}${teams.length?`<div class="troster">${teams.map(tm=>{const fx=squadFx(tm);const cls=fx?' '+fx.cls:'';const badge=(fx&&fx.badge)?`<span class="fx-badge">${fx.badge}</span> `:'';const particles=fxParticlesHtml(fx);const nameHtml=fxNameHtml(fx,tm.name);return tm.logo?`<span class="${(fx?fx.cls:'')}"><img src="${esc(tm.logo)}" alt="">${badge}${nameHtml}${particles}</span>`:`<span class="nologo${cls}">${badge}${nameHtml}${particles}</span>`;}).join('')}</div>`:''}${btn}${inAppRegBtn(t,st,full)}</div></div>`;
   }).join(''):'<p style="text-align:center;color:var(--silver)">No tournaments posted yet — check back soon.</p>';
   if(gridHTML!==_lastGridHTML){
     _lastGridHTML=gridHTML;
@@ -1246,6 +1307,7 @@ function render(d){
     grid.querySelectorAll('[data-checkin]').forEach(b=>b.onclick=()=>checkInForTournament(b.getAttribute('data-checkin')));
     grid.querySelectorAll('[data-roster]').forEach(b=>b.onclick=e=>{e.stopPropagation();openRoster(b.getAttribute('data-roster'));});
   }
+  updateNextMatch();
   loadReviewSummaries();
   renderBo3Board(d);
   renderPredictBoard(d);
@@ -1374,6 +1436,7 @@ let _player=null;      // {id, email, tag}
 let _authView='login';
 let _googleFirstRun=false; // true only for the auto-opened "pick a username" prompt right after a Google sign-in; false when opened voluntarily via "Change username"
 let _notifUnread=0;
+let _roomCodes=new Map(); // tournament name -> {room_id, room_pass}, from the player's own notifications
 let _notifHasLoadedOnce=false; // suppress the chime on the very first load (existing unread shouldn't "ding")
 let _gateActive=false; // true while the whole site sits behind the forced login/signup gate
 let _termsGateActive=false; // true while a signed-in player hasn't accepted the current Terms & Conditions yet
@@ -1679,7 +1742,7 @@ async function authForgot(){
 async function authLogout(){
   await sb.auth.signOut();
   if(window._oneSignal)window._oneSignal.logout();
-  _player=null;_myRegs=new Map();_notifUnread=0;_discordLinkCode=null;
+  _player=null;_myRegs=new Map();_roomCodes=new Map();_notifUnread=0;_discordLinkCode=null;
   trackPresence();
   updateAcctBtn();updateNotifHistBtn();updateGate();render(_lastData||ARENA_SAMPLE);
 }
@@ -1755,7 +1818,7 @@ async function authConfirmDeleteAccount(){
     if(!r.ok)throw new Error(await r.text());
     await sb.auth.signOut();
     if(window._oneSignal)window._oneSignal.logout();
-    _player=null;_myRegs=new Map();_notifUnread=0;
+    _player=null;_myRegs=new Map();_roomCodes=new Map();_notifUnread=0;
     trackPresence();
     // updateGate()/authRender() below would otherwise overwrite auth-body (login form) —
     // showMsg() uses its own dedicated overlay, so it's untouched by that.
@@ -2026,6 +2089,32 @@ async function checkInForTournament(name){
   _myRegs.set(name,{...r,checked_in_at:(data&&data.checked_in_at)||new Date().toISOString()});
   render(_lastData||ARENA_SAMPLE);
 }
+/* Match ticket: everything a registered player needs on match day, on the card itself —
+   squad + ticket code (tap to copy), a 3-step tracker (Registered → Checked in → Room
+   code), and whatever the next action is. Once the room code is sent it shows right
+   here with copy buttons. Deliberately nothing that changes every second (the grid only
+   re-renders when its HTML changes) — the live countdown lives in the next-match bar. */
+function matchTicketHtml(t,r){
+  const rc=_roomCodes.get(t.name),checked=!!r.checked_in_at,win=checkinWindowOpen(t);
+  const code=regTicketCode(r);
+  const steps=[['Registered',true],['Checked in',checked],['Room code',!!rc]];
+  const cur=steps.findIndex(x=>!x[1]);
+  const stepHtml=steps.map(([l,done],i)=>`<li class="${done?'done':(i===cur?'now':'')}"><i>${done?'✓':i+1}</i><span>${l}</span></li>`).join('');
+  let next;
+  if(rc){
+    next=`<div class="mt-room"><div class="mt-room-h"><span class="mt-live-dot"></span>Room is open — join now</div><div class="mt-room-row"><button type="button" class="mt-copy" data-copy="${esc(rc.room_id)}"><span>Room ID</span><b>${esc(rc.room_id)}</b><em>Tap to copy</em></button>${rc.room_pass?`<button type="button" class="mt-copy" data-copy="${esc(rc.room_pass)}"><span>Password</span><b>${esc(rc.room_pass)}</b><em>Tap to copy</em></button>`:''}</div></div>`;
+  }else if(checked){
+    next=`<div class="mt-next">🔑 Room ID + password appear right here ~5 min before kickoff.</div>`;
+  }else if(win){
+    next=`<button class="inapp-reg mt-checkin" data-checkin="${esc(t.name)}">✅ Check in now</button><div class="mt-next warn">Check in before kickoff or your slot is released.</div>`;
+  }else{
+    const startMs=Date.parse(t.start);
+    const opens=isNaN(startMs)?'':new Date(startMs-CHECKIN_WINDOW_MS).toLocaleString([],{weekday:'short',hour:'2-digit',minute:'2-digit'});
+    next=`<div class="mt-next">⏰ Check-in opens 30 min before start${opens?` (<b>${esc(opens)}</b>)`:''} — you'll get a reminder.</div>`;
+  }
+  const logo=r.squad_logo?`<img class="mt-logo" src="${esc(r.squad_logo)}" alt="">`:`<span class="mt-logo mt-logo-empty">${esc((r.squad_name||'?').trim().charAt(0).toUpperCase()||'?')}</span>`;
+  return `<div class="mt"><div class="mt-head">${logo}<div class="mt-squad"><b>${esc(r.squad_name||'Your squad')}</b><small>${checked?'Checked in':'You\'re in'}${r.verified_at?' · <span class="mt-ver">✅ Verified</span>':''}</small></div><button type="button" class="mt-code" data-copy="${esc(code)}" title="Tap to copy your ticket code">🎫 ${esc(code)}</button></div><ol class="mt-steps">${stepHtml}</ol>${next}</div>`;
+}
 function inAppRegBtn(t,st,full){
   if(st==='cancelled')return _myRegs.has(t.name)?`<div class="inapp-reg-done rejected"><span>✕ This tournament was cancelled — sorry for the mix-up, watch Discord for the reschedule</span></div>`:'';
   if(st==='completed')return sb?`<div class="review-summary" data-review-summary="${esc(t.name)}"></div>`:'';
@@ -2036,6 +2125,7 @@ function inAppRegBtn(t,st,full){
     if(r.status==='pending')return `<div class="inapp-reg-done pending">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>⏳ Payment pending verification${r.squad_name?' — '+esc(r.squad_name):''} · Ticket ${esc(regTicketCode(r))}</span></div>`;
     if(r.status==='rejected')return `<div class="inapp-reg-done rejected"><span>✕ Payment not verified — contact us to sort it out</span></div>`;
     if(r.status==='no_show')return `<div class="inapp-reg-done rejected"><span>✕ Missed check-in — your spot was released</span></div>`;
+    if(r.status==='confirmed'||r.status==='approved'||!r.status)return matchTicketHtml(t,r);
     if(r.checked_in_at)return `<div class="inapp-reg-done">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>✓ Checked in${r.squad_name?' as '+esc(r.squad_name):''} — see you there! · Ticket ${esc(regTicketCode(r))}</span>${r.verified_at?'<span class="reg-verified">✅ Verified</span>':''}</div>`;
     if(checkinWindowOpen(t))return `<button class="inapp-reg" data-checkin="${esc(t.name)}">✅ Check In Now</button>`;
     return `<div class="inapp-reg-done">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>✓ Registered${r.squad_name?' as '+esc(r.squad_name):''} — Ticket ${esc(regTicketCode(r))} · check Notification History for your room ID</span>${r.verified_at?'<span class="reg-verified">✅ Verified</span>':''}</div>`;
@@ -2127,6 +2217,71 @@ function openReviewForm(box,name){
     box.appendChild(rateBtn);
   };
 }
+
+/* tap-to-copy for match-ticket / next-match buttons — delegated on document so it
+   keeps working after the grid re-renders, and stops the tap from reaching cardTap */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-copy]');if(!b)return;
+  e.stopPropagation();
+  const text=b.getAttribute('data-copy');
+  const done=()=>{b.classList.add('copied');const em=b.querySelector('em');const old=em?em.textContent:null;if(em)em.textContent='✓ Copied';else{b.dataset.label=b.dataset.label||b.innerHTML;b.innerHTML='✓ Copied';}
+    if(navigator.vibrate)try{navigator.vibrate(15);}catch(x){}
+    setTimeout(()=>{b.classList.remove('copied');if(em)em.textContent=old;else if(b.dataset.label){b.innerHTML=b.dataset.label;delete b.dataset.label;}},1300);};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(done,()=>{});
+  else{try{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();done();}catch(x){}}
+},true);
+
+/* ── next-match bar: follows the player around the site with their soonest upcoming
+   match — live countdown, a Check in button once the window opens, and the room code
+   the moment it's sent. Tap the text to jump to that tournament's card; × hides it for
+   this match for the rest of the session. ── */
+function nextMatch(){
+  if(!_player||!_lastData)return null;
+  let best=null;
+  for(const t of (_lastData.tournaments||[])){
+    const r=_myRegs.get(t.name);if(!r||!(r.status==='confirmed'||r.status==='approved'))continue;
+    const st=effectiveStatus(t);if(st!=='upcoming'&&st!=='live')continue;
+    const ms=Date.parse(t.start);if(isNaN(ms))continue;
+    if(st==='live'&&!_roomCodes.get(t.name))continue; // already started, nothing actionable
+    const hot=_roomCodes.has(t.name)?1:0; // a released room code is the most urgent thing on screen
+    if(!best||hot>best.hot||(hot===best.hot&&ms<best.ms))best={t,r,ms,hot};
+  }
+  return best;
+}
+function nmDismissed(name){try{return sessionStorage.getItem('jd_nm_hide')===name;}catch(e){return false;}}
+function nmDismiss(name){try{sessionStorage.setItem('jd_nm_hide',name);}catch(e){}const el=document.getElementById('next-match');if(el){el.classList.remove('show');el.hidden=true;}}
+function nmCountdown(ms){
+  let d=Math.max(0,ms-Date.now());const day=Math.floor(d/864e5);d-=day*864e5;const h=Math.floor(d/36e5);d-=h*36e5;const m=Math.floor(d/6e4);const sec=Math.floor((d-m*6e4)/1000);
+  return day?`${day}d ${h}h ${m}m`:h?`${h}h ${m}m`:`${m}m ${String(sec).padStart(2,'0')}s`;
+}
+let _nmKey='';
+function updateNextMatch(){
+  const el=document.getElementById('next-match');if(!el)return;
+  const nm=nextMatch();
+  if(!nm||nmDismissed(nm.t.name)){el.hidden=true;el.classList.remove('show');_nmKey='';return;}
+  const {t,r,ms}=nm,rc=_roomCodes.get(t.name),win=checkinWindowOpen(t)&&!r.checked_in_at;
+  const mode=rc?'room':win?'checkin':'count';
+  const key=t.name+'|'+mode+'|'+(rc?rc.room_id+rc.room_pass:'');
+  if(key!==_nmKey){
+    _nmKey=key;
+    const action=rc?`<button type="button" class="nm-btn" data-copy="${esc(rc.room_id)}">Copy ID ${esc(rc.room_id)}</button>`
+      :win?`<button type="button" class="nm-btn" onclick="checkInForTournament(this.dataset.t)" data-t="${esc(t.name)}">Check in</button>`
+      :'';
+    const label=rc?'🔑 Room code is out':win?'✅ Check-in is open':'⚔️ Your next match';
+    el.className='next-match '+mode;
+    el.innerHTML=`<button type="button" class="nm-main" onclick="nmJump(this.dataset.t)" data-t="${esc(t.name)}"><small>${label}</small><b>${esc(t.name)}</b><span class="nm-count"></span></button>${action}<button type="button" class="nm-x" aria-label="Hide" onclick="nmDismiss(this.dataset.t)" data-t="${esc(t.name)}">×</button>`;
+    el.hidden=false;requestAnimationFrame(()=>el.classList.add('show'));
+  }
+  const c=el.querySelector('.nm-count');
+  if(c)c.textContent=rc?(r.squad_name?'as '+r.squad_name:''):(ms>Date.now()?'starts in '+nmCountdown(ms):'starting now');
+}
+function nmJump(name){
+  const card=[...document.querySelectorAll('.tcard')].find(c=>c.dataset.tname===name);
+  if(!card)return;
+  card.scrollIntoView({behavior:'smooth',block:'center'});
+  card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');
+}
+setInterval(()=>{if(!document.hidden)updateNextMatch();},1000);
 
 /* notification history */
 function notifHistOpen(){
@@ -2268,6 +2423,12 @@ async function loadNotifications(markSeenOnOpen){
   if(_notifUnread>prevUnread&&_notifHasLoadedOnce){playChime('notify');ringBell();}
   _notifHasLoadedOnce=true;
   updateNotifHistBtn();
+  // Latest room code per tournament (rows are newest-first), surfaced on that event's
+  // match ticket + the next-match bar so players never have to dig through the inbox
+  // at the exact moment they're racing to join the lobby.
+  const rc=new Map();
+  for(const r of rows)if(r.room_id&&r.tournament_slug&&!rc.has(r.tournament_slug))rc.set(r.tournament_slug,{room_id:r.room_id,room_pass:r.room_pass||''});
+  if(JSON.stringify([...rc])!==JSON.stringify([..._roomCodes])){_roomCodes=rc;render(_lastData||ARENA_SAMPLE);}
   list.innerHTML=rows.length?rows.map(notifItemHtml).join(''):'<div class="notif-empty"><span>🔕</span><b>You&#39;re all caught up</b><p>Room codes, reminders and results for tournaments you join will show up here.</p></div>';
   if(markSeenOnOpen&&rows.some(r=>!r.read_at)){
     const ids=rows.filter(r=>!r.read_at).map(r=>r.id);
