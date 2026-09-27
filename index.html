@@ -213,8 +213,7 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
    rather than just a static colored border, so it reads as an effect happening
    around the squad, not a flat color swap. .fx-badge is the little emoji marker
    (crown/flame/etc) — positioned per-effect below, not just inline text. */
-.troster > span.sq-fx-gold,.troster > span.sq-fx-fire,.troster > span.sq-fx-ice,.troster > span.sq-fx-neon,.troster > span.sq-fx-rainbow,
-.sqitem.sq-fx-gold,.sqitem.sq-fx-fire,.sqitem.sq-fx-ice,.sqitem.sq-fx-neon,.sqitem.sq-fx-rainbow{position:relative}
+.troster > span.sq-fx-gold,.troster > span.sq-fx-fire,.troster > span.sq-fx-ice,.troster > span.sq-fx-neon,.troster > span.sq-fx-rainbow{position:relative}
 .fx-badge{display:inline-block;position:relative;z-index:1}
 .fx-name{position:relative;z-index:1}
 
@@ -224,7 +223,6 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .sq-fx-gold{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 16px rgba(255,200,61,.45)}
 .troster > span.sq-fx-gold{background:rgba(255,200,61,.22);font-weight:700}
 .sq-fx-gold .fx-badge{position:absolute;top:-14px;left:16px;font-size:13px;animation:crownBob 1.7s ease-in-out infinite;filter:drop-shadow(0 0 3px rgba(255,215,80,.9))}
-.sqitem.sq-fx-gold .fx-badge{top:-4px;left:48px}
 .sq-fx-gold::before,.sq-fx-gold::after{content:'';position:absolute;width:4px;height:4px;border-radius:50%;background:#fff6d0;box-shadow:0 0 6px 1px rgba(255,236,150,.9);animation:sparkleTwinkle 1.6s ease-in-out infinite;pointer-events:none}
 .sq-fx-gold::before{top:-3px;left:2px;animation-delay:.1s}
 .sq-fx-gold::after{top:1px;right:6px;animation-delay:.8s}
@@ -243,12 +241,11 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .sq-fx-fire{border-color:#ff6b3d;box-shadow:0 0 0 1px #ff6b3d,0 0 14px rgba(255,107,61,.45);animation:chipIn .4s ease forwards}
 .troster > span.sq-fx-fire{background-color:rgba(255,107,61,.14)}
 .sq-fx-fire .fx-name{font-weight:800;animation:fireTextColor 1.4s ease-in-out infinite}
-.sq-fx-fire .fxp:nth-child(1){top:-15px;bottom:auto;left:50%;width:18px;height:18px;border-radius:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff6b3d' d='M12 2C12 2 4 11 4 16C4 19.31 7.58 22 12 22C16.42 22 20 19.31 20 16C20 11 12 2 12 2Z'/%3E%3Cpath fill='%23ffd479' d='M12 8C12 8 8 13 8 16.5C8 18.98 9.79 21 12 21C14.21 21 16 18.98 16 16.5C16 13 12 8 12 8Z'/%3E%3C/svg%3E") center/contain no-repeat;filter:drop-shadow(0 1px 3px rgba(255,107,61,.6));transform-origin:bottom center;animation:fireFlicker .9s ease-in-out infinite}
-.sq-fx-fire .fxp:nth-child(2),.sq-fx-fire .fxp:nth-child(3),.sq-fx-fire .fxp:nth-child(4){top:-6px;width:3px;height:3px;border-radius:50%;background:#ffd479;box-shadow:0 0 4px 1px rgba(255,180,80,.9);animation:emberRise 1.6s ease-in infinite}
-.sq-fx-fire .fxp:nth-child(2){left:30%;animation-delay:.1s}
-.sq-fx-fire .fxp:nth-child(3){left:50%;animation-delay:.5s}
-.sq-fx-fire .fxp:nth-child(4){left:70%;animation-delay:.9s}
-.sqitem.sq-fx-fire .fxp:nth-child(1){width:26px;height:26px;top:-20px}
+.sq-fx-fire .fxp:nth-of-type(1){opacity:1;top:-15px;bottom:auto;left:50%;width:18px;height:18px;border-radius:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff6b3d' d='M12 2C12 2 4 11 4 16C4 19.31 7.58 22 12 22C16.42 22 20 19.31 20 16C20 11 12 2 12 2Z'/%3E%3Cpath fill='%23ffd479' d='M12 8C12 8 8 13 8 16.5C8 18.98 9.79 21 12 21C14.21 21 16 18.98 16 16.5C16 13 12 8 12 8Z'/%3E%3C/svg%3E") center/contain no-repeat;filter:drop-shadow(0 1px 3px rgba(255,107,61,.6));transform-origin:bottom center;animation:fireFlicker .9s ease-in-out infinite}
+.sq-fx-fire .fxp:nth-of-type(2),.sq-fx-fire .fxp:nth-of-type(3),.sq-fx-fire .fxp:nth-of-type(4){top:-6px;width:3px;height:3px;border-radius:50%;background:#ffd479;box-shadow:0 0 4px 1px rgba(255,180,80,.9);animation:emberRise 1.6s ease-in infinite}
+.sq-fx-fire .fxp:nth-of-type(2){left:30%;animation-delay:.1s}
+.sq-fx-fire .fxp:nth-of-type(3){left:50%;animation-delay:.5s}
+.sq-fx-fire .fxp:nth-of-type(4){left:70%;animation-delay:.9s}
 
 /* Ice — frost shards pointing in from either side, plus a light sweep crossing
    the chip like a glint off ice, for more depth than a static glow. */
@@ -279,24 +276,83 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 /* Real particle elements (not pseudo-element tricks) so each spark/flake/confetti
    piece moves independently — much livelier than one shared background animation. */
 .fxp{position:absolute;pointer-events:none;border-radius:50%;opacity:0;left:50%;bottom:4px;width:3px;height:3px;animation-delay:var(--d,0s)}
-.fxp:nth-child(2){left:64%}
+.fxp:nth-of-type(2){left:64%}
 @keyframes emberRise{0%{opacity:0;transform:translate(-50%,0) scale(.6)}18%{opacity:1}70%{opacity:.75}100%{opacity:0;transform:translate(-80%,-22px) scale(.2)}}
 @keyframes snowDrift{0%{opacity:0;transform:translate(-50%,4px)}20%{opacity:1}80%{opacity:.7}100%{opacity:0;transform:translate(-30%,-18px)}}
 .sq-fx-ice .fxp{top:2px;bottom:auto;background:#eaffff;box-shadow:0 0 4px 1px rgba(200,244,255,.9);animation:snowDrift 2.4s ease-in-out infinite}
 @keyframes confettiPop{0%{opacity:0;transform:translate(-50%,0) rotate(0)}30%{opacity:1}100%{opacity:0;transform:translate(-50%,-16px) rotate(200deg)}}
 .sq-fx-rainbow .fxp{top:-2px;bottom:auto;width:4px;height:4px;border-radius:1px;animation:confettiPop 1.8s ease-in-out infinite}
-.sq-fx-rainbow .fxp:nth-child(1){background:#54e0a0}
-.sq-fx-rainbow .fxp:nth-child(2){background:#4fa9ff}
-.sqlist{display:flex;flex-direction:column;gap:8px;max-height:56vh;overflow-y:auto;margin-top:6px}
-.sqitem{display:flex;gap:10px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--panel);opacity:0;animation:chipIn .4s ease forwards}
+.sq-fx-rainbow .fxp:nth-of-type(1){background:#54e0a0}
+.sq-fx-rainbow .fxp:nth-of-type(2){background:#4fa9ff}
+.sq-head{display:flex;align-items:center;gap:10px;margin:8px 0 2px}
+.sq-meter{flex:1;height:6px;border-radius:6px;background:var(--panel-2);overflow:hidden}
+.sq-meter>span{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--gold-m),var(--gold-l));transition:width .8s ease}
+.sq-count{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:.05em;color:var(--gold-l);line-height:1}
+.sqlist{display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow-y:auto;margin-top:12px;padding:4px 4px 6px 2px}
+.sqitem{position:relative;flex-shrink:0;display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:var(--panel);opacity:0;animation:chipIn .4s ease forwards}
 .sqlist .sqitem:nth-child(1){animation-delay:.02s}.sqlist .sqitem:nth-child(2){animation-delay:.06s}.sqlist .sqitem:nth-child(3){animation-delay:.1s}.sqlist .sqitem:nth-child(4){animation-delay:.14s}.sqlist .sqitem:nth-child(5){animation-delay:.18s}.sqlist .sqitem:nth-child(6){animation-delay:.22s}.sqlist .sqitem:nth-child(n+7){animation-delay:.26s}
-.sqitem img{width:36px;height:36px;border-radius:8px;object-fit:cover;background:#000;flex-shrink:0}
-.sqitem-nologo{width:36px;height:36px;border-radius:8px;background:rgba(255,200,61,.1);border:1px solid var(--gold-m);flex-shrink:0}
-.sqitem-body{min-width:0}
-.sqitem-name{font-weight:600;color:var(--cream)}
-.sqitem-members{font-size:.78rem;color:var(--silver);margin-top:2px}
+.sq-no{position:relative;z-index:1;min-width:20px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:.04em;color:var(--silver);opacity:.55}
+.sq-av{position:relative;z-index:1;flex-shrink:0;width:42px;height:42px}
+.sq-av img,.sqitem-nologo{width:42px;height:42px;border-radius:10px;object-fit:cover;background:#000;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sqitem-nologo{background:rgba(255,200,61,.1);border:1px solid var(--gold-m);font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--gold-l)}
+.sqitem-body{position:relative;z-index:1;min-width:0;flex:1}
+.sqitem-name{font-weight:700;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sqitem-members{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.sqitem-members span{font-size:.68rem;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--silver)}
 .sqitem.empty{opacity:.5;border-style:dashed;animation:none}
 .sqitem.empty .sqitem-name{color:var(--silver);font-weight:400;font-style:italic}
+.sqitem.empty .sqitem-nologo{background:none;border-style:dashed;color:var(--silver)}
+/* Roster-modal effect card — the chip effects above are sized for a 20px pill and
+   looked lost on a full-width row, so the modal gets its own treatment: a light
+   running around the border (rotating conic behind a 1.5px inset fill), a tinted
+   wash, a glint sweeping across, a glowing logo ring and particles spread over the
+   whole card. Everything is clipped inside the card (overflow:hidden), so nothing
+   gets cut off by the scrolling list. Colours come from --fx1/--fx2/--fxg per effect. */
+.sqfx{--fx1:#ffc83d;--fx2:#fff1b8;--fxg:rgba(255,200,61,.24);border-color:transparent;background:none;overflow:hidden;isolation:isolate;box-shadow:0 10px 28px -12px var(--fx1)}
+.sqfx-ring{position:absolute;inset:-120%;z-index:-2;background:conic-gradient(from 0deg,transparent 0 60%,var(--fx1) 80%,var(--fx2) 88%,transparent 97%);animation:sqSpin 3.6s linear infinite}
+.sqfx-fill{position:absolute;inset:1.5px;z-index:-1;border-radius:12.5px;background:linear-gradient(100deg,var(--fxg),transparent 60%),radial-gradient(120% 90% at 100% 100%,var(--fxg),transparent 55%),var(--panel)}
+.sqfx-shine{position:absolute;top:0;bottom:0;left:0;width:40%;z-index:0;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(255,255,255,.13),transparent);transform:translateX(-130%) skewX(-18deg);animation:sqShine 4s ease-in-out infinite}
+.sqfx .sq-no{color:var(--fx1);opacity:1;text-shadow:0 0 10px var(--fx1)}
+.sqfx .sq-av img,.sqfx .sqitem-nologo{box-shadow:0 0 0 2px var(--fx1),0 0 18px var(--fx1)}
+.sqfx .sqitem-nologo{border-color:transparent;color:var(--fx2);background:rgba(0,0,0,.35)}
+.sqfx .sqitem-name{font-size:1.04rem;font-weight:800;letter-spacing:.01em}
+.sqfx .sqitem-members span{border-color:rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:var(--cream)}
+.sqfx-tag{display:inline-block;margin-bottom:4px;font-size:.56rem;font-weight:800;letter-spacing:.14em;line-height:1.2;text-transform:uppercase;padding:3px 8px;border-radius:999px;color:var(--fx2);background:rgba(0,0,0,.4);border:1px solid var(--fx1);box-shadow:0 0 12px -2px var(--fx1)}
+.sq-crown{position:absolute;top:-9px;left:50%;z-index:2;font-size:16px;line-height:1;animation:crownBob 1.7s ease-in-out infinite;filter:drop-shadow(0 0 4px rgba(255,215,80,.95))}
+.sqp{position:absolute;z-index:0;pointer-events:none;left:var(--x);opacity:0;animation-delay:var(--d)!important}
+@keyframes sqSpin{to{transform:rotate(360deg)}}
+@keyframes sqShine{0%{transform:translateX(-130%) skewX(-18deg)}55%,100%{transform:translateX(330%) skewX(-18deg)}}
+@keyframes sqRise{0%{opacity:0;transform:translateY(0) scale(.8)}15%{opacity:1}100%{opacity:0;transform:translate(-10px,-72px) scale(.2)}}
+@keyframes sqFall{0%{opacity:0;transform:translateY(0) rotate(0)}15%{opacity:1}100%{opacity:0;transform:translate(8px,84px) rotate(200deg)}}
+@keyframes sqTwinkle{0%,100%{opacity:0;transform:scale(.2) rotate(0)}50%{opacity:1;transform:scale(1) rotate(90deg)}}
+@keyframes goldTextColor{0%,100%{color:#ffe38a;text-shadow:0 0 6px rgba(255,200,61,.7)}50%{color:#fff6d6;text-shadow:0 0 10px rgba(255,215,80,1),0 0 20px rgba(255,190,50,.6)}}
+/* Champion — gold light + sparkles popping all over the card */
+.sqfx-gold .fx-name{animation:goldTextColor 2.2s ease-in-out infinite}
+.sqfx-gold .sqp{top:var(--y);width:9px;height:9px;background:#fff6d0;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);animation:sqTwinkle var(--t) ease-in-out infinite}
+/* Fire — orange/amber light, flickering name, embers rising from the bottom edge */
+.sqfx-fire{--fx1:#ff6b3d;--fx2:#ffd479;--fxg:rgba(255,107,61,.26)}
+.sqfx-fire .fx-name{animation:fireTextColor 1.4s ease-in-out infinite}
+.sqfx-fire .sqp{bottom:-4px;width:4px;height:4px;border-radius:50%;background:#ffd479;box-shadow:0 0 6px 2px rgba(255,140,60,.9);animation:sqRise var(--t) ease-in infinite}
+.sqfx-fire .sqp:nth-of-type(3n){background:#ff8a3d;width:3px;height:3px}
+/* Ice — frost light, snowflakes drifting down */
+.sqfx-ice{--fx1:#5fd3ff;--fx2:#eaffff;--fxg:rgba(95,211,255,.22)}
+.sqfx-ice .fx-name{animation:iceTextColor 2s ease-in-out infinite}
+.sqfx-ice .sqp{top:-6px;width:4px;height:4px;border-radius:50%;background:#eaffff;box-shadow:0 0 5px 1px rgba(200,244,255,.95);animation:sqFall var(--t) linear infinite}
+.sqfx-ice .sqp:nth-of-type(2n){width:3px;height:3px}
+/* Neon — two arcs chasing each other round the border, sign-buzz flicker */
+.sqfx-neon{--fx1:#c86bff;--fx2:#ff5fd2;--fxg:rgba(200,107,255,.24)}
+.sqfx-neon .sqfx-ring{background:conic-gradient(from 0deg,transparent 0 25%,var(--fx1) 45%,transparent 50% 75%,var(--fx2) 95%,transparent 100%);animation:sqSpin 3s linear infinite,neonFlicker 2.8s linear infinite}
+.sqfx-neon .fx-name{animation:neonTextColor 2.8s linear infinite}
+.sqfx-neon .sqp{top:var(--y);width:3px;height:3px;border-radius:50%;background:#f3d2ff;box-shadow:0 0 6px 2px rgba(200,107,255,.9);animation:sqTwinkle var(--t) ease-in-out infinite}
+/* Rainbow — the whole border cycles the spectrum, confetti falling through */
+.sqfx-rainbow{--fx1:#c86bff;--fx2:#ffe066;--fxg:rgba(79,169,255,.16)}
+.sqfx-rainbow .sqfx-ring{background:conic-gradient(#ff5f6d,#ffb347,#ffe066,#54e0a0,#4fa9ff,#c86bff,#ff5f6d);animation:sqSpin 4s linear infinite}
+.sqfx-rainbow .sqfx-fill{background:linear-gradient(100deg,rgba(255,95,109,.14),rgba(84,224,160,.1) 45%,rgba(79,169,255,.14)),var(--panel)}
+.sqfx-rainbow .fx-name{animation:rainbowTextColor 4s linear infinite}
+.sqfx-rainbow .sq-av img,.sqfx-rainbow .sqitem-nologo{animation:rainbowCycle 4s linear infinite}
+.sqfx-rainbow .sqp{top:-6px;width:5px;height:5px;border-radius:1px;animation:sqFall var(--t) linear infinite}
+.sqfx-rainbow .sqp:nth-of-type(6n+1){background:#ff5f6d}.sqfx-rainbow .sqp:nth-of-type(6n+2){background:#ffb347}.sqfx-rainbow .sqp:nth-of-type(6n+3){background:#ffe066}.sqfx-rainbow .sqp:nth-of-type(6n+4){background:#54e0a0}.sqfx-rainbow .sqp:nth-of-type(6n+5){background:#4fa9ff}.sqfx-rainbow .sqp:nth-of-type(6n){background:#c86bff}
+@media(prefers-reduced-motion:reduce){.sqfx-ring{animation:none!important;background:var(--fx1)!important}.sqfx-shine,.sqp{display:none}.sq-crown{transform:translateX(-50%)}.sq-crown,.sqfx .fx-name,.sqfx .sq-av img,.sqfx .sqitem-nologo{animation:none!important}}
 .tbtn{display:block;text-align:center;padding:13px;border-radius:999px;background:linear-gradient(100deg,var(--gold),var(--gold-2));color:#07090F;font-weight:700;font-size:.86rem;text-decoration:none;transition:.2s}
 .tbtn:hover{transform:translateY(-1px) scale(1.01);box-shadow:0 8px 24px rgba(255,190,50,.3)}
 .tbtn.done{background:transparent;border:1px solid var(--line);color:var(--silver);pointer-events:none}
@@ -822,7 +878,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 <div class="zoverlay" id="roster-overlay" onclick="if(event.target===this)rosterClose()">
   <div class="zmodal" style="max-width:460px"><button class="fb-x" style="position:absolute;top:12px;right:14px" onclick="rosterClose()" aria-label="close">×</button>
     <h3 id="roster-ttl"></h3>
-    <p class="sub" id="roster-sub"></p>
+    <div class="sub" id="roster-sub"></div>
     <div class="sqlist" id="roster-list"></div>
   </div>
 </div>
@@ -876,10 +932,13 @@ const WHATSAPP_NUMBER=''; /* ← your WhatsApp number, international format, dig
    SQUAD_EFFECTS values exactly. */
 /* Only the champion effect gets an emoji badge (the crown) — the rest speak for
    themselves through the animated effect alone, an emoji on top read as clutter. */
-const SQUAD_FX={gold:{cls:'sq-fx-gold',badge:'👑',particles:0},fire:{cls:'sq-fx-fire',badge:'',particles:4},ice:{cls:'sq-fx-ice',badge:'',particles:2},neon:{cls:'sq-fx-neon',badge:'',particles:0},rainbow:{cls:'sq-fx-rainbow',badge:'',particles:2}};
+const SQUAD_FX={gold:{key:'gold',cls:'sq-fx-gold',badge:'👑',particles:0,tag:'Champion'},fire:{key:'fire',cls:'sq-fx-fire',badge:'',particles:4,tag:'On fire'},ice:{key:'ice',cls:'sq-fx-ice',badge:'',particles:2,tag:'Frozen'},neon:{key:'neon',cls:'sq-fx-neon',badge:'',particles:0,tag:'Neon'},rainbow:{key:'rainbow',cls:'sq-fx-rainbow',badge:'',particles:2,tag:'Prism'}};
 function squadFx(tm){return SQUAD_FX[tm&&tm.effect]||null;}
 // Real floating particle elements (embers/snow/confetti), not just a CSS pseudo-element trick —
 // each one moves independently, which reads far more alive than one shared background animation.
+// Roster-modal particles: 8 spread across the whole card, positions/timings fixed per
+// index (not Math.random) so a re-render doesn't make them jump around.
+function sqfxParticles(){let h='';for(let k=0;k<8;k++)h+=`<i class="sqp" style="--x:${(k*37+9)%96}%;--y:${(k*53+11)%78}%;--d:${((k*.43)%2.6).toFixed(2)}s;--t:${(1.9+(k%3)*.55).toFixed(2)}s"></i>`;return h;}
 function fxParticlesHtml(fx){if(!fx||!fx.particles)return'';let h='';for(let k=0;k<fx.particles;k++)h+=`<i class="fxp" style="--d:${(k*.5).toFixed(1)}s"></i>`;return h;}
 // Every effect except Champion colors the name itself (a scrolling gradient in that
 // effect's colors) — wrap it separately so only the text gets it, not the logo/badge/particles.
@@ -2363,14 +2422,21 @@ function openRoster(name){
   const teams=teamsFor(t);
   const slots=+t.slots||teams.length;
   document.getElementById('roster-ttl').textContent=tr('sqttl');
-  document.getElementById('roster-sub').textContent=t.name+' · '+teams.length+'/'+slots;
-  const filled=teams.map(tm=>{
+  const num=i=>String(i+1).padStart(2,'0');
+  const initial=n=>esc((String(n||'?').trim()[0]||'?').toUpperCase());
+  const filled=teams.map((tm,i)=>{
     const members=Array.isArray(tm.members)?tm.members.filter(Boolean):[];
-    const logo=tm.logo?`<img src="${esc(tm.logo)}" alt="">`:`<div class="sqitem-nologo"></div>`;
     const fx=squadFx(tm);
-    return `<div class="sqitem${fx?' '+fx.cls:''}">${logo}<div class="sqitem-body"><div class="sqitem-name">${(fx&&fx.badge)?`<span class="fx-badge">${fx.badge}</span> `:''}${fxNameHtml(fx,tm.name)}</div>${members.length?`<div class="sqitem-members">${tr('sqmembers')}: ${members.map(esc).join(', ')}</div>`:''}</div>${fxParticlesHtml(fx)}</div>`;
+    const crown=(fx&&fx.badge)?`<span class="sq-crown">${fx.badge}</span>`:'';
+    const logo=`<div class="sq-av">${crown}${tm.logo?`<img src="${esc(tm.logo)}" alt="">`:`<div class="sqitem-nologo">${initial(tm.name)}</div>`}</div>`;
+    const name=fx?`<span class="fx-name">${esc(tm.name)}</span>`:esc(tm.name);
+    const mem=members.length?`<div class="sqitem-members" title="${esc(tr('sqmembers'))}">${members.map(m=>`<span>${esc(m)}</span>`).join('')}</div>`:'';
+    const deco=fx?`<span class="sqfx-ring"></span><span class="sqfx-fill"></span><span class="sqfx-shine"></span>${sqfxParticles()}`:'';
+    return `<div class="sqitem${fx?' sqfx sqfx-'+fx.key:''}">${deco}<span class="sq-no">${num(i)}</span>${logo}<div class="sqitem-body">${fx?`<span class="sqfx-tag">${fx.tag}</span>`:''}<div class="sqitem-name">${name}</div>${mem}</div></div>`;
   });
-  const empty=Array.from({length:Math.max(0,slots-teams.length)},()=>`<div class="sqitem empty"><div class="sqitem-nologo"></div><div class="sqitem-body"><div class="sqitem-name">${tr('sqopen')}</div></div></div>`);
+  const empty=Array.from({length:Math.max(0,slots-teams.length)},(_,k)=>`<div class="sqitem empty"><span class="sq-no">${num(teams.length+k)}</span><div class="sqitem-nologo">+</div><div class="sqitem-body"><div class="sqitem-name">${tr('sqopen')}</div></div></div>`);
+  const pct=slots?Math.min(100,Math.round(teams.length/slots*100)):0;
+  document.getElementById('roster-sub').innerHTML=`${esc(t.name)}<div class="sq-head"><div class="sq-meter"><span style="width:${pct}%"></span></div><span class="sq-count">${teams.length}/${slots}</span></div>`;
   document.getElementById('roster-list').innerHTML=(filled.concat(empty).join(''))||`<p class="sub">${tr('sqempty')}</p>`;
   document.getElementById('roster-overlay').classList.add('open');
 }
@@ -2621,10 +2687,10 @@ var Z={
   secret:"That part's private to Prabin \u2014 I only handle JD Arena: tournaments, how to join, the rules, and contact. Ask me any of those! \uD83C\uDFAE",
   howjoin:"Easy \u2014 4 steps:\n1. Join WhatsApp / Discord and tell us your squad.\n2. Pay the entry fee to the number we give you.\n3. Send your payment screenshot to lock your slot.\n4. We DM you the Room ID + password just before the match.",
   howjoinwa:"Tap the green Register button on any tournament to start on WhatsApp.",
-  rules:"The basics: no refunds once the Room ID is sent \u00b7 cheating or modded apps = instant ban \u00b7 payouts are proven publicly \u00b7 the host takes 0% \u2014 every rupee goes back to players. Fair and clean. \uD83D\uDEE1\uFE0F",
+  rules:"The basics: no refunds once the Room ID is sent \u00B7 cheating or modded apps = instant ban \u00B7 the prize pool is fixed and posted before registration opens \u00B7 payouts are proven publicly \u00B7 entry fees go to JD Arena to fund prizes and keep tournaments running. Free tournaments? The prize is on us. Fair and clean. \uD83D\uDEE1\uFE0F",
   scoring:"Simple \u2014 your squad's score each round is kills + placement, added together:\n\u2022 1 point per kill, no cap\n\u2022 Placement: 1st 12 \u00b7 2nd 9 \u00b7 3rd 6 \u00b7 4th 5 \u00b7 5th 4 \u00b7 6th 3 \u00b7 7th 2 \u00b7 8th 1\nAdd both up for your round total \uD83C\uDFC6",
   hacker:"Zero mercy for hackers \u2014 proven cheating, modded apps, aimbot or wallhacks means an instant ban and the win/prize is voided on the spot, no appeal. Suspicious matches get their replay checked. Play clean and you've got nothing to worry about. \uD83D\uDEE1\uFE0F",
-  payout:"Once you win, we DM you for your eSewa number and the name on the account, then send the prize straight there \u2014 usually within a day of results going up. The host takes 0% cut, every rupee goes to players. \uD83D\uDCB0",
+  payout:"Once you win, we DM you for your eSewa number and the name on the account, then send the prize straight there \u2014 usually within a day of results going up. You get the full posted prize, no deductions. \uD83D\uDCB0",
   prizenone:"No prize pool is posted right now \u2014 check back soon or watch the Discord.",
   entrynone:"No entry fee is posted right now \u2014 the next tournament's details are coming soon.",
   about:"Prabin Ayer runs JD Arena and the AyerFire brand \u2014 a Computing Science student in London with roots in Nepal. Full intro: open \u201CAbout Prabin\u201D.",
@@ -2651,10 +2717,10 @@ var Z={
   secret:"\u0924\u094D\u092F\u094B \u092A\u094D\u0930\u092C\u093F\u0928\u0915\u094B \u0928\u093F\u091C\u0940 \u0915\u0941\u0930\u093E \u0939\u094B \u2014 \u092E \u0924 JD Arena \u092E\u093E\u0924\u094D\u0930\u0948 \u0939\u0947\u0930\u094D\u091B\u0941: \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0915\u0938\u0930\u0940 \u0938\u0939\u092D\u093E\u0917\u0940 \u0939\u0941\u0928\u0947, \u0928\u093F\u092F\u092E \u0930 \u0938\u092E\u094D\u092A\u0930\u094D\u0915\u0964 \u0924\u0940 \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D! \uD83C\uDFAE",
   howjoin:"\u0938\u091C\u093F\u0932\u094B \u2014 \u096A \u091A\u0930\u0923:\n\u0967. WhatsApp / Discord \u091C\u094B\u0921\u093F\u0928\u0941\u0939\u094B\u0938\u094D \u0930 \u091F\u093F\u092E\u0915\u094B \u0928\u093E\u092E \u092D\u0928\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964\n\u0968. \u0939\u093E\u092E\u0940\u0932\u0947 \u0926\u093F\u090F\u0915\u094B \u0928\u092E\u094D\u092C\u0930\u092E\u093E \u092A\u094D\u0930\u0935\u0947\u0936 \u0936\u0941\u0932\u094D\u0915 \u0924\u093F\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964\n\u0969. \u092D\u0941\u0915\u094D\u0924\u093E\u0928\u0940\u0915\u094B \u0938\u094D\u0915\u094D\u0930\u093F\u0928\u0938\u091F \u092A\u0920\u093E\u0908 \u0938\u094D\u0925\u093E\u0928 \u092A\u0915\u094D\u0915\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964\n\u096A. \u0916\u0947\u0932 \u0905\u0918\u093F Room ID \u0930 \u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u092A\u0920\u093E\u0907\u0928\u0947\u091B\u0964",
   howjoinwa:"\u0915\u0941\u0928\u0948 \u092A\u0928\u093F \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E\u092E\u093E \u0939\u0930\u093F\u092F\u094B Register \u092C\u091F\u0928 \u0925\u093F\u091A\u0940 WhatsApp \u092E\u093E \u0938\u0941\u0930\u0941 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
-  rules:"\u092E\u0941\u0916\u094D\u092F \u0915\u0941\u0930\u093E: Room ID \u092A\u0920\u093E\u090F\u092A\u091B\u093F \u0930\u093F\u092B\u0928\u094D\u0921 \u0939\u0941\u0901\u0926\u0948\u0928 \u00b7 \u091A\u093F\u091F\u093F\u0919 \u0935\u093E \u092E\u094B\u0921 \u0917\u0930\u093F\u090F\u0915\u094B \u090F\u092A = \u0924\u0941\u0930\u0941\u0928\u094D\u0924\u0948 \u092C\u094D\u092F\u093E\u0928 \u00b7 \u092D\u0941\u0915\u094D\u0924\u093E\u0928\u0940 \u0938\u093E\u0930\u094D\u0935\u091C\u0928\u093F\u0915 \u00b7 \u0939\u094B\u0938\u094D\u091F\u0932\u0947 \u0966% \u0932\u093F\u0928\u094D\u091B \u2014 \u0938\u092C\u0948 \u092A\u0948\u0938\u093E \u0916\u0947\u0932\u093E\u0921\u0940\u0932\u093E\u0908 \u092B\u093F\u0930\u094D\u0924\u093E\u0964 \uD83D\uDEE1\uFE0F",
+  rules:"\u092E\u0941\u0916\u094D\u092F \u0915\u0941\u0930\u093E: Room ID \u092A\u0920\u093E\u090F\u092A\u091B\u093F \u0930\u093F\u092B\u0928\u094D\u0921 \u0939\u0941\u0901\u0926\u0948\u0928 \u00B7 \u091A\u093F\u091F\u093F\u0919 \u0935\u093E \u092E\u094B\u0921 \u0917\u0930\u093F\u090F\u0915\u094B \u090F\u092A = \u0924\u0941\u0930\u0941\u0928\u094D\u0924\u0948 \u092C\u094D\u092F\u093E\u0928 \u00B7 \u0907\u0928\u093E\u092E \u0930\u0915\u092E \u0926\u0930\u094D\u0924\u093E \u0916\u0941\u0932\u094D\u0928\u0941\u0905\u0918\u093F \u0928\u0948 \u0924\u094B\u0915\u093F\u0928\u094D\u091B \u00B7 \u092D\u0941\u0915\u094D\u0924\u093E\u0928\u0940 \u0938\u093E\u0930\u094D\u0935\u091C\u0928\u093F\u0915 \u00B7 \u092A\u094D\u0930\u0935\u0947\u0936 \u0936\u0941\u0932\u094D\u0915 JD Arena \u0932\u0947 \u0907\u0928\u093E\u092E \u0930 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E \u091A\u0932\u093E\u0909\u0928 \u0930\u093E\u0916\u094D\u091B\u0964 \u092B\u094D\u0930\u0940 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E? \u0907\u0928\u093E\u092E \u0939\u093E\u092E\u094D\u0930\u094B \u0924\u0930\u094D\u092B\u092C\u093E\u091F\u0964 \u0928\u093F\u0937\u094D\u092A\u0915\u094D\u0937 \u0930 \u0938\u092B\u093E\u0964 \uD83D\uDEE1\uFE0F",
   scoring:"\u0938\u091C\u093F\u0932\u094B \u2014 \u092A\u094D\u0930\u0924\u094D\u092F\u0947\u0915 \u0930\u093E\u0909\u0928\u094D\u0921\u092E\u093E \u0924\u092A\u093E\u0908\u0902\u0915\u094B \u0938\u094D\u0915\u094D\u0935\u093E\u0921\u0915\u094B \u0905\u0919\u094D\u0915 = \u0915\u093F\u0932 \u0905\u0919\u094D\u0915 + \u0938\u094D\u0925\u093E\u0928 \u0905\u0919\u094D\u0915, \u0926\u0941\u0908\u0935\u091F\u093E \u091C\u094B\u0921\u0947\u0930:\n\u2022 \u092A\u094D\u0930\u0924\u093F \u0915\u093F\u0932 \u0967 \u0905\u0919\u094D\u0915, \u0938\u0940\u092E\u093E \u091B\u0948\u0928\n\u2022 \u0938\u094D\u0925\u093E\u0928: \u0967\u0932\u094B 12 \u00b7 \u0968\u0932\u094B 9 \u00b7 \u0969\u0932\u094B 6 \u00b7 \u096A\u0925\u094D\u0925\u094B 5 \u00b7 \u096B\u0925\u094D\u0925\u094B 4 \u00b7 \u096C\u0925\u094D\u0925\u094B 3 \u00b7 \u096D\u0925\u094D\u0925\u094B 2 \u00b7 \u096E\u0925\u094D\u0925\u094B 1\n\u0926\u0941\u0908\u0935\u091F\u093E \u091C\u094B\u0921\u0947\u0930 \u0924\u092A\u093E\u0908\u0902\u0915\u094B \u0930\u093E\u0909\u0928\u094D\u0921 \u091F\u094B\u091F\u0932 \u092C\u0928\u094D\u091B \uD83C\uDFC6",
   hacker:"\u0939\u094D\u092F\u093E\u0915\u0930/\u091A\u093F\u091F\u0930\u0932\u093E\u0908 \u0915\u0941\u0928\u0948 \u091B\u0941\u091F \u091B\u0948\u0928 \u2014 \u092A\u094D\u0930\u092E\u093E\u0923\u093F\u0924 \u091A\u093F\u091F\u093F\u0919, \u092E\u094B\u0921 \u0917\u0930\u093F\u090F\u0915\u094B \u090F\u092A, \u0910\u092E\u092C\u091F \u0935\u093E \u0935\u093E\u0932\u0939\u094D\u092F\u093E\u0915 \u092D\u0947\u091F\u093F\u092F\u094B \u092D\u0928\u0947 \u0924\u0941\u0930\u0941\u0928\u094D\u0924\u0948 \u092C\u094D\u092F\u093E\u0928 \u0930 \u091C\u093F\u0924\u0947\u0915\u094B \u0907\u0928\u093E\u092E \u0924\u0941\u0930\u0941\u0928\u094D\u0924\u0948 \u0930\u0926\u094D\u0926, \u0915\u0941\u0928\u0948 \u0905\u092A\u093F\u0932 \u091B\u0948\u0928\u0964 \u0936\u0902\u0915\u093E\u0938\u094D\u092A\u0926 \u092E\u094D\u092F\u093E\u091A\u092E\u093E \u0930\u093F\u092A\u094D\u0932\u0947 \u091C\u093E\u0901\u091A \u0917\u0930\u093F\u0928\u094D\u091B\u0964 \u0938\u092B\u093E \u0916\u0947\u0932\u094D\u0928\u0941\u0939\u094B\u0938\u094D, \u091A\u093F\u0928\u094D\u0924\u093E \u0932\u093F\u0928\u0941 \u092A\u0930\u094D\u0926\u0948\u0928\u0964 \uD83D\uDEE1\uFE0F",
-  payout:"\u091C\u093F\u0924\u094D\u0928\u0941\u092D\u092F\u094B \u092D\u0928\u0947, \u0939\u093E\u092E\u0940 \u0924\u092A\u093E\u0908\u0902\u0915\u094B eSewa \u0928\u092E\u094D\u092C\u0930 \u0930 \u0916\u093E\u0924\u093E\u092E\u093E \u092D\u0947\u0915\u094B \u0928\u093E\u092E \u0938\u094B\u0927\u094D\u091B\u094C\u0902, \u0905\u0928\u093F \u0938\u093F\u0927\u0948 \u0924\u094D\u092F\u0939\u0940\u0902 \u0907\u0928\u093E\u092E \u092A\u0920\u093E\u0909\u091B\u094C\u0902 \u2014 \u092A\u094D\u0930\u093E\u092F\u0903 \u0930\u093F\u091C\u0932\u094D\u091F \u092A\u094B\u0938\u094D\u091F \u092D\u090F\u0915\u094B \u090F\u0915 \u0926\u093F\u0928\u092D\u093F\u0924\u094D\u0930\u0964 \u0939\u094B\u0938\u094D\u091F\u0932\u0947 \u0966% \u0915\u092E\u093F\u0938\u0928 \u0932\u093F\u0928\u094D\u091B, \u0938\u092C\u0948 \u092A\u0948\u0938\u093E \u0916\u0947\u0932\u093E\u0921\u0940\u0932\u093E\u0908\u0964 \uD83D\uDCB0",
+  payout:"\u091C\u093F\u0924\u094D\u0928\u0941\u092D\u092F\u094B \u092D\u0928\u0947, \u0939\u093E\u092E\u0940 \u0924\u092A\u093E\u0908\u0902\u0915\u094B eSewa \u0928\u092E\u094D\u092C\u0930 \u0930 \u0916\u093E\u0924\u093E\u092E\u093E \u092D\u0947\u0915\u094B \u0928\u093E\u092E \u0938\u094B\u0927\u094D\u091B\u094C\u0902, \u0905\u0928\u093F \u0938\u093F\u0927\u0948 \u0924\u094D\u092F\u0939\u0940\u0902 \u0907\u0928\u093E\u092E \u092A\u0920\u093E\u0909\u091B\u094C\u0902 \u2014 \u092A\u094D\u0930\u093E\u092F\u0903 \u0930\u093F\u091C\u0932\u094D\u091F \u092A\u094B\u0938\u094D\u091F \u092D\u090F\u0915\u094B \u090F\u0915 \u0926\u093F\u0928\u092D\u093F\u0924\u094D\u0930\u0964 \u0924\u094B\u0915\u093F\u090F\u0915\u094B \u092A\u0942\u0930\u093E \u0907\u0928\u093E\u092E \u092A\u093E\u0909\u0928\u0941\u0939\u0941\u0928\u094D\u091B, \u0915\u0941\u0928\u0948 \u0915\u091F\u094C\u0924\u0940 \u091B\u0948\u0928\u0964 \uD83D\uDCB0",
   prizenone:"\u0905\u0939\u093F\u0932\u0947 \u0907\u0928\u093E\u092E \u0930\u093E\u0916\u093F\u090F\u0915\u094B \u091B\u0948\u0928 \u2014 \u091A\u093E\u0901\u0921\u0948 \u0939\u0947\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D \u0935\u093E Discord \u0939\u0947\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
   entrynone:"\u0905\u0939\u093F\u0932\u0947 \u092A\u094D\u0930\u0935\u0947\u0936 \u0936\u0941\u0932\u094D\u0915 \u0930\u093E\u0916\u093F\u090F\u0915\u094B \u091B\u0948\u0928 \u2014 \u0905\u0930\u094D\u0915\u094B \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E\u0915\u094B \u0935\u093F\u0935\u0930\u0923 \u091A\u093E\u0901\u0921\u0948 \u0906\u0909\u0901\u0926\u0948\u0964",
   about:"\u092A\u094D\u0930\u092C\u093F\u0928 \u0906\u092F\u0930 JD Arena \u0930 AyerFire \u091A\u0932\u093E\u0909\u0901\u091B\u0928\u094D \u2014 \u0932\u0928\u094D\u0921\u0928\u092E\u093E \u0930\u0939\u0947\u0915\u093E, \u0928\u0947\u092A\u093E\u0932\u0940 \u091C\u0930\u093E \u092D\u090F\u0915\u093E Computing Science \u0935\u093F\u0926\u094D\u092F\u093E\u0930\u094D\u0925\u0940\u0964 \u092A\u0942\u0930\u093E \u092A\u0930\u093F\u091A\u092F: \u201CAbout Prabin\u201D \u0916\u094B\u0932\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
