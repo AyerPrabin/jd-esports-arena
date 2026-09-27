@@ -887,7 +887,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
   <div class="zmodal" style="max-width:400px;text-align:center">
     <div class="msg-icon" id="msg-icon">✓</div>
     <h3 id="msg-title"></h3>
-    <p class="sub" id="msg-body"></p>
+    <p class="sub" id="msg-body" style="white-space:pre-line"></p>
     <div class="row2"><button class="btn-primary" style="flex:1" onclick="msgClose()">OK</button></div>
   </div>
 </div>
@@ -911,7 +911,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script id="os-sdk" src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer onerror="window._osFailed=true;window.updatePushBtn&&updatePushBtn()"></script>
 <script>
 /* Captured synchronously, before supabase-js's detectSessionInUrl can consume/clear the
    redirect hash — tells us this SIGNED_IN is "just verified my email", not a normal login,
@@ -1185,12 +1185,27 @@ if(ONESIGNAL_APP_ID){
   window.OneSignalDeferred=window.OneSignalDeferred||[];
   OneSignalDeferred.push(async function(OneSignal){
     await OneSignal.init({appId:ONESIGNAL_APP_ID,serviceWorkerPath:'sw.js',serviceWorkerParam:{scope:'/'}});
-    window._oneSignal=OneSignal;
+    window._oneSignal=OneSignal;window._osFailed=false;
     if(_player)OneSignal.login(_player.id);
     try{OneSignal.Notifications.addEventListener('permissionChange',()=>updatePushBtn());}catch(e){}
     updatePushBtn();
   });
 }
+/* Ad/tracker blockers (uBlock, Brave Shields, AdGuard, some DNS filters) block
+   cdn.onesignal.com outright. Without this the SDK just never arrives, pushState()
+   stays 'loading' forever and the button looks dead — so flag it after a script
+   error (onerror on #os-sdk) or 10s with no init, and tell the player how to fix it. */
+if(ONESIGNAL_APP_ID)setTimeout(()=>{if(!window._oneSignal){window._osFailed=true;updatePushBtn();}},10000);
+function reloadOneSignalSdk(){
+  return new Promise(res=>{
+    const sc=document.createElement('script');
+    sc.src='https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+    sc.onerror=()=>res(false);
+    document.head.appendChild(sc);
+    let n=0;const iv=setInterval(()=>{if(window._oneSignal||++n>32){clearInterval(iv);res(!!window._oneSignal);}},250);
+  });
+}
+const PUSH_BLOCKED_HELP="Your browser or an ad-blocker is blocking our notification service (OneSignal), so alerts can't reach this device.\n\nFix: turn off the ad-blocker / Brave Shields for jdesport.co.uk (or allow cdn.onesignal.com), reload the page, then tap Enable push alerts again.\n\nRoom codes still reach you by email and in the 🔔 Notification History.";
 /* iPhone/iPad only support push for a home-screen-installed app (Apple's own
    restriction, not something we can work around) — Safari-tab visits never get a
    working push subscription no matter what we do here, so detect that state and
@@ -1203,7 +1218,11 @@ async function enablePush(){
     showMsg('Install the app first',"On iPhone/iPad, Apple only sends notifications to installed apps: tap the Share icon in Safari, choose \"Add to Home Screen,\" then open JD Arena from that icon and tap this again.");
     return;
   }
-  if(!window._oneSignal){showMsg('One sec','Still loading — try again in a second.');return;}
+  if(!window._oneSignal){
+    // Not loaded yet (slow network) or blocked — retry once before giving up.
+    const ok=await reloadOneSignalSdk();
+    if(!ok){window._osFailed=true;updatePushBtn();showMsg('Notifications are being blocked',PUSH_BLOCKED_HELP,true);return;}
+  }
   if(typeof Notification==='function'&&Notification.permission==='denied'){
     showMsg("Notifications are blocked","You blocked notifications for this site before — turn them back on in your browser or phone's site settings, then try again.",true);
     return;
@@ -1226,7 +1245,7 @@ function pushState(){
   if(isIosDevice()&&!isStandaloneApp())return 'ios';
   if(typeof Notification!=='function')return 'unsupported';
   if(Notification.permission==='denied')return 'blocked';
-  if(!window._oneSignal)return 'loading';
+  if(!window._oneSignal)return window._osFailed?'sdkblocked':'loading';
   return window._oneSignal.Notifications.permission?'on':'ask';
 }
 const PUSH_UI={
@@ -1235,6 +1254,7 @@ const PUSH_UI={
   blocked:{row:'Push alerts blocked',sub:'Tap to see how to re-allow them',strip:'Notifications are blocked for this site in your browser settings.',cta:'How to fix'},
   ios:{row:'Install app for push',sub:'iPhone needs the home-screen app',strip:'On iPhone/iPad, phone alerts only work in the installed app.',cta:'Show me'},
   loading:{row:'Enable push alerts',sub:'Loading…',strip:''},
+  sdkblocked:{row:'Push blocked by browser',sub:'An ad-blocker is stopping alerts — tap to fix',strip:'An ad-blocker or browser shield is stopping phone alerts on this device.',cta:'How to fix'},
   unsupported:{row:'Push not supported',sub:"This browser can't receive push",strip:''},
   off:{row:'Push unavailable',sub:'Email + history still work',strip:''}
 };
@@ -1245,10 +1265,10 @@ function updatePushBtn(){
     const txt=b.querySelector('.pm-row-txt');
     if(txt)txt.innerHTML=`${esc(ui.row)}<small class="pm-row-sub">${esc(ui.sub)}</small>`;
     b.classList.toggle('on',s==='on');
-    b.classList.toggle('warn',s==='blocked'||s==='ios');
+    b.classList.toggle('warn',s==='blocked'||s==='ios'||s==='sdkblocked');
     b.disabled=s==='on'||s==='unsupported'||s==='off';
     const tg=document.getElementById('acct-push-toggle');
-    if(tg){tg.classList.toggle('on',s==='on');tg.classList.toggle('warn',s==='blocked'||s==='ios');}
+    if(tg){tg.classList.toggle('on',s==='on');tg.classList.toggle('warn',s==='blocked'||s==='ios'||s==='sdkblocked');}
   }
   const strip=document.getElementById('notif-push');
   if(strip){
