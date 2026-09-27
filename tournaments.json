@@ -68,8 +68,8 @@
       "game": "Free Fire BR · Squad",
       "date": "TBA",
       "time": "TBA",
-      "prize": "500",
-      "entry": "Free",
+      "prize": "400",
+      "entry": "10",
       "platform": "Mobile only",
       "slots": 12,
       "format": "BR · 3 matches",
@@ -83,7 +83,7 @@
       "date": "TBA",
       "time": "TBA",
       "prize": "500",
-      "entry": "Free",
+      "entry": "15",
       "platform": "Mobile only",
       "slots": 12,
       "format": "BR · 3 matches",
@@ -118,5 +118,5 @@
       }
     ]
   },
-  "_published_at": "2026-09-27T12:08:17.282Z"
+  "_published_at": "2026-09-27T12:56:50.795Z"
 }
