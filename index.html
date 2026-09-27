@@ -161,9 +161,17 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .tslots-label{display:block;width:100%;font:inherit;background:none;border:none;cursor:pointer;font-size:.74rem;font-weight:600;color:var(--gold-l);margin-bottom:16px;text-align:right;text-decoration:underline;text-underline-offset:3px}
 .tslots-label:hover{color:var(--gold-l)}
 .troster{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 16px}
-.troster span{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;padding:3px 10px 3px 3px;border-radius:20px;background:rgba(255,200,61,.1);border:1px solid var(--gold-m);color:var(--gold-l);opacity:0;animation:chipIn .4s ease forwards}
-.troster span:nth-child(1){animation-delay:.02s}.troster span:nth-child(2){animation-delay:.07s}.troster span:nth-child(3){animation-delay:.12s}.troster span:nth-child(4){animation-delay:.17s}.troster span:nth-child(5){animation-delay:.22s}.troster span:nth-child(6){animation-delay:.27s}.troster span:nth-child(7){animation-delay:.32s}.troster span:nth-child(8){animation-delay:.37s}.troster span:nth-child(n+9){animation-delay:.4s}
-.troster span.nologo{padding:3px 10px}
+.troster > span{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;padding:3px 10px 3px 3px;border-radius:20px;background:rgba(255,200,61,.1);border:1px solid var(--gold-m);color:var(--gold-l);opacity:0;animation:chipIn .4s ease forwards}
+/* .troster > span's plain chipIn outranks the single-class effect animations below, so
+   chips with a looping effect re-declare the full list here (chipIn first, so `forwards`
+   still lands them at opacity 1). The child > combinator above matters too: a descendant
+   `.troster span` also caught .fx-name/.fx-badge, and each effect's own text animation
+   then replaced chipIn on them — leaving them stuck at opacity:0, i.e. an invisible name. */
+.troster > span.sq-fx-ice{animation:chipIn .4s ease forwards,fxSweep 2.6s linear infinite}
+.troster > span.sq-fx-neon{animation:chipIn .4s ease forwards,neonFlicker 2.8s linear infinite}
+.troster > span.sq-fx-rainbow{animation:chipIn .4s ease forwards,rainbowCycle 4s linear infinite,fxSweep 3s linear infinite}
+.troster > span:nth-child(1){animation-delay:.02s}.troster > span:nth-child(2){animation-delay:.07s}.troster > span:nth-child(3){animation-delay:.12s}.troster > span:nth-child(4){animation-delay:.17s}.troster > span:nth-child(5){animation-delay:.22s}.troster > span:nth-child(6){animation-delay:.27s}.troster > span:nth-child(7){animation-delay:.32s}.troster > span:nth-child(8){animation-delay:.37s}.troster > span:nth-child(n+9){animation-delay:.4s}
+.troster > span.nologo{padding:3px 10px}
 .troster img{width:18px;height:18px;border-radius:50%;object-fit:cover;background:#000}
 @keyframes chipIn{from{opacity:0;transform:translateY(6px) scale(.92)}to{opacity:1;transform:translateY(0) scale(1)}}
 /* squad special effects — set per squad in the admin editor, see SQUAD_FX above.
@@ -171,7 +179,7 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
    rather than just a static colored border, so it reads as an effect happening
    around the squad, not a flat color swap. .fx-badge is the little emoji marker
    (crown/flame/etc) — positioned per-effect below, not just inline text. */
-.troster span.sq-fx-gold,.troster span.sq-fx-fire,.troster span.sq-fx-ice,.troster span.sq-fx-neon,.troster span.sq-fx-rainbow,
+.troster > span.sq-fx-gold,.troster > span.sq-fx-fire,.troster > span.sq-fx-ice,.troster > span.sq-fx-neon,.troster > span.sq-fx-rainbow,
 .sqitem.sq-fx-gold,.sqitem.sq-fx-fire,.sqitem.sq-fx-ice,.sqitem.sq-fx-neon,.sqitem.sq-fx-rainbow{position:relative}
 .fx-badge{display:inline-block;position:relative;z-index:1}
 .fx-name{position:relative;z-index:1}
@@ -180,7 +188,7 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 @keyframes crownBob{0%,100%{transform:translateX(-50%) rotate(-6deg) translateY(0)}50%{transform:translateX(-50%) rotate(6deg) translateY(-3px)}}
 @keyframes sparkleTwinkle{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1)}}
 .sq-fx-gold{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 16px rgba(255,200,61,.45)}
-.troster span.sq-fx-gold{background:rgba(255,200,61,.22);font-weight:700}
+.troster > span.sq-fx-gold{background:rgba(255,200,61,.22);font-weight:700}
 .sq-fx-gold .fx-badge{position:absolute;top:-14px;left:16px;font-size:13px;animation:crownBob 1.7s ease-in-out infinite;filter:drop-shadow(0 0 3px rgba(255,215,80,.9))}
 .sqitem.sq-fx-gold .fx-badge{top:-4px;left:48px}
 .sq-fx-gold::before,.sq-fx-gold::after{content:'';position:absolute;width:4px;height:4px;border-radius:50%;background:#fff6d0;box-shadow:0 0 6px 1px rgba(255,236,150,.9);animation:sparkleTwinkle 1.6s ease-in-out infinite;pointer-events:none}
@@ -199,7 +207,7 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 @keyframes fireFlicker{0%,100%{transform:translateX(-50%) scale(1) rotate(-2deg)}50%{transform:translateX(-50%) scale(1.1) rotate(2deg)}}
 @keyframes fireTextColor{0%,100%{color:#ffcf6b;text-shadow:0 0 5px rgba(255,140,60,.9),0 0 10px rgba(255,90,46,.5)}50%{color:#ff8a3d;text-shadow:0 0 7px rgba(255,90,46,1),0 0 14px rgba(255,90,46,.8)}}
 .sq-fx-fire{border-color:#ff6b3d;box-shadow:0 0 0 1px #ff6b3d,0 0 14px rgba(255,107,61,.45);animation:chipIn .4s ease forwards}
-.troster span.sq-fx-fire{background-color:rgba(255,107,61,.14)}
+.troster > span.sq-fx-fire{background-color:rgba(255,107,61,.14)}
 .sq-fx-fire .fx-name{font-weight:800;animation:fireTextColor 1.4s ease-in-out infinite}
 .sq-fx-fire .fxp:nth-child(1){top:-15px;bottom:auto;left:50%;width:18px;height:18px;border-radius:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff6b3d' d='M12 2C12 2 4 11 4 16C4 19.31 7.58 22 12 22C16.42 22 20 19.31 20 16C20 11 12 2 12 2Z'/%3E%3Cpath fill='%23ffd479' d='M12 8C12 8 8 13 8 16.5C8 18.98 9.79 21 12 21C14.21 21 16 18.98 16 16.5C16 13 12 8 12 8Z'/%3E%3C/svg%3E") center/contain no-repeat;filter:drop-shadow(0 1px 3px rgba(255,107,61,.6));transform-origin:bottom center;animation:fireFlicker .9s ease-in-out infinite}
 .sq-fx-fire .fxp:nth-child(2),.sq-fx-fire .fxp:nth-child(3),.sq-fx-fire .fxp:nth-child(4){top:-6px;width:3px;height:3px;border-radius:50%;background:#ffd479;box-shadow:0 0 4px 1px rgba(255,180,80,.9);animation:emberRise 1.6s ease-in infinite}
@@ -213,7 +221,7 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 @keyframes iceShimmer{0%,100%{opacity:.75;filter:drop-shadow(0 0 3px rgba(150,230,255,.6))}50%{opacity:1;filter:drop-shadow(0 0 9px rgba(150,230,255,1))}}
 @keyframes fxSweep{0%{background-position:-70% 0}100%{background-position:170% 0}}
 .sq-fx-ice{border-color:#5fd3ff;box-shadow:0 0 0 1px #5fd3ff,0 0 12px rgba(95,211,255,.4);animation:chipIn .4s ease forwards,fxSweep 2.6s linear infinite;background-image:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.4) 50%,transparent 65%);background-size:250% 100%}
-.troster span.sq-fx-ice{background-color:rgba(95,211,255,.14)}
+.troster > span.sq-fx-ice{background-color:rgba(95,211,255,.14)}
 @keyframes iceTextColor{0%,100%{color:#eaffff;text-shadow:0 0 5px rgba(150,230,255,.8)}50%{color:#5fd3ff;text-shadow:0 0 9px rgba(95,211,255,1)}}
 .sq-fx-ice .fx-name{font-weight:800;animation:iceTextColor 2s ease-in-out infinite}
 .sq-fx-ice::before,.sq-fx-ice::after{content:'';position:absolute;top:50%;width:0;height:0;border-style:solid;pointer-events:none;animation:iceShimmer 2.2s ease-in-out infinite}
@@ -223,7 +231,7 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 /* Neon — classic sign buzz/flicker plus a soft glow wash behind the text for depth */
 @keyframes neonFlicker{0%,19%,21%,23%,54%,56%,100%{opacity:1}20%,22%,55%{opacity:.5}}
 .sq-fx-neon{border-color:#c86bff;box-shadow:0 0 0 1px #c86bff,0 0 12px rgba(200,107,255,.4);animation:chipIn .4s ease forwards,neonFlicker 2.8s linear infinite;background-image:radial-gradient(ellipse at 50% 50%,rgba(200,107,255,.35),transparent 75%)}
-.troster span.sq-fx-neon{background-color:rgba(200,107,255,.12)}
+.troster > span.sq-fx-neon{background-color:rgba(200,107,255,.12)}
 @keyframes neonTextColor{0%,19%,21%,23%,54%,56%,100%{color:#fff;text-shadow:0 0 4px #fff,0 0 9px #c86bff,0 0 18px #c86bff}20%,22%,55%{color:#e0b3ff;text-shadow:0 0 3px #fff,0 0 5px #c86bff}}
 .sq-fx-neon .fx-name{font-weight:800;animation:neonTextColor 2.8s linear infinite}
 
@@ -231,7 +239,7 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
    same light sweep as Ice layered on top for extra shimmer. */
 @keyframes rainbowCycle{0%{border-color:#ff5f6d;box-shadow:0 0 0 1px #ff5f6d,0 0 16px rgba(255,95,109,.5)}16%{border-color:#ffb347;box-shadow:0 0 0 1px #ffb347,0 0 16px rgba(255,179,71,.5)}33%{border-color:#ffe066;box-shadow:0 0 0 1px #ffe066,0 0 16px rgba(255,224,102,.5)}50%{border-color:#54e0a0;box-shadow:0 0 0 1px #54e0a0,0 0 16px rgba(84,224,160,.5)}66%{border-color:#4fa9ff;box-shadow:0 0 0 1px #4fa9ff,0 0 16px rgba(79,169,255,.5)}83%{border-color:#c86bff;box-shadow:0 0 0 1px #c86bff,0 0 16px rgba(200,107,255,.5)}100%{border-color:#ff5f6d;box-shadow:0 0 0 1px #ff5f6d,0 0 16px rgba(255,95,109,.5)}}
 .sq-fx-rainbow{animation:chipIn .4s ease forwards,rainbowCycle 4s linear infinite,fxSweep 3s linear infinite;background-image:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.3) 50%,transparent 65%);background-size:250% 100%}
-.troster span.sq-fx-rainbow{background-color:rgba(255,255,255,.06)}
+.troster > span.sq-fx-rainbow{background-color:rgba(255,255,255,.06)}
 @keyframes rainbowTextColor{0%{color:#ff5f6d;text-shadow:0 0 6px rgba(255,95,109,.8)}16%{color:#ffb347;text-shadow:0 0 6px rgba(255,179,71,.8)}33%{color:#ffe066;text-shadow:0 0 6px rgba(255,224,102,.8)}50%{color:#54e0a0;text-shadow:0 0 6px rgba(84,224,160,.8)}66%{color:#4fa9ff;text-shadow:0 0 6px rgba(79,169,255,.8)}83%{color:#c86bff;text-shadow:0 0 6px rgba(200,107,255,.8)}100%{color:#ff5f6d;text-shadow:0 0 6px rgba(255,95,109,.8)}}
 .sq-fx-rainbow .fx-name{font-weight:800;animation:rainbowTextColor 4s linear infinite}
 /* Real particle elements (not pseudo-element tricks) so each spark/flake/confetti
@@ -308,7 +316,14 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .notify-btn.on{background:var(--gold);color:#0a0a12;border-color:var(--gold)}
 .icon-btn{position:relative;background:transparent;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:30px;width:42px;height:42px;display:inline-flex;align-items:center;justify-content:center;font-size:1.2rem;cursor:pointer;transition:.2s;flex:none}
 .icon-btn:hover{background:rgba(255,200,61,.12)}
-.icon-btn .badge{position:absolute;top:-6px;right:-6px;background:var(--gold);color:#0a0a12;font-size:.66rem;font-weight:700;border-radius:10px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1}
+.icon-btn .badge{position:absolute;top:-6px;right:-6px;background:var(--gold);color:#0a0a12;font-size:.66rem;font-weight:700;border-radius:10px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1;box-shadow:0 0 0 2px var(--bg,#05080f)}
+.icon-btn .badge[hidden]{display:none}
+#notifhist-btn.has-unread{border-color:var(--gold);box-shadow:0 0 14px rgba(255,200,61,.28)}
+#notifhist-btn.has-unread .badge{animation:badgePulse 2.2s ease-out infinite}
+#notifhist-btn.ring{animation:bellRing .9s cubic-bezier(.36,.07,.19,.97)}
+@keyframes badgePulse{0%{box-shadow:0 0 0 2px var(--bg,#05080f),0 0 0 2px rgba(255,200,61,.55)}70%{box-shadow:0 0 0 2px var(--bg,#05080f),0 0 0 9px rgba(255,200,61,0)}100%{box-shadow:0 0 0 2px var(--bg,#05080f),0 0 0 2px rgba(255,200,61,0)}}
+@keyframes bellRing{0%,100%{transform:rotate(0)}15%{transform:rotate(14deg)}30%{transform:rotate(-12deg)}45%{transform:rotate(9deg)}60%{transform:rotate(-6deg)}75%{transform:rotate(3deg)}}
+@media(prefers-reduced-motion:reduce){#notifhist-btn.has-unread .badge,#notifhist-btn.ring{animation:none}}
 .dl-wrap{position:relative}
 @media(min-width:641px){body.signed-in .dl-wrap{display:none}}
 .dl-menu{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:6px;min-width:150px;z-index:30;box-shadow:0 12px 30px rgba(0,0,0,.5)}
@@ -456,12 +471,35 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .rs-actions .btn-primary{flex:1}
 .rs-actions .btn-ghost-sm{flex:none;background:transparent;border:1px solid var(--line);color:var(--silver);border-radius:999px;padding:13px 22px;font-family:inherit;font-size:.86rem;font-weight:600;cursor:pointer;transition:.2s}
 .rs-actions .btn-ghost-sm:hover{border-color:var(--gold-m);color:var(--cream)}
-#notif-list{max-height:52vh;overflow-y:auto}
+#notif-list{max-height:52vh;overflow-y:auto;overscroll-behavior:contain}
+.notif-push{display:flex;align-items:center;gap:10px;padding:10px 12px;margin:0 0 12px;border-radius:12px;border:1px solid var(--gold-m);background:rgba(255,200,61,.07);font-size:.8rem;color:var(--body)}
+.notif-push[hidden]{display:none}
+.reg-verified{flex:none;font-size:.66rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:rgba(94,219,149,.14);color:var(--green,#5EDB95);border:1px solid rgba(94,219,149,.35);white-space:nowrap}
+.notif-push.blocked,.notif-push.ios{border-color:rgba(255,170,110,.4);background:rgba(255,150,80,.07)}
+.notif-push-ic{font-size:1.1rem;flex:none}
+.notif-push-txt{flex:1;line-height:1.4}
+.notif-push button{flex:none;font:inherit;font-size:.76rem;font-weight:700;padding:7px 13px;border-radius:999px;border:none;cursor:pointer;background:var(--gold);color:#0a0a12;transition:transform .15s}
+.notif-push.blocked button,.notif-push.ios button{background:transparent;border:1px solid var(--warm-l);color:var(--warm-l)}
+.notif-push button:active{transform:scale(.95)}
+.notif-empty{text-align:center;padding:26px 10px 14px;color:var(--body)}
+.notif-empty span{display:block;font-size:1.8rem;margin-bottom:8px;opacity:.8}
+.notif-empty b{display:block;color:var(--cream);font-weight:600;margin-bottom:4px}
+.notif-empty p{margin:0;font-size:.82rem}
+.pm-row-sub{display:block;font-size:.72rem;font-weight:400;color:var(--pm-muted,#9CA8BE);margin-top:1px}
+#acct-push-btn.on .pm-row-sub{color:var(--pm-success,#5EDB95)}
+#acct-push-btn.warn .pm-row-sub{color:var(--warm-l)}
+#acct-push-btn[disabled]{cursor:default}
+#acct-push-btn[disabled]:hover{background:none}
+.pm-toggle.warn{background:rgba(255,150,80,.18)}
+.pm-toggle.warn::after{background:var(--warm-l)}
 .notif-item{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
 .notif-item.unread{border-color:var(--gold-m);background:rgba(255,200,61,.06)}
 .notif-item .t{font-weight:600;color:var(--cream);font-size:.9rem;margin-bottom:4px}
 .notif-item .b{color:var(--body);font-size:.84rem;white-space:pre-line}
-.notif-item .rc{font-family:'Courier New',monospace;background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:.86rem;color:var(--gold-l)}
+.notif-item .rc{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:'Courier New',monospace;background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:.86rem;color:var(--gold-l)}
+.rc-copy{flex:none;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:600;padding:5px 11px;border-radius:999px;border:1px solid var(--gold-m);background:transparent;color:var(--gold-l);cursor:pointer;transition:.15s}
+.rc-copy:hover{background:rgba(255,200,61,.12)}
+.rc-copy.done{border-color:var(--green,#5EDB95);color:var(--green,#5EDB95)}
 .notif-item .ts{color:var(--silver);font-size:.7rem;margin-top:6px}
 .inapp-reg{display:block;width:100%;margin-top:8px;background:linear-gradient(100deg,var(--gold),var(--gold-2));border:none;color:#07090F;border-radius:999px;padding:13px;font-family:inherit;font-size:.86rem;font-weight:700;cursor:pointer;transition:.2s}
 .inapp-reg:hover{transform:translateY(-1px) scale(1.01);box-shadow:0 8px 24px rgba(255,190,50,.3)}
@@ -674,8 +712,9 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 </div>
 <div class="zoverlay" id="notif-overlay" onclick="if(event.target===this)notifHistClose()">
   <div class="zmodal" style="max-width:460px"><button class="fb-x" style="position:absolute;top:12px;right:14px" onclick="notifHistClose()" aria-label="close">×</button>
-    <h3>Notification History</h3>
+    <h3>Notifications</h3>
     <p class="sub">Room IDs and updates for tournaments you've registered for in-app.</p>
+    <div id="notif-push" class="notif-push" hidden></div>
     <div id="notif-list"></div>
   </div>
 </div>
@@ -988,6 +1027,7 @@ if(ONESIGNAL_APP_ID){
     await OneSignal.init({appId:ONESIGNAL_APP_ID,serviceWorkerPath:'sw.js',serviceWorkerParam:{scope:'/'}});
     window._oneSignal=OneSignal;
     if(_player)OneSignal.login(_player.id);
+    try{OneSignal.Notifications.addEventListener('permissionChange',()=>updatePushBtn());}catch(e){}
     updatePushBtn();
   });
 }
@@ -1018,13 +1058,43 @@ async function enablePush(){
   updatePushBtn();
   if(window._oneSignal.Notifications.permission)showMsg('Push alerts on',"You'll get notified for room codes, reminders and announcements.");
 }
+/* One place that decides what push looks like on this device, so the account row and the
+   strip at the top of the notifications modal never disagree. 'blocked'/'ios' stay
+   clickable (enablePush() explains the fix) instead of looking like a dead toggle. */
+function pushState(){
+  if(!ONESIGNAL_APP_ID)return 'off';
+  if(isIosDevice()&&!isStandaloneApp())return 'ios';
+  if(typeof Notification!=='function')return 'unsupported';
+  if(Notification.permission==='denied')return 'blocked';
+  if(!window._oneSignal)return 'loading';
+  return window._oneSignal.Notifications.permission?'on':'ask';
+}
+const PUSH_UI={
+  on:{row:'Push alerts on',sub:'Room codes & reminders arrive on this device',strip:''},
+  ask:{row:'Enable push alerts',sub:'Get room codes the second they drop',strip:'Get room codes and reminders on this device the moment they drop.',cta:'Turn on'},
+  blocked:{row:'Push alerts blocked',sub:'Tap to see how to re-allow them',strip:'Notifications are blocked for this site in your browser settings.',cta:'How to fix'},
+  ios:{row:'Install app for push',sub:'iPhone needs the home-screen app',strip:'On iPhone/iPad, phone alerts only work in the installed app.',cta:'Show me'},
+  loading:{row:'Enable push alerts',sub:'Loading…',strip:''},
+  unsupported:{row:'Push not supported',sub:"This browser can't receive push",strip:''},
+  off:{row:'Push unavailable',sub:'Email + history still work',strip:''}
+};
 function updatePushBtn(){
-  const b=document.getElementById('acct-push-btn');if(!b)return;
-  const on=!!(window._oneSignal&&window._oneSignal.Notifications&&window._oneSignal.Notifications.permission);
-  const txt=b.querySelector('.pm-row-txt');if(txt)txt.textContent=on?'Push alerts on':'Enable push alerts';
-  b.classList.toggle('on',on);
-  b.disabled=on;
-  const tg=document.getElementById('acct-push-toggle');if(tg)tg.classList.toggle('on',on);
+  const s=pushState(),ui=PUSH_UI[s];
+  const b=document.getElementById('acct-push-btn');
+  if(b){
+    const txt=b.querySelector('.pm-row-txt');
+    if(txt)txt.innerHTML=`${esc(ui.row)}<small class="pm-row-sub">${esc(ui.sub)}</small>`;
+    b.classList.toggle('on',s==='on');
+    b.classList.toggle('warn',s==='blocked'||s==='ios');
+    b.disabled=s==='on'||s==='unsupported'||s==='off';
+    const tg=document.getElementById('acct-push-toggle');
+    if(tg){tg.classList.toggle('on',s==='on');tg.classList.toggle('warn',s==='blocked'||s==='ios');}
+  }
+  const strip=document.getElementById('notif-push');
+  if(strip){
+    if(!_player||!ui.strip){strip.hidden=true;strip.innerHTML='';}
+    else{strip.hidden=false;strip.className='notif-push '+s;strip.innerHTML=`<span class="notif-push-ic">${s==='ask'?'🔔':s==='ios'?'📲':'🚫'}</span><span class="notif-push-txt">${esc(ui.strip)}</span><button type="button" onclick="enablePush()">${esc(ui.cta)}</button>`;}
+  }
 }
 /* Called right when an account becomes active (signup with email confirmation off, or
    right after clicking the verify-email link) instead of waiting for a button click.
@@ -1138,7 +1208,7 @@ function effectiveStatus(t){
 
 /* Polled every 5s (see the setInterval below) so slot counts/roster feel live without a
    page reload — but re-writing arena-grid's innerHTML every tick would replay every squad
-   chip's entrance animation (.troster span's chipIn) and the slot-bar width transition on
+   chip's entrance animation (.troster > span's chipIn) and the slot-bar width transition on
    every single poll, even when nothing changed. So the grid HTML is only actually written
    when it differs from last time; ticks where nothing moved are a no-op past this point. */
 let _lastGridHTML=null;
@@ -1267,7 +1337,35 @@ async function renderPredictBoard(d){
   }catch(e){sec.style.display='none';}
 }
 function tick(){document.querySelectorAll('.tcount').forEach(el=>{const bar=el.nextElementSibling;const s=Date.parse(el.dataset.start);if(isNaN(s)){el.style.display='none';if(bar)bar.style.display='none';return}let diff=s-Date.now();if(diff<=0){el.textContent='⏱ Starting now';if(bar)bar.style.display='none';return}const d=Math.floor(diff/864e5),h=Math.floor(diff%864e5/36e5),m=Math.floor(diff%36e5/6e4),sec=Math.floor(diff%6e4/1e3);el.textContent='⏱ Starts in '+(d?d+'d ':'')+h+'h '+m+'m'+(d?'':' '+sec+'s')})}
-function refresh(){const same=(/^https?:$/.test(location.protocol))?new URL('tournaments.json',location.href).href:null;const tryGet=u=>u?fetch(u,{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()):Promise.reject();tryGet(same).catch(()=>tryGet(TOURNAMENTS_URL)).then(d=>{d._live=true;render(d)}).catch(()=>{})}
+/* Two copies of tournaments.json exist: the GitHub Pages file, and the live copy the
+   publish-tournaments Edge Function also writes to public.site_content. The Pages file
+   lags every publish (rebuild + a CDN cache that can hold it ~10 min, which `no-store`
+   alone doesn't bypass), so whichever copy has the newer _published_at wins — admin
+   changes show on the very next poll/refresh, and a manually committed newer file still
+   beats an older live copy. Polling stays cheap: the live copy is only re-downloaded when
+   its updated_at changes, and the Pages URL carries a 20s cache-busting bucket so the CDN
+   refetches from GitHub at most that often instead of serving a stale copy for minutes. */
+let _pagesDoc=null,_liveDoc=null,_liveStamp=null;
+function pubTime(d){return (d&&Date.parse(d._published_at))||0;}
+async function pollLiveContent(){
+  if(!sb)return;
+  const {data,error}=await sb.from('site_content').select('updated_at').eq('key','tournaments').maybeSingle();
+  if(error||!data||data.updated_at===_liveStamp)return;
+  const full=await sb.from('site_content').select('content,updated_at').eq('key','tournaments').maybeSingle();
+  if(!full.error&&full.data&&full.data.content){_liveDoc=full.data.content;_liveStamp=full.data.updated_at;}
+}
+function fetchPagesDoc(){
+  const bust='v='+Math.floor(Date.now()/20000);
+  const same=(/^https?:$/.test(location.protocol))?new URL('tournaments.json?'+bust,location.href).href:null;
+  const tryGet=u=>u?fetch(u,{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()):Promise.reject();
+  return tryGet(same).catch(()=>tryGet(TOURNAMENTS_URL+'?'+bust)).then(d=>{_pagesDoc=d;});
+}
+function refresh(){
+  Promise.all([fetchPagesDoc().catch(()=>{}),pollLiveContent().catch(()=>{})]).then(()=>{
+    const d=(_liveDoc&&_pagesDoc)?(pubTime(_liveDoc)>=pubTime(_pagesDoc)?_liveDoc:_pagesDoc):(_liveDoc||_pagesDoc);
+    if(d){d._live=true;render(d);}
+  });
+}
 
 /* ── accounts (Supabase Auth) — free, serverless, live 24/7, no laptop required ──
    Handles signup, email verification, login, forgot-password, in-app tournament
@@ -1780,8 +1878,8 @@ let _myRegs=new Map(); // tournament name -> {id, squad_name, squad_logo, status
 let _regTarget=null,_regLogoData=null,_regPayData=null;
 async function loadMyRegs(){
   if(!sb||!_player){_myRegs=new Map();return;}
-  const {data}=await sb.from('registrations').select('id, tournament_slug, squad_name, squad_logo, status, checked_in_at').eq('player_id',_player.id);
-  _myRegs=new Map((data||[]).map(r=>[r.tournament_slug,{id:r.id,squad_name:r.squad_name,squad_logo:r.squad_logo,status:r.status||'confirmed',checked_in_at:r.checked_in_at||null}]));
+  const {data}=await sb.from('registrations').select('id, tournament_slug, squad_name, squad_logo, status, checked_in_at, verified_at').eq('player_id',_player.id);
+  _myRegs=new Map((data||[]).map(r=>[r.tournament_slug,{id:r.id,squad_name:r.squad_name,squad_logo:r.squad_logo,status:r.status||'confirmed',checked_in_at:r.checked_in_at||null,verified_at:r.verified_at||null}]));
   render(_lastData||ARENA_SAMPLE);
 }
 function registerInApp(name){
@@ -1938,9 +2036,9 @@ function inAppRegBtn(t,st,full){
     if(r.status==='pending')return `<div class="inapp-reg-done pending">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>⏳ Payment pending verification${r.squad_name?' — '+esc(r.squad_name):''} · Ticket ${esc(regTicketCode(r))}</span></div>`;
     if(r.status==='rejected')return `<div class="inapp-reg-done rejected"><span>✕ Payment not verified — contact us to sort it out</span></div>`;
     if(r.status==='no_show')return `<div class="inapp-reg-done rejected"><span>✕ Missed check-in — your spot was released</span></div>`;
-    if(r.checked_in_at)return `<div class="inapp-reg-done">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>✓ Checked in${r.squad_name?' as '+esc(r.squad_name):''} — see you there! · Ticket ${esc(regTicketCode(r))}</span></div>`;
+    if(r.checked_in_at)return `<div class="inapp-reg-done">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>✓ Checked in${r.squad_name?' as '+esc(r.squad_name):''} — see you there! · Ticket ${esc(regTicketCode(r))}</span>${r.verified_at?'<span class="reg-verified">✅ Verified</span>':''}</div>`;
     if(checkinWindowOpen(t))return `<button class="inapp-reg" data-checkin="${esc(t.name)}">✅ Check In Now</button>`;
-    return `<div class="inapp-reg-done">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>✓ Registered${r.squad_name?' as '+esc(r.squad_name):''} — Ticket ${esc(regTicketCode(r))} · check Notification History for your room ID</span></div>`;
+    return `<div class="inapp-reg-done">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>✓ Registered${r.squad_name?' as '+esc(r.squad_name):''} — Ticket ${esc(regTicketCode(r))} · check Notification History for your room ID</span>${r.verified_at?'<span class="reg-verified">✅ Verified</span>':''}</div>`;
   }
   // Paid tournaments still have no waitlist (see registerInApp's early gate) — only free
   // ones show "Join Waitlist" here; the button still opens the normal registration modal,
@@ -2033,6 +2131,7 @@ function openReviewForm(box,name){
 /* notification history */
 function notifHistOpen(){
   document.getElementById('notif-overlay').classList.add('open');
+  updatePushBtn();
   loadNotifications(true);
   maybeAskPush(); // one click both opens history and, if push permission was never answered, prompts for it -- safe no-op if already granted/denied/not configured
 }
@@ -2071,7 +2170,13 @@ function showMsg(title,body,isErr){
   document.getElementById('msg-overlay').classList.add('open');
 }
 function msgClose(){document.getElementById('msg-overlay').classList.remove('open');}
-function updateNotifHistBtn(){const b=document.getElementById('notif-badge');if(!b)return;if(_notifUnread>0){b.textContent=_notifUnread>99?'99+':_notifUnread;b.hidden=false;}else{b.hidden=true;}}
+function updateNotifHistBtn(){
+  const b=document.getElementById('notif-badge'),btn=document.getElementById('notifhist-btn');if(!b)return;
+  if(_notifUnread>0){b.textContent=_notifUnread>99?'99+':_notifUnread;b.hidden=false;}else{b.hidden=true;}
+  if(btn){btn.classList.toggle('has-unread',_notifUnread>0);btn.setAttribute('aria-label',_notifUnread>0?`Notifications, ${_notifUnread} unread`:'Notifications');}
+}
+// one-shot bell swing when something new lands; re-triggerable by removing/re-adding the class
+function ringBell(){const btn=document.getElementById('notifhist-btn');if(!btn)return;btn.classList.remove('ring');void btn.offsetWidth;btn.classList.add('ring');}
 // register_for_tournament() (schema.sql) drops a "TICKET::<code>::<status>" notification
 // alongside every registration — same ticket code as regTicketCode()/the success modal, just
 // persisted so it's not a one-time popup. Rendered as a small styled card (reusing the
@@ -2090,12 +2195,22 @@ function notifTicketHtml(n,unreadClass){
     +`<div class="rs-row"><span class="rs-lbl">🎫 Entry</span><span class="rs-val${paid?'':' ok'}">${paid?esc(t.entry||''):'FREE'}</span></div>`
     +(t.platform?`<div class="rs-row"><span class="rs-lbl">📱 Platform</span><span class="rs-val">${esc(t.platform)}</span></div>`:'')
     +`<div class="rs-row"><span class="rs-lbl">🛡 Status</span><span class="rs-val${waitlisted||pending?' warn':' ok'}">${statusText}</span></div>`
-    +`</div><div class="ts">${new Date(n.created_at).toLocaleString()}</div></div>`;
+    +`</div>${notifTimeHtml(n.created_at)}</div>`;
+}
+function notifTimeHtml(iso){
+  const d=new Date(iso),s=(Date.now()-d)/1000;
+  const rel=s<60?'just now':s<3600?Math.floor(s/60)+'m ago':s<86400?Math.floor(s/3600)+'h ago':s<604800?Math.floor(s/86400)+'d ago':d.toLocaleDateString();
+  return `<div class="ts" title="${esc(d.toLocaleString())}">${esc(rel)}</div>`;
+}
+function copyRoom(btn,id,pass){
+  const text='Room ID: '+id+(pass?'\nPassword: '+pass:'');
+  (navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject()).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done');},1400);}).catch(()=>{btn.textContent='Copy failed';});
 }
 function notifItemHtml(n){
   const unreadClass=n.read_at?'':' unread';
   if(n.body&&n.body.startsWith('TICKET::'))return notifTicketHtml(n,unreadClass);
-  return `<div class="notif-item${unreadClass}"><div class="t">${esc(n.title)}</div>${n.body?`<div class="b">${esc(n.body)}</div>`:''}${n.room_id?`<div class="rc">Room ID: <b>${esc(n.room_id)}</b>${n.room_pass?' · Pass: <b>'+esc(n.room_pass)+'</b>':''}</div>`:''}<div class="ts">${new Date(n.created_at).toLocaleString()}</div></div>`;
+  const rc=n.room_id?`<div class="rc"><span>Room ID: <b>${esc(n.room_id)}</b>${n.room_pass?' · Pass: <b>'+esc(n.room_pass)+'</b>':''}</span><button type="button" class="rc-copy" data-id="${esc(n.room_id)}" data-pass="${esc(n.room_pass||'')}" onclick="copyRoom(this,this.dataset.id,this.dataset.pass)">Copy</button></div>`:'';
+  return `<div class="notif-item${unreadClass}"><div class="t">${esc(n.title)}</div>${n.body?`<div class="b">${esc(n.body)}</div>`:''}${rc}${notifTimeHtml(n.created_at)}</div>`;
 }
 /* ── chime: 'notify' plays the real notify.mp3 file; 'install' (and 'notify' if the
    file ever fails to play — blocked autoplay, missing file, etc.) falls back to a
@@ -2150,10 +2265,10 @@ async function loadNotifications(markSeenOnOpen){
   const rows=data||[];
   const prevUnread=_notifUnread;
   _notifUnread=rows.filter(r=>!r.read_at).length;
-  if(_notifUnread>prevUnread&&_notifHasLoadedOnce)playChime('notify');
+  if(_notifUnread>prevUnread&&_notifHasLoadedOnce){playChime('notify');ringBell();}
   _notifHasLoadedOnce=true;
   updateNotifHistBtn();
-  list.innerHTML=rows.length?rows.map(notifItemHtml).join(''):'<p class="sub">No notifications yet.</p>';
+  list.innerHTML=rows.length?rows.map(notifItemHtml).join(''):'<div class="notif-empty"><span>🔕</span><b>You&#39;re all caught up</b><p>Room codes, reminders and results for tournaments you join will show up here.</p></div>';
   if(markSeenOnOpen&&rows.some(r=>!r.read_at)){
     const ids=rows.filter(r=>!r.read_at).map(r=>r.id);
     sb.from('notifications').update({read_at:new Date().toISOString()}).in('id',ids).then(()=>{_notifUnread=0;updateNotifHistBtn();});
@@ -2253,6 +2368,8 @@ applyLang();refresh();loadPublicRoster();tick();updateAcctBtn();updateNotifHistB
    safe now that render() no-ops when nothing actually changed (see _lastGridHTML above),
    so most of these ticks touch zero DOM. Still skipped entirely on a backgrounded tab. */
 setInterval(()=>{if(!document.hidden){refresh();loadPublicRoster();if(_player){loadMyRegs();loadNotifications(false);}}},5000);
+// coming back to the tab/app catches up immediately instead of on the next 5s tick
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){refresh();loadPublicRoster();if(_player){loadMyRegs();loadNotifications(false);}}});
 setInterval(tick,1000);
 
 /* ── scroll-reveal: fade+lift `.reveal` sections into view once, skipped entirely under

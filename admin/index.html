@@ -73,6 +73,40 @@ details[open]>.dsum-sm::before{content:'▾ '}
 .online-count{font-family:'Playfair Display',serif;font-size:2.1rem;font-weight:700;color:var(--gold-l)}
 .online-chip{display:inline-block;font-size:.76rem;padding:4px 11px;border-radius:20px;background:var(--bg-2);border:1px solid var(--line);color:var(--cream);margin:3px 4px 0 0}
 .up-search{max-width:260px}
+/* ── registered teams / ticket verification ── */
+.tm-summary{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.tm-summary span{font-size:.74rem;padding:4px 11px;border-radius:20px;background:var(--bg-2);border:1px solid var(--line);color:var(--silver)}
+.tm-summary b{color:var(--cream);font-weight:600}
+.tm-card{display:flex;gap:14px;align-items:flex-start;padding:14px 16px}
+.tm-card.match{border-color:#5aab8a;box-shadow:0 0 0 1px #5aab8a,0 0 18px rgba(90,171,138,.25)}
+.tm-card.dim{opacity:.4}
+.tm-card.verified{background:linear-gradient(90deg,rgba(90,171,138,.08),var(--panel) 40%)}
+.tm-logo{width:44px;height:44px;border-radius:10px;object-fit:cover;background:var(--bg-2);border:1px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center;color:var(--gold-l);font-weight:700;font-size:1.05rem}
+.tm-main{flex:1;min-width:0}
+.tm-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.tm-name{font-weight:600;font-size:1rem;color:var(--cream);overflow-wrap:anywhere}
+.tm-code{font-family:'JetBrains Mono',monospace;font-size:.8rem;letter-spacing:.04em;padding:3px 9px;border-radius:7px;background:var(--bg-2);border:1px dashed var(--gold-m);color:var(--gold-l);cursor:pointer}
+.tm-code:hover{border-style:solid}
+.tm-pill{font-size:.64rem;letter-spacing:.07em;text-transform:uppercase;padding:2px 8px;border-radius:20px;border:1px solid var(--line);color:var(--silver)}
+.tm-pill.confirmed,.tm-pill.approved{border-color:rgba(90,171,138,.5);color:#7fcfae}
+.tm-pill.pending{border-color:rgba(227,171,126,.5);color:var(--warm-l)}
+.tm-pill.waitlisted{border-color:rgba(170,180,204,.4)}
+.tm-pill.rejected,.tm-pill.no_show{border-color:rgba(227,107,107,.45);color:var(--red)}
+.tm-meta{font-size:.8rem;color:var(--body);margin-top:4px;overflow-wrap:anywhere}
+.tm-meta b{color:var(--silver);font-weight:500}
+.tm-actions{display:flex;flex-direction:column;gap:6px;flex:none}
+.tm-btn{font:inherit;font-size:.74rem;padding:7px 12px;border-radius:8px;cursor:pointer;background:transparent;border:1px solid var(--line);color:var(--cream);white-space:nowrap;transition:border-color .15s,background .15s}
+.tm-btn:hover{border-color:var(--gold)}
+.tm-btn.ok-on{border-color:#5aab8a;background:rgba(90,171,138,.14);color:#7fcfae}
+.tm-btn.danger{border-color:rgba(227,107,107,.4);color:var(--red);background:rgba(227,107,107,.08)}
+.tm-btn.danger:hover{border-color:var(--red)}
+.tm-verdict{margin:10px 0 0;padding:10px 14px;border-radius:10px;font-size:.86rem;animation:msgIn .2s ease}
+.tm-verdict.good{background:rgba(90,171,138,.12);border:1px solid rgba(90,171,138,.45);color:#9fe0c3}
+.tm-verdict.bad{background:rgba(227,107,107,.1);border:1px solid rgba(227,107,107,.4);color:#f0a0a0}
+@media(max-width:560px){.tm-card{flex-wrap:wrap}.tm-actions{flex-direction:row;width:100%}.tm-actions .tm-btn{flex:1}.grid{grid-template-columns:1fr}}
+/* admin push button states */
+#admin-push-btn.on{border-color:#5aab8a;color:#7fcfae;cursor:default}
+#admin-push-btn.blocked{border-color:rgba(227,107,107,.45);color:var(--red)}
 /* ── motion: spring-eased micro-interactions (see setMsg/staggerReveal in the script) ── */
 .btn{transition:transform .15s cubic-bezier(.34,1.56,.64,1)}
 .btn:active{transform:scale(.94)}
@@ -241,6 +275,21 @@ details[open]>.dsum-sm::before{content:'▾ '}
     <div id="rc-msg" class="hint"></div>
   </div>
 
+  <h2 id="teams">Registered Teams <span class="tag">verify ticket codes · remove</span></h2>
+  <p class="hint">Every in-app registration for an event, with the same ticket code the player sees on their card (<b>JD-XXXXXXXX</b>). Ask a squad for their code, type it below to confirm it's really theirs, then mark them verified — saved permanently, and the player sees a ✅ Verified badge on their ticket. Removing a team deletes only that registration (not the account), notifies the player, and auto-promotes the next waitlisted squad if a slot frees up.</p>
+  <div class="grid">
+    <div class="f"><label>Tournament</label><select id="tm-tourney" onchange="loadTeamsAdmin()"></select></div>
+    <div class="f"><label>Check a ticket code</label><input id="tm-code" placeholder="e.g. JD-7F3K2A9C" autocomplete="off" oninput="renderTeamsAdmin()" style="font-family:'JetBrains Mono',monospace;text-transform:uppercase"></div>
+  </div>
+  <div id="tm-verdict"></div>
+  <div class="row">
+    <button class="btn ghost" onclick="loadTeamsAdmin()">↻ Load teams</button>
+    <select id="tm-status" onchange="renderTeamsAdmin()" style="width:auto"><option value="">All statuses</option><option value="active">Confirmed + approved</option><option value="pending">Pending payment</option><option value="waitlisted">Waitlisted</option><option value="no_show">No-show</option><option value="rejected">Rejected</option></select>
+    <div id="tm-msg" class="hint"></div>
+  </div>
+  <div id="tm-summary" class="tm-summary"></div>
+  <div id="tm-list"></div>
+
   <h2 id="reviews">Reviews <span class="tag">moderate · public trust feature</span></h2>
   <p class="hint">Anyone who was confirmed/approved for a tournament can leave a public star rating + comment once it's marked "completed" — no pre-approval queue, but you can remove an abusive or spam one here after the fact.</p>
   <div class="grid">
@@ -290,7 +339,8 @@ details[open]>.dsum-sm::before{content:'▾ '}
   <div class="grid">
     <div class="f full"><label>Title</label><input id="an-title" placeholder="e.g. Discord's back up!"></div>
     <div class="f full"><label>Message</label><textarea id="an-body" rows="3" placeholder="What do you want to tell them?"></textarea></div>
-    <div class="f full"><label>Only send to specific players? (optional)</label><input id="an-recipients" placeholder="e.g. JD-7F3K2, @someuser, someone@email.com — comma separated"></div>
+    <div class="f full"><label>Send to</label><select id="an-audience" onchange="anAudienceChanged()"><option value="">Everyone on the site</option><option value="__specific">Specific players…</option></select></div>
+    <div class="f full" id="an-recipients-wrap" style="display:none"><label>Players (tag / @username / email, comma separated)</label><input id="an-recipients" placeholder="e.g. JD-7F3K2, @someuser, someone@email.com"></div>
   </div>
   <div class="row">
     <button class="btn" onclick="sendAnnouncement()">📣 Send</button>
@@ -313,6 +363,7 @@ details[open]>.dsum-sm::before{content:'▾ '}
   <p class="hint">Subscribes THIS device to a push alert every time someone new signs up on the site, naming their username. Needs the same OneSignal + <code>ADMIN_SECRET</code> setup as Room Codes, plus a one-time Supabase Database Webhook — see <code>SUPABASE_SETUP.md</code>.</p>
   <div class="row">
     <button class="btn ghost" id="admin-push-btn" onclick="enableAdminPush()">🔔 Enable admin alerts</button>
+    <div id="admin-push-msg" class="hint"></div>
   </div>
   </details>
 
@@ -581,7 +632,7 @@ function renderT(){
     return `<div class="card"><button class="del" onclick="delT(${i})">Delete</button><button class="btn ghost" style="position:absolute;top:14px;right:92px;font-size:.72rem;padding:7px 12px" onclick="jumpToRoomCode(${i})">📨 Send Room Code</button><div class="grid">${sel}${reg}${platMode}${startPicker}${fields}${roster}</div></div>`;
   }).join('')||'<p class="hint">No tournaments yet — click "+ Add Event".</p>';
 }
-function renderAll(){document.getElementById('tagline').value=data.tagline||'';renderT();renderBo3();renderRcTourney();renderPpTourney();renderRvTourney();renderMrTourney();loadLiveCounts();}
+function renderAll(){document.getElementById('tagline').value=data.tagline||'';renderT();renderBo3();renderRcTourney();renderPpTourney();renderTmTourney();renderAnAudience();renderRvTourney();renderMrTourney();loadLiveCounts();}
 
 // live two-way binding (no re-render on keystroke, so focus stays)
 document.addEventListener('input',e=>{
@@ -772,6 +823,7 @@ function clean(){
   if(B.tournament||(B.teams&&B.teams.length)){
     out.bo3={tournament:B.tournament||'',title:(B.title||'').trim(),published:!!B.published,teams:(B.teams||[]).map(tm=>({team:String(tm.team||'').trim(),logo:tm.logo||'',r:[0,1,2].map(i=>({kills:+((tm.r&&tm.r[i]&&tm.r[i].kills)||0),pts:+((tm.r&&tm.r[i]&&tm.r[i].pts)||0)}))})).filter(tm=>{const keep=tm.team||tm.logo||tm.r.some(r=>r.kills||r.pts);if(!keep)_lastCleanDropped++;return keep;})};
   }
+  out._published_at=new Date().toISOString(); // lets the site pick the newest of the GitHub Pages file vs the instant live copy (see fetchLatestDoc)
   return out;
 }
 function gen(){document.getElementById('out').value=JSON.stringify(clean(),null,2);msg('Generated. Publish, download, or copy below.','ok');}
@@ -812,10 +864,8 @@ async function publishToGitHub(){
      instead of finding out after the fact. */
   if(_loadedSnapshot!=null){
     try{
-      const same=(/^https?:$/.test(location.protocol))?new URL('/tournaments.json',location.href).href:null;
-      const r=await fetch(same||'/tournaments.json',{cache:'no-store'});
-      if(r.ok){
-        const live=await r.json();
+      const live=await fetchLatestDoc().catch(()=>null);
+      if(live){
         if(JSON.stringify(live)!==JSON.stringify(_loadedSnapshot)){
           if(!confirm("The live tournaments.json has changed since you loaded it in this editor (e.g. published from another tab, or a team was added elsewhere).\n\nPublishing now will overwrite that with what you see here, erasing those changes.\n\nClick Cancel, then “↻ Load current” to pick up the latest data first — you'll need to redo your edit on top of it. Publish anyway?")){
             publishMsg('Publish cancelled — click "↻ Load current" to pick up the latest data first.','');
@@ -835,7 +885,7 @@ async function publishToGitHub(){
     const d=await r.json().catch(()=>({}));
     let published=null;
     try{published=JSON.parse(document.getElementById('out').value);_loadedSnapshot=published;}catch(x){} // what we just published is now the live baseline
-    let resultMsg=d.warning?('Published, but: '+d.warning):'Published! Live on the site once your host redeploys (usually under a minute).';
+    let resultMsg=d.warning?('Published, but: '+d.warning):'Published! Live on the site now — players see it within ~5 seconds, no refresh needed.';
     /* Auto-notify players the moment bo3 results go from unpublished to published,
        instead of relying on a separate "🔔 Notify players" click that's order-dependent
        (must happen after this publish, easy to forget or run out of order) — see
@@ -859,9 +909,22 @@ async function publishNow(){
   await publishToGitHub();
 }
 
+/* Newest of the two published copies — same rule as refresh() in index.html: the
+   instant live copy in public.site_content (written by publish-tournaments) vs the
+   GitHub Pages file, whichever has the newer _published_at. Loading from the Pages file
+   alone right after a publish would hand back the pre-publish data for minutes. */
+async function fetchLatestDoc(){
+  const same=(/^https?:$/.test(location.protocol))?new URL('/tournaments.json?v='+Date.now(),location.href).href:null;
+  const pages=fetch(same||'/tournaments.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
+  const live=sb?sb.from('site_content').select('content').eq('key','tournaments').maybeSingle().then(({data})=>(data&&data.content)||null,()=>null):Promise.resolve(null);
+  const [a,b]=await Promise.all([pages,live]);
+  const t=d=>(d&&Date.parse(d._published_at))||0;
+  const d=(a&&b)?(t(b)>=t(a)?b:a):(a||b);
+  if(!d)throw new Error('no tournaments.json');
+  return d;
+}
 function loadLive(){
-  const same=(/^https?:$/.test(location.protocol))?new URL('/tournaments.json',location.href).href:null;
-  fetch(same||'/tournaments.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(d=>{data={tagline:d.tagline||'JD Esports Arena · AyerFire',tournaments:d.tournaments||[],bo3:d.bo3||bo3Default()};_loadedSnapshot=d;renderAll();msg('Loaded current tournaments.json.','ok');}).catch(()=>{if(!data.tournaments.length){addT();}_loadedSnapshot=null;renderAll();msg('No tournaments.json found — starting fresh.','');});
+  fetchLatestDoc().then(d=>{data={tagline:d.tagline||'JD Esports Arena · AyerFire',tournaments:d.tournaments||[],bo3:d.bo3||bo3Default()};_loadedSnapshot=d;renderAll();msg('Loaded current tournaments.json.','ok');}).catch(()=>{if(!data.tournaments.length){addT();}_loadedSnapshot=null;renderAll();msg('No tournaments.json found — starting fresh.','');});
 }
 function loadFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);data={tagline:d.tagline||'JD Esports Arena · AyerFire',tournaments:d.tournaments||[],bo3:d.bo3||bo3Default()};_loadedSnapshot=null;renderAll();msg('Loaded from file.','ok');}catch(x){msg('That file is not valid JSON.','err');}};r.readAsText(f);}
 function msg(t,c){document.getElementById('msg').innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
@@ -884,16 +947,41 @@ if(ONESIGNAL_APP_ID){
     updateAdminPushBtn();
   });
 }
+function apMsg(t,c){setMsg(document.getElementById('admin-push-msg'),t,c);}
+function adminPushState(){
+  if(!ONESIGNAL_APP_ID)return 'off';
+  const ios=/iP(hone|od|ad)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  const standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  if(ios&&!standalone)return 'ios';
+  if(typeof Notification!=='function')return 'unsupported';
+  if(Notification.permission==='denied')return 'blocked';
+  if(!window._oneSignal)return 'loading';
+  return window._oneSignal.Notifications.permission?'on':'ask';
+}
 async function enableAdminPush(){
-  if(!ONESIGNAL_APP_ID){alert("Set ONESIGNAL_APP_ID in this file's <script> first (same value as jd-arena.html).");return;}
-  if(!window._oneSignal){alert('Still loading — try again in a second.');return;}
-  await window._oneSignal.Notifications.requestPermission();
+  const s=adminPushState();
+  if(s==='off'){apMsg("Set ONESIGNAL_APP_ID in this file's <script> first (same value as the main site).",'err');return;}
+  if(s==='ios'){apMsg('On iPhone/iPad, Apple only delivers push to installed apps: Share → "Add to Home Screen", open it from that icon, then tap this again.','err');return;}
+  if(s==='unsupported'){apMsg("This browser doesn't support push notifications.",'err');return;}
+  if(s==='blocked'){apMsg("Notifications are blocked for this site — re-allow them in the browser's site settings (padlock icon), then reload.",'err');return;}
+  if(s==='loading'){apMsg('Push is still loading — try again in a second.','');return;}
+  if(s==='on'){apMsg('Already on — this device gets an alert for every new signup.','ok');return;}
+  apMsg('Waiting for you to allow notifications…','');
+  try{await window._oneSignal.Notifications.requestPermission();}
+  catch(e){apMsg('Could not ask for permission: '+(e&&e.message||e),'err');}
   updateAdminPushBtn();
+  const now=adminPushState();
+  if(now==='on')apMsg('Admin alerts on for this device.','ok');
+  else if(now==='blocked')apMsg('You blocked notifications — re-allow them in site settings to turn alerts on.','err');
+  else apMsg('Permission not granted — tap the button again whenever you want alerts.','');
 }
 function updateAdminPushBtn(){
   const b=document.getElementById('admin-push-btn');if(!b)return;
-  const on=window._oneSignal&&window._oneSignal.Notifications&&window._oneSignal.Notifications.permission;
-  b.textContent=on?'🔔 Admin alerts on':'🔔 Enable admin alerts';
+  const s=adminPushState();
+  const label={on:'✅ Admin alerts on',blocked:'🚫 Alerts blocked',ios:'📲 Install app to enable',loading:'🔔 Loading push…',unsupported:'🔕 Push not supported',off:'🔕 Push not configured',ask:'🔔 Enable admin alerts'}[s];
+  b.textContent=label;
+  b.classList.toggle('on',s==='on');
+  b.classList.toggle('blocked',s==='blocked'||s==='unsupported');
 }
 function jumpToRoomCode(i){
   const t=data.tournaments[i];if(!t)return;
@@ -958,15 +1046,55 @@ async function loadRcStatus(){
 }
 
 function anMsg(t,c){setMsg(document.getElementById('an-msg'),t,c);}
+/* Audience picker: everyone, hand-typed players, or every active team in one event
+   (option values "t:<name>"). The event option resolves to player tags client-side via
+   list-registrations — send-notification treats an EMPTY list as a broadcast, so an event
+   (or typed list) that resolves to nobody must stop here, never fall through to everyone. */
+function renderAnAudience(){
+  const sel=document.getElementById('an-audience');if(!sel)return;
+  const prev=sel.value;
+  sel.innerHTML='<option value="">Everyone on the site</option>'+data.tournaments.map(t=>`<option value="t:${esc(t.name)}">Teams in ${esc(t.name)} (confirmed + approved)</option>`).join('')+'<option value="__specific">Specific players…</option>';
+  if([...sel.options].some(o=>o.value===prev))sel.value=prev;
+  anAudienceChanged();
+}
+function anAudienceChanged(){
+  const v=document.getElementById('an-audience').value;
+  document.getElementById('an-recipients-wrap').style.display=v==='__specific'?'':'none';
+}
+function messageTeam(id){
+  const r=_teams.find(x=>x.id===id);if(!r)return;
+  const p=r.players||{};
+  document.getElementById('an-audience').value='__specific';anAudienceChanged();
+  document.getElementById('an-recipients').value=p.player_tag||p.username||p.email||'';
+  const t=document.getElementById('an-title');
+  if(!t.value)t.value=document.getElementById('tm-tourney').value+' — message from the organiser';
+  document.getElementById('announce').scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(()=>document.getElementById('an-body').focus(),400);
+}
 async function sendAnnouncement(){
   const secret=adminSecret();
   const title=document.getElementById('an-title').value.trim();
   const body=document.getElementById('an-body').value.trim();
-  const recipientsRaw=document.getElementById('an-recipients').value.trim();
-  const player_tags=recipientsRaw?recipientsRaw.split(',').map(s=>s.trim().replace(/^@/,'')).filter(Boolean):[];
+  const audience=document.getElementById('an-audience').value;
   if(!secret){anMsg('Enter the admin passcode first.','err');return;}
   if(!title||!body){anMsg('Write a title and a message first.','err');return;}
-  const who=player_tags.length?player_tags.length+' selected player(s)':'EVERYONE on the site';
+  let player_tags=[],who='EVERYONE on the site';
+  if(audience==='__specific'){
+    player_tags=document.getElementById('an-recipients').value.split(',').map(s=>s.trim().replace(/^@/,'')).filter(Boolean);
+    if(!player_tags.length){anMsg('Type at least one player, or pick a different audience.','err');return;}
+    who=player_tags.length+' selected player(s)';
+  }else if(audience.startsWith('t:')){
+    const tname=audience.slice(2);
+    anMsg('Looking up teams in '+esc(tname)+'…','');
+    try{
+      const r=await fetch(EDGE_FN_BASE+'/list-registrations?tournament_slug='+encodeURIComponent(tname),{headers:{'x-admin-secret':secret}});
+      if(!r.ok)throw new Error(await r.text());
+      const regs=(await r.json()).filter(x=>x.status==='confirmed'||x.status==='approved');
+      player_tags=[...new Set(regs.map(x=>x.players&&(x.players.player_tag||x.players.username||x.players.email)).filter(Boolean))];
+    }catch(e){anMsg('Could not load that event’s teams: '+e.message,'err');return;}
+    if(!player_tags.length){anMsg('Nobody is confirmed for "'+esc(tname)+'" yet — nothing sent.','err');return;}
+    who=player_tags.length+' player(s) registered for "'+tname+'"';
+  }
   if(!confirm('Send this to '+who+'?'))return;
   anMsg('Sending…','');
   try{
@@ -1006,7 +1134,8 @@ function renderPendingPayments(){
     return `<div class="card"><div class="grid">
       <div class="f"><label>Player</label><input value="${esc((p.username?'@'+p.username+' ':'')+(p.player_tag||''))}" disabled></div>
       <div class="f"><label>Email</label><input value="${esc(p.email||'')}" disabled></div>
-      <div class="f full"><label>Squad</label><input value="${esc(r.squad_name||'—')}" disabled></div>
+      <div class="f"><label>Squad</label><input value="${esc(r.squad_name||'—')}" disabled></div>
+      <div class="f"><label>Ticket code</label><input value="${ticketCode(r.id)}" disabled style="font-family:'JetBrains Mono',monospace;color:var(--gold-l)"></div>
       ${shot}
     </div>
     <div class="row" style="margin-top:10px">
@@ -1028,7 +1157,108 @@ async function approvePayment(id,approve){
     renderPendingPayments();
     if(approve)loadLiveCounts(); // approving moves it into the confirmed/approved count shown on each card
     ppMsg(approve?'Approved.':'Rejected.','ok');
+    if(document.getElementById('tm-tourney').value===document.getElementById('pp-tourney').value&&_teams.length)loadTeamsAdmin();
   }catch(e){ppMsg('Failed: '+e.message,'err');}
+}
+
+/* ── registered teams: every registration for one event (list-registrations, no status
+   filter) with its ticket code, so the admin can ask a squad for their code and confirm
+   it matches. ticketCode() MUST stay identical to regTicketCode() in index.html — it's
+   derived from the registration id, nothing is stored, so both sides always agree.
+   "Mark verified" saves registrations.verified_at via admin-verify-registration —
+   permanent across devices, and the player sees a Verified badge. Remove calls
+   admin-remove-registration (deletes the row; the waitlist trigger backfills the slot). ── */
+function ticketCode(id){return id?('JD-'+String(id).replace(/-/g,'').slice(0,8).toUpperCase()):'—';}
+function normCode(s){const c=String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');return c.startsWith('JD')?c.slice(2):c;}
+function renderTmTourney(){
+  const sel=document.getElementById('tm-tourney');if(!sel)return;
+  const prev=sel.value;
+  sel.innerHTML=data.tournaments.map(t=>`<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('')||'<option value="">No tournaments yet</option>';
+  if(prev&&data.tournaments.some(t=>t.name===prev))sel.value=prev;
+}
+function tmMsg(t,c){setMsg(document.getElementById('tm-msg'),t,c);}
+let _teams=[];
+function tmVerified(){return new Set(_teams.filter(r=>r.verified_at).map(r=>r.id));}
+async function tmToggleVerified(id,btn){
+  const secret=adminSecret();
+  if(!secret){tmMsg('Enter the admin passcode first.','err');return;}
+  const r=_teams.find(x=>x.id===id);if(!r)return;
+  const verified=!r.verified_at;
+  if(btn){btn.disabled=true;btn.textContent='Saving…';}
+  try{
+    const res=await fetch(EDGE_FN_BASE+'/admin-verify-registration',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({registration_id:id,verified})});
+    if(!res.ok)throw new Error(await res.text());
+    const d=await res.json();
+    r.verified_at=d.verified_at;
+    tmMsg((verified?'Verified ':'Un-verified ')+(r.squad_name||ticketCode(id))+' — saved.','ok');
+  }catch(e){tmMsg('Could not save: '+e.message,'err');}
+  renderTeamsAdmin();
+}
+async function loadTeamsAdmin(){
+  const name=document.getElementById('tm-tourney').value,secret=adminSecret();
+  if(!secret){tmMsg('Enter the admin passcode first.','err');return;}
+  if(!name){tmMsg('Pick a tournament first.','err');return;}
+  tmMsg('Loading…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/list-registrations?tournament_slug='+encodeURIComponent(name),{headers:{'x-admin-secret':secret}});
+    if(!r.ok)throw new Error(await r.text());
+    _teams=await r.json();
+    renderTeamsAdmin();
+    tmMsg(_teams.length+' registration(s) loaded.','ok');
+  }catch(e){tmMsg('Could not load: '+e.message,'err');}
+}
+function renderTeamsAdmin(){
+  const box=document.getElementById('tm-list'),sum=document.getElementById('tm-summary'),verdict=document.getElementById('tm-verdict');
+  if(!box)return;
+  const verified=tmVerified();
+  const filter=document.getElementById('tm-status').value;
+  const code=normCode(document.getElementById('tm-code').value);
+  const match=code.length>=4?_teams.filter(r=>normCode(ticketCode(r.id)).startsWith(code)):[];
+  // verdict banner for the typed code — exact 8-char match is what counts as verified
+  if(!code||!_teams.length){verdict.innerHTML='';}
+  else if(code.length<4){verdict.innerHTML='<div class="tm-verdict bad" style="background:none;border-color:var(--line);color:var(--body)">Keep typing — codes look like JD-7F3K2A9C.</div>';}
+  else if(!match.length){verdict.innerHTML=`<div class="tm-verdict bad">✕ No team in this event has a ticket starting <b>JD-${esc(code)}</b>. Ask them to open the tournament card and read the code again.</div>`;}
+  else if(match.length===1&&code.length===8){const m=match[0],p=m.players||{};verdict.innerHTML=`<div class="tm-verdict good">✓ Match — <b>${esc(m.squad_name||'(no squad name)')}</b>, registered by @${esc(p.username||p.player_tag||'?')} · status <b>${esc(m.status)}</b>${(m.status==='confirmed'||m.status==='approved')?'':' — not an active slot, check before letting them in'}.</div>`;}
+  else{verdict.innerHTML=`<div class="tm-verdict" style="border:1px solid var(--line)">${match.length} team(s) start with that — keep typing the full 8 characters.</div>`;}
+  const counts={active:0,pending:0,waitlisted:0,other:0};
+  for(const r of _teams){if(r.status==='confirmed'||r.status==='approved')counts.active++;else if(r.status==='pending')counts.pending++;else if(r.status==='waitlisted')counts.waitlisted++;else counts.other++;}
+  const nVer=_teams.filter(r=>verified.has(r.id)).length;
+  const slots=+((data.tournaments.find(t=>t.name===document.getElementById('tm-tourney').value)||{}).slots)||0;
+  sum.innerHTML=_teams.length?`<span><b>${counts.active}</b>${slots?'/'+slots:''} confirmed</span><span><b>${counts.pending}</b> pending</span><span><b>${counts.waitlisted}</b> waitlisted</span>${counts.other?`<span><b>${counts.other}</b> other</span>`:''}<span><b>${nVer}</b>/${_teams.length} verified</span>`:'';
+  const rows=_teams.filter(r=>!filter||(filter==='active'?(r.status==='confirmed'||r.status==='approved'):r.status===filter));
+  const matchIds=new Set(match.map(m=>m.id));
+  box.innerHTML=rows.length?rows.map(r=>{
+    const p=r.players||{},isVer=verified.has(r.id),tc=ticketCode(r.id);
+    const cls=(code.length>=4?(matchIds.has(r.id)?' match':' dim'):'')+(isVer?' verified':'');
+    const logo=r.squad_logo?`<img class="tm-logo" src="${esc(r.squad_logo)}" alt="">`:`<div class="tm-logo">${esc((r.squad_name||p.username||'?').trim().charAt(0).toUpperCase())}</div>`;
+    const bits=[`<b>@${esc(p.username||'—')}</b>${p.player_tag?' · '+esc(p.player_tag):''}`];
+    if(p.email)bits.push(esc(p.email));
+    if(r.device_type)bits.push(r.device_type==='emulator'?'🖥 Emulator':'📱 Mobile');
+    if(r.checked_in_at)bits.push('✓ checked in '+esc(new Date(r.checked_in_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})));
+    bits.push('joined '+esc(new Date(r.created_at).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})));
+    return `<div class="card tm-card${cls}">${logo}<div class="tm-main"><div class="tm-top"><span class="tm-name">${esc(r.squad_name||'(no squad name)')}</span><span class="tm-code" title="Click to copy" onclick="copyTicket(this,'${tc}')">${tc}</span><span class="tm-pill ${esc(r.status)}">${esc(String(r.status).replace('_','-'))}</span></div><div class="tm-meta">${bits.join(' · ')}</div></div><div class="tm-actions"><button class="tm-btn${isVer?' ok-on':''}" onclick="tmToggleVerified('${r.id}',this)" title="${isVer?'Verified '+esc(new Date(r.verified_at).toLocaleString())+' — click to undo':'Saved permanently; the player sees a Verified badge'}">${isVer?'✓ Verified':'Mark verified'}</button><button class="tm-btn" onclick="messageTeam('${r.id}')">📣 Message</button><button class="tm-btn danger" onclick="removeTeamAdmin('${r.id}')">✕ Remove</button></div></div>`;
+  }).join(''):`<p class="hint">${_teams.length?'No teams with that status.':'No registrations loaded — pick an event and click "↻ Load teams".'}</p>`;
+}
+function copyTicket(el,code){
+  navigator.clipboard&&navigator.clipboard.writeText(code).then(()=>{const t=el.textContent;el.textContent='Copied';setTimeout(()=>{el.textContent=t;},900);}).catch(()=>{});
+}
+async function removeTeamAdmin(id){
+  const secret=adminSecret();
+  if(!secret){tmMsg('Enter the admin passcode first.','err');return;}
+  const r=_teams.find(x=>x.id===id);if(!r)return;
+  const p=r.players||{};
+  const who=(r.squad_name?'"'+r.squad_name+'"':'this registration')+' (@'+(p.username||p.player_tag||'?')+', '+ticketCode(id)+')';
+  const reason=prompt('Remove '+who+' from "'+document.getElementById('tm-tourney').value+'"?\n\nThey lose their slot and get a notification. If a slot frees up, the next waitlisted squad is promoted automatically. Their account is NOT deleted, so they could register again. If they failed verification, also ban them in Ban List below.\n\nOptional reason (shown to the player) — leave blank for none, Cancel to keep them:','');
+  if(reason===null)return;
+  tmMsg('Removing…','');
+  try{
+    const res=await fetch(EDGE_FN_BASE+'/admin-remove-registration',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({registration_id:id,reason})});
+    if(!res.ok)throw new Error(await res.text());
+    tmMsg('Removed '+who+'.','ok');
+    loadLiveCounts();
+    await loadTeamsAdmin(); // re-fetch: the waitlist trigger may have promoted someone
+    tmMsg('Removed '+who+' — list refreshed.','ok');
+  }catch(e){tmMsg('Failed: '+e.message,'err');}
 }
 
 /* ── reviews moderation: reading is public (get_tournament_reviews() is a plain
@@ -1442,6 +1672,7 @@ async function notifyBo3Results(){
     bo3Msg('Notified '+d.sent+' player(s)'+(d.emailed!=null?' · '+d.emailed+' emailed':'')+(d.pushed!=null?' · '+d.pushed+' pushed':'')+(d.discorded!=null?' · '+d.discorded+' DMed on Discord':'')+(d.note?' — '+esc(d.note):'')+'.','ok');
   }catch(e){bo3Msg('Failed: '+e.message,'err');}
 }
+updateAdminPushBtn(); // show blocked/iOS/unconfigured state right away, not only after OneSignal finishes loading
 </script>
 </body>
 </html>

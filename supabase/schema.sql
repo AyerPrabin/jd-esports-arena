@@ -900,3 +900,23 @@ create index zulu_ai_reply_log_ip_created_at_idx on public.zulu_ai_reply_log (ip
 
 alter table public.zulu_ai_reply_log enable row level security;
 -- No policies on purpose -- only the service-role zulu-ai-reply Edge Function touches this.
+
+-- ── live site content + permanent team verification ─────────────────────
+-- site_content: publish-tournaments writes the same tournaments.json it commits to
+-- GitHub here too, so the site sees admin changes within one 5s poll instead of
+-- waiting for GitHub Pages to rebuild and its CDN cache (up to ~10 min) to expire.
+-- Public read only; writes happen exclusively via the service role in that function.
+create table if not exists public.site_content (
+  key text primary key,
+  content jsonb not null,
+  updated_at timestamptz not null default now()
+);
+alter table public.site_content enable row level security;
+drop policy if exists "public read site content" on public.site_content;
+create policy "public read site content" on public.site_content
+  for select using (true);
+
+-- verified_at: set by the admin-verify-registration Edge Function when the organiser
+-- has checked a squad's ticket code with them. Permanent (DB, not one browser), and
+-- players can see it on their own ticket via the existing "read own registration" policy.
+alter table public.registrations add column if not exists verified_at timestamptz;

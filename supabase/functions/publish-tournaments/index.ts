@@ -96,6 +96,22 @@ Deno.serve(async (req: Request) => {
   // GitHub commit succeeded — the site will go live either way, so a capacity-sync
   // hiccup here is reported as a warning rather than failing the whole publish.
   let warning: string | undefined;
+
+  // Live copy for instant updates: the site polls public.site_content every few
+  // seconds and prefers whichever copy (this one or the GitHub Pages file) has the
+  // newer _published_at, so changes show up on the next refresh instead of after
+  // Pages rebuilds + its CDN cache expires. Stamped here if the admin page didn't.
+  try {
+    const doc = JSON.parse(content);
+    if (!doc._published_at) doc._published_at = new Date().toISOString();
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { error } = await supabase.from('site_content')
+      .upsert({ key: 'tournaments', content: doc, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+    if (error) warning = `Published to GitHub, but the instant-update copy failed (site updates in a few minutes instead): ${error.message}`;
+  } catch (e) {
+    warning = `Published to GitHub, but the instant-update copy failed: ${e instanceof Error ? e.message : String(e)}`;
+  }
+
   try {
     const parsed = JSON.parse(content);
     const tournaments: any[] = Array.isArray(parsed?.tournaments) ? parsed.tournaments : [];
