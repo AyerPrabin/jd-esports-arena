@@ -1023,3 +1023,212 @@ $$;
 grant execute on function public.get_public_roster() to anon, authenticated;
 
 commit;
+
+-- ── payment codes + effect passes ───────────────────────────────────────
+-- Replaces the screenshot-upload effect flow (effect_purchases / request_squad_effect,
+-- never used) with one code system for everything that costs money:
+--   entry         — paid tournament entry, bound to ONE tournament when generated
+--   fx_game       — Rs 2: a standard effect for one tournament
+--   fx_lite_week  — Rs 5: basic effects, 7 days, every tournament
+--   fx_week       — Rs 10: every effect incl. premium, 7 days
+--   fx_month      — Rs 30: every effect incl. premium, 30 days
+-- The player pays over WhatsApp, the organiser generates a code in the admin panel
+-- (payment-codes Edge Function, service role) and sends it back; the player redeems it
+-- with redeem_code(). Players can't read this table at all — only the RPC touches it.
+-- Idempotent: safe to run more than once.
+begin;
+
+drop function if exists public.request_squad_effect(text, text, text);
+drop table if exists public.effect_purchases;
+
+alter table public.registrations drop constraint if exists registrations_effect_check;
+alter table public.registrations add constraint registrations_effect_check
+  check (effect is null or effect in ('glow','steel','gold','fire','ice','neon','rainbow','galaxy','thunder','legend'));
+
+-- which effects each plan unlocks; the site's picker mirrors this, but this is the rule
+create or replace function public.fx_tier_ok(p_tier text, p_effect text)
+returns boolean language sql immutable as $$
+  select case p_tier
+    when 'lite' then p_effect in ('glow','steel')
+    when 'game' then p_effect in ('gold','fire','ice','neon','rainbow')
+    when 'pro'  then p_effect in ('glow','steel','gold','fire','ice','neon','rainbow','galaxy','thunder','legend')
+    else false end;
+$$;
+
+create table if not exists public.payment_codes (
+  code text primary key,
+  kind text not null check (kind in ('entry','fx_game','fx_lite_week','fx_week','fx_month')),
+  tournament_slug text,
+  amount_npr integer,
+  note text,
+  created_at timestamptz not null default now(),
+  redeemed_by uuid references public.players(id) on delete set null,
+  redeemed_at timestamptz,
+  redeemed_for text,
+  constraint payment_codes_entry_needs_tournament check (kind <> 'entry' or tournament_slug is not null)
+);
+alter table public.payment_codes enable row level security;
+-- no policies on purpose
+
+create table if not exists public.effect_passes (
+  id uuid primary key default gen_random_uuid(),
+  player_id uuid not null references public.players(id) on delete cascade,
+  tier text not null check (tier in ('lite','pro')),
+  effect text not null check (effect in ('glow','steel','gold','fire','ice','neon','rainbow','galaxy','thunder','legend')),
+  starts_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  code text,
+  created_at timestamptz not null default now()
+);
+create index if not exists effect_passes_player_expiry on public.effect_passes(player_id, expires_at);
+alter table public.effect_passes enable row level security;
+drop policy if exists "players read own passes" on public.effect_passes;
+create policy "players read own passes" on public.effect_passes
+  for select using (auth.uid() = player_id);
+
+create or replace function public.redeem_code(p_code text, p_tournament_slug text default null, p_effect text default null)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_code public.payment_codes;
+  v_reg public.registrations;
+  v_slots int;
+  v_count int;
+  v_tier text;
+  v_start timestamptz;
+  v_pass public.effect_passes;
+begin
+  if auth.uid() is null then
+    raise exception 'Please sign in first.';
+  end if;
+  p_code := upper(regexp_replace(coalesce(p_code, ''), '[^A-Za-z0-9-]', '', 'g'));
+  if p_code = '' then
+    raise exception 'Enter your code.';
+  end if;
+
+  -- Claim the code atomically. Any exception below rolls this back, so a code is only
+  -- ever spent when whatever it pays for was actually applied.
+  update public.payment_codes set redeemed_by = auth.uid(), redeemed_at = now()
+    where code = p_code and redeemed_at is null
+    returning * into v_code;
+  if v_code.code is null then
+    if exists(select 1 from public.payment_codes where code = p_code) then
+      raise exception 'This code has already been used.';
+    end if;
+    raise exception 'Code not recognised. Check it and try again.';
+  end if;
+
+  if v_code.kind = 'entry' then
+    if p_tournament_slug is distinct from v_code.tournament_slug then
+      raise exception 'This code is for %, not this tournament.', v_code.tournament_slug;
+    end if;
+    -- same lock register_for_tournament() takes, so codes can't overfill a tournament
+    perform pg_advisory_xact_lock(hashtext(v_code.tournament_slug));
+    select * into v_reg from public.registrations
+      where tournament_slug = v_code.tournament_slug and player_id = auth.uid();
+    if v_reg.id is null then
+      raise exception 'Register for % first, then enter your code.', v_code.tournament_slug;
+    end if;
+    if v_reg.status in ('confirmed','approved') then
+      raise exception 'Your squad is already confirmed for this tournament.';
+    end if;
+    if v_reg.status = 'no_show' then
+      raise exception 'This registration can no longer be confirmed.';
+    end if;
+    select slots into v_slots from public.tournament_capacity where tournament_slug = v_code.tournament_slug;
+    if v_slots is not null then
+      select count(*) into v_count from public.registrations
+        where tournament_slug = v_code.tournament_slug and status in ('confirmed','approved');
+      if v_count >= v_slots then
+        raise exception 'All slots are full, so your code was not used. Please contact the organiser on WhatsApp.';
+      end if;
+    end if;
+    update public.registrations set status = 'approved' where id = v_reg.id;
+    update public.payment_codes set redeemed_for = v_reg.id::text where code = p_code;
+    insert into public.notifications (player_id, tournament_slug, title, body)
+    values (auth.uid(), v_code.tournament_slug, '✅ Entry confirmed: ' || v_code.tournament_slug,
+            'Your payment code was accepted and ' || coalesce(v_reg.squad_name, 'your squad') || ' is confirmed. Room details will be sent here before the match.');
+    return jsonb_build_object('kind', 'entry', 'status', 'approved');
+
+  elsif v_code.kind = 'fx_game' then
+    if not public.fx_tier_ok('game', p_effect) then
+      raise exception 'Pick one of the standard effects for a single-match code.';
+    end if;
+    select * into v_reg from public.registrations
+      where tournament_slug = p_tournament_slug and player_id = auth.uid() and status in ('confirmed','approved');
+    if v_reg.id is null then
+      raise exception 'Only confirmed squads can add an effect.';
+    end if;
+    update public.registrations set effect = p_effect where id = v_reg.id;
+    update public.payment_codes set redeemed_for = v_reg.id::text where code = p_code;
+    return jsonb_build_object('kind', 'fx_game', 'effect', p_effect);
+
+  else
+    v_tier := case when v_code.kind = 'fx_lite_week' then 'lite' else 'pro' end;
+    if not public.fx_tier_ok(v_tier, p_effect) then
+      raise exception 'That effect is not included in this pass.';
+    end if;
+    -- a new pass starts when the current one ends, so stacking never wastes days
+    select max(expires_at) into v_start from public.effect_passes
+      where player_id = auth.uid() and expires_at > now();
+    v_start := greatest(coalesce(v_start, now()), now());
+    insert into public.effect_passes (player_id, tier, effect, starts_at, expires_at, code)
+    values (auth.uid(), v_tier, p_effect, v_start,
+            v_start + make_interval(days => case when v_code.kind = 'fx_month' then 30 else 7 end), p_code)
+    returning * into v_pass;
+    update public.payment_codes set redeemed_for = v_pass.id::text where code = p_code;
+    return jsonb_build_object('kind', v_code.kind, 'effect', p_effect, 'starts_at', v_pass.starts_at, 'expires_at', v_pass.expires_at);
+  end if;
+end;
+$$;
+revoke all on function public.redeem_code(text, text, text) from public, anon;
+grant execute on function public.redeem_code(text, text, text) to authenticated;
+
+-- switch effect during an active pass (within that pass's tier)
+create or replace function public.set_pass_effect(p_effect text)
+returns public.effect_passes
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare v_pass public.effect_passes;
+begin
+  if auth.uid() is null then
+    raise exception 'Please sign in first.';
+  end if;
+  update public.effect_passes set effect = p_effect
+    where player_id = auth.uid() and starts_at <= now() and expires_at > now() and public.fx_tier_ok(tier, p_effect)
+    returning * into v_pass;
+  if v_pass.id is null then
+    raise exception 'Your current pass does not include that effect.';
+  end if;
+  return v_pass;
+end;
+$$;
+revoke all on function public.set_pass_effect(text) from public, anon;
+grant execute on function public.set_pass_effect(text) to authenticated;
+
+-- roster effect: the squad's own single-match effect, otherwise the player's active pass
+create or replace function public.get_public_roster()
+returns table(tournament_slug text, squad_name text, squad_logo text, registered_at timestamptz, effect text)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select r.tournament_slug, r.squad_name, r.squad_logo, r.created_at,
+    coalesce(r.effect, (
+      select ep.effect from public.effect_passes ep
+      where ep.player_id = r.player_id and ep.starts_at <= now() and ep.expires_at > now()
+      order by ep.expires_at asc limit 1
+    ))
+  from public.registrations r
+  where r.status in ('confirmed', 'approved')
+  order by r.created_at asc;
+$$;
+grant execute on function public.get_public_roster() to anon, authenticated;
+
+commit;

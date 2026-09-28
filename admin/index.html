@@ -213,7 +213,7 @@ h2[id]{scroll-margin-top:64px}
   <div class="dash" id="dash"><div class="dash-tile loading"><b>…</b><span>Loading</span></div></div>
 
   <nav class="adm-nav" id="adm-nav">
-    <a href="#tournaments">🏆 Tournaments</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#effect-requests">✨ Effects</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
+    <a href="#tournaments">🏆 Tournaments</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#payment-codes">🎟️ Codes</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
   </nav>
 
   <div class="f full" style="margin-bottom:8px">
@@ -388,13 +388,21 @@ h2[id]{scroll-margin-top:64px}
   </div>
   <div id="pp-list"></div>
 
-  <h2 id="effect-requests">Squad Effect Requests <span class="tag">Rs 2 per tournament</span></h2>
-  <p class="hint">Players who bought a squad effect upload their eSewa screenshot here. Approving turns the effect on for that squad in that tournament straight away (no publish needed) and notifies the player; rejecting notifies them to contact you.</p>
-  <div class="row">
-    <button class="btn ghost" onclick="loadEffectRequests()">↻ Load requests</button>
-    <div id="fxr-msg" class="hint"></div>
+  <h2 id="payment-codes">Payment Codes <span class="tag">WhatsApp payments</span></h2>
+  <p class="hint">When a player pays you on WhatsApp, generate a code here and send it back. They enter it on the site: an <b>entry code</b> confirms their held place in that one tournament (it can't be used for any other), an <b>effect code</b> turns on their squad effect or pass. Each code works once. Single match Rs 2 · Lite week Rs 5 (basic effects) · Pro week Rs 10 · Pro month Rs 30 (every effect).</p>
+  <div class="grid">
+    <div class="f"><label>Code for</label><select id="pc-kind" onchange="pcKindChanged()"><option value="entry">Tournament entry</option><option value="fx_game">Effect · single match (Rs 2)</option><option value="fx_lite_week">Effect · lite week (Rs 5)</option><option value="fx_week">Effect · pro week (Rs 10)</option><option value="fx_month">Effect · pro month (Rs 30)</option></select></div>
+    <div class="f" id="pc-tourney-wrap"><label>Tournament</label><select id="pc-tourney" onfocus="pcKindChanged()" onmousedown="pcKindChanged()"></select></div>
+    <div class="f"><label>How many</label><input id="pc-count" type="number" min="1" max="20" value="1"></div>
+    <div class="f"><label>Note (optional)</label><input id="pc-note" placeholder="e.g. WhatsApp name / eSewa ref"></div>
   </div>
-  <div id="fxr-list"></div>
+  <div class="row">
+    <button class="btn" onclick="createPaymentCodes()">🎟️ Generate</button>
+    <button class="btn ghost" onclick="loadPaymentCodes()">↻ Recent codes</button>
+    <div id="pc-msg" class="hint"></div>
+  </div>
+  <div id="pc-new"></div>
+  <div id="pc-list"></div>
 
   <details>
   <summary class="dsum">Admin Alerts <span class="tag">new signups</span></summary>
@@ -591,7 +599,7 @@ let _loadedSnapshot=null; // tournaments.json exactly as last fetched from the l
 const STATUSES=['upcoming','live','completed','cancelled'];
 const REG_TYPES=['whatsapp','discord','url'];
 const PLATFORM_MODES=[['mixed','Mixed (any device)'],['mobile','Mobile only'],['emulator','Emulator only']];
-const SQUAD_EFFECTS=[['','None'],['gold','👑 Champion (Gold)'],['fire','🔥 Fire'],['ice','❄️ Ice'],['neon','💜 Neon'],['rainbow','🌈 Rainbow']]; /* shown wherever this squad's chip appears on the live site — see squadFx() in index.html */
+const SQUAD_EFFECTS=[['','None'],['glow','✨ Glow (lite)'],['steel','🔩 Steel (lite)'],['gold','👑 Champion (Gold)'],['fire','🔥 Fire'],['ice','❄️ Ice'],['neon','💜 Neon'],['rainbow','🌈 Rainbow'],['galaxy','🌌 Galaxy (pro)'],['thunder','⚡ Thunder (pro)'],['legend','💎 Legend (pro)']]; /* shown wherever this squad's chip appears on the live site — see squadFx() in index.html */
 const PLACEHOLDER_LOGO="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23121a2e'/%3E%3Ctext x='20' y='26' text-anchor='middle' font-family='Inter' font-size='16' fill='%237e8eb0'%3E%3F%3C/text%3E%3C/svg%3E";
 const MAX_LOGO_PX=128;
 const EDGE_FN_BASE='https://cnoxvqvpmgowdiyrrusv.supabase.co/functions/v1'; // Supabase Edge Functions (moved off Netlify)
@@ -1222,52 +1230,50 @@ function renderPendingPayments(){
   }).join(''):'<p class="hint">No pending payments for this tournament — click "↻ Load pending".</p>';
   staggerReveal(box);
 }
-/* ── squad effect requests (effect-purchases Edge Function) ── */
-const FX_LABEL={gold:'👑 Champion',fire:'🔥 On Fire',ice:'❄️ Frozen',neon:'💜 Neon',rainbow:'🌈 Prism'};
-let _fxReqs=[];
-function fxrMsg(t,c){const el=document.getElementById('fxr-msg');if(el){el.textContent=t;el.className='hint '+(c||'');}}
-async function loadEffectRequests(){
-  const secret=adminSecret();
-  if(!secret){fxrMsg('Enter the admin passcode first.','err');return;}
-  fxrMsg('Loading…','');
-  try{
-    const r=await fetch(EDGE_FN_BASE+'/effect-purchases',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({action:'list'})});
-    if(!r.ok)throw new Error(await r.text());
-    _fxReqs=await r.json();
-    renderEffectRequests();
-    fxrMsg(_fxReqs.length+' pending request(s).','ok');
-  }catch(e){fxrMsg('Could not load: '+e.message,'err');}
+/* ── payment codes (payment-codes Edge Function) ── */
+const PC_LABEL={entry:'Entry',fx_game:'Effect · single match',fx_lite_week:'Effect · lite week',fx_week:'Effect · pro week',fx_month:'Effect · pro month'};
+function pcMsg(t,c){const el=document.getElementById('pc-msg');if(el){el.textContent=t;el.className='hint '+(c||'');}}
+function pcKindChanged(){
+  const sel=document.getElementById('pc-tourney');
+  if(sel){const v=sel.value;sel.innerHTML=(data.tournaments||[]).map(t=>`<option value="${esc(t.name)}">${esc(t.name)}${t.entry?' · '+esc(t.entry):''}</option>`).join('');if([...sel.options].some(o=>o.value===v))sel.value=v;}
+  document.getElementById('pc-tourney-wrap').style.display=document.getElementById('pc-kind').value==='entry'?'':'none';
 }
-function renderEffectRequests(){
-  const box=document.getElementById('fxr-list');if(!box)return;
-  box.innerHTML=_fxReqs.length?_fxReqs.map(r=>{
-    const p=r.players||{};
-    return `<div class="card"><div class="grid">
-      <div class="f"><label>Player</label><input value="${esc((p.username?'@'+p.username+' ':'')+(p.player_tag||''))}" disabled></div>
-      <div class="f"><label>Tournament</label><input value="${esc(r.tournament_slug)}" disabled></div>
-      <div class="f"><label>Squad</label><input value="${esc(r.squad_name||'—')}" disabled></div>
-      <div class="f"><label>Effect · amount</label><input value="${esc((FX_LABEL[r.effect]||r.effect)+' · Rs '+(r.amount_npr??2))}" disabled></div>
-      <div class="f full"><label>Payment screenshot</label><img src="${esc(r.payment_screenshot)}" alt="" style="max-width:220px;border-radius:8px;border:1px solid var(--line);cursor:pointer" onclick="window.open(this.src,'_blank')"></div>
-    </div>
-    <div class="row" style="margin-top:10px">
-      <button class="btn" onclick="reviewEffect('${r.id}',true)">✓ Approve</button>
-      <button class="btn ghost" onclick="reviewEffect('${r.id}',false)">✕ Reject</button>
-    </div></div>`;
-  }).join(''):'<p class="hint">No pending effect requests — click "↻ Load requests".</p>';
-  staggerReveal(box);
+function pcCopy(btn,text){(navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject()).then(()=>{const o=btn.textContent;btn.textContent='✓ Copied';setTimeout(()=>btn.textContent=o,1300);}).catch(()=>{btn.textContent='Copy failed';});}
+function pcWhatsAppText(c){
+  return c.kind==='entry'
+    ?`Payment received ✅ Your join code for ${c.tournament_slug} is ${c.code}\nOpen jdesport.co.uk, go to your ticket for that tournament and enter the code to confirm your slot.`
+    :`Payment received ✅ Your squad effect code is ${c.code} (${PC_LABEL[c.kind]})\nOpen jdesport.co.uk, tap "Squad effects" on your ticket, pick your effect and enter the code.`;
 }
-async function reviewEffect(id,approve){
+async function createPaymentCodes(){
   const secret=adminSecret();
-  if(!secret){fxrMsg('Enter the admin passcode first.','err');return;}
-  if(!confirm((approve?'Approve':'Reject')+' this effect request?'))return;
-  fxrMsg(approve?'Approving…':'Rejecting…','');
+  if(!secret){pcMsg('Enter the admin passcode first.','err');return;}
+  pcKindChanged();
+  const kind=document.getElementById('pc-kind').value;
+  const body={action:'create',kind,count:+document.getElementById('pc-count').value||1,note:document.getElementById('pc-note').value.trim()};
+  if(kind==='entry')body.tournament_slug=document.getElementById('pc-tourney').value;
+  pcMsg('Generating…','');
   try{
-    const r=await fetch(EDGE_FN_BASE+'/effect-purchases',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({action:'review',id,approve})});
+    const r=await fetch(EDGE_FN_BASE+'/payment-codes',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify(body)});
     if(!r.ok)throw new Error(await r.text());
-    _fxReqs=_fxReqs.filter(x=>x.id!==id);
-    renderEffectRequests();
-    fxrMsg(approve?'Approved — the effect is live.':'Rejected — the player has been notified.','ok');
-  }catch(e){fxrMsg('Failed: '+e.message,'err');}
+    const {codes}=await r.json();
+    const box=document.getElementById('pc-new');
+    box.innerHTML=codes.map((c,i)=>`<div class="card"><div class="row" style="margin:0;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><b style="font-family:'JetBrains Mono',monospace;font-size:1.05rem;color:var(--gold-l)">${esc(c.code)}</b><span class="hint" style="margin:0">${esc(PC_LABEL[c.kind])}${c.tournament_slug?' · '+esc(c.tournament_slug):''}</span><span><button class="btn ghost" style="font-size:.72rem;padding:7px 12px" data-pc-code="${i}">Copy code</button> <button class="btn" style="font-size:.72rem;padding:7px 12px" data-pc-msg="${i}">Copy WhatsApp message</button></span></div></div>`).join('');
+    box.querySelectorAll('[data-pc-code]').forEach(b=>b.onclick=()=>pcCopy(b,codes[+b.dataset.pcCode].code));
+    box.querySelectorAll('[data-pc-msg]').forEach(b=>b.onclick=()=>pcCopy(b,pcWhatsAppText(codes[+b.dataset.pcMsg])));
+    pcMsg(codes.length+' code(s) ready — send them to the player on WhatsApp.','ok');
+  }catch(e){pcMsg('Could not generate: '+e.message,'err');}
+}
+async function loadPaymentCodes(){
+  const secret=adminSecret();
+  if(!secret){pcMsg('Enter the admin passcode first.','err');return;}
+  pcMsg('Loading…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/payment-codes',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({action:'list'})});
+    if(!r.ok)throw new Error(await r.text());
+    const rows=await r.json();
+    document.getElementById('pc-list').innerHTML=rows.length?`<div class="card"><table style="width:100%;font-size:.78rem;border-collapse:collapse">${rows.map(c=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-family:'JetBrains Mono',monospace">${esc(c.code)}</td><td>${esc(PC_LABEL[c.kind]||c.kind)}${c.tournament_slug?'<br><span class="hint" style="margin:0">'+esc(c.tournament_slug)+'</span>':''}</td><td>${c.redeemed_at?'✅ Used by '+esc(c.players?('@'+(c.players.username||c.players.player_tag||'player')):'a player'):'<span style="color:var(--gold-l)">Unused</span>'}${c.note?'<br><span class="hint" style="margin:0">'+esc(c.note)+'</span>':''}</td></tr>`).join('')}</table></div>`:'<p class="hint">No codes yet.</p>';
+    pcMsg(rows.length+' recent code(s).','ok');
+  }catch(e){pcMsg('Could not load: '+e.message,'err');}
 }
 async function approvePayment(id,approve){
   const secret=adminSecret();
