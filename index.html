@@ -443,6 +443,34 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .sqfx-neon::after{inset:6px;border-radius:10px;border:1px solid rgba(255,95,210,.6);box-shadow:0 0 10px rgba(255,95,210,.5),inset 0 0 12px rgba(200,107,255,.35);animation:neonFlicker 2.8s linear infinite}
 .sqfx-rainbow::after{top:0;bottom:0;left:-50%;width:200%;background:linear-gradient(115deg,transparent 15%,rgba(255,95,109,.16),rgba(255,224,102,.16),rgba(84,224,160,.16),rgba(79,169,255,.16),rgba(200,107,255,.16),transparent 85%);animation:sqHolo 4s ease-in-out infinite alternate}
 @media(prefers-reduced-motion:reduce){.sqfx-gold::after,.sqfx-fire::after,.sqfx-ice::after,.sqfx-neon::after,.sqfx-rainbow::after{animation:none}}
+/* Pro chips on the tournament cards (the place most people see effects): a light that
+   runs round the chip border, same @property trick as the roster cards — cheap to animate. */
+.troster > span.sq-fx-bullets,.troster > span.sq-fx-blade,.troster > span.sq-fx-legend,.troster > span.sq-fx-galaxy,.troster > span.sq-fx-thunder{border:1.5px solid transparent;background:linear-gradient(#131a27,#131a27) padding-box,var(--chipring) border-box;animation:chipIn .4s ease forwards,sqSpin 2.4s linear infinite}
+.troster > span.sq-fx-bullets{--chipring:conic-gradient(from var(--sqa),#ff9a3d,#fff2c0 12%,transparent 30% 55%,#ff9a3d 75%,transparent 90%)}
+.troster > span.sq-fx-blade{--chipring:conic-gradient(from var(--sqa),#ff5a6a,#fff 12%,transparent 30% 55%,#ff5a6a 75%,transparent 90%)}
+.troster > span.sq-fx-legend{--chipring:conic-gradient(from var(--sqa),#ffd24a,#ff6bd6,#5fd3ff,#54e0a0,#ffd24a)}
+.troster > span.sq-fx-galaxy{--chipring:conic-gradient(from var(--sqa),#8f6bff,#5fd3ff,#ff6bd6,#8f6bff)}
+.troster > span.sq-fx-thunder{--chipring:conic-gradient(from var(--sqa),transparent,#4fd8ff 20%,#fff 25%,transparent 40% 60%,#4fd8ff 80%,#fff 85%,transparent)}
+/* one bright sweep across every effect card the moment the squad list opens */
+@keyframes sqReveal{from{transform:translateX(-120%)}to{transform:translateX(120%)}}
+.sqfx::before{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.32) 50%,transparent 70%);transform:translateX(-120%);animation:sqReveal .9s .2s ease-out forwards}
+/* homepage effects showcase */
+.fx-show-sub{margin:-18px 0 18px;color:var(--body);font-size:.92rem;max-width:620px}
+.fx-show-grid{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;max-height:none!important;overflow:visible!important;margin:0!important;padding:0!important}
+.fx-show-item{display:flex;flex-direction:column;gap:6px}
+.fx-show-item .sqitem{flex:1}
+.fx-show-lbl{display:flex;justify-content:space-between;align-items:center;font-size:.76rem;color:var(--silver);padding:0 4px}
+.fx-show-lbl b{color:var(--cream);font-weight:700}
+.fx-show-lbl .tier{font-size:.66rem;font-weight:800;letter-spacing:.04em;padding:2px 8px;border-radius:999px;background:rgba(143,107,255,.18);color:#d6c8ff}
+.fx-show-lbl .tier.std{background:rgba(255,200,61,.12);color:var(--gold-l)}
+.fx-show-plans{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 16px}
+.fx-show-plans span{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font-size:.8rem;color:var(--silver)}
+.fx-show-plans span b{color:var(--gold-l)}
+.fx-show-plans span.best{border-color:var(--gold);background:rgba(255,200,61,.1)}
+.fx-paused,.fx-paused *,.fx-paused *::before,.fx-paused *::after{animation-play-state:paused!important}
+.fx-pick button .hot{margin-left:3px}
+.fx-plan .best.pop{background:linear-gradient(100deg,#8f6bff,#ff6bd6);color:#fff}
+@media(prefers-reduced-motion:reduce){.sqfx::before{display:none}.troster > span[class*="sq-fx-"]{animation:chipIn .4s ease forwards!important}}
 @media(prefers-reduced-motion:reduce){.sqfx-thunder::after,.sqfx-blade::after,.sqfx-glow::after{display:none}.sqfx-galaxy .sqfx-shine{display:none}}
 @media(prefers-reduced-motion:reduce){.sqfx{animation:chipIn .4s ease forwards!important;--fxring:linear-gradient(var(--fx1),var(--fx1))}.sqfx-shine,.sqp{display:none}.sq-crown{transform:translateX(-50%)}.sq-crown,.sqfx .fx-name,.sqfx .sq-av img,.sqfx .sqitem-nologo{animation:none!important}}
 .tbtn{display:block;text-align:center;padding:13px;border-radius:999px;background:linear-gradient(100deg,var(--gold),var(--gold-2));color:#07090F;font-weight:700;font-size:.86rem;text-decoration:none;transition:.2s}
@@ -977,6 +1005,14 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
     <div class="arena-grid" id="arena-grid"></div>
   </section>
 
+  <section class="sec wrap reveal" id="effects-show">
+    <div class="sec-h"><h2>Squad effects</h2><span class="ln"></span><span class="tag">From Rs 2</span></div>
+    <p class="fx-show-sub">Make your squad impossible to miss — on every tournament card and in the squad list. Cosmetic only, no gameplay advantage.</p>
+    <div class="fx-show-grid sqlist" id="fx-show"></div>
+    <div class="fx-show-plans"><span>Single match <b>Rs 2</b></span><span>Lite week <b>Rs 5</b></span><span>Pro week <b>Rs 10</b></span><span class="best">Pro month <b>Rs 30</b> · every effect</span></div>
+    <button type="button" class="btn-primary" onclick="fxShowCta()">✨ Get effects for your squad</button>
+  </section>
+
   <section class="sec wrap" id="bo3board" style="display:none">
     <div class="sec-h"><h2 data-i18n="bo3ttl">Best of 3 Results</h2><span class="ln"></span><span class="tag" data-i18n="bo3tag">Round by round</span></div>
     <div id="bo3-title-line" class="live-hint" style="text-align:center;margin-bottom:14px"></div>
@@ -1189,9 +1225,9 @@ const SQUAD_FX={
   rainbow:{key:'rainbow',cls:'sq-fx-rainbow',badge:'',particles:2,tag:'Prism',tier:'game'},
   galaxy:{key:'galaxy',cls:'sq-fx-galaxy',badge:'',particles:0,tag:'Galaxy',tier:'pro'},
   thunder:{key:'thunder',cls:'sq-fx-thunder',badge:'',particles:0,tag:'Thunder',tier:'pro'},
-  bullets:{key:'bullets',cls:'sq-fx-bullets',badge:'💥',particles:0,tag:'Bullet Storm',tier:'pro'},
+  bullets:{key:'bullets',cls:'sq-fx-bullets',badge:'💥',particles:0,tag:'Bullet Storm',tier:'pro',hot:true},
   blade:{key:'blade',cls:'sq-fx-blade',badge:'⚔️',particles:0,tag:'Blade',tier:'pro'},
-  legend:{key:'legend',cls:'sq-fx-legend',badge:'💎',particles:0,tag:'Legend',tier:'pro'}
+  legend:{key:'legend',cls:'sq-fx-legend',badge:'💎',particles:0,tag:'Legend',tier:'pro',hot:true}
 };
 function fxTierOk(tier,key){const f=SQUAD_FX[key];return !!f&&(tier==='pro'||f.tier===tier);}
 function squadFx(tm){return SQUAD_FX[tm&&tm.effect]||null;}
@@ -2257,6 +2293,7 @@ function updateAcctBtn(){
   if(!ac)return;
   document.body.classList.toggle('signed-in',!!_player);
   const pp=document.getElementById('pts-pill');if(pp)pp.hidden=!_player;
+  if(typeof renderFxShow==='function')setTimeout(renderFxShow,0);
   if(st)st.style.display=_player?'':'none';
   if(_player){
     if(su)su.style.display='none';
@@ -2800,6 +2837,7 @@ async function checkLock(){
     if(!b){b=document.createElement('div');b.id='lock-banner';b.setAttribute('role','status');b.style.cssText='position:sticky;top:0;z-index:70;padding:10px 16px;text-align:center;font-size:.84rem;font-weight:600;background:linear-gradient(100deg,#5a1d1d,#3a1414);color:#ffd6d6;border-bottom:1px solid rgba(255,120,120,.4)';b.textContent='⚠️ Payments, withdrawals and codes are paused for a quick security check. Your points are safe, and free tournaments run as normal.';document.body.prepend(b);}
   }else if(b)b.remove();
 }
+setTimeout(renderFxShow,600);
 function goWallet(tab){location.href='/wallet/'+(tab?'#'+tab:'');}
 let _wallet=0,_walletLoaded=false,_walletUnlimited=false;
 function canAfford(n){return _walletUnlimited||_wallet>=n;}
@@ -2825,7 +2863,7 @@ function payWaLink(msg){return 'https://wa.me/'+PAY_WHATSAPP+'?text='+encodeURIC
 const FX_PLANS={
   fx_game:{name:'Single match',price:'Rs 2',per:'This tournament only',tier:'game'},
   fx_lite_week:{name:'Lite week',price:'Rs 5',per:'7 days · basic effects',tier:'lite'},
-  fx_week:{name:'Pro week',price:'Rs 10',per:'7 days · every effect',tier:'pro'},
+  fx_week:{name:'Pro week',price:'Rs 10',per:'7 days · every effect',tier:'pro',popular:true},
   fx_month:{name:'Pro month',price:'Rs 30',per:'30 days · every effect',tier:'pro',best:true}
 };
 let _fxShop={name:null,plan:'fx_month',effect:'bullets',mode:'buy'};
@@ -2854,16 +2892,34 @@ function fxShopRender(){
   else{info.hidden=true;info.innerHTML='';}
   document.getElementById('fx-plans-wrap').hidden=!!change;
   document.getElementById('fx-pay').hidden=!!change;
-  document.getElementById('fx-plans').innerHTML=Object.entries(FX_PLANS).map(([k,pl])=>`<button type="button" class="fx-plan${k===_fxShop.plan?' on':''}" onclick="_fxShop.plan='${k}';fxShopRender()">${pl.best?'<span class="best">Best value</span>':''}<b>${esc(pl.name)}</b><span class="pr">${esc(pl.price)}</span><small>${esc(pl.per)}</small></button>`).join('');
+  document.getElementById('fx-plans').innerHTML=Object.entries(FX_PLANS).map(([k,pl])=>`<button type="button" class="fx-plan${k===_fxShop.plan?' on':''}" onclick="_fxShop.plan='${k}';fxShopRender()">${pl.best?'<span class="best">Best value</span>':(pl.popular?'<span class="best pop">Popular</span>':'')}<b>${esc(pl.name)}</b><span class="pr">${esc(pl.price)}</span><small>${esc(pl.per)}</small></button>`).join('');
   document.getElementById('fx-pick').innerHTML=Object.values(SQUAD_FX).map(f=>{
     const ok=fxTierOk(tier,f.key);
-    return `<button type="button" class="${f.key===_fxShop.effect?'on':''}${ok?'':' lock'}" ${ok?`onclick="_fxShop.effect='${f.key}';fxShopRender()"`:`disabled title="Included in Pro plans"`}>${ok?'':'🔒 '}${esc(f.tag)}${f.tier==='pro'?'<span class="pro">PRO</span>':''}</button>`;
+    return `<button type="button" class="${f.key===_fxShop.effect?'on':''}${ok?'':' lock'}" ${ok?`onclick="_fxShop.effect='${f.key}';fxShopRender()"`:`disabled title="Included in Pro plans"`}>${ok?'':'🔒 '}${esc(f.tag)}${f.hot?'<span class="hot">🔥</span>':''}${f.tier==='pro'?'<span class="pro">PRO</span>':''}</button>`;
   }).join('');
   document.getElementById('fx-preview').innerHTML=sqCardHtml({name:r.squad_name||'Your squad',logo:r.squad_logo||'',members:[],effect:_fxShop.effect},0);
   const pl=FX_PLANS[_fxShop.plan];
   const price=parseInt(pl.price.replace(/[^0-9]/g,''),10);
   document.getElementById('fx-pay-steps').innerHTML=`<div class="pts-line" style="font-size:.8rem;color:var(--body)">${esc(pl.name)}: <b style="color:var(--gold-l)">${price} points</b> · You have <b style="color:var(--gold-l)">${walletLabel()}</b></div>`+(!canAfford(price)?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="goWallet('load')">➕ Load points (need ${price-_wallet} more)</button>`:'');
   document.getElementById('fx-submit').innerHTML=change?'Save effect':('<span class="jd-coin sm" aria-hidden="true">JD</span> Pay '+(_walletUnlimited?'(admin) ':'')+parseInt(pl.price.replace(/[^0-9]/g,''),10)+' points &amp; activate');
+}
+/* homepage showcase: live previews of the effects, paused while scrolled off-screen */
+const FX_SHOWCASE=[['bullets','Night Raiders'],['blade','Red Samurai'],['legend','Diamond Kings'],['galaxy','Cosmic Crew'],['thunder','Storm Riders'],['gold','Kings XI'],['fire','Inferno Squad'],['neon','Night Shift']];
+function renderFxShow(){
+  const box=document.getElementById('fx-show');if(!box)return;
+  const mine=_player&&_player.squad_name;
+  box.innerHTML=FX_SHOWCASE.map(([k,sample],i)=>{const f=SQUAD_FX[k];if(!f)return '';
+    return `<div class="fx-show-item"><div class="fx-show-lbl"><b>${esc(f.tag)}${f.hot?' 🔥':''}</b><span class="tier${f.tier==='pro'?'':' std'}">${f.tier==='pro'?'Pro':'From Rs 2'}</span></div>${sqCardHtml({name:mine||sample,logo:(_player&&_player.squad_logo)||'',members:[],effect:k},i)}</div>`;}).join('');
+  if(!box._io&&'IntersectionObserver' in window){box._io=new IntersectionObserver(es=>es.forEach(e=>box.classList.toggle('fx-paused',!e.isIntersecting)),{rootMargin:'100px'});box._io.observe(box);}
+}
+function fxShowCta(){
+  if(!sb)return;
+  if(!_player){authOpen('signup');return;}
+  const ts=((_lastData||ARENA_SAMPLE).tournaments||[]);
+  const pick=[..._myRegs.entries()].find(([n,r])=>(r.status==='confirmed'||r.status==='approved')&&canWithdraw(ts.find(t=>t.name===n)));
+  if(pick){fxShopOpen(pick[0]);return;}
+  showMsg('Join a tournament first','Effects are added to your squad from your ticket. Join any upcoming tournament, then tap "Squad effects" on your ticket to pick one.');
+  const t=document.getElementById('tournaments');if(t)t.scrollIntoView({behavior:'smooth'});
 }
 function fxShopClose(){document.getElementById('fx-overlay').classList.remove('open');document.getElementById('fx-preview').innerHTML='';}
 async function fxShopSubmit(){
