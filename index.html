@@ -308,9 +308,8 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
    wash, a glint sweeping across, a glowing logo ring and particles spread over the
    whole card. Everything is clipped inside the card (overflow:hidden), so nothing
    gets cut off by the scrolling list. Colours come from --fx1/--fx2/--fxg per effect. */
-.sqfx{--fx1:#ffc83d;--fx2:#fff1b8;--fxg:rgba(255,200,61,.24);border-color:transparent;background:none;overflow:hidden;isolation:isolate;box-shadow:0 10px 28px -12px var(--fx1)}
-.sqfx-ring{position:absolute;inset:-120%;z-index:-2;background:conic-gradient(from 0deg,transparent 0 60%,var(--fx1) 80%,var(--fx2) 88%,transparent 97%);animation:sqSpin 3.6s linear infinite}
-.sqfx-fill{position:absolute;inset:1.5px;z-index:-1;border-radius:12.5px;background:linear-gradient(100deg,var(--fxg),transparent 60%),radial-gradient(120% 90% at 100% 100%,var(--fxg),transparent 55%),var(--panel)}
+@property --sqa{syntax:'<angle>';inherits:false;initial-value:0deg}
+.sqfx{--fx1:#ffc83d;--fx2:#fff1b8;--fxg:rgba(255,200,61,.24);--fxring:conic-gradient(from var(--sqa),transparent 0 60%,var(--fx1) 80%,var(--fx2) 88%,transparent 97%);border:1.5px solid transparent;background:linear-gradient(100deg,var(--fxg),transparent 60%) padding-box,linear-gradient(var(--panel),var(--panel)) padding-box,var(--fxring) border-box,linear-gradient(rgba(255,255,255,.08),rgba(255,255,255,.08)) border-box;overflow:hidden;box-shadow:0 10px 28px -14px var(--fx1);animation:chipIn .4s ease forwards,sqSpin 3.6s linear infinite}
 .sqfx-shine{position:absolute;top:0;bottom:0;left:0;width:40%;z-index:0;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(255,255,255,.13),transparent);transform:translateX(-130%) skewX(-18deg);animation:sqShine 4s ease-in-out infinite}
 .sqfx .sq-no{color:var(--fx1);opacity:1;text-shadow:0 0 10px var(--fx1)}
 .sqfx .sq-av img,.sqfx .sqitem-nologo{box-shadow:0 0 0 2px var(--fx1),0 0 18px var(--fx1)}
@@ -320,7 +319,7 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .sqfx-tag{display:inline-block;margin-bottom:4px;font-size:.56rem;font-weight:800;letter-spacing:.14em;line-height:1.2;text-transform:uppercase;padding:3px 8px;border-radius:999px;color:var(--fx2);background:rgba(0,0,0,.4);border:1px solid var(--fx1);box-shadow:0 0 12px -2px var(--fx1)}
 .sq-crown{position:absolute;top:-9px;left:50%;z-index:2;font-size:16px;line-height:1;animation:crownBob 1.7s ease-in-out infinite;filter:drop-shadow(0 0 4px rgba(255,215,80,.95))}
 .sqp{position:absolute;z-index:0;pointer-events:none;left:var(--x);opacity:0;animation-delay:var(--d)!important}
-@keyframes sqSpin{to{transform:rotate(360deg)}}
+@keyframes sqSpin{to{--sqa:360deg}}
 @keyframes sqShine{0%{transform:translateX(-130%) skewX(-18deg)}55%,100%{transform:translateX(330%) skewX(-18deg)}}
 @keyframes sqRise{0%{opacity:0;transform:translateY(0) scale(.8)}15%{opacity:1}100%{opacity:0;transform:translate(-10px,-72px) scale(.2)}}
 @keyframes sqFall{0%{opacity:0;transform:translateY(0) rotate(0)}15%{opacity:1}100%{opacity:0;transform:translate(8px,84px) rotate(200deg)}}
@@ -341,18 +340,17 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .sqfx-ice .sqp:nth-of-type(2n){width:3px;height:3px}
 /* Neon — two arcs chasing each other round the border, sign-buzz flicker */
 .sqfx-neon{--fx1:#c86bff;--fx2:#ff5fd2;--fxg:rgba(200,107,255,.24)}
-.sqfx-neon .sqfx-ring{background:conic-gradient(from 0deg,transparent 0 25%,var(--fx1) 45%,transparent 50% 75%,var(--fx2) 95%,transparent 100%);animation:sqSpin 3s linear infinite,neonFlicker 2.8s linear infinite}
+.sqfx-neon{--fxring:conic-gradient(from var(--sqa),transparent 0 25%,var(--fx1) 45%,transparent 50% 75%,var(--fx2) 95%,transparent 100%);animation:chipIn .4s ease forwards,sqSpin 3s linear infinite}
 .sqfx-neon .fx-name{animation:neonTextColor 2.8s linear infinite}
 .sqfx-neon .sqp{top:var(--y);width:3px;height:3px;border-radius:50%;background:#f3d2ff;box-shadow:0 0 6px 2px rgba(200,107,255,.9);animation:sqTwinkle var(--t) ease-in-out infinite}
 /* Rainbow — the whole border cycles the spectrum, confetti falling through */
-.sqfx-rainbow{--fx1:#c86bff;--fx2:#ffe066;--fxg:rgba(79,169,255,.16)}
-.sqfx-rainbow .sqfx-ring{background:conic-gradient(#ff5f6d,#ffb347,#ffe066,#54e0a0,#4fa9ff,#c86bff,#ff5f6d);animation:sqSpin 4s linear infinite}
-.sqfx-rainbow .sqfx-fill{background:linear-gradient(100deg,rgba(255,95,109,.14),rgba(84,224,160,.1) 45%,rgba(79,169,255,.14)),var(--panel)}
+.sqfx-rainbow{--fx1:#c86bff;--fx2:#ffe066;--fxg:rgba(84,224,160,.14)}
+.sqfx-rainbow{--fxring:conic-gradient(from var(--sqa),#ff5f6d,#ffb347,#ffe066,#54e0a0,#4fa9ff,#c86bff,#ff5f6d);animation:chipIn .4s ease forwards,sqSpin 4s linear infinite}
 .sqfx-rainbow .fx-name{animation:rainbowTextColor 4s linear infinite}
 .sqfx-rainbow .sq-av img,.sqfx-rainbow .sqitem-nologo{animation:rainbowCycle 4s linear infinite}
 .sqfx-rainbow .sqp{top:-6px;width:5px;height:5px;border-radius:1px;animation:sqFall var(--t) linear infinite}
 .sqfx-rainbow .sqp:nth-of-type(6n+1){background:#ff5f6d}.sqfx-rainbow .sqp:nth-of-type(6n+2){background:#ffb347}.sqfx-rainbow .sqp:nth-of-type(6n+3){background:#ffe066}.sqfx-rainbow .sqp:nth-of-type(6n+4){background:#54e0a0}.sqfx-rainbow .sqp:nth-of-type(6n+5){background:#4fa9ff}.sqfx-rainbow .sqp:nth-of-type(6n){background:#c86bff}
-@media(prefers-reduced-motion:reduce){.sqfx-ring{animation:none!important;background:var(--fx1)!important}.sqfx-shine,.sqp{display:none}.sq-crown{transform:translateX(-50%)}.sq-crown,.sqfx .fx-name,.sqfx .sq-av img,.sqfx .sqitem-nologo{animation:none!important}}
+@media(prefers-reduced-motion:reduce){.sqfx{animation:chipIn .4s ease forwards!important;--fxring:linear-gradient(var(--fx1),var(--fx1))}.sqfx-shine,.sqp{display:none}.sq-crown{transform:translateX(-50%)}.sq-crown,.sqfx .fx-name,.sqfx .sq-av img,.sqfx .sqitem-nologo{animation:none!important}}
 .tbtn{display:block;text-align:center;padding:13px;border-radius:999px;background:linear-gradient(100deg,var(--gold),var(--gold-2));color:#07090F;font-weight:700;font-size:.86rem;text-decoration:none;transition:.2s}
 .tbtn:hover{transform:translateY(-1px) scale(1.01);box-shadow:0 8px 24px rgba(255,190,50,.3)}
 .tbtn.done{background:transparent;border:1px solid var(--line);color:var(--silver);pointer-events:none}
@@ -423,6 +421,9 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 /* ── accounts + notification history ── */
 .zoverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:60;display:none;align-items:center;justify-content:center;padding:20px}
 .zoverlay.open{display:flex}
+#roster-overlay{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(3,5,10,.86)}
+#roster-overlay .zmodal::before{display:none}
+#roster-overlay .sqlist{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 /* ── premium modal shell (shared by auth/registration/notification/roster modals) ──
    Scoped custom properties so this one component gets a richer palette without
    touching the site-wide --gold/--panel variables used everywhere else. */
@@ -451,6 +452,13 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .zmodal .lang-btn{height:36px;display:inline-flex;align-items:center;padding:0 16px;background:rgba(255,255,255,.03);border:1px solid var(--pm-border);color:var(--pm-gold-b);border-radius:999px}
 .zmodal .lang-btn:hover{background:rgba(232,180,77,.12);box-shadow:0 0 16px rgba(232,180,77,.25)}
 .msg-icon{width:54px;height:54px;margin:0 auto 14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:linear-gradient(135deg,var(--gold),var(--gold-2));color:#07090F;box-shadow:0 0 30px var(--glow)}
+.btn-danger{flex:1;padding:13px 18px;border-radius:999px;border:1px solid rgba(255,118,118,.6);background:rgba(255,97,97,.14);color:#ffb3b3;font-family:inherit;font-weight:700;font-size:.86rem;cursor:pointer;transition:.2s}
+.btn-danger:hover{background:rgba(255,97,97,.26);color:#fff}
+.btn-danger:disabled{opacity:.55;cursor:default}
+.confirm-cancel{flex:1;background:transparent;border:1px solid var(--line);color:var(--cream);border-radius:999px;padding:13px 18px;font-family:inherit;font-size:.86rem;font-weight:600;cursor:pointer}
+.confirm-cancel:hover{border-color:var(--gold-m)}
+.mt-withdraw{display:block;margin:10px auto 0;background:none;border:none;padding:4px 8px;font-family:inherit;font-size:.72rem;font-weight:600;color:var(--silver);text-decoration:underline;text-underline-offset:3px;cursor:pointer;opacity:.8}
+.mt-withdraw:hover{color:#ff9d9d;opacity:1}
 .msg-icon.err{background:linear-gradient(135deg,#ff8a8a,#ff7676);box-shadow:0 0 30px rgba(255,118,118,.35)}
 .zmodal .sub{color:var(--body);font-size:.82rem;margin-bottom:16px}
 .zmodal label{display:block;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--silver);margin:12px 0 5px}
@@ -870,7 +878,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 <div class="zoverlay" id="notif-overlay" onclick="if(event.target===this)notifHistClose()">
   <div class="zmodal" style="max-width:460px"><button class="fb-x" style="position:absolute;top:12px;right:14px" onclick="notifHistClose()" aria-label="close">×</button>
     <h3>Notifications</h3>
-    <p class="sub">Room IDs and updates for tournaments you've registered for in-app.</p>
+    <p class="sub">Your tickets, check-in reminders, room details and results for every tournament you join.</p>
     <div id="notif-push" class="notif-push" hidden></div>
     <div id="notif-list"></div>
   </div>
@@ -889,6 +897,14 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
     <h3 id="msg-title"></h3>
     <p class="sub" id="msg-body" style="white-space:pre-line"></p>
     <div class="row2"><button class="btn-primary" style="flex:1" onclick="msgClose()">OK</button></div>
+  </div>
+</div>
+<div class="zoverlay" id="confirm-overlay" onclick="if(event.target===this)confirmClose(false)">
+  <div class="zmodal" style="max-width:400px;text-align:center">
+    <div class="msg-icon err">!</div>
+    <h3 id="confirm-title"></h3>
+    <p class="sub" id="confirm-body" style="white-space:pre-line"></p>
+    <div class="row2"><button class="btn-ghost-sm confirm-cancel" id="confirm-cancel" onclick="confirmClose(false)">Keep my spot</button><button class="btn-danger" id="confirm-ok" onclick="confirmClose(true)">Confirm</button></div>
   </div>
 </div>
 
@@ -936,9 +952,9 @@ const SQUAD_FX={gold:{key:'gold',cls:'sq-fx-gold',badge:'👑',particles:0,tag:'
 function squadFx(tm){return SQUAD_FX[tm&&tm.effect]||null;}
 // Real floating particle elements (embers/snow/confetti), not just a CSS pseudo-element trick —
 // each one moves independently, which reads far more alive than one shared background animation.
-// Roster-modal particles: 8 spread across the whole card, positions/timings fixed per
+// Roster-modal particles: 6 spread across the whole card, positions/timings fixed per
 // index (not Math.random) so a re-render doesn't make them jump around.
-function sqfxParticles(){let h='';for(let k=0;k<8;k++)h+=`<i class="sqp" style="--x:${(k*37+9)%96}%;--y:${(k*53+11)%78}%;--d:${((k*.43)%2.6).toFixed(2)}s;--t:${(1.9+(k%3)*.55).toFixed(2)}s"></i>`;return h;}
+function sqfxParticles(){let h='';for(let k=0;k<6;k++)h+=`<i class="sqp" style="--x:${(k*37+9)%96}%;--y:${(k*53+11)%78}%;--d:${((k*.43)%2.6).toFixed(2)}s;--t:${(1.9+(k%3)*.55).toFixed(2)}s"></i>`;return h;}
 function fxParticlesHtml(fx){if(!fx||!fx.particles)return'';let h='';for(let k=0;k<fx.particles;k++)h+=`<i class="fxp" style="--d:${(k*.5).toFixed(1)}s"></i>`;return h;}
 // Every effect except Champion colors the name itself (a scrolling gradient in that
 // effect's colors) — wrap it separately so only the text gets it, not the logo/badge/particles.
@@ -1205,7 +1221,7 @@ function reloadOneSignalSdk(){
     let n=0;const iv=setInterval(()=>{if(window._oneSignal||++n>32){clearInterval(iv);res(!!window._oneSignal);}},250);
   });
 }
-const PUSH_BLOCKED_HELP="Your browser or an ad-blocker is blocking our notification service (OneSignal), so alerts can't reach this device.\n\nFix: turn off the ad-blocker / Brave Shields for jdesport.co.uk (or allow cdn.onesignal.com), reload the page, then tap Enable push alerts again.\n\nRoom codes still reach you by email and in the 🔔 Notification History.";
+const PUSH_BLOCKED_HELP="Your browser or an ad-blocker is blocking our alert service (OneSignal), so push alerts cannot reach this device.\n\nTo fix it: pause your ad-blocker or browser shields for jdesport.co.uk (or allow cdn.onesignal.com), reload the page, then tap Enable push alerts again.\n\nRoom details are still sent to your email and to Notification History.";
 /* iPhone/iPad only support push for a home-screen-installed app (Apple's own
    restriction, not something we can work around) — Safari-tab visits never get a
    working push subscription no matter what we do here, so detect that state and
@@ -1213,9 +1229,9 @@ const PUSH_BLOCKED_HELP="Your browser or an ad-blocker is blocking our notificat
 function isIosDevice(){return /iP(hone|od|ad)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
 function isStandaloneApp(){return window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}
 async function enablePush(){
-  if(!ONESIGNAL_APP_ID){showMsg('Push not available',"Push notifications aren't set up on this deploy yet — email still works.");return;}
+  if(!ONESIGNAL_APP_ID){showMsg('Push alerts unavailable',"Push alerts are not enabled on this site right now. You will still receive room details by email and in Notification History.");return;}
   if(isIosDevice()&&!isStandaloneApp()){
-    showMsg('Install the app first',"On iPhone/iPad, Apple only sends notifications to installed apps: tap the Share icon in Safari, choose \"Add to Home Screen,\" then open JD Arena from that icon and tap this again.");
+    showMsg('Install the app to get alerts',"Apple only delivers push alerts to installed web apps on iPhone and iPad.\n\n1. Tap the Share icon in Safari.\n2. Choose \"Add to Home Screen\".\n3. Open JD Arena from the new home-screen icon and tap Enable push alerts again.");
     return;
   }
   if(!window._oneSignal){
@@ -1224,18 +1240,18 @@ async function enablePush(){
     if(!ok){window._osFailed=true;updatePushBtn();showMsg('Notifications are being blocked',PUSH_BLOCKED_HELP,true);return;}
   }
   if(typeof Notification==='function'&&Notification.permission==='denied'){
-    showMsg("Notifications are blocked","You blocked notifications for this site before — turn them back on in your browser or phone's site settings, then try again.",true);
+    showMsg("Notifications are turned off","Notifications for jdesport.co.uk were previously blocked on this device.\n\nTo turn them back on: open your browser's site settings (the icon next to the address bar), set Notifications to Allow, reload the page and tap Enable push alerts again.",true);
     return;
   }
   try{
     await window._oneSignal.Notifications.requestPermission();
   }catch(e){
-    showMsg('Could not enable push',"Something went wrong asking for permission — try again in a moment.",true);
+    showMsg('Push alerts not enabled',"We could not complete the permission request. Please reload the page and try again.",true);
     updatePushBtn();
     return;
   }
   updatePushBtn();
-  if(window._oneSignal.Notifications.permission)showMsg('Push alerts on',"You'll get notified for room codes, reminders and announcements.");
+  if(window._oneSignal.Notifications.permission)showMsg('Push alerts enabled',"This device will now receive check-in reminders, room details and announcements as soon as they are sent.");
 }
 /* One place that decides what push looks like on this device, so the account row and the
    strip at the top of the notifications modal never disagree. 'blocked'/'ios' stay
@@ -1249,14 +1265,14 @@ function pushState(){
   return window._oneSignal.Notifications.permission?'on':'ask';
 }
 const PUSH_UI={
-  on:{row:'Push alerts on',sub:'Room codes & reminders arrive on this device',strip:''},
-  ask:{row:'Enable push alerts',sub:'Get room codes the second they drop',strip:'Get room codes and reminders on this device the moment they drop.',cta:'Turn on'},
-  blocked:{row:'Push alerts blocked',sub:'Tap to see how to re-allow them',strip:'Notifications are blocked for this site in your browser settings.',cta:'How to fix'},
-  ios:{row:'Install app for push',sub:'iPhone needs the home-screen app',strip:'On iPhone/iPad, phone alerts only work in the installed app.',cta:'Show me'},
+  on:{row:'Push alerts on',sub:'Reminders and room details arrive on this device',strip:''},
+  ask:{row:'Enable push alerts',sub:'Get room details the moment they are released',strip:'Turn on push alerts to receive check-in reminders and room details on this device.',cta:'Enable'},
+  blocked:{row:'Push alerts turned off',sub:'Tap for steps to turn them back on',strip:'Notifications are turned off for this site in your browser settings.',cta:'Show steps'},
+  ios:{row:'Install the app for alerts',sub:'Required on iPhone and iPad',strip:'On iPhone and iPad, push alerts only work in the installed home-screen app.',cta:'Show steps'},
   loading:{row:'Enable push alerts',sub:'Loading…',strip:''},
-  sdkblocked:{row:'Push blocked by browser',sub:'An ad-blocker is stopping alerts — tap to fix',strip:'An ad-blocker or browser shield is stopping phone alerts on this device.',cta:'How to fix'},
-  unsupported:{row:'Push not supported',sub:"This browser can't receive push",strip:''},
-  off:{row:'Push unavailable',sub:'Email + history still work',strip:''}
+  sdkblocked:{row:'Push alerts blocked',sub:'An ad-blocker is stopping alerts — tap for steps',strip:'An ad-blocker or browser shield is preventing push alerts on this device.',cta:'Show steps'},
+  unsupported:{row:'Push alerts not supported',sub:'Use Chrome, Edge or Firefox for alerts',strip:''},
+  off:{row:'Push alerts unavailable',sub:'Email and Notification History still work',strip:''}
 };
 function updatePushBtn(){
   const s=pushState(),ui=PUSH_UI[s];
@@ -1327,7 +1343,7 @@ function toggleLang(){lang=lang==='en'?'ne':'en';lsSet('jd_lang',lang);applyLang
 // already no-ops while the login gate is forced open, so this can't escape that.
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
-  const closers={'auth-overlay':authClose,'reg-overlay':regClose,'notif-overlay':notifHistClose,'roster-overlay':rosterClose,'msg-overlay':msgClose,'regsuccess-overlay':regSuccessClose};
+  const closers={'auth-overlay':authClose,'reg-overlay':regClose,'notif-overlay':notifHistClose,'roster-overlay':rosterClose,'msg-overlay':msgClose,'confirm-overlay':()=>confirmClose(false),'regsuccess-overlay':regSuccessClose};
   for(const id in closers){
     const el=document.getElementById(id);
     if(el&&el.classList.contains('open')){closers[id]();break;}
@@ -1431,6 +1447,7 @@ function render(d){
     grid.innerHTML=gridHTML;
     grid.querySelectorAll('[data-reg]').forEach(b=>b.onclick=()=>registerInApp(b.getAttribute('data-reg')));
     grid.querySelectorAll('[data-checkin]').forEach(b=>b.onclick=()=>checkInForTournament(b.getAttribute('data-checkin')));
+    grid.querySelectorAll('[data-withdraw]').forEach(b=>b.onclick=e=>{e.stopPropagation();withdrawSquad(b.getAttribute('data-withdraw'));});
     grid.querySelectorAll('[data-roster]').forEach(b=>b.onclick=e=>{e.stopPropagation();openRoster(b.getAttribute('data-roster'));});
   }
   updateNextMatch();
@@ -2078,11 +2095,13 @@ if(sb){
 const REG_LOGO_MAX_PX=128;
 const PAY_SCREENSHOT_MAX_PX=640;
 function isPaidTournament(t){const e=String((t&&t.entry)||'').trim().toLowerCase();return !!e&&e!=='free';}
+let _myRegsLoaded=false;
 let _myRegs=new Map(); // tournament name -> {id, squad_name, squad_logo, status, checked_in_at}
 let _regTarget=null,_regLogoData=null,_regPayData=null;
 async function loadMyRegs(){
   if(!sb||!_player){_myRegs=new Map();return;}
   const {data}=await sb.from('registrations').select('id, tournament_slug, squad_name, squad_logo, status, checked_in_at, verified_at').eq('player_id',_player.id);
+  _myRegsLoaded=true;
   _myRegs=new Map((data||[]).map(r=>[r.tournament_slug,{id:r.id,squad_name:r.squad_name,squad_logo:r.squad_logo,status:r.status||'confirmed',checked_in_at:r.checked_in_at||null,verified_at:r.verified_at||null}]));
   render(_lastData||ARENA_SAMPLE);
 }
@@ -2245,16 +2264,16 @@ function matchTicketHtml(t,r){
   if(rc){
     next=`<div class="mt-room"><div class="mt-room-h"><span class="mt-live-dot"></span>Room is open — join now</div><div class="mt-room-row"><button type="button" class="mt-copy" data-copy="${esc(rc.room_id)}"><span>Room ID</span><b>${esc(rc.room_id)}</b><em>Tap to copy</em></button>${rc.room_pass?`<button type="button" class="mt-copy" data-copy="${esc(rc.room_pass)}"><span>Password</span><b>${esc(rc.room_pass)}</b><em>Tap to copy</em></button>`:''}</div></div>`;
   }else if(checked){
-    next=`<div class="mt-next">🔑 Room ID + password appear right here ~5 min before kickoff.</div>`;
+    next=`<div class="mt-next">🔑 Your Room ID and password will appear here about 5 minutes before the match starts.</div>`;
   }else if(win){
-    next=`<button class="inapp-reg mt-checkin" data-checkin="${esc(t.name)}">✅ Check in now</button><div class="mt-next warn">Check in before kickoff or your slot is released.</div>`;
+    next=`<button class="inapp-reg mt-checkin" data-checkin="${esc(t.name)}">✅ Check in now</button><div class="mt-next warn">Check in before the match starts, otherwise your slot is released to the waitlist.</div>`;
   }else{
     const startMs=Date.parse(t.start);
     const opens=isNaN(startMs)?'':new Date(startMs-CHECKIN_WINDOW_MS).toLocaleString([],{weekday:'short',hour:'2-digit',minute:'2-digit'});
-    next=`<div class="mt-next">⏰ Check-in opens 30 min before start${opens?` (<b>${esc(opens)}</b>)`:''} — you'll get a reminder.</div>`;
+    next=`<div class="mt-next">⏰ Check-in opens 30 min before start${opens?` (<b>${esc(opens)}</b>)`:''} — we will send you a reminder.</div>`;
   }
   const logo=r.squad_logo?`<img class="mt-logo" src="${esc(r.squad_logo)}" alt="">`:`<span class="mt-logo mt-logo-empty">${esc((r.squad_name||'?').trim().charAt(0).toUpperCase()||'?')}</span>`;
-  return `<div class="mt"><div class="mt-head">${logo}<div class="mt-squad"><b>${esc(r.squad_name||'Your squad')}</b><small>${checked?'Checked in':'You\'re in'}${r.verified_at?' · <span class="mt-ver">✅ Verified</span>':''}</small></div><button type="button" class="mt-code" data-copy="${esc(code)}" title="Tap to copy your ticket code">🎫 ${esc(code)}</button></div><ol class="mt-steps">${stepHtml}</ol>${next}</div>`;
+  return `<div class="mt"><div class="mt-head">${logo}<div class="mt-squad"><b>${esc(r.squad_name||'Your squad')}</b><small>${checked?'Checked in':'You\'re in'}${r.verified_at?' · <span class="mt-ver">✅ Verified</span>':''}</small></div><button type="button" class="mt-code" data-copy="${esc(code)}" title="Tap to copy your ticket code">🎫 ${esc(code)}</button></div><ol class="mt-steps">${stepHtml}</ol>${next}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}</div>`;
 }
 function inAppRegBtn(t,st,full){
   if(st==='cancelled')return _myRegs.has(t.name)?`<div class="inapp-reg-done rejected"><span>✕ This tournament was cancelled — sorry for the mix-up, watch Discord for the reschedule</span></div>`:'';
@@ -2262,14 +2281,14 @@ function inAppRegBtn(t,st,full){
   if(!sb)return '';
   if(_myRegs.has(t.name)){
     const r=_myRegs.get(t.name);
-    if(r.status==='waitlisted')return `<div class="inapp-reg-done pending"><span>🕒 Waitlisted${r.squad_name?' as '+esc(r.squad_name):''} — we'll confirm you automatically if a slot opens · Ticket ${esc(regTicketCode(r))}</span></div>`;
-    if(r.status==='pending')return `<div class="inapp-reg-done pending">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>⏳ Payment pending verification${r.squad_name?' — '+esc(r.squad_name):''} · Ticket ${esc(regTicketCode(r))}</span></div>`;
-    if(r.status==='rejected')return `<div class="inapp-reg-done rejected"><span>✕ Payment not verified — contact us to sort it out</span></div>`;
-    if(r.status==='no_show')return `<div class="inapp-reg-done rejected"><span>✕ Missed check-in — your spot was released</span></div>`;
+    if(r.status==='waitlisted')return `<div class="inapp-reg-done pending"><span>🕒 Waitlisted${r.squad_name?' as '+esc(r.squad_name):''} — we'll confirm you automatically if a slot opens · Ticket ${esc(regTicketCode(r))}</span></div>${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
+    if(r.status==='pending')return `<div class="inapp-reg-done pending">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>⏳ Payment pending verification${r.squad_name?' — '+esc(r.squad_name):''} · Ticket ${esc(regTicketCode(r))}</span></div>${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
+    if(r.status==='rejected')return `<div class="inapp-reg-done rejected"><span>✕ Payment could not be verified — please contact the organiser on Discord</span></div>`;
+    if(r.status==='no_show')return `<div class="inapp-reg-done rejected"><span>✕ Check-in was missed, so this slot was released</span></div>`;
     if(r.status==='confirmed'||r.status==='approved'||!r.status)return matchTicketHtml(t,r);
     if(r.checked_in_at)return `<div class="inapp-reg-done">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>✓ Checked in${r.squad_name?' as '+esc(r.squad_name):''} — see you there! · Ticket ${esc(regTicketCode(r))}</span>${r.verified_at?'<span class="reg-verified">✅ Verified</span>':''}</div>`;
     if(checkinWindowOpen(t))return `<button class="inapp-reg" data-checkin="${esc(t.name)}">✅ Check In Now</button>`;
-    return `<div class="inapp-reg-done">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>✓ Registered${r.squad_name?' as '+esc(r.squad_name):''} — Ticket ${esc(regTicketCode(r))} · check Notification History for your room ID</span>${r.verified_at?'<span class="reg-verified">✅ Verified</span>':''}</div>`;
+    return `<div class="inapp-reg-done">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>✓ Registered${r.squad_name?' as '+esc(r.squad_name):''} — Ticket ${esc(regTicketCode(r))} · room details will be sent to Notification History</span>${r.verified_at?'<span class="reg-verified">✅ Verified</span>':''}</div>`;
   }
   // Paid tournaments still have no waitlist (see registerInApp's early gate) — only free
   // ones show "Join Waitlist" here; the button still opens the normal registration modal,
@@ -2451,7 +2470,7 @@ function openRoster(name){
     const logo=`<div class="sq-av">${crown}${tm.logo?`<img src="${esc(tm.logo)}" alt="">`:`<div class="sqitem-nologo">${initial(tm.name)}</div>`}</div>`;
     const name=fx?`<span class="fx-name">${esc(tm.name)}</span>`:esc(tm.name);
     const mem=members.length?`<div class="sqitem-members" title="${esc(tr('sqmembers'))}">${members.map(m=>`<span>${esc(m)}</span>`).join('')}</div>`:'';
-    const deco=fx?`<span class="sqfx-ring"></span><span class="sqfx-fill"></span><span class="sqfx-shine"></span>${sqfxParticles()}`:'';
+    const deco=fx?`<span class="sqfx-shine"></span>${sqfxParticles()}`:'';
     return `<div class="sqitem${fx?' sqfx sqfx-'+fx.key:''}">${deco}<span class="sq-no">${num(i)}</span>${logo}<div class="sqitem-body">${fx?`<span class="sqfx-tag">${fx.tag}</span>`:''}<div class="sqitem-name">${name}</div>${mem}</div></div>`;
   });
   const empty=Array.from({length:Math.max(0,slots-teams.length)},(_,k)=>`<div class="sqitem empty"><span class="sq-no">${num(teams.length+k)}</span><div class="sqitem-nologo">+</div><div class="sqitem-body"><div class="sqitem-name">${tr('sqopen')}</div></div></div>`);
@@ -2460,10 +2479,61 @@ function openRoster(name){
   document.getElementById('roster-list').innerHTML=(filled.concat(empty).join(''))||`<p class="sub">${tr('sqempty')}</p>`;
   document.getElementById('roster-overlay').classList.add('open');
 }
-function rosterClose(){document.getElementById('roster-overlay').classList.remove('open');}
+function rosterClose(){document.getElementById('roster-overlay').classList.remove('open');document.getElementById('roster-list').innerHTML='';}
 /* drop-in for alert() styled to match the site instead of the browser's native
    popup — same "blocks until dismissed" feel (dedicated overlay, doesn't get
    closed by other overlays' open/close toggling), just themed. */
+/* Styled yes/no dialog (native confirm() looks out of place and blocks the page).
+   Resolves true only when the player presses the confirm button. */
+let _confirmResolve=null;
+function confirmBox(title,body,okLabel,cancelLabel){
+  document.getElementById('confirm-title').textContent=title;
+  document.getElementById('confirm-body').textContent=body;
+  document.getElementById('confirm-ok').textContent=okLabel||'Confirm';
+  document.getElementById('confirm-cancel').textContent=cancelLabel||'Cancel';
+  document.getElementById('confirm-overlay').classList.add('open');
+  return new Promise(res=>{_confirmResolve=res;});
+}
+function confirmClose(ok){
+  document.getElementById('confirm-overlay').classList.remove('open');
+  if(_confirmResolve){const r=_confirmResolve;_confirmResolve=null;r(!!ok);}
+}
+/* Player withdraws their own squad. Uses the existing "players delete own registration"
+   RLS policy; the waitlist trigger (promote_from_waitlist) then fills the freed slot.
+   RLS turns a disallowed delete into "0 rows, no error", so success is only reported
+   when the row actually comes back from .select(). Not offered once the room code is
+   out or the match is live — see canWithdraw(). */
+function canWithdraw(t){
+  if(!t||_roomCodes.has(t.name))return false;
+  const st=String(t.status||'upcoming').toLowerCase();
+  if(st!=='upcoming')return false;
+  const startMs=Date.parse(t.start);
+  return isNaN(startMs)||Date.now()<startMs;
+}
+async function withdrawSquad(name){
+  const r=_myRegs.get(name);
+  const t=((_lastData||ARENA_SAMPLE).tournaments||[]).find(x=>x.name===name);
+  if(!sb||!_player||!r||!r.id||!t)return;
+  if(!canWithdraw(t)){showMsg('Withdrawal closed','This match has already started or the room details have been released, so squads can no longer withdraw. Contact the organiser on Discord if there is a problem.',true);return;}
+  const squad=r.squad_name||'Your squad';
+  const paid=isPaidTournament(t)&&r.status!=='waitlisted';
+  const fee=paid
+    ?`Entry fees are non-refundable, so the ${t.entry} entry paid for this squad will not be returned.`
+    :(isPaidTournament(t)?'You have not been charged for a waitlist place.':'This was a free entry, so there is nothing to refund.');
+  const ok=await confirmBox(`Withdraw ${squad}?`,
+    `${squad} will be removed from ${name} and the slot released to the next team.\n\n${fee}\n\nYou can register again later if a slot is still open.`,
+    'Withdraw squad','Keep my spot');
+  if(!ok)return;
+  const {data,error}=await sb.from('registrations').delete().eq('id',r.id).select('id');
+  if(error||!data||!data.length){
+    showMsg('Withdrawal failed',error?('The server returned an error: '+error.message):'Your registration could not be removed. Refresh the page and try again, or contact the organiser on Discord.',true);
+    return;
+  }
+  _myRegs.delete(name);
+  showMsg('Squad withdrawn',`${squad} has been removed from ${name} and the slot has been released.`);
+  await loadPublicRoster();
+  render(_lastData||ARENA_SAMPLE);
+}
 function showMsg(title,body,isErr){
   document.getElementById('msg-title').textContent=title;
   document.getElementById('msg-body').textContent=body;
@@ -2491,13 +2561,15 @@ function notifTicketHtml(n,unreadClass){
   const t=((_lastData||ARENA_SAMPLE).tournaments||[]).find(x=>x.name===n.tournament_slug)||{};
   const paid=isPaidTournament(t);
   const prizeRow=t.prize?`<div class="rs-row"><span class="rs-lbl">💰 Prize Pool</span><span class="rs-val">${esc(t.prize)}</span></div>`:'';
-  const statusText=waitlisted?'Waitlisted 🕒':(pending?'Pending verification':'Registered ✓');
+  const cur=_myRegs.get(n.tournament_slug);
+  const withdrawn=_myRegsLoaded&&(!cur||regTicketCode(cur)!==ticket);
+  const statusText=withdrawn?'Withdrawn':(waitlisted?'Waitlisted 🕒':(pending?'Pending verification':'Registered ✓'));
   return `<div class="notif-item${unreadClass}"><div class="t">${esc(n.title)}</div><div class="rs-table" style="margin:8px 0 0">`
     +`<div class="rs-row"><span class="rs-lbl">🪪 Ticket</span><span class="rs-val">${esc(ticket)}</span></div>`
     +prizeRow
     +`<div class="rs-row"><span class="rs-lbl">🎫 Entry</span><span class="rs-val${paid?'':' ok'}">${paid?esc(t.entry||''):'FREE'}</span></div>`
     +(t.platform?`<div class="rs-row"><span class="rs-lbl">📱 Platform</span><span class="rs-val">${esc(t.platform)}</span></div>`:'')
-    +`<div class="rs-row"><span class="rs-lbl">🛡 Status</span><span class="rs-val${waitlisted||pending?' warn':' ok'}">${statusText}</span></div>`
+    +`<div class="rs-row"><span class="rs-lbl">🛡 Status</span><span class="rs-val${withdrawn?'':(waitlisted||pending?' warn':' ok')}">${statusText}</span></div>`
     +`</div>${notifTimeHtml(n.created_at)}</div>`;
 }
 function notifTimeHtml(iso){
@@ -2577,7 +2649,7 @@ async function loadNotifications(markSeenOnOpen){
   const rc=new Map();
   for(const r of rows)if(r.room_id&&r.tournament_slug&&!rc.has(r.tournament_slug))rc.set(r.tournament_slug,{room_id:r.room_id,room_pass:r.room_pass||''});
   if(JSON.stringify([...rc])!==JSON.stringify([..._roomCodes])){_roomCodes=rc;render(_lastData||ARENA_SAMPLE);}
-  list.innerHTML=rows.length?rows.map(notifItemHtml).join(''):'<div class="notif-empty"><span>🔕</span><b>You&#39;re all caught up</b><p>Room codes, reminders and results for tournaments you join will show up here.</p></div>';
+  list.innerHTML=rows.length?rows.map(notifItemHtml).join(''):'<div class="notif-empty"><span>🔕</span><b>No notifications yet</b><p>Tickets, check-in reminders, room details and results for the tournaments you join will appear here.</p></div>';
   if(markSeenOnOpen&&rows.some(r=>!r.read_at)){
     const ids=rows.filter(r=>!r.read_at).map(r=>r.id);
     sb.from('notifications').update({read_at:new Date().toISOString()}).in('id',ids).then(()=>{_notifUnread=0;updateNotifHistBtn();});
