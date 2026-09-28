@@ -5,7 +5,7 @@
 //   { action: 'resolve', id, paid: bool, payout_ref? }        -> mark paid, or reject (points returned)
 // Balances only change inside admin_wallet_credit / admin_resolve_withdrawal (service role).
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { sendPush } from '../_shared/push.ts';
+import { sendPush, lastPushError } from '../_shared/push.ts';
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -99,7 +99,7 @@ Deno.serve(async (req: Request) => {
   if (p.action === 'test_push') {
     const { count } = await supabase.from('push_subscriptions').select('endpoint', { count: 'exact', head: true }).eq('player_id', p.player_id);
     const sent = await sendPush(supabase, [p.player_id], { title: '🔔 JD Arena test', body: 'Push works! You will get alerts like this even when the site is closed. ⚔️', url: 'https://jdesport.co.uk/', tag: 'jd-test' });
-    return json({ devices: count ?? 0, sent });
+    return json({ devices: count ?? 0, sent, error: sent ? undefined : lastPushError });
   }
 
   if (p.action === 'challenges') {

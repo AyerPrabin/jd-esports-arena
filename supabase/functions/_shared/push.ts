@@ -6,6 +6,8 @@
 import webpush from 'npm:web-push@3.6.7';
 
 let configured = false;
+/** Last delivery error (status + push-service reply), for the admin test action. */
+export let lastPushError = '';
 function configure(): boolean {
   if (configured) return true;
   const pub = Deno.env.get('VAPID_PUBLIC_KEY'), priv = Deno.env.get('VAPID_PRIVATE_KEY');
@@ -25,7 +27,9 @@ export interface PushMessage {
 /** Push to every saved device of the given players. Returns how many devices accepted it. */
 export async function sendPush(supabase: any, playerIds: string[], msg: PushMessage): Promise<number> {
   const ids = [...new Set((playerIds || []).filter(Boolean))];
-  if (!ids.length || !configure()) return 0;
+  lastPushError = '';
+  if (!ids.length) return 0;
+  if (!configure()) { lastPushError = 'VAPID keys not set'; return 0; }
   const subs: any[] = [];
   for (let i = 0; i < ids.length; i += 300) {
     const { data } = await supabase.from('push_subscriptions').select('endpoint, p256dh, auth').in('player_id', ids.slice(i, i + 300));
@@ -47,7 +51,9 @@ export async function sendPush(supabase: any, playerIds: string[], msg: PushMess
         await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload, { TTL: 3600, urgency: 'high' });
         ok++; good.push(s.endpoint);
       } catch (e: any) {
-        if (e && (e.statusCode === 404 || e.statusCode === 410)) dead.push(s.endpoint);
+        lastPushError = `${e?.statusCode ?? ''} ${e?.body || e?.message || e}`.trim();
+        // 404/410 = unsubscribed; 403 = made with another VAPID key (e.g. old OneSignal) — the site re-subscribes on next visit
+        if (e && (e.statusCode === 404 || e.statusCode === 410 || e.statusCode === 403)) dead.push(s.endpoint);
       }
     }));
   }

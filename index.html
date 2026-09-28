@@ -1504,6 +1504,9 @@ async function ensurePushSubscribed(){
   try{
     const reg=await navigator.serviceWorker.ready;
     let sub=await reg.pushManager.getSubscription();
+    // a subscription made with another key (e.g. the old OneSignal one) can't receive our pushes — replace it
+    if(sub){const k=sub.options&&sub.options.applicationServerKey,want=b64ToU8(VAPID_PUBLIC_KEY);
+      if(!k||!new Uint8Array(k).every((b,i)=>b===want[i])||k.byteLength!==want.length){try{await sub.unsubscribe();}catch(e){}sub=null;}}
     if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(VAPID_PUBLIC_KEY)});
     const j=sub.toJSON();
     const {error}=await sb.rpc('save_push_subscription',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_ua:navigator.userAgent});
