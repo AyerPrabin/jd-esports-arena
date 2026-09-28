@@ -504,7 +504,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 /* ── accounts + notification history ── */
 .zoverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:60;display:none;align-items:center;justify-content:center;padding:20px}
 .zoverlay.open{display:flex}
-#roster-overlay,#fx-overlay{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(3,5,10,.86)}
+#roster-overlay,#fx-overlay,#wallet-overlay{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(3,5,10,.86)}
 #roster-overlay .zmodal::before,#fx-overlay .zmodal::before{display:none}
 #roster-overlay .sqlist{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 /* ── premium modal shell (shared by auth/registration/notification/roster modals) ──
@@ -558,6 +558,40 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .fx-code{font-family:'JetBrains Mono',ui-monospace,monospace;text-transform:uppercase;letter-spacing:.06em}
 .fx-passinfo{margin:0 0 12px;padding:9px 12px;border-radius:12px;background:rgba(94,219,149,.08);border:1px solid rgba(94,219,149,.35);font-size:.78rem;color:var(--green,#5EDB95)}
 .fx-passinfo button{background:none;border:none;color:var(--gold-l);text-decoration:underline;cursor:pointer;font-family:inherit;font-size:.76rem;padding:0;margin-left:6px}
+.pts-pill{display:inline-flex;align-items:center;gap:5px;height:42px;padding:0 14px 0 10px;border-radius:30px;border:1px solid var(--gold);background:linear-gradient(100deg,rgba(255,200,61,.18),rgba(255,200,61,.06));color:var(--cream);font-family:inherit;cursor:pointer;flex:none;box-shadow:0 0 16px rgba(255,200,61,.18);transition:.2s}
+.pts-pill:hover{background:rgba(255,200,61,.24)}
+.pts-pill[hidden]{display:none}
+.pts-pill b{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;letter-spacing:.04em;color:var(--gold-l);line-height:1}
+.pts-pill .pts-unit{font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--silver)}
+.pts-coin{font-size:1.05rem;line-height:1}
+.pts-coin.big{font-size:2.2rem}
+.pts-pill.bump{animation:ptsBump .6s ease}
+@keyframes ptsBump{40%{transform:scale(1.12);box-shadow:0 0 26px rgba(255,200,61,.6)}}
+@media(max-width:640px){.pts-pill{height:38px;padding:0 10px 0 8px}.pts-pill .pts-unit{display:none}}
+@media(max-width:430px){.pts-pill{height:36px;padding:0 8px 0 6px;gap:3px}.pts-pill b{font-size:1.05rem}.pts-coin{font-size:.88rem}}
+.wl-hero{display:flex;align-items:center;gap:12px;margin:6px 0 14px;padding:14px 16px;border-radius:16px;border:1px solid var(--gold-m);background:linear-gradient(120deg,rgba(255,200,61,.14),rgba(255,200,61,.03))}
+.wl-hero b{display:block;font-family:'Bebas Neue',sans-serif;font-size:2.4rem;letter-spacing:.04em;color:var(--gold-l);line-height:1}
+.wl-hero small{font-size:.72rem;color:var(--silver)}
+.wl-tabs{display:flex;gap:6px;margin-bottom:12px}
+.wl-tabs button{flex:1;padding:10px 6px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--cream);font-family:inherit;font-size:.76rem;font-weight:700;cursor:pointer}
+.wl-tabs button.on{border-color:var(--gold);background:rgba(255,200,61,.12);color:var(--gold-l)}
+.wl-pane{display:none}
+.wl-pane.on{display:block}
+.pay-qr-row.big{flex-direction:column;align-items:center;text-align:center}
+.pay-qr-row.big .pay-qr{width:min(240px,70vw)}
+.pay-qr-row.big .pay-qr-side{align-items:center}
+.wl-row{display:flex;justify-content:space-between;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line);font-size:.78rem}
+.wl-row span{color:var(--body)}
+.wl-row small{display:block;color:var(--silver);font-size:.68rem;margin-top:2px}
+.wl-row b.plus{color:var(--green,#5EDB95)}
+.wl-row b.minus{color:#ff9d9d}
+.pts-pay{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.pts-pay .pts-line{font-size:.78rem;color:var(--body)}
+.pts-pay .pts-line b{color:var(--gold-l)}
+.pts-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px 12px;border-radius:12px;border:none;background:linear-gradient(100deg,var(--gold),var(--gold-2));color:#07090F;font-family:inherit;font-weight:800;font-size:.84rem;cursor:pointer}
+.pts-btn.ghost{background:transparent;border:1px solid var(--gold-m);color:var(--gold-l)}
+.pts-btn:disabled{opacity:.6;cursor:default}
+.have-code summary{cursor:pointer;font-size:.72rem;color:var(--silver);text-decoration:underline;text-underline-offset:3px;margin-top:4px}
 .pay-qr-row{display:flex;gap:12px;align-items:center;margin:2px 0 10px}
 .pay-qr{flex:none;display:block;width:112px;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 .pay-qr img{display:block;width:100%;height:auto}
@@ -859,6 +893,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
       <span><b>JD Esports Arena</b><span>by AyerFire</span></span>
     </a>
     <div class="bar-right">
+      <button id="pts-pill" class="pts-pill" onclick="walletOpen()" aria-label="Points wallet" hidden><span class="pts-coin">🪙</span><b id="pts-bal">0</b><span class="pts-unit">pts</span></button>
       <button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History">🔔<span class="badge" id="notif-badge" hidden>0</span></button>
       <button class="nav-toggle" id="nav-toggle-btn" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="acct-nav">☰</button>
       <nav class="bar-nav" id="acct-nav"><a class="lang-btn" href="/leaderboard.html">🏆 Leaderboard</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="admin-btn" class="lang-btn" href="/admin/" style="display:none">🛠 Admin</a><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none">⚙️ Settings</button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button></div></div></nav>
@@ -1001,9 +1036,8 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
     <div id="reg-pay-wrap" style="display:none">
       <div class="fx-pay" style="margin-top:14px">
         <div class="fx-price"><b id="reg-pay-price"></b><span>Paid tournament</span></div>
-        <div id="reg-pay-steps" style="margin-top:8px"></div>
-        <label>Join code</label>
-        <input id="reg-code" class="fx-code" placeholder="JD-XXXXX-XXXXX" autocomplete="off" maxlength="20">
+        <div id="reg-pay-steps" style="margin-top:4px"></div>
+        <details class="have-code"><summary>Have a join code?</summary><input id="reg-code" class="fx-code" placeholder="JD-XXXXX-XXXXX" autocomplete="off" maxlength="20" style="margin-top:8px"></details>
         <p class="sub" id="reg-pay-note" style="margin:6px 0 0"></p>
       </div>
     </div>
@@ -1046,11 +1080,28 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
     <div class="sqlist fx-preview" id="fx-preview"></div>
     <div class="fx-pay" id="fx-pay">
       <div id="fx-pay-steps"></div>
-      <label>Your code</label>
-      <input id="fx-code" class="fx-code" placeholder="JD-XXXXX-XXXXX" autocomplete="off" maxlength="20">
+      <details class="have-code"><summary>Have an effect code?</summary><input id="fx-code" class="fx-code" placeholder="JD-XXXXX-XXXXX" autocomplete="off" maxlength="20" style="margin-top:8px"></details>
     </div>
     <div class="msg" id="fx-msg"></div>
     <div class="row2"><button class="btn-primary" style="flex:1" id="fx-submit" onclick="fxShopSubmit()">Activate effect</button></div>
+  </div>
+</div>
+<div class="zoverlay" id="wallet-overlay" onclick="if(event.target===this)walletClose()">
+  <div class="zmodal" style="max-width:460px"><button class="fb-x" style="position:absolute;top:12px;right:14px" onclick="walletClose()" aria-label="close">×</button>
+    <h3>Points wallet</h3>
+    <div class="wl-hero"><span class="pts-coin big">🪙</span><div><b id="wl-bal">0</b><small>points · 1 point = Rs 1</small></div></div>
+    <div class="wl-tabs"><button type="button" data-wl-tab="load" onclick="walletTab('load')">➕ Load points</button><button type="button" data-wl-tab="withdraw" onclick="walletTab('withdraw')">💸 Withdraw</button><button type="button" data-wl-tab="history" onclick="walletTab('history')">🧾 History</button></div>
+    <div id="wl-load" class="wl-pane"></div>
+    <div id="wl-withdraw" class="wl-pane">
+      <p class="sub" style="margin:0 0 6px">Cash your points out to eSewa. They leave your wallet now and we send the money by hand, usually within a day.</p>
+      <label>Points to withdraw</label><input id="wl-amt" type="number" min="1" inputmode="numeric" placeholder="e.g. 50">
+      <label>eSewa ID (phone number or email)</label><input id="wl-esewa" autocomplete="off" maxlength="40" placeholder="98XXXXXXXX">
+      <label>Name on the eSewa account</label><input id="wl-name" autocomplete="off" maxlength="60" placeholder="Full name">
+      <div class="msg" id="wl-wmsg"></div>
+      <div class="row2"><button class="btn-primary" style="flex:1" id="wl-wbtn" onclick="walletWithdraw()">Request withdrawal</button></div>
+      <div id="wl-pending"></div>
+    </div>
+    <div id="wl-history" class="wl-pane"></div>
   </div>
 </div>
 <div class="zoverlay" id="confirm-overlay" onclick="if(event.target===this)confirmClose(false)">
@@ -1514,7 +1565,7 @@ function toggleLang(){lang=lang==='en'?'ne':'en';lsSet('jd_lang',lang);applyLang
 // already no-ops while the login gate is forced open, so this can't escape that.
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
-  const closers={'auth-overlay':authClose,'reg-overlay':regClose,'notif-overlay':notifHistClose,'roster-overlay':rosterClose,'msg-overlay':msgClose,'confirm-overlay':()=>confirmClose(false),'fx-overlay':fxShopClose,'regsuccess-overlay':regSuccessClose};
+  const closers={'auth-overlay':authClose,'reg-overlay':regClose,'notif-overlay':notifHistClose,'roster-overlay':rosterClose,'msg-overlay':msgClose,'confirm-overlay':()=>confirmClose(false),'fx-overlay':fxShopClose,'wallet-overlay':walletClose,'regsuccess-overlay':regSuccessClose};
   for(const id in closers){
     const el=document.getElementById(id);
     if(el&&el.classList.contains('open')){closers[id]();break;}
@@ -1618,6 +1669,7 @@ function render(d){
     grid.innerHTML=gridHTML;
     grid.querySelectorAll('[data-reg]').forEach(b=>b.onclick=()=>registerInApp(b.getAttribute('data-reg')));
     grid.querySelectorAll('[data-checkin]').forEach(b=>b.onclick=()=>checkInForTournament(b.getAttribute('data-checkin')));
+    grid.querySelectorAll('[data-pts-entry]').forEach(b=>b.onclick=e=>{e.stopPropagation();payEntryWithPoints(b.getAttribute('data-pts-entry'));});
     grid.querySelectorAll('[data-redeem]').forEach(b=>b.onclick=e=>{e.stopPropagation();redeemEntryCode(b.getAttribute('data-redeem'));});
     grid.querySelectorAll('[data-code-in]').forEach(i=>i.onclick=e=>e.stopPropagation());
     grid.querySelectorAll('[data-fx-buy]').forEach(b=>b.onclick=e=>{e.stopPropagation();fxShopOpen(b.getAttribute('data-fx-buy'));});
@@ -2181,6 +2233,7 @@ function updateAcctBtn(){
   const su=document.getElementById('signup-btn'),ac=document.getElementById('acct-btn'),ad=document.getElementById('admin-btn'),st=document.getElementById('settings-btn');
   if(!ac)return;
   document.body.classList.toggle('signed-in',!!_player);
+  const pp=document.getElementById('pts-pill');if(pp)pp.hidden=!_player;
   if(st)st.style.display=_player?'':'none';
   if(_player){
     if(su)su.style.display='none';
@@ -2275,9 +2328,10 @@ let _myRegs=new Map(); // tournament name -> {id, squad_name, squad_logo, status
 let _regTarget=null,_regLogoData=null,_regPayData=null;
 async function loadMyRegs(){
   if(!sb||!_player){_myRegs=new Map();return;}
-  const {data}=await sb.from('registrations').select('id, tournament_slug, squad_name, squad_logo, status, checked_in_at, verified_at, effect').eq('player_id',_player.id);
+  const {data}=await sb.from('registrations').select('id, tournament_slug, squad_name, squad_logo, status, checked_in_at, verified_at, effect, paid_points').eq('player_id',_player.id);
   _myRegsLoaded=true;
-  _myRegs=new Map((data||[]).map(r=>[r.tournament_slug,{id:r.id,squad_name:r.squad_name,squad_logo:r.squad_logo,status:r.status||'confirmed',checked_in_at:r.checked_in_at||null,verified_at:r.verified_at||null,effect:r.effect||''}]));
+  loadWallet();
+  _myRegs=new Map((data||[]).map(r=>[r.tournament_slug,{id:r.id,squad_name:r.squad_name,squad_logo:r.squad_logo,status:r.status||'confirmed',checked_in_at:r.checked_in_at||null,verified_at:r.verified_at||null,effect:r.effect||'',paid_points:r.paid_points||0}]));
   const pr=await sb.from('effect_passes').select('tier, effect, starts_at, expires_at').eq('player_id',_player.id).gt('expires_at',new Date().toISOString()).order('starts_at',{ascending:true});
   const passes=pr.data||[];
   _myPass=passes.find(x=>Date.parse(x.starts_at)<=Date.now())||null;
@@ -2303,8 +2357,8 @@ function registerInApp(name){
   const payWrap=document.getElementById('reg-pay-wrap');if(payWrap)payWrap.style.display=paid?'':'none';
   const rc=document.getElementById('reg-code');if(rc)rc.value='';
   const pp=document.getElementById('reg-pay-price');if(pp)pp.textContent='Entry '+(t.entry||'');
-  const ps=document.getElementById('reg-pay-steps');if(ps)ps.innerHTML=paid?payStepsHtml(t.entry||'',`Hi JD Arena, here is my payment screenshot for the ${t.entry||''} entry to ${t.name}. Username: ${payRemark()}`):'';
-  const payNote=document.getElementById('reg-pay-note');if(payNote)payNote.textContent='No code yet? Register now to hold your place — you can enter the code on your ticket once your payment is verified.';
+  const ps=document.getElementById('reg-pay-steps');if(ps){const pr=entryAmount(t);ps.innerHTML=paid?`<div class="pts-line" style="font-size:.8rem;color:var(--body)">Entry <b style="color:var(--gold-l)">${pr} points</b> · You have <b style="color:var(--gold-l)">${_wallet}</b>${_wallet>=pr?' — paid automatically when you register.':''}</div>`+(_wallet<pr?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="walletOpen('load')">➕ Load points (need ${pr-_wallet} more)</button>`:''):'';}
+  const payNote=document.getElementById('reg-pay-note');if(payNote)payNote.textContent='Not enough points yet? Register now to hold your place, then pay from your ticket once your points are loaded. A held place does not reserve a slot.';
   const pf=document.getElementById('reg-pay-file');if(pf)pf.value='';
   const ppv=document.getElementById('reg-pay-preview');if(ppv){ppv.style.display='none';ppv.src='';}
   const msg=document.getElementById('reg-msg');
@@ -2378,11 +2432,14 @@ async function submitRegister(){
   if(paid&&joinCode&&effectiveStatus==='pending'){
     const rr=await sb.rpc('redeem_code',{p_code:joinCode,p_tournament_slug:name,p_effect:null});
     if(rr.error)codeErr=rr.error.message;else effectiveStatus='approved';
+  }else if(paid&&effectiveStatus==='pending'&&_wallet>=entryAmount(t)){
+    const rr=await sb.rpc('pay_entry_with_points',{p_tournament_slug:name});
+    if(rr.error)codeErr=rr.error.message;else{effectiveStatus='approved';loadWallet();}
   }
-  _myRegs.set(name,{id:reg&&reg.id,squad_name:squad,squad_logo:_regLogoData,status:effectiveStatus,checked_in_at:null});
+  _myRegs.set(name,{id:reg&&reg.id,squad_name:squad,squad_logo:_regLogoData,status:effectiveStatus,checked_in_at:null,paid_points:effectiveStatus==='approved'&&!joinCode?entryAmount(t):0});
   regClose();
   regSuccessOpen(t,effectiveStatus,reg);
-  if(codeErr){const n=document.getElementById('rs-note');if(n)n.innerHTML+=`<br><br><b>Join code not accepted:</b> ${esc(codeErr)} You can enter it again on your ticket.`;}
+  if(codeErr){const n=document.getElementById('rs-note');if(n)n.innerHTML+=`<br><br><b>Payment not completed:</b> ${esc(codeErr)} Your place is held — you can pay from your ticket.`;}
   render(_lastData||ARENA_SAMPLE);
   loadPublicRoster(); // pulls the new registration into the public count/roster right away instead of waiting for the 45s poll
 }
@@ -2400,7 +2457,7 @@ function regSuccessOpen(t,status,reg){
   document.getElementById('rs-note').innerHTML=waitlisted
     ?"All squad slots are taken right now — you'll be <b>automatically confirmed</b> the moment one opens up, no need to do anything else."
     :(pending
-      ?"Your place is held and <b>waiting for payment verification</b>. Scan the eSewa QR (on your ticket), put your username in the remarks, and send the screenshot on WhatsApp (<b>"+esc(PAY_WHATSAPP_LABEL)+"</b>). We'll reply with your join code — enter it on your ticket to confirm your slot."
+      ?"Your place is held. Load points from the 🪙 wallet at the top (scan the eSewa QR, username in the remarks, screenshot on WhatsApp), then tap <b>Pay</b> on your ticket to confirm your slot."
       :"Your <b>Room ID and Password</b> will appear in Notification History once released by the host. Please arrive 15 minutes before the match starts.");
   document.getElementById('rs-tournament').textContent=t.name;
   document.getElementById('rs-ticket').textContent=regTicketCode(reg);
@@ -2472,8 +2529,19 @@ function fxTicketHtml(t,r){
   return `<button type="button" class="mt-fx-buy" data-fx-buy="${esc(t.name)}">✨ Squad effects · from Rs 2</button>`;
 }
 function entryCodeBoxHtml(t,r){
-  const msg=`Hi JD Arena, here is my payment screenshot for the ${t.entry||''} entry to ${t.name}. Squad: ${r.squad_name||''} · Ticket ${regTicketCode(r)} · Username: ${payRemark()}`;
-  return `<div class="mt-codebox"><p>⏳ <b>Place held — waiting for payment verification.</b> Paid and sent your screenshot? We'll reply on WhatsApp with your join code. Enter it here to confirm your slot.</p><details onclick="event.stopPropagation()"><summary>How to pay ${esc(t.entry||'')}</summary>${payStepsHtml(t.entry||'',msg)}</details><div class="mt-code-row"><input data-code-in="${esc(t.name)}" placeholder="JD-XXXXX-XXXXX" autocomplete="off" maxlength="20"><button type="button" data-redeem="${esc(t.name)}">Confirm</button></div></div>`;
+  const price=entryAmount(t);
+  return `<div class="mt-codebox"><p>⏳ <b>Place held.</b> Pay the entry from your points to confirm your slot.</p>${ptsPayHtml(price,'Entry',`data-pts-entry="${esc(t.name)}"`)}<details class="have-code" onclick="event.stopPropagation()"><summary>Have a join code?</summary><div class="mt-code-row"><input data-code-in="${esc(t.name)}" placeholder="JD-XXXXX-XXXXX" autocomplete="off" maxlength="20"><button type="button" data-redeem="${esc(t.name)}">Confirm</button></div></details></div>`;
+}
+async function payEntryWithPoints(name){
+  const t=((_lastData||ARENA_SAMPLE).tournaments||[]).find(x=>x.name===name)||{};
+  const price=entryAmount(t);
+  const ok=await confirmBox(`Pay ${price} points?`,`${price} points will be taken from your wallet to confirm your squad for ${name}. Withdraw more than 24 hours before the start for a full refund to your wallet (10% on the last day).`,'Pay '+price+' points','Cancel');
+  if(!ok)return;
+  const {data,error}=await sb.rpc('pay_entry_with_points',{p_tournament_slug:name});
+  if(error){showMsg('Payment not completed',error.message,true);return;}
+  const r=_myRegs.get(name);if(r){r.status='approved';r.paid_points=price;}
+  showMsg('Entry confirmed',`${price} points paid. Your squad is confirmed for ${name}. Wallet balance: ${data&&data.balance!=null?data.balance:'—'} points.`);
+  await loadWallet();await loadPublicRoster();render(_lastData||ARENA_SAMPLE);
 }
 function inAppRegBtn(t,st,full){
   if(st==='cancelled')return _myRegs.has(t.name)?`<div class="inapp-reg-done rejected"><span>✕ This tournament was cancelled — sorry for the mix-up, watch Discord for the reschedule</span></div>`:'';
@@ -2691,21 +2759,86 @@ function rosterClose(){document.getElementById('roster-overlay').classList.remov
 const PAY_WHATSAPP='447343082738';
 const PAY_WHATSAPP_LABEL='+44 7343 082738 · jd.lmt.np';
 // what the player types in the eSewa remarks so the payment can be matched to them
-function payRemark(){return (_player&&(_player.username||_player.player_tag))||'';}
+function payRemark(){return (_player&&(_player.username||_player.tag))||'';}
 function copyRemark(btn){
   const v=payRemark();
   (navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>{btn.classList.add('done');const em=btn.querySelector('em');if(em)em.textContent='Copied';setTimeout(()=>{btn.classList.remove('done');if(em)em.textContent='Copy';},1600);}).catch(()=>{const em=btn.querySelector('em');if(em)em.textContent='Copy failed';});
 }
-function payStepsHtml(amount,waMsg){
+function payStepsHtml(amount,waMsg,big){
   const who=payRemark();
-  return `<div class="pay-qr-row"><a class="pay-qr" href="payment-qr.png" target="_blank" rel="noopener" title="Open the QR full size"><img src="payment-qr.png" alt="eSewa payment QR code"></a><div class="pay-qr-side"><b>Scan with eSewa</b><span class="amt">${esc(amount)}</span><a class="pay-save" href="payment-qr.png" download="jd-arena-esewa-qr.png">⬇ Save QR image</a></div></div>`
+  return `<div class="pay-qr-row${big?' big':''}"><a class="pay-qr" href="payment-qr.png" target="_blank" rel="noopener" title="Open the QR full size"><img src="payment-qr.png" alt="eSewa payment QR code"></a><div class="pay-qr-side"><b>Scan with eSewa</b>${amount?`<span class="amt">${esc(amount)}</span>`:''}<a class="pay-save" href="payment-qr.png" download="jd-arena-esewa-qr.png">⬇ Save QR image</a></div></div>`
    +`<ol class="fx-steps">`
-   +`<li>Scan the QR in eSewa and pay <b>${esc(amount)}</b>. Paying from this phone? Save the QR and use “scan from gallery” in eSewa.</li>`
+   +`<li>Scan the QR in eSewa and pay ${amount?`<b>${esc(amount)}</b>`:'the amount you want to load (Rs 1 = 1 point)'}. Paying from this phone? Save the QR and use “scan from gallery” in eSewa.</li>`
    +`<li>Paste your username in the payment <b>remarks</b> before you send:<br><button type="button" class="pay-user" onclick="event.stopPropagation();copyRemark(this)">${esc(who||'your username')} <em>Copy</em></button></li>`
    +`<li>Send the payment screenshot to us on WhatsApp.</li>`
-   +`<li>You're then in the <b>verification queue</b> — once we've checked it, we reply with your code.</li>`
-   +`<li>Enter the code below.</li></ol>`
+   +`<li>You're then in the <b>verification queue</b>. Once we've checked it, the points appear in your wallet and you get a notification.</li></ol>`
    +`<a class="fx-wa" href="${esc(payWaLink(waMsg))}" target="_blank" rel="noopener" onclick="event.stopPropagation()">💬 Send screenshot · WhatsApp ${esc(PAY_WHATSAPP_LABEL)}</a>`;
+}
+/* ── points wallet: balance pill in the header (always visible when signed in, even at 0),
+   wallet screen to load (eSewa QR), withdraw (to eSewa, paid out by hand) and see history.
+   Balances only change server-side — see the wallet section of schema.sql. ── */
+let _wallet=0,_walletLoaded=false;
+async function loadWallet(){
+  if(!sb||!_player){_wallet=0;return;}
+  const {data}=await sb.from('wallets').select('balance').eq('player_id',_player.id).maybeSingle();
+  const prev=_wallet;_wallet=(data&&data.balance)||0;_walletLoaded=true;
+  const el=document.getElementById('pts-bal');if(el)el.textContent=_wallet;
+  const wb=document.getElementById('wl-bal');if(wb)wb.textContent=_wallet;
+  const pill=document.getElementById('pts-pill');
+  if(pill&&pill.dataset.seen&&_wallet>prev){pill.classList.remove('bump');void pill.offsetWidth;pill.classList.add('bump');} // points just arrived
+  if(pill)pill.dataset.seen='1';
+}
+function walletOpen(tab){
+  if(!_player){authOpen('login');return;}
+  document.getElementById('wl-bal').textContent=_wallet;
+  document.getElementById('wl-load').innerHTML=payStepsHtml('',`Hi JD Arena, here is my payment screenshot to load points. Username: ${payRemark()}`,true);
+  document.getElementById('wl-wmsg').textContent='';
+  walletTab(tab||'load');
+  document.getElementById('wallet-overlay').classList.add('open');
+  loadWallet();
+}
+function walletClose(){document.getElementById('wallet-overlay').classList.remove('open');}
+function walletTab(t){
+  document.querySelectorAll('[data-wl-tab]').forEach(b=>b.classList.toggle('on',b.dataset.wlTab===t));
+  ['load','withdraw','history'].forEach(k=>document.getElementById('wl-'+k).classList.toggle('on',k===t));
+  if(t==='history')walletHistory();
+  if(t==='withdraw')walletPending();
+}
+const WL_REASON={load:'Points loaded',entry:'Tournament entry',effect:'Squad effect',withdraw:'Withdrawal to eSewa',withdraw_returned:'Withdrawal returned',refund:'Entry refund',adjust:'Adjustment'};
+async function walletHistory(){
+  const box=document.getElementById('wl-history');box.innerHTML='<p class="sub">Loading…</p>';
+  const {data,error}=await sb.from('wallet_ledger').select('delta, balance_after, reason, note, created_at').eq('player_id',_player.id).order('created_at',{ascending:false}).limit(30);
+  if(error){box.innerHTML='<p class="sub">Could not load your history. Please try again.</p>';return;}
+  box.innerHTML=(data||[]).length?data.map(x=>`<div class="wl-row"><span>${esc(WL_REASON[x.reason]||x.reason)}${x.note&&x.reason!=='load'?`<small>${esc(x.note)}</small>`:''}<small>${esc(new Date(x.created_at).toLocaleString([],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))}</small></span><b class="${x.delta>0?'plus':'minus'}">${x.delta>0?'+':''}${x.delta}</b></div>`).join(''):'<p class="sub">No transactions yet. Load points to get started.</p>';
+}
+async function walletPending(){
+  const box=document.getElementById('wl-pending');
+  const {data}=await sb.from('withdraw_requests').select('amount, esewa_id, status, created_at').eq('player_id',_player.id).order('created_at',{ascending:false}).limit(5);
+  box.innerHTML=(data||[]).length?'<label style="margin-top:16px">Recent withdrawals</label>'+data.map(x=>`<div class="wl-row"><span>${x.amount} points → ${esc(x.esewa_id)}<small>${esc(new Date(x.created_at).toLocaleDateString())}</small></span><b class="${x.status==='paid'?'plus':(x.status==='rejected'?'minus':'')}">${x.status==='pending'?'⏳ Pending':(x.status==='paid'?'✓ Sent':'Returned')}</b></div>`).join(''):'';
+}
+async function walletWithdraw(){
+  const msg=document.getElementById('wl-wmsg'),btn=document.getElementById('wl-wbtn');
+  const amount=parseInt(document.getElementById('wl-amt').value,10);
+  const esewa=document.getElementById('wl-esewa').value.trim(),name=document.getElementById('wl-name').value.trim();
+  if(!amount||amount<1){msg.className='msg err';msg.textContent='Enter how many points to withdraw.';return;}
+  if(amount>_wallet){msg.className='msg err';msg.textContent=`You have ${_wallet} points.`;return;}
+  const ok=await confirmBox('Withdraw '+amount+' points?',`Rs ${amount} will be sent to the eSewa account ${esewa} (${name}). The points leave your wallet now. If we can't send it, they are returned.`,'Request withdrawal','Cancel');
+  if(!ok)return;
+  btn.disabled=true;msg.className='msg';msg.textContent='Sending request…';
+  const {error}=await sb.rpc('request_withdrawal',{p_amount:amount,p_esewa_id:esewa,p_esewa_name:name});
+  btn.disabled=false;
+  if(error){msg.className='msg err';msg.textContent=error.message;return;}
+  msg.className='msg ok';msg.textContent='Request sent. We will send the money to your eSewa and notify you.';
+  document.getElementById('wl-amt').value='';
+  await loadWallet();walletPending();
+}
+/* pay-with-points block used on tickets, the registration form and the effect shop */
+function ptsPayHtml(price,label,action){
+  const enough=_wallet>=price;
+  return `<div class="pts-pay"><div class="pts-line">${esc(label)}: <b>${price} points</b> · You have <b>${_wallet}</b></div>`
+    +(enough?`<button type="button" class="pts-btn" ${action}>🪙 Pay ${price} points</button>`
+            :`<button type="button" class="pts-btn ghost" onclick="event.stopPropagation();walletOpen('load')">➕ Load points (need ${price-_wallet} more)</button>`)
+    +`</div>`;
 }
 function payWaLink(msg){return 'https://wa.me/'+PAY_WHATSAPP+'?text='+encodeURIComponent(msg||'');}
 const FX_PLANS={
@@ -2747,8 +2880,9 @@ function fxShopRender(){
   }).join('');
   document.getElementById('fx-preview').innerHTML=sqCardHtml({name:r.squad_name||'Your squad',logo:r.squad_logo||'',members:[],effect:_fxShop.effect},0);
   const pl=FX_PLANS[_fxShop.plan];
-  document.getElementById('fx-pay-steps').innerHTML=payStepsHtml(pl.price,`Hi JD Arena, here is my payment screenshot for the ${pl.name} squad effect (${pl.price}). Username: ${payRemark()}${_fxShop.plan==='fx_game'?' · Tournament: '+_fxShop.name:''}`);
-  document.getElementById('fx-submit').textContent=change?'Save effect':'Activate effect';
+  const price=parseInt(pl.price.replace(/[^0-9]/g,''),10);
+  document.getElementById('fx-pay-steps').innerHTML=`<div class="pts-line" style="font-size:.8rem;color:var(--body)">${esc(pl.name)}: <b style="color:var(--gold-l)">${price} points</b> · You have <b style="color:var(--gold-l)">${_wallet}</b></div>`+(_wallet<price?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="walletOpen('load')">➕ Load points (need ${price-_wallet} more)</button>`:'');
+  document.getElementById('fx-submit').textContent=change?'Save effect':('🪙 Pay '+parseInt(pl.price.replace(/[^0-9]/g,''),10)+' points & activate');
 }
 function fxShopClose(){document.getElementById('fx-overlay').classList.remove('open');document.getElementById('fx-preview').innerHTML='';}
 async function fxShopSubmit(){
@@ -2761,13 +2895,13 @@ async function fxShopSubmit(){
     res=await sb.rpc('set_pass_effect',{p_effect:_fxShop.effect});
   }else{
     const code=document.getElementById('fx-code').value.trim();
-    if(!code){msg.className='msg err';msg.textContent='Enter the code you received on WhatsApp.';return;}
-    btn.disabled=true;msg.className='msg';msg.textContent='Checking your code…';
-    res=await sb.rpc('redeem_code',{p_code:code,p_tournament_slug:_fxShop.name,p_effect:_fxShop.effect});
+    btn.disabled=true;msg.className='msg';
+    if(code){msg.textContent='Checking your code…';res=await sb.rpc('redeem_code',{p_code:code,p_tournament_slug:_fxShop.name,p_effect:_fxShop.effect});}
+    else{msg.textContent='Paying with points…';res=await sb.rpc('buy_effect_with_points',{p_kind:_fxShop.plan,p_effect:_fxShop.effect,p_tournament_slug:_fxShop.name});}
   }
   if(res.error){btn.disabled=false;msg.className='msg err';msg.textContent=res.error.message||'Something went wrong. Please try again.';return;}
   fxShopClose();
-  await loadMyRegs();
+  await loadMyRegs();await loadWallet();
   if(change)showMsg('Effect updated',`Your squad now shows the ${tag} effect.`);
   else{
     const d=res.data||{};
@@ -2834,24 +2968,25 @@ async function withdrawSquad(name){
   const squad=r.squad_name||'Your squad';
   const isPaid=isPaidTournament(t);
   const rf=refundInfo(t),code=regTicketCode(r);
-  const how=`To receive it, message us on WhatsApp (${PAY_WHATSAPP_LABEL}) with your ticket code ${code}.`;
+  const back=r.paid_points>0?(rf.late?Math.floor(r.paid_points*0.1):r.paid_points):0;
   const fee=!isPaid?'This was a free entry, so there is nothing to refund.'
-    :(r.status==='approved'||r.status==='confirmed')
+    :r.paid_points>0
       ?(rf.late
-        ?`Late cancellation: the match starts within 24 hours, so you get a 10% refund${rf.amount?` (Rs ${rf.amount})`:''} of the ${t.entry} entry. ${how}`
-        :`You get a full refund of the ${t.entry} entry. ${how}`)
-      :`Your payment hasn't been verified yet. If you have already paid, message us on WhatsApp (${PAY_WHATSAPP_LABEL}) with your ticket code ${code} — the same refund rules apply (full refund, or 10% within 24 hours of the start).`;
+        ?`Late cancellation: the match starts within 24 hours, so ${back} of your ${r.paid_points} points (10%) go back to your wallet.`
+        :`All ${r.paid_points} points go back to your wallet straight away.`)
+      :(r.status==='approved'||r.status==='confirmed')
+        ?`This entry was paid with a join code, so the refund is sent by hand (${rf.late?'10% on the last day':'full refund'}). Message us on WhatsApp (${PAY_WHATSAPP_LABEL}) with your ticket code ${code}.`
+        :'No points were taken for this held place.';
   const ok=await confirmBox(`Withdraw ${squad}?`,
     `${squad} will be removed from ${name} and the slot released to the next team.\n\n${fee}\n\nYou can register again later if a slot is still open.`,
     'Withdraw squad','Keep my spot');
   if(!ok)return;
-  const {data,error}=await sb.from('registrations').delete().eq('id',r.id).select('id');
-  if(error||!data||!data.length){
-    showMsg('Withdrawal failed',error?('The server returned an error: '+error.message):'Your registration could not be removed. Refresh the page and try again, or contact the organiser on Discord.',true);
-    return;
-  }
+  const {data,error}=await sb.rpc('withdraw_registration',{p_tournament_slug:name});
+  if(error){showMsg('Withdrawal failed',error.message,true);return;}
   _myRegs.delete(name);
-  showMsg('Squad withdrawn',`${squad} has been removed from ${name} and the slot has been released.`+(isPaid?`\n\n${fee}`:''));
+  const got=(data&&data.refund)||0;
+  showMsg('Squad withdrawn',`${squad} has been removed from ${name} and the slot has been released.`+(got?`\n\n${got} points were refunded to your wallet.`:(isPaid&&r.paid_points===0&&(r.status==='approved'||r.status==='confirmed')?`\n\n${fee}`:'')));
+  await loadWallet();
   await loadPublicRoster();
   render(_lastData||ARENA_SAMPLE);
 }

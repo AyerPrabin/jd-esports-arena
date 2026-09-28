@@ -1250,3 +1250,492 @@ returns boolean language sql immutable as $$
     else false end;
 $$;
 commit;
+
+-- ── points wallet (1 point = Rs 1) ──────────────────────────────────────
+-- Players load points by paying the eSewa QR (username in the remarks, screenshot on
+-- WhatsApp); the organiser verifies the payment and credits the points from the admin
+-- panel (wallet-admin Edge Function -> admin_wallet_credit). Points pay for paid entries
+-- and squad effects, withdrawn paid entries are refunded back as points (full, or 10%
+-- within 24h of the start), and players can request a withdrawal to eSewa, which the
+-- organiser pays out by hand. Balances only ever change through _wallet_apply(), which
+-- players cannot call directly. Idempotent.
+begin;
+
+-- ── published tournament facts, read from the same site_content the site polls ──
+create or replace function public.tournament_entry_npr(p_slug text)
+returns int language sql stable security definer set search_path = public as $$
+  select case
+    when coalesce(trim(t->>'entry'), '') = '' or lower(trim(t->>'entry')) in ('free', '0') then 0
+    else nullif(regexp_replace(t->>'entry', '[^0-9]', '', 'g'), '')::int
+  end
+  from public.site_content, jsonb_array_elements(content->'tournaments') t
+  where key = 'tournaments' and t->>'name' = p_slug
+  limit 1;
+$$;
+
+create or replace function public.tournament_start_at(p_slug text)
+returns timestamptz language plpgsql stable security definer set search_path = public as $$
+declare v text;
+begin
+  select t->>'start' into v
+  from public.site_content, jsonb_array_elements(content->'tournaments') t
+  where key = 'tournaments' and t->>'name' = p_slug limit 1;
+  return nullif(v, '')::timestamptz;
+exception when others then
+  return null;
+end;
+$$;
+
+-- ── paid tournaments can never self-confirm ──
+-- register_for_tournament() used to trust the p_status the browser sent; anything with
+-- an entry price above 0 is now forced to 'pending' (a held place) until it's paid.
+create or replace function public.register_for_tournament(p_tournament_slug text, p_squad_name text, p_squad_logo text, p_status text, p_payment_screenshot text, p_device_type text)
+ returns registrations
+ language plpgsql
+ security definer
+ set search_path to 'public'
+as $function$
+declare
+  v_slots int;
+  v_count int;
+  v_already_registered boolean;
+  v_effective_status text := p_status;
+  v_platform_mode text;
+  v_row public.registrations;
+begin
+  if auth.uid() is null then
+    raise exception 'Not signed in';
+  end if;
+
+  if p_status not in ('pending','confirmed') then
+    raise exception 'Invalid registration status';
+  end if;
+
+  if coalesce(public.tournament_entry_npr(p_tournament_slug), 0) > 0 then
+    p_status := 'pending';
+    v_effective_status := 'pending';
+  end if;
+
+  if exists(select 1 from public.banned_players where player_id = auth.uid()) then
+    raise exception 'Your account is banned from registering for tournaments.';
+  end if;
+
+  if p_device_type not in ('mobile','emulator') then
+    raise exception 'Pick a device type: mobile or emulator.';
+  end if;
+
+  select platform_mode into v_platform_mode from public.tournament_capacity where tournament_slug = p_tournament_slug;
+  v_platform_mode := coalesce(v_platform_mode, 'mixed');
+  if v_platform_mode <> 'mixed' and v_platform_mode <> p_device_type then
+    raise exception 'This tournament is % only -- you declared %.', v_platform_mode, p_device_type;
+  end if;
+
+  perform pg_advisory_xact_lock(hashtext(p_tournament_slug));
+
+  select exists(
+    select 1 from public.registrations
+    where tournament_slug = p_tournament_slug and player_id = auth.uid()
+  ) into v_already_registered;
+
+  if not v_already_registered then
+    select slots into v_slots from public.tournament_capacity where tournament_slug = p_tournament_slug;
+    if v_slots is not null then
+      select count(*) into v_count from public.registrations
+        where tournament_slug = p_tournament_slug and status in ('confirmed', 'approved');
+      if v_count >= v_slots then
+        if p_status = 'confirmed' then
+          v_effective_status := 'waitlisted';
+        else
+          raise exception 'Tournament full';
+        end if;
+      end if;
+    end if;
+  end if;
+
+  insert into public.registrations (tournament_slug, player_id, squad_name, squad_logo, status, payment_screenshot, device_type)
+  values (p_tournament_slug, auth.uid(), p_squad_name, p_squad_logo, v_effective_status, p_payment_screenshot, p_device_type)
+  returning * into v_row;
+
+  insert into public.notifications (player_id, tournament_slug, title, body)
+  values (
+    auth.uid(),
+    p_tournament_slug,
+    '🎫 Registered: ' || p_tournament_slug,
+    'TICKET::' || ('JD-' || upper(substr(replace(v_row.id::text, '-', ''), 1, 8))) || '::' || v_effective_status
+  );
+
+  return v_row;
+end;
+$function$;
+
+-- ── wallet tables ──
+alter table public.registrations add column if not exists paid_points int not null default 0;
+
+create table if not exists public.wallets (
+  player_id uuid primary key references public.players(id) on delete cascade,
+  balance int not null default 0 check (balance >= 0),
+  updated_at timestamptz not null default now()
+);
+alter table public.wallets enable row level security;
+drop policy if exists "players read own wallet" on public.wallets;
+create policy "players read own wallet" on public.wallets for select using (auth.uid() = player_id);
+
+create table if not exists public.wallet_ledger (
+  id uuid primary key default gen_random_uuid(),
+  player_id uuid not null references public.players(id) on delete cascade,
+  delta int not null,
+  balance_after int not null,
+  reason text not null check (reason in ('load','entry','effect','withdraw','withdraw_returned','refund','adjust')),
+  ref text,
+  note text,
+  created_at timestamptz not null default now()
+);
+-- one credit per eSewa transaction reference, so a resent screenshot can't be credited twice
+create unique index if not exists wallet_ledger_load_ref on public.wallet_ledger(ref) where reason = 'load';
+create index if not exists wallet_ledger_player on public.wallet_ledger(player_id, created_at desc);
+alter table public.wallet_ledger enable row level security;
+drop policy if exists "players read own ledger" on public.wallet_ledger;
+create policy "players read own ledger" on public.wallet_ledger for select using (auth.uid() = player_id);
+
+create table if not exists public.withdraw_requests (
+  id uuid primary key default gen_random_uuid(),
+  player_id uuid not null references public.players(id) on delete cascade,
+  amount int not null check (amount > 0),
+  esewa_id text not null,
+  esewa_name text not null,
+  status text not null default 'pending' check (status in ('pending','paid','rejected')),
+  payout_ref text,
+  created_at timestamptz not null default now(),
+  processed_at timestamptz
+);
+alter table public.withdraw_requests enable row level security;
+drop policy if exists "players read own withdrawals" on public.withdraw_requests;
+create policy "players read own withdrawals" on public.withdraw_requests for select using (auth.uid() = player_id);
+
+-- ── the only place balances change (internal) ──
+create or replace function public._wallet_apply(p_player uuid, p_delta int, p_reason text, p_ref text, p_note text)
+returns int language plpgsql security definer set search_path = public as $$
+declare v_bal int;
+begin
+  if p_delta = 0 then
+    raise exception 'Nothing to apply.';
+  end if;
+  insert into public.wallets (player_id) values (p_player) on conflict do nothing;
+  if p_delta < 0 then
+    update public.wallets set balance = balance + p_delta, updated_at = now()
+      where player_id = p_player and balance >= -p_delta
+      returning balance into v_bal;
+    if v_bal is null then
+      raise exception 'Not enough points. Load points from your wallet first.';
+    end if;
+  else
+    update public.wallets set balance = balance + p_delta, updated_at = now()
+      where player_id = p_player returning balance into v_bal;
+  end if;
+  insert into public.wallet_ledger (player_id, delta, balance_after, reason, ref, note)
+  values (p_player, p_delta, v_bal, p_reason, p_ref, p_note);
+  return v_bal;
+end;
+$$;
+
+-- ── effect plans (internal), shared by codes and points ──
+create or replace function public._apply_effect_plan(p_player uuid, p_kind text, p_effect text, p_slug text, p_ref text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_reg public.registrations;
+  v_tier text;
+  v_start timestamptz;
+  v_pass public.effect_passes;
+begin
+  if p_kind = 'fx_game' then
+    if not public.fx_tier_ok('game', p_effect) then
+      raise exception 'Pick one of the standard effects for a single match.';
+    end if;
+    select * into v_reg from public.registrations
+      where tournament_slug = p_slug and player_id = p_player and status in ('confirmed','approved');
+    if v_reg.id is null then
+      raise exception 'Only confirmed squads can add an effect.';
+    end if;
+    update public.registrations set effect = p_effect where id = v_reg.id;
+    return jsonb_build_object('kind', 'fx_game', 'effect', p_effect, 'ref', v_reg.id);
+  elsif p_kind in ('fx_lite_week','fx_week','fx_month') then
+    v_tier := case when p_kind = 'fx_lite_week' then 'lite' else 'pro' end;
+    if not public.fx_tier_ok(v_tier, p_effect) then
+      raise exception 'That effect is not included in this plan.';
+    end if;
+    select max(expires_at) into v_start from public.effect_passes
+      where player_id = p_player and expires_at > now();
+    v_start := greatest(coalesce(v_start, now()), now());
+    insert into public.effect_passes (player_id, tier, effect, starts_at, expires_at, code)
+    values (p_player, v_tier, p_effect, v_start,
+            v_start + make_interval(days => case when p_kind = 'fx_month' then 30 else 7 end), p_ref)
+    returning * into v_pass;
+    return jsonb_build_object('kind', p_kind, 'effect', p_effect, 'starts_at', v_pass.starts_at, 'expires_at', v_pass.expires_at, 'ref', v_pass.id);
+  end if;
+  raise exception 'Unknown plan.';
+end;
+$$;
+
+-- redeem_code now shares _apply_effect_plan for its effect branches
+create or replace function public.redeem_code(p_code text, p_tournament_slug text default null, p_effect text default null)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_code public.payment_codes;
+  v_reg public.registrations;
+  v_slots int;
+  v_count int;
+  v_res jsonb;
+begin
+  if auth.uid() is null then
+    raise exception 'Please sign in first.';
+  end if;
+  p_code := upper(regexp_replace(coalesce(p_code, ''), '[^A-Za-z0-9-]', '', 'g'));
+  if p_code = '' then
+    raise exception 'Enter your code.';
+  end if;
+  update public.payment_codes set redeemed_by = auth.uid(), redeemed_at = now()
+    where code = p_code and redeemed_at is null
+    returning * into v_code;
+  if v_code.code is null then
+    if exists(select 1 from public.payment_codes where code = p_code) then
+      raise exception 'This code has already been used.';
+    end if;
+    raise exception 'Code not recognised. Check it and try again.';
+  end if;
+
+  if v_code.kind = 'entry' then
+    if p_tournament_slug is distinct from v_code.tournament_slug then
+      raise exception 'This code is for %, not this tournament.', v_code.tournament_slug;
+    end if;
+    perform pg_advisory_xact_lock(hashtext(v_code.tournament_slug));
+    select * into v_reg from public.registrations
+      where tournament_slug = v_code.tournament_slug and player_id = auth.uid();
+    if v_reg.id is null then
+      raise exception 'Register for % first, then enter your code.', v_code.tournament_slug;
+    end if;
+    if v_reg.status in ('confirmed','approved') then
+      raise exception 'Your squad is already confirmed for this tournament.';
+    end if;
+    if v_reg.status = 'no_show' then
+      raise exception 'This registration can no longer be confirmed.';
+    end if;
+    select slots into v_slots from public.tournament_capacity where tournament_slug = v_code.tournament_slug;
+    if v_slots is not null then
+      select count(*) into v_count from public.registrations
+        where tournament_slug = v_code.tournament_slug and status in ('confirmed','approved');
+      if v_count >= v_slots then
+        raise exception 'All slots are full, so your code was not used. Please contact the organiser on WhatsApp.';
+      end if;
+    end if;
+    update public.registrations set status = 'approved' where id = v_reg.id;
+    update public.payment_codes set redeemed_for = v_reg.id::text where code = p_code;
+    insert into public.notifications (player_id, tournament_slug, title, body)
+    values (auth.uid(), v_code.tournament_slug, '✅ Entry confirmed: ' || v_code.tournament_slug,
+            'Your payment code was accepted and ' || coalesce(v_reg.squad_name, 'your squad') || ' is confirmed. Room details will be sent here before the match.');
+    return jsonb_build_object('kind', 'entry', 'status', 'approved');
+  end if;
+
+  v_res := public._apply_effect_plan(auth.uid(), v_code.kind, p_effect, p_tournament_slug, p_code);
+  update public.payment_codes set redeemed_for = v_res->>'ref' where code = p_code;
+  return v_res;
+end;
+$$;
+
+-- ── player actions ──
+create or replace function public.pay_entry_with_points(p_tournament_slug text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_price int;
+  v_start timestamptz;
+  v_reg public.registrations;
+  v_slots int;
+  v_count int;
+  v_bal int;
+begin
+  if auth.uid() is null then
+    raise exception 'Please sign in first.';
+  end if;
+  v_price := public.tournament_entry_npr(p_tournament_slug);
+  if v_price is null or v_price <= 0 then
+    raise exception 'This tournament has no entry fee to pay.';
+  end if;
+  v_start := public.tournament_start_at(p_tournament_slug);
+  if v_start is not null and v_start <= now() then
+    raise exception 'This match has already started.';
+  end if;
+  perform pg_advisory_xact_lock(hashtext(p_tournament_slug));
+  select * into v_reg from public.registrations
+    where tournament_slug = p_tournament_slug and player_id = auth.uid();
+  if v_reg.id is null then
+    raise exception 'Register for this tournament first.';
+  end if;
+  if v_reg.status <> 'pending' then
+    raise exception 'This registration does not need a payment.';
+  end if;
+  select slots into v_slots from public.tournament_capacity where tournament_slug = p_tournament_slug;
+  if v_slots is not null then
+    select count(*) into v_count from public.registrations
+      where tournament_slug = p_tournament_slug and status in ('confirmed','approved');
+    if v_count >= v_slots then
+      raise exception 'All slots are full, so no points were taken.';
+    end if;
+  end if;
+  v_bal := public._wallet_apply(auth.uid(), -v_price, 'entry', v_reg.id::text, p_tournament_slug);
+  update public.registrations set status = 'approved', paid_points = v_price where id = v_reg.id;
+  insert into public.notifications (player_id, tournament_slug, title, body)
+  values (auth.uid(), p_tournament_slug, '✅ Entry confirmed: ' || p_tournament_slug,
+          v_price || ' points paid — ' || coalesce(v_reg.squad_name, 'your squad') || ' is confirmed. Room details will be sent here before the match.');
+  return jsonb_build_object('status', 'approved', 'paid', v_price, 'balance', v_bal);
+end;
+$$;
+
+create or replace function public.buy_effect_with_points(p_kind text, p_effect text, p_tournament_slug text default null)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_price int;
+  v_res jsonb;
+  v_bal int;
+begin
+  if auth.uid() is null then
+    raise exception 'Please sign in first.';
+  end if;
+  v_price := case p_kind when 'fx_game' then 2 when 'fx_lite_week' then 5 when 'fx_week' then 10 when 'fx_month' then 30 end;
+  if v_price is null then
+    raise exception 'Unknown plan.';
+  end if;
+  v_res := public._apply_effect_plan(auth.uid(), p_kind, p_effect, p_tournament_slug, 'points');
+  v_bal := public._wallet_apply(auth.uid(), -v_price, 'effect', v_res->>'ref', p_kind || ':' || p_effect);
+  return v_res || jsonb_build_object('paid', v_price, 'balance', v_bal);
+end;
+$$;
+
+create or replace function public.request_withdrawal(p_amount int, p_esewa_id text, p_esewa_name text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_req public.withdraw_requests;
+  v_bal int;
+begin
+  if auth.uid() is null then
+    raise exception 'Please sign in first.';
+  end if;
+  if p_amount is null or p_amount < 1 then
+    raise exception 'Enter how many points to withdraw.';
+  end if;
+  p_esewa_id := trim(coalesce(p_esewa_id, ''));
+  p_esewa_name := trim(coalesce(p_esewa_name, ''));
+  if length(p_esewa_id) < 5 or length(p_esewa_id) > 40 then
+    raise exception 'Enter your eSewa ID (the phone number or email on your eSewa account).';
+  end if;
+  if length(p_esewa_name) < 2 or length(p_esewa_name) > 60 then
+    raise exception 'Enter the name on your eSewa account.';
+  end if;
+  insert into public.withdraw_requests (player_id, amount, esewa_id, esewa_name)
+  values (auth.uid(), p_amount, p_esewa_id, p_esewa_name) returning * into v_req;
+  v_bal := public._wallet_apply(auth.uid(), -p_amount, 'withdraw', v_req.id::text, null);
+  return jsonb_build_object('id', v_req.id, 'amount', p_amount, 'balance', v_bal);
+end;
+$$;
+
+create or replace function public.withdraw_registration(p_tournament_slug text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_reg public.registrations;
+  v_start timestamptz;
+  v_late boolean := false;
+  v_refund int := 0;
+begin
+  if auth.uid() is null then
+    raise exception 'Please sign in first.';
+  end if;
+  select * into v_reg from public.registrations
+    where tournament_slug = p_tournament_slug and player_id = auth.uid();
+  if v_reg.id is null then
+    raise exception 'You are not registered for this tournament.';
+  end if;
+  v_start := public.tournament_start_at(p_tournament_slug);
+  if v_start is not null and v_start <= now() then
+    raise exception 'This match has already started, so squads can no longer withdraw.';
+  end if;
+  if exists(select 1 from public.tournament_room_codes where tournament_slug = p_tournament_slug and sent_at is not null) then
+    raise exception 'The room details have been released, so squads can no longer withdraw.';
+  end if;
+  v_late := v_start is not null and v_start - now() < interval '24 hours';
+  if v_reg.paid_points > 0 then
+    v_refund := case when v_late then floor(v_reg.paid_points * 0.1)::int else v_reg.paid_points end;
+  end if;
+  delete from public.registrations where id = v_reg.id;
+  if v_refund > 0 then
+    perform public._wallet_apply(auth.uid(), v_refund, 'refund', v_reg.id::text, p_tournament_slug);
+  end if;
+  return jsonb_build_object('refund', v_refund, 'late', v_late, 'paid_points', v_reg.paid_points);
+end;
+$$;
+
+-- ── admin (service role only, via the wallet-admin Edge Function) ──
+create or replace function public.admin_wallet_credit(p_player uuid, p_amount int, p_ref text, p_note text)
+returns int language plpgsql security definer set search_path = public as $$
+declare v_bal int;
+begin
+  if p_amount is null or p_amount < 1 then
+    raise exception 'Enter how many points to add.';
+  end if;
+  p_ref := upper(trim(coalesce(p_ref, '')));
+  if p_ref = '' then
+    raise exception 'Enter the eSewa transaction ID so the same payment cannot be credited twice.';
+  end if;
+  begin
+    v_bal := public._wallet_apply(p_player, p_amount, 'load', p_ref, p_note);
+  exception when unique_violation then
+    raise exception 'This eSewa transaction (%) has already been credited.', p_ref;
+  end;
+  insert into public.notifications (player_id, title, body)
+  values (p_player, '🪙 ' || p_amount || ' points added',
+          'Your payment was verified and ' || p_amount || ' points were added to your wallet. Balance: ' || v_bal || ' points.');
+  return v_bal;
+end;
+$$;
+
+create or replace function public.admin_resolve_withdrawal(p_id uuid, p_paid boolean, p_payout_ref text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_req public.withdraw_requests;
+begin
+  update public.withdraw_requests
+    set status = case when p_paid then 'paid' else 'rejected' end, processed_at = now(), payout_ref = nullif(trim(coalesce(p_payout_ref, '')), '')
+    where id = p_id and status = 'pending'
+    returning * into v_req;
+  if v_req.id is null then
+    raise exception 'This withdrawal was already processed.';
+  end if;
+  if p_paid then
+    insert into public.notifications (player_id, title, body)
+    values (v_req.player_id, '💸 Withdrawal sent: Rs ' || v_req.amount,
+            'Rs ' || v_req.amount || ' was sent to your eSewa (' || v_req.esewa_id || ')' || coalesce(' · ref ' || v_req.payout_ref, '') || '.');
+  else
+    perform public._wallet_apply(v_req.player_id, v_req.amount, 'withdraw_returned', v_req.id::text, null);
+    insert into public.notifications (player_id, title, body)
+    values (v_req.player_id, 'Withdrawal not processed',
+            'Your withdrawal of ' || v_req.amount || ' points could not be sent, so the points were returned to your wallet. Please check your eSewa details or contact us on WhatsApp.');
+  end if;
+  return jsonb_build_object('id', v_req.id, 'status', v_req.status);
+end;
+$$;
+
+-- ── who can call what ──
+revoke all on function public._wallet_apply(uuid, int, text, text, text) from public, anon, authenticated;
+revoke all on function public._apply_effect_plan(uuid, text, text, text, text) from public, anon, authenticated;
+revoke all on function public.admin_wallet_credit(uuid, int, text, text) from public, anon, authenticated;
+revoke all on function public.admin_resolve_withdrawal(uuid, boolean, text) from public, anon, authenticated;
+grant execute on function public._wallet_apply(uuid, int, text, text, text) to service_role;
+grant execute on function public._apply_effect_plan(uuid, text, text, text, text) to service_role;
+grant execute on function public.admin_wallet_credit(uuid, int, text, text) to service_role;
+grant execute on function public.admin_resolve_withdrawal(uuid, boolean, text) to service_role;
+revoke all on function public.pay_entry_with_points(text) from public, anon;
+revoke all on function public.buy_effect_with_points(text, text, text) from public, anon;
+revoke all on function public.request_withdrawal(int, text, text) from public, anon;
+revoke all on function public.withdraw_registration(text) from public, anon;
+grant execute on function public.pay_entry_with_points(text) to authenticated;
+grant execute on function public.buy_effect_with_points(text, text, text) to authenticated;
+grant execute on function public.request_withdrawal(int, text, text) to authenticated;
+grant execute on function public.withdraw_registration(text) to authenticated;
+
+commit;

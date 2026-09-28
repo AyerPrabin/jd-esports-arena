@@ -213,7 +213,7 @@ h2[id]{scroll-margin-top:64px}
   <div class="dash" id="dash"><div class="dash-tile loading"><b>…</b><span>Loading</span></div></div>
 
   <nav class="adm-nav" id="adm-nav">
-    <a href="#tournaments">🏆 Tournaments</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#payment-codes">🎟️ Codes</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
+    <a href="#tournaments">🏆 Tournaments</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">🪙 Points</a><a href="#payment-codes">🎟️ Codes</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
   </nav>
 
   <div class="f full" style="margin-bottom:8px">
@@ -387,6 +387,19 @@ h2[id]{scroll-margin-top:64px}
     <div id="pp-msg" class="hint"></div>
   </div>
   <div id="pp-list"></div>
+
+  <h2 id="wallets">Points &amp; Withdrawals <span class="tag">1 point = Rs 1</span></h2>
+  <p class="hint">Players load points by paying the eSewa QR with their username in the remarks and sending you the screenshot on WhatsApp. Find the player, check the name, and add the points with the eSewa <b>transaction ID</b> from the screenshot (the same transaction can never be credited twice). Withdrawals below have already left the player's wallet — send the money on eSewa, then mark it paid; rejecting returns the points.</p>
+  <div class="grid">
+    <div class="f"><label>Player (tag / username / email)</label><input id="wa-q" placeholder="e.g. ayer_legend" onkeydown="if(event.key==='Enter')walletLookup()"></div>
+    <div class="f" style="align-self:end"><button class="btn ghost" id="wa-find" onclick="walletLookup()">🔎 Find player</button></div>
+  </div>
+  <div id="wa-player"></div>
+  <div class="row" style="margin-top:6px">
+    <button class="btn ghost" onclick="loadWithdrawals()">↻ Pending withdrawals</button>
+    <div id="wa-msg" class="hint"></div>
+  </div>
+  <div id="wa-wlist"></div>
 
   <h2 id="payment-codes">Payment Codes <span class="tag">WhatsApp payments</span></h2>
   <p class="hint">When a player pays you on WhatsApp, generate a code here and send it back. They enter it on the site: an <b>entry code</b> confirms their held place in that one tournament (it can't be used for any other), an <b>effect code</b> turns on their squad effect or pass. Each code works once. Single match Rs 2 · Lite week Rs 5 (basic effects) · Pro week Rs 10 · Pro month Rs 30 (every effect).</p>
@@ -1229,6 +1242,78 @@ function renderPendingPayments(){
     </div></div>`;
   }).join(''):'<p class="hint">No pending payments for this tournament — click "↻ Load pending".</p>';
   staggerReveal(box);
+}
+/* ── points wallets (wallet-admin Edge Function) ── */
+let _waPlayer=null;
+function waMsg(t,c){const el=document.getElementById('wa-msg');if(el){el.textContent=t;el.className='hint '+(c||'');}}
+async function waCall(body){
+  const secret=adminSecret();
+  if(!secret)throw new Error('Enter the admin passcode first.');
+  const r=await fetch(EDGE_FN_BASE+'/wallet-admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify(body)});
+  if(!r.ok)throw new Error(await r.text());
+  return r.json();
+}
+const WA_REASON={load:'Loaded',entry:'Entry',effect:'Effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Refund',adjust:'Adjustment'};
+async function walletLookup(){
+  const q=document.getElementById('wa-q').value.trim();
+  const box=document.getElementById('wa-player');
+  if(!q){waMsg('Type a player tag, username or email.','err');return;}
+  const btn=document.getElementById('wa-find');btn.disabled=true;waMsg('Searching…','');
+  try{
+    const d=await waCall({action:'lookup',q});
+    _waPlayer=d.player;
+    box.innerHTML=`<div class="card"><div class="grid">
+      <div class="f"><label>Player</label><input value="${esc((d.player.username?'@'+d.player.username+' · ':'')+(d.player.player_tag||''))}" disabled></div>
+      <div class="f"><label>Email</label><input value="${esc(d.player.email||'')}" disabled></div>
+      <div class="f"><label>Balance</label><input value="${d.balance} points" disabled style="color:var(--gold-l);font-weight:700"></div>
+      <div class="f"><label>Points to add</label><input id="wa-amt" type="number" min="1" placeholder="Amount paid, e.g. 50"></div>
+      <div class="f"><label>eSewa transaction ID</label><input id="wa-ref" placeholder="From the payment screenshot" autocomplete="off"></div>
+      <div class="f"><label>Note (optional)</label><input id="wa-note" placeholder="e.g. WhatsApp name"></div>
+    </div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="wa-credit" onclick="walletCredit()">🪙 Add points</button></div>
+    ${d.ledger.length?`<table style="width:100%;font-size:.76rem;border-collapse:collapse;margin-top:10px">${d.ledger.map(x=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 4px">${esc(new Date(x.created_at).toLocaleString())}</td><td>${esc(WA_REASON[x.reason]||x.reason)}${x.ref&&x.reason==='load'?' · '+esc(x.ref):''}</td><td style="text-align:right;color:${x.delta>0?'var(--green,#5EDB95)':'#ff9d9d'}">${x.delta>0?'+':''}${x.delta}</td><td style="text-align:right">${x.balance_after}</td></tr>`).join('')}</table>`:'<p class="hint">No transactions yet.</p>'}
+    </div>`;
+    waMsg('Found '+(d.player.username||d.player.player_tag)+'.','ok');
+  }catch(e){box.innerHTML='';_waPlayer=null;waMsg(e.message,'err');}
+  btn.disabled=false;
+}
+async function walletCredit(){
+  if(!_waPlayer)return;
+  const amount=parseInt(document.getElementById('wa-amt').value,10),ref=document.getElementById('wa-ref').value.trim(),note=document.getElementById('wa-note').value.trim();
+  if(!amount||amount<1){waMsg('Enter the number of points to add.','err');return;}
+  if(!ref){waMsg('Enter the eSewa transaction ID from the screenshot.','err');return;}
+  if(!confirm(`Add ${amount} points to ${_waPlayer.username||_waPlayer.player_tag}?`))return;
+  const btn=document.getElementById('wa-credit');btn.disabled=true;waMsg('Adding…','');
+  try{
+    const d=await waCall({action:'credit',player_id:_waPlayer.id,amount,ref,note});
+    waMsg(`Added ${amount} points. New balance: ${d.balance}. The player has been notified.`,'ok');
+    walletLookup();
+  }catch(e){waMsg(e.message,'err');btn.disabled=false;}
+}
+async function loadWithdrawals(){
+  const box=document.getElementById('wa-wlist');waMsg('Loading…','');
+  try{
+    const rows=await waCall({action:'withdrawals'});
+    box.innerHTML=rows.length?rows.map(w=>`<div class="card"><div class="grid">
+      <div class="f"><label>Player</label><input value="${esc(w.players?('@'+(w.players.username||w.players.player_tag)):'')}" disabled></div>
+      <div class="f"><label>Send</label><input value="Rs ${w.amount}" disabled style="color:var(--gold-l);font-weight:700"></div>
+      <div class="f"><label>eSewa ID</label><input value="${esc(w.esewa_id)}" disabled></div>
+      <div class="f"><label>Account name</label><input value="${esc(w.esewa_name)}" disabled></div>
+      <div class="f"><label>Your eSewa transaction ID (optional)</label><input id="wp-${w.id}" placeholder="Shown to the player"></div>
+    </div><div class="row" style="margin-top:10px"><button class="btn" data-wd-paid="${w.id}">✓ Mark paid</button><button class="btn ghost" data-wd-reject="${w.id}">✕ Reject (return points)</button></div></div>`).join(''):'<p class="hint">No pending withdrawals.</p>';
+    box.querySelectorAll('[data-wd-paid]').forEach(b=>b.onclick=()=>resolveWithdrawal(b,b.dataset.wdPaid,true));
+    box.querySelectorAll('[data-wd-reject]').forEach(b=>b.onclick=()=>resolveWithdrawal(b,b.dataset.wdReject,false));
+    waMsg(rows.length+' pending withdrawal(s).','ok');
+  }catch(e){waMsg(e.message,'err');}
+}
+async function resolveWithdrawal(btn,id,paid){
+  if(!confirm(paid?'Mark this withdrawal as paid? Only do this after sending the money on eSewa.':'Reject this withdrawal and return the points to the player?'))return;
+  btn.disabled=true;
+  try{
+    await waCall({action:'resolve',id,paid,payout_ref:(document.getElementById('wp-'+id)||{}).value||''});
+    waMsg(paid?'Marked as paid — the player has been notified.':'Rejected — the points were returned.','ok');
+    loadWithdrawals();
+  }catch(e){waMsg(e.message,'err');btn.disabled=false;}
 }
 /* ── payment codes (payment-codes Edge Function) ── */
 const PC_LABEL={entry:'Entry',fx_game:'Effect · single match',fx_lite_week:'Effect · lite week',fx_week:'Effect · pro week',fx_month:'Effect · pro month'};
