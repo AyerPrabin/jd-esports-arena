@@ -1489,7 +1489,7 @@ const ONESIGNAL_APP_ID='4170bab6-90d6-494b-8412-bdafc47d08a1'; /* ← OneSignal 
 if(ONESIGNAL_APP_ID){
   window.OneSignalDeferred=window.OneSignalDeferred||[];
   OneSignalDeferred.push(async function(OneSignal){
-    await OneSignal.init({appId:ONESIGNAL_APP_ID,serviceWorkerPath:'sw.js',serviceWorkerParam:{scope:'/'}});
+    await OneSignal.init({appId:ONESIGNAL_APP_ID,safari_web_id:'web.onesignal.auto.665e4130-cb92-443f-ad4d-8156961c0995',serviceWorkerPath:'sw.js',serviceWorkerParam:{scope:'/'}});
     window._oneSignal=OneSignal;window._osFailed=false;
     if(_player)OneSignal.login(_player.id);
     try{OneSignal.Notifications.addEventListener('permissionChange',()=>updatePushBtn());}catch(e){}
