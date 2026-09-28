@@ -2720,3 +2720,68 @@ $$;
 revoke all on function public.get_challenge_names(uuid[]) from public, anon;
 grant execute on function public.get_challenge_names(uuid[]) to authenticated;
 commit;
+
+-- ── challenges: flat 1-point platform fee per player + effects in the lobby/room ──
+-- The pot a winner receives is 2 × stake − 2 × challenge_fee_per_player() (1 point from
+-- each player). The fee only applies to a match that is actually settled — cancelled,
+-- expired and refunded challenges return the full stakes.
+begin;
+create or replace function public.challenge_fee_per_player() returns int language sql immutable as $$ select 1 $$;
+drop function if exists public.challenge_fee_pct();
+
+create or replace function public._challenge_payout(p_id uuid, p_winner uuid, p_resolution text)
+returns void language plpgsql security definer set search_path = public as $$
+declare c public.challenges; v_pot int; v_loser uuid;
+begin
+  update public.challenges set status = 'completed', winner = p_winner, resolution = p_resolution, resolved_at = now()
+    where id = p_id and status in ('accepted','disputed') and p_winner in (creator, opponent)
+    returning * into c;
+  if c.id is null then
+    raise exception 'This challenge is already settled.';
+  end if;
+  v_pot := c.stake * 2 - 2 * public.challenge_fee_per_player();
+  perform public._wallet_apply(p_winner, v_pot, 'challenge_win', c.id::text, c.mode || ' challenge');
+  v_loser := case when p_winner = c.creator then c.opponent else c.creator end;
+  insert into public.notifications (player_id, title, body) values
+    (p_winner, '🏆 Challenge won: +' || v_pot || ' JD points', 'You won the ' || c.mode || ' challenge against ' || public._challenge_name(v_loser) || '. ' || v_pot || ' points are in your wallet.'),
+    (v_loser, 'Challenge result: lost', 'The ' || c.mode || ' challenge against ' || public._challenge_name(p_winner) || ' went to them. Better luck next time!');
+end;
+$$;
+revoke all on function public._challenge_payout(uuid, uuid, text) from public, anon, authenticated;
+
+-- a player's active squad effect (from their pass), for showing on challenge cards
+create or replace function public._active_effect(p_player uuid)
+returns text language sql stable security definer set search_path = public as $$
+  select effect from public.effect_passes
+  where player_id = p_player and starts_at <= now() and expires_at > now()
+  order by expires_at asc limit 1
+$$;
+revoke all on function public._active_effect(uuid) from public, anon, authenticated;
+
+drop function if exists public.get_open_challenges();
+create function public.get_open_challenges()
+returns table(id uuid, mode text, stake int, note text, creator_name text, created_at timestamptz, for_me boolean, mine boolean, creator_effect text)
+language sql stable security definer set search_path = public as $$
+  select c.id, c.mode, c.stake, c.note, public._challenge_name(c.creator), c.created_at,
+         c.invited is not null and c.invited = auth.uid(), c.creator = auth.uid(), public._active_effect(c.creator)
+  from public.challenges c
+  where c.status = 'open' and (c.invited is null or c.invited = auth.uid() or c.creator = auth.uid())
+  order by (c.invited = auth.uid()) desc nulls last, c.created_at desc
+  limit 60
+$$;
+revoke all on function public.get_open_challenges() from public, anon;
+grant execute on function public.get_open_challenges() to authenticated;
+
+drop function if exists public.get_challenge_names(uuid[]);
+create function public.get_challenge_names(p_ids uuid[])
+returns table(id uuid, name text, effect text) language sql stable security definer set search_path = public as $$
+  select p.id, coalesce('@' || p.username, p.player_tag, 'Player'), public._active_effect(p.id)
+  from public.players p
+  where p.id = any(p_ids)
+    and exists(select 1 from public.challenges c
+               where auth.uid() in (c.creator, c.opponent, c.invited)
+                 and p.id in (c.creator, c.opponent, c.invited))
+$$;
+revoke all on function public.get_challenge_names(uuid[]) from public, anon;
+grant execute on function public.get_challenge_names(uuid[]) to authenticated;
+commit;
