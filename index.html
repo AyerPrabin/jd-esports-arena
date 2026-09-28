@@ -1492,7 +1492,11 @@ if(ONESIGNAL_APP_ID){
     await OneSignal.init({appId:ONESIGNAL_APP_ID,safari_web_id:'web.onesignal.auto.665e4130-cb92-443f-ad4d-8156961c0995',serviceWorkerPath:'sw.js',serviceWorkerParam:{scope:'/'}});
     window._oneSignal=OneSignal;window._osFailed=false;
     if(_player)OneSignal.login(_player.id);
-    try{OneSignal.Notifications.addEventListener('permissionChange',()=>updatePushBtn());}catch(e){}
+    // Browser already allows notifications but OneSignal has no subscription for this device
+    // (e.g. permission was granted while OneSignal was blocked or still loading): register it now,
+    // otherwise pushes sent while the site is closed have nowhere to go.
+    ensurePushSubscribed();
+    try{OneSignal.Notifications.addEventListener('permissionChange',()=>{updatePushBtn();ensurePushSubscribed();});}catch(e){}
     updatePushBtn();
   });
 }
@@ -1511,6 +1515,15 @@ function reloadOneSignalSdk(){
   });
 }
 const PUSH_BLOCKED_HELP="Your browser or an ad-blocker is blocking our alert service (OneSignal), so push alerts cannot reach this device.\n\nTo fix it: pause your ad-blocker or browser shields for jdesport.co.uk (or allow cdn.onesignal.com), reload the page, then tap Enable push alerts again.\n\nRoom details are still sent to your email and to Notification History.";
+async function ensurePushSubscribed(){
+  const os=window._oneSignal;if(!os)return;
+  try{
+    if(typeof Notification==='function'&&Notification.permission==='granted'&&os.User&&os.User.PushSubscription&&!os.User.PushSubscription.optedIn){
+      await os.User.PushSubscription.optIn();
+    }
+    if(_player)os.login(_player.id);
+  }catch(e){}
+}
 /* iPhone/iPad only support push for a home-screen-installed app (Apple's own
    restriction, not something we can work around) — Safari-tab visits never get a
    working push subscription no matter what we do here, so detect that state and
@@ -1539,6 +1552,7 @@ async function enablePush(){
     updatePushBtn();
     return;
   }
+  await ensurePushSubscribed();
   updatePushBtn();
   if(window._oneSignal.Notifications.permission)showMsg('Push alerts enabled',"This device will now receive check-in reminders, room details and announcements as soon as they are sent.");
 }
@@ -2288,7 +2302,7 @@ async function authRefreshPlayer(){
   updateAcctBtn();
   updateGate();
   trackPresence();
-  if(window._oneSignal)window._oneSignal.login(_player.id);
+  if(window._oneSignal){window._oneSignal.login(_player.id);ensurePushSubscribed();}
   await loadMyAvatarUrl();
   updateAcctBtn();
   const avImg=document.getElementById('pm-avatar-img');if(avImg&&_player.avatar)avImg.src=_player.avatar;
