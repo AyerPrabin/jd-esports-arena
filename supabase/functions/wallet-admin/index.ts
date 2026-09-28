@@ -51,6 +51,25 @@ Deno.serve(async (req: Request) => {
     return json({ player, balance: w?.balance ?? 0, ledger: ledger || [] });
   }
 
+  if (p.action === 'balances') {
+    const { data, error } = await supabase.from('players')
+      .select('id, username, player_tag, email, wallets(balance, unlimited, updated_at)');
+    if (error) return fail(error.message, 500);
+    const rows = (data || []).map((x: any) => {
+      const w = Array.isArray(x.wallets) ? x.wallets[0] : x.wallets;
+      return { id: x.id, username: x.username, player_tag: x.player_tag, email: x.email,
+        balance: w?.balance ?? 0, unlimited: !!w?.unlimited, updated_at: w?.updated_at ?? null };
+    }).sort((a: any, b: any) => (b.unlimited ? 1 : 0) - (a.unlimited ? 1 : 0) || b.balance - a.balance);
+    const { data: pend } = await supabase.from('withdraw_requests').select('amount').eq('status', 'pending');
+    return json({ rows, pending_withdrawals: (pend || []).reduce((s: number, r: any) => s + r.amount, 0) });
+  }
+
+  if (p.action === 'award') {
+    const { data, error } = await supabase.rpc('award_prizes', { p_slug: p.tournament_slug || null });
+    if (error) return fail(error.message);
+    return json(data || []);
+  }
+
   if (p.action === 'credit') {
     const { data, error } = await supabase.rpc('admin_wallet_credit', {
       p_player: p.player_id, p_amount: parseInt(p.amount), p_ref: p.ref, p_note: p.note || null,

@@ -389,6 +389,7 @@ h2[id]{scroll-margin-top:64px}
   <div id="pp-list"></div>
 
   <h2 id="wallets">Points &amp; Withdrawals <span class="tag">1 point = Rs 1</span></h2>
+  <p class="hint"><b>Prizes are automatic:</b> when you publish a tournament with its <b>Winner</b> set, the winning squad's player gets the posted prize (first number in "Prize pool", e.g. Rs 400 → 400 points). If the results board has a per-squad "prize won", each squad gets its own amount instead. Each prize is paid once — republishing never pays twice. Squads that only registered on WhatsApp can't be matched and are listed so you can add their points by hand.</p>
   <p class="hint">Players load points by paying the eSewa QR with their username in the remarks and sending you the screenshot on WhatsApp. Find the player, check the name, and add the points with the eSewa <b>transaction ID</b> from the screenshot (the same transaction can never be credited twice). Withdrawals below have already left the player's wallet — send the money on eSewa, then mark it paid; rejecting returns the points.</p>
   <div class="grid">
     <div class="f"><label>Player (tag / username / email)</label><input id="wa-q" placeholder="e.g. ayer_legend" onkeydown="if(event.key==='Enter')walletLookup()"></div>
@@ -397,9 +398,13 @@ h2[id]{scroll-margin-top:64px}
   <div id="wa-player"></div>
   <div class="row" style="margin-top:6px">
     <button class="btn ghost" onclick="loadWithdrawals()">↻ Pending withdrawals</button>
+    <button class="btn ghost" onclick="loadBalances()">📊 All players' points</button>
+    <button class="btn ghost" onclick="payPrizesNow()" title="Normally automatic on every publish — use this to retry">🏆 Pay prizes now</button>
     <div id="wa-msg" class="hint"></div>
   </div>
   <div id="wa-wlist"></div>
+  <div id="wa-prizes"></div>
+  <div id="wa-balances"></div>
 
   <h2 id="payment-codes">Payment Codes <span class="tag">WhatsApp payments</span></h2>
   <p class="hint">When a player pays you on WhatsApp, generate a code here and send it back. They enter it on the site: an <b>entry code</b> confirms their held place in that one tournament (it can't be used for any other), an <b>effect code</b> turns on their squad effect or pass. Each code works once. Single match Rs 2 · Lite week Rs 5 (basic effects) · Pro week Rs 10 · Pro month Rs 30 (every effect).</p>
@@ -801,7 +806,8 @@ async function archiveResults(){
     const r=await fetch(EDGE_FN_BASE+'/archive-results',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({tournament_slug:name,results})});
     if(!r.ok)throw new Error(await r.text());
     const d=await r.json();
-    bo3Msg('Archived '+d.archived+' squad result(s) — these now count toward player career stats and rank.'+(d.flagged?' ⚠️ '+d.flagged+' squad(s) flagged for anomaly review — see Anomaly Flags below.':''),'ok');
+    const pz=(d.prizes||[]).map(x=>x.status==='paid'?`🏆 Paid ${x.amount} points to ${esc(x.squad)}.`:`⚠️ ${esc(x.squad)} won ${x.amount} points but isn't registered in-app.`).join(' ');
+    bo3Msg('Archived '+d.archived+' squad result(s) — these now count toward player career stats and rank.'+(pz?' '+pz:'')+(d.flagged?' ⚠️ '+d.flagged+' squad(s) flagged for anomaly review — see Anomaly Flags below.':''),'ok');
     // Auto-draft the match recap the moment results go final, instead of making the admin
     // navigate to Match Recap, re-pick the same tournament, and click Generate separately.
     // Still stops short of auto-sending -- generateMatchRecap() only fills the text boxes,
@@ -959,6 +965,8 @@ async function publishToGitHub(){
         resultMsg+=nr.ok?(' Notified '+nd.sent+' player(s) about results.'):' (Results notification failed — use "🔔 Notify players" below to retry.)';
       }catch(e){resultMsg+=' (Results notification failed — use "🔔 Notify players" below to retry.)';}
     }
+    const paidList=(d.prizes||[]);
+    if(paidList.length)resultMsg+=' '+paidList.map(x=>x.status==='paid'?`🏆 Paid ${x.amount} points to ${esc(x.squad)}.`:`⚠️ ${esc(x.squad)} won ${x.amount} points but isn't registered in-app — add them in 💰 Points.`).join(' ');
     publishMsg(resultMsg,d.warning?'err':'ok');
   }catch(e){publishMsg('Publish failed: '+e.message,'err');}
 }
@@ -1289,6 +1297,37 @@ async function walletCredit(){
     waMsg(`Added ${amount} points. New balance: ${d.balance}. The player has been notified.`,'ok');
     walletLookup();
   }catch(e){waMsg(e.message,'err');btn.disabled=false;}
+}
+let _balRows=[];
+async function loadBalances(){
+  const box=document.getElementById('wa-balances');waMsg('Loading balances…','');
+  try{
+    const d=await waCall({action:'balances'});
+    _balRows=d.rows||[];
+    const held=_balRows.filter(r=>!r.unlimited).reduce((a,r)=>a+r.balance,0),withPts=_balRows.filter(r=>!r.unlimited&&r.balance>0).length;
+    box.innerHTML=`<div class="card"><div class="row" style="margin:0 0 10px;gap:14px;flex-wrap:wrap"><span class="hint" style="margin:0">Points held by players: <b style="color:var(--gold-l)">${held.toLocaleString()}</b> (Rs ${held.toLocaleString()}) · ${withPts} player(s) with points · Pending withdrawals: <b>Rs ${(d.pending_withdrawals||0).toLocaleString()}</b></span></div><input id="bal-q" placeholder="Filter by name, tag or email" oninput="renderBalances()" style="margin-bottom:8px"><div id="bal-table"></div></div>`;
+    renderBalances();
+    waMsg(_balRows.length+' player(s).','ok');
+  }catch(e){waMsg(e.message,'err');}
+}
+function renderBalances(){
+  const q=(document.getElementById('bal-q')||{}).value||'';const ql=q.trim().toLowerCase();
+  const rows=_balRows.filter(r=>!ql||[r.username,r.player_tag,r.email].some(v=>String(v||'').toLowerCase().includes(ql)));
+  document.getElementById('bal-table').innerHTML=`<table style="width:100%;font-size:.8rem;border-collapse:collapse">${rows.slice(0,300).map(r=>`<tr style="border-bottom:1px solid var(--line);cursor:pointer" data-bal-q="${esc(r.player_tag||r.username||r.email||'')}" title="Open this player's wallet"><td style="padding:7px 4px">${esc(r.username?'@'+r.username:'—')}<br><span class="hint" style="margin:0">${esc(r.player_tag||'')} · ${esc(r.email||'')}</span></td><td style="text-align:right;font-weight:700;color:${r.unlimited?'var(--gold-l)':(r.balance>0?'var(--green,#5EDB95)':'var(--silver)')}">${r.unlimited?'∞ (admin)':r.balance.toLocaleString()+' pts'}</td></tr>`).join('')||'<tr><td class="hint">No players match.</td></tr>'}</table>`;
+  document.querySelectorAll('[data-bal-q]').forEach(tr=>tr.onclick=()=>{document.getElementById('wa-q').value=tr.dataset.balQ;walletLookup();document.getElementById('wallets').scrollIntoView({behavior:'smooth'});});
+}
+function prizeReportHtml(list){
+  if(!list||!list.length)return '';
+  return list.map(x=>x.status==='paid'?`🏆 Paid ${x.amount} points to ${esc(x.squad)} (${esc(x.tournament)})`:`⚠️ ${esc(x.squad)} (${esc(x.tournament)}) won ${x.amount} points but didn't register in-app — add them by hand`).join('<br>');
+}
+async function payPrizesNow(){
+  waMsg('Checking for unpaid prizes…','');
+  try{
+    const list=await waCall({action:'award'});
+    const shown=list.filter(x=>x.status==='paid'||x.status==='unmatched');
+    document.getElementById('wa-prizes').innerHTML=shown.length?`<div class="card hint" style="margin:0 0 10px">${prizeReportHtml(shown)}</div>`:'';
+    waMsg(shown.length?'Done.':'No unpaid prizes — everything announced so far is already paid.','ok');
+  }catch(e){waMsg(e.message,'err');}
 }
 async function loadWithdrawals(){
   const box=document.getElementById('wa-wlist');waMsg('Loading…','');

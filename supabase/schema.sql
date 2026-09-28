@@ -1838,3 +1838,96 @@ $$;
 revoke all on function public.admin_wallet_credit(uuid, int, text, text) from public, anon, authenticated;
 grant execute on function public.admin_wallet_credit(uuid, int, text, text) to service_role;
 commit;
+
+-- ── automatic prize payouts as points ───────────────────────────────────
+-- award_prizes() pays tournament prizes into winners' wallets the moment results are
+-- announced. It is called by publish-tournaments (every publish) and archive-results,
+-- and can be re-run safely: each squad's prize for a tournament is paid at most once
+-- (unique ledger ref 'prize:<tournament>:<squad>'). Prize amounts, in priority order:
+--   1. archived results (tournament_results.prize_won > 0) for that tournament
+--   2. the published Best-of-3 board (bo3.published, teams[].prize_won > 0)
+--   3. the tournament's `winner` field -> the whole posted prize (first number in `prize`)
+-- The points go to the player who registered that squad in-app (confirmed/approved).
+-- Squads that only registered over WhatsApp can't be matched and are reported back.
+begin;
+
+alter table public.wallet_ledger drop constraint if exists wallet_ledger_reason_check;
+alter table public.wallet_ledger add constraint wallet_ledger_reason_check
+  check (reason in ('load','entry','effect','withdraw','withdraw_returned','refund','adjust','prize'));
+create unique index if not exists wallet_ledger_prize_ref on public.wallet_ledger(ref) where reason = 'prize';
+
+create or replace function public._award_one(p_slug text, p_squad text, p_amount int)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_player uuid;
+  v_ref text := 'prize:' || p_slug || ':' || lower(trim(p_squad));
+  v_bal int;
+begin
+  if p_amount is null or p_amount < 1 then
+    return jsonb_build_object('squad', p_squad, 'status', 'no_amount');
+  end if;
+  if exists(select 1 from public.wallet_ledger where reason = 'prize' and ref = v_ref) then
+    return jsonb_build_object('squad', p_squad, 'status', 'already_paid');
+  end if;
+  select player_id into v_player from public.registrations
+    where tournament_slug = p_slug and lower(trim(squad_name)) = lower(trim(p_squad))
+      and status in ('confirmed','approved')
+    order by created_at asc limit 1;
+  if v_player is null then
+    return jsonb_build_object('squad', p_squad, 'status', 'unmatched', 'amount', p_amount);
+  end if;
+  v_bal := public._wallet_apply(v_player, p_amount, 'prize', v_ref, p_slug);
+  insert into public.notifications (player_id, tournament_slug, title, body)
+  values (v_player, p_slug, '🏆 Prize: +' || p_amount || ' JD points',
+          'Congratulations! ' || p_squad || '''s prize for ' || p_slug || ' (' || p_amount || ' points) is in your wallet. Balance: ' || v_bal || ' points. You can use it for entries or withdraw it to eSewa.');
+  return jsonb_build_object('squad', p_squad, 'status', 'paid', 'amount', p_amount, 'player_id', v_player);
+end;
+$$;
+
+create or replace function public.award_prizes(p_slug text default null)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_doc jsonb;
+  t jsonb;
+  v_slug text;
+  v_out jsonb := '[]'::jsonb;
+  r record;
+  v_amt int;
+begin
+  select content into v_doc from public.site_content where key = 'tournaments';
+  if v_doc is null then
+    return v_out;
+  end if;
+  for t in select value from jsonb_array_elements(coalesce(v_doc->'tournaments', '[]'::jsonb)) loop
+    v_slug := t->>'name';
+    continue when v_slug is null or (p_slug is not null and v_slug <> p_slug);
+    perform pg_advisory_xact_lock(hashtext('prize:' || v_slug));
+    if exists(select 1 from public.tournament_results where tournament_slug = v_slug and prize_won > 0) then
+      for r in select squad_name, floor(prize_won)::int amt from public.tournament_results
+               where tournament_slug = v_slug and prize_won > 0 loop
+        v_out := v_out || jsonb_build_array(public._award_one(v_slug, r.squad_name, r.amt) || jsonb_build_object('tournament', v_slug));
+      end loop;
+    elsif v_doc->'bo3'->>'tournament' = v_slug and coalesce((v_doc->'bo3'->>'published')::boolean, false)
+          and exists(select 1 from jsonb_array_elements(coalesce(v_doc->'bo3'->'teams','[]'::jsonb)) x
+                     where coalesce(nullif(regexp_replace(x->>'prize_won','[^0-9.]','','g'),''),'0')::numeric > 0) then
+      for r in select x->>'team' squad, floor(nullif(regexp_replace(x->>'prize_won','[^0-9.]','','g'),'')::numeric)::int amt
+               from jsonb_array_elements(v_doc->'bo3'->'teams') x
+               where coalesce(nullif(regexp_replace(x->>'prize_won','[^0-9.]','','g'),''),'0')::numeric > 0 loop
+        v_out := v_out || jsonb_build_array(public._award_one(v_slug, r.squad, r.amt) || jsonb_build_object('tournament', v_slug));
+      end loop;
+    elsif coalesce(trim(t->>'winner'), '') <> '' then
+      v_amt := nullif(replace(substring(coalesce(t->>'prize', '') from '[0-9][0-9,]*'), ',', ''), '')::int;
+      if v_amt is not null and v_amt > 0 then
+        v_out := v_out || jsonb_build_array(public._award_one(v_slug, trim(t->>'winner'), v_amt) || jsonb_build_object('tournament', v_slug));
+      end if;
+    end if;
+  end loop;
+  return v_out;
+end;
+$$;
+
+revoke all on function public._award_one(text, text, int) from public, anon, authenticated;
+revoke all on function public.award_prizes(text) from public, anon, authenticated;
+grant execute on function public._award_one(text, text, int) to service_role;
+grant execute on function public.award_prizes(text) to service_role;
+commit;

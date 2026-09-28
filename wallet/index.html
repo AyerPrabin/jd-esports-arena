@@ -175,7 +175,7 @@ input:focus{border-color:var(--gold)}
       <div class="hero-top"><span class="hero-lbl">Available balance</span><span class="live"><i></i>Live</span></div>
       <div class="bal"><div class="coin">JD</div><div><b id="bal">0</b><small id="bal-sub">points · 1 point = Rs 1</small></div></div>
       <div class="stats">
-        <div class="stat in"><span>Loaded</span><b id="st-in">0</b></div>
+        <div class="stat in"><span>Loaded &amp; won</span><b id="st-in">0</b></div>
         <div class="stat out"><span>Spent</span><b id="st-out">0</b></div>
         <div class="stat wd"><span>Withdrawn</span><b id="st-wd">0</b></div>
       </div>
@@ -367,11 +367,11 @@ async function loadWithdrawals(){
 }
 
 /* ── history ── */
-const R={load:['💰','Points loaded','in'],refund:['↩️','Entry refund','in'],withdraw_returned:['↩️','Withdrawal returned','in'],adjust:['🛠️','Adjustment','in'],entry:['🎮','Tournament entry','out'],effect:['✨','Squad effect','out'],withdraw:['💸','Withdrawal to eSewa','wd']};
+const R={prize:['🏆','Tournament prize','in'],load:['💰','Points loaded','in'],refund:['↩️','Entry refund','in'],withdraw_returned:['↩️','Withdrawal returned','in'],adjust:['🛠️','Adjustment','in'],entry:['🎮','Tournament entry','out'],effect:['✨','Squad effect','out'],withdraw:['💸','Withdrawal to eSewa','wd']};
 const FX={fx_game:'Single match',fx_lite_week:'Lite week',fx_week:'Pro week',fx_month:'Pro month'};
 function histSub(x){
   if(x.reason==='effect'&&x.note){const [k,e]=x.note.split(':');return (FX[k]||k)+(e?' · '+e:'');}
-  if(x.reason==='entry'||x.reason==='refund')return x.note||'';
+  if(x.reason==='entry'||x.reason==='refund'||x.reason==='prize')return x.note||'';
   return '';
 }
 function renderHistory(){
@@ -391,7 +391,7 @@ async function refresh(){
   if(unl){$('bal').textContent='∞';$('bal-sub').textContent='Admin wallet · unlimited points for testing';$('tab-withdraw').hidden=true;}
   else countTo($('bal'),bal);
   const sum=f=>ledger.filter(f).reduce((a,x)=>a+Math.abs(x.delta),0);
-  countTo($('st-in'),sum(x=>x.reason==='load'));
+  countTo($('st-in'),sum(x=>x.reason==='load'||x.reason==='prize'));
   countTo($('st-out'),sum(x=>x.reason==='entry'||x.reason==='effect')-sum(x=>x.reason==='refund'));
   countTo($('st-wd'),sum(x=>x.reason==='withdraw')-sum(x=>x.reason==='withdraw_returned'));
   const pend=(p.data||[]).reduce((a,x)=>a+x.amount,0);

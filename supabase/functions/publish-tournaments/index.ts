@@ -146,7 +146,20 @@ Deno.serve(async (req: Request) => {
     warning = `Published to GitHub, but syncing tournament settings failed: ${e instanceof Error ? e.message : String(e)}`;
   }
 
-  return new Response(JSON.stringify({ ok: true, ...(warning ? { warning } : {}) }), {
+  // Prize payouts: a winner (or per-squad prize on a published board) that just went
+  // live gets paid into the squad's wallet as points. award_prizes() only pays each
+  // squad's prize once, so running it on every publish is safe.
+  let prizes: any[] = [];
+  try {
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data, error } = await supabase.rpc('award_prizes', { p_slug: null });
+    if (error) { if (!warning) warning = `Published, but paying prizes failed: ${error.message}`; }
+    else prizes = (data || []).filter((x: any) => x.status === 'paid' || x.status === 'unmatched');
+  } catch (e) {
+    if (!warning) warning = `Published, but paying prizes failed: ${e instanceof Error ? e.message : String(e)}`;
+  }
+
+  return new Response(JSON.stringify({ ok: true, prizes, ...(warning ? { warning } : {}) }), {
     status: 200,
     headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
   });

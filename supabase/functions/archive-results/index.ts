@@ -86,7 +86,16 @@ Deno.serve(async (req: Request) => {
     // anomaly detection failing shouldn't block the archive that already succeeded above
   }
 
-  return new Response(JSON.stringify({ archived: rows.length, flagged }), {
+  // Final standings with prize amounts pay out straight into winners' wallets (once each).
+  let prizes: any[] = [];
+  try {
+    const { data } = await supabase.rpc('award_prizes', { p_slug: tournament_slug });
+    prizes = (data || []).filter((x: any) => x.status === 'paid' || x.status === 'unmatched');
+  } catch {
+    // prize payout failing shouldn't undo the archive; the next publish retries it
+  }
+
+  return new Response(JSON.stringify({ archived: rows.length, flagged, prizes }), {
     status: 200,
     headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
   });
