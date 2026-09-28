@@ -13,13 +13,13 @@
 body{margin:0;background:var(--bg);color:var(--cream);font-family:'Inter',sans-serif;font-weight:300;line-height:1.6}
 .wrap{max-width:860px;margin:0 auto;padding:28px 22px 80px}
 h1{font-family:'Playfair Display',serif;font-weight:700;font-size:1.7rem;margin:0 0 4px}
-.sub{color:var(--gold-l);font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:24px}
+.sub{color:var(--gold-l);font-size:.74rem;letter-spacing:.01em;margin-bottom:24px}
 h2{font-family:'Playfair Display',serif;font-weight:600;font-size:1.25rem;margin:34px 0 14px;border-bottom:1px solid var(--line);padding-bottom:8px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;position:relative}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .f{display:flex;flex-direction:column;gap:5px}
 .f.full{grid-column:1/-1}
-label{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--silver)}
+label{font-size:.7rem;letter-spacing:.01em;color:var(--silver)}
 input,select,textarea{background:var(--bg-2);border:1px solid var(--line);border-radius:9px;padding:9px 11px;color:var(--cream);font-family:inherit;font-size:.9rem;outline:none;width:100%}
 input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 select{cursor:pointer}
@@ -31,9 +31,9 @@ select{cursor:pointer}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0}
 textarea#out{width:100%;height:300px;font-family:'JetBrains Mono',monospace;font-size:.78rem;line-height:1.5;margin-top:12px;resize:vertical}
 .hint{color:var(--body);font-size:.84rem;margin:6px 0 0}
-.tag{display:inline-block;font-size:.66rem;padding:2px 9px;border-radius:20px;border:1px solid var(--gold-m);color:var(--gold-l);margin-left:8px;text-transform:uppercase;letter-spacing:.08em}
+.tag{display:inline-block;font-size:.66rem;padding:2px 9px;border-radius:20px;border:1px solid var(--gold-m);color:var(--gold-l);margin-left:8px;letter-spacing:.01em}
 .bo3-tbl{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:8px}
-.bo3-tbl th{font-size:.64rem;letter-spacing:.06em;text-transform:uppercase;color:var(--silver);padding:6px 5px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+.bo3-tbl th{font-size:.64rem;letter-spacing:.01em;color:var(--silver);padding:6px 5px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 .bo3-tbl td{padding:5px;border-bottom:1px solid var(--line)}
 .bo3-tbl input{width:100%;min-width:56px;padding:6px 7px;font-size:.82rem}
 .bo3-tbl td:first-child input{min-width:120px}
@@ -44,7 +44,7 @@ textarea#out{width:100%;height:300px;font-family:'JetBrains Mono',monospace;font
 .rrow-top input{flex:1}
 .rrow .del{position:static;padding:6px 10px}
 .rmembers{width:100%;font-size:.78rem}
-.rfx-label{display:flex;align-items:center;gap:8px;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--silver)}
+.rfx-label{display:flex;align-items:center;gap:8px;font-size:.7rem;letter-spacing:.01em;color:var(--silver)}
 .rfx{background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:6px 8px;color:var(--cream);font-family:inherit;font-size:.78rem;text-transform:none;letter-spacing:normal}
 .rlogo{width:36px;height:36px;border-radius:8px;object-fit:cover;background:var(--bg-2);border:1px solid var(--line);flex-shrink:0}
 .rlogo-btn{background:var(--bg-2);border:1px solid var(--line);border-radius:8px;color:var(--silver);font-size:.68rem;padding:8px 10px;cursor:pointer;white-space:nowrap}
@@ -61,7 +61,7 @@ textarea#out{width:100%;height:300px;font-family:'JetBrains Mono',monospace;font
 .dsum::-webkit-details-marker{display:none}
 .dsum::before{content:'▸ ';color:var(--gold-l);font-size:.9rem}
 details[open]>.dsum::before{content:'▾ '}
-.dsum-sm{font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;color:var(--silver);cursor:pointer;list-style:none;display:inline-block}
+.dsum-sm{font-size:.78rem;letter-spacing:.04em;color:var(--silver);cursor:pointer;list-style:none;display:inline-block}
 .dsum-sm::-webkit-details-marker{display:none}
 .dsum-sm::before{content:'▸ ';color:var(--gold-l)}
 details[open]>.dsum-sm::before{content:'▾ '}
@@ -74,7 +74,7 @@ details[open]>.dsum-sm::before{content:'▾ '}
 .online-chip{display:inline-block;font-size:.76rem;padding:4px 11px;border-radius:20px;background:var(--bg-2);border:1px solid var(--line);color:var(--cream);margin:3px 4px 0 0}
 .up-search{max-width:260px}
 /* ── attention dashboard + sticky section nav ── */
-.dash-head{display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--silver)}
+.dash-head{display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px;font-size:.7rem;letter-spacing:.01em;color:var(--silver)}
 .dash-refresh{background:transparent;border:1px solid var(--line);color:var(--silver);border-radius:8px;width:30px;height:28px;cursor:pointer}
 .dash-refresh:hover{border-color:var(--gold);color:var(--cream)}
 .dash{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
@@ -110,7 +110,7 @@ h2[id]{scroll-margin-top:64px}
 .tm-name{font-weight:600;font-size:1rem;color:var(--cream);overflow-wrap:anywhere}
 .tm-code{font-family:'JetBrains Mono',monospace;font-size:.8rem;letter-spacing:.04em;padding:3px 9px;border-radius:7px;background:var(--bg-2);border:1px dashed var(--gold-m);color:var(--gold-l);cursor:pointer}
 .tm-code:hover{border-style:solid}
-.tm-pill{font-size:.64rem;letter-spacing:.07em;text-transform:uppercase;padding:2px 8px;border-radius:20px;border:1px solid var(--line);color:var(--silver)}
+.tm-pill{font-size:.64rem;letter-spacing:.01em;padding:2px 8px;border-radius:20px;border:1px solid var(--line);color:var(--silver)}
 .tm-pill.confirmed,.tm-pill.approved{border-color:rgba(90,171,138,.5);color:#7fcfae}
 .tm-pill.pending{border-color:rgba(227,171,126,.5);color:var(--warm-l)}
 .tm-pill.waitlisted{border-color:rgba(170,180,204,.4)}
@@ -310,7 +310,7 @@ h2[id]{scroll-margin-top:64px}
   <p class="hint">Every in-app registration for an event, with the same ticket code the player sees on their card (<b>JD-XXXXXXXX</b>). Ask a squad for their code, type it below to confirm it's really theirs, then mark them verified — saved permanently, and the player sees a ✅ Verified badge on their ticket. Removing a team deletes only that registration (not the account), notifies the player, and auto-promotes the next waitlisted squad if a slot frees up.</p>
   <div class="grid">
     <div class="f"><label>Tournament</label><select id="tm-tourney" onchange="loadTeamsAdmin()"></select></div>
-    <div class="f"><label>Check a ticket code</label><input id="tm-code" placeholder="e.g. JD-7F3K2A9C" autocomplete="off" oninput="renderTeamsAdmin()" style="font-family:'JetBrains Mono',monospace;text-transform:uppercase"></div>
+    <div class="f"><label>Check a ticket code</label><input id="tm-code" placeholder="e.g. JD-7F3K2A9C" autocomplete="off" oninput="renderTeamsAdmin()" style="font-family:'JetBrains Mono',monospace;"></div>
   </div>
   <div id="tm-verdict"></div>
   <div class="row">
