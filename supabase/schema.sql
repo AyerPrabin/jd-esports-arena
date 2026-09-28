@@ -1739,3 +1739,102 @@ grant execute on function public.request_withdrawal(int, text, text) to authenti
 grant execute on function public.withdraw_registration(text) to authenticated;
 
 commit;
+
+-- ── unlimited admin wallet ──────────────────────────────────────────────
+-- The organiser's own account (ayerprabin95@gmail.com) spends points without the balance
+-- going down, so they can test paid entries/effects freely. Flag lives on the wallet row;
+-- players can't change it (no insert/update policies on wallets). An unlimited wallet
+-- can't request withdrawals — there's no real money behind it.
+begin;
+alter table public.wallets add column if not exists unlimited boolean not null default false;
+insert into public.wallets (player_id, unlimited)
+  select id, true from public.players where lower(email) = 'ayerprabin95@gmail.com'
+  on conflict (player_id) do update set unlimited = true;
+
+create or replace function public._wallet_apply(p_player uuid, p_delta int, p_reason text, p_ref text, p_note text)
+returns int language plpgsql security definer set search_path = public as $$
+declare v_bal int; v_unl boolean;
+begin
+  if p_delta = 0 then
+    raise exception 'Nothing to apply.';
+  end if;
+  insert into public.wallets (player_id) values (p_player) on conflict do nothing;
+  select unlimited into v_unl from public.wallets where player_id = p_player for update;
+  if p_delta < 0 and v_unl then
+    select balance into v_bal from public.wallets where player_id = p_player;
+  elsif p_delta < 0 then
+    update public.wallets set balance = balance + p_delta, updated_at = now()
+      where player_id = p_player and balance >= -p_delta
+      returning balance into v_bal;
+    if v_bal is null then
+      raise exception 'Not enough points. Load points from your wallet first.';
+    end if;
+  else
+    update public.wallets set balance = balance + p_delta, updated_at = now()
+      where player_id = p_player returning balance into v_bal;
+  end if;
+  insert into public.wallet_ledger (player_id, delta, balance_after, reason, ref, note)
+  values (p_player, p_delta, v_bal, p_reason, p_ref, p_note);
+  return v_bal;
+end;
+$$;
+revoke all on function public._wallet_apply(uuid, int, text, text, text) from public, anon, authenticated;
+grant execute on function public._wallet_apply(uuid, int, text, text, text) to service_role;
+
+create or replace function public.request_withdrawal(p_amount int, p_esewa_id text, p_esewa_name text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_req public.withdraw_requests;
+  v_bal int;
+begin
+  if auth.uid() is null then
+    raise exception 'Please sign in first.';
+  end if;
+  if exists(select 1 from public.wallets where player_id = auth.uid() and unlimited) then
+    raise exception 'The admin wallet has unlimited points, so it can''t be withdrawn.';
+  end if;
+  if p_amount is null or p_amount < 1 then
+    raise exception 'Enter how many points to withdraw.';
+  end if;
+  p_esewa_id := trim(coalesce(p_esewa_id, ''));
+  p_esewa_name := trim(coalesce(p_esewa_name, ''));
+  if length(p_esewa_id) < 5 or length(p_esewa_id) > 40 then
+    raise exception 'Enter your eSewa ID (the phone number or email on your eSewa account).';
+  end if;
+  if length(p_esewa_name) < 2 or length(p_esewa_name) > 60 then
+    raise exception 'Enter the name on your eSewa account.';
+  end if;
+  insert into public.withdraw_requests (player_id, amount, esewa_id, esewa_name)
+  values (auth.uid(), p_amount, p_esewa_id, p_esewa_name) returning * into v_req;
+  v_bal := public._wallet_apply(auth.uid(), -p_amount, 'withdraw', v_req.id::text, null);
+  return jsonb_build_object('id', v_req.id, 'amount', p_amount, 'balance', v_bal);
+end;
+$$;
+revoke all on function public.request_withdrawal(int, text, text) from public, anon;
+grant execute on function public.request_withdrawal(int, text, text) to authenticated;
+
+create or replace function public.admin_wallet_credit(p_player uuid, p_amount int, p_ref text, p_note text)
+returns int language plpgsql security definer set search_path = public as $$
+declare v_bal int;
+begin
+  if p_amount is null or p_amount < 1 then
+    raise exception 'Enter how many points to add.';
+  end if;
+  p_ref := upper(trim(coalesce(p_ref, '')));
+  if p_ref = '' then
+    raise exception 'Enter the eSewa transaction ID so the same payment cannot be credited twice.';
+  end if;
+  begin
+    v_bal := public._wallet_apply(p_player, p_amount, 'load', p_ref, p_note);
+  exception when unique_violation then
+    raise exception 'This eSewa transaction (%) has already been credited.', p_ref;
+  end;
+  insert into public.notifications (player_id, title, body)
+  values (p_player, '+' || p_amount || ' JD points added',
+          'Your payment was verified and ' || p_amount || ' points were added to your wallet. Balance: ' || v_bal || ' points.');
+  return v_bal;
+end;
+$$;
+revoke all on function public.admin_wallet_credit(uuid, int, text, text) from public, anon, authenticated;
+grant execute on function public.admin_wallet_credit(uuid, int, text, text) to service_role;
+commit;

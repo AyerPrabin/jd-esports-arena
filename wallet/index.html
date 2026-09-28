@@ -61,6 +61,7 @@ h1{font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:.04em;font
 .tabs{position:sticky;top:0;z-index:5;display:flex;gap:6px;margin:18px -16px 16px;padding:10px 16px;background:linear-gradient(var(--bg) 70%,transparent)}
 .tab{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:12px 8px;border-radius:14px;border:1px solid var(--line-2);background:var(--panel);color:var(--silver);font-weight:700;font-size:.84rem;cursor:pointer;transition:.2s}
 .tab svg{width:17px;height:17px}
+.tab[hidden]{display:none}
 .tab:hover{color:var(--cream)}
 .tab.on{color:#0a0a12;background:linear-gradient(100deg,var(--gold),var(--gold-2));border-color:transparent;box-shadow:0 8px 22px -8px rgba(255,190,50,.6)}
 .pane{display:none;animation:fade .3s ease}
@@ -172,7 +173,7 @@ input:focus{border-color:var(--gold)}
   <div id="app" hidden>
     <section class="hero">
       <div class="hero-top"><span class="hero-lbl">Available balance</span><span class="live"><i></i>Live</span></div>
-      <div class="bal"><div class="coin">JD</div><div><b id="bal">0</b><small>points · 1 point = Rs 1</small></div></div>
+      <div class="bal"><div class="coin">JD</div><div><b id="bal">0</b><small id="bal-sub">points · 1 point = Rs 1</small></div></div>
       <div class="stats">
         <div class="stat in"><span>Loaded</span><b id="st-in">0</b></div>
         <div class="stat out"><span>Spent</span><b id="st-out">0</b></div>
@@ -183,7 +184,7 @@ input:focus{border-color:var(--gold)}
 
     <nav class="tabs" role="tablist">
       <button class="tab" data-tab="load" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Load</button>
-      <button class="tab" data-tab="withdraw" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>Withdraw</button>
+      <button class="tab" id="tab-withdraw" data-tab="withdraw" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>Withdraw</button>
       <button class="tab" data-tab="history" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>History</button>
     </nav>
 
@@ -284,7 +285,7 @@ const LOAD_AMOUNTS=[50,100,200,500,1000];
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let me=null,bal=0,loadAmt=100,ledger=[],histFilter='all';
+let me=null,bal=0,unl=false,loadAmt=100,ledger=[],histFilter='all';
 
 function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),1800);}
 function confirmBox(title,body,yes){
@@ -382,19 +383,20 @@ document.querySelectorAll('#hist-filter .chip').forEach(c=>c.onclick=()=>{histFi
 /* ── data ── */
 async function refresh(){
   const [w,l,p]=await Promise.all([
-    sb.from('wallets').select('balance').eq('player_id',me.id).maybeSingle(),
+    sb.from('wallets').select('balance, unlimited').eq('player_id',me.id).maybeSingle(),
     sb.from('wallet_ledger').select('delta, balance_after, reason, note, created_at').eq('player_id',me.id).order('created_at',{ascending:false}).limit(100),
     sb.from('withdraw_requests').select('amount').eq('player_id',me.id).eq('status','pending')
   ]);
-  const prev=bal;bal=(w.data&&w.data.balance)||0;ledger=l.data||[];
-  countTo($('bal'),bal);
+  const prev=bal;bal=(w.data&&w.data.balance)||0;unl=!!(w.data&&w.data.unlimited);ledger=l.data||[];
+  if(unl){$('bal').textContent='∞';$('bal-sub').textContent='Admin wallet · unlimited points for testing';$('tab-withdraw').hidden=true;}
+  else countTo($('bal'),bal);
   const sum=f=>ledger.filter(f).reduce((a,x)=>a+Math.abs(x.delta),0);
   countTo($('st-in'),sum(x=>x.reason==='load'));
   countTo($('st-out'),sum(x=>x.reason==='entry'||x.reason==='effect')-sum(x=>x.reason==='refund'));
   countTo($('st-wd'),sum(x=>x.reason==='withdraw')-sum(x=>x.reason==='withdraw_returned'));
   const pend=(p.data||[]).reduce((a,x)=>a+x.amount,0);
   $('pend-note').hidden=!pend;$('pend-note').textContent=pend?`⏳ Rs ${pend.toLocaleString()} withdrawal on its way to your eSewa`:'';
-  if(bal>prev&&prev!==0)toast(`🪙 +${bal-prev} points added`);
+  if(!unl&&bal>prev&&prev!==0)toast(`+${bal-prev} JD points added`);
   renderWithdrawForm();
   if($('p-history').classList.contains('on'))renderHistory();
 }

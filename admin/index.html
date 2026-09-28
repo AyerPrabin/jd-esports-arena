@@ -213,7 +213,7 @@ h2[id]{scroll-margin-top:64px}
   <div class="dash" id="dash"><div class="dash-tile loading"><b>…</b><span>Loading</span></div></div>
 
   <nav class="adm-nav" id="adm-nav">
-    <a href="#tournaments">🏆 Tournaments</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">🪙 Points</a><a href="#payment-codes">🎟️ Codes</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
+    <a href="#tournaments">🏆 Tournaments</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#payment-codes">🎟️ Codes</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
   </nav>
 
   <div class="f full" style="margin-bottom:8px">
@@ -1270,7 +1270,7 @@ async function walletLookup(){
       <div class="f"><label>eSewa transaction ID</label><input id="wa-ref" placeholder="From the payment screenshot" autocomplete="off"></div>
       <div class="f"><label>Note (optional)</label><input id="wa-note" placeholder="e.g. WhatsApp name"></div>
     </div>
-    <div class="row" style="margin-top:10px"><button class="btn" id="wa-credit" onclick="walletCredit()">🪙 Add points</button></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="wa-credit" onclick="walletCredit()">➕ Add points</button></div>
     ${d.ledger.length?`<table style="width:100%;font-size:.76rem;border-collapse:collapse;margin-top:10px">${d.ledger.map(x=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 4px">${esc(new Date(x.created_at).toLocaleString())}</td><td>${esc(WA_REASON[x.reason]||x.reason)}${x.ref&&x.reason==='load'?' · '+esc(x.ref):''}</td><td style="text-align:right;color:${x.delta>0?'var(--green,#5EDB95)':'#ff9d9d'}">${x.delta>0?'+':''}${x.delta}</td><td style="text-align:right">${x.balance_after}</td></tr>`).join('')}</table>`:'<p class="hint">No transactions yet.</p>'}
     </div>`;
     waMsg('Found '+(d.player.username||d.player.player_tag)+'.','ok');

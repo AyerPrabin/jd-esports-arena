@@ -432,6 +432,17 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .troster > span.sq-fx-legend{background:rgba(255,210,74,.16);animation:chipIn .4s ease forwards,rainbowCycle 4s linear infinite}
 .sq-fx-legend .fx-name{font-weight:800;animation:legendText 3s linear infinite}
 .sq-fx-legend .fx-badge{position:absolute;top:-13px;left:14px;font-size:12px;animation:crownBob 1.7s ease-in-out infinite;filter:drop-shadow(0 0 3px rgba(255,215,80,.9))}
+/* Richer standard effects (Rs 2 single match): each card gets its own light layer. */
+@keyframes sqHeat{from{opacity:.55;transform:translateY(5px) scaleY(.88)}to{opacity:1;transform:translateY(0) scaleY(1.1)}}
+@keyframes sqHolo{from{transform:translateX(-30%)}to{transform:translateX(30%)}}
+.sqfx-gold::after,.sqfx-fire::after,.sqfx-ice::after,.sqfx-neon::after,.sqfx-rainbow::after{content:'';position:absolute;pointer-events:none;z-index:0}
+.sqfx-gold::after{inset:0;border-radius:inherit;background:radial-gradient(60% 130% at 0% 0%,rgba(255,215,90,.3),transparent 60%),radial-gradient(45% 90% at 100% 100%,rgba(255,180,40,.2),transparent 60%);animation:sqBreath 3s ease-in-out infinite}
+.sqfx-gold .sqfx-shine{background:linear-gradient(100deg,transparent,rgba(255,236,160,.38),transparent)}
+.sqfx-fire::after{left:0;right:0;bottom:-6px;height:70%;transform-origin:bottom center;background:radial-gradient(22% 70% at 15% 100%,rgba(255,110,40,.6),transparent 70%),radial-gradient(20% 80% at 42% 100%,rgba(255,170,60,.55),transparent 70%),radial-gradient(22% 70% at 68% 100%,rgba(255,90,40,.55),transparent 70%),radial-gradient(18% 60% at 92% 100%,rgba(255,190,80,.5),transparent 70%);animation:sqHeat 1.1s ease-in-out infinite alternate}
+.sqfx-ice::after{inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(220,248,255,.16),transparent 45%),radial-gradient(35% 80% at 0% 0%,rgba(190,240,255,.28),transparent 70%),radial-gradient(35% 80% at 100% 100%,rgba(190,240,255,.22),transparent 70%);box-shadow:inset 0 0 20px rgba(150,230,255,.28);animation:sqBreath 4s ease-in-out infinite}
+.sqfx-neon::after{inset:6px;border-radius:10px;border:1px solid rgba(255,95,210,.6);box-shadow:0 0 10px rgba(255,95,210,.5),inset 0 0 12px rgba(200,107,255,.35);animation:neonFlicker 2.8s linear infinite}
+.sqfx-rainbow::after{top:0;bottom:0;left:-50%;width:200%;background:linear-gradient(115deg,transparent 15%,rgba(255,95,109,.16),rgba(255,224,102,.16),rgba(84,224,160,.16),rgba(79,169,255,.16),rgba(200,107,255,.16),transparent 85%);animation:sqHolo 4s ease-in-out infinite alternate}
+@media(prefers-reduced-motion:reduce){.sqfx-gold::after,.sqfx-fire::after,.sqfx-ice::after,.sqfx-neon::after,.sqfx-rainbow::after{animation:none}}
 @media(prefers-reduced-motion:reduce){.sqfx-thunder::after,.sqfx-blade::after,.sqfx-glow::after{display:none}.sqfx-galaxy .sqfx-shine{display:none}}
 @media(prefers-reduced-motion:reduce){.sqfx{animation:chipIn .4s ease forwards!important;--fxring:linear-gradient(var(--fx1),var(--fx1))}.sqfx-shine,.sqp{display:none}.sq-crown{transform:translateX(-50%)}.sq-crown,.sqfx .fx-name,.sqfx .sq-av img,.sqfx .sqitem-nologo{animation:none!important}}
 .tbtn{display:block;text-align:center;padding:13px;border-radius:999px;background:linear-gradient(100deg,var(--gold),var(--gold-2));color:#07090F;font-weight:700;font-size:.86rem;text-decoration:none;transition:.2s}
@@ -563,7 +574,8 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .pts-pill[hidden]{display:none}
 .pts-pill b{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;letter-spacing:.04em;color:var(--gold-l);line-height:1}
 .pts-pill .pts-unit{font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--silver)}
-.pts-coin{font-size:1.05rem;line-height:1}
+.jd-coin{flex:none;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3c4,#ffc83d 45%,#c98a00 100%);box-shadow:inset 0 -2px 3px rgba(0,0,0,.25),0 0 8px rgba(255,190,50,.45);color:#5a3d00;font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.02em;line-height:1;padding-top:1px}
+.jd-coin.sm{width:18px;height:18px;font-size:.62rem;box-shadow:inset 0 -2px 3px rgba(0,0,0,.25)}
 .pts-pill.bump{animation:ptsBump .6s ease}
 @keyframes ptsBump{40%{transform:scale(1.12);box-shadow:0 0 26px rgba(255,200,61,.6)}}
 @media(max-width:640px){.pts-pill{height:38px;padding:0 10px 0 8px}.pts-pill .pts-unit{display:none}}
@@ -585,7 +597,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
   #notifhist-btn,.nav-toggle{width:40px;font-size:1.02rem}
   .pts-pill{padding:0 12px 0 9px;gap:5px;border-color:var(--gold);background:linear-gradient(100deg,rgba(255,200,61,.2),rgba(255,200,61,.07))}
   .pts-pill b{font-size:1.15rem}
-  .pts-coin{font-size:.95rem}
+  .jd-coin{width:20px;height:20px;font-size:.66rem}
   .icon-btn .badge{top:-4px;right:-4px;min-width:16px;height:16px;font-size:.6rem}
 }
 @media(max-width:380px){
@@ -896,7 +908,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
       <span><b>JD Esports Arena</b><span>by AyerFire</span></span>
     </a>
     <div class="bar-right">
-      <a id="pts-pill" class="pts-pill" href="/wallet/" aria-label="Points wallet" hidden><span class="pts-coin">🪙</span><b id="pts-bal">0</b><span class="pts-unit">pts</span></a>
+      <a id="pts-pill" class="pts-pill" href="/wallet/" aria-label="Points wallet" hidden><span class="jd-coin" aria-hidden="true">JD</span><b id="pts-bal">0</b><span class="pts-unit">pts</span></a>
       <button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History">🔔<span class="badge" id="notif-badge" hidden>0</span></button>
       <button class="nav-toggle" id="nav-toggle-btn" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="acct-nav"><span class="nt-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
       <nav class="bar-nav" id="acct-nav"><a class="lang-btn" href="/leaderboard.html">🏆 Leaderboard</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="admin-btn" class="lang-btn" href="/admin/" style="display:none">🛠 Admin</a><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none">⚙️ Settings</button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button></div></div></nav>
@@ -2343,7 +2355,7 @@ function registerInApp(name){
   const payWrap=document.getElementById('reg-pay-wrap');if(payWrap)payWrap.style.display=paid?'':'none';
   const rc=document.getElementById('reg-code');if(rc)rc.value='';
   const pp=document.getElementById('reg-pay-price');if(pp)pp.textContent='Entry '+(t.entry||'');
-  const ps=document.getElementById('reg-pay-steps');if(ps){const pr=entryAmount(t);ps.innerHTML=paid?`<div class="pts-line" style="font-size:.8rem;color:var(--body)">Entry <b style="color:var(--gold-l)">${pr} points</b> · You have <b style="color:var(--gold-l)">${_wallet}</b>${_wallet>=pr?' — paid automatically when you register.':''}</div>`+(_wallet<pr?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="goWallet('load')">➕ Load points (need ${pr-_wallet} more)</button>`:''):'';}
+  const ps=document.getElementById('reg-pay-steps');if(ps){const pr=entryAmount(t);ps.innerHTML=paid?`<div class="pts-line" style="font-size:.8rem;color:var(--body)">Entry <b style="color:var(--gold-l)">${pr} points</b> · You have <b style="color:var(--gold-l)">${walletLabel()}</b>${canAfford(pr)?' — paid automatically when you register.':''}</div>`+(!canAfford(pr)?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="goWallet('load')">➕ Load points (need ${pr-_wallet} more)</button>`:''):'';}
   const payNote=document.getElementById('reg-pay-note');if(payNote)payNote.textContent='Not enough points yet? Register now to hold your place, then pay from your ticket once your points are loaded. A held place does not reserve a slot.';
   const pf=document.getElementById('reg-pay-file');if(pf)pf.value='';
   const ppv=document.getElementById('reg-pay-preview');if(ppv){ppv.style.display='none';ppv.src='';}
@@ -2418,7 +2430,7 @@ async function submitRegister(){
   if(paid&&joinCode&&effectiveStatus==='pending'){
     const rr=await sb.rpc('redeem_code',{p_code:joinCode,p_tournament_slug:name,p_effect:null});
     if(rr.error)codeErr=rr.error.message;else effectiveStatus='approved';
-  }else if(paid&&effectiveStatus==='pending'&&_wallet>=entryAmount(t)){
+  }else if(paid&&effectiveStatus==='pending'&&canAfford(entryAmount(t))){
     const rr=await sb.rpc('pay_entry_with_points',{p_tournament_slug:name});
     if(rr.error)codeErr=rr.error.message;else{effectiveStatus='approved';loadWallet();}
   }
@@ -2443,7 +2455,7 @@ function regSuccessOpen(t,status,reg){
   document.getElementById('rs-note').innerHTML=waitlisted
     ?"All squad slots are taken right now — you'll be <b>automatically confirmed</b> the moment one opens up, no need to do anything else."
     :(pending
-      ?"Your place is held. Load points from the 🪙 wallet at the top (scan the eSewa QR, username in the remarks, screenshot on WhatsApp), then tap <b>Pay</b> on your ticket to confirm your slot."
+      ?"Your place is held. Load points from the JD wallet at the top (scan the eSewa QR, username in the remarks, screenshot on WhatsApp), then tap <b>Pay</b> on your ticket to confirm your slot."
       :"Your <b>Room ID and Password</b> will appear in Notification History once released by the host. Please arrive 15 minutes before the match starts.");
   document.getElementById('rs-tournament').textContent=t.name;
   document.getElementById('rs-ticket').textContent=regTicketCode(reg);
@@ -2748,21 +2760,23 @@ const PAY_WHATSAPP_LABEL='+44 7343 082738 · jd.lmt.np';
    Loading, withdrawing and history live on their own page, /wallet/ (wallet/index.html).
    Balances only change server-side — see the wallet section of schema.sql. ── */
 function goWallet(tab){location.href='/wallet/'+(tab?'#'+tab:'');}
-let _wallet=0,_walletLoaded=false;
+let _wallet=0,_walletLoaded=false,_walletUnlimited=false;
+function canAfford(n){return _walletUnlimited||_wallet>=n;}
+function walletLabel(){return _walletUnlimited?'∞':String(_wallet);}
 async function loadWallet(){
   if(!sb||!_player){_wallet=0;return;}
-  const {data}=await sb.from('wallets').select('balance').eq('player_id',_player.id).maybeSingle();
-  const prev=_wallet;_wallet=(data&&data.balance)||0;_walletLoaded=true;
-  const el=document.getElementById('pts-bal');if(el)el.textContent=_wallet;
+  const {data}=await sb.from('wallets').select('balance, unlimited').eq('player_id',_player.id).maybeSingle();
+  const prev=_wallet;_wallet=(data&&data.balance)||0;_walletUnlimited=!!(data&&data.unlimited);_walletLoaded=true;
+  const el=document.getElementById('pts-bal');if(el)el.textContent=walletLabel();
   const pill=document.getElementById('pts-pill');
   if(pill&&pill.dataset.seen&&_wallet>prev){pill.classList.remove('bump');void pill.offsetWidth;pill.classList.add('bump');} // points just arrived
   if(pill)pill.dataset.seen='1';
 }
 /* pay-with-points block used on tickets, the registration form and the effect shop */
 function ptsPayHtml(price,label,action){
-  const enough=_wallet>=price;
-  return `<div class="pts-pay"><div class="pts-line">${esc(label)}: <b>${price} points</b> · You have <b>${_wallet}</b></div>`
-    +(enough?`<button type="button" class="pts-btn" ${action}>🪙 Pay ${price} points</button>`
+  const enough=canAfford(price);
+  return `<div class="pts-pay"><div class="pts-line">${esc(label)}: <b>${price} points</b> · You have <b>${walletLabel()}</b></div>`
+    +(enough?`<button type="button" class="pts-btn" ${action}><span class="jd-coin sm" aria-hidden="true">JD</span> Pay ${price} points</button>`
             :`<button type="button" class="pts-btn ghost" onclick="event.stopPropagation();goWallet('load')">➕ Load points (need ${price-_wallet} more)</button>`)
     +`</div>`;
 }
@@ -2807,8 +2821,8 @@ function fxShopRender(){
   document.getElementById('fx-preview').innerHTML=sqCardHtml({name:r.squad_name||'Your squad',logo:r.squad_logo||'',members:[],effect:_fxShop.effect},0);
   const pl=FX_PLANS[_fxShop.plan];
   const price=parseInt(pl.price.replace(/[^0-9]/g,''),10);
-  document.getElementById('fx-pay-steps').innerHTML=`<div class="pts-line" style="font-size:.8rem;color:var(--body)">${esc(pl.name)}: <b style="color:var(--gold-l)">${price} points</b> · You have <b style="color:var(--gold-l)">${_wallet}</b></div>`+(_wallet<price?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="goWallet('load')">➕ Load points (need ${price-_wallet} more)</button>`:'');
-  document.getElementById('fx-submit').textContent=change?'Save effect':('🪙 Pay '+parseInt(pl.price.replace(/[^0-9]/g,''),10)+' points & activate');
+  document.getElementById('fx-pay-steps').innerHTML=`<div class="pts-line" style="font-size:.8rem;color:var(--body)">${esc(pl.name)}: <b style="color:var(--gold-l)">${price} points</b> · You have <b style="color:var(--gold-l)">${walletLabel()}</b></div>`+(!canAfford(price)?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="goWallet('load')">➕ Load points (need ${price-_wallet} more)</button>`:'');
+  document.getElementById('fx-submit').innerHTML=change?'Save effect':('<span class="jd-coin sm" aria-hidden="true">JD</span> Pay '+(_walletUnlimited?'(admin) ':'')+parseInt(pl.price.replace(/[^0-9]/g,''),10)+' points &amp; activate');
 }
 function fxShopClose(){document.getElementById('fx-overlay').classList.remove('open');document.getElementById('fx-preview').innerHTML='';}
 async function fxShopSubmit(){
