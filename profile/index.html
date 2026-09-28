@@ -200,7 +200,7 @@ input[type=text]:focus{border-color:var(--gold)}
       </section>
 
       <section class="card">
-        <h2>Squad effects <a href="/#tournaments">Get effects →</a></h2>
+        <h2>Squad effects <a href="/?shop=1">Get effects →</a></h2>
         <div id="fx" class="empty" style="text-align:left;padding:0"></div>
       </section>
 
@@ -273,8 +273,8 @@ async function loadWallet(){
     sb.from('wallet_ledger').select('delta, reason, created_at').eq('player_id',me.id).order('created_at',{ascending:false}).limit(3)
   ]);
   const unl=!!(w&&w.unlimited);
-  $('bal').textContent=unl?'∞':((w&&w.balance)||0).toLocaleString();
-  if(unl){$('bal-sub').textContent='Admin wallet · unlimited';$('wd-link').hidden=true;}
+  $('bal').textContent=unl?'100B':((w&&w.balance)||0).toLocaleString();
+  if(unl){$('bal-sub').textContent='Admin wallet · 100 billion points';$('wd-link').hidden=true;}
   const R={challenge_stake:'Challenge stake',challenge_win:'Challenge won',challenge_refund:'Challenge refund',load:'Points loaded',prize:'Tournament prize',entry:'Tournament entry',effect:'Squad effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Entry refund',adjust:'Adjustment'};
   $('recent').innerHTML=(l||[]).length?(l.map(x=>`<div><span>${R[x.reason]||x.reason} · ${fmtDate(x.created_at)}</span><b class="${x.delta>0?'plus':''}">${x.delta>0?'+':'−'}${Math.abs(x.delta)}</b></div>`).join('')):'<div><span>No transactions yet.</span></div>';
 }
@@ -311,8 +311,8 @@ async function loadFx(){
   const {data}=await sb.from('effect_passes').select('tier, effect, starts_at, expires_at').eq('player_id',me.id).gt('expires_at',new Date().toISOString()).order('starts_at');
   const now=Date.now(),cur=(data||[]).find(x=>Date.parse(x.starts_at)<=now);
   $('fx').innerHTML=cur
-    ?`<div class="trow" style="border:none"><span class="ic">✨</span><span class="t"><b>${esc(FX[cur.effect]||cur.effect)} · ${cur.tier==='pro'?'Pro':'Lite'} pass</b><small>Shows on every tournament you join until ${fmtDate(data[data.length-1].expires_at)}. Change the effect from your ticket on the main site.</small></span></div>`
-    :`<p style="margin:0;font-size:.84rem;color:var(--body)">No active pass. Make your squad stand out from Rs 2 per match, or Rs 10/week and Rs 30/month for every effect — buy from your ticket on the main site.</p>`;
+    ?`<div class="trow" style="border:none"><span class="ic">✨</span><span class="t"><b>${esc(FX[cur.effect]||cur.effect)} · ${cur.tier==='pro'?'Pro':'Lite'} pass</b><small>Shows on every tournament you join until ${fmtDate(data[data.length-1].expires_at)}. <a href="/?shop=1" style="color:var(--gold-l);text-decoration:underline">Change effect</a></small></span></div>`
+    :`<p style="margin:0;font-size:.84rem;color:var(--body)">No active pass. Make your squad stand out from Rs 2 per match, or Rs 10/week and Rs 30/month for every effect — <a href="/?shop=1" style="color:var(--gold-l);text-decoration:underline">open the effects shop</a>.</p>`;
 }
 
 /* squad actions */

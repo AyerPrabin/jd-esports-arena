@@ -1150,7 +1150,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
     <h3>Squad effects</h3>
     <div class="sub" id="fx-sub"></div>
     <div class="fx-passinfo" id="fx-passinfo" hidden></div>
-    <div id="fx-plans-wrap"><label>Choose a plan</label><div class="fx-plans" id="fx-plans"></div></div>
+    <div id="fx-plans-wrap"><label>Choose a plan</label><div class="fx-plans" id="fx-plans"></div><div id="fx-tourney-wrap"></div></div>
     <label>Choose your effect</label>
     <div class="fx-pick" id="fx-pick"></div>
     <div class="sqlist fx-preview" id="fx-preview"></div>
@@ -1194,6 +1194,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 /* Captured synchronously, before supabase-js's detectSessionInUrl can consume/clear the
    redirect hash — tells us this SIGNED_IN is "just verified my email", not a normal login,
    so we know to auto-ask for push permission right here (see onAuthStateChange below). */
+if(/[?&]shop=1/.test(location.search))window.addEventListener('load',()=>setTimeout(()=>{if(typeof _player!=='undefined'&&_player)fxShopOpen(null);else authOpen('login');},1400));
 if(/[?&]account=1/.test(location.search))window.addEventListener('load',()=>setTimeout(()=>{if(typeof _player!=='undefined'&&_player)authOpen('login');},1200));
 if(/[?&]signin=1/.test(location.search))window.addEventListener('load',()=>setTimeout(()=>{if(typeof _player==='undefined'||!_player)authOpen('login');},900));
 let _emailVerifyFlow=/type=signup/.test(location.hash)||/type=signup/.test(location.search);
@@ -2841,7 +2842,7 @@ setTimeout(renderFxShow,600);
 function goWallet(tab){location.href='/wallet/'+(tab?'#'+tab:'');}
 let _wallet=0,_walletLoaded=false,_walletUnlimited=false;
 function canAfford(n){return _walletUnlimited||_wallet>=n;}
-function walletLabel(){return _walletUnlimited?'∞':String(_wallet);}
+function walletLabel(){return _walletUnlimited?'100B':String(_wallet);}
 async function loadWallet(){
   if(!sb||!_player){_wallet=0;return;}
   const {data}=await sb.from('wallets').select('balance, unlimited').eq('player_id',_player.id).maybeSingle();
@@ -2869,13 +2870,20 @@ const FX_PLANS={
 let _fxShop={name:null,plan:'fx_month',effect:'bullets',mode:'buy'};
 function fxPassNow(){return _myPass&&Date.parse(_myPass.starts_at)<=Date.now()&&Date.parse(_myPass.expires_at)>Date.now()?_myPass:null;}
 function fxDate(iso){try{return new Date(iso).toLocaleDateString([],{day:'numeric',month:'short'});}catch(e){return '';}}
+// tournaments a single-match effect can go on: your confirmed squads in matches that haven't started
+function fxGameTargets(){
+  const ts=((_lastData||ARENA_SAMPLE).tournaments||[]);
+  return [..._myRegs.entries()].filter(([n,r])=>(r.status==='confirmed'||r.status==='approved')&&canWithdraw(ts.find(t=>t.name===n))).map(([n])=>n);
+}
 function fxShopOpen(name,mode){
-  const r=_myRegs.get(name);
-  if(!sb||!_player||!r)return;
+  if(!sb)return;
+  if(!_player){authOpen('login');return;}
   const pass=fxPassNow();
-  _fxShop={name,plan:'fx_month',effect:'bullets',mode:mode||(pass?'change':'buy')};
+  const targets=fxGameTargets();
+  if(!name||!targets.includes(name))name=targets[0]||null;
+  _fxShop={name,plan:name?'fx_game':'fx_month',effect:name?'gold':'bullets',mode:mode||(pass?'change':'buy')};
   if(_fxShop.mode==='change'&&pass)_fxShop.effect=pass.effect;
-  document.getElementById('fx-sub').textContent=`Make ${r.squad_name||'your squad'} stand out on the tournament cards and in the squad list. Effects are cosmetic only.`;
+  document.getElementById('fx-sub').textContent=`Make ${_player.squad_name||'your squad'} stand out on every tournament card, squad list and challenge. Effects are cosmetic only.`;
   const fc=document.getElementById('fx-code');if(fc)fc.value='';
   document.getElementById('fx-msg').textContent='';document.getElementById('fx-msg').className='msg';
   document.getElementById('fx-submit').disabled=false;
@@ -2883,7 +2891,8 @@ function fxShopOpen(name,mode){
   document.getElementById('fx-overlay').classList.add('open');
 }
 function fxShopRender(){
-  const r=_myRegs.get(_fxShop.name)||{};
+  const r=Object.assign({squad_name:_player.squad_name,squad_logo:_player.squad_logo},_myRegs.get(_fxShop.name)||{});
+  const targets=fxGameTargets();
   const pass=fxPassNow(),change=_fxShop.mode==='change'&&pass;
   const tier=change?pass.tier:FX_PLANS[_fxShop.plan].tier;
   if(!fxTierOk(tier,_fxShop.effect))_fxShop.effect=Object.keys(SQUAD_FX).find(k=>fxTierOk(tier,k));
@@ -2900,7 +2909,14 @@ function fxShopRender(){
   document.getElementById('fx-preview').innerHTML=sqCardHtml({name:r.squad_name||'Your squad',logo:r.squad_logo||'',members:[],effect:_fxShop.effect},0);
   const pl=FX_PLANS[_fxShop.plan];
   const price=parseInt(pl.price.replace(/[^0-9]/g,''),10);
+  // single match = one specific tournament you're confirmed in
+  const tw=document.getElementById('fx-tourney-wrap'),gameBlocked=_fxShop.plan==='fx_game'&&!targets.length;
+  tw.innerHTML=_fxShop.plan!=='fx_game'||change?''
+    :(targets.length?`<label>For which tournament?</label><select id="fx-tourney" onchange="_fxShop.name=this.value">${targets.map(n=>`<option value="${esc(n)}"${n===_fxShop.name?' selected':''}>${esc(n)}</option>`).join('')}</select>`
+      :'<p class="sub" style="margin:8px 0 0;color:var(--warm-l,#FFC66B)">Single match needs a tournament you\'re confirmed in. Join one first — or pick a weekly or monthly pass, which works everywhere.</p>');
+  if(_fxShop.plan==='fx_game'&&targets.length&&!targets.includes(_fxShop.name))_fxShop.name=targets[0];
   document.getElementById('fx-pay-steps').innerHTML=`<div class="pts-line" style="font-size:.8rem;color:var(--body)">${esc(pl.name)}: <b style="color:var(--gold-l)">${price} points</b> · You have <b style="color:var(--gold-l)">${walletLabel()}</b></div>`+(!canAfford(price)?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="goWallet('load')">➕ Load points (need ${price-_wallet} more)</button>`:'');
+  document.getElementById('fx-submit').disabled=!!gameBlocked;
   document.getElementById('fx-submit').innerHTML=change?'Save effect':('<span class="jd-coin sm" aria-hidden="true">JD</span> Pay '+(_walletUnlimited?'(admin) ':'')+parseInt(pl.price.replace(/[^0-9]/g,''),10)+' points &amp; activate');
 }
 /* homepage showcase: live previews of the effects, paused while scrolled off-screen */
@@ -2915,11 +2931,7 @@ function renderFxShow(){
 function fxShowCta(){
   if(!sb)return;
   if(!_player){authOpen('signup');return;}
-  const ts=((_lastData||ARENA_SAMPLE).tournaments||[]);
-  const pick=[..._myRegs.entries()].find(([n,r])=>(r.status==='confirmed'||r.status==='approved')&&canWithdraw(ts.find(t=>t.name===n)));
-  if(pick){fxShopOpen(pick[0]);return;}
-  showMsg('Join a tournament first','Effects are added to your squad from your ticket. Join any upcoming tournament, then tap "Squad effects" on your ticket to pick one.');
-  const t=document.getElementById('tournaments');if(t)t.scrollIntoView({behavior:'smooth'});
+  fxShopOpen(null);
 }
 function fxShopClose(){document.getElementById('fx-overlay').classList.remove('open');document.getElementById('fx-preview').innerHTML='';}
 async function fxShopSubmit(){

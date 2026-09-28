@@ -221,7 +221,7 @@ function ago(iso){const s=(Date.now()-Date.parse(iso))/1000;return s<60?'just no
 
 async function loadBalance(){
   const {data}=await sb.from('wallets').select('balance, unlimited').eq('player_id',me.id).maybeSingle();
-  bal=(data&&data.balance)||0;$('bal').textContent=data&&data.unlimited?'∞':bal.toLocaleString();$('bal-pill').hidden=false;
+  bal=(data&&data.balance)||0;$('bal').textContent=data&&data.unlimited?'100B':bal.toLocaleString();$('bal-pill').hidden=false;
 }
 function setTab(t){
   tab=t;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));

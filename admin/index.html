@@ -1303,7 +1303,7 @@ function waSearch(){
     try{
       const rows=await waCall({action:'search',q});
       if(document.getElementById('wa-q').value.trim()!==q)return;
-      box.innerHTML=rows.length?`<div class="card" style="padding:6px">${rows.map(r=>`<button type="button" class="wa-pick" data-id="${esc(r.id)}" style="display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;padding:10px 12px;border:0;border-radius:10px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer"><span><b>${esc(r.username?'@'+r.username:'(no username)')}</b> <span class="hint" style="margin:0">${esc(r.player_tag||'')} · ${esc(r.email||'')}</span></span><b style="color:var(--gold-l)">${r.unlimited?'∞':r.balance+' pts'}</b></button>`).join('')}</div>`:'<p class="hint">No player matches that.</p>';
+      box.innerHTML=rows.length?`<div class="card" style="padding:6px">${rows.map(r=>`<button type="button" class="wa-pick" data-id="${esc(r.id)}" style="display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;padding:10px 12px;border:0;border-radius:10px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer"><span><b>${esc(r.username?'@'+r.username:'(no username)')}</b> <span class="hint" style="margin:0">${esc(r.player_tag||'')} · ${esc(r.email||'')}</span></span><b style="color:var(--gold-l)">${r.unlimited?'100B':r.balance+' pts'}</b></button>`).join('')}</div>`:'<p class="hint">No player matches that.</p>';
       box.querySelectorAll('.wa-pick').forEach(b=>{b.onmouseenter=()=>b.style.background='rgba(255,200,61,.08)';b.onmouseleave=()=>b.style.background='none';b.onclick=()=>{box.innerHTML='';walletLookup(b.dataset.id);};});
     }catch(e){waMsg(e.message,'err');}
   },250);
@@ -1317,7 +1317,7 @@ async function walletLookup(id){
     box.innerHTML=`<div class="card">
       <div class="row" style="margin:0 0 10px;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
         <div><b style="font-size:1.05rem">${esc(d.player.username?'@'+d.player.username:'(no username)')}</b><div class="hint" style="margin:2px 0 0">${esc(d.player.player_tag||'')} · ${esc(d.player.email||'')}</div></div>
-        <div style="text-align:right"><div class="hint" style="margin:0">Balance</div><b style="font-size:1.4rem;color:var(--gold-l)">${d.unlimited?'∞':d.balance.toLocaleString()}</b></div>
+        <div style="text-align:right"><div class="hint" style="margin:0">Balance</div><b style="font-size:1.4rem;color:var(--gold-l)">${d.unlimited?'100B':d.balance.toLocaleString()}</b></div>
       </div>
       <div class="grid">
         <div class="f"><label>Points to add</label><input id="wa-amt" type="number" min="1" inputmode="numeric" placeholder="Amount they paid"></div>
@@ -1357,7 +1357,7 @@ async function loadBalances(){
 function renderBalances(){
   const q=(document.getElementById('bal-q')||{}).value||'';const ql=q.trim().toLowerCase();
   const rows=_balRows.filter(r=>!ql||[r.username,r.player_tag,r.email].some(v=>String(v||'').toLowerCase().includes(ql)));
-  document.getElementById('bal-table').innerHTML=`<table style="width:100%;font-size:.8rem;border-collapse:collapse">${rows.slice(0,300).map(r=>`<tr style="border-bottom:1px solid var(--line);cursor:pointer" data-bal-q="1" data-bal-id="${esc(r.id)}" title="Open this player's wallet"><td style="padding:7px 4px">${esc(r.username?'@'+r.username:'—')}<br><span class="hint" style="margin:0">${esc(r.player_tag||'')} · ${esc(r.email||'')}</span></td><td style="text-align:right;font-weight:700;color:${r.unlimited?'var(--gold-l)':(r.balance>0?'var(--green,#5EDB95)':'var(--silver)')}">${r.unlimited?'∞ (admin)':r.balance.toLocaleString()+' pts'}</td></tr>`).join('')||'<tr><td class="hint">No players match.</td></tr>'}</table>`;
+  document.getElementById('bal-table').innerHTML=`<table style="width:100%;font-size:.8rem;border-collapse:collapse">${rows.slice(0,300).map(r=>`<tr style="border-bottom:1px solid var(--line);cursor:pointer" data-bal-q="1" data-bal-id="${esc(r.id)}" title="Open this player's wallet"><td style="padding:7px 4px">${esc(r.username?'@'+r.username:'—')}<br><span class="hint" style="margin:0">${esc(r.player_tag||'')} · ${esc(r.email||'')}</span></td><td style="text-align:right;font-weight:700;color:${r.unlimited?'var(--gold-l)':(r.balance>0?'var(--green,#5EDB95)':'var(--silver)')}">${r.unlimited?'100B (admin)':r.balance.toLocaleString()+' pts'}</td></tr>`).join('')||'<tr><td class="hint">No players match.</td></tr>'}</table>`;
   document.querySelectorAll('[data-bal-q]').forEach(tr=>tr.onclick=()=>{walletLookup(tr.dataset.balId);document.getElementById('wallets').scrollIntoView({behavior:'smooth'});});
 }
 function prizeReportHtml(list){
