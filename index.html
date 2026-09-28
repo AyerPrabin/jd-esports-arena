@@ -1078,7 +1078,6 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
       <div class="fx-pay" style="margin-top:14px">
         <div class="fx-price"><b id="reg-pay-price"></b><span>Paid tournament</span></div>
         <div id="reg-pay-steps" style="margin-top:4px"></div>
-        <details class="have-code"><summary>Have a join code?</summary><input id="reg-code" class="fx-code" placeholder="JD-XXXXX-XXXXX" autocomplete="off" maxlength="20" style="margin-top:8px"></details>
         <p class="sub" id="reg-pay-note" style="margin:6px 0 0"></p>
       </div>
     </div>
@@ -1121,7 +1120,6 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
     <div class="sqlist fx-preview" id="fx-preview"></div>
     <div class="fx-pay" id="fx-pay">
       <div id="fx-pay-steps"></div>
-      <details class="have-code"><summary>Have an effect code?</summary><input id="fx-code" class="fx-code" placeholder="JD-XXXXX-XXXXX" autocomplete="off" maxlength="20" style="margin-top:8px"></details>
     </div>
     <div class="msg" id="fx-msg"></div>
     <div class="row2"><button class="btn-primary" style="flex:1" id="fx-submit" onclick="fxShopSubmit()">Activate effect</button></div>
@@ -2561,7 +2559,7 @@ function fxTicketHtml(t,r){
 }
 function entryCodeBoxHtml(t,r){
   const price=entryAmount(t);
-  return `<div class="mt-codebox"><p>⏳ <b>Place held.</b> Pay the entry from your points to confirm your slot.</p>${ptsPayHtml(price,'Entry',`data-pts-entry="${esc(t.name)}"`)}<details class="have-code" onclick="event.stopPropagation()"><summary>Have a join code?</summary><div class="mt-code-row"><input data-code-in="${esc(t.name)}" placeholder="JD-XXXXX-XXXXX" autocomplete="off" maxlength="20"><button type="button" data-redeem="${esc(t.name)}">Confirm</button></div></details></div>`;
+  return `<div class="mt-codebox"><p>⏳ <b>Place held.</b> Pay the entry from your points to confirm your slot.</p>${ptsPayHtml(price,'Entry',`data-pts-entry="${esc(t.name)}"`)}</div>`;
 }
 async function payEntryWithPoints(name){
   const t=((_lastData||ARENA_SAMPLE).tournaments||[]).find(x=>x.name===name)||{};
@@ -2840,7 +2838,7 @@ function fxShopOpen(name,mode){
   _fxShop={name,plan:'fx_month',effect:'bullets',mode:mode||(pass?'change':'buy')};
   if(_fxShop.mode==='change'&&pass)_fxShop.effect=pass.effect;
   document.getElementById('fx-sub').textContent=`Make ${r.squad_name||'your squad'} stand out on the tournament cards and in the squad list. Effects are cosmetic only.`;
-  document.getElementById('fx-code').value='';
+  const fc=document.getElementById('fx-code');if(fc)fc.value='';
   document.getElementById('fx-msg').textContent='';document.getElementById('fx-msg').className='msg';
   document.getElementById('fx-submit').disabled=false;
   fxShopRender();
@@ -2877,7 +2875,7 @@ async function fxShopSubmit(){
     btn.disabled=true;msg.className='msg';msg.textContent='Saving…';
     res=await sb.rpc('set_pass_effect',{p_effect:_fxShop.effect});
   }else{
-    const code=document.getElementById('fx-code').value.trim();
+    const code=((document.getElementById('fx-code')||{}).value||'').trim();
     btn.disabled=true;msg.className='msg';
     if(code){msg.textContent='Checking your code…';res=await sb.rpc('redeem_code',{p_code:code,p_tournament_slug:_fxShop.name,p_effect:_fxShop.effect});}
     else{msg.textContent='Paying with points…';res=await sb.rpc('buy_effect_with_points',{p_kind:_fxShop.plan,p_effect:_fxShop.effect,p_tournament_slug:_fxShop.name});}

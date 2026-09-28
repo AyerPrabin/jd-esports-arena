@@ -214,7 +214,7 @@ h2[id]{scroll-margin-top:64px}
   <div class="dash" id="dash"><div class="dash-tile loading"><b>…</b><span>Loading</span></div></div>
 
   <nav class="adm-nav" id="adm-nav">
-    <a href="#tournaments">🏆 Tournaments</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#payment-codes">🎟️ Codes</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
+    <a href="#tournaments">🏆 Tournaments</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
   </nav>
 
   <div class="f full" style="margin-bottom:8px">
@@ -389,39 +389,22 @@ h2[id]{scroll-margin-top:64px}
   </div>
   <div id="pp-list"></div>
 
-  <h2 id="wallets">Points &amp; Withdrawals <span class="tag">1 point = Rs 1</span></h2>
-  <p class="hint"><b>Prizes are automatic:</b> when you publish a tournament with its <b>Winner</b> set, the winning squad's player gets the posted prize (first number in "Prize pool", e.g. Rs 400 → 400 points). If the results board has a per-squad "prize won", each squad gets its own amount instead. Each prize is paid once — republishing never pays twice. Squads that only registered on WhatsApp can't be matched and are listed so you can add their points by hand.</p>
-  <p class="hint">Players load points by paying the eSewa QR with their username in the remarks and sending you the screenshot on WhatsApp. Find the player, check the name, and add the points with the eSewa <b>transaction ID</b> from the screenshot (the same transaction can never be credited twice). Withdrawals below have already left the player's wallet — send the money on eSewa, then mark it paid; rejecting returns the points.</p>
+  <h2 id="wallets">Points <span class="tag">1 point = Rs 1</span></h2>
+  <p class="hint">Got a payment screenshot on WhatsApp? Search the username from the eSewa remarks, check it's the right player, then add the points.</p>
   <div class="grid">
-    <div class="f"><label>Player (tag / username / email)</label><input id="wa-q" placeholder="e.g. ayer_legend" onkeydown="if(event.key==='Enter')walletLookup()"></div>
-    <div class="f" style="align-self:end"><button class="btn ghost" id="wa-find" onclick="walletLookup()">🔎 Find player</button></div>
+    <div class="f full"><label>Find player</label><input id="wa-q" placeholder="Type a username, tag or email" autocomplete="off" oninput="waSearch()"></div>
   </div>
+  <div id="wa-results"></div>
   <div id="wa-player"></div>
-  <div class="row" style="margin-top:6px">
-    <button class="btn ghost" onclick="loadWithdrawals()">↻ Pending withdrawals</button>
-    <button class="btn ghost" onclick="loadBalances()">📊 All players' points</button>
-    <button class="btn ghost" onclick="payPrizesNow()" title="Normally automatic on every publish — use this to retry">🏆 Pay prizes now</button>
+  <div class="row" style="margin-top:10px">
+    <button class="btn ghost" onclick="loadWithdrawals()">💸 Withdrawal requests</button>
+    <button class="btn ghost" onclick="loadBalances()">📊 Everyone's points</button>
+    <button class="btn ghost" onclick="payPrizesNow()" title="Prizes pay automatically when you publish a winner — use this only to retry">🏆 Pay prizes now</button>
     <div id="wa-msg" class="hint"></div>
   </div>
   <div id="wa-wlist"></div>
   <div id="wa-prizes"></div>
   <div id="wa-balances"></div>
-
-  <h2 id="payment-codes">Payment Codes <span class="tag">WhatsApp payments</span></h2>
-  <p class="hint">When a player pays you on WhatsApp, generate a code here and send it back. They enter it on the site: an <b>entry code</b> confirms their held place in that one tournament (it can't be used for any other), an <b>effect code</b> turns on their squad effect or pass. Each code works once. Single match Rs 2 · Lite week Rs 5 (basic effects) · Pro week Rs 10 · Pro month Rs 30 (every effect).</p>
-  <div class="grid">
-    <div class="f"><label>Code for</label><select id="pc-kind" onchange="pcKindChanged()"><option value="entry">Tournament entry</option><option value="fx_game">Effect · single match (Rs 2)</option><option value="fx_lite_week">Effect · lite week (Rs 5)</option><option value="fx_week">Effect · pro week (Rs 10)</option><option value="fx_month">Effect · pro month (Rs 30)</option></select></div>
-    <div class="f" id="pc-tourney-wrap"><label>Tournament</label><select id="pc-tourney" onfocus="pcKindChanged()" onmousedown="pcKindChanged()"></select></div>
-    <div class="f"><label>How many</label><input id="pc-count" type="number" min="1" max="20" value="1"></div>
-    <div class="f"><label>Note (optional)</label><input id="pc-note" placeholder="e.g. WhatsApp name / eSewa ref"></div>
-  </div>
-  <div class="row">
-    <button class="btn" onclick="createPaymentCodes()">🎟️ Generate</button>
-    <button class="btn ghost" onclick="loadPaymentCodes()">↻ Recent codes</button>
-    <div id="pc-msg" class="hint"></div>
-  </div>
-  <div id="pc-new"></div>
-  <div id="pc-list"></div>
 
   <details>
   <summary class="dsum">Admin Alerts <span class="tag">new signups</span></summary>
@@ -1305,41 +1288,53 @@ async function waCall(body){
   if(!r.ok)throw new Error(await r.text());
   return r.json();
 }
-const WA_REASON={load:'Loaded',entry:'Entry',effect:'Effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Refund',adjust:'Adjustment'};
-async function walletLookup(){
-  const q=document.getElementById('wa-q').value.trim();
+const WA_REASON={prize:'Prize',load:'Loaded',entry:'Entry',effect:'Effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Refund',adjust:'Adjustment'};
+let _waTimer=null;
+function waSearch(){
+  clearTimeout(_waTimer);
+  const q=document.getElementById('wa-q').value.trim(),box=document.getElementById('wa-results');
+  if(q.length<2){box.innerHTML='';return;}
+  _waTimer=setTimeout(async()=>{
+    try{
+      const rows=await waCall({action:'search',q});
+      if(document.getElementById('wa-q').value.trim()!==q)return;
+      box.innerHTML=rows.length?`<div class="card" style="padding:6px">${rows.map(r=>`<button type="button" class="wa-pick" data-id="${esc(r.id)}" style="display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;padding:10px 12px;border:0;border-radius:10px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer"><span><b>${esc(r.username?'@'+r.username:'(no username)')}</b> <span class="hint" style="margin:0">${esc(r.player_tag||'')} · ${esc(r.email||'')}</span></span><b style="color:var(--gold-l)">${r.unlimited?'∞':r.balance+' pts'}</b></button>`).join('')}</div>`:'<p class="hint">No player matches that.</p>';
+      box.querySelectorAll('.wa-pick').forEach(b=>{b.onmouseenter=()=>b.style.background='rgba(255,200,61,.08)';b.onmouseleave=()=>b.style.background='none';b.onclick=()=>{box.innerHTML='';walletLookup(b.dataset.id);};});
+    }catch(e){waMsg(e.message,'err');}
+  },250);
+}
+async function walletLookup(id){
   const box=document.getElementById('wa-player');
-  if(!q){waMsg('Type a player tag, username or email.','err');return;}
-  const btn=document.getElementById('wa-find');btn.disabled=true;waMsg('Searching…','');
+  waMsg('Loading…','');
   try{
-    const d=await waCall({action:'lookup',q});
+    const d=await waCall({action:'lookup',player_id:id});
     _waPlayer=d.player;
-    box.innerHTML=`<div class="card"><div class="grid">
-      <div class="f"><label>Player</label><input value="${esc((d.player.username?'@'+d.player.username+' · ':'')+(d.player.player_tag||''))}" disabled></div>
-      <div class="f"><label>Email</label><input value="${esc(d.player.email||'')}" disabled></div>
-      <div class="f"><label>Balance</label><input value="${d.balance} points" disabled style="color:var(--gold-l);font-weight:700"></div>
-      <div class="f"><label>Points to add</label><input id="wa-amt" type="number" min="1" placeholder="Amount paid, e.g. 50"></div>
-      <div class="f"><label>eSewa transaction ID</label><input id="wa-ref" placeholder="From the payment screenshot" autocomplete="off"></div>
-      <div class="f"><label>Note (optional)</label><input id="wa-note" placeholder="e.g. WhatsApp name"></div>
-    </div>
-    <div class="row" style="margin-top:10px"><button class="btn" id="wa-credit" onclick="walletCredit()">➕ Add points</button></div>
-    ${d.ledger.length?`<table style="width:100%;font-size:.76rem;border-collapse:collapse;margin-top:10px">${d.ledger.map(x=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 4px">${esc(new Date(x.created_at).toLocaleString())}</td><td>${esc(WA_REASON[x.reason]||x.reason)}${x.ref&&x.reason==='load'?' · '+esc(x.ref):''}</td><td style="text-align:right;color:${x.delta>0?'var(--green,#5EDB95)':'#ff9d9d'}">${x.delta>0?'+':''}${x.delta}</td><td style="text-align:right">${x.balance_after}</td></tr>`).join('')}</table>`:'<p class="hint">No transactions yet.</p>'}
+    box.innerHTML=`<div class="card">
+      <div class="row" style="margin:0 0 10px;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <div><b style="font-size:1.05rem">${esc(d.player.username?'@'+d.player.username:'(no username)')}</b><div class="hint" style="margin:2px 0 0">${esc(d.player.player_tag||'')} · ${esc(d.player.email||'')}</div></div>
+        <div style="text-align:right"><div class="hint" style="margin:0">Balance</div><b style="font-size:1.4rem;color:var(--gold-l)">${d.unlimited?'∞':d.balance.toLocaleString()}</b></div>
+      </div>
+      <div class="grid">
+        <div class="f"><label>Points to add</label><input id="wa-amt" type="number" min="1" inputmode="numeric" placeholder="Amount they paid"></div>
+        <div class="f"><label>eSewa transaction ID <span class="tag">optional</span></label><input id="wa-ref" placeholder="Stops the same payment being added twice" autocomplete="off"></div>
+      </div>
+      <div class="row" style="margin:8px 0 0">${[50,100,200,500].map(a=>`<button type="button" class="btn ghost" style="font-size:.74rem;padding:6px 12px" onclick="document.getElementById('wa-amt').value=${a}">${a}</button>`).join('')}<button class="btn" id="wa-credit" onclick="walletCredit()">➕ Add points</button></div>
+      ${d.ledger.length?`<table style="width:100%;font-size:.76rem;border-collapse:collapse;margin-top:12px">${d.ledger.map(x=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 4px">${esc(new Date(x.created_at).toLocaleString())}</td><td>${esc(WA_REASON[x.reason]||x.reason)}</td><td style="text-align:right;color:${x.delta>0?'var(--green,#5EDB95)':'#ff9d9d'}">${x.delta>0?'+':''}${x.delta}</td><td style="text-align:right">${x.balance_after}</td></tr>`).join('')}</table>`:'<p class="hint" style="margin:10px 0 0">No transactions yet.</p>'}
     </div>`;
-    waMsg('Found '+(d.player.username||d.player.player_tag)+'.','ok');
+    waMsg('','');
+    setTimeout(()=>{const a=document.getElementById('wa-amt');if(a)a.focus();},50);
   }catch(e){box.innerHTML='';_waPlayer=null;waMsg(e.message,'err');}
-  btn.disabled=false;
 }
 async function walletCredit(){
   if(!_waPlayer)return;
-  const amount=parseInt(document.getElementById('wa-amt').value,10),ref=document.getElementById('wa-ref').value.trim(),note=document.getElementById('wa-note').value.trim();
+  const amount=parseInt(document.getElementById('wa-amt').value,10),ref=document.getElementById('wa-ref').value.trim(),note='';
   if(!amount||amount<1){waMsg('Enter the number of points to add.','err');return;}
-  if(!ref){waMsg('Enter the eSewa transaction ID from the screenshot.','err');return;}
   if(!confirm(`Add ${amount} points to ${_waPlayer.username||_waPlayer.player_tag}?`))return;
   const btn=document.getElementById('wa-credit');btn.disabled=true;waMsg('Adding…','');
   try{
     const d=await waCall({action:'credit',player_id:_waPlayer.id,amount,ref,note});
     waMsg(`Added ${amount} points. New balance: ${d.balance}. The player has been notified.`,'ok');
-    walletLookup();
+    walletLookup(_waPlayer.id);
   }catch(e){waMsg(e.message,'err');btn.disabled=false;}
 }
 let _balRows=[];
@@ -1357,8 +1352,8 @@ async function loadBalances(){
 function renderBalances(){
   const q=(document.getElementById('bal-q')||{}).value||'';const ql=q.trim().toLowerCase();
   const rows=_balRows.filter(r=>!ql||[r.username,r.player_tag,r.email].some(v=>String(v||'').toLowerCase().includes(ql)));
-  document.getElementById('bal-table').innerHTML=`<table style="width:100%;font-size:.8rem;border-collapse:collapse">${rows.slice(0,300).map(r=>`<tr style="border-bottom:1px solid var(--line);cursor:pointer" data-bal-q="${esc(r.player_tag||r.username||r.email||'')}" title="Open this player's wallet"><td style="padding:7px 4px">${esc(r.username?'@'+r.username:'—')}<br><span class="hint" style="margin:0">${esc(r.player_tag||'')} · ${esc(r.email||'')}</span></td><td style="text-align:right;font-weight:700;color:${r.unlimited?'var(--gold-l)':(r.balance>0?'var(--green,#5EDB95)':'var(--silver)')}">${r.unlimited?'∞ (admin)':r.balance.toLocaleString()+' pts'}</td></tr>`).join('')||'<tr><td class="hint">No players match.</td></tr>'}</table>`;
-  document.querySelectorAll('[data-bal-q]').forEach(tr=>tr.onclick=()=>{document.getElementById('wa-q').value=tr.dataset.balQ;walletLookup();document.getElementById('wallets').scrollIntoView({behavior:'smooth'});});
+  document.getElementById('bal-table').innerHTML=`<table style="width:100%;font-size:.8rem;border-collapse:collapse">${rows.slice(0,300).map(r=>`<tr style="border-bottom:1px solid var(--line);cursor:pointer" data-bal-q="1" data-bal-id="${esc(r.id)}" title="Open this player's wallet"><td style="padding:7px 4px">${esc(r.username?'@'+r.username:'—')}<br><span class="hint" style="margin:0">${esc(r.player_tag||'')} · ${esc(r.email||'')}</span></td><td style="text-align:right;font-weight:700;color:${r.unlimited?'var(--gold-l)':(r.balance>0?'var(--green,#5EDB95)':'var(--silver)')}">${r.unlimited?'∞ (admin)':r.balance.toLocaleString()+' pts'}</td></tr>`).join('')||'<tr><td class="hint">No players match.</td></tr>'}</table>`;
+  document.querySelectorAll('[data-bal-q]').forEach(tr=>tr.onclick=()=>{walletLookup(tr.dataset.balId);document.getElementById('wallets').scrollIntoView({behavior:'smooth'});});
 }
 function prizeReportHtml(list){
   if(!list||!list.length)return '';
@@ -1416,51 +1411,6 @@ async function resolveWithdrawal(btn,id,paid){
     waMsg(paid?'Marked as paid — the player has been notified.':'Rejected — the points were returned.','ok');
     loadWithdrawals();
   }catch(e){waMsg(e.message,'err');btn.disabled=false;}
-}
-/* ── payment codes (payment-codes Edge Function) ── */
-const PC_LABEL={entry:'Entry',fx_game:'Effect · single match',fx_lite_week:'Effect · lite week',fx_week:'Effect · pro week',fx_month:'Effect · pro month'};
-function pcMsg(t,c){const el=document.getElementById('pc-msg');if(el){el.textContent=t;el.className='hint '+(c||'');}}
-function pcKindChanged(){
-  const sel=document.getElementById('pc-tourney');
-  if(sel){const v=sel.value;sel.innerHTML=(data.tournaments||[]).map(t=>`<option value="${esc(t.name)}">${esc(t.name)}${t.entry?' · '+esc(t.entry):''}</option>`).join('');if([...sel.options].some(o=>o.value===v))sel.value=v;}
-  document.getElementById('pc-tourney-wrap').style.display=document.getElementById('pc-kind').value==='entry'?'':'none';
-}
-function pcCopy(btn,text){(navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject()).then(()=>{const o=btn.textContent;btn.textContent='✓ Copied';setTimeout(()=>btn.textContent=o,1300);}).catch(()=>{btn.textContent='Copy failed';});}
-function pcWhatsAppText(c){
-  return c.kind==='entry'
-    ?`Payment received ✅ Your join code for ${c.tournament_slug} is ${c.code}\nOpen jdesport.co.uk, go to your ticket for that tournament and enter the code to confirm your slot.`
-    :`Payment received ✅ Your squad effect code is ${c.code} (${PC_LABEL[c.kind]})\nOpen jdesport.co.uk, tap "Squad effects" on your ticket, pick your effect and enter the code.`;
-}
-async function createPaymentCodes(){
-  const secret=adminSecret();
-  if(!secret){pcMsg('Enter the admin passcode first.','err');return;}
-  pcKindChanged();
-  const kind=document.getElementById('pc-kind').value;
-  const body={action:'create',kind,count:+document.getElementById('pc-count').value||1,note:document.getElementById('pc-note').value.trim()};
-  if(kind==='entry')body.tournament_slug=document.getElementById('pc-tourney').value;
-  pcMsg('Generating…','');
-  try{
-    const r=await fetch(EDGE_FN_BASE+'/payment-codes',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify(body)});
-    if(!r.ok)throw new Error(await r.text());
-    const {codes}=await r.json();
-    const box=document.getElementById('pc-new');
-    box.innerHTML=codes.map((c,i)=>`<div class="card"><div class="row" style="margin:0;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><b style="font-family:'JetBrains Mono',monospace;font-size:1.05rem;color:var(--gold-l)">${esc(c.code)}</b><span class="hint" style="margin:0">${esc(PC_LABEL[c.kind])}${c.tournament_slug?' · '+esc(c.tournament_slug):''}</span><span><button class="btn ghost" style="font-size:.72rem;padding:7px 12px" data-pc-code="${i}">Copy code</button> <button class="btn" style="font-size:.72rem;padding:7px 12px" data-pc-msg="${i}">Copy WhatsApp message</button></span></div></div>`).join('');
-    box.querySelectorAll('[data-pc-code]').forEach(b=>b.onclick=()=>pcCopy(b,codes[+b.dataset.pcCode].code));
-    box.querySelectorAll('[data-pc-msg]').forEach(b=>b.onclick=()=>pcCopy(b,pcWhatsAppText(codes[+b.dataset.pcMsg])));
-    pcMsg(codes.length+' code(s) ready — send them to the player on WhatsApp.','ok');
-  }catch(e){pcMsg('Could not generate: '+e.message,'err');}
-}
-async function loadPaymentCodes(){
-  const secret=adminSecret();
-  if(!secret){pcMsg('Enter the admin passcode first.','err');return;}
-  pcMsg('Loading…','');
-  try{
-    const r=await fetch(EDGE_FN_BASE+'/payment-codes',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({action:'list'})});
-    if(!r.ok)throw new Error(await r.text());
-    const rows=await r.json();
-    document.getElementById('pc-list').innerHTML=rows.length?`<div class="card"><table style="width:100%;font-size:.78rem;border-collapse:collapse">${rows.map(c=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-family:'JetBrains Mono',monospace">${esc(c.code)}</td><td>${esc(PC_LABEL[c.kind]||c.kind)}${c.tournament_slug?'<br><span class="hint" style="margin:0">'+esc(c.tournament_slug)+'</span>':''}</td><td>${c.redeemed_at?'✅ Used by '+esc(c.players?('@'+(c.players.username||c.players.player_tag||'player')):'a player'):'<span style="color:var(--gold-l)">Unused</span>'}${c.note?'<br><span class="hint" style="margin:0">'+esc(c.note)+'</span>':''}</td></tr>`).join('')}</table></div>`:'<p class="hint">No codes yet.</p>';
-    pcMsg(rows.length+' recent code(s).','ok');
-  }catch(e){pcMsg('Could not load: '+e.message,'err');}
 }
 async function approvePayment(id,approve){
   const secret=adminSecret();

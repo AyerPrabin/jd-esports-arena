@@ -31,7 +31,37 @@ Deno.serve(async (req: Request) => {
   }
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 
+  if (p.action === 'search') {
+    const q = String(p.q || '').trim().replace(/^@/, '');
+    if (q.length < 2) return json([]);
+    // strip characters that mean something in a like pattern or PostgREST's or() syntax
+    const like = '%' + q.replace(/[%_*,()\\"]/g, '') + '%';
+    const { data, error } = await supabase.from('players')
+      .select('id, username, player_tag, email, wallets(balance, unlimited)')
+      .or(`username.ilike.${like},player_tag.ilike.${like},email.ilike.${like}`)
+      .limit(40);
+    if (error) return fail(error.message, 500);
+    // best matches first: exact username, username starts with, username contains, tag, email
+    const ql = q.toLowerCase();
+    const score = (x: any) => {
+      const u = String(x.username || '').toLowerCase(), t = String(x.player_tag || '').toLowerCase();
+      return u === ql || t === ql ? 0 : u.startsWith(ql) ? 1 : u.includes(ql) ? 2 : t.includes(ql) ? 3 : 4;
+    };
+    return json((data || []).sort((a: any, b: any) => score(a) - score(b)).slice(0, 8).map((x: any) => {
+      const w = Array.isArray(x.wallets) ? x.wallets[0] : x.wallets;
+      return { id: x.id, username: x.username, player_tag: x.player_tag, email: x.email, balance: w?.balance ?? 0, unlimited: !!w?.unlimited };
+    }));
+  }
+
   if (p.action === 'lookup') {
+    if (p.player_id) {
+      const { data: one } = await supabase.from('players').select('id, username, player_tag, email').eq('id', p.player_id).maybeSingle();
+      if (!one) return fail('Player not found', 404);
+      const { data: w1 } = await supabase.from('wallets').select('balance, unlimited').eq('player_id', one.id).maybeSingle();
+      const { data: l1 } = await supabase.from('wallet_ledger').select('delta, balance_after, reason, ref, note, created_at')
+        .eq('player_id', one.id).order('created_at', { ascending: false }).limit(10);
+      return json({ player: one, balance: w1?.balance ?? 0, unlimited: !!w1?.unlimited, ledger: l1 || [] });
+    }
     const q = String(p.q || '').trim().replace(/^@/, '');
     if (!q) return fail('Type a player tag, username or email');
     const cols = 'id, username, player_tag, email';

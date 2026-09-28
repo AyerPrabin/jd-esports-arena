@@ -2335,3 +2335,32 @@ language sql security definer set search_path = public stable as $$
 $$;
 grant execute on function public.get_public_roster() to anon, authenticated;
 commit;
+
+-- admin_wallet_credit: eSewa transaction ID is optional (manual loads). When given, the
+-- same transaction still can't be credited twice; when blank, a unique MANUAL-… ref is used.
+begin;
+create or replace function public.admin_wallet_credit(p_player uuid, p_amount int, p_ref text, p_note text)
+returns int language plpgsql security definer set search_path = public as $$
+declare v_bal int;
+begin
+  if p_amount is null or p_amount < 1 then
+    raise exception 'Enter how many points to add.';
+  end if;
+  p_ref := upper(trim(coalesce(p_ref, '')));
+  if p_ref = '' then
+    p_ref := 'MANUAL-' || replace(gen_random_uuid()::text, '-', '');
+  end if;
+  begin
+    v_bal := public._wallet_apply(p_player, p_amount, 'load', p_ref, p_note);
+  exception when unique_violation then
+    raise exception 'This eSewa transaction (%) has already been credited.', p_ref;
+  end;
+  insert into public.notifications (player_id, title, body)
+  values (p_player, '+' || p_amount || ' JD points added',
+          'Your payment was verified and ' || p_amount || ' points were added to your wallet. Balance: ' || v_bal || ' points.');
+  return v_bal;
+end;
+$$;
+revoke all on function public.admin_wallet_credit(uuid, int, text, text) from public, anon, authenticated;
+grant execute on function public.admin_wallet_credit(uuid, int, text, text) to service_role;
+commit;
