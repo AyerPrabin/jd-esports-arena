@@ -24,7 +24,7 @@ a{color:var(--gold-l)}
 .wrap{max-width:var(--container);margin:0 auto;padding:0 28px}
 header{padding:20px clamp(20px,5vw,80px);border-bottom:1px solid var(--line)}
 .bar{display:flex;align-items:center;justify-content:space-between;max-width:var(--container);margin:0 auto}
-.brand{display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--cream)}
 .jdlogo{width:36px;height:36px;border-radius:8px;object-fit:cover;flex:none;display:block}
 .brand span{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;letter-spacing:.02em;display:block}
 .brand span span{font-family:'Inter',sans-serif;font-size:.68rem;font-weight:500;color:var(--gold-l);letter-spacing:.01em}
@@ -42,6 +42,13 @@ main{padding:44px 0 80px}
 .tc strong{color:var(--cream)}
 .plain{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;font-size:.88rem;color:var(--silver);margin:0 0 28px}
 .plain b{color:var(--gold-l)}
+.plain ul{margin:8px 0 0;padding-left:20px}
+.plain li{margin:4px 0}
+.plain strong{color:var(--cream)}
+.rtable{width:100%;border-collapse:collapse;margin:8px 0 12px;font-size:.9rem}
+.rtable th,.rtable td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--silver)}
+.rtable th{color:var(--gold-l);font-weight:600;font-size:.82rem}
+.rtable td:last-child{color:var(--cream);font-weight:600}
 .toc{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 22px;margin:0 0 30px;columns:2;column-gap:24px}
 .toc li{font-size:.84rem;margin:4px 0;break-inside:avoid}
 .toc a{color:var(--silver)}
@@ -60,176 +67,165 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 
 <main class="wrap">
   <div class="sec-h"><h1>Terms &amp; Conditions</h1><span class="ln"></span></div>
-  <p class="sub">Last updated 2026 · Applies to jdesport.co.uk and the JD Esports Arena app, run solo by Prabin Ayer (AyerFire).</p>
+  <p class="sub">Last updated 28 September 2026 · Applies to jdesport.co.uk, the installable app, the Discord bot and the ZULU assistant. JD Esports Arena is run by Prabin Ayer (AyerFire).</p>
 
-  <div class="plain"><b>Plain-language summary (not a substitute for the full terms below):</b> play fair, don't attack our systems or other players' data, show up on time, we handle entry fees/prizes manually and in good faith but can't promise the site is bug-free or that you'll win anything, you're responsible for your own account and gear, and you can delete your account whenever you want. Checking "I agree" at signup is a binding acceptance of every section below, not just this summary.</div>
+  <div class="plain">
+    <b>The short version</b>
+    <ul>
+      <li><strong>Play fair.</strong> Cheats, hacks, mods or attacking the site = permanent ban and no prize.</li>
+      <li><strong>One account per person</strong>, and you're responsible for it.</li>
+      <li><strong>Prizes are fixed</strong> and posted before registration opens. Winners get the full amount, paid as points.</li>
+      <li><strong>Entry fees are kept by JD Arena</strong> to fund prizes and running costs — they aren't pooled into the prize.</li>
+      <li><strong>1 point = Rs 1.</strong> Load points by eSewa, spend them on entries and effects, withdraw them to your eSewa any time.</li>
+      <li><strong>Refunds:</strong> withdraw from a paid tournament 24h+ before the start for a full refund, 10% in the last 24 hours, nothing once room details are out.</li>
+      <li><strong>Squad effects are cosmetic</strong> and not refundable once active.</li>
+      <li>Ticking "I agree" at sign-up means you accept <strong>all</strong> of the terms below, not just this summary.</li>
+    </ul>
+  </div>
 
   <ul class="toc">
-    <li><a href="#s1">1. Definitions</a></li>
-    <li><a href="#s2">2. Acceptance &amp; who this covers</a></li>
-    <li><a href="#s3">3. Age &amp; eligibility</a></li>
-    <li><a href="#s4">4. Accounts</a></li>
-    <li><a href="#s5">5. Fair play — no cheating, hacking, or exploiting</a></li>
-    <li><a href="#s6">6. Registration &amp; check-in</a></li>
-    <li><a href="#s7">7. Tournament changes &amp; cancellations</a></li>
-    <li><a href="#s8">8. Prizes &amp; payments</a></li>
-    <li><a href="#s9">9. Assumption of risk</a></li>
-    <li><a href="#s10">10. Third-party services</a></li>
-    <li><a href="#s11">11. The AI assistant (ZULU)</a></li>
-    <li><a href="#s12">12. Intellectual property</a></li>
-    <li><a href="#s13">13. Communications</a></li>
-    <li><a href="#s14">14. Your data</a></li>
-    <li><a href="#s15">15. Reports &amp; bans</a></li>
-    <li><a href="#s16">16. Your representations to us</a></li>
-    <li><a href="#s17">17. Service availability</a></li>
-    <li><a href="#s18">18. Disclaimer of warranties</a></li>
-    <li><a href="#s19">19. Limitation of liability</a></li>
-    <li><a href="#s20">20. Indemnification</a></li>
-    <li><a href="#s21">21. Force majeure</a></li>
-    <li><a href="#s22">22. Dispute resolution</a></li>
-    <li><a href="#s23">23. Governing law &amp; jurisdiction</a></li>
-    <li><a href="#s24">24. Severability</a></li>
-    <li><a href="#s25">25. No waiver</a></li>
-    <li><a href="#s26">26. Assignment</a></li>
-    <li><a href="#s27">27. Changes to these terms</a></li>
-    <li><a href="#s28">28. Entire agreement</a></li>
-    <li><a href="#s29">29. Contact</a></li>
+    <li><a href="#s1">1. About these terms</a></li>
+    <li><a href="#s2">2. Who can play</a></li>
+    <li><a href="#s3">3. Your account</a></li>
+    <li><a href="#s4">4. Squads &amp; registration</a></li>
+    <li><a href="#s5">5. Fair play</a></li>
+    <li><a href="#s6">6. Entry fees &amp; prizes</a></li>
+    <li><a href="#s7">7. Points wallet</a></li>
+    <li><a href="#s8">8. Refunds</a></li>
+    <li><a href="#s9">9. Squad effects &amp; codes</a></li>
+    <li><a href="#s10">10. Changes &amp; cancellations</a></li>
+    <li><a href="#s11">11. Messages &amp; the ZULU assistant</a></li>
+    <li><a href="#s12">12. Your data &amp; security</a></li>
+    <li><a href="#s13">13. Reports &amp; bans</a></li>
+    <li><a href="#s14">14. Ownership &amp; your content</a></li>
+    <li><a href="#s15">15. Services we rely on</a></li>
+    <li><a href="#s16">16. Legal</a></li>
+    <li><a href="#s17">17. Contact</a></li>
   </ul>
 
   <div class="tc">
-    <h2 id="s1">1. Definitions</h2>
+    <h2 id="s1">1. About these terms</h2>
+    <p>By creating an account, registering a squad, ticking "I agree to the Terms &amp; Conditions" or otherwise using JD Arena, you agree to these terms. If you don't agree, please don't use the service. JD Arena is run by an individual, Prabin Ayer (AyerFire), not a registered company — you're agreeing with him personally. "We", "us" and "JD Arena" mean him; "you" means anyone using the service.</p>
+
+    <h2 id="s2">2. Who can play</h2>
     <ul>
-      <li><strong>"JD Arena", "we", "us", "our"</strong> — JD Esports Arena, run solo by Prabin Ayer, trading as AyerFire.</li>
-      <li><strong>"You", "User", "Player"</strong> — anyone with a JD Arena account or otherwise using the site/app.</li>
-      <li><strong>"Account"</strong> — your JD Arena login, created via email/password or Google sign-in.</li>
-      <li><strong>"Squad"</strong> — the team/roster you register under for a Tournament.</li>
-      <li><strong>"Tournament"</strong> — any competitive event listed and run through JD Arena.</li>
-      <li><strong>"Entry Fee"</strong> — any payment required to register a Squad for a paid Tournament.</li>
-      <li><strong>"Prize"</strong> — cash or any other reward offered for a Tournament's results.</li>
-      <li><strong>"Content"</strong> — anything you upload or submit: squad names/logos, payment screenshots, reports, reviews.</li>
-      <li><strong>"Services"</strong> — the JD Arena website (jdesport.co.uk), installable app, Discord bot, and ZULU AI assistant, together.</li>
+      <li>You must meet Free Fire's own age rules and be old enough to use the payment method involved (eSewa) in your country.</li>
+      <li>If you're under 18, a parent or guardian must read and accept these terms for you and should handle any payments, withdrawals and prizes.</li>
     </ul>
 
-    <h2 id="s2">2. Acceptance &amp; who this covers</h2>
-    <p>By creating an Account, registering a Squad, checking the "I agree to the Terms &amp; Conditions" box, or otherwise using the Services, you enter a binding agreement with us on these exact terms — every section below, not only the summary at the top. If you don't agree to all of it, don't create an Account or use the Services. JD Arena is run solo by an individual (Prabin Ayer), not a registered company — you're contracting with him personally in that capacity.</p>
-
-    <h2 id="s3">3. Age &amp; eligibility</h2>
-    <p>You must be old enough to legally hold or receive the payment method used for Entry Fees/Prizes in your country, and to meet Free Fire's own age requirements. If you're under 18, a parent or guardian must review and effectively agree to these terms on your behalf, and should handle any payments or Prize collection for you. By using the Services you confirm the above is true.</p>
-
-    <h2 id="s4">4. Accounts</h2>
+    <h2 id="s3">3. Your account</h2>
     <ul>
-      <li>One Account per person. Multiple accounts used to re-enter a Tournament, dodge a ban, or get extra chances at Prizes will be banned, and any associated Prizes forfeited.</li>
-      <li>You're responsible for everything that happens under your Account, including your Discord link and anyone you share your login with.</li>
-      <li>Sign in with Google or email/password. Whichever you use, keep it secure — we can't undo actions taken by someone who got into your Account, and we're not liable for losses resulting from a compromised Account that wasn't our fault.</li>
-      <li>We may suspend or terminate an Account that violates these terms, at our discretion, with or without prior notice, depending on severity.</li>
+      <li><strong>One account per person.</strong> Extra accounts used to re-enter a tournament, dodge a ban or win more prizes are banned, and their prizes and points are forfeited.</li>
+      <li>You're responsible for everything done with your account, including a linked Discord and anyone you share your login with. Keep your password or Google account secure — we can't undo what someone else does in your account.</li>
+      <li>Your <strong>username</strong> is how other players see you. Your email is never shown to other players.</li>
+      <li>Accounts that never confirm their email are removed after a few days, and any places they held are released.</li>
+      <li>We may suspend or close an account that breaks these terms, with or without warning depending on how serious it is.</li>
     </ul>
 
-    <h2 id="s5">5. Fair play — no cheating, hacking, or exploiting</h2>
-    <p>This is the core rule. <strong>Not allowed, ever:</strong></p>
+    <h2 id="s4">4. Squads &amp; registration</h2>
     <ul>
-      <li>Cheats, hacks, aimbots, wallhacks, macros, or any modified game client/APK.</li>
-      <li>Exploiting a bug in the game, in JD Arena's website/app, or in Supabase/our backend to gain points, Prizes, registrations, or Account access you shouldn't have. If you find one, report it to us instead — we'd genuinely rather know.</li>
-      <li>Attempting to break into, scrape, flood, or otherwise attack JD Arena's systems (the site, the database, the Discord bot, the AI assistant). This includes trying to pull other players' private data (room IDs, emails, payment screenshots) through the API or anywhere else it isn't meant to be public.</li>
-      <li>Impersonating another player, Squad, or JD Arena staff.</li>
-      <li>Match-fixing, boosting, or colluding with an opponent to manipulate results.</li>
-    </ul>
-    <p>Violating this gets your Account and any linked accounts banned, and any Prize forfeited — see the <a href="/ban-list.html">public ban list</a>. We may also report serious abuse (e.g. attacks on our systems) to the relevant platforms or authorities, and pursue any other remedy available to us under law.</p>
-    <p><strong>Paid tournaments specifically:</strong> if a player or Squad is confirmed, after review, to have used cheats, hacks, or exploits in a <strong>paid</strong> Tournament, then (a) every other legitimately participating Squad in that Tournament is entitled to a full refund of the Entry Fee they paid for it, (b) the offending player's/Squad's own Entry Fee is forfeited entirely — not refunded to them, and (c) their Account is permanently banned. This is in addition to, not instead of, the ban-list and reporting consequences above.</p>
-
-    <h2 id="s6">6. Registration &amp; check-in</h2>
-    <ul>
-      <li>Squad names, logos, and screenshots you upload must be your own and not offensive, impersonating, or infringing on someone else's rights.</li>
-      <li>Show up and check in on time. No-shows can lose their slot to the waitlist without refund of any Entry Fee already paid, except where section 7 applies.</li>
-      <li>An unverified Account that never confirms its email is automatically cleaned up after a few days, freeing the slot for someone else.</li>
-      <li>Registering doesn't guarantee a slot in paid Tournaments once full — you'll be told if that's the case before payment is requested.</li>
+      <li>A <strong>squad name is required</strong> to register. Your squad name and logo are saved to your profile and reused for every tournament you join. Uploading a new logo replaces the old one everywhere — the old image isn't kept.</li>
+      <li>Squad names and logos must be your own and not offensive, impersonate anyone, or use someone else's trademark or artwork.</li>
+      <li>Check in before the match starts. If you miss check-in, your slot can be given to the waitlist without a refund, except where section 10 applies.</li>
+      <li>For a <strong>paid</strong> tournament, registering holds your place, but a held place <strong>doesn't reserve a slot</strong>. You're only confirmed once the entry is paid while a slot is still free. Free tournaments that are full put you on a waitlist and confirm you automatically if a slot opens.</li>
     </ul>
 
-    <h2 id="s7">7. Tournament changes &amp; cancellations</h2>
-    <p>Schedules, formats, room IDs, and rules for a specific Tournament can change close to or during the event (server issues, a room-ID mistake, low turnout, etc.). We'll communicate changes as fast as we reasonably can via the site, Discord, or push notification. A Tournament may be cancelled or postponed entirely if needed — in that case any paid Entry Fees will be refunded or carried to the next event, at our discretion, communicated to affected players directly.</p>
-
-    <h2 id="s8">8. Prizes &amp; payments</h2>
+    <h2 id="s5">5. Fair play</h2>
+    <p><strong>Never allowed:</strong></p>
     <ul>
-      <li>Entry Fees and Prize payouts are handled manually — see each Tournament's listed entry/prize terms for amounts and timing.</li>
-      <li>Each Tournament's Prize is a fixed amount posted before registration opens, and that full amount is what winners receive — no deductions. Entry Fees are not pooled into the Prize: they're kept by JD Arena to fund Prizes (including Prizes for free-entry Tournaments), hosting and running costs. Refunds still apply where these terms say so (cancellation, confirmed cheating — see sections 5 and 7).</li>
-      <li><strong>Points wallet:</strong> 1 point = Rs 1. You load points by paying the eSewa QR with your JD Arena username in the remarks and sending the screenshot to us on WhatsApp; points are added once the payment is verified. Points pay for paid entries and squad effects. You can request a withdrawal of your points to your own eSewa account at any time — the points leave your wallet immediately and the money is sent by hand, usually within a day; if it can't be sent, the points are returned. Points have no value outside JD Arena and aren't interest-bearing.</li>
-      <li><strong>Withdrawing a paid entry:</strong> more than 24 hours before the scheduled start you get the full entry back; within the last 24 hours before the start (late cancellation) you get 10% back; once the room details are released or the match has started, no refund. Entries paid with points are refunded to your wallet automatically; entries paid with a join code are refunded by hand after you message us your ticket code on WhatsApp.</li>
-      <li>A held (unpaid) registration for a paid Tournament does not reserve a slot; it's confirmed only once the entry is paid from your points (or with a join code) while a slot is still free.</li>
-      <li>Squad effects are optional, cosmetic only and give no gameplay advantage. They are sold as a single-match effect (one Tournament), a Lite week (basic effects, 7 days) or a Pro week/month (every effect, 7/30 days); passes apply to every Tournament you join while active and stack from the end of any current pass. Effect purchases are not refundable once activated.</li>
-      <li>Paid entries and effects are paid over WhatsApp; you then receive a single-use code. An entry code only works for the Tournament it was issued for and only confirms your slot if one is still free — otherwise the code stays unused and we'll sort it out with you. A held (unconfirmed) registration does not reserve a slot.</li>
-      <li>Payment screenshots are reviewed before a paid registration is confirmed; fake or altered screenshots are treated as fraud, resulting in a ban and forfeiture of any Prize.</li>
-      <li>Prizes for banned or disqualified players/Squads are forfeited entirely.</li>
-      <li>Cheating confirmed in a paid Tournament: other Squads get their Entry Fee refunded, the offender's Entry Fee is forfeited, and their Account is banned — see section 5.</li>
-      <li>You're responsible for providing correct payment details (wallet/number/etc.) for receiving a Prize — we're not liable for a payout sent to details you gave us incorrectly, and are not obligated to re-send it at our own cost.</li>
-      <li>Prize payout timing is best-effort and depends on manual verification; it is not instantaneous.</li>
+      <li>Cheats, hacks, aimbots, wallhacks, macros or any modified game app.</li>
+      <li>Exploiting bugs — in Free Fire, on this site or in our systems — to gain points, prizes, places or access you shouldn't have. If you find a bug, tell us instead; we'd rather know.</li>
+      <li>Attacking, scraping, flooding or trying to break into the site, database, Discord bot or ZULU, or trying to get other players' private data (room IDs, emails, payment details).</li>
+      <li>Pretending to be another player, squad or JD Arena staff.</li>
+      <li>Match-fixing, boosting or teaming up with opponents.</li>
+    </ul>
+    <p><strong>What happens:</strong> a permanent ban for the account and any linked accounts, listed publicly on the <a href="/ban-list.html">ban list</a>; any prize and points are forfeited. Serious attacks may be reported to the platforms involved or to the authorities.</p>
+    <p><strong>Cheating in a paid tournament:</strong> once confirmed after review, every other squad in that tournament gets its entry fee refunded, the cheater's own entry fee is kept (not refunded), and their account is banned for good.</p>
+
+    <h2 id="s6">6. Entry fees &amp; prizes</h2>
+    <ul>
+      <li>Each tournament's <strong>prize is a fixed amount</strong>, posted before registration opens. Winners receive the full posted prize with no deductions.</li>
+      <li><strong>Entry fees are kept by JD Arena.</strong> They are not added to the prize — they pay for prizes (including prizes for free-entry tournaments), hosting and running costs.</li>
+      <li>When a winner is announced, the prize is <strong>paid into the winning squad's points wallet automatically</strong> (to the player who registered the squad on the site). Squads that didn't register on the site are paid by hand after contacting us.</li>
+      <li>Prizes for banned or disqualified players or squads are forfeited.</li>
+      <li>Fake or edited payment screenshots are fraud: the account is banned and any prize and points are forfeited.</li>
     </ul>
 
-    <h2 id="s9">9. Assumption of risk</h2>
-    <p>Competing in a Tournament involves risks outside our control: your internet connection, your device, Free Fire's own servers, and the actions of other players. By participating, you accept these risks and agree that JD Arena is not responsible for a match going badly, a disconnect, a device issue, or any other outcome caused by something outside our systems.</p>
-
-    <h2 id="s10">10. Third-party services</h2>
-    <p>JD Arena runs on top of several third-party services, each with their own terms: <strong>Supabase</strong> (accounts, database, backend), <strong>Google</strong> (optional sign-in), <strong>Discord</strong> (optional linking for room-ID delivery and the community server), and <strong>OneSignal</strong> (optional push notifications). We don't control how these providers run their own infrastructure, and we're not liable for their outages, downtime, or policy changes.</p>
-
-    <h2 id="s11">11. The AI assistant (ZULU)</h2>
-    <p>ZULU, the in-app chat assistant, is powered by Google's Gemini API and answers using publicly visible tournament info. It has no access to and will never reveal private Account data (room IDs, other players' info, payment details). Treat its answers as a helpful guide, not an official ruling — if it ever conflicts with what's posted on the site or told to you by an admin, the site/admin wins.</p>
-
-    <h2 id="s12">12. Intellectual property</h2>
-    <p>The JD Esports Arena name, logo, and site design belong to Prabin Ayer / AyerFire. You keep ownership of squad names/logos you upload as Content, but by uploading them you grant us a license to display them on the site, leaderboard, and social posts related to the Tournament they were used in. Free Fire and related trademarks belong to their respective owner (Garena) — JD Arena is an independent community tournament platform, not officially affiliated with or endorsed by Garena.</p>
-
-    <h2 id="s13">13. Communications</h2>
-    <p>By creating an Account you agree we can contact you about your registrations, room IDs, results, and account notices via email, in-app notification, push notification (if enabled), or Discord DM (if linked). You can turn off push notifications and unlink Discord at any time from Settings; account-critical emails (like password resets or deletion confirmation) can't be turned off since they're needed to secure your Account.</p>
-
-    <h2 id="s14">14. Your data</h2>
+    <h2 id="s7">7. Points wallet</h2>
     <ul>
-      <li>We store what's needed to run Tournaments: your Account info, registrations, and match results. Room IDs and other match-sensitive info are only ever shown to the players registered in that match. We don't sell your data.</li>
-      <li>Your <strong>username</strong> is the unique ID we and other players use to find and reference you — on rosters, in Discord linking, in reports — instead of your email, which is never shown to other players.</li>
-      <li>We take reasonable precautions, but no online system is 100% secure. We can't guarantee your data will never be exposed by a bug, breach, or attack outside our control, and to the extent permitted by law we're not liable for damages arising from one.</li>
-      <li>You can delete your Account at any time from Settings — this permanently removes your Account after you confirm via email.</li>
+      <li><strong>1 point = Rs 1.</strong> Points pay for paid entries and squad effects. They have no value outside JD Arena and don't earn interest.</li>
+      <li><strong>Loading points:</strong> pay our eSewa QR with your JD Arena username in the payment remarks, then send the screenshot to us on WhatsApp. Points are added once we've verified the payment, usually within a few hours.</li>
+      <li><strong>Withdrawing points:</strong> request a withdrawal to your own eSewa account from your wallet at any time. The points leave your wallet straight away and we send the money by hand, usually within a day. If we can't send it, the points are returned. You're responsible for giving correct eSewa details — money sent to details you entered wrongly may not be recoverable.</li>
+      <li>To protect everyone's points, the system can <strong>pause payments, withdrawals and codes</strong> while we investigate a possible security problem. Your balance is kept safe during a pause, and free tournaments carry on as normal.</li>
     </ul>
 
-    <h2 id="s15">15. Reports &amp; bans</h2>
-    <p>Anyone can report a player or Squad for suspected cheating or misconduct. Reports stay private during review; only an actual resulting ban becomes public, on the ban list, with a reason.</p>
+    <h2 id="s8">8. Refunds</h2>
+    <p>If you withdraw your squad from a <strong>paid</strong> tournament:</p>
+    <table class="rtable">
+      <tr><th>When you withdraw</th><th>What you get back</th></tr>
+      <tr><td>More than 24 hours before the start</td><td>The full entry fee</td></tr>
+      <tr><td>In the last 24 hours before the start</td><td>10% of the entry fee</td></tr>
+      <tr><td>After room details are sent, or once the match has started</td><td>Nothing (withdrawing is closed)</td></tr>
+    </table>
+    <ul>
+      <li>Entries paid with points are refunded to your wallet automatically. Entries paid with a join code are refunded by hand — message us your ticket code on WhatsApp.</li>
+      <li>If <strong>we</strong> cancel or postpone a tournament, paid entry fees are refunded or carried over to the next event, and we'll tell affected players directly.</li>
+      <li>Squad effects are not refundable once active (see section 9).</li>
+    </ul>
 
-    <h2 id="s16">16. Your representations to us</h2>
-    <p>By using the Services, you confirm that: the information you give us (email, payment details, Discord identity) is accurate; you own or have the right to upload any Content you submit; you're not banned from a prior JD Arena Account under a different identity; and you'll comply with Free Fire's own terms of service alongside ours.</p>
+    <h2 id="s9">9. Squad effects &amp; codes</h2>
+    <ul>
+      <li>Squad effects are <strong>optional and cosmetic only</strong> — they change how your squad looks on the site and give no advantage in the game.</li>
+      <li>They come as a single-match effect (one tournament), a Lite week (basic effects, 7 days) or a Pro week or month (every effect, 7 or 30 days). A pass applies to every tournament you join while it's active; buying another one starts when your current pass ends.</li>
+      <li>Effects are not refundable once activated.</li>
+      <li>Join codes and effect codes are single-use. An entry code only works for the tournament it was issued for, and only confirms your slot if one is still free — if not, the code stays unused and we'll sort it out with you.</li>
+    </ul>
 
-    <h2 id="s17">17. Service availability</h2>
-    <p>JD Arena is provided "as is," run solo, on free/low-cost infrastructure. We don't guarantee it'll always be available, bug-free, or error-free, and we may change, suspend, or discontinue any part of it at any time, with or without notice.</p>
+    <h2 id="s10">10. Changes &amp; cancellations</h2>
+    <p>Schedules, formats, room IDs and rules can change close to or during an event (server problems, low turnout and so on). We'll tell you as quickly as we reasonably can through the site, notifications or Discord. We may cancel or postpone a tournament if we need to — see section 8 for what happens to entry fees.</p>
 
-    <h2 id="s18">18. Disclaimer of warranties</h2>
-    <p>To the fullest extent permitted by applicable law, the Services are provided without warranties of any kind, express or implied — including any implied warranty of merchantability, fitness for a particular purpose, or non-infringement. We don't warrant that results/rankings/payouts will be error-free or that any Tournament will run exactly as scheduled.</p>
+    <h2 id="s11">11. Messages &amp; the ZULU assistant</h2>
+    <ul>
+      <li>By creating an account you agree we can message you about registrations, room details, results, points and account notices — by email, in-app notification, push notification (if you turn it on) or Discord DM (if you link it). You can turn off push and unlink Discord any time; security emails such as password resets can't be turned off.</li>
+      <li>ZULU, the chat assistant, uses AI services (such as Google Gemini and Groq) and only publicly visible tournament information. It never sees private account data. Treat its answers as helpful guidance — if it disagrees with the site or an admin, the site or admin is right.</li>
+    </ul>
 
-    <h2 id="s19">19. Limitation of liability</h2>
-    <p>To the fullest extent permitted by applicable law, JD Arena and Prabin Ayer aren't liable for indirect, incidental, special, or consequential damages arising from your use of the Services — including lost Prizes, lost data, or missed matches due to technical issues, third-party outages, or your own Account being compromised. Where liability can't be excluded entirely under the law that applies to you, our total liability for any claim is limited to the Entry Fee you actually paid for the Tournament the claim relates to.</p>
+    <h2 id="s12">12. Your data &amp; security</h2>
+    <ul>
+      <li>We store what's needed to run tournaments: your account details, squad, registrations, results, points history and withdrawal details. We don't sell your data.</li>
+      <li>Room IDs are only shown to players registered in that match. Your email is never shown to other players.</li>
+      <li>Data is stored with Supabase and encrypted while stored and while being sent (HTTPS). Passwords are securely hashed and never visible to us. Database access rules only let you see your own private data.</li>
+      <li>We take security seriously, but no online system is 100% secure. To the extent the law allows, we're not liable for damage from a breach or attack outside our control.</li>
+      <li>You can delete your account any time from your account settings. It's removed permanently after you confirm by email, along with your points history.</li>
+    </ul>
 
-    <h2 id="s20">20. Indemnification</h2>
-    <p>You agree to cover reasonable costs and damages we face because of your violation of these terms or misuse of the Services — including fraud, attacking our systems, or infringing someone else's rights through Content you uploaded.</p>
+    <h2 id="s13">13. Reports &amp; bans</h2>
+    <p>Anyone can report a player or squad for suspected cheating or misconduct from the site. Reports stay private while we review them; only a resulting ban is made public, on the ban list, with a reason.</p>
 
-    <h2 id="s21">21. Force majeure</h2>
-    <p>We're not liable for a failure or delay in the Services caused by something reasonably outside our control — internet or power outages, natural disasters, government action, Garena/Free Fire server issues, or failures of a third-party provider listed in section 10.</p>
+    <h2 id="s14">14. Ownership &amp; your content</h2>
+    <ul>
+      <li>The JD Esports Arena name, logo and site design belong to Prabin Ayer / AyerFire.</li>
+      <li>You keep ownership of the squad names and logos you upload, and you let us show them on the site, leaderboard and social posts about the tournaments you play in.</li>
+      <li>Free Fire and its trademarks belong to Garena. JD Arena is an independent community platform, not affiliated with or endorsed by Garena.</li>
+    </ul>
 
-    <h2 id="s22">22. Dispute resolution</h2>
-    <p>If a dispute comes up, please contact us first (see section 29) so we can try to resolve it directly and informally before either side takes any other action. Most issues (a scoring question, a payout delay, a report outcome) can be sorted out this way faster than any formal process.</p>
+    <h2 id="s15">15. Services we rely on</h2>
+    <p>JD Arena uses other companies' services, each with its own terms: Supabase (accounts and database), Google (optional sign-in), Discord (community and optional room-ID messages), OneSignal (optional push notifications), eSewa (payments) and WhatsApp (payment messages). We don't control them and aren't responsible for their outages or policy changes.</p>
 
-    <h2 id="s23">23. Governing law &amp; jurisdiction</h2>
-    <p>These terms are governed by the laws of Nepal, where JD Arena is run from, without regard to conflict-of-law rules. Where a dispute can't be resolved informally under section 22, it's subject to the exclusive jurisdiction of the courts of Nepal, except where local law you're covered by requires otherwise.</p>
+    <h2 id="s16">16. Legal</h2>
+    <ul>
+      <li><strong>As is.</strong> JD Arena is run by one person on low-cost infrastructure and provided "as is", without warranties of any kind. We don't promise it will always be available or error-free, or that results, rankings or payouts will never contain mistakes — if they do, we'll correct them.</li>
+      <li><strong>Limit of liability.</strong> As far as the law allows, we aren't liable for indirect or consequential losses (for example a missed match caused by your connection or a Free Fire server issue). Where liability can't be excluded, our total liability for any claim is limited to the entry fee you paid for the tournament concerned.</li>
+      <li><strong>Your responsibility.</strong> You agree to cover reasonable costs we face because you broke these terms — for example fraud, attacking our systems or uploading someone else's content.</li>
+      <li><strong>Events outside our control</strong> such as internet or power outages, natural disasters, government action or Garena server problems aren't our fault.</li>
+      <li><strong>Disputes.</strong> Please contact us first (section 17) so we can sort it out informally — most issues are fixed quickly this way. These terms are governed by the laws of Nepal, and the courts of Nepal have jurisdiction unless the law that protects you says otherwise.</li>
+      <li>If one part of these terms can't be enforced, the rest still applies. If we don't act on a breach straight away, we can still act on it later. We may transfer these terms if JD Arena is handed over; you can't transfer your account.</li>
+      <li><strong>Changes.</strong> We may update these terms as JD Arena grows. The date at the top will change, and you'll be asked to accept important changes the next time you sign in.</li>
+      <li>These terms are the whole agreement between you and JD Arena about using the service.</li>
+    </ul>
 
-    <h2 id="s24">24. Severability</h2>
-    <p>If any part of these terms turns out to be unenforceable in a given jurisdiction, that part is limited or removed only to the extent necessary there, and the rest of these terms still applies in full.</p>
-
-    <h2 id="s25">25. No waiver</h2>
-    <p>If we don't act on a violation of these terms right away, that's not us giving up the right to act on it (or a similar one) later.</p>
-
-    <h2 id="s26">26. Assignment</h2>
-    <p>We may transfer or assign these terms (for example, if JD Arena is ever handed off or restructured) without needing your separate consent. You may not transfer your Account or these terms to anyone else.</p>
-
-    <h2 id="s27">27. Changes to these terms</h2>
-    <p>These terms can be updated as JD Arena grows. Meaningful changes will be reflected here with an updated date at the top. Existing accounts (created before an update, or that never accepted a prior version) will be asked to review and re-accept the current version the next time they sign in before continuing to use the Services.</p>
-
-    <h2 id="s28">28. Entire agreement</h2>
-    <p>These terms, together with anything referenced in them (like the ban list process), are the whole agreement between you and JD Arena about using the Services, replacing any earlier understanding, written or verbal.</p>
-
-    <h2 id="s29">29. Contact</h2>
-    <p>Questions, disputes, or something to report? Use <a href="/">Report a player/squad</a> in the app, or reach out via the <a href="/about/">About Us</a> page.</p>
+    <h2 id="s17">17. Contact</h2>
+    <p>Questions, a dispute or something to report? Message us on WhatsApp at <strong>+44 7343 082738</strong> (jd.lmt.np), join the <a href="https://discord.gg/dgvQTbNvVu" target="_blank" rel="noopener">Discord</a>, use "Report a player/squad" on the site, or see the <a href="/about/">About</a> page.</p>
   </div>
 </main>
 
