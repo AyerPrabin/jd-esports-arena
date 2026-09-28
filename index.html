@@ -1196,7 +1196,6 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script id="os-sdk" src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer onerror="window._osFailed=true;window.updatePushBtn&&updatePushBtn()"></script>
 <script>
 /* Captured synchronously, before supabase-js's detectSessionInUrl can consume/clear the
    redirect hash — tells us this SIGNED_IN is "just verified my email", not a normal login,
@@ -1485,109 +1484,84 @@ const FORCE_LOGIN_GATE=false; /* ← kill-switch. Flip to true ONLY after confir
 if(FORCE_LOGIN_GATE&&sb){
   document.write('<style>header,#main-content{display:none}</style>');
 }
-const ONESIGNAL_APP_ID='4170bab6-90d6-494b-8412-bdafc47d08a1'; /* ← OneSignal App ID (onesignal.com → your app → Settings → Keys & IDs). Leave '' to hide push — email + Notification History still work without it. */
-if(ONESIGNAL_APP_ID){
-  window.OneSignalDeferred=window.OneSignalDeferred||[];
-  OneSignalDeferred.push(async function(OneSignal){
-    await OneSignal.init({appId:ONESIGNAL_APP_ID,safari_web_id:'web.onesignal.auto.665e4130-cb92-443f-ad4d-8156961c0995',serviceWorkerPath:'sw.js',serviceWorkerParam:{scope:'/'}});
-    window._oneSignal=OneSignal;window._osFailed=false;
-    if(_player)OneSignal.login(_player.id);
-    // Browser already allows notifications but OneSignal has no subscription for this device
-    // (e.g. permission was granted while OneSignal was blocked or still loading): register it now,
-    // otherwise pushes sent while the site is closed have nowhere to go.
-    ensurePushSubscribed();
-    try{OneSignal.Notifications.addEventListener('permissionChange',()=>{updatePushBtn();ensurePushSubscribed();});}catch(e){}
-    updatePushBtn();
-  });
-}
-/* Ad/tracker blockers (uBlock, Brave Shields, AdGuard, some DNS filters) block
-   cdn.onesignal.com outright. Without this the SDK just never arrives, pushState()
-   stays 'loading' forever and the button looks dead — so flag it after a script
-   error (onerror on #os-sdk) or 10s with no init, and tell the player how to fix it. */
-if(ONESIGNAL_APP_ID)setTimeout(()=>{if(!window._oneSignal){window._osFailed=true;updatePushBtn();}},10000);
-function reloadOneSignalSdk(){
-  return new Promise(res=>{
-    const sc=document.createElement('script');
-    sc.src='https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
-    sc.onerror=()=>res(false);
-    document.head.appendChild(sc);
-    let n=0;const iv=setInterval(()=>{if(window._oneSignal||++n>32){clearInterval(iv);res(!!window._oneSignal);}},250);
-  });
-}
-const PUSH_BLOCKED_HELP="Your browser or an ad-blocker is blocking our alert service (OneSignal), so push alerts cannot reach this device.\n\nTo fix it: pause your ad-blocker or browser shields for jdesport.co.uk (or allow cdn.onesignal.com), reload the page, then tap Enable push alerts again.\n\nRoom details are still sent to your email and to Notification History.";
-async function ensurePushSubscribed(){
-  const os=window._oneSignal;if(!os)return;
-  try{
-    if(typeof Notification==='function'&&Notification.permission==='granted'&&os.User&&os.User.PushSubscription&&!os.User.PushSubscription.optedIn){
-      await os.User.PushSubscription.optIn();
-    }
-    if(_player)os.login(_player.id);
-  }catch(e){}
-}
+/* ── Push alerts: the browser's own Web Push (VAPID) — no third-party SDK, so ad-blockers
+   and Brave Shields can't block it. The device's subscription is saved to
+   push_subscriptions (save_push_subscription RPC); every Edge Function sends through
+   supabase/functions/_shared/push.ts; /sw.js shows the alert even when the site is closed. ── */
+const VAPID_PUBLIC_KEY='BPP1cVMCDdmZzwhR48u0BBEFbrg2LP9JEUm8YHAWogBIoegeuJLZaKOvv_6JSciOMwMB0tu4C9RgWghf4HjQo4I';
+let _pushSub=null,_pushErr='';
+function b64ToU8(s){const p='='.repeat((4-s.length%4)%4),b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(b,c=>c.charCodeAt(0));}
+function pushSupported(){return 'serviceWorker' in navigator&&'PushManager' in window&&typeof Notification==='function';}
 /* iPhone/iPad only support push for a home-screen-installed app (Apple's own
-   restriction, not something we can work around) — Safari-tab visits never get a
-   working push subscription no matter what we do here, so detect that state and
-   tell the player how to fix it instead of the button silently doing nothing. */
+   restriction) — detect it and explain instead of the button silently doing nothing. */
 function isIosDevice(){return /iP(hone|od|ad)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
 function isStandaloneApp(){return window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}
+// Subscribe this device (only if notifications are already allowed) and save it to the
+// signed-in player. Safe to call on every load: it re-saves, which also covers endpoints
+// the browser rotated and a device that signed in as a different player.
+async function ensurePushSubscribed(){
+  if(!pushSupported()||!sb||!_player||Notification.permission!=='granted')return false;
+  try{
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(VAPID_PUBLIC_KEY)});
+    const j=sub.toJSON();
+    const {error}=await sb.rpc('save_push_subscription',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_ua:navigator.userAgent});
+    if(error)throw error;
+    _pushSub=sub;_pushErr='';updatePushBtn();return true;
+  }catch(e){_pushErr=String((e&&e.message)||e);_pushSub=null;updatePushBtn();return false;}
+}
+// on log out: stop sending this device the previous player's alerts
+async function forgetPushDevice(){
+  try{const reg=await navigator.serviceWorker.getRegistration();const sub=reg&&await reg.pushManager.getSubscription();if(sub&&sb)await sb.rpc('delete_push_subscription',{p_endpoint:sub.endpoint});}catch(e){}
+  _pushSub=null;
+}
+const PUSH_SERVICE_HELP="Your browser couldn't start push alerts.\n\nOn Brave: open Settings → Privacy and security and turn on \"Use Google services for push messaging\", then reload this page and tap Enable again.\n\nOn other browsers: make sure notifications are allowed for jdesport.co.uk and try again.\n\nRoom details still reach you in Notification History.";
 async function enablePush(){
-  if(!ONESIGNAL_APP_ID){showMsg('Push alerts unavailable',"Push alerts are not enabled on this site right now. You will still receive room details by email and in Notification History.");return;}
   if(isIosDevice()&&!isStandaloneApp()){
     showMsg('Install the app to get alerts',"Apple only delivers push alerts to installed web apps on iPhone and iPad.\n\n1. Tap the Share icon in Safari.\n2. Choose \"Add to Home Screen\".\n3. Open JD Arena from the new home-screen icon and tap Enable push alerts again.");
     return;
   }
-  if(!window._oneSignal){
-    // Not loaded yet (slow network) or blocked — retry once before giving up.
-    const ok=await reloadOneSignalSdk();
-    if(!ok){window._osFailed=true;updatePushBtn();showMsg('Notifications are being blocked',PUSH_BLOCKED_HELP,true);return;}
-  }
-  if(typeof Notification==='function'&&Notification.permission==='denied'){
+  if(!pushSupported()){showMsg('Push alerts not supported',"This browser can't receive push alerts. Use Chrome, Edge, Firefox, Brave or Samsung Internet.",true);return;}
+  if(!_player){authOpen('login');return;}
+  if(Notification.permission==='denied'){
     showMsg("Notifications are turned off","Notifications for jdesport.co.uk were previously blocked on this device.\n\nTo turn them back on: open your browser's site settings (the icon next to the address bar), set Notifications to Allow, reload the page and tap Enable push alerts again.",true);
     return;
   }
-  try{
-    await window._oneSignal.Notifications.requestPermission();
-  }catch(e){
-    showMsg('Push alerts not enabled',"We could not complete the permission request. Please reload the page and try again.",true);
-    updatePushBtn();
-    return;
-  }
-  await ensurePushSubscribed();
-  updatePushBtn();
-  if(window._oneSignal.Notifications.permission)showMsg('Push alerts enabled',"This device will now receive check-in reminders, room details and announcements as soon as they are sent.");
+  let perm=Notification.permission;
+  if(perm!=='granted'){try{perm=await Notification.requestPermission();}catch(e){}}
+  if(perm!=='granted'){updatePushBtn();showMsg('Push alerts not enabled','Tap Allow when your browser asks, so JD Arena can alert you even when the site is closed.',true);return;}
+  if(await ensurePushSubscribed())showMsg('Push alerts enabled','This device will now get alerts even when JD Arena is closed — check-in reminders, room details, new challenges and results.');
+  else showMsg("Push alerts couldn't start",PUSH_SERVICE_HELP,true);
 }
 /* One place that decides what push looks like on this device, so the account row and the
-   strip at the top of the notifications modal never disagree. 'blocked'/'ios' stay
-   clickable (enablePush() explains the fix) instead of looking like a dead toggle. */
+   strip at the top of the notifications modal never disagree. */
 function pushState(){
-  if(!ONESIGNAL_APP_ID)return 'off';
   if(isIosDevice()&&!isStandaloneApp())return 'ios';
-  if(typeof Notification!=='function')return 'unsupported';
+  if(!pushSupported())return 'unsupported';
   if(Notification.permission==='denied')return 'blocked';
-  if(!window._oneSignal)return window._osFailed?'sdkblocked':'loading';
-  return window._oneSignal.Notifications.permission?'on':'ask';
+  if(Notification.permission==='granted'&&_pushSub)return 'on';
+  if(Notification.permission==='granted'&&_pushErr)return 'svcerr';
+  return 'ask';
 }
 const PUSH_UI={
-  on:{row:'Push alerts on',sub:'Reminders and room details arrive on this device',strip:''},
-  ask:{row:'Enable push alerts',sub:'Get room details the moment they are released',strip:'Turn on push alerts to receive check-in reminders and room details on this device.',cta:'Enable'},
+  on:{row:'Push alerts on',sub:'Alerts arrive even when the site is closed',strip:''},
+  ask:{row:'Enable push alerts',sub:'Get alerts even when the site is closed',strip:'Turn on push alerts to get check-in reminders, room details and new challenges even when JD Arena is closed.',cta:'Enable'},
   blocked:{row:'Push alerts turned off',sub:'Tap for steps to turn them back on',strip:'Notifications are turned off for this site in your browser settings.',cta:'Show steps'},
   ios:{row:'Install the app for alerts',sub:'Required on iPhone and iPad',strip:'On iPhone and iPad, push alerts only work in the installed home-screen app.',cta:'Show steps'},
-  loading:{row:'Enable push alerts',sub:'Loading…',strip:''},
-  sdkblocked:{row:'Push alerts blocked',sub:'An ad-blocker is stopping alerts — tap for steps',strip:'An ad-blocker or browser shield is preventing push alerts on this device.',cta:'Show steps'},
-  unsupported:{row:'Push alerts not supported',sub:'Use Chrome, Edge or Firefox for alerts',strip:''},
-  off:{row:'Push alerts unavailable',sub:'Email and Notification History still work',strip:''}
+  svcerr:{row:'Push alerts need one setting',sub:'Tap for the fix',strip:"Push alerts couldn't start on this browser — one setting needs changing.",cta:'Show fix'},
+  unsupported:{row:'Push alerts not supported',sub:'Use Chrome, Edge, Firefox or Brave',strip:''}
 };
 function updatePushBtn(){
-  const s=pushState(),ui=PUSH_UI[s];
+  const s=pushState(),ui=PUSH_UI[s],warn=s==='blocked'||s==='ios'||s==='svcerr';
   const b=document.getElementById('acct-push-btn');
   if(b){
     const txt=b.querySelector('.pm-row-txt');
     if(txt)txt.innerHTML=`${esc(ui.row)}<small class="pm-row-sub">${esc(ui.sub)}</small>`;
-    b.classList.toggle('on',s==='on');
-    b.classList.toggle('warn',s==='blocked'||s==='ios'||s==='sdkblocked');
-    b.disabled=s==='on'||s==='unsupported'||s==='off';
+    b.classList.toggle('on',s==='on');b.classList.toggle('warn',warn);
+    b.disabled=s==='on'||s==='unsupported';
     const tg=document.getElementById('acct-push-toggle');
-    if(tg){tg.classList.toggle('on',s==='on');tg.classList.toggle('warn',s==='blocked'||s==='ios'||s==='sdkblocked');}
+    if(tg){tg.classList.toggle('on',s==='on');tg.classList.toggle('warn',warn);}
   }
   const strip=document.getElementById('notif-push');
   if(strip){
@@ -1595,17 +1569,10 @@ function updatePushBtn(){
     else{strip.hidden=false;strip.className='notif-push '+s;strip.innerHTML=`<span class="notif-push-ic">${s==='ask'?'🔔':s==='ios'?'📲':'🚫'}</span><span class="notif-push-txt">${esc(ui.strip)}</span><button type="button" onclick="enablePush()">${esc(ui.cta)}</button>`;}
   }
 }
-/* Called right when an account becomes active (signup with email confirmation off, or
-   right after clicking the verify-email link) instead of waiting for a button click.
-   Silently a no-op if the browser has no push support, OneSignal isn't configured, or the
-   player already answered the native prompt (granted or denied) — a denied permission can't
-   be re-prompted, so we don't hammer it; the account panel's "Enable push alerts" button
-   (see authRender) is the re-entry point for that case. */
+/* Called right when an account becomes active: ask once if the player hasn't answered yet. */
 async function maybeAskPush(){
-  if(!ONESIGNAL_APP_ID||!window._oneSignal)return;
-  if(window._oneSignal.Notifications.permission)return;
-  if(typeof Notification!=='function'||Notification.permission==='denied')return;
-  try{await window._oneSignal.Notifications.requestPermission();}catch(e){}
+  if(!pushSupported()||Notification.permission!=='default')return;
+  try{if(await Notification.requestPermission()==='granted')await ensurePushSubscribed();}catch(e){}
   updatePushBtn();
 }
 
@@ -2206,7 +2173,7 @@ async function authForgot(){
 
 async function authLogout(){
   await sb.auth.signOut();
-  if(window._oneSignal)window._oneSignal.logout();
+  forgetPushDevice();
   _player=null;_myRegs=new Map();_roomCodes=new Map();_notifUnread=0;_discordLinkCode=null;
   trackPresence();
   updateAcctBtn();updateNotifHistBtn();updateGate();render(_lastData||ARENA_SAMPLE);
@@ -2282,7 +2249,7 @@ async function authConfirmDeleteAccount(){
     const r=await fetch(EDGE_FN_BASE+'/confirm-account-delete',{method:'POST',headers:{Authorization:'Bearer '+session.access_token}});
     if(!r.ok)throw new Error(await r.text());
     await sb.auth.signOut();
-    if(window._oneSignal)window._oneSignal.logout();
+    forgetPushDevice();
     _player=null;_myRegs=new Map();_roomCodes=new Map();_notifUnread=0;
     trackPresence();
     // updateGate()/authRender() below would otherwise overwrite auth-body (login form) —
@@ -2302,7 +2269,7 @@ async function authRefreshPlayer(){
   updateAcctBtn();
   updateGate();
   trackPresence();
-  if(window._oneSignal){window._oneSignal.login(_player.id);ensurePushSubscribed();}
+  ensurePushSubscribed();
   await loadMyAvatarUrl();
   updateAcctBtn();
   const avImg=document.getElementById('pm-avatar-img');if(avImg&&_player.avatar)avImg.src=_player.avatar;
@@ -3221,7 +3188,7 @@ async function loadNotifications(markSeenOnOpen){
 
 /* ── install as an app (PWA): real one-tap install on Android, guided Add-to-Home-Screen on iOS ── */
 if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
+  navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'}).catch(()=>{});
 }
 /* the Download button is only useful before the app is installed — once it's actually on the
    device, hide it (and give a little audio confirmation) instead of leaving a dead button around */

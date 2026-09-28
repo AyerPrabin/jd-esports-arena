@@ -2802,3 +2802,53 @@ select t->>'name' from public.site_content, jsonb_array_elements(content->'tourn
 where key = 'tournaments' and t->>'name' is not null
 on conflict do nothing;
 commit;
+
+-- ── native Web Push (VAPID) subscriptions ────────────────────────────────
+-- One row per browser/device. Players never read this table; they save or remove their
+-- own device through the RPCs below. Senders use the service role (_shared/push.ts).
+begin;
+create table if not exists public.push_subscriptions (
+  endpoint text primary key,
+  player_id uuid not null references public.players(id) on delete cascade,
+  p256dh text not null,
+  auth text not null,
+  user_agent text,
+  created_at timestamptz not null default now(),
+  last_ok_at timestamptz
+);
+create index if not exists push_subscriptions_player on public.push_subscriptions(player_id);
+alter table public.push_subscriptions enable row level security; -- no policies: RPC/service role only
+
+create or replace function public.save_push_subscription(p_endpoint text, p_p256dh text, p_auth text, p_ua text default null)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'Please sign in first.'; end if;
+  if p_endpoint !~ '^https://' or length(p_endpoint) > 1000 or length(coalesce(p_p256dh,'')) not between 40 and 200 or length(coalesce(p_auth,'')) not between 10 and 100 then
+    raise exception 'Invalid push subscription.';
+  end if;
+  -- upsert on endpoint: the same device signing in as someone else moves to that player
+  insert into public.push_subscriptions (endpoint, player_id, p256dh, auth, user_agent)
+  values (p_endpoint, auth.uid(), p_p256dh, p_auth, left(p_ua, 200))
+  on conflict (endpoint) do update set player_id = excluded.player_id, p256dh = excluded.p256dh, auth = excluded.auth, user_agent = excluded.user_agent;
+  -- keep at most 10 devices per player
+  delete from public.push_subscriptions where player_id = auth.uid() and endpoint not in
+    (select endpoint from public.push_subscriptions where player_id = auth.uid() order by created_at desc limit 10);
+end;
+$$;
+
+create or replace function public.delete_push_subscription(p_endpoint text)
+returns void language sql security definer set search_path = public as $$
+  delete from public.push_subscriptions where endpoint = p_endpoint and player_id = auth.uid()
+$$;
+
+create or replace function public.my_push_devices() returns int language sql stable security definer set search_path = public as $$
+  select count(*)::int from public.push_subscriptions where player_id = auth.uid()
+$$;
+
+revoke all on function public.save_push_subscription(text, text, text, text) from public, anon;
+revoke all on function public.delete_push_subscription(text) from public, anon;
+revoke all on function public.my_push_devices() from public, anon;
+grant execute on function public.save_push_subscription(text, text, text, text) to authenticated;
+grant execute on function public.delete_push_subscription(text) to authenticated;
+grant execute on function public.my_push_devices() to authenticated;
+commit;
