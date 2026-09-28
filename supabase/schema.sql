@@ -1931,3 +1931,254 @@ revoke all on function public.award_prizes(text) from public, anon, authenticate
 grant execute on function public._award_one(text, text, int) to service_role;
 grant execute on function public.award_prizes(text) to service_role;
 commit;
+
+-- ── security hardening + automatic lockdown ─────────────────────────────
+-- 1. system_state.locked = the kill switch. While locked, every points movement
+--    (_wallet_apply: entries, effects, refunds, prizes, credits, withdrawals) and every
+--    code redemption is refused. Free registration and check-in keep working, so a lock
+--    can never cancel a free tournament.
+-- 2. security_sweep() runs every 5 minutes (pg_cron). It locks the system only on
+--    things a normal player cannot cause: a wallet whose balance doesn't equal the sum
+--    of its ledger (someone changed a balance outside _wallet_apply). The admin is
+--    notified and unlocks from the admin panel once it's fixed.
+-- 3. Tamper-proofing: ledger rows can't be edited, or deleted while their player
+--    exists; a wallet balance can only change in the same transaction as a matching
+--    ledger row (deferred check), so even a leaked service key can't quietly mint points.
+-- 4. Per-player withdrawal rate limit (spam is rejected for that player, never a site lock).
+-- 5. Players can only mark notifications read (read_at), and can no longer delete
+--    registrations directly (withdraw_registration() applies the refund rules).
+begin;
+
+create table if not exists public.system_state (
+  id int primary key default 1 check (id = 1),
+  locked boolean not null default false,
+  reason text,
+  locked_at timestamptz,
+  unlocked_at timestamptz
+);
+insert into public.system_state (id) values (1) on conflict do nothing;
+alter table public.system_state enable row level security;
+drop policy if exists "public read system state" on public.system_state;
+create policy "public read system state" on public.system_state for select using (true);
+
+create or replace function public._assert_open()
+returns void language plpgsql stable security definer set search_path = public as $$
+begin
+  if exists(select 1 from public.system_state where id = 1 and locked) then
+    raise exception 'Payments are paused for a security check. Your points are safe — please try again later.';
+  end if;
+end;
+$$;
+
+create or replace function public._wallet_apply(p_player uuid, p_delta int, p_reason text, p_ref text, p_note text)
+returns int language plpgsql security definer set search_path = public as $$
+declare v_bal int; v_unl boolean;
+begin
+  perform public._assert_open();
+  if p_delta = 0 then
+    raise exception 'Nothing to apply.';
+  end if;
+  insert into public.wallets (player_id) values (p_player) on conflict do nothing;
+  select unlimited into v_unl from public.wallets where player_id = p_player for update;
+  if p_delta < 0 and v_unl then
+    select balance into v_bal from public.wallets where player_id = p_player;
+  elsif p_delta < 0 then
+    update public.wallets set balance = balance + p_delta, updated_at = now()
+      where player_id = p_player and balance >= -p_delta
+      returning balance into v_bal;
+    if v_bal is null then
+      raise exception 'Not enough points. Load points from your wallet first.';
+    end if;
+  else
+    update public.wallets set balance = balance + p_delta, updated_at = now()
+      where player_id = p_player returning balance into v_bal;
+  end if;
+  insert into public.wallet_ledger (player_id, delta, balance_after, reason, ref, note)
+  values (p_player, p_delta, v_bal, p_reason, p_ref, p_note);
+  return v_bal;
+end;
+$$;
+
+-- redeem_code: refuse while locked (entry codes don't move points but do confirm paid slots)
+do $$
+declare d text;
+begin
+  select pg_get_functiondef('public.redeem_code(text,text,text)'::regprocedure) into d;
+  if position('_assert_open' in d) = 0 then
+    d := regexp_replace(d, E'\\nbegin\\n', E'\nbegin\n  perform public._assert_open();\n');
+    execute d;
+  end if;
+end $$;
+
+-- per-player withdrawal rate limit: at most 3 requests per hour
+create or replace function public.request_withdrawal(p_amount int, p_esewa_id text, p_esewa_name text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_req public.withdraw_requests;
+  v_bal int;
+begin
+  if auth.uid() is null then
+    raise exception 'Please sign in first.';
+  end if;
+  perform public._assert_open();
+  if exists(select 1 from public.wallets where player_id = auth.uid() and unlimited) then
+    raise exception 'The admin wallet has unlimited points, so it can''t be withdrawn.';
+  end if;
+  if (select count(*) from public.withdraw_requests where player_id = auth.uid() and created_at > now() - interval '1 hour') >= 3 then
+    raise exception 'Too many withdrawal requests — please wait an hour and try again.';
+  end if;
+  if p_amount is null or p_amount < 1 then
+    raise exception 'Enter how many points to withdraw.';
+  end if;
+  p_esewa_id := trim(coalesce(p_esewa_id, ''));
+  p_esewa_name := trim(coalesce(p_esewa_name, ''));
+  if length(p_esewa_id) < 5 or length(p_esewa_id) > 40 then
+    raise exception 'Enter your eSewa ID (the phone number or email on your eSewa account).';
+  end if;
+  if length(p_esewa_name) < 2 or length(p_esewa_name) > 60 then
+    raise exception 'Enter the name on your eSewa account.';
+  end if;
+  insert into public.withdraw_requests (player_id, amount, esewa_id, esewa_name)
+  values (auth.uid(), p_amount, p_esewa_id, p_esewa_name) returning * into v_req;
+  v_bal := public._wallet_apply(auth.uid(), -p_amount, 'withdraw', v_req.id::text, null);
+  return jsonb_build_object('id', v_req.id, 'amount', p_amount, 'balance', v_bal);
+end;
+$$;
+
+-- ledger is append-only (deletes allowed only as part of deleting the whole account)
+create or replace function public._ledger_guard()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if tg_op = 'UPDATE' then
+    raise exception 'Wallet history cannot be edited.';
+  end if;
+  if exists(select 1 from public.players where id = old.player_id) then
+    raise exception 'Wallet history cannot be deleted.';
+  end if;
+  return old;
+end;
+$$;
+drop trigger if exists wallet_ledger_guard on public.wallet_ledger;
+create trigger wallet_ledger_guard before update or delete on public.wallet_ledger
+  for each row execute function public._ledger_guard();
+
+-- a balance may only change alongside a matching ledger row in the same transaction
+create or replace function public._wallet_guard()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.balance is distinct from old.balance and not new.unlimited
+     and not exists(select 1 from public.wallet_ledger
+                    where player_id = new.player_id and created_at = now() and balance_after = new.balance) then
+    raise exception 'Wallet balances can only change through a recorded transaction.';
+  end if;
+  return null;
+end;
+$$;
+drop trigger if exists wallets_balance_guard on public.wallets;
+create constraint trigger wallets_balance_guard after update on public.wallets
+  deferrable initially deferred for each row execute function public._wallet_guard();
+
+-- the sweep: p_apply=false only reports
+create or replace function public.security_sweep(p_apply boolean default true)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_issues jsonb := '[]'::jsonb;
+  r record;
+  v_admin uuid;
+begin
+  for r in
+    select w.player_id, w.balance, coalesce(sum(l.delta), 0)::int as ledger_sum
+    from public.wallets w left join public.wallet_ledger l on l.player_id = w.player_id
+    where not w.unlimited
+    group by w.player_id, w.balance
+    having w.balance <> coalesce(sum(l.delta), 0)
+  loop
+    v_issues := v_issues || jsonb_build_array(jsonb_build_object('type', 'balance_mismatch', 'player_id', r.player_id, 'balance', r.balance, 'ledger_sum', r.ledger_sum));
+  end loop;
+
+  if p_apply and jsonb_array_length(v_issues) > 0
+     and not exists(select 1 from public.system_state where id = 1 and locked) then
+    update public.system_state set locked = true, locked_at = now(),
+      reason = 'Automatic lock: ' || jsonb_array_length(v_issues) || ' wallet(s) whose balance does not match their history.'
+      where id = 1;
+    select id into v_admin from public.players where lower(email) = 'ayerprabin95@gmail.com';
+    if v_admin is not null then
+      insert into public.notifications (player_id, title, body)
+      values (v_admin, '🚨 JD Arena auto-locked',
+              'The security sweep found ' || jsonb_array_length(v_issues) || ' wallet(s) whose balance does not match their history, so all payments are paused. Open Admin → Security to review and unlock.');
+    end if;
+  end if;
+  return jsonb_build_object('issues', v_issues, 'locked', (select locked from public.system_state where id = 1));
+end;
+$$;
+
+create or replace function public.admin_set_lock(p_locked boolean, p_reason text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+begin
+  update public.system_state set locked = p_locked,
+    reason = case when p_locked then coalesce(nullif(trim(p_reason), ''), 'Locked by admin') else reason end,
+    locked_at = case when p_locked then now() else locked_at end,
+    unlocked_at = case when p_locked then unlocked_at else now() end
+    where id = 1;
+  return (select to_jsonb(s) from public.system_state s where id = 1);
+end;
+$$;
+
+revoke all on function public._assert_open() from public, anon, authenticated;
+revoke all on function public._ledger_guard() from public, anon, authenticated;
+revoke all on function public._wallet_guard() from public, anon, authenticated;
+revoke all on function public.security_sweep(boolean) from public, anon, authenticated;
+revoke all on function public.admin_set_lock(boolean, text) from public, anon, authenticated;
+revoke all on function public._wallet_apply(uuid, int, text, text, text) from public, anon, authenticated;
+grant execute on function public._wallet_apply(uuid, int, text, text, text) to service_role;
+grant execute on function public.security_sweep(boolean) to service_role;
+grant execute on function public.admin_set_lock(boolean, text) to service_role;
+revoke all on function public.request_withdrawal(int, text, text) from public, anon;
+grant execute on function public.request_withdrawal(int, text, text) to authenticated;
+
+-- players: withdraw only through withdraw_registration(); mark notifications read only
+drop policy if exists "players delete own registration" on public.registrations;
+revoke update on public.notifications from authenticated, anon;
+grant update (read_at) on public.notifications to authenticated;
+
+commit;
+
+-- ── security follow-ups ─────────────────────────────────────────────────
+-- * balance guard skips a wallet that's being deleted with its account (cascade)
+-- * register_for_tournament(): squad logo must be a real base64 image (<= 200 KB) and the
+--   squad name a sane length — this is what stops a crafted "logo" from carrying script
+--   into pages that display it
+-- * security sweep scheduled every 5 minutes
+begin;
+
+create or replace function public._wallet_guard()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if not exists(select 1 from public.wallets where player_id = new.player_id) then
+    return null; -- wallet deleted with its account
+  end if;
+  if new.balance is distinct from old.balance and not new.unlimited
+     and not exists(select 1 from public.wallet_ledger
+                    where player_id = new.player_id and created_at = now() and balance_after = new.balance) then
+    raise exception 'Wallet balances can only change through a recorded transaction.';
+  end if;
+  return null;
+end;
+$$;
+revoke all on function public._wallet_guard() from public, anon, authenticated;
+
+do $$
+declare d text;
+begin
+  select pg_get_functiondef('public.register_for_tournament(text,text,text,text,text,text)'::regprocedure) into d;
+  if position('squad logo must be' in lower(d)) = 0 then
+    d := regexp_replace(d, E'\\n  if p_status not in \\(''pending'',''confirmed''\\) then',
+      E'\n  if p_squad_logo is not null and (length(p_squad_logo) > 200000 or p_squad_logo !~ ''^data:image/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=]+$'') then\n    raise exception ''Squad logo must be a PNG, JPG, WEBP or GIF image under 200 KB.'';\n  end if;\n  if p_squad_name is not null and length(trim(p_squad_name)) > 40 then\n    raise exception ''Squad name must be 40 characters or fewer.'';\n  end if;\n  if p_status not in (''pending'',''confirmed'') then');
+    execute d;
+  end if;
+end $$;
+
+select cron.unschedule(jobid) from cron.job where jobname = 'security-sweep';
+select cron.schedule('security-sweep', '*/5 * * * *', 'select public.security_sweep(true)');
+
+commit;

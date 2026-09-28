@@ -2784,6 +2784,16 @@ const PAY_WHATSAPP_LABEL='+44 7343 082738 · jd.lmt.np';
 /* ── points wallet: balance pill in the header (visible whenever signed in, even at 0).
    Loading, withdrawing and history live on their own page, /wallet/ (wallet/index.html).
    Balances only change server-side — see the wallet section of schema.sql. ── */
+/* security lock banner — system_state.locked pauses every points movement server-side
+   (see security_sweep in schema.sql); this just tells players why a payment failed. */
+async function checkLock(){
+  if(!sb)return;
+  const {data}=await sb.from('system_state').select('locked').eq('id',1).maybeSingle();
+  let b=document.getElementById('lock-banner');
+  if(data&&data.locked){
+    if(!b){b=document.createElement('div');b.id='lock-banner';b.setAttribute('role','status');b.style.cssText='position:sticky;top:0;z-index:70;padding:10px 16px;text-align:center;font-size:.84rem;font-weight:600;background:linear-gradient(100deg,#5a1d1d,#3a1414);color:#ffd6d6;border-bottom:1px solid rgba(255,120,120,.4)';b.textContent='⚠️ Payments, withdrawals and codes are paused for a quick security check. Your points are safe, and free tournaments run as normal.';document.body.prepend(b);}
+  }else if(b)b.remove();
+}
 function goWallet(tab){location.href='/wallet/'+(tab?'#'+tab:'');}
 let _wallet=0,_walletLoaded=false,_walletUnlimited=false;
 function canAfford(n){return _walletUnlimited||_wallet>=n;}
@@ -3168,6 +3178,7 @@ applyLang();refresh();loadPublicRoster();tick();updateAcctBtn();updateNotifHistB
    safe now that render() no-ops when nothing actually changed (see _lastGridHTML above),
    so most of these ticks touch zero DOM. Still skipped entirely on a backgrounded tab. */
 setInterval(()=>{if(!document.hidden){refresh();loadPublicRoster();if(_player){loadMyRegs();loadNotifications(false);}}},5000);
+setInterval(()=>{if(!document.hidden)checkLock();},30000);checkLock();
 // coming back to the tab/app catches up immediately instead of on the next 5s tick
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){refresh();loadPublicRoster();if(_player){loadMyRegs();loadNotifications(false);}}});
 setInterval(tick,1000);

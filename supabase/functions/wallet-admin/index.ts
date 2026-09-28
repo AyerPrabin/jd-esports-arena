@@ -51,6 +51,20 @@ Deno.serve(async (req: Request) => {
     return json({ player, balance: w?.balance ?? 0, ledger: ledger || [] });
   }
 
+  if (p.action === 'security') {
+    const [{ data: state }, { data: sweep }] = await Promise.all([
+      supabase.from('system_state').select('*').eq('id', 1).maybeSingle(),
+      supabase.rpc('security_sweep', { p_apply: false }),
+    ]);
+    return json({ state, sweep });
+  }
+
+  if (p.action === 'lock' || p.action === 'unlock') {
+    const { data, error } = await supabase.rpc('admin_set_lock', { p_locked: p.action === 'lock', p_reason: p.reason || null });
+    if (error) return fail(error.message);
+    return json(data);
+  }
+
   if (p.action === 'balances') {
     const { data, error } = await supabase.from('players')
       .select('id, username, player_tag, email, wallets(balance, unlimited, updated_at)');

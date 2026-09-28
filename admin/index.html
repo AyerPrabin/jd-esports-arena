@@ -193,6 +193,7 @@ h2[id]{scroll-margin-top:64px}
 <div class="wrap" id="app" style="display:none">
   <h1 style="display:flex;align-items:center;gap:10px"><img class="jdlogo" src="/logo.png" alt="" width="32" height="32">JD Arena — Editor <span class="tag">tournaments.json</span></h1>
   <div class="sub">Add & edit cards · publish</div>
+  <div id="sec-box" class="card" style="margin:14px 0;display:none"></div>
 
   <div class="row">
     <a class="btn ghost" href="/">← Back to site</a>
@@ -464,7 +465,7 @@ function unlock(){
   localStorage.setItem('jd_admin_secret',v);
   document.getElementById('gate').style.display='none';
   document.getElementById('app').style.display='';
-  loadLive();
+  loadLive();loadSecurity();
 }
 function changePasscode(){
   if(!confirm('Clear the saved admin passcode on this device? You\'ll need to re-enter it to send room codes or notify players again.'))return;
@@ -613,7 +614,6 @@ function bo3Default(){return {tournament:'',title:'',published:false,teams:[]};}
 function bo3Round(){return {kills:0,pts:0};}
 let data={tagline:'JD Esports Arena · AyerFire',tournaments:[],bo3:bo3Default()};
 let _loadedSnapshot=null; // tournaments.json exactly as last fetched from the live site — lets Publish detect a stale tab about to overwrite newer changes (e.g. a team someone else added)
-(function(){if(adminSecret()){document.getElementById('gate').style.display='none';document.getElementById('app').style.display='';loadLive();}})();
 const STATUSES=['upcoming','live','completed','cancelled'];
 const REG_TYPES=['whatsapp','discord','url'];
 const PLATFORM_MODES=[['mixed','Mixed (any device)'],['mobile','Mobile only'],['emulator','Emulator only']];
@@ -624,10 +624,54 @@ const EDGE_FN_BASE='https://cnoxvqvpmgowdiyrrusv.supabase.co/functions/v1'; // S
 const SUPABASE_URL='https://cnoxvqvpmgowdiyrrusv.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil'; // safe to expose — RLS-protected, same as jd-arena.html
 const sb=(typeof supabase!=='undefined'&&SUPABASE_URL&&SUPABASE_ANON_KEY)?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
-if(document.getElementById('gate').style.display!=='none')tryGoogleSession();
+/* ── Self-healing admin auth. Signed in on this site as the admin email = admin access on
+   any device, nothing to type: the key is (re)fetched from admin-google-login, which checks
+   the signed-in email server-side, on every load — so a stale or mistyped passcode saved on
+   a device can never make publishing fail. Any admin call that still comes back 401 gets
+   one silent refresh + retry; if there's no admin session, the gate reappears. ── */
+const _rawFetch=window.fetch.bind(window);
+let _adminRefresh=null;
+async function refreshAdminSecret(){
+  if(!sb)return false;
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session)return false;
+    const r=await _rawFetch(EDGE_FN_BASE+'/admin-google-login',{headers:{Authorization:'Bearer '+session.access_token}});
+    if(!r.ok)return false;
+    const {secret}=await r.json();
+    if(!secret)return false;
+    localStorage.setItem('jd_admin_secret',secret);
+    return true;
+  }catch(e){return false;}
+}
+function adminAuthExpired(){
+  localStorage.removeItem('jd_admin_secret');
+  document.getElementById('app').style.display='none';
+  document.getElementById('gate').style.display='';
+  const m=document.getElementById('gate-msg');
+  if(m)m.innerHTML='<span class="err">Your saved admin access has expired. Sign in with your admin account (it unlocks automatically) or enter the passcode.</span>';
+}
+window.fetch=async function(input,init){
+  const url=typeof input==='string'?input:((input&&input.url)||'');
+  const res=await _rawFetch(input,init);
+  if(res.status!==401||!url.startsWith(EDGE_FN_BASE)||url.includes('/admin-google-login'))return res;
+  const h=new Headers((init&&init.headers)||{});
+  if(!h.has('x-admin-secret'))return res;
+  _adminRefresh=_adminRefresh||refreshAdminSecret().finally(()=>setTimeout(()=>{_adminRefresh=null;},0));
+  if(!(await _adminRefresh)){adminAuthExpired();return res;}
+  h.set('x-admin-secret',adminSecret());
+  return _rawFetch(input,Object.assign({},init||{},{headers:h}));
+};
+(async function(){
+  if(await refreshAdminSecret()){document.getElementById('gate').style.display='none';document.getElementById('app').style.display='';loadLive();loadSecurity();return;}
+  if(adminSecret()){document.getElementById('gate').style.display='none';document.getElementById('app').style.display='';loadLive();loadSecurity();return;}
+  tryGoogleSession();
+})();
 const TF=[['name','Name','text'],['game','Game / mode','text'],['date','Date (display)','text'],['time','Time','text'],['start','Start (ISO, for countdown)','text'],['prize','Prize pool','text'],['entry','Entry fee','text'],['platform','Platform','text'],['slots','Slots (max squads)','number'],['format','Format','text'],['register_url','Register URL','text'],['winner','Winner (if done)','text']];
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+// only real image data URIs / https images may reach an <img src> (squad logos are player-uploaded)
+function safeImg(u){u=String(u||'').trim();return /^(data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+\/=]+|https:\/\/[^\s"'<>]+)$/i.test(u)?u:'';}
 function safeUrl(u){u=String(u||'').trim();return /^(https?:\/\/|mailto:|tel:)/i.test(u)?u:'';}
 
 /* ── motion helpers: every xxMsg() feedback line and every rendered card list route
@@ -692,7 +736,7 @@ function renderT(){
     const teams=t.teams||[];
     const live=_liveCounts.get(t.name)||0;
     const liveLine=sb?`<div class="f full"><label>Squads actually registered</label><p class="hint" style="margin:0"><span class="live-count">${live}${t.slots?'/'+t.slots:''}</span> — real players who signed up in the app. This is the number that matters; it updates on its own as people join.</p></div>`:'';
-    const roster=`${liveLine}<details class="f full"><summary class="dsum-sm">Manual squad list <span class="tag">for special effects</span></summary><p class="hint">Also doubles as a display fallback if Supabase is ever unreachable, or if nobody's registered live yet for this event. Click "↻ Load from live roster" to pull in real registered squads here so you can give one an effect — it won't duplicate the live count above.</p><div class="row" style="margin:0 0 8px"><button class="btn ghost" style="font-size:.72rem;padding:7px 12px" onclick="loadSquadsFromRoster(${i})">↻ Load from live roster</button></div><div class="rosterlist">${teams.map((tm,mi)=>`<div class="rrow"><div class="rrow-top"><img class="rlogo" src="${tm.logo||PLACEHOLDER_LOGO}" alt=""><input data-ti="${i}" data-mi="${mi}" data-field="name" value="${esc(tm.name)}" placeholder="Squad name"><label class="rlogo-btn">Logo<input type="file" accept="image/*" hidden onchange="onTeamLogo(event,${i},${mi})"></label><button class="del" onclick="delTeam(${i},${mi})">✕</button></div><input class="rmembers" data-ti="${i}" data-mi="${mi}" data-field="members" value="${esc(Array.isArray(tm.members)?tm.members.join(', '):(tm.members||''))}" placeholder="Members, comma separated — e.g. PlayerA, PlayerB, PlayerC, PlayerD"><label class="rfx-label">Special effect <select class="rfx" data-ti="${i}" data-mi="${mi}" data-field="effect">${SQUAD_EFFECTS.map(([v,lbl])=>`<option value="${v}" ${(tm.effect||'')===v?'selected':''}>${lbl}</option>`).join('')}</select></label></div>`).join('')||'<p class="hint" style="margin:0">Empty.</p>'}</div><button class="btn ghost" style="margin-top:8px" onclick="addTeam(${i})">+ Add squad</button></details>`;
+    const roster=`${liveLine}<details class="f full"><summary class="dsum-sm">Manual squad list <span class="tag">for special effects</span></summary><p class="hint">Also doubles as a display fallback if Supabase is ever unreachable, or if nobody's registered live yet for this event. Click "↻ Load from live roster" to pull in real registered squads here so you can give one an effect — it won't duplicate the live count above.</p><div class="row" style="margin:0 0 8px"><button class="btn ghost" style="font-size:.72rem;padding:7px 12px" onclick="loadSquadsFromRoster(${i})">↻ Load from live roster</button></div><div class="rosterlist">${teams.map((tm,mi)=>`<div class="rrow"><div class="rrow-top"><img class="rlogo" src="${esc(safeImg(tm.logo)||PLACEHOLDER_LOGO)}" alt=""><input data-ti="${i}" data-mi="${mi}" data-field="name" value="${esc(tm.name)}" placeholder="Squad name"><label class="rlogo-btn">Logo<input type="file" accept="image/*" hidden onchange="onTeamLogo(event,${i},${mi})"></label><button class="del" onclick="delTeam(${i},${mi})">✕</button></div><input class="rmembers" data-ti="${i}" data-mi="${mi}" data-field="members" value="${esc(Array.isArray(tm.members)?tm.members.join(', '):(tm.members||''))}" placeholder="Members, comma separated — e.g. PlayerA, PlayerB, PlayerC, PlayerD"><label class="rfx-label">Special effect <select class="rfx" data-ti="${i}" data-mi="${mi}" data-field="effect">${SQUAD_EFFECTS.map(([v,lbl])=>`<option value="${v}" ${(tm.effect||'')===v?'selected':''}>${lbl}</option>`).join('')}</select></label></div>`).join('')||'<p class="hint" style="margin:0">Empty.</p>'}</div><button class="btn ghost" style="margin-top:8px" onclick="addTeam(${i})">+ Add squad</button></details>`;
     return `<div class="card"><button class="del" onclick="delT(${i})">Delete</button><button class="btn ghost" style="position:absolute;top:14px;right:92px;font-size:.72rem;padding:7px 12px" onclick="jumpToRoomCode(${i})">📨 Send Room Code</button><div class="grid">${sel}${reg}${platMode}${startPicker}${fields}${roster}</div></div>`;
   }).join('')||'<p class="hint">No tournaments yet — click "+ Add Event".</p>';
 }
@@ -1329,6 +1373,25 @@ async function payPrizesNow(){
     waMsg(shown.length?'Done.':'No unpaid prizes — everything announced so far is already paid.','ok');
   }catch(e){waMsg(e.message,'err');}
 }
+/* ── security: lock status + automatic sweep (system_state / security_sweep in schema.sql) ── */
+async function loadSecurity(){
+  const box=document.getElementById('sec-box');if(!box)return;
+  try{
+    const d=await waCall({action:'security'});
+    const st=d.state||{},issues=(d.sweep&&d.sweep.issues)||[];
+    box.style.display='';
+    box.style.borderColor=st.locked?'#ff6b6b':'';
+    box.innerHTML=st.locked
+      ?`<b style="color:#ff8a8a">🚨 LOCKED — all payments, withdrawals and codes are paused</b><p class="hint" style="margin:6px 0">${esc(st.reason||'')} ${st.locked_at?'· since '+esc(new Date(st.locked_at).toLocaleString()):''}</p>${issues.length?`<p class="hint" style="margin:0 0 8px">Current findings: ${issues.map(i=>esc(i.type==='balance_mismatch'?`wallet ${String(i.player_id).slice(0,8)} balance ${i.balance} ≠ history ${i.ledger_sum}`:i.type)).join(' · ')}</p>`:'<p class="hint" style="margin:0 0 8px">The latest check finds nothing wrong now.</p>'}<div class="row" style="margin:0"><button class="btn" onclick="setLock(false)">🔓 Unlock</button><button class="btn ghost" onclick="loadSecurity()">↻ Re-check</button></div><p class="hint" style="margin:8px 0 0">Prizes don't pay out while locked — after unlocking, press "🏆 Pay prizes now" in 💰 Points.</p>`
+      :`<div class="row" style="margin:0;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><span><b style="color:var(--green,#5EDB95)">🛡️ Security: all clear</b> <span class="hint" style="margin:0">· automatic check every 5 min${issues.length?' · ⚠️ '+issues.length+' issue(s) found':''}</span></span><span><button class="btn ghost" style="font-size:.72rem;padding:7px 12px" onclick="loadSecurity()">↻ Run check now</button> <button class="btn ghost" style="font-size:.72rem;padding:7px 12px" onclick="setLock(true)">🔒 Lock now</button></span></div>`;
+  }catch(e){box.style.display='';box.innerHTML='<span class="hint">Security status unavailable: '+esc(e.message)+'</span>';}
+}
+async function setLock(lock){
+  const reason=lock?prompt('Why are you locking? (shown to you in the admin panel)','Manual lock by admin'):null;
+  if(lock&&reason===null)return;
+  if(!lock&&!confirm('Unlock and resume payments? Only do this once the problem is fixed.'))return;
+  try{await waCall({action:lock?'lock':'unlock',reason});loadSecurity();}catch(e){alert(e.message);}
+}
 async function loadWithdrawals(){
   const box=document.getElementById('wa-wlist');waMsg('Loading…','');
   try{
@@ -1585,7 +1648,7 @@ function renderReportsAdmin(){
   box.innerHTML=_reportsAdmin.length?_reportsAdmin.map(r=>{
     const p=r.players||{};
     const reporter=(p.username?'@'+esc(p.username):'')+(p.player_tag?' ('+esc(p.player_tag)+')':'');
-    const evidence=r.evidence_url?`<div class="f full"><label>Evidence</label><a href="${esc(r.evidence_url)}" target="_blank" rel="noopener" class="link">${esc(r.evidence_url)}</a></div>`:'';
+    const evidence=r.evidence_url?`<div class="f full"><label>Evidence</label><a href="${esc(safeUrl(r.evidence_url)||'#')}" target="_blank" rel="noopener" class="link">${esc(r.evidence_url)}</a></div>`:'';
     const actions=r.status==='pending'?`<div class="row" style="margin-top:8px">
         <input placeholder="Ban: tag/username/email" id="ban-id-${r.id}" style="max-width:200px">
         <input placeholder="Public reason" id="ban-reason-${r.id}" style="max-width:220px">
@@ -1779,7 +1842,7 @@ function aiEvidenceHtml(rec){
     return `<div class="grid"><div class="f"><label>Reported</label><input value="${esc(rp.reported)}" disabled></div>
       <div class="f full"><label>Tournament</label><input value="${esc(rp.tournament_slug||'—')}" disabled></div>
       <div class="f full"><label>Description</label><textarea disabled rows="2">${esc(rp.description)}</textarea></div>
-      ${rp.evidence_url?`<div class="f full"><label>Evidence</label><a href="${esc(rp.evidence_url)}" target="_blank" rel="noopener" class="link">${esc(rp.evidence_url)}</a></div>`:'<div class="f full"><label>Evidence</label><p class="hint" style="margin:0">None linked — AI verdict is text-only either way.</p></div>'}</div>`;
+      ${rp.evidence_url?`<div class="f full"><label>Evidence</label><a href="${esc(safeUrl(rp.evidence_url)||'#')}" target="_blank" rel="noopener" class="link">${esc(rp.evidence_url)}</a></div>`:'<div class="f full"><label>Evidence</label><p class="hint" style="margin:0">None linked — AI verdict is text-only either way.</p></div>'}</div>`;
   }
   if(rec.kind==='approve_payment'){
     const reg=_pendingRegs.find(x=>x.id===rec.target_id);

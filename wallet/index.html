@@ -163,6 +163,7 @@ input:focus{border-color:var(--gold)}
   </div>
   <h1>Points Wallet</h1>
 
+  <div id="lock-note" class="pending-note" style="margin:0 0 14px;background:rgba(255,120,120,.1);border-color:rgba(255,120,120,.4);color:#ffd6d6" hidden>⚠️ Loading, spending and withdrawing points is paused for a quick security check. Your points are safe.</div>
   <div id="gate" class="card gate" hidden>
     <div class="coin">JD</div>
     <h2>Sign in to see your wallet</h2>
@@ -382,6 +383,7 @@ document.querySelectorAll('#hist-filter .chip').forEach(c=>c.onclick=()=>{histFi
 
 /* ── data ── */
 async function refresh(){
+  sb.from('system_state').select('locked').eq('id',1).maybeSingle().then(({data})=>{$('lock-note').hidden=!(data&&data.locked);});
   const [w,l,p]=await Promise.all([
     sb.from('wallets').select('balance, unlimited').eq('player_id',me.id).maybeSingle(),
     sb.from('wallet_ledger').select('delta, balance_after, reason, note, created_at').eq('player_id',me.id).order('created_at',{ascending:false}).limit(100),
