@@ -350,12 +350,16 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .sqfx-rainbow .sq-av img,.sqfx-rainbow .sqitem-nologo{animation:rainbowCycle 4s linear infinite}
 .sqfx-rainbow .sqp{top:-6px;width:5px;height:5px;border-radius:1px;animation:sqFall var(--t) linear infinite}
 .sqfx-rainbow .sqp:nth-of-type(6n+1){background:#ff5f6d}.sqfx-rainbow .sqp:nth-of-type(6n+2){background:#ffb347}.sqfx-rainbow .sqp:nth-of-type(6n+3){background:#ffe066}.sqfx-rainbow .sqp:nth-of-type(6n+4){background:#54e0a0}.sqfx-rainbow .sqp:nth-of-type(6n+5){background:#4fa9ff}.sqfx-rainbow .sqp:nth-of-type(6n){background:#c86bff}
-/* ── Lite (Rs 5 week): deliberately simple — a static coloured frame, no particles ── */
-.sqfx-glow{--fx1:#ffd27a;--fx2:#ffe9b0;--fxg:rgba(255,210,122,.14);--fxring:linear-gradient(#ffd27a,#ffb84d);animation:chipIn .4s ease forwards}
+/* ── Lite (Rs 5 week): simple and cheap to render — no particles — but alive ── */
+@keyframes sqBreath{0%,100%{opacity:.2}50%{opacity:1}}
+@keyframes glowText{0%,100%{text-shadow:0 0 4px rgba(255,210,122,.35)}50%{text-shadow:0 0 10px rgba(255,210,122,.9)}}
+.sqfx-glow{--fx1:#ffd27a;--fx2:#ffe9b0;--fxg:rgba(255,210,122,.14);--fxring:linear-gradient(135deg,#ffd27a,#ff9f43,#ffd27a);animation:chipIn .4s ease forwards}
+.sqfx-glow::after{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 22px rgba(255,210,122,.4);pointer-events:none;animation:sqBreath 2.8s ease-in-out infinite}
 .sqfx-glow .sqfx-shine,.sqfx-glow .sqp,.sqfx-steel .sqp{display:none}
-.sqfx-glow .fx-name{color:#ffe9b0;text-shadow:0 0 8px rgba(255,210,122,.55)}
-.sqfx-steel{--fx1:#cfd8e3;--fx2:#ffffff;--fxg:rgba(207,216,227,.1);--fxring:linear-gradient(135deg,#7d899b,#eef3f8 50%,#7d899b);animation:chipIn .4s ease forwards}
-.sqfx-steel .fx-name{color:#eef3f8}
+.sqfx-glow .fx-name{color:#ffe9b0;animation:glowText 2.8s ease-in-out infinite}
+.sqfx-steel{--fx1:#cfd8e3;--fx2:#ffffff;--fxg:rgba(207,216,227,.1);--fxring:conic-gradient(from var(--sqa),#6f7b8d,#eef3f8,#6f7b8d,#b9c3d0,#6f7b8d);animation:chipIn .4s ease forwards,sqSpin 7s linear infinite}
+.sqfx-steel .sqfx-shine{background:linear-gradient(100deg,transparent,rgba(255,255,255,.18),transparent);animation-duration:5s}
+.sqfx-steel .fx-name{color:#eef3f8;text-shadow:0 1px 0 rgba(0,0,0,.6),0 0 8px rgba(207,216,227,.35)}
 /* ── Pro (Rs 10 week / Rs 30 month) ── */
 /* Galaxy — deep-space card, nebula glow, twinkling stars and a shooting star */
 @keyframes galaxyText{0%,100%{color:#dccfff;text-shadow:0 0 8px rgba(143,107,255,.9)}50%{color:#c4f3ff;text-shadow:0 0 10px rgba(95,211,255,.9),0 0 18px rgba(255,107,214,.5)}}
@@ -372,7 +376,30 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .sqfx-thunder{--fx1:#4fd8ff;--fx2:#ffffff;--fxg:rgba(79,216,255,.2);--fxring:conic-gradient(from var(--sqa),transparent 0 18%,#4fd8ff 32%,#fff 37%,transparent 42% 68%,#4fd8ff 82%,#fff 87%,transparent 92%);animation:chipIn .4s ease forwards,sqSpin 1.8s linear infinite}
 .sqfx-thunder::after{content:'';position:absolute;inset:0;border-radius:inherit;background:rgba(190,240,255,.16);opacity:0;pointer-events:none;animation:sqFlash 3.4s linear infinite}
 .sqfx-thunder .fx-name{animation:thunderText 3.4s linear infinite}
-.sqfx-thunder .sqp{top:var(--y);width:2px;height:11px;border-radius:1px;background:linear-gradient(#fff,#4fd8ff);box-shadow:0 0 6px #4fd8ff;animation:sqZap var(--t) steps(1) infinite}
+.sqfx-thunder .sqp{top:var(--y);width:11px;height:20px;background:linear-gradient(#fff,#4fd8ff);clip-path:polygon(62% 0,8% 56%,44% 56%,28% 100%,92% 40%,56% 40%);animation:sqZap var(--t) steps(1) infinite}
+.sqfx-thunder::after{background:radial-gradient(120% 90% at 50% 0%,rgba(220,248,255,.35),rgba(79,216,255,.12) 60%,transparent)}
+/* Bullet Storm — tracer rounds streaking across the card both ways, muzzle flashes,
+   a hot orange light racing round the border. Tracers are small transformed lines
+   (cheap to animate), clipped by the card. */
+@keyframes sqTracerR{0%{opacity:0;transform:translateX(0)}6%{opacity:1}88%{opacity:1}100%{opacity:0;transform:translateX(520px)}}
+@keyframes sqTracerL{0%{opacity:0;transform:translateX(0)}6%{opacity:1}88%{opacity:1}100%{opacity:0;transform:translateX(-520px)}}
+@keyframes sqMuzzle{0%,100%{opacity:0;transform:scale(.3)}8%{opacity:1;transform:scale(1)}16%{opacity:0}38%{opacity:.9;transform:scale(.8)}46%{opacity:0}}
+@keyframes bulletText{0%,100%{color:#ffe2b8;text-shadow:0 0 6px rgba(255,150,50,.7)}8%,38%{color:#fff;text-shadow:0 0 6px #fff,0 0 14px #ffb347}}
+.sqfx-bullets{--fx1:#ff9a3d;--fx2:#fff2c0;--fxg:rgba(255,154,61,.2);--fxring:conic-gradient(from var(--sqa),transparent 0 62%,#ff9a3d 80%,#fff2c0 86%,transparent 92%);background:linear-gradient(100deg,rgba(255,154,61,.16),transparent 55%) padding-box,linear-gradient(160deg,#1a1512,#0f1117) padding-box,var(--fxring) border-box,linear-gradient(rgba(255,154,61,.25),rgba(255,154,61,.25)) border-box;animation:chipIn .4s ease forwards,sqSpin 1.3s linear infinite}
+.sqfx-bullets .fx-name{animation:bulletText 1.2s steps(1) infinite}
+.sqfx-bullets .sqp{left:-44px;top:var(--y);width:38px;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,#ffb347 55%,#fff6d6);box-shadow:0 0 6px rgba(255,170,60,.9);animation:sqTracerR calc(var(--t) * .42) linear infinite}
+.sqfx-bullets .sqp:nth-of-type(even){left:auto;right:-44px;background:linear-gradient(270deg,transparent,#ffb347 55%,#fff6d6);animation-name:sqTracerL}
+.sqfx-bullets .sqfx-shine{left:auto;right:8px;top:50%;bottom:auto;width:30px;height:30px;margin-top:-15px;border-radius:50%;background:radial-gradient(circle,#fff6d6,rgba(255,170,60,.75) 40%,transparent 70%);transform:scale(.3);opacity:0;animation:sqMuzzle 1.2s steps(1) infinite}
+/* Blade — two sword slashes cross the card in an X, sparks fly off the cut, crimson/steel light */
+@keyframes sqSlashA{0%,52%{opacity:0;transform:rotate(-16deg) scaleX(0)}55%{opacity:1}64%{opacity:1;transform:rotate(-16deg) scaleX(1)}78%,100%{opacity:0;transform:rotate(-16deg) scaleX(1)}}
+@keyframes sqSlashB{0%,64%{opacity:0;transform:rotate(16deg) scaleX(0)}67%{opacity:1}76%{opacity:1;transform:rotate(16deg) scaleX(1)}90%,100%{opacity:0;transform:rotate(16deg) scaleX(1)}}
+@keyframes sqSpark{0%,56%{opacity:0;transform:translate(0,0) scale(1)}60%{opacity:1}100%{opacity:0;transform:translate(16px,-20px) scale(.3)}}
+@keyframes bladeText{0%,54%,100%{color:#e8edf3;text-shadow:0 0 6px rgba(255,90,106,.35)}58%,74%{color:#fff;text-shadow:0 0 6px #fff,0 0 16px #ff5a6a}}
+.sqfx-blade{--fx1:#ff5a6a;--fx2:#e8edf3;--fxg:rgba(255,90,106,.18);--fxring:conic-gradient(from var(--sqa),#ff5a6a,#e8edf3 20%,transparent 30% 50%,#ff5a6a 70%,#e8edf3 80%,transparent 90%);background:linear-gradient(100deg,rgba(255,90,106,.16),transparent 55%) padding-box,linear-gradient(160deg,#17111a,#0f1117) padding-box,var(--fxring) border-box,linear-gradient(rgba(255,90,106,.25),rgba(255,90,106,.25)) border-box;animation:chipIn .4s ease forwards,sqSpin 2.6s linear infinite}
+.sqfx-blade .fx-name{animation:bladeText 2.6s ease-out infinite}
+.sqfx-blade .sqfx-shine,.sqfx-blade::after{content:'';position:absolute;top:50%;bottom:auto;left:-10%;width:120%;height:3px;margin-top:-1px;border-radius:3px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.95) 45%,#ff5a6a 60%,transparent);box-shadow:0 0 12px rgba(255,90,106,.85);transform-origin:left center;pointer-events:none;z-index:0;animation:sqSlashA 2.6s ease-out infinite}
+.sqfx-blade::after{transform-origin:right center;background:linear-gradient(270deg,transparent,rgba(255,255,255,.95) 45%,#ff5a6a 60%,transparent);animation-name:sqSlashB}
+.sqfx-blade .sqp{top:var(--y);width:3px;height:3px;border-radius:50%;background:#fff;box-shadow:0 0 6px 2px rgba(255,90,106,.9);animation:sqSpark 2.6s ease-out infinite}
 /* Legend — holographic card, spectrum light round the border, rising gold stars, diamond */
 @keyframes legendText{0%,100%{color:#ffe38a;text-shadow:0 0 8px rgba(255,210,74,.9)}33%{color:#ffc2f0;text-shadow:0 0 8px rgba(255,107,214,.9)}66%{color:#c4f3ff;text-shadow:0 0 8px rgba(95,211,255,.9)}}
 .sqfx-legend{--fx1:#ffd24a;--fx2:#ffe9b0;--fxg:rgba(255,210,74,.2);--fxring:conic-gradient(from var(--sqa),#ffd24a,#ff6bd6,#5fd3ff,#54e0a0,#ffd24a);background:linear-gradient(115deg,rgba(255,210,74,.22),rgba(255,107,214,.12) 40%,rgba(95,211,255,.14) 70%,rgba(84,224,160,.1)) padding-box,linear-gradient(var(--panel),var(--panel)) padding-box,var(--fxring) border-box;box-shadow:0 10px 30px -10px rgba(255,210,74,.6);animation:chipIn .4s ease forwards,sqSpin 3s linear infinite}
@@ -382,6 +409,14 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .sqfx-legend .sqp:nth-of-type(2n){background:#ffc2f0}
 .sqfx-legend .sqp:nth-of-type(3n){background:#c4f3ff}
 /* chip versions (tournament cards, profile) */
+.troster > span.sq-fx-bullets,.troster > span.sq-fx-blade{position:relative}
+.sq-fx-bullets{border-color:#ff9a3d;box-shadow:0 0 0 1px #ff9a3d,0 0 14px rgba(255,154,61,.5)}
+.troster > span.sq-fx-bullets{background:rgba(255,154,61,.14)}
+.sq-fx-bullets .fx-name{font-weight:800;animation:bulletText 1.2s steps(1) infinite}
+.sq-fx-blade{border-color:#ff5a6a;box-shadow:0 0 0 1px #ff5a6a,0 0 14px rgba(255,90,106,.45)}
+.troster > span.sq-fx-blade{background:rgba(255,90,106,.12)}
+.sq-fx-blade .fx-name{font-weight:800;animation:bladeText 2.6s ease-out infinite}
+.sq-fx-bullets .fx-badge,.sq-fx-blade .fx-badge{position:absolute;top:-13px;left:14px;font-size:12px;animation:crownBob 1.7s ease-in-out infinite}
 .troster > span.sq-fx-glow,.troster > span.sq-fx-steel,.troster > span.sq-fx-galaxy,.troster > span.sq-fx-thunder,.troster > span.sq-fx-legend{position:relative}
 .sq-fx-glow{border-color:#ffd27a;box-shadow:0 0 0 1px #ffd27a,0 0 10px rgba(255,210,122,.4)}
 .sq-fx-glow .fx-name{color:#ffe9b0;font-weight:700}
@@ -397,7 +432,7 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .troster > span.sq-fx-legend{background:rgba(255,210,74,.16);animation:chipIn .4s ease forwards,rainbowCycle 4s linear infinite}
 .sq-fx-legend .fx-name{font-weight:800;animation:legendText 3s linear infinite}
 .sq-fx-legend .fx-badge{position:absolute;top:-13px;left:14px;font-size:12px;animation:crownBob 1.7s ease-in-out infinite;filter:drop-shadow(0 0 3px rgba(255,215,80,.9))}
-@media(prefers-reduced-motion:reduce){.sqfx-thunder::after{display:none}.sqfx-galaxy .sqfx-shine{display:none}}
+@media(prefers-reduced-motion:reduce){.sqfx-thunder::after,.sqfx-blade::after,.sqfx-glow::after{display:none}.sqfx-galaxy .sqfx-shine{display:none}}
 @media(prefers-reduced-motion:reduce){.sqfx{animation:chipIn .4s ease forwards!important;--fxring:linear-gradient(var(--fx1),var(--fx1))}.sqfx-shine,.sqp{display:none}.sq-crown{transform:translateX(-50%)}.sq-crown,.sqfx .fx-name,.sqfx .sq-av img,.sqfx .sqitem-nologo{animation:none!important}}
 .tbtn{display:block;text-align:center;padding:13px;border-radius:999px;background:linear-gradient(100deg,var(--gold),var(--gold-2));color:#07090F;font-weight:700;font-size:.86rem;text-decoration:none;transition:.2s}
 .tbtn:hover{transform:translateY(-1px) scale(1.01);box-shadow:0 8px 24px rgba(255,190,50,.3)}
@@ -523,6 +558,18 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .fx-code{font-family:'JetBrains Mono',ui-monospace,monospace;text-transform:uppercase;letter-spacing:.06em}
 .fx-passinfo{margin:0 0 12px;padding:9px 12px;border-radius:12px;background:rgba(94,219,149,.08);border:1px solid rgba(94,219,149,.35);font-size:.78rem;color:var(--green,#5EDB95)}
 .fx-passinfo button{background:none;border:none;color:var(--gold-l);text-decoration:underline;cursor:pointer;font-family:inherit;font-size:.76rem;padding:0;margin-left:6px}
+.pay-qr-row{display:flex;gap:12px;align-items:center;margin:2px 0 10px}
+.pay-qr{flex:none;display:block;width:112px;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.pay-qr img{display:block;width:100%;height:auto}
+.pay-qr-side{display:flex;flex-direction:column;gap:3px;min-width:0}
+.pay-qr-side b{font-size:.86rem;color:var(--cream)}
+.pay-qr-side .amt{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:.04em;color:var(--gold-l);line-height:1}
+.pay-save{font-size:.72rem;color:var(--gold-l);text-decoration:underline;text-underline-offset:3px}
+.pay-user{display:inline-flex;align-items:center;gap:6px;margin:4px 0 2px;padding:4px 6px 4px 10px;border-radius:999px;border:1px solid var(--gold-m);background:rgba(255,200,61,.08);color:var(--cream);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.76rem;cursor:pointer}
+.pay-user em{font-style:normal;font-family:inherit;font-size:.64rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--gold);color:#07090F}
+.pay-user.done em{background:var(--green,#5EDB95)}
+.mt-codebox details{margin-top:6px}
+.mt-codebox summary{cursor:pointer;font-size:.76rem;font-weight:700;color:var(--gold-l)}
 .mt-codebox{margin-top:10px;padding:10px 12px;border-radius:12px;border:1px dashed rgba(255,200,61,.45);background:rgba(255,200,61,.05)}
 .mt-codebox p{margin:0;font-size:.76rem;color:var(--body);line-height:1.5}
 .mt-code-row{display:flex;gap:6px;margin-top:8px}
@@ -954,8 +1001,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
     <div id="reg-pay-wrap" style="display:none">
       <div class="fx-pay" style="margin-top:14px">
         <div class="fx-price"><b id="reg-pay-price"></b><span>Paid tournament</span></div>
-        <ol class="fx-steps" style="margin-top:6px"><li>Message us on WhatsApp to pay the entry.</li><li>We reply with your join code.</li><li>Enter it below to confirm your slot.</li></ol>
-        <a class="fx-wa" id="reg-pay-wa" href="#" target="_blank" rel="noopener"></a>
+        <div id="reg-pay-steps" style="margin-top:8px"></div>
         <label>Join code</label>
         <input id="reg-code" class="fx-code" placeholder="JD-XXXXX-XXXXX" autocomplete="off" maxlength="20">
         <p class="sub" id="reg-pay-note" style="margin:6px 0 0"></p>
@@ -999,8 +1045,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
     <div class="fx-pick" id="fx-pick"></div>
     <div class="sqlist fx-preview" id="fx-preview"></div>
     <div class="fx-pay" id="fx-pay">
-      <ol class="fx-steps"><li>Message us on WhatsApp to pay <b id="fx-price"></b>.</li><li>We reply with your code.</li><li>Enter it below — your effect turns on straight away.</li></ol>
-      <a class="fx-wa" id="fx-wa" href="#" target="_blank" rel="noopener"></a>
+      <div id="fx-pay-steps"></div>
       <label>Your code</label>
       <input id="fx-code" class="fx-code" placeholder="JD-XXXXX-XXXXX" autocomplete="off" maxlength="20">
     </div>
@@ -1070,6 +1115,8 @@ const SQUAD_FX={
   rainbow:{key:'rainbow',cls:'sq-fx-rainbow',badge:'',particles:2,tag:'Prism',tier:'game'},
   galaxy:{key:'galaxy',cls:'sq-fx-galaxy',badge:'',particles:0,tag:'Galaxy',tier:'pro'},
   thunder:{key:'thunder',cls:'sq-fx-thunder',badge:'',particles:0,tag:'Thunder',tier:'pro'},
+  bullets:{key:'bullets',cls:'sq-fx-bullets',badge:'💥',particles:0,tag:'Bullet Storm',tier:'pro'},
+  blade:{key:'blade',cls:'sq-fx-blade',badge:'⚔️',particles:0,tag:'Blade',tier:'pro'},
   legend:{key:'legend',cls:'sq-fx-legend',badge:'💎',particles:0,tag:'Legend',tier:'pro'}
 };
 function fxTierOk(tier,key){const f=SQUAD_FX[key];return !!f&&(tier==='pro'||f.tier===tier);}
@@ -2256,8 +2303,8 @@ function registerInApp(name){
   const payWrap=document.getElementById('reg-pay-wrap');if(payWrap)payWrap.style.display=paid?'':'none';
   const rc=document.getElementById('reg-code');if(rc)rc.value='';
   const pp=document.getElementById('reg-pay-price');if(pp)pp.textContent='Entry '+(t.entry||'');
-  const pw=document.getElementById('reg-pay-wa');if(pw){pw.href=payWaLink(`Hi JD Arena, I want to pay the ${t.entry||''} entry for ${t.name}. Username: @${(_player&&_player.username)||''}`);pw.textContent='💬 WhatsApp '+PAY_WHATSAPP_LABEL;}
-  const payNote=document.getElementById('reg-pay-note');if(payNote)payNote.textContent='No code yet? Register now to hold your place, then enter the code on your ticket once you have paid.';
+  const ps=document.getElementById('reg-pay-steps');if(ps)ps.innerHTML=paid?payStepsHtml(t.entry||'',`Hi JD Arena, here is my payment screenshot for the ${t.entry||''} entry to ${t.name}. Username: ${payRemark()}`):'';
+  const payNote=document.getElementById('reg-pay-note');if(payNote)payNote.textContent='No code yet? Register now to hold your place — you can enter the code on your ticket once your payment is verified.';
   const pf=document.getElementById('reg-pay-file');if(pf)pf.value='';
   const ppv=document.getElementById('reg-pay-preview');if(ppv){ppv.style.display='none';ppv.src='';}
   const msg=document.getElementById('reg-msg');
@@ -2353,7 +2400,7 @@ function regSuccessOpen(t,status,reg){
   document.getElementById('rs-note').innerHTML=waitlisted
     ?"All squad slots are taken right now — you'll be <b>automatically confirmed</b> the moment one opens up, no need to do anything else."
     :(pending
-      ?"Pay the entry on WhatsApp (<b>"+esc(PAY_WHATSAPP_LABEL)+"</b>) and enter the join code you receive on your ticket to confirm your slot. Held places do not count as confirmed until the code is entered."
+      ?"Your place is held and <b>waiting for payment verification</b>. Scan the eSewa QR (on your ticket), put your username in the remarks, and send the screenshot on WhatsApp (<b>"+esc(PAY_WHATSAPP_LABEL)+"</b>). We'll reply with your join code — enter it on your ticket to confirm your slot."
       :"Your <b>Room ID and Password</b> will appear in Notification History once released by the host. Please arrive 15 minutes before the match starts.");
   document.getElementById('rs-tournament').textContent=t.name;
   document.getElementById('rs-ticket').textContent=regTicketCode(reg);
@@ -2425,8 +2472,8 @@ function fxTicketHtml(t,r){
   return `<button type="button" class="mt-fx-buy" data-fx-buy="${esc(t.name)}">✨ Squad effects · from Rs 2</button>`;
 }
 function entryCodeBoxHtml(t,r){
-  const msg=`Hi JD Arena, I want to pay the ${t.entry||''} entry for ${t.name}. Squad: ${r.squad_name||''} · Ticket ${regTicketCode(r)} · @${(_player&&_player.username)||''}`;
-  return `<div class="mt-codebox"><p>⏳ <b>Your place is held.</b> Pay the ${esc(t.entry||'entry fee')} on WhatsApp, then enter the join code you receive to confirm your slot.</p><a class="fx-wa sm" href="${esc(payWaLink(msg))}" target="_blank" rel="noopener">💬 WhatsApp ${esc(PAY_WHATSAPP_LABEL)}</a><div class="mt-code-row"><input data-code-in="${esc(t.name)}" placeholder="JD-XXXXX-XXXXX" autocomplete="off" maxlength="20"><button type="button" data-redeem="${esc(t.name)}">Confirm</button></div></div>`;
+  const msg=`Hi JD Arena, here is my payment screenshot for the ${t.entry||''} entry to ${t.name}. Squad: ${r.squad_name||''} · Ticket ${regTicketCode(r)} · Username: ${payRemark()}`;
+  return `<div class="mt-codebox"><p>⏳ <b>Place held — waiting for payment verification.</b> Paid and sent your screenshot? We'll reply on WhatsApp with your join code. Enter it here to confirm your slot.</p><details onclick="event.stopPropagation()"><summary>How to pay ${esc(t.entry||'')}</summary>${payStepsHtml(t.entry||'',msg)}</details><div class="mt-code-row"><input data-code-in="${esc(t.name)}" placeholder="JD-XXXXX-XXXXX" autocomplete="off" maxlength="20"><button type="button" data-redeem="${esc(t.name)}">Confirm</button></div></div>`;
 }
 function inAppRegBtn(t,st,full){
   if(st==='cancelled')return _myRegs.has(t.name)?`<div class="inapp-reg-done rejected"><span>✕ This tournament was cancelled — sorry for the mix-up, watch Discord for the reschedule</span></div>`:'';
@@ -2643,6 +2690,23 @@ function rosterClose(){document.getElementById('roster-overlay').classList.remov
    Kept separate from WHATSAPP_NUMBER, which also changes every Register button. ── */
 const PAY_WHATSAPP='447343082738';
 const PAY_WHATSAPP_LABEL='+44 7343 082738 · jd.lmt.np';
+// what the player types in the eSewa remarks so the payment can be matched to them
+function payRemark(){return (_player&&(_player.username||_player.player_tag))||'';}
+function copyRemark(btn){
+  const v=payRemark();
+  (navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>{btn.classList.add('done');const em=btn.querySelector('em');if(em)em.textContent='Copied';setTimeout(()=>{btn.classList.remove('done');if(em)em.textContent='Copy';},1600);}).catch(()=>{const em=btn.querySelector('em');if(em)em.textContent='Copy failed';});
+}
+function payStepsHtml(amount,waMsg){
+  const who=payRemark();
+  return `<div class="pay-qr-row"><a class="pay-qr" href="payment-qr.png" target="_blank" rel="noopener" title="Open the QR full size"><img src="payment-qr.png" alt="eSewa payment QR code"></a><div class="pay-qr-side"><b>Scan with eSewa</b><span class="amt">${esc(amount)}</span><a class="pay-save" href="payment-qr.png" download="jd-arena-esewa-qr.png">⬇ Save QR image</a></div></div>`
+   +`<ol class="fx-steps">`
+   +`<li>Scan the QR in eSewa and pay <b>${esc(amount)}</b>. Paying from this phone? Save the QR and use “scan from gallery” in eSewa.</li>`
+   +`<li>Paste your username in the payment <b>remarks</b> before you send:<br><button type="button" class="pay-user" onclick="event.stopPropagation();copyRemark(this)">${esc(who||'your username')} <em>Copy</em></button></li>`
+   +`<li>Send the payment screenshot to us on WhatsApp.</li>`
+   +`<li>You're then in the <b>verification queue</b> — once we've checked it, we reply with your code.</li>`
+   +`<li>Enter the code below.</li></ol>`
+   +`<a class="fx-wa" href="${esc(payWaLink(waMsg))}" target="_blank" rel="noopener" onclick="event.stopPropagation()">💬 Send screenshot · WhatsApp ${esc(PAY_WHATSAPP_LABEL)}</a>`;
+}
 function payWaLink(msg){return 'https://wa.me/'+PAY_WHATSAPP+'?text='+encodeURIComponent(msg||'');}
 const FX_PLANS={
   fx_game:{name:'Single match',price:'Rs 2',per:'This tournament only',tier:'game'},
@@ -2650,14 +2714,14 @@ const FX_PLANS={
   fx_week:{name:'Pro week',price:'Rs 10',per:'7 days · every effect',tier:'pro'},
   fx_month:{name:'Pro month',price:'Rs 30',per:'30 days · every effect',tier:'pro',best:true}
 };
-let _fxShop={name:null,plan:'fx_month',effect:'legend',mode:'buy'};
+let _fxShop={name:null,plan:'fx_month',effect:'bullets',mode:'buy'};
 function fxPassNow(){return _myPass&&Date.parse(_myPass.starts_at)<=Date.now()&&Date.parse(_myPass.expires_at)>Date.now()?_myPass:null;}
 function fxDate(iso){try{return new Date(iso).toLocaleDateString([],{day:'numeric',month:'short'});}catch(e){return '';}}
 function fxShopOpen(name,mode){
   const r=_myRegs.get(name);
   if(!sb||!_player||!r)return;
   const pass=fxPassNow();
-  _fxShop={name,plan:'fx_month',effect:'legend',mode:mode||(pass?'change':'buy')};
+  _fxShop={name,plan:'fx_month',effect:'bullets',mode:mode||(pass?'change':'buy')};
   if(_fxShop.mode==='change'&&pass)_fxShop.effect=pass.effect;
   document.getElementById('fx-sub').textContent=`Make ${r.squad_name||'your squad'} stand out on the tournament cards and in the squad list. Effects are cosmetic only.`;
   document.getElementById('fx-code').value='';
@@ -2683,10 +2747,7 @@ function fxShopRender(){
   }).join('');
   document.getElementById('fx-preview').innerHTML=sqCardHtml({name:r.squad_name||'Your squad',logo:r.squad_logo||'',members:[],effect:_fxShop.effect},0);
   const pl=FX_PLANS[_fxShop.plan];
-  document.getElementById('fx-price').textContent=pl.price;
-  const wa=document.getElementById('fx-wa');
-  wa.href=payWaLink(`Hi JD Arena, I'd like the ${pl.name} squad effect (${pl.price}). Username: @${(_player&&_player.username)||''}${_fxShop.plan==='fx_game'?' · Tournament: '+_fxShop.name:''}`);
-  wa.textContent='💬 WhatsApp '+PAY_WHATSAPP_LABEL;
+  document.getElementById('fx-pay-steps').innerHTML=payStepsHtml(pl.price,`Hi JD Arena, here is my payment screenshot for the ${pl.name} squad effect (${pl.price}). Username: ${payRemark()}${_fxShop.plan==='fx_game'?' · Tournament: '+_fxShop.name:''}`);
   document.getElementById('fx-submit').textContent=change?'Save effect':'Activate effect';
 }
 function fxShopClose(){document.getElementById('fx-overlay').classList.remove('open');document.getElementById('fx-preview').innerHTML='';}
@@ -2749,6 +2810,15 @@ function confirmClose(ok){
    RLS turns a disallowed delete into "0 rows, no error", so success is only reported
    when the row actually comes back from .select(). Not offered once the room code is
    out or the match is live — see canWithdraw(). */
+function entryAmount(t){const m=String((t&&t.entry)||'').replace(/,/g,'').match(/\d+(\.\d+)?/);return m?+m[0]:0;}
+// Refund rule for a withdrawn paid entry: full refund, or 10% ("late cancellation") within
+// the last 24 hours before the start. After room details / kickoff, canWithdraw() is false.
+function refundInfo(t){
+  const startMs=Date.parse(t&&t.start);
+  const late=!isNaN(startMs)&&startMs-Date.now()<24*3600*1000;
+  const pct=late?10:100;
+  return {late,pct,amount:Math.floor(entryAmount(t)*pct/100)};
+}
 function canWithdraw(t){
   if(!t||_roomCodes.has(t.name))return false;
   const st=String(t.status||'upcoming').toLowerCase();
@@ -2762,10 +2832,15 @@ async function withdrawSquad(name){
   if(!sb||!_player||!r||!r.id||!t)return;
   if(!canWithdraw(t)){showMsg('Withdrawal closed','This match has already started or the room details have been released, so squads can no longer withdraw. Contact the organiser on Discord if there is a problem.',true);return;}
   const squad=r.squad_name||'Your squad';
-  const paid=isPaidTournament(t)&&r.status!=='waitlisted';
-  const fee=paid
-    ?`Entry fees are non-refundable, so the ${t.entry} entry paid for this squad will not be returned.`
-    :(isPaidTournament(t)?'You have not been charged for a waitlist place.':'This was a free entry, so there is nothing to refund.');
+  const isPaid=isPaidTournament(t);
+  const rf=refundInfo(t),code=regTicketCode(r);
+  const how=`To receive it, message us on WhatsApp (${PAY_WHATSAPP_LABEL}) with your ticket code ${code}.`;
+  const fee=!isPaid?'This was a free entry, so there is nothing to refund.'
+    :(r.status==='approved'||r.status==='confirmed')
+      ?(rf.late
+        ?`Late cancellation: the match starts within 24 hours, so you get a 10% refund${rf.amount?` (Rs ${rf.amount})`:''} of the ${t.entry} entry. ${how}`
+        :`You get a full refund of the ${t.entry} entry. ${how}`)
+      :`Your payment hasn't been verified yet. If you have already paid, message us on WhatsApp (${PAY_WHATSAPP_LABEL}) with your ticket code ${code} — the same refund rules apply (full refund, or 10% within 24 hours of the start).`;
   const ok=await confirmBox(`Withdraw ${squad}?`,
     `${squad} will be removed from ${name} and the slot released to the next team.\n\n${fee}\n\nYou can register again later if a slot is still open.`,
     'Withdraw squad','Keep my spot');
@@ -2776,7 +2851,7 @@ async function withdrawSquad(name){
     return;
   }
   _myRegs.delete(name);
-  showMsg('Squad withdrawn',`${squad} has been removed from ${name} and the slot has been released.`);
+  showMsg('Squad withdrawn',`${squad} has been removed from ${name} and the slot has been released.`+(isPaid?`\n\n${fee}`:''));
   await loadPublicRoster();
   render(_lastData||ARENA_SAMPLE);
 }
@@ -3025,7 +3100,7 @@ var Z={
   secret:"That part's private to Prabin \u2014 I only handle JD Arena: tournaments, how to join, the rules, and contact. Ask me any of those! \uD83C\uDFAE",
   howjoin:"Easy \u2014 4 steps:\n1. Sign up and tap Join on a tournament.\n2. Free tournaments are confirmed instantly. For paid ones, message +44 7343 082738 (jd.lmt.np) on WhatsApp to pay.\n3. We send you a join code \u2014 enter it on your ticket to confirm your slot.\n4. Check in before the match; the Room ID + password appear on your ticket.",
   howjoinwa:"Tap the green Register button on any tournament to start on WhatsApp.",
-  rules:"The basics: no refunds once the Room ID is sent \u00B7 cheating or modded apps = instant ban \u00B7 the prize pool is fixed and posted before registration opens \u00B7 payouts are proven publicly \u00B7 entry fees go to JD Arena to fund prizes and keep tournaments running. Free tournaments? The prize is on us. Fair and clean. \uD83D\uDEE1\uFE0F",
+  rules:"The basics: withdraw 24h+ before the start for a full refund, 10% back on the last day, no refund once the Room ID is sent \u00B7 cheating or modded apps = instant ban \u00B7 the prize pool is fixed and posted before registration opens \u00B7 payouts are proven publicly \u00B7 entry fees go to JD Arena to fund prizes and keep tournaments running. Free tournaments? The prize is on us. Fair and clean. \uD83D\uDEE1\uFE0F",
   scoring:"Simple \u2014 your squad's score each round is kills + placement, added together:\n\u2022 1 point per kill, no cap\n\u2022 Placement: 1st 12 \u00b7 2nd 9 \u00b7 3rd 6 \u00b7 4th 5 \u00b7 5th 4 \u00b7 6th 3 \u00b7 7th 2 \u00b7 8th 1\nAdd both up for your round total \uD83C\uDFC6",
   hacker:"Zero mercy for hackers \u2014 proven cheating, modded apps, aimbot or wallhacks means an instant ban and the win/prize is voided on the spot, no appeal. Suspicious matches get their replay checked. Play clean and you've got nothing to worry about. \uD83D\uDEE1\uFE0F",
   payout:"Once you win, we DM you for your eSewa number and the name on the account, then send the prize straight there \u2014 usually within a day of results going up. You get the full posted prize, no deductions. \uD83D\uDCB0",
@@ -3055,7 +3130,7 @@ var Z={
   secret:"\u0924\u094D\u092F\u094B \u092A\u094D\u0930\u092C\u093F\u0928\u0915\u094B \u0928\u093F\u091C\u0940 \u0915\u0941\u0930\u093E \u0939\u094B \u2014 \u092E \u0924 JD Arena \u092E\u093E\u0924\u094D\u0930\u0948 \u0939\u0947\u0930\u094D\u091B\u0941: \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0915\u0938\u0930\u0940 \u0938\u0939\u092D\u093E\u0917\u0940 \u0939\u0941\u0928\u0947, \u0928\u093F\u092F\u092E \u0930 \u0938\u092E\u094D\u092A\u0930\u094D\u0915\u0964 \u0924\u0940 \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D! \uD83C\uDFAE",
   howjoin:"\u0938\u091C\u093F\u0932\u094B \u2014 \u096A \u091A\u0930\u0923:\n\u0967. \u0938\u093E\u0907\u0928 \u0905\u092A \u0917\u0930\u0947\u0930 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E\u092E\u093E Join \u0925\u093F\u091A\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964\n\u0968. \u092B\u094D\u0930\u0940 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E \u0924\u0941\u0930\u0941\u0928\u094D\u0924\u0948 \u092A\u0915\u094D\u0915\u093E \u0939\u0941\u0928\u094D\u091B\u0964 \u092A\u0947\u0921\u0915\u093E \u0932\u093E\u0917\u093F WhatsApp +44 7343 082738 (jd.lmt.np) \u092E\u093E \u092E\u094D\u092F\u093E\u0938\u0947\u091C \u0917\u0930\u0947\u0930 \u0924\u093F\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964\n\u0969. \u0939\u093E\u092E\u0940 \u091C\u094B\u0907\u0928 \u0915\u094B\u0921 \u092A\u0920\u093E\u0909\u0901\u091B\u094C\u0902 \u2014 \u091F\u093F\u0915\u091F\u092E\u093E \u0939\u093E\u0932\u0947\u0930 \u0938\u094D\u0925\u093E\u0928 \u092A\u0915\u094D\u0915\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964\n\u096A. \u0916\u0947\u0932 \u0905\u0918\u093F \u091A\u0947\u0915 \u0907\u0928 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D; Room ID \u0930 \u092A\u093E\u0938\u0935\u0930\u094D\u0921 \u091F\u093F\u0915\u091F\u092E\u093E \u0926\u0947\u0916\u093F\u0928\u094D\u091B\u0964",
   howjoinwa:"\u0915\u0941\u0928\u0948 \u092A\u0928\u093F \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E\u092E\u093E \u0939\u0930\u093F\u092F\u094B Register \u092C\u091F\u0928 \u0925\u093F\u091A\u0940 WhatsApp \u092E\u093E \u0938\u0941\u0930\u0941 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
-  rules:"\u092E\u0941\u0916\u094D\u092F \u0915\u0941\u0930\u093E: Room ID \u092A\u0920\u093E\u090F\u092A\u091B\u093F \u0930\u093F\u092B\u0928\u094D\u0921 \u0939\u0941\u0901\u0926\u0948\u0928 \u00B7 \u091A\u093F\u091F\u093F\u0919 \u0935\u093E \u092E\u094B\u0921 \u0917\u0930\u093F\u090F\u0915\u094B \u090F\u092A = \u0924\u0941\u0930\u0941\u0928\u094D\u0924\u0948 \u092C\u094D\u092F\u093E\u0928 \u00B7 \u0907\u0928\u093E\u092E \u0930\u0915\u092E \u0926\u0930\u094D\u0924\u093E \u0916\u0941\u0932\u094D\u0928\u0941\u0905\u0918\u093F \u0928\u0948 \u0924\u094B\u0915\u093F\u0928\u094D\u091B \u00B7 \u092D\u0941\u0915\u094D\u0924\u093E\u0928\u0940 \u0938\u093E\u0930\u094D\u0935\u091C\u0928\u093F\u0915 \u00B7 \u092A\u094D\u0930\u0935\u0947\u0936 \u0936\u0941\u0932\u094D\u0915 JD Arena \u0932\u0947 \u0907\u0928\u093E\u092E \u0930 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E \u091A\u0932\u093E\u0909\u0928 \u0930\u093E\u0916\u094D\u091B\u0964 \u092B\u094D\u0930\u0940 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E? \u0907\u0928\u093E\u092E \u0939\u093E\u092E\u094D\u0930\u094B \u0924\u0930\u094D\u092B\u092C\u093E\u091F\u0964 \u0928\u093F\u0937\u094D\u092A\u0915\u094D\u0937 \u0930 \u0938\u092B\u093E\u0964 \uD83D\uDEE1\uFE0F",
+  rules:"\u092E\u0941\u0916\u094D\u092F \u0915\u0941\u0930\u093E: \u0938\u0941\u0930\u0941 \u0939\u0941\u0928\u0941 \u0968\u096A \u0918\u0923\u094D\u091F\u093E\u0905\u0918\u093F \u091B\u094B\u0921\u0947 \u092A\u0942\u0930\u093E \u0930\u093F\u092B\u0928\u094D\u0921, \u0905\u0928\u094D\u0924\u093F\u092E \u0926\u093F\u0928 \u0967\u0966% \u092E\u093E\u0924\u094D\u0930, Room ID \u092A\u0920\u093E\u090F\u092A\u091B\u093F \u0930\u093F\u092B\u0928\u094D\u0921 \u0939\u0941\u0901\u0926\u0948\u0928 \u00B7 \u091A\u093F\u091F\u093F\u0919 \u0935\u093E \u092E\u094B\u0921 \u0917\u0930\u093F\u090F\u0915\u094B \u090F\u092A = \u0924\u0941\u0930\u0941\u0928\u094D\u0924\u0948 \u092C\u094D\u092F\u093E\u0928 \u00B7 \u0907\u0928\u093E\u092E \u0930\u0915\u092E \u0926\u0930\u094D\u0924\u093E \u0916\u0941\u0932\u094D\u0928\u0941\u0905\u0918\u093F \u0928\u0948 \u0924\u094B\u0915\u093F\u0928\u094D\u091B \u00B7 \u092D\u0941\u0915\u094D\u0924\u093E\u0928\u0940 \u0938\u093E\u0930\u094D\u0935\u091C\u0928\u093F\u0915 \u00B7 \u092A\u094D\u0930\u0935\u0947\u0936 \u0936\u0941\u0932\u094D\u0915 JD Arena \u0932\u0947 \u0907\u0928\u093E\u092E \u0930 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E \u091A\u0932\u093E\u0909\u0928 \u0930\u093E\u0916\u094D\u091B\u0964 \u092B\u094D\u0930\u0940 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E? \u0907\u0928\u093E\u092E \u0939\u093E\u092E\u094D\u0930\u094B \u0924\u0930\u094D\u092B\u092C\u093E\u091F\u0964 \u0928\u093F\u0937\u094D\u092A\u0915\u094D\u0937 \u0930 \u0938\u092B\u093E\u0964 \uD83D\uDEE1\uFE0F",
   scoring:"\u0938\u091C\u093F\u0932\u094B \u2014 \u092A\u094D\u0930\u0924\u094D\u092F\u0947\u0915 \u0930\u093E\u0909\u0928\u094D\u0921\u092E\u093E \u0924\u092A\u093E\u0908\u0902\u0915\u094B \u0938\u094D\u0915\u094D\u0935\u093E\u0921\u0915\u094B \u0905\u0919\u094D\u0915 = \u0915\u093F\u0932 \u0905\u0919\u094D\u0915 + \u0938\u094D\u0925\u093E\u0928 \u0905\u0919\u094D\u0915, \u0926\u0941\u0908\u0935\u091F\u093E \u091C\u094B\u0921\u0947\u0930:\n\u2022 \u092A\u094D\u0930\u0924\u093F \u0915\u093F\u0932 \u0967 \u0905\u0919\u094D\u0915, \u0938\u0940\u092E\u093E \u091B\u0948\u0928\n\u2022 \u0938\u094D\u0925\u093E\u0928: \u0967\u0932\u094B 12 \u00b7 \u0968\u0932\u094B 9 \u00b7 \u0969\u0932\u094B 6 \u00b7 \u096A\u0925\u094D\u0925\u094B 5 \u00b7 \u096B\u0925\u094D\u0925\u094B 4 \u00b7 \u096C\u0925\u094D\u0925\u094B 3 \u00b7 \u096D\u0925\u094D\u0925\u094B 2 \u00b7 \u096E\u0925\u094D\u0925\u094B 1\n\u0926\u0941\u0908\u0935\u091F\u093E \u091C\u094B\u0921\u0947\u0930 \u0924\u092A\u093E\u0908\u0902\u0915\u094B \u0930\u093E\u0909\u0928\u094D\u0921 \u091F\u094B\u091F\u0932 \u092C\u0928\u094D\u091B \uD83C\uDFC6",
   hacker:"\u0939\u094D\u092F\u093E\u0915\u0930/\u091A\u093F\u091F\u0930\u0932\u093E\u0908 \u0915\u0941\u0928\u0948 \u091B\u0941\u091F \u091B\u0948\u0928 \u2014 \u092A\u094D\u0930\u092E\u093E\u0923\u093F\u0924 \u091A\u093F\u091F\u093F\u0919, \u092E\u094B\u0921 \u0917\u0930\u093F\u090F\u0915\u094B \u090F\u092A, \u0910\u092E\u092C\u091F \u0935\u093E \u0935\u093E\u0932\u0939\u094D\u092F\u093E\u0915 \u092D\u0947\u091F\u093F\u092F\u094B \u092D\u0928\u0947 \u0924\u0941\u0930\u0941\u0928\u094D\u0924\u0948 \u092C\u094D\u092F\u093E\u0928 \u0930 \u091C\u093F\u0924\u0947\u0915\u094B \u0907\u0928\u093E\u092E \u0924\u0941\u0930\u0941\u0928\u094D\u0924\u0948 \u0930\u0926\u094D\u0926, \u0915\u0941\u0928\u0948 \u0905\u092A\u093F\u0932 \u091B\u0948\u0928\u0964 \u0936\u0902\u0915\u093E\u0938\u094D\u092A\u0926 \u092E\u094D\u092F\u093E\u091A\u092E\u093E \u0930\u093F\u092A\u094D\u0932\u0947 \u091C\u093E\u0901\u091A \u0917\u0930\u093F\u0928\u094D\u091B\u0964 \u0938\u092B\u093E \u0916\u0947\u0932\u094D\u0928\u0941\u0939\u094B\u0938\u094D, \u091A\u093F\u0928\u094D\u0924\u093E \u0932\u093F\u0928\u0941 \u092A\u0930\u094D\u0926\u0948\u0928\u0964 \uD83D\uDEE1\uFE0F",
   payout:"\u091C\u093F\u0924\u094D\u0928\u0941\u092D\u092F\u094B \u092D\u0928\u0947, \u0939\u093E\u092E\u0940 \u0924\u092A\u093E\u0908\u0902\u0915\u094B eSewa \u0928\u092E\u094D\u092C\u0930 \u0930 \u0916\u093E\u0924\u093E\u092E\u093E \u092D\u0947\u0915\u094B \u0928\u093E\u092E \u0938\u094B\u0927\u094D\u091B\u094C\u0902, \u0905\u0928\u093F \u0938\u093F\u0927\u0948 \u0924\u094D\u092F\u0939\u0940\u0902 \u0907\u0928\u093E\u092E \u092A\u0920\u093E\u0909\u091B\u094C\u0902 \u2014 \u092A\u094D\u0930\u093E\u092F\u0903 \u0930\u093F\u091C\u0932\u094D\u091F \u092A\u094B\u0938\u094D\u091F \u092D\u090F\u0915\u094B \u090F\u0915 \u0926\u093F\u0928\u092D\u093F\u0924\u094D\u0930\u0964 \u0924\u094B\u0915\u093F\u090F\u0915\u094B \u092A\u0942\u0930\u093E \u0907\u0928\u093E\u092E \u092A\u093E\u0909\u0928\u0941\u0939\u0941\u0928\u094D\u091B, \u0915\u0941\u0928\u0948 \u0915\u091F\u094C\u0924\u0940 \u091B\u0948\u0928\u0964 \uD83D\uDCB0",

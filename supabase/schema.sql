@@ -1232,3 +1232,21 @@ $$;
 grant execute on function public.get_public_roster() to anon, authenticated;
 
 commit;
+
+-- ── combat pro effects: bullets + blade ─────────────────────────────────
+begin;
+alter table public.registrations drop constraint if exists registrations_effect_check;
+alter table public.registrations add constraint registrations_effect_check
+  check (effect is null or effect in ('glow','steel','gold','fire','ice','neon','rainbow','galaxy','thunder','legend','bullets','blade'));
+alter table public.effect_passes drop constraint if exists effect_passes_effect_check;
+alter table public.effect_passes add constraint effect_passes_effect_check
+  check (effect in ('glow','steel','gold','fire','ice','neon','rainbow','galaxy','thunder','legend','bullets','blade'));
+create or replace function public.fx_tier_ok(p_tier text, p_effect text)
+returns boolean language sql immutable as $$
+  select case p_tier
+    when 'lite' then p_effect in ('glow','steel')
+    when 'game' then p_effect in ('gold','fire','ice','neon','rainbow')
+    when 'pro'  then p_effect in ('glow','steel','gold','fire','ice','neon','rainbow','galaxy','thunder','legend','bullets','blade')
+    else false end;
+$$;
+commit;
