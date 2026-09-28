@@ -421,8 +421,8 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 /* ── accounts + notification history ── */
 .zoverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:60;display:none;align-items:center;justify-content:center;padding:20px}
 .zoverlay.open{display:flex}
-#roster-overlay{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(3,5,10,.86)}
-#roster-overlay .zmodal::before{display:none}
+#roster-overlay,#fx-overlay{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(3,5,10,.86)}
+#roster-overlay .zmodal::before,#fx-overlay .zmodal::before{display:none}
 #roster-overlay .sqlist{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 /* ── premium modal shell (shared by auth/registration/notification/roster modals) ──
    Scoped custom properties so this one component gets a richer palette without
@@ -457,6 +457,20 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .btn-danger:disabled{opacity:.55;cursor:default}
 .confirm-cancel{flex:1;background:transparent;border:1px solid var(--line);color:var(--cream);border-radius:999px;padding:13px 18px;font-family:inherit;font-size:.86rem;font-weight:600;cursor:pointer}
 .confirm-cancel:hover{border-color:var(--gold-m)}
+.fx-pick{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+.fx-pick button{flex:1 1 30%;min-width:84px;padding:9px 8px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--cream);font-family:inherit;font-size:.76rem;font-weight:700;cursor:pointer;transition:.2s}
+.fx-pick button:hover{border-color:var(--gold-m)}
+.fx-pick button.on{border-color:var(--gold);background:rgba(255,200,61,.12);color:var(--gold-l);box-shadow:0 0 0 1px var(--gold) inset}
+.fx-preview{max-height:none;overflow:visible;margin:0 0 12px;padding:0}
+.fx-pay{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.02)}
+.fx-price{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.fx-price b{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.04em;color:var(--gold-l)}
+.fx-price span{font-size:.7rem;color:var(--silver)}
+.mt-fx-buy{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:10px;padding:10px 12px;border-radius:12px;border:1px dashed rgba(255,200,61,.55);background:linear-gradient(100deg,rgba(255,200,61,.1),rgba(200,107,255,.1));color:var(--gold-l);font-family:inherit;font-size:.8rem;font-weight:700;cursor:pointer;transition:.2s}
+.mt-fx-buy:hover{border-style:solid;background:linear-gradient(100deg,rgba(255,200,61,.18),rgba(200,107,255,.16))}
+.mt-fx{margin-top:10px;padding:8px 12px;border-radius:10px;font-size:.76rem;font-weight:600;text-align:center}
+.mt-fx.on{background:rgba(94,219,149,.1);border:1px solid rgba(94,219,149,.4);color:var(--green,#5EDB95)}
+.mt-fx.wait{background:rgba(255,200,61,.08);border:1px solid rgba(255,200,61,.35);color:var(--gold-l)}
 .mt-withdraw{display:block;margin:10px auto 0;background:none;border:none;padding:4px 8px;font-family:inherit;font-size:.72rem;font-weight:600;color:var(--silver);text-decoration:underline;text-underline-offset:3px;cursor:pointer;opacity:.8}
 .mt-withdraw:hover{color:#ff9d9d;opacity:1}
 .msg-icon.err{background:linear-gradient(135deg,#ff8a8a,#ff7676);box-shadow:0 0 30px rgba(255,118,118,.35)}
@@ -897,6 +911,23 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
     <h3 id="msg-title"></h3>
     <p class="sub" id="msg-body" style="white-space:pre-line"></p>
     <div class="row2"><button class="btn-primary" style="flex:1" onclick="msgClose()">OK</button></div>
+  </div>
+</div>
+<div class="zoverlay" id="fx-overlay" onclick="if(event.target===this)fxShopClose()">
+  <div class="zmodal" style="max-width:460px"><button class="fb-x" style="position:absolute;top:12px;right:14px" onclick="fxShopClose()" aria-label="close">×</button>
+    <h3>Squad effect</h3>
+    <div class="sub" id="fx-sub"></div>
+    <div class="fx-pick" id="fx-pick"></div>
+    <div class="sqlist fx-preview" id="fx-preview"></div>
+    <div class="fx-pay">
+      <div class="fx-price"><b id="fx-price"></b><span>Cosmetic only · applies to this tournament</span></div>
+      <p class="sub" id="fx-pay-note" style="margin:6px 0 4px"></p>
+      <label>Payment screenshot</label>
+      <input id="fx-pay-file" type="file" accept="image/*">
+      <img id="fx-pay-preview" style="display:none;width:64px;height:64px;border-radius:10px;object-fit:cover;margin-top:10px;border:1px solid var(--line)" alt="">
+    </div>
+    <div class="msg" id="fx-msg"></div>
+    <div class="row2"><button class="btn-primary" style="flex:1" id="fx-submit" onclick="fxShopSubmit()">Send for approval</button></div>
   </div>
 </div>
 <div class="zoverlay" id="confirm-overlay" onclick="if(event.target===this)confirmClose(false)">
@@ -1343,7 +1374,7 @@ function toggleLang(){lang=lang==='en'?'ne':'en';lsSet('jd_lang',lang);applyLang
 // already no-ops while the login gate is forced open, so this can't escape that.
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
-  const closers={'auth-overlay':authClose,'reg-overlay':regClose,'notif-overlay':notifHistClose,'roster-overlay':rosterClose,'msg-overlay':msgClose,'confirm-overlay':()=>confirmClose(false),'regsuccess-overlay':regSuccessClose};
+  const closers={'auth-overlay':authClose,'reg-overlay':regClose,'notif-overlay':notifHistClose,'roster-overlay':rosterClose,'msg-overlay':msgClose,'confirm-overlay':()=>confirmClose(false),'fx-overlay':fxShopClose,'regsuccess-overlay':regSuccessClose};
   for(const id in closers){
     const el=document.getElementById(id);
     if(el&&el.classList.contains('open')){closers[id]();break;}
@@ -1367,7 +1398,7 @@ async function loadPublicRoster(){
   const m=new Map();
   (data||[]).forEach(r=>{
     if(!m.has(r.tournament_slug))m.set(r.tournament_slug,[]);
-    m.get(r.tournament_slug).push({squad_name:r.squad_name,squad_logo:r.squad_logo});
+    m.get(r.tournament_slug).push({squad_name:r.squad_name,squad_logo:r.squad_logo,effect:r.effect||''});
   });
   _liveRoster=m;_rosterLoaded=true;
   render(_lastData||ARENA_SAMPLE);
@@ -1385,7 +1416,7 @@ function teamsFor(t){
     // roster finishes loading) and then vanish the moment it does.
     if(live&&live.length){
       const fxByName=new Map((Array.isArray(t.teams)?t.teams:[]).map(x=>[String(x.name||'').trim().toLowerCase(),x.effect||'']));
-      return live.map(x=>({name:x.squad_name||'Squad',logo:x.squad_logo||'',members:[],effect:fxByName.get(String(x.squad_name||'').trim().toLowerCase())||''}));
+      return live.map(x=>({name:x.squad_name||'Squad',logo:x.squad_logo||'',members:[],effect:x.effect||fxByName.get(String(x.squad_name||'').trim().toLowerCase())||''}));
     }
   }
   return Array.isArray(t.teams)?t.teams.map(x=>typeof x==='string'?{name:x,logo:'',members:[],effect:''}:{name:x.name,logo:x.logo||'',members:x.members||[],effect:x.effect||''}).filter(x=>x&&x.name):[];
@@ -1447,6 +1478,7 @@ function render(d){
     grid.innerHTML=gridHTML;
     grid.querySelectorAll('[data-reg]').forEach(b=>b.onclick=()=>registerInApp(b.getAttribute('data-reg')));
     grid.querySelectorAll('[data-checkin]').forEach(b=>b.onclick=()=>checkInForTournament(b.getAttribute('data-checkin')));
+    grid.querySelectorAll('[data-fx-buy]').forEach(b=>b.onclick=e=>{e.stopPropagation();fxShopOpen(b.getAttribute('data-fx-buy'));});
     grid.querySelectorAll('[data-withdraw]').forEach(b=>b.onclick=e=>{e.stopPropagation();withdrawSquad(b.getAttribute('data-withdraw'));});
     grid.querySelectorAll('[data-roster]').forEach(b=>b.onclick=e=>{e.stopPropagation();openRoster(b.getAttribute('data-roster'));});
   }
@@ -2096,13 +2128,17 @@ const REG_LOGO_MAX_PX=128;
 const PAY_SCREENSHOT_MAX_PX=640;
 function isPaidTournament(t){const e=String((t&&t.entry)||'').trim().toLowerCase();return !!e&&e!=='free';}
 let _myRegsLoaded=false;
+let _myFxReqs=new Map(); // registration id -> latest effect_purchases row (pending/approved/rejected)
 let _myRegs=new Map(); // tournament name -> {id, squad_name, squad_logo, status, checked_in_at}
 let _regTarget=null,_regLogoData=null,_regPayData=null;
 async function loadMyRegs(){
   if(!sb||!_player){_myRegs=new Map();return;}
-  const {data}=await sb.from('registrations').select('id, tournament_slug, squad_name, squad_logo, status, checked_in_at, verified_at').eq('player_id',_player.id);
+  const {data}=await sb.from('registrations').select('id, tournament_slug, squad_name, squad_logo, status, checked_in_at, verified_at, effect').eq('player_id',_player.id);
   _myRegsLoaded=true;
-  _myRegs=new Map((data||[]).map(r=>[r.tournament_slug,{id:r.id,squad_name:r.squad_name,squad_logo:r.squad_logo,status:r.status||'confirmed',checked_in_at:r.checked_in_at||null,verified_at:r.verified_at||null}]));
+  _myRegs=new Map((data||[]).map(r=>[r.tournament_slug,{id:r.id,squad_name:r.squad_name,squad_logo:r.squad_logo,status:r.status||'confirmed',checked_in_at:r.checked_in_at||null,verified_at:r.verified_at||null,effect:r.effect||''}]));
+  const fr=await sb.from('effect_purchases').select('registration_id, effect, status, created_at').eq('player_id',_player.id).order('created_at',{ascending:false});
+  _myFxReqs=new Map();
+  (fr.data||[]).forEach(x=>{if(x.registration_id&&!_myFxReqs.has(x.registration_id))_myFxReqs.set(x.registration_id,x);});
   render(_lastData||ARENA_SAMPLE);
 }
 function registerInApp(name){
@@ -2273,7 +2309,15 @@ function matchTicketHtml(t,r){
     next=`<div class="mt-next">⏰ Check-in opens 30 min before start${opens?` (<b>${esc(opens)}</b>)`:''} — we will send you a reminder.</div>`;
   }
   const logo=r.squad_logo?`<img class="mt-logo" src="${esc(r.squad_logo)}" alt="">`:`<span class="mt-logo mt-logo-empty">${esc((r.squad_name||'?').trim().charAt(0).toUpperCase()||'?')}</span>`;
-  return `<div class="mt"><div class="mt-head">${logo}<div class="mt-squad"><b>${esc(r.squad_name||'Your squad')}</b><small>${checked?'Checked in':'You\'re in'}${r.verified_at?' · <span class="mt-ver">✅ Verified</span>':''}</small></div><button type="button" class="mt-code" data-copy="${esc(code)}" title="Tap to copy your ticket code">🎫 ${esc(code)}</button></div><ol class="mt-steps">${stepHtml}</ol>${next}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}</div>`;
+  return `<div class="mt"><div class="mt-head">${logo}<div class="mt-squad"><b>${esc(r.squad_name||'Your squad')}</b><small>${checked?'Checked in':'You\'re in'}${r.verified_at?' · <span class="mt-ver">✅ Verified</span>':''}</small></div><button type="button" class="mt-code" data-copy="${esc(code)}" title="Tap to copy your ticket code">🎫 ${esc(code)}</button></div><ol class="mt-steps">${stepHtml}</ol>${next}${fxTicketHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}</div>`;
+}
+function fxTicketHtml(t,r){
+  const on=SQUAD_FX[r.effect];
+  if(on)return `<div class="mt-fx on">✨ ${esc(on.tag)} effect active for this tournament</div>`;
+  if(!canWithdraw(t))return '';
+  const req=_myFxReqs.get(r.id);
+  if(req&&req.status==='pending'){const k=SQUAD_FX[req.effect];return `<div class="mt-fx wait">⏳ ${esc(k?k.tag:'Effect')} effect requested — waiting for payment verification</div>`;}
+  return `<button type="button" class="mt-fx-buy" data-fx-buy="${esc(t.name)}">✨ Add a squad effect · ${esc(EFFECT_PRICE)}</button>`;
 }
 function inAppRegBtn(t,st,full){
   if(st==='cancelled')return _myRegs.has(t.name)?`<div class="inapp-reg-done rejected"><span>✕ This tournament was cancelled — sorry for the mix-up, watch Discord for the reschedule</span></div>`:'';
@@ -2455,25 +2499,26 @@ function notifHistClose(){document.getElementById('notif-overlay').classList.rem
 /* squad roster modal — shows all `slots` positions for a tournament (filled ones with
    logo/name/members, empty ones as "Open slot") from tournaments.json's admin-curated
    `teams` list. Not live registration data (see SUPABASE_SETUP.md's "Known gap"). */
+function sqNum(i){return String(i+1).padStart(2,'0');}
+function sqCardHtml(tm,i){
+  const members=Array.isArray(tm.members)?tm.members.filter(Boolean):[];
+  const fx=squadFx(tm);
+  const initial=esc((String(tm.name||'?').trim()[0]||'?').toUpperCase());
+  const crown=(fx&&fx.badge)?`<span class="sq-crown">${fx.badge}</span>`:'';
+  const logo=`<div class="sq-av">${crown}${tm.logo?`<img src="${esc(tm.logo)}" alt="">`:`<div class="sqitem-nologo">${initial}</div>`}</div>`;
+  const name=fx?`<span class="fx-name">${esc(tm.name)}</span>`:esc(tm.name);
+  const mem=members.length?`<div class="sqitem-members" title="${esc(tr('sqmembers'))}">${members.map(m=>`<span>${esc(m)}</span>`).join('')}</div>`:'';
+  const deco=fx?`<span class="sqfx-shine"></span>${sqfxParticles()}`:'';
+  return `<div class="sqitem${fx?' sqfx sqfx-'+fx.key:''}">${deco}<span class="sq-no">${sqNum(i)}</span>${logo}<div class="sqitem-body">${fx?`<span class="sqfx-tag">${fx.tag}</span>`:''}<div class="sqitem-name">${name}</div>${mem}</div></div>`;
+}
 function openRoster(name){
   const t=((_lastData||ARENA_SAMPLE).tournaments||[]).find(x=>x.name===name);
   if(!t)return;
   const teams=teamsFor(t);
   const slots=+t.slots||teams.length;
   document.getElementById('roster-ttl').textContent=tr('sqttl');
-  const num=i=>String(i+1).padStart(2,'0');
-  const initial=n=>esc((String(n||'?').trim()[0]||'?').toUpperCase());
-  const filled=teams.map((tm,i)=>{
-    const members=Array.isArray(tm.members)?tm.members.filter(Boolean):[];
-    const fx=squadFx(tm);
-    const crown=(fx&&fx.badge)?`<span class="sq-crown">${fx.badge}</span>`:'';
-    const logo=`<div class="sq-av">${crown}${tm.logo?`<img src="${esc(tm.logo)}" alt="">`:`<div class="sqitem-nologo">${initial(tm.name)}</div>`}</div>`;
-    const name=fx?`<span class="fx-name">${esc(tm.name)}</span>`:esc(tm.name);
-    const mem=members.length?`<div class="sqitem-members" title="${esc(tr('sqmembers'))}">${members.map(m=>`<span>${esc(m)}</span>`).join('')}</div>`:'';
-    const deco=fx?`<span class="sqfx-shine"></span>${sqfxParticles()}`:'';
-    return `<div class="sqitem${fx?' sqfx sqfx-'+fx.key:''}">${deco}<span class="sq-no">${num(i)}</span>${logo}<div class="sqitem-body">${fx?`<span class="sqfx-tag">${fx.tag}</span>`:''}<div class="sqitem-name">${name}</div>${mem}</div></div>`;
-  });
-  const empty=Array.from({length:Math.max(0,slots-teams.length)},(_,k)=>`<div class="sqitem empty"><span class="sq-no">${num(teams.length+k)}</span><div class="sqitem-nologo">+</div><div class="sqitem-body"><div class="sqitem-name">${tr('sqopen')}</div></div></div>`);
+  const filled=teams.map((tm,i)=>sqCardHtml(tm,i));
+  const empty=Array.from({length:Math.max(0,slots-teams.length)},(_,k)=>`<div class="sqitem empty"><span class="sq-no">${sqNum(teams.length+k)}</span><div class="sqitem-nologo">+</div><div class="sqitem-body"><div class="sqitem-name">${tr('sqopen')}</div></div></div>`);
   const pct=slots?Math.min(100,Math.round(teams.length/slots*100)):0;
   document.getElementById('roster-sub').innerHTML=`${esc(t.name)}<div class="sq-head"><div class="sq-meter"><span style="width:${pct}%"></span></div><span class="sq-count">${teams.length}/${slots}</span></div>`;
   document.getElementById('roster-list').innerHTML=(filled.concat(empty).join(''))||`<p class="sub">${tr('sqempty')}</p>`;
@@ -2483,6 +2528,59 @@ function rosterClose(){document.getElementById('roster-overlay').classList.remov
 /* drop-in for alert() styled to match the site instead of the browser's native
    popup — same "blocks until dismissed" feel (dedicated overlay, doesn't get
    closed by other overlays' open/close toggling), just themed. */
+/* ── Squad effect shop: Rs 2 per tournament, cosmetic only. The player picks an effect
+   (live preview using the same card as the roster popup), pays by eSewa and uploads the
+   screenshot; request_squad_effect() (schema.sql) stores the request, and it only goes
+   live once the organiser approves it in the admin panel (effect-purchases function). ── */
+const EFFECT_PRICE='Rs 2';
+const EFFECT_PAY_TO=''; /* ← your eSewa number/ID for effect payments, e.g. '98XXXXXXXX'. Leave '' to tell players to ask on WhatsApp/Discord. */
+let _fxShop={name:null,effect:'gold',pay:null};
+function fxShopOpen(name){
+  const r=_myRegs.get(name);
+  if(!sb||!_player||!r)return;
+  _fxShop={name,effect:'gold',pay:null};
+  document.getElementById('fx-sub').textContent=`Make ${r.squad_name||'your squad'} stand out in the squad list for ${name}.`;
+  document.getElementById('fx-price').textContent=EFFECT_PRICE+' per tournament';
+  document.getElementById('fx-pay-note').textContent=EFFECT_PAY_TO
+    ?`Send ${EFFECT_PRICE} via eSewa to ${EFFECT_PAY_TO}, then upload the payment screenshot. The effect goes live as soon as the payment is verified.`
+    :`Send ${EFFECT_PRICE} via eSewa to the organiser (ask for the number on WhatsApp or Discord), then upload the payment screenshot. The effect goes live as soon as the payment is verified.`;
+  document.getElementById('fx-pay-file').value='';
+  const pv=document.getElementById('fx-pay-preview');pv.style.display='none';pv.src='';
+  document.getElementById('fx-msg').textContent='';document.getElementById('fx-msg').className='msg';
+  document.getElementById('fx-submit').disabled=false;
+  fxShopRender();
+  document.getElementById('fx-overlay').classList.add('open');
+}
+function fxShopRender(){
+  const r=_myRegs.get(_fxShop.name)||{};
+  document.getElementById('fx-pick').innerHTML=Object.values(SQUAD_FX).map(f=>`<button type="button" class="${f.key===_fxShop.effect?'on':''}" onclick="_fxShop.effect='${f.key}';fxShopRender()">${esc(f.tag)}</button>`).join('');
+  document.getElementById('fx-preview').innerHTML=sqCardHtml({name:r.squad_name||'Your squad',logo:r.squad_logo||'',members:[],effect:_fxShop.effect},0);
+}
+function fxShopClose(){document.getElementById('fx-overlay').classList.remove('open');document.getElementById('fx-preview').innerHTML='';}
+(function(){
+  const fi=document.getElementById('fx-pay-file');if(!fi)return;
+  fi.addEventListener('change',e=>{
+    const f=e.target.files[0];if(!f)return;
+    resizeToDataUri(f,PAY_SCREENSHOT_MAX_PX,0.85,dataUri=>{
+      _fxShop.pay=dataUri;
+      const pv=document.getElementById('fx-pay-preview');pv.src=dataUri;pv.style.display='block';
+    });
+  });
+})();
+async function fxShopSubmit(){
+  const msg=document.getElementById('fx-msg'),btn=document.getElementById('fx-submit');
+  const r=_myRegs.get(_fxShop.name);
+  if(!r){fxShopClose();return;}
+  if(!_fxShop.pay){msg.className='msg err';msg.textContent='Please upload your payment screenshot first.';return;}
+  btn.disabled=true;msg.className='msg';msg.textContent='Sending your request…';
+  const {error}=await sb.rpc('request_squad_effect',{p_tournament_slug:_fxShop.name,p_effect:_fxShop.effect,p_payment_screenshot:_fxShop.pay});
+  if(error){btn.disabled=false;msg.className='msg err';msg.textContent=error.message||'The request could not be sent. Please try again.';return;}
+  _myFxReqs.set(r.id,{registration_id:r.id,effect:_fxShop.effect,status:'pending'});
+  const tag=(SQUAD_FX[_fxShop.effect]||{}).tag||'Squad';
+  fxShopClose();
+  showMsg('Request sent',`Your ${tag} effect will go live as soon as the organiser verifies your payment. You will receive a notification when it is approved.`);
+  render(_lastData||ARENA_SAMPLE);
+}
 /* Styled yes/no dialog (native confirm() looks out of place and blocks the page).
    Resolves true only when the player presses the confirm button. */
 let _confirmResolve=null;

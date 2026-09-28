@@ -213,7 +213,7 @@ h2[id]{scroll-margin-top:64px}
   <div class="dash" id="dash"><div class="dash-tile loading"><b>…</b><span>Loading</span></div></div>
 
   <nav class="adm-nav" id="adm-nav">
-    <a href="#tournaments">🏆 Tournaments</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
+    <a href="#tournaments">🏆 Tournaments</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#effect-requests">✨ Effects</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
   </nav>
 
   <div class="f full" style="margin-bottom:8px">
@@ -387,6 +387,14 @@ h2[id]{scroll-margin-top:64px}
     <div id="pp-msg" class="hint"></div>
   </div>
   <div id="pp-list"></div>
+
+  <h2 id="effect-requests">Squad Effect Requests <span class="tag">Rs 2 per tournament</span></h2>
+  <p class="hint">Players who bought a squad effect upload their eSewa screenshot here. Approving turns the effect on for that squad in that tournament straight away (no publish needed) and notifies the player; rejecting notifies them to contact you.</p>
+  <div class="row">
+    <button class="btn ghost" onclick="loadEffectRequests()">↻ Load requests</button>
+    <div id="fxr-msg" class="hint"></div>
+  </div>
+  <div id="fxr-list"></div>
 
   <details>
   <summary class="dsum">Admin Alerts <span class="tag">new signups</span></summary>
@@ -1213,6 +1221,53 @@ function renderPendingPayments(){
     </div></div>`;
   }).join(''):'<p class="hint">No pending payments for this tournament — click "↻ Load pending".</p>';
   staggerReveal(box);
+}
+/* ── squad effect requests (effect-purchases Edge Function) ── */
+const FX_LABEL={gold:'👑 Champion',fire:'🔥 On Fire',ice:'❄️ Frozen',neon:'💜 Neon',rainbow:'🌈 Prism'};
+let _fxReqs=[];
+function fxrMsg(t,c){const el=document.getElementById('fxr-msg');if(el){el.textContent=t;el.className='hint '+(c||'');}}
+async function loadEffectRequests(){
+  const secret=adminSecret();
+  if(!secret){fxrMsg('Enter the admin passcode first.','err');return;}
+  fxrMsg('Loading…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/effect-purchases',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({action:'list'})});
+    if(!r.ok)throw new Error(await r.text());
+    _fxReqs=await r.json();
+    renderEffectRequests();
+    fxrMsg(_fxReqs.length+' pending request(s).','ok');
+  }catch(e){fxrMsg('Could not load: '+e.message,'err');}
+}
+function renderEffectRequests(){
+  const box=document.getElementById('fxr-list');if(!box)return;
+  box.innerHTML=_fxReqs.length?_fxReqs.map(r=>{
+    const p=r.players||{};
+    return `<div class="card"><div class="grid">
+      <div class="f"><label>Player</label><input value="${esc((p.username?'@'+p.username+' ':'')+(p.player_tag||''))}" disabled></div>
+      <div class="f"><label>Tournament</label><input value="${esc(r.tournament_slug)}" disabled></div>
+      <div class="f"><label>Squad</label><input value="${esc(r.squad_name||'—')}" disabled></div>
+      <div class="f"><label>Effect · amount</label><input value="${esc((FX_LABEL[r.effect]||r.effect)+' · Rs '+(r.amount_npr??2))}" disabled></div>
+      <div class="f full"><label>Payment screenshot</label><img src="${esc(r.payment_screenshot)}" alt="" style="max-width:220px;border-radius:8px;border:1px solid var(--line);cursor:pointer" onclick="window.open(this.src,'_blank')"></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" onclick="reviewEffect('${r.id}',true)">✓ Approve</button>
+      <button class="btn ghost" onclick="reviewEffect('${r.id}',false)">✕ Reject</button>
+    </div></div>`;
+  }).join(''):'<p class="hint">No pending effect requests — click "↻ Load requests".</p>';
+  staggerReveal(box);
+}
+async function reviewEffect(id,approve){
+  const secret=adminSecret();
+  if(!secret){fxrMsg('Enter the admin passcode first.','err');return;}
+  if(!confirm((approve?'Approve':'Reject')+' this effect request?'))return;
+  fxrMsg(approve?'Approving…':'Rejecting…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/effect-purchases',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({action:'review',id,approve})});
+    if(!r.ok)throw new Error(await r.text());
+    _fxReqs=_fxReqs.filter(x=>x.id!==id);
+    renderEffectRequests();
+    fxrMsg(approve?'Approved — the effect is live.':'Rejected — the player has been notified.','ok');
+  }catch(e){fxrMsg('Failed: '+e.message,'err');}
 }
 async function approvePayment(id,approve){
   const secret=adminSecret();

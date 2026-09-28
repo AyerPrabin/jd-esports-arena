@@ -920,3 +920,106 @@ create policy "public read site content" on public.site_content
 -- has checked a squad's ticket code with them. Permanent (DB, not one browser), and
 -- players can see it on their own ticket via the existing "read own registration" policy.
 alter table public.registrations add column if not exists verified_at timestamptz;
+
+-- ── paid squad effects (Rs 2 per tournament) ────────────────────────────
+-- A confirmed squad can buy one cosmetic effect (gold/fire/ice/neon/rainbow)
+-- for one tournament: the player uploads an eSewa payment screenshot through
+-- request_squad_effect(), the organiser approves it in the admin panel
+-- (effect-purchases Edge Function, service role), and only then is
+-- registrations.effect set. Players still have no UPDATE policy on
+-- registrations, so nobody can give themselves an effect without paying.
+-- Idempotent: safe to run more than once.
+begin;
+
+alter table public.registrations add column if not exists effect text;
+alter table public.registrations drop constraint if exists registrations_effect_check;
+alter table public.registrations add constraint registrations_effect_check
+  check (effect is null or effect in ('gold','fire','ice','neon','rainbow'));
+
+create table if not exists public.effect_purchases (
+  id uuid primary key default gen_random_uuid(),
+  -- set null (not cascade) so the payment record survives a squad withdrawing
+  registration_id uuid references public.registrations(id) on delete set null,
+  player_id uuid not null references public.players(id) on delete cascade,
+  tournament_slug text not null,
+  squad_name text,
+  effect text not null check (effect in ('gold','fire','ice','neon','rainbow')),
+  amount_npr integer not null default 2,
+  payment_screenshot text not null,
+  status text not null default 'pending' check (status in ('pending','approved','rejected')),
+  created_at timestamptz not null default now(),
+  reviewed_at timestamptz
+);
+create unique index if not exists effect_purchases_one_pending
+  on public.effect_purchases(registration_id) where status = 'pending';
+alter table public.effect_purchases enable row level security;
+drop policy if exists "players read own effect purchases" on public.effect_purchases;
+create policy "players read own effect purchases" on public.effect_purchases
+  for select using (auth.uid() = player_id);
+-- No insert/update policies: inserts only via request_squad_effect(), reviews only via
+-- the service-role effect-purchases Edge Function.
+
+create or replace function public.request_squad_effect(
+  p_tournament_slug text,
+  p_effect text,
+  p_payment_screenshot text
+)
+returns public.effect_purchases
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_reg public.registrations;
+  v_row public.effect_purchases;
+begin
+  if auth.uid() is null then
+    raise exception 'Please sign in first.';
+  end if;
+  if p_effect not in ('gold','fire','ice','neon','rainbow') then
+    raise exception 'Unknown effect.';
+  end if;
+  if p_payment_screenshot is null or p_payment_screenshot not like 'data:image/%' then
+    raise exception 'Please attach your payment screenshot.';
+  end if;
+  if length(p_payment_screenshot) > 600000 then
+    raise exception 'The screenshot is too large. Please upload a smaller image.';
+  end if;
+
+  select * into v_reg from public.registrations
+    where tournament_slug = p_tournament_slug and player_id = auth.uid()
+      and status in ('confirmed','approved');
+  if v_reg.id is null then
+    raise exception 'Only confirmed squads can add an effect.';
+  end if;
+  if exists(select 1 from public.effect_purchases where registration_id = v_reg.id and status = 'pending') then
+    raise exception 'You already have an effect request waiting for approval.';
+  end if;
+
+  insert into public.effect_purchases (registration_id, player_id, tournament_slug, squad_name, effect, payment_screenshot)
+  values (v_reg.id, auth.uid(), p_tournament_slug, v_reg.squad_name, p_effect, p_payment_screenshot)
+  returning * into v_row;
+  return v_row;
+end;
+$$;
+revoke all on function public.request_squad_effect(text, text, text) from public, anon;
+grant execute on function public.request_squad_effect(text, text, text) to authenticated;
+
+-- get_public_roster() now also returns each squad's approved effect. The return type
+-- changes, so it has to be dropped and recreated (create or replace can't do that).
+drop function if exists public.get_public_roster();
+create function public.get_public_roster()
+returns table(tournament_slug text, squad_name text, squad_logo text, registered_at timestamptz, effect text)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select tournament_slug, squad_name, squad_logo, created_at, effect
+  from public.registrations
+  where status in ('confirmed', 'approved')
+  order by created_at asc;
+$$;
+grant execute on function public.get_public_roster() to anon, authenticated;
+
+commit;
