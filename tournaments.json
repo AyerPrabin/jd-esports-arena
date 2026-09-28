@@ -75,6 +75,7 @@
       "slots": 12,
       "format": "BR · 3 matches",
       "status": "upcoming",
+      "platform_mode": "mobile",
       "teams": [],
       "registered": 0
     },
@@ -120,5 +121,5 @@
       }
     ]
   },
-  "_published_at": "2026-09-28T16:10:40.033Z"
+  "_published_at": "2026-09-28T16:27:02.610Z"
 }
