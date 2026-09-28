@@ -1160,6 +1160,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 /* Captured synchronously, before supabase-js's detectSessionInUrl can consume/clear the
    redirect hash — tells us this SIGNED_IN is "just verified my email", not a normal login,
    so we know to auto-ask for push permission right here (see onAuthStateChange below). */
+if(/[?&]account=1/.test(location.search))window.addEventListener('load',()=>setTimeout(()=>{if(typeof _player!=='undefined'&&_player)authOpen('login');},1200));
 if(/[?&]signin=1/.test(location.search))window.addEventListener('load',()=>setTimeout(()=>{if(typeof _player==='undefined'||!_player)authOpen('login');},900));
 let _emailVerifyFlow=/type=signup/.test(location.hash)||/type=signup/.test(location.search);
 /* Same idea, for the delete-account flow: set before supabase-js can consume the redirect
@@ -2263,7 +2264,7 @@ function updateAcctBtn(){
     if(su)su.style.display='none';
     ac.classList.add('acct-btn-signed');
     ac.innerHTML=`<img class="acct-avatar-mini" src="${esc(_player.avatar||'/logo.png')}" alt="">${esc(_player.username||_player.tag||'Account')}`;
-    ac.onclick=()=>authOpen('login');
+    ac.onclick=()=>{location.href='/profile/';}; // profile has its own page; account settings stay reachable via /?account=1
     if(ad)ad.style.display=((_player.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase())?'':'none';
   }else{
     if(su)su.style.display='';

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07090F">
+<link rel="icon" type="image/png" href="/favicon-64.png">
+<title>My Profile — JD Esports Arena</title>
+<meta name="description" content="Your JD Arena profile: rank, stats, squad, tournaments and points.">
+<link rel="manifest" href="/manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090F;--bg-2:#0D111B;--panel:#111827;--panel-2:#151D2E;--line:rgba(255,200,80,.14);--line-2:rgba(255,255,255,.07);
+  --gold:#FFC83D;--gold-2:#FFAE00;--gold-l:#FFDD85;--gold-m:rgba(255,200,80,.42);
+  --cream:#FFFFFF;--silver:#A6AFC2;--body:#8A94A8;--green:#5EDB95;--red:#FF8A8A;
+  --display:'Barlow Condensed',sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--cream);font-family:'Inter',sans-serif;line-height:1.55;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(900px 480px at 80% -10%,rgba(255,200,61,.12),transparent 60%),radial-gradient(700px 420px at 0% 110%,rgba(255,174,0,.07),transparent 60%)}
+a{color:inherit;text-decoration:none}
+button,input{font-family:inherit}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:8px}
+.wrap{position:relative;max-width:720px;margin:0 auto;padding:0 16px 60px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 0 6px}
+.back{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:.86rem;color:var(--silver)}
+.back img{width:34px;height:34px;border-radius:10px}
+.back:hover{color:var(--cream)}
+.top-links{display:flex;gap:8px}
+.chip-link{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);font-size:.8rem;font-weight:600;color:var(--gold-l)}
+.chip-link:hover{border-color:var(--gold-m)}
+
+.card{border-radius:20px;background:var(--panel);border:1px solid var(--line-2);padding:18px}
+.card h2{margin:0 0 12px;font-family:var(--display);font-weight:700;font-size:1.35rem;letter-spacing:.01em;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card h2 a{font-family:'Inter',sans-serif;font-size:.78rem;font-weight:600;color:var(--gold-l)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+@media(max-width:620px){.grid2{grid-template-columns:1fr}}
+.stack>*+*{margin-top:12px}
+
+/* hero */
+.hero{position:relative;overflow:hidden;border-radius:24px;padding:22px;border:1px solid var(--gold-m);
+  background:radial-gradient(120% 140% at 100% 0%,rgba(255,200,61,.18),transparent 55%),linear-gradient(150deg,#17170f,#0f1320 60%);margin-top:10px}
+.hero-row{display:flex;align-items:center;gap:16px}
+.av{position:relative;flex:none;width:84px;height:84px}
+.av img{width:84px;height:84px;border-radius:22px;object-fit:cover;background:#000;border:2px solid var(--gold);box-shadow:0 10px 30px rgba(255,190,50,.3)}
+.av label{position:absolute;right:-6px;bottom:-6px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#0a0a12;cursor:pointer;font-size:.9rem;box-shadow:0 4px 10px rgba(0,0,0,.4)}
+.who{min-width:0}
+.who h1{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(1.7rem,6vw,2.3rem);line-height:1.05;overflow-wrap:anywhere}
+.who .meta{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:6px;font-size:.78rem;color:var(--silver)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700}
+.badge.ok{background:rgba(94,219,149,.12);color:var(--green)}
+.badge.tag{background:rgba(255,200,61,.1);color:var(--gold-l);font-family:'JetBrains Mono',monospace}
+.rank{margin-top:18px;padding:12px 14px;border-radius:16px;background:rgba(0,0,0,.28);border:1px solid var(--line-2)}
+.rank-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.rank-top b{font-family:var(--display);font-size:1.4rem}
+.rank-top span{font-size:.76rem;color:var(--silver)}
+.bar{height:8px;border-radius:8px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,var(--gold-2),var(--gold-l));transition:width .8s ease}
+
+/* wallet */
+.wallet{background:linear-gradient(150deg,#1a1a12,#111827 70%);border-color:var(--gold-m)}
+.bal{display:flex;align-items:center;gap:12px}
+.coin{flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#fff3c4,#ffc83d 45%,#c98a00 100%);box-shadow:inset 0 -3px 6px rgba(0,0,0,.25),0 6px 18px rgba(255,190,50,.4);color:#5a3d00;font-family:var(--display);font-weight:700;font-size:1.1rem}
+.bal b{font-family:var(--display);font-weight:700;font-size:2.6rem;line-height:1;color:var(--gold-l)}
+.bal small{display:block;font-size:.74rem;color:var(--silver)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border:none;border-radius:14px;background:linear-gradient(100deg,var(--gold),var(--gold-2));color:#0a0a12;font-weight:800;font-size:.9rem;cursor:pointer;transition:.2s}
+.btn:hover{transform:translateY(-1px)}
+.btn:disabled{opacity:.55;cursor:default;transform:none}
+.btn.ghost{background:transparent;border:1px solid var(--gold-m);color:var(--gold-l)}
+.btn.danger{background:transparent;border:1px solid rgba(255,120,120,.45);color:var(--red)}
+.mini{margin-top:12px;border-top:1px solid var(--line-2);padding-top:8px}
+.mini div{display:flex;justify-content:space-between;font-size:.78rem;padding:4px 0;color:var(--body)}
+.mini b.plus{color:var(--green)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{padding:12px;border-radius:14px;background:var(--bg-2);border:1px solid var(--line-2)}
+.stat span{display:block;font-size:.7rem;font-weight:600;color:var(--body)}
+.stat b{font-family:var(--display);font-weight:700;font-size:1.6rem;line-height:1.1}
+
+/* squad */
+.squad{display:flex;align-items:center;gap:14px}
+.squad img,.squad .ph{flex:none;width:64px;height:64px;border-radius:16px;object-fit:cover;background:#000;border:1px solid var(--gold-m)}
+.squad .ph{display:grid;place-items:center;font-family:var(--display);font-size:1.8rem;color:var(--gold-l);background:rgba(255,200,61,.08)}
+.squad b{display:block;font-family:var(--display);font-size:1.5rem;line-height:1.1}
+.squad small{font-size:.74rem;color:var(--body)}
+label.lbl{display:block;margin:12px 0 6px;font-size:.74rem;font-weight:600;color:var(--silver)}
+input[type=text]{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line-2);background:var(--bg-2);color:var(--cream);font-size:.92rem;outline:none}
+input[type=text]:focus{border-color:var(--gold)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.row .btn{flex:1;min-width:130px;padding:11px}
+.msg{min-height:18px;margin-top:8px;font-size:.8rem}
+.msg.err{color:var(--red)}.msg.ok{color:var(--green)}
+
+/* tournaments */
+.tlist{display:flex;flex-direction:column}
+.trow{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--line-2)}
+.trow:last-child{border-bottom:none}
+.trow .ic{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.05)}
+.trow .t{flex:1;min-width:0}
+.trow .t b{display:block;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trow .t small{font-size:.72rem;color:var(--body)}
+.pill{flex:none;font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--silver)}
+.pill.ok{background:rgba(94,219,149,.12);color:var(--green)}
+.pill.wait{background:rgba(255,200,61,.12);color:var(--gold-l)}
+.pill.bad{background:rgba(255,138,138,.12);color:var(--red)}
+.code{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--gold-l)}
+.empty{text-align:center;padding:20px 10px;color:var(--body);font-size:.84rem}
+#fx b{color:var(--cream)}
+
+/* settings list */
+.set{display:flex;flex-direction:column}
+.set a,.set button{display:flex;align-items:center;gap:12px;width:100%;padding:13px 4px;border:none;border-bottom:1px solid var(--line-2);background:none;color:var(--cream);font-size:.88rem;text-align:left;cursor:pointer}
+.set a:last-child,.set button:last-child{border-bottom:none}
+.set span.s{margin-left:auto;font-size:.76rem;color:var(--body)}
+.set .red{color:var(--red)}
+
+.gate{text-align:center;padding:40px 20px;margin-top:20px}
+.gate h2{justify-content:center}
+.gate p{color:var(--body);margin:0 0 18px}
+.toast{position:fixed;left:50%;bottom:22px;z-index:60;transform:translate(-50%,20px);opacity:0;padding:11px 18px;border-radius:999px;background:#1d2638;border:1px solid var(--gold-m);font-size:.84rem;font-weight:600;transition:.25s;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="back" href="/"><img src="/logo.png" alt="">← Back to Arena</a>
+    <div class="top-links"><a class="chip-link" href="/wallet/">Wallet</a><a class="chip-link" href="/leaderboard.html">Leaderboard</a></div>
+  </div>
+
+  <div id="gate" class="card gate" hidden>
+    <h2>Sign in to see your profile</h2>
+    <p>Your rank, squad, tournaments and points live on your JD Arena account.</p>
+    <a class="btn" href="/?signin=1" style="max-width:240px;margin:0 auto">Sign in</a>
+  </div>
+
+  <div id="app" hidden>
+    <section class="hero">
+      <div class="hero-row">
+        <div class="av"><img id="av-img" src="/logo.png" alt="Profile picture"><label title="Change profile picture">📷<input id="av-file" type="file" accept="image/*" hidden></label></div>
+        <div class="who">
+          <h1 id="uname">…</h1>
+          <div class="meta"><span class="badge tag" id="ptag"></span><span id="pver"></span><span id="pemail"></span></div>
+        </div>
+      </div>
+      <div class="rank">
+        <div class="rank-top"><b id="rank-name">Bronze</b><span id="rank-sub">0 career points</span></div>
+        <div class="bar"><i id="rank-bar" style="width:2%"></i></div>
+      </div>
+    </section>
+
+    <div class="grid2">
+      <section class="card wallet">
+        <h2>Points wallet <a href="/wallet/#history">History →</a></h2>
+        <div class="bal"><div class="coin">JD</div><div><b id="bal">0</b><small id="bal-sub">points · 1 point = Rs 1</small></div></div>
+        <div class="actions">
+          <a class="btn" href="/wallet/#load">＋ Load points</a>
+          <a class="btn ghost" id="wd-link" href="/wallet/#withdraw">↑ Withdraw</a>
+        </div>
+        <div class="mini" id="recent"></div>
+      </section>
+
+      <section class="card">
+        <h2>Career stats</h2>
+        <div class="stats">
+          <div class="stat"><span>Tournaments</span><b id="s-played">0</b></div>
+          <div class="stat"><span>Booyahs</span><b id="s-wins">0</b></div>
+          <div class="stat"><span>Kills</span><b id="s-kills">0</b></div>
+          <div class="stat"><span>Points</span><b id="s-points">0</b></div>
+          <div class="stat"><span>Avg place</span><b id="s-avg">–</b></div>
+          <div class="stat"><span>Prize won</span><b id="s-prize">0</b></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="stack" style="margin-top:12px">
+      <section class="card">
+        <h2>My squad</h2>
+        <div class="squad"><span id="sq-logo"></span><div><b id="sq-name">No squad saved yet</b><small>Used automatically every time you join a tournament.</small></div></div>
+        <label class="lbl" for="sq-input">Squad name</label>
+        <input type="text" id="sq-input" maxlength="40" placeholder="e.g. Ayer Legends">
+        <div class="row">
+          <button class="btn" id="sq-save" type="button">Save name</button>
+          <label class="btn ghost" style="cursor:pointer">Change logo<input id="sq-file" type="file" accept="image/*" hidden></label>
+          <button class="btn danger" id="sq-remove" type="button" hidden>Remove logo</button>
+        </div>
+        <div class="msg" id="sq-msg"></div>
+      </section>
+
+      <section class="card">
+        <h2>My tournaments <a href="/#tournaments">Find tournaments →</a></h2>
+        <div class="tlist" id="tlist"><div class="empty">Loading…</div></div>
+      </section>
+
+      <section class="card">
+        <h2>Squad effects <a href="/#tournaments">Get effects →</a></h2>
+        <div id="fx" class="empty" style="text-align:left;padding:0"></div>
+      </section>
+
+      <section class="card">
+        <h2>Account</h2>
+        <div class="set">
+          <button type="button" id="chg-user">✏️ Change username<span class="s" id="chg-user-s"></span></button>
+          <a href="/?account=1">🔔 Notifications, Discord &amp; app<span class="s">Open on main site</span></a>
+          <a href="/terms.html">📄 Terms &amp; conditions<span class="s">›</span></a>
+          <button type="button" id="logout">↩ Log out</button>
+          <a href="/?account=1" class="red">Delete account<span class="s">Account management</span></a>
+        </div>
+        <div id="uname-edit" hidden>
+          <label class="lbl" for="un-input">New username</label>
+          <input type="text" id="un-input" maxlength="20" placeholder="3–20 letters, numbers or underscore">
+          <div class="row"><button class="btn" id="un-save" type="button">Save username</button><button class="btn ghost" id="un-cancel" type="button">Cancel</button></div>
+          <div class="msg" id="un-msg"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* Same project + publishable key as the main site — the login session is shared through
+   localStorage on this origin. Everything here is the signed-in player's own data (RLS). */
+const SUPABASE_URL='https://cnoxvqvpmgowdiyrrusv.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const RANKS=[['Bronze',0,'🥉'],['Silver',20,'🥈'],['Gold',50,'🥇'],['Platinum',100,'💠'],['Diamond',200,'💎'],['Heroic',350,'🔥'],['Ace',550,'👑']];
+const FX={glow:'Glow',steel:'Steel',gold:'Champion',fire:'On fire',ice:'Frozen',neon:'Neon',rainbow:'Prism',galaxy:'Galaxy',thunder:'Thunder',legend:'Legend',bullets:'Bullet Storm',blade:'Blade'};
+const STATUS={confirmed:['Registered','ok'],approved:['Confirmed','ok'],pending:['Place held','wait'],waitlisted:['Waitlist','wait'],rejected:['Not verified','bad'],no_show:['Missed check-in','bad']};
+let me=null;
+function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),1900);}
+function ticket(id){return 'JD-'+String(id||'').replace(/-/g,'').slice(0,8).toUpperCase();}
+function fmtDate(iso){try{return new Date(iso).toLocaleDateString([],{day:'numeric',month:'short'});}catch(e){return '';}}
+// same resize as the main site: square-ish, max 128px, JPEG
+function resize(file,maxPx,cb){
+  const img=new Image(),url=URL.createObjectURL(file);
+  img.onload=()=>{const k=Math.min(1,maxPx/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);cb(c.toDataURL('image/jpeg',.85));};
+  img.onerror=()=>{URL.revokeObjectURL(url);toast('That image could not be read.');};
+  img.src=url;
+}
+
+async function loadProfile(){
+  const {data:p}=await sb.from('players').select('username, player_tag, discord_username, squad_name, squad_logo').eq('id',me.id).maybeSingle();
+  Object.assign(me,p||{});
+  $('uname').textContent=me.username?'@'+me.username:'Player';
+  $('ptag').textContent=me.player_tag||'';
+  $('pver').innerHTML=me.verified?'<span class="badge ok">✓ Verified</span>':'';
+  $('pemail').textContent=me.email||'';
+  $('chg-user-s').textContent=me.username?'@'+me.username:'';
+  renderSquad();
+  const {data:a}=await sb.storage.from('avatars').createSignedUrl(`${me.id}/avatar.jpg`,3600);
+  if(a&&a.signedUrl)$('av-img').src=a.signedUrl;
+}
+function renderSquad(){
+  $('sq-name').textContent=me.squad_name||'No squad saved yet';
+  $('sq-input').value=me.squad_name||'';
+  $('sq-logo').innerHTML=me.squad_logo?`<img src="${esc(me.squad_logo)}" alt="Squad logo">`:`<span class="ph">${esc((me.squad_name||'?').trim().charAt(0).toUpperCase()||'?')}</span>`;
+  $('sq-remove').hidden=!me.squad_logo;
+}
+async function loadWallet(){
+  const [{data:w},{data:l}]=await Promise.all([
+    sb.from('wallets').select('balance, unlimited').eq('player_id',me.id).maybeSingle(),
+    sb.from('wallet_ledger').select('delta, reason, created_at').eq('player_id',me.id).order('created_at',{ascending:false}).limit(3)
+  ]);
+  const unl=!!(w&&w.unlimited);
+  $('bal').textContent=unl?'∞':((w&&w.balance)||0).toLocaleString();
+  if(unl){$('bal-sub').textContent='Admin wallet · unlimited';$('wd-link').hidden=true;}
+  const R={load:'Points loaded',prize:'Tournament prize',entry:'Tournament entry',effect:'Squad effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Entry refund',adjust:'Adjustment'};
+  $('recent').innerHTML=(l||[]).length?(l.map(x=>`<div><span>${R[x.reason]||x.reason} · ${fmtDate(x.created_at)}</span><b class="${x.delta>0?'plus':''}">${x.delta>0?'+':'−'}${Math.abs(x.delta)}</b></div>`).join('')):'<div><span>No transactions yet.</span></div>';
+}
+async function loadStats(){
+  if(!me.player_tag)return;
+  const {data}=await sb.rpc('get_player_career_stats',{p_player_tag:me.player_tag});
+  const s=(data&&data[0])||{};
+  const pts=+s.total_points||0;
+  $('s-played').textContent=s.tournaments_played||0;
+  $('s-wins').textContent=s.booyahs||0;
+  $('s-kills').textContent=(+s.total_kills||0).toLocaleString();
+  $('s-points').textContent=pts.toLocaleString();
+  $('s-avg').textContent=s.avg_placement?(+s.avg_placement).toFixed(1):'–';
+  $('s-prize').textContent='Rs '+(+s.total_prize||0).toLocaleString();
+  let i=0;RANKS.forEach((r,k)=>{if(pts>=r[1])i=k;});
+  const cur=RANKS[i],next=RANKS[i+1];
+  $('rank-name').textContent=cur[2]+' '+cur[0];
+  $('rank-sub').textContent=next?`${pts} career points · ${next[1]-pts} to ${next[0]}`:`${pts} career points · top rank`;
+  $('rank-bar').style.width=(next?Math.max(2,Math.min(100,Math.round((pts-cur[1])/(next[1]-cur[1])*100))):100)+'%';
+}
+async function loadTournaments(){
+  const [{data:regs},site]=await Promise.all([
+    sb.from('registrations').select('id, tournament_slug, squad_name, status, checked_in_at, paid_points, created_at').eq('player_id',me.id).order('created_at',{ascending:false}),
+    sb.from('site_content').select('content').eq('key','tournaments').maybeSingle()
+  ]);
+  const tmap=new Map((((site.data||{}).content||{}).tournaments||[]).map(t=>[t.name,t]));
+  $('tlist').innerHTML=(regs||[]).length?regs.map(r=>{
+    const t=tmap.get(r.tournament_slug)||{};const [lbl,cls]=STATUS[r.status]||[r.status,''];
+    const done=t.status==='completed';const icon=t.status==='live'?'🔴':(done?'🏁':'⚔️');
+    return `<a class="trow" href="/#tournaments"><span class="ic">${icon}</span><span class="t"><b>${esc(r.tournament_slug)}</b><small>${esc(r.squad_name||'')}${t.date&&t.date!=='TBA'?' · '+esc(t.date):''} · <span class="code">${ticket(r.id)}</span>${r.paid_points?` · paid ${r.paid_points} pts`:''}</small></span><span class="pill ${r.checked_in_at?'ok':cls}">${r.checked_in_at&&(r.status==='confirmed'||r.status==='approved')?'Checked in':(done&&t.winner&&t.winner.toLowerCase()===String(r.squad_name||'').toLowerCase()?'🏆 Winner':lbl)}</span></a>`;
+  }).join(''):'<div class="empty">You haven\'t joined a tournament yet.</div>';
+}
+async function loadFx(){
+  const {data}=await sb.from('effect_passes').select('tier, effect, starts_at, expires_at').eq('player_id',me.id).gt('expires_at',new Date().toISOString()).order('starts_at');
+  const now=Date.now(),cur=(data||[]).find(x=>Date.parse(x.starts_at)<=now);
+  $('fx').innerHTML=cur
+    ?`<div class="trow" style="border:none"><span class="ic">✨</span><span class="t"><b>${esc(FX[cur.effect]||cur.effect)} · ${cur.tier==='pro'?'Pro':'Lite'} pass</b><small>Shows on every tournament you join until ${fmtDate(data[data.length-1].expires_at)}. Change the effect from your ticket on the main site.</small></span></div>`
+    :`<p style="margin:0;font-size:.84rem;color:var(--body)">No active pass. Make your squad stand out from Rs 2 per match, or Rs 10/week and Rs 30/month for every effect — buy from your ticket on the main site.</p>`;
+}
+
+/* squad actions */
+$('sq-save').onclick=async()=>{
+  const n=$('sq-input').value.trim(),msg=$('sq-msg');
+  if(n.length<2){msg.className='msg err';msg.textContent='Squad name must be at least 2 characters.';return;}
+  const {error}=await sb.rpc('set_my_squad',{p_name:n,p_logo:null,p_clear_logo:false});
+  if(error){msg.className='msg err';msg.textContent=error.message;return;}
+  me.squad_name=n;renderSquad();msg.className='msg ok';msg.textContent='Squad name saved.';
+};
+$('sq-file').onchange=e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  resize(f,128,async uri=>{
+    const msg=$('sq-msg');msg.className='msg';msg.textContent='Saving logo…';
+    const {error}=await sb.rpc('set_my_squad',{p_name:null,p_logo:uri,p_clear_logo:false});
+    if(error){msg.className='msg err';msg.textContent=error.message;return;}
+    me.squad_logo=uri;renderSquad();msg.className='msg ok';msg.textContent='Logo updated — the old one was replaced everywhere.';
+  });
+};
+$('sq-remove').onclick=async()=>{
+  if(!confirm('Remove your squad logo?'))return;
+  const {error}=await sb.rpc('set_my_squad',{p_name:null,p_logo:null,p_clear_logo:true});
+  if(error){toast(error.message);return;}
+  me.squad_logo=null;renderSquad();toast('Logo removed');
+};
+/* avatar */
+$('av-file').onchange=e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  resize(f,128,async uri=>{
+    const blob=await (await fetch(uri)).blob();
+    const {error}=await sb.storage.from('avatars').upload(`${me.id}/avatar.jpg`,blob,{upsert:true,contentType:'image/jpeg'});
+    if(error){toast(error.message);return;}
+    $('av-img').src=uri;toast('Profile picture updated');
+  });
+};
+/* username */
+$('chg-user').onclick=()=>{$('uname-edit').hidden=false;$('un-input').value=me.username||'';$('un-input').focus();};
+$('un-cancel').onclick=()=>{$('uname-edit').hidden=true;};
+$('un-save').onclick=async()=>{
+  const v=$('un-input').value.trim(),msg=$('un-msg');
+  if(!/^[A-Za-z0-9_]{3,20}$/.test(v)){msg.className='msg err';msg.textContent='3–20 letters, numbers or underscore.';return;}
+  const {error}=await sb.rpc('set_my_username',{new_username:v});
+  if(error){msg.className='msg err';msg.textContent=/taken|duplicate|unique/i.test(error.message)?'That username is taken.':error.message;return;}
+  me.username=v;$('uname').textContent='@'+v;$('chg-user-s').textContent='@'+v;$('uname-edit').hidden=true;toast('Username saved');
+};
+$('logout').onclick=async()=>{await sb.auth.signOut();location.href='/';};
+
+(async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){$('gate').hidden=false;return;}
+  me={id:session.user.id,email:session.user.email,verified:!!session.user.email_confirmed_at};
+  $('app').hidden=false;
+  await loadProfile();
+  await Promise.all([loadWallet(),loadStats(),loadTournaments(),loadFx()]);
+  setInterval(()=>{if(!document.hidden)loadWallet();},20000);
+})();
+</script>
+</body>
+</html>
