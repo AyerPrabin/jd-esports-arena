@@ -27,13 +27,18 @@ Deno.serve(async (req: Request) => {
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
   let q = supabase
     .from('registrations')
-    .select('id, squad_name, squad_logo, status, payment_screenshot, device_type, checked_in_at, verified_at, created_at, players(player_tag, username, email)')
+    .select('id, squad_name, squad_logo, status, payment_screenshot, device_type, checked_in_at, verified_at, created_at, players(player_tag, username, email, squad_logo)')
     .eq('tournament_slug', tournament_slug)
     .order('created_at', { ascending: true });
   if (status) q = q.eq('status', status);
   const { data, error } = await q;
   if (error) return new Response(error.message, { status: 500, headers: CORS_HEADERS });
-  return new Response(JSON.stringify(data || []), {
+  // Squad logos are saved once on the player's profile (players.squad_logo), not per registration.
+  const rows = (data || []).map((r: any) => {
+    const { squad_logo: profileLogo, ...player } = r.players || {};
+    return { ...r, squad_logo: r.squad_logo || profileLogo || null, players: r.players ? player : null };
+  });
+  return new Response(JSON.stringify(rows), {
     status: 200,
     headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
   });

@@ -2182,3 +2182,156 @@ select cron.unschedule(jobid) from cron.job where jobname = 'security-sweep';
 select cron.schedule('security-sweep', '*/5 * * * *', 'select public.security_sweep(true)');
 
 commit;
+
+-- ── saved squad (name + logo on the profile) ─────────────────────────────
+-- One squad name + logo per player, stored once on players instead of copied into every
+-- registration. Changing the logo overwrites the old image. Rosters fall back to it.
+-- Backup of the per-registration logos cleared here: supabase/.temp/logo_backup_2026-09-28.json
+begin;
+alter table public.players add column if not exists squad_name text;
+alter table public.players add column if not exists squad_logo text;
+
+-- backfill from each player's latest registration
+update public.players p set
+  squad_name = coalesce(p.squad_name, x.squad_name),
+  squad_logo = coalesce(p.squad_logo, x.squad_logo)
+from (
+  select distinct on (player_id) player_id, squad_name,
+    (select r2.squad_logo from public.registrations r2 where r2.player_id = r.player_id and r2.squad_logo is not null order by r2.created_at desc limit 1) squad_logo
+  from public.registrations r order by player_id, created_at desc
+) x where x.player_id = p.id;
+update public.registrations set squad_logo = null where squad_logo is not null;
+
+CREATE OR REPLACE FUNCTION public.register_for_tournament(p_tournament_slug text, p_squad_name text, p_squad_logo text, p_status text, p_payment_screenshot text, p_device_type text)
+ RETURNS registrations
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_slots int;
+  v_count int;
+  v_already_registered boolean;
+  v_effective_status text := p_status;
+  v_platform_mode text;
+  v_row public.registrations;
+  v_name text;
+begin
+  if auth.uid() is null then
+    raise exception 'Not signed in';
+  end if;
+
+  if p_squad_logo is not null and (length(p_squad_logo) > 200000 or p_squad_logo !~ '^data:image/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=]+$') then
+    raise exception 'Squad logo must be a PNG, JPG, WEBP or GIF image under 200 KB.';
+  end if;
+  if p_squad_name is not null and length(trim(p_squad_name)) > 40 then
+    raise exception 'Squad name must be 40 characters or fewer.';
+  end if;
+  -- Saved squad: a player's squad name/logo live on their profile (players.squad_name /
+  -- squad_logo). A new logo passed here replaces the saved one (the old image is gone,
+  -- nothing is duplicated per registration); a missing name falls back to the saved name.
+  v_name := coalesce(nullif(trim(p_squad_name), ''), (select squad_name from public.players where id = auth.uid()));
+  if v_name is null or length(trim(v_name)) < 2 then
+    raise exception 'Enter your squad name (at least 2 characters).';
+  end if;
+  update public.players set squad_name = trim(v_name),
+    squad_logo = coalesce(p_squad_logo, squad_logo)
+    where id = auth.uid();
+  if p_status not in ('pending','confirmed') then
+    raise exception 'Invalid registration status';
+  end if;
+
+  if coalesce(public.tournament_entry_npr(p_tournament_slug), 0) > 0 then
+    p_status := 'pending';
+    v_effective_status := 'pending';
+  end if;
+
+  if exists(select 1 from public.banned_players where player_id = auth.uid()) then
+    raise exception 'Your account is banned from registering for tournaments.';
+  end if;
+
+  if p_device_type not in ('mobile','emulator') then
+    raise exception 'Pick a device type: mobile or emulator.';
+  end if;
+
+  select platform_mode into v_platform_mode from public.tournament_capacity where tournament_slug = p_tournament_slug;
+  v_platform_mode := coalesce(v_platform_mode, 'mixed');
+  if v_platform_mode <> 'mixed' and v_platform_mode <> p_device_type then
+    raise exception 'This tournament is % only -- you declared %.', v_platform_mode, p_device_type;
+  end if;
+
+  perform pg_advisory_xact_lock(hashtext(p_tournament_slug));
+
+  select exists(
+    select 1 from public.registrations
+    where tournament_slug = p_tournament_slug and player_id = auth.uid()
+  ) into v_already_registered;
+
+  if not v_already_registered then
+    select slots into v_slots from public.tournament_capacity where tournament_slug = p_tournament_slug;
+    if v_slots is not null then
+      select count(*) into v_count from public.registrations
+        where tournament_slug = p_tournament_slug and status in ('confirmed', 'approved');
+      if v_count >= v_slots then
+        if p_status = 'confirmed' then
+          v_effective_status := 'waitlisted';
+        else
+          raise exception 'Tournament full';
+        end if;
+      end if;
+    end if;
+  end if;
+
+  insert into public.registrations (tournament_slug, player_id, squad_name, squad_logo, status, payment_screenshot, device_type)
+  values (p_tournament_slug, auth.uid(), trim(v_name), null, v_effective_status, p_payment_screenshot, p_device_type)
+  returning * into v_row;
+
+  insert into public.notifications (player_id, tournament_slug, title, body)
+  values (
+    auth.uid(),
+    p_tournament_slug,
+    '🎫 Registered: ' || p_tournament_slug,
+    'TICKET::' || ('JD-' || upper(substr(replace(v_row.id::text, '-', ''), 1, 8))) || '::' || v_effective_status
+  );
+
+  return v_row;
+end;
+$function$;
+
+create or replace function public.set_my_squad(p_name text, p_logo text default null, p_clear_logo boolean default false)
+returns jsonb language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then
+    raise exception 'Please sign in first.';
+  end if;
+  if p_name is not null and (length(trim(p_name)) < 2 or length(trim(p_name)) > 40) then
+    raise exception 'Squad name must be 2-40 characters.';
+  end if;
+  if p_logo is not null and (length(p_logo) > 200000 or p_logo !~ '^data:image/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=]+$') then
+    raise exception 'Squad logo must be a PNG, JPG, WEBP or GIF image under 200 KB.';
+  end if;
+  update public.players set
+    squad_name = coalesce(nullif(trim(p_name), ''), squad_name),
+    squad_logo = case when p_clear_logo then null else coalesce(p_logo, squad_logo) end
+  where id = auth.uid();
+  return (select jsonb_build_object('squad_name', squad_name, 'has_logo', squad_logo is not null) from public.players where id = auth.uid());
+end;
+$$;
+revoke all on function public.set_my_squad(text, text, boolean) from public, anon;
+grant execute on function public.set_my_squad(text, text, boolean) to authenticated;
+
+create or replace function public.get_public_roster()
+returns table(tournament_slug text, squad_name text, squad_logo text, registered_at timestamptz, effect text)
+language sql security definer set search_path = public stable as $$
+  select r.tournament_slug, r.squad_name, coalesce(r.squad_logo, p.squad_logo), r.created_at,
+    coalesce(r.effect, (
+      select ep.effect from public.effect_passes ep
+      where ep.player_id = r.player_id and ep.starts_at <= now() and ep.expires_at > now()
+      order by ep.expires_at asc limit 1
+    ))
+  from public.registrations r left join public.players p on p.id = r.player_id
+  where r.status in ('confirmed', 'approved')
+  order by r.created_at asc;
+$$;
+grant execute on function public.get_public_roster() to anon, authenticated;
+commit;

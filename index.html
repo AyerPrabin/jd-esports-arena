@@ -1065,12 +1065,13 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
   <div class="zmodal"><button class="fb-x" style="position:absolute;top:12px;right:14px" onclick="regClose()" aria-label="close">×</button>
     <h3>Register in-app</h3>
     <p class="sub" id="reg-tname"></p>
-    <label>Squad / team name (optional)</label>
-    <input id="reg-squad" placeholder="e.g. Ayer Legends" maxlength="40">
+    <label>Squad / team name <span style="color:var(--gold-l)">*</span></label>
+    <input id="reg-squad" placeholder="e.g. Ayer Legends" maxlength="40" required>
     <label>Device</label>
     <select id="reg-device"><option value="mobile">📱 Mobile</option><option value="emulator">🖥️ Emulator</option></select>
     <p class="sub" style="margin:4px 0 0">Declare honestly — mobile-only brackets check this, and misdeclaring can get you reported and banned.</p>
     <label>Squad logo (optional)</label>
+    <p class="sub" id="reg-logo-note" style="margin:0 0 6px"></p>
     <input id="reg-logo-file" type="file" accept="image/*">
     <img id="reg-logo-preview" style="display:none;width:64px;height:64px;border-radius:10px;object-fit:cover;margin-top:10px;border:1px solid var(--line)" alt="">
     <div id="reg-pay-wrap" style="display:none">
@@ -2238,9 +2239,9 @@ async function authRefreshPlayer(){
   const {data:{user}}=await sb.auth.getUser();
   if(!user){_player=null;updateAcctBtn();updateGate();trackPresence();return;}
   let tag=null,uname=null;
-  const {data}=await sb.from('players').select('player_tag, username, discord_username, terms_accepted_at').eq('id',user.id).single();
+  const {data}=await sb.from('players').select('player_tag, username, discord_username, terms_accepted_at, squad_name, squad_logo').eq('id',user.id).single();
   if(data){tag=data.player_tag;uname=data.username;}
-  _player={id:user.id,email:user.email,tag:tag,username:uname,discord_username:data&&data.discord_username||null,avatar:null,termsAccepted:!!(data&&data.terms_accepted_at),verified:!!user.email_confirmed_at};
+  _player={id:user.id,email:user.email,tag:tag,username:uname,discord_username:data&&data.discord_username||null,avatar:null,termsAccepted:!!(data&&data.terms_accepted_at),verified:!!user.email_confirmed_at,squad_name:(data&&data.squad_name)||'',squad_logo:(data&&data.squad_logo)||''};
   updateAcctBtn();
   updateGate();
   trackPresence();
@@ -2354,7 +2355,7 @@ async function loadMyRegs(){
   const {data}=await sb.from('registrations').select('id, tournament_slug, squad_name, squad_logo, status, checked_in_at, verified_at, effect, paid_points').eq('player_id',_player.id);
   _myRegsLoaded=true;
   loadWallet();
-  _myRegs=new Map((data||[]).map(r=>[r.tournament_slug,{id:r.id,squad_name:r.squad_name,squad_logo:r.squad_logo,status:r.status||'confirmed',checked_in_at:r.checked_in_at||null,verified_at:r.verified_at||null,effect:r.effect||'',paid_points:r.paid_points||0}]));
+  _myRegs=new Map((data||[]).map(r=>[r.tournament_slug,{id:r.id,squad_name:r.squad_name,squad_logo:r.squad_logo,status:r.status||'confirmed',checked_in_at:r.checked_in_at||null,verified_at:r.verified_at||null,effect:r.effect||'',paid_points:r.paid_points||0,squad_logo:r.squad_logo||(_player&&_player.squad_logo)||''}]));
   const pr=await sb.from('effect_passes').select('tier, effect, starts_at, expires_at').eq('player_id',_player.id).gt('expires_at',new Date().toISOString()).order('starts_at',{ascending:true});
   const passes=pr.data||[];
   _myPass=passes.find(x=>Date.parse(x.starts_at)<=Date.now())||null;
@@ -2374,9 +2375,13 @@ function registerInApp(name){
   if(full&&paid){showMsg('Tournament full',"All "+slots+" squad slots are taken.",true);return;}
   _regTarget=name;_regLogoData=null;_regPayData=null;
   document.getElementById('reg-tname').textContent=name;
-  document.getElementById('reg-squad').value='';
+  // saved squad: name pre-filled, logo reused — they only upload again to change it
+  document.getElementById('reg-squad').value=_player.squad_name||'';
   const fi=document.getElementById('reg-logo-file');if(fi)fi.value='';
-  const pv=document.getElementById('reg-logo-preview');if(pv){pv.style.display='none';pv.src='';}
+  const pv=document.getElementById('reg-logo-preview');
+  if(pv){if(_player.squad_logo){pv.src=_player.squad_logo;pv.style.display='block';}else{pv.style.display='none';pv.src='';}}
+  const ln=document.getElementById('reg-logo-note');
+  if(ln)ln.textContent=_player.squad_logo?'Using your saved logo. Choose a new image only if you want to change it — it replaces the old one everywhere.':'Upload once — it is saved to your profile for every future tournament.';
   const payWrap=document.getElementById('reg-pay-wrap');if(payWrap)payWrap.style.display=paid?'':'none';
   const rc=document.getElementById('reg-code');if(rc)rc.value='';
   const pp=document.getElementById('reg-pay-price');if(pp)pp.textContent='Entry '+(t.entry||'');
@@ -2432,6 +2437,7 @@ async function submitRegister(){
   const paid=isPaidTournament(t);
   const squad=document.getElementById('reg-squad').value.trim()||null;
   const msg=document.getElementById('reg-msg');
+  if(!squad||squad.length<2){msg.textContent='Enter your squad name (at least 2 characters).';msg.className='msg err';document.getElementById('reg-squad').focus();return;}
   msg.textContent='Registering…';msg.className='msg';
   const status=paid?'pending':'confirmed';
   // Goes through register_for_tournament() (see schema.sql) instead of a plain insert —
@@ -2449,6 +2455,7 @@ async function submitRegister(){
   // reg.status is what the RPC actually stored — 'waitlisted' if the tournament was full
   // when this landed, which can differ from the 'status' we asked for above.
   let effectiveStatus=(reg&&reg.status)||status;
+  _player.squad_name=squad;if(_regLogoData)_player.squad_logo=_regLogoData;
   // Paid: if they already have their join code, confirm the held place right away.
   let codeErr='';
   const joinCode=paid?((document.getElementById('reg-code')||{}).value||'').trim():'';
@@ -2459,7 +2466,7 @@ async function submitRegister(){
     const rr=await sb.rpc('pay_entry_with_points',{p_tournament_slug:name});
     if(rr.error)codeErr=rr.error.message;else{effectiveStatus='approved';loadWallet();}
   }
-  _myRegs.set(name,{id:reg&&reg.id,squad_name:squad,squad_logo:_regLogoData,status:effectiveStatus,checked_in_at:null,paid_points:effectiveStatus==='approved'&&!joinCode?entryAmount(t):0});
+  _myRegs.set(name,{id:reg&&reg.id,squad_name:squad,squad_logo:_regLogoData||_player.squad_logo||"",status:effectiveStatus,checked_in_at:null,paid_points:effectiveStatus==='approved'&&!joinCode?entryAmount(t):0});
   regClose();
   regSuccessOpen(t,effectiveStatus,reg);
   if(codeErr){const n=document.getElementById('rs-note');if(n)n.innerHTML+=`<br><br><b>Payment not completed:</b> ${esc(codeErr)} Your place is held — you can pay from your ticket.`;}
