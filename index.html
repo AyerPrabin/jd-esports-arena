@@ -567,7 +567,37 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .pts-pill.bump{animation:ptsBump .6s ease}
 @keyframes ptsBump{40%{transform:scale(1.12);box-shadow:0 0 26px rgba(255,200,61,.6)}}
 @media(max-width:640px){.pts-pill{height:38px;padding:0 10px 0 8px}.pts-pill .pts-unit{display:none}}
-@media(max-width:430px){.pts-pill{height:36px;padding:0 8px 0 6px;gap:3px}.pts-pill b{font-size:1.05rem}.pts-coin{font-size:.88rem}}
+/* ── mobile header: points pill, bell and menu share one size, shape and spacing ── */
+.nt-lines{position:relative;display:block;width:18px;height:12px}
+.nt-lines i{position:absolute;left:0;width:100%;height:2px;border-radius:2px;background:currentColor;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .2s,top .3s cubic-bezier(.16,1,.3,1)}
+.nt-lines i:nth-child(1){top:0}.nt-lines i:nth-child(2){top:5px}.nt-lines i:nth-child(3){top:10px}
+.nav-toggle[aria-expanded="true"] .nt-lines i:nth-child(1){top:5px;transform:rotate(45deg)}
+.nav-toggle[aria-expanded="true"] .nt-lines i:nth-child(2){opacity:0}
+.nav-toggle[aria-expanded="true"] .nt-lines i:nth-child(3){top:5px;transform:rotate(-45deg)}
+@media(max-width:640px){
+  .bar{padding:14px 0}
+  .bar-right{gap:8px}
+  .brand{gap:9px}
+  .jdlogo{width:34px;height:34px}
+  .brand b{font-size:1.18rem}
+  .brand span span{font-size:.56rem;letter-spacing:.16em}
+  .pts-pill,#notifhist-btn,.nav-toggle{height:40px;border-radius:999px;border:1px solid var(--gold-m);background:rgba(255,200,61,.07)}
+  #notifhist-btn,.nav-toggle{width:40px;font-size:1.02rem}
+  .pts-pill{padding:0 12px 0 9px;gap:5px;border-color:var(--gold);background:linear-gradient(100deg,rgba(255,200,61,.2),rgba(255,200,61,.07))}
+  .pts-pill b{font-size:1.15rem}
+  .pts-coin{font-size:.95rem}
+  .icon-btn .badge{top:-4px;right:-4px;min-width:16px;height:16px;font-size:.6rem}
+}
+@media(max-width:380px){
+  .brand span span{display:none}
+  .brand b{font-size:1.05rem}
+  .jdlogo{width:30px;height:30px}
+  .bar-right{gap:6px}
+  .pts-pill,#notifhist-btn,.nav-toggle{height:36px}
+  #notifhist-btn,.nav-toggle{width:36px;font-size:.95rem}
+  .pts-pill{padding:0 10px 0 7px}
+  .pts-pill b{font-size:1.05rem}
+}
 .pts-pay{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .pts-pay .pts-line{font-size:.78rem;color:var(--body)}
 .pts-pay .pts-line b{color:var(--gold-l)}
@@ -868,7 +898,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
     <div class="bar-right">
       <a id="pts-pill" class="pts-pill" href="/wallet/" aria-label="Points wallet" hidden><span class="pts-coin">🪙</span><b id="pts-bal">0</b><span class="pts-unit">pts</span></a>
       <button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History">🔔<span class="badge" id="notif-badge" hidden>0</span></button>
-      <button class="nav-toggle" id="nav-toggle-btn" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="acct-nav">☰</button>
+      <button class="nav-toggle" id="nav-toggle-btn" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="acct-nav"><span class="nt-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
       <nav class="bar-nav" id="acct-nav"><a class="lang-btn" href="/leaderboard.html">🏆 Leaderboard</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="admin-btn" class="lang-btn" href="/admin/" style="display:none">🛠 Admin</a><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none">⚙️ Settings</button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button></div></div></nav>
     </div>
   </div>
@@ -3055,7 +3085,6 @@ function toggleMobileNav(){
   scrim.classList.toggle('open',open);
   document.body.classList.toggle('nav-locked',open);
   btn.setAttribute('aria-expanded',open?'true':'false');
-  btn.textContent=open?'✕':'☰';
 }
 function closeMobileNav(){
   document.getElementById('acct-nav').classList.remove('open');
@@ -3063,7 +3092,6 @@ function closeMobileNav(){
   document.body.classList.remove('nav-locked');
   const btn=document.getElementById('nav-toggle-btn');
   btn.setAttribute('aria-expanded','false');
-  btn.textContent='☰';
 }
 document.getElementById('acct-nav').addEventListener('click',e=>{
   if(e.target.closest('#dl-btn'))return; // opens the download submenu in place, shouldn't close the panel
