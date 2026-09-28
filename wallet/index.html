@@ -369,7 +369,7 @@ async function loadWithdrawals(){
 }
 
 /* ── history ── */
-const R={prize:['🏆','Tournament prize','in'],load:['💰','Points loaded','in'],refund:['↩️','Entry refund','in'],withdraw_returned:['↩️','Withdrawal returned','in'],adjust:['🛠️','Adjustment','in'],entry:['🎮','Tournament entry','out'],effect:['✨','Squad effect','out'],withdraw:['💸','Withdrawal to eSewa','wd']};
+const R={challenge_win:['⚔️','Challenge won','in'],challenge_refund:['↩️','Challenge refund','in'],challenge_stake:['⚔️','Challenge stake','out'],prize:['🏆','Tournament prize','in'],load:['💰','Points loaded','in'],refund:['↩️','Entry refund','in'],withdraw_returned:['↩️','Withdrawal returned','in'],adjust:['🛠️','Adjustment','in'],entry:['🎮','Tournament entry','out'],effect:['✨','Squad effect','out'],withdraw:['💸','Withdrawal to eSewa','wd']};
 const FX={fx_game:'Single match',fx_lite_week:'Lite week',fx_week:'Pro week',fx_month:'Pro month'};
 function histSub(x){
   if(x.reason==='effect'&&x.note){const [k,e]=x.note.split(':');return (FX[k]||k)+(e?' · '+e:'');}
@@ -394,8 +394,8 @@ async function refresh(){
   if(unl){$('bal').textContent='∞';$('bal-sub').textContent='Admin wallet · unlimited points for testing';$('tab-withdraw').hidden=true;}
   else countTo($('bal'),bal);
   const sum=f=>ledger.filter(f).reduce((a,x)=>a+Math.abs(x.delta),0);
-  countTo($('st-in'),sum(x=>x.reason==='load'||x.reason==='prize'));
-  countTo($('st-out'),sum(x=>x.reason==='entry'||x.reason==='effect')-sum(x=>x.reason==='refund'));
+  countTo($('st-in'),sum(x=>x.reason==='load'||x.reason==='prize'||x.reason==='challenge_win'));
+  countTo($('st-out'),sum(x=>x.reason==='entry'||x.reason==='effect'||x.reason==='challenge_stake')-sum(x=>x.reason==='refund'||x.reason==='challenge_refund'));
   countTo($('st-wd'),sum(x=>x.reason==='withdraw')-sum(x=>x.reason==='withdraw_returned'));
   const pend=(p.data||[]).reduce((a,x)=>a+x.amount,0);
   $('pend-note').hidden=!pend;$('pend-note').textContent=pend?`⏳ Rs ${pend.toLocaleString()} withdrawal on its way to your eSewa`:'';

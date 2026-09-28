@@ -95,6 +95,29 @@ Deno.serve(async (req: Request) => {
     return json(data);
   }
 
+  if (p.action === 'challenges') {
+    const cols = 'id, mode, stake, status, note, room_id, creator_claim, opponent_claim, claim_at, resolution, created_at, accepted_at, resolved_at, creator:players!challenges_creator_fkey(username, player_tag), opponent:players!challenges_opponent_fkey(username, player_tag)';
+    const [{ data: disputed, error: e1 }, { data: recent, error: e2 }] = await Promise.all([
+      supabase.from('challenges').select(cols).eq('status', 'disputed').order('created_at', { ascending: true }),
+      supabase.from('challenges').select(cols).neq('status', 'disputed').order('created_at', { ascending: false }).limit(30),
+    ]);
+    if (e1 || e2) return fail((e1 || e2)!.message, 500);
+    const ids = (disputed || []).map((c: any) => c.id);
+    let chats: Record<string, any[]> = {};
+    if (ids.length) {
+      const { data: msgs } = await supabase.from('challenge_messages')
+        .select('challenge_id, body, created_at, sender:players(username, player_tag)').in('challenge_id', ids).order('id');
+      for (const m of msgs || []) (chats[m.challenge_id] ||= []).push(m);
+    }
+    return json({ disputed: (disputed || []).map((c: any) => ({ ...c, chat: chats[c.id] || [] })), recent: recent || [] });
+  }
+
+  if (p.action === 'resolve_challenge') {
+    const { error } = await supabase.rpc('admin_resolve_challenge', { p_id: p.id, p_outcome: p.outcome });
+    if (error) return fail(error.message);
+    return json({ ok: true });
+  }
+
   if (p.action === 'balances') {
     const { data, error } = await supabase.from('players')
       .select('id, username, player_tag, email, wallets(balance, unlimited, updated_at)');

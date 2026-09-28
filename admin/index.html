@@ -214,7 +214,7 @@ h2[id]{scroll-margin-top:64px}
   <div class="dash" id="dash"><div class="dash-tile loading"><b>…</b><span>Loading</span></div></div>
 
   <nav class="adm-nav" id="adm-nav">
-    <a href="#tournaments">🏆 Tournaments</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
+    <a href="#tournaments">🏆 Tournaments</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#challenges">⚔️ Challenges</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
   </nav>
 
   <div class="f full" style="margin-bottom:8px">
@@ -405,6 +405,11 @@ h2[id]{scroll-margin-top:64px}
   <div id="wa-wlist"></div>
   <div id="wa-prizes"></div>
   <div id="wa-balances"></div>
+
+  <h2 id="challenges">Challenges <span class="tag">player vs player · disputes</span></h2>
+  <p class="hint">When both captains claim the win, the challenge waits here. Read the chat and screenshots, then pay the winner or refund both. Everything else settles automatically.</p>
+  <div class="row"><button class="btn ghost" onclick="loadChallenges()">↻ Load challenges</button><div id="chg-msg" class="hint"></div></div>
+  <div id="chg-list"></div>
 
   <details>
   <summary class="dsum">Admin Alerts <span class="tag">new signups</span></summary>
@@ -1288,7 +1293,7 @@ async function waCall(body){
   if(!r.ok)throw new Error(await r.text());
   return r.json();
 }
-const WA_REASON={prize:'Prize',load:'Loaded',entry:'Entry',effect:'Effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Refund',adjust:'Adjustment'};
+const WA_REASON={challenge_stake:'Challenge stake',challenge_win:'Challenge won',challenge_refund:'Challenge refund',prize:'Prize',load:'Loaded',entry:'Entry',effect:'Effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Refund',adjust:'Adjustment'};
 let _waTimer=null;
 function waSearch(){
   clearTimeout(_waTimer);
@@ -1386,6 +1391,29 @@ async function setLock(lock){
   if(lock&&reason===null)return;
   if(!lock&&!confirm('Unlock and resume payments? Only do this once the problem is fixed.'))return;
   try{await waCall({action:lock?'lock':'unlock',reason});loadSecurity();}catch(e){alert(e.message);}
+}
+/* ── challenges (wallet-admin: challenges / resolve_challenge) ── */
+function chgMsg(t,c){const el=document.getElementById('chg-msg');if(el){el.textContent=t;el.className='hint '+(c||'');}}
+function chgName(p){return p?('@'+(p.username||p.player_tag||'player')):'—';}
+async function loadChallenges(){
+  chgMsg('Loading…','');
+  try{
+    const d=await waCall({action:'challenges'});
+    const box=document.getElementById('chg-list');
+    const disp=(d.disputed||[]).map(c=>`<div class="card" style="border-color:#ff6b6b"><div class="row" style="margin:0 0 8px;justify-content:space-between;flex-wrap:wrap;gap:8px"><b>⚖️ ${esc(c.mode)} · ${c.stake*2} pts pot</b><span class="hint" style="margin:0">${esc(new Date(c.created_at).toLocaleString())}</span></div>
+      <p class="hint" style="margin:0 0 8px">Creator ${esc(chgName(c.creator))} says <b>${esc(c.creator_claim||'—')}</b> · Opponent ${esc(chgName(c.opponent))} says <b>${esc(c.opponent_claim||'—')}</b>${c.room_id?' · room '+esc(c.room_id):''}${c.note?' · '+esc(c.note):''}</p>
+      <div style="max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px;font-size:.8rem;margin-bottom:8px">${(c.chat||[]).map(m=>`<div><b>${esc(chgName(m.sender))}:</b> ${esc(m.body)} <span class="hint" style="margin:0">${esc(new Date(m.created_at).toLocaleTimeString())}</span></div>`).join('')||'<span class="hint">No chat.</span>'}</div>
+      <div class="row" style="margin:0"><button class="btn" data-chg="${esc(c.id)}" data-o="creator">🏆 ${esc(chgName(c.creator))} won</button><button class="btn" data-chg="${esc(c.id)}" data-o="opponent">🏆 ${esc(chgName(c.opponent))} won</button><button class="btn ghost" data-chg="${esc(c.id)}" data-o="refund">↩ Refund both</button></div></div>`).join('');
+    const rec=(d.recent||[]).length?`<div class="card"><table style="width:100%;font-size:.78rem;border-collapse:collapse">${d.recent.map(c=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px">${esc(c.mode)}</td><td>${esc(chgName(c.creator))} vs ${esc(chgName(c.opponent))}</td><td>${c.stake*2} pts</td><td>${esc(c.status)}${c.resolution?' · '+esc(c.resolution):''}</td><td class="hint" style="margin:0">${esc(new Date(c.created_at).toLocaleDateString())}</td></tr>`).join('')}</table></div>`:'';
+    box.innerHTML=(disp||'<p class="hint">No disputes 🎉</p>')+rec;
+    box.querySelectorAll('[data-chg]').forEach(b=>b.onclick=async()=>{
+      const o=b.dataset.o;
+      if(!confirm(o==='refund'?'Refund both players their stake?':'Pay the whole pot to this side?'))return;
+      b.disabled=true;
+      try{await waCall({action:'resolve_challenge',id:b.dataset.chg,outcome:o});chgMsg('Done — both players were notified.','ok');loadChallenges();}catch(e){chgMsg(e.message,'err');b.disabled=false;}
+    });
+    chgMsg((d.disputed||[]).length+' dispute(s).',(d.disputed||[]).length?'err':'ok');
+  }catch(e){chgMsg(e.message,'err');}
 }
 async function loadWithdrawals(){
   const box=document.getElementById('wa-wlist');waMsg('Loading…','');

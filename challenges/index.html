@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07090F">
+<link rel="icon" type="image/png" href="/favicon-64.png">
+<title>Challenges — JD Esports Arena</title>
+<meta name="description" content="Challenge other squads to Clash Squad 1v1, 2v2, 3v3 or 4v4 for JD points. Winner takes the pot.">
+<link rel="manifest" href="/manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090F;--bg-2:#0D111B;--panel:#111827;--panel-2:#151D2E;--line:rgba(255,200,80,.14);--line-2:rgba(255,255,255,.07);
+  --gold:#FFC83D;--gold-2:#FFAE00;--gold-l:#FFDD85;--gold-m:rgba(255,200,80,.42);
+  --cream:#fff;--silver:#A6AFC2;--body:#8A94A8;--green:#5EDB95;--red:#FF8A8A;--blue:#7fb2ff;
+  --display:'Barlow Condensed',sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--cream);font-family:'Inter',sans-serif;line-height:1.55;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(900px 480px at 85% -10%,rgba(255,90,106,.12),transparent 60%),radial-gradient(800px 460px at 0% 110%,rgba(255,200,61,.08),transparent 60%)}
+a{color:inherit;text-decoration:none}
+button,input,textarea{font-family:inherit}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:8px}
+.wrap{position:relative;max-width:760px;margin:0 auto;padding:0 16px 60px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 0 6px}
+.back{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:.86rem;color:var(--silver)}
+.back img{width:34px;height:34px;border-radius:10px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 13px 0 7px;border-radius:999px;border:1px solid var(--gold);background:linear-gradient(100deg,rgba(255,200,61,.18),rgba(255,200,61,.05));font-weight:700}
+.coin{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3c4,#ffc83d 45%,#c98a00);color:#5a3d00;font-family:var(--display);font-size:.72rem}
+.pill b{font-family:var(--display);font-size:1.2rem;color:var(--gold-l)}
+.hero{margin:12px 0 16px;padding:20px;border-radius:22px;border:1px solid rgba(255,90,106,.35);background:radial-gradient(120% 140% at 100% 0%,rgba(255,90,106,.18),transparent 55%),linear-gradient(150deg,#1a1116,#0f1320 65%)}
+.hero h1{margin:0;font-family:var(--display);font-size:clamp(2rem,7vw,2.8rem);line-height:1}
+.hero p{margin:8px 0 0;color:var(--silver);font-size:.9rem;max-width:560px}
+.card{border-radius:20px;background:var(--panel);border:1px solid var(--line-2);padding:18px}
+.card+.card{margin-top:12px}
+.card h2{margin:0 0 10px;font-family:var(--display);font-size:1.35rem}
+.tabs{position:sticky;top:0;z-index:5;display:flex;gap:6px;margin:0 -16px 14px;padding:10px 16px;background:linear-gradient(var(--bg) 70%,transparent)}
+.tab{flex:1;padding:12px 6px;border-radius:14px;border:1px solid var(--line-2);background:var(--panel);color:var(--silver);font-weight:700;font-size:.84rem;cursor:pointer}
+.tab.on{color:#0a0a12;background:linear-gradient(100deg,var(--gold),var(--gold-2));border-color:transparent}
+.tab .n{display:inline-block;min-width:18px;margin-left:4px;padding:0 5px;border-radius:9px;background:#ff5a6a;color:#fff;font-size:.66rem;line-height:18px}
+.pane{display:none}.pane.on{display:block}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 16px;border:none;border-radius:14px;background:linear-gradient(100deg,var(--gold),var(--gold-2));color:#0a0a12;font-weight:800;font-size:.88rem;cursor:pointer}
+.btn:disabled{opacity:.55;cursor:default}
+.btn.ghost{background:transparent;border:1px solid var(--gold-m);color:var(--gold-l)}
+.btn.red{background:linear-gradient(100deg,#ff5a6a,#ff8a5a);color:#fff}
+.btn.green{background:linear-gradient(100deg,#3ecf8e,#5edb95);color:#06210f}
+.btn.wide{width:100%}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:10px 16px;border-radius:999px;border:1px solid var(--line-2);background:rgba(255,255,255,.03);color:var(--cream);font-weight:700;font-size:.86rem;cursor:pointer}
+.chip.on{border-color:var(--gold);background:rgba(255,200,61,.14);color:var(--gold-l)}
+label{display:block;margin:14px 0 6px;font-size:.76rem;font-weight:600;color:var(--silver)}
+input,textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line-2);background:var(--bg-2);color:var(--cream);font-size:.92rem;outline:none}
+input:focus,textarea:focus{border-color:var(--gold)}
+.msg{min-height:18px;margin-top:8px;font-size:.82rem}.msg.err{color:var(--red)}.msg.ok{color:var(--green)}
+.sum{margin-top:14px;padding:14px;border-radius:14px;background:var(--bg-2);border:1px solid var(--line-2);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.sum b{font-family:var(--display);font-size:1.7rem;color:var(--gold-l);line-height:1}
+.sum span{font-size:.8rem;color:var(--silver)}
+/* challenge rows */
+.ch{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;border:1px solid var(--line-2);background:var(--bg-2);cursor:pointer;transition:.15s}
+.ch+.ch{margin-top:8px}
+.ch:hover{border-color:var(--gold-m)}
+.ch.for-me{border-color:rgba(255,90,106,.55);background:linear-gradient(100deg,rgba(255,90,106,.12),var(--bg-2) 60%)}
+.mode{flex:none;width:58px;height:58px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(150deg,#2a1520,#171d2c);border:1px solid rgba(255,90,106,.4);font-family:var(--display);font-size:1.35rem;color:#ffb3bb}
+.ch .t{flex:1;min-width:0}
+.ch .t b{display:block;font-size:.95rem}
+.ch .t small{display:block;font-size:.74rem;color:var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pot{flex:none;text-align:right}
+.pot b{display:block;font-family:var(--display);font-size:1.5rem;color:var(--gold-l);line-height:1}
+.pot small{font-size:.68rem;color:var(--body)}
+.st{display:inline-block;margin-top:3px;font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--silver)}
+.st.live{background:rgba(94,219,149,.14);color:var(--green)}.st.wait{background:rgba(255,200,61,.12);color:var(--gold-l)}.st.bad{background:rgba(255,138,138,.12);color:var(--red)}
+.empty{text-align:center;padding:26px 10px;color:var(--body);font-size:.88rem}
+.empty span{display:block;font-size:2rem;margin-bottom:6px}
+/* room */
+.room-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.vs{display:flex;align-items:center;gap:12px;margin:14px 0;font-weight:700}
+.vs .side{flex:1;padding:12px;border-radius:14px;background:var(--bg-2);border:1px solid var(--line-2);text-align:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vs .side.me{border-color:var(--gold-m)}
+.vs .x{font-family:var(--display);font-size:1.4rem;color:#ff8a9a}
+.roombox{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.copy{padding:12px;border-radius:14px;border:1px dashed var(--gold-m);background:rgba(255,200,61,.05);cursor:pointer;text-align:left;color:inherit}
+.copy span{display:block;font-size:.7rem;color:var(--silver)}
+.copy b{font-family:'JetBrains Mono',monospace;font-size:1.05rem}
+.chat{height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:14px;background:var(--bg-2);border:1px solid var(--line-2)}
+.bubble{max-width:80%;padding:8px 12px;border-radius:14px;font-size:.86rem;background:var(--panel-2);align-self:flex-start;word-wrap:break-word}
+.bubble.me{align-self:flex-end;background:rgba(255,200,61,.16)}
+.bubble small{display:block;font-size:.66rem;color:var(--body);margin-top:2px}
+.chat-in{display:flex;gap:6px;margin-top:8px}
+.chat-in input{flex:1}
+.rules{margin-top:14px;padding:12px 14px;border-radius:14px;border:1px solid var(--line-2);font-size:.78rem;color:var(--body)}
+.rules ul{margin:6px 0 0;padding-left:18px}
+.rules b{color:var(--silver)}
+.gate{text-align:center;padding:36px 20px}
+.gate p{color:var(--body)}
+.ov{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(3,5,10,.82)}
+.ov.open{display:flex}
+.modal{width:min(400px,100%);border-radius:22px;padding:22px;background:linear-gradient(160deg,#151D2E,#0A0F1C);border:1px solid var(--gold-m);text-align:center}
+.modal h3{margin:0 0 8px;font-family:var(--display);font-size:1.6rem}
+.modal p{margin:0 0 18px;font-size:.88rem;color:var(--silver);white-space:pre-line}
+.modal .two{display:flex;gap:8px}.modal .two .btn{flex:1}
+.toast{position:fixed;left:50%;bottom:22px;z-index:60;transform:translate(-50%,20px);opacity:0;padding:11px 18px;border-radius:999px;background:#1d2638;border:1px solid var(--gold-m);font-size:.84rem;font-weight:600;transition:.25s;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="back" href="/"><img src="/logo.png" alt="">← Back to Arena</a>
+    <a class="pill" href="/wallet/#load" id="bal-pill" hidden><span class="coin">JD</span><b id="bal">0</b></a>
+  </div>
+
+  <section class="hero">
+    <h1>⚔️ Clash Squad challenges</h1>
+    <p>Challenge anyone to 1v1, 2v2, 3v3 or 4v4 Clash Squad. Both sides put in the same points — <b>the winner takes the whole pot</b>. No waiting for the next Battle Royale.</p>
+  </section>
+
+  <div id="gate" class="card gate" hidden>
+    <h2>Sign in to play challenges</h2>
+    <p>Challenges use your JD points, so you need an account.</p>
+    <a class="btn" href="/?signin=1">Sign in</a>
+  </div>
+
+  <div id="adult" class="card" hidden>
+    <h2>Before you play</h2>
+    <p style="color:var(--silver);font-size:.9rem;margin:0 0 12px">Challenges put JD points (1 point = Rs 1) on the line, so they're for players aged <b>18 or over</b> only.</p>
+    <label style="display:flex;gap:10px;align-items:flex-start;font-size:.88rem;color:var(--cream);font-weight:500"><input type="checkbox" id="adult-cb" style="width:auto;margin-top:3px"> I confirm I'm 18 or older and I've read the challenge rules in the <a href="/terms.html#s10" style="color:var(--gold-l);text-decoration:underline">terms</a>.</label>
+    <button class="btn" style="margin-top:12px" id="adult-btn" type="button">Continue</button>
+  </div>
+
+  <div id="app" hidden>
+    <nav class="tabs">
+      <button class="tab" data-tab="lobby" type="button">Lobby</button>
+      <button class="tab" data-tab="create" type="button">＋ Create</button>
+      <button class="tab" data-tab="mine" type="button">My challenges<span class="n" id="mine-n" hidden></span></button>
+    </nav>
+
+    <section class="pane" id="p-lobby">
+      <div class="card">
+        <h2>Open challenges</h2>
+        <div id="lobby"><div class="empty">Loading…</div></div>
+      </div>
+    </section>
+
+    <section class="pane" id="p-create">
+      <div class="card">
+        <h2>Create a challenge</h2>
+        <label>Mode (Clash Squad)</label>
+        <div class="chips" id="modes"></div>
+        <label>Your stake (points)</label>
+        <div class="chips" id="stakes"></div>
+        <input id="stake-custom" type="number" min="10" max="500" inputmode="numeric" placeholder="Or any amount, 10–500" style="margin-top:8px">
+        <label>Who can accept?</label>
+        <div class="chips" id="who"><button type="button" class="chip on" data-w="open">Anyone</button><button type="button" class="chip" data-w="direct">A specific player</button></div>
+        <input id="invite" placeholder="Their username, e.g. ayer_legend" autocomplete="off" hidden style="margin-top:8px">
+        <label>Note (optional)</label>
+        <input id="note" maxlength="120" placeholder="e.g. Ranked rules, no gun skins, Bermuda">
+        <div class="sum"><span>You put in <b id="s-stake">50</b> · opponent puts in the same</span><span style="text-align:right">Winner gets<br><b id="s-pot">100</b></span></div>
+        <div class="msg" id="c-msg"></div>
+        <button class="btn wide" id="c-btn" type="button" style="margin-top:6px">⚔️ Create challenge</button>
+        <p style="font-size:.74rem;color:var(--body);margin:10px 0 0">Your stake is held safely until the result. Cancel any time before someone accepts for a full refund. 2v2–4v4 are captain vs captain — you represent your squad.</p>
+      </div>
+    </section>
+
+    <section class="pane" id="p-mine">
+      <div class="card">
+        <h2>My challenges</h2>
+        <div id="mine"><div class="empty">Loading…</div></div>
+      </div>
+    </section>
+
+    <section class="pane" id="p-room">
+      <div class="card" id="room"></div>
+    </section>
+
+    <div class="rules">
+      <b>How results work</b>
+      <ul>
+        <li>After the match, both captains tap <b>We won</b> or <b>We lost</b>. Tapping <b>We lost</b> pays the other side straight away.</li>
+        <li>If one side says they won and the other doesn't answer within <b>2 hours</b>, the winner is paid automatically.</li>
+        <li>If both sides say they won, the admin decides — share screenshots in the challenge chat.</li>
+        <li>No one accepts within 24 hours, or nobody reports within 12 hours of accepting: stakes are refunded.</li>
+        <li>Cheating or lying about a result = stake forfeited and a ban. Stakes 10–500 points, 18+ only.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="ov" id="ov"><div class="modal"><h3 id="ov-t"></h3><p id="ov-b"></p><div class="two"><button class="btn ghost" id="ov-no" type="button">Cancel</button><button class="btn" id="ov-yes" type="button">Confirm</button></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* Same project + publishable key as the main site (shared login). All money moves in the
+   database functions (create/accept/report/cancel_challenge — see schema.sql); this page
+   only ever shows data the signed-in player is allowed to read. */
+const sb=supabase.createClient('https://cnoxvqvpmgowdiyrrusv.supabase.co','sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil');
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let me=null,bal=0,mode='1v1',stake=50,who='open',tab='lobby',roomId=null,chatTimer=null,names=new Map();
+function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2000);}
+function confirmBox(title,body,yes){return new Promise(res=>{$('ov-t').textContent=title;$('ov-b').textContent=body;$('ov-yes').textContent=yes||'Confirm';$('ov').classList.add('open');const done=v=>{$('ov').classList.remove('open');res(v);};$('ov-yes').onclick=()=>done(true);$('ov-no').onclick=()=>done(false);});}
+function ago(iso){const s=(Date.now()-Date.parse(iso))/1000;return s<60?'just now':s<3600?Math.floor(s/60)+'m ago':s<86400?Math.floor(s/3600)+'h ago':Math.floor(s/86400)+'d ago';}
+
+async function loadBalance(){
+  const {data}=await sb.from('wallets').select('balance, unlimited').eq('player_id',me.id).maybeSingle();
+  bal=(data&&data.balance)||0;$('bal').textContent=data&&data.unlimited?'∞':bal.toLocaleString();$('bal-pill').hidden=false;
+}
+function setTab(t){
+  tab=t;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));
+  if(t!=='room'){roomId=null;clearInterval(chatTimer);}
+  if(t==='lobby')loadLobby();if(t==='mine')loadMine();
+}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+
+/* lobby */
+async function loadLobby(){
+  const {data,error}=await sb.rpc('get_open_challenges');
+  if(error){$('lobby').innerHTML=`<div class="empty">${esc(error.message)}</div>`;return;}
+  $('lobby').innerHTML=(data||[]).length?data.map(c=>`<div class="ch${c.for_me?' for-me':''}" data-id="${esc(c.id)}" data-mine="${c.mine?1:0}" data-stake="${c.stake}" data-mode="${esc(c.mode)}" data-by="${esc(c.creator_name)}"><div class="mode">${esc(c.mode)}</div><div class="t"><b>${c.for_me?'⚔️ Challenge for you · ':''}${esc(c.creator_name)}</b><small>${c.note?esc(c.note)+' · ':''}${ago(c.created_at)}</small><span class="st ${c.mine?'wait':'live'}">${c.mine?'Yours · waiting':'Tap to accept'}</span></div><div class="pot"><b>${(c.stake*2).toLocaleString()}</b><small>pot · ${c.stake} each</small></div></div>`).join(''):'<div class="empty"><span>⚔️</span>No open challenges right now — create one!</div>';
+  $('lobby').querySelectorAll('.ch').forEach(el=>el.onclick=async()=>{
+    if(el.dataset.mine==='1'){openRoom(el.dataset.id);return;}
+    const s=+el.dataset.stake;
+    if(bal<s){if(await confirmBox('Not enough points',`This challenge needs ${s} points and you have ${bal}. Load points first?`,'Load points'))location.href='/wallet/#load';return;}
+    if(!await confirmBox(`Accept ${el.dataset.mode} for ${s} points?`,`You play ${el.dataset.by}. ${s} points are held from your wallet now; the winner gets ${s*2}.`,'Accept challenge'))return;
+    const {error}=await sb.rpc('accept_challenge',{p_id:el.dataset.id});
+    if(error){toast(error.message);loadLobby();return;}
+    toast('Challenge accepted — good luck!');await loadBalance();openRoom(el.dataset.id);
+  });
+}
+
+/* create */
+function renderCreate(){
+  $('modes').innerHTML=['1v1','2v2','3v3','4v4'].map(m=>`<button type="button" class="chip${m===mode?' on':''}" data-m="${m}">${m}</button>`).join('');
+  $('modes').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{mode=c.dataset.m;renderCreate();});
+  $('stakes').innerHTML=[10,25,50,100,200].map(a=>`<button type="button" class="chip${a===stake?' on':''}" data-a="${a}">${a}</button>`).join('');
+  $('stakes').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{stake=+c.dataset.a;$('stake-custom').value='';renderCreate();});
+  $('s-stake').textContent=stake;$('s-pot').textContent=(stake*2).toLocaleString();
+}
+$('stake-custom').oninput=e=>{const v=parseInt(e.target.value,10);if(v){stake=v;renderCreate();}};
+$('who').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{who=c.dataset.w;$('who').querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===c));$('invite').hidden=who!=='direct';});
+$('c-btn').onclick=async()=>{
+  const msg=$('c-msg');msg.className='msg';msg.textContent='';
+  if(stake<10||stake>500){msg.className='msg err';msg.textContent='Stake must be 10–500 points.';return;}
+  if(bal<stake){msg.className='msg err';msg.innerHTML=`You have ${bal} points. <a href="/wallet/#load" style="color:var(--gold-l);text-decoration:underline">Load points</a>`;return;}
+  const invite=who==='direct'?$('invite').value.trim():null;
+  if(who==='direct'&&!invite){msg.className='msg err';msg.textContent='Type the player\'s username.';return;}
+  $('c-btn').disabled=true;
+  const {data,error}=await sb.rpc('create_challenge',{p_mode:mode,p_stake:stake,p_invite:invite,p_note:$('note').value.trim()||null});
+  $('c-btn').disabled=false;
+  if(error){msg.className='msg err';msg.textContent=error.message;return;}
+  toast(invite?'Challenge sent to '+invite:'Challenge posted in the lobby');$('note').value='';await loadBalance();openRoom(data);
+};
+
+/* mine */
+const STATUS={open:['Waiting for opponent','wait'],accepted:['In progress','live'],disputed:['Admin reviewing','bad'],completed:['Finished',''],cancelled:['Cancelled',''],expired:['Expired · refunded',''],refunded:['Refunded','']};
+async function loadMine(){
+  const {data,error}=await sb.from('challenges').select('id, creator, opponent, invited, mode, stake, status, winner, creator_claim, opponent_claim, created_at').or(`creator.eq.${me.id},opponent.eq.${me.id},invited.eq.${me.id}`).order('created_at',{ascending:false}).limit(40);
+  if(error){$('mine').innerHTML=`<div class="empty">${esc(error.message)}</div>`;return;}
+  const act=(data||[]).filter(c=>c.status==='accepted'&&((c.creator===me.id&&!c.creator_claim)||(c.opponent===me.id&&!c.opponent_claim))).length;
+  $('mine-n').hidden=!act;$('mine-n').textContent=act;
+  $('mine').innerHTML=(data||[]).length?data.map(c=>{const [l,cls]=STATUS[c.status]||[c.status,''];const res=c.status==='completed'?(c.winner===me.id?'🏆 You won':'You lost'):l;
+    return `<div class="ch" data-id="${esc(c.id)}"><div class="mode">${esc(c.mode)}</div><div class="t"><b>${c.creator===me.id?'You created':'You joined'}</b><small>${ago(c.created_at)}</small><span class="st ${c.status==='completed'?(c.winner===me.id?'live':''):cls}">${esc(res)}</span></div><div class="pot"><b>${(c.stake*2).toLocaleString()}</b><small>pot</small></div></div>`;}).join(''):'<div class="empty"><span>🎮</span>No challenges yet. Create one or accept one from the lobby.</div>';
+  $('mine').querySelectorAll('.ch').forEach(el=>el.onclick=()=>openRoom(el.dataset.id));
+}
+
+/* room */
+async function playerNames(ids){
+  const need=ids.filter(x=>x&&!names.has(x));
+  if(!need.length)return;
+  // only names of players who share a challenge with you (get_challenge_names in schema.sql)
+  try{const {data}=await sb.rpc('get_challenge_names',{p_ids:need});(data||[]).forEach(r=>names.set(r.id,r.name));}catch(e){}
+}
+async function openRoom(id){
+  roomId=id;tab='room';
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-room'));
+  await renderRoom();
+  clearInterval(chatTimer);chatTimer=setInterval(()=>{if(!document.hidden&&roomId===id)renderRoom(true);},4000);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function renderRoom(quiet){
+  const {data:c}=await sb.from('challenges').select('*').eq('id',roomId).maybeSingle();
+  if(!c){$('room').innerHTML='<div class="empty">Challenge not found.</div>';return;}
+  await playerNames([c.creator,c.opponent,c.invited]);
+  const isCreator=c.creator===me.id,other=isCreator?c.opponent:c.creator;
+  const myClaim=isCreator?c.creator_claim:c.opponent_claim,theirClaim=isCreator?c.opponent_claim:c.creator_claim;
+  const nm=id=>esc(id===me.id?'You':(names.get(id)||'Opponent'));
+  const [l,cls]=STATUS[c.status]||[c.status,''];
+  let action='';
+  if(c.status==='open'){
+    action=isCreator?`<p style="color:var(--silver);font-size:.86rem">Waiting for ${c.invited?nm(c.invited):'someone in the lobby'} to accept. Your ${c.stake} points are held safely.</p><button class="btn ghost" id="r-cancel" type="button">Cancel &amp; refund</button>`
+      :`<button class="btn" id="r-accept" type="button">Accept for ${c.stake} points</button>`;
+  }else if(c.status==='accepted'){
+    action=myClaim?`<p style="color:var(--gold-l);font-size:.88rem;margin:0">You reported: <b>${myClaim==='won'?'We won':'We lost'}</b>. ${theirClaim?'':'Waiting for your opponent — if they don\'t answer within 2 hours, the result stands.'}</p>`
+      :`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn green" id="r-won" type="button">🏆 We won</button><button class="btn red" id="r-lost" type="button">We lost</button></div>${theirClaim==='won'?'<p style="color:var(--red);font-size:.82rem;margin:8px 0 0">Your opponent says they won. Confirm with "We lost", or tap "We won" to send it to the admin.</p>':''}`;
+  }else if(c.status==='disputed'){
+    action='<p style="color:var(--red);font-size:.88rem;margin:0">Both sides reported the same result, so the admin will decide. Post your screenshots in the chat below.</p>';
+  }else if(c.status==='completed'){
+    action=`<p style="font-size:1rem;margin:0;font-weight:700;color:${c.winner===me.id?'var(--green)':'var(--silver)'}">${c.winner===me.id?`🏆 You won ${(c.stake*2).toLocaleString()} points!`:'This one went to your opponent.'}</p>`;
+  }else{action=`<p style="color:var(--silver);font-size:.88rem;margin:0">${esc(l)}${c.resolution?' — '+esc(c.resolution):''}.</p>`;}
+  const roomBlock=(c.status==='accepted'||c.status==='disputed')?`<label>Room (shared only with your opponent)</label>${c.room_id?`<div class="roombox"><button class="copy" type="button" data-copy="${esc(c.room_id)}"><span>Room ID · tap to copy</span><b>${esc(c.room_id)}</b></button><button class="copy" type="button" data-copy="${esc(c.room_pass||'')}"><span>Password · tap to copy</span><b>${esc(c.room_pass||'—')}</b></button></div>`:'<p style="color:var(--body);font-size:.84rem;margin:0">No room yet — whoever makes the custom room, add it here.</p>'}${c.status==='accepted'?`<div class="chat-in" style="margin-top:8px"><input id="r-rid" placeholder="Room ID" maxlength="30" value="${esc(c.room_id||'')}"><input id="r-rpw" placeholder="Password" maxlength="30" value="${esc(c.room_pass||'')}"><button class="btn ghost" id="r-setroom" type="button">Save</button></div>`:''}`:'';
+  const chatBlock=['accepted','disputed','completed'].includes(c.status)?`<label>Chat</label><div class="chat" id="chat"></div>${c.status!=='completed'?`<div class="chat-in"><input id="chat-in" maxlength="300" placeholder="Message your opponent" autocomplete="off"><button class="btn" id="chat-send" type="button">Send</button></div>`:''}`:'';
+  const typing=document.activeElement&&['chat-in','r-rid','r-rpw'].includes(document.activeElement.id);
+  if(!(quiet&&typing)){
+    $('room').innerHTML=`<div class="room-head"><h2 style="margin:0">${esc(c.mode)} Clash Squad</h2><span class="st ${cls}">${esc(l)}</span></div>
+      <div class="vs"><div class="side${isCreator?' me':''}">${nm(c.creator)}</div><div class="x">VS</div><div class="side${!isCreator?' me':''}">${c.opponent?nm(c.opponent):(c.invited?nm(c.invited)+' (invited)':'Open')}</div></div>
+      <div class="sum" style="margin:0 0 12px"><span>${c.stake} points each${c.note?' · '+esc(c.note):''}</span><span style="text-align:right">Pot<br><b>${(c.stake*2).toLocaleString()}</b></span></div>
+      ${action}${roomBlock}${chatBlock}
+      <button class="btn ghost" type="button" style="margin-top:14px" onclick="setTab('mine')">← My challenges</button>`;
+    bindRoom(c);
+  }
+  if(chatBlock)loadChat(c);
+}
+function bindRoom(c){
+  const on=(id,fn)=>{const el=$(id);if(el)el.onclick=fn;};
+  on('r-cancel',async()=>{if(!await confirmBox('Cancel this challenge?',`Your ${c.stake} points come back to your wallet.`,'Cancel challenge'))return;const {error}=await sb.rpc('cancel_challenge',{p_id:c.id});if(error){toast(error.message);return;}toast('Cancelled — points refunded');await loadBalance();renderRoom();});
+  on('r-accept',async()=>{if(!await confirmBox(`Accept for ${c.stake} points?`,`The winner gets ${c.stake*2}.`,'Accept'))return;const {error}=await sb.rpc('accept_challenge',{p_id:c.id});if(error){toast(error.message);return;}await loadBalance();renderRoom();});
+  const report=async r=>{
+    const txt=r==='won'?'Report that your side WON? If your opponent agrees (or doesn\'t answer in 2 hours) you get the pot. Lying means losing your stake and a ban.':`Report that your side LOST? ${(c.stake*2)} points go to your opponent straight away.`;
+    if(!await confirmBox(r==='won'?'We won':'We lost',txt,'Confirm'))return;
+    const {data,error}=await sb.rpc('report_challenge',{p_id:c.id,p_result:r});if(error){toast(error.message);return;}
+    toast(data==='completed'?'Result settled':data==='disputed'?'Sent to the admin':'Waiting for your opponent');await loadBalance();renderRoom();
+  };
+  on('r-won',()=>report('won'));on('r-lost',()=>report('lost'));
+  on('r-setroom',async()=>{const {error}=await sb.rpc('set_challenge_room',{p_id:c.id,p_room_id:$('r-rid').value,p_room_pass:$('r-rpw').value});if(error){toast(error.message);return;}toast('Room saved');renderRoom();});
+  on('chat-send',sendChat);
+  const ci=$('chat-in');if(ci)ci.onkeydown=e=>{if(e.key==='Enter')sendChat();};
+  document.querySelectorAll('#room .copy').forEach(b=>b.onclick=()=>{(navigator.clipboard?navigator.clipboard.writeText(b.dataset.copy):Promise.reject()).then(()=>toast('Copied')).catch(()=>{});});
+}
+let _lastMsgCount=-1;
+async function loadChat(c){
+  const box=$('chat');if(!box)return;
+  const {data}=await sb.from('challenge_messages').select('sender, body, created_at').eq('challenge_id',c.id).order('id').limit(200);
+  const rows=data||[];
+  const atBottom=box.scrollTop+box.clientHeight>=box.scrollHeight-30;
+  box.innerHTML=rows.length?rows.map(m=>`<div class="bubble${m.sender===me.id?' me':''}">${esc(m.body)}<small>${m.sender===me.id?'You':esc(names.get(m.sender)||'Opponent')} · ${ago(m.created_at)}</small></div>`).join(''):'<div class="empty" style="padding:10px">Say hi and share the room details 👋</div>';
+  if(atBottom||rows.length!==_lastMsgCount)box.scrollTop=box.scrollHeight;
+  _lastMsgCount=rows.length;
+}
+async function sendChat(){
+  const inp=$('chat-in');if(!inp)return;const v=inp.value.trim();if(!v)return;
+  const {error}=await sb.rpc('send_challenge_message',{p_id:roomId,p_body:v});
+  if(error){toast(error.message);return;}
+  inp.value='';renderRoom(true);
+}
+
+$('adult-btn').onclick=async()=>{
+  if(!$('adult-cb').checked){toast('Please tick the box to confirm');return;}
+  const {error}=await sb.rpc('confirm_adult');if(error){toast(error.message);return;}
+  $('adult').hidden=true;start();
+};
+async function start(){
+  $('app').hidden=false;renderCreate();await loadBalance();
+  const deep=new URLSearchParams(location.search).get('c');
+  if(deep)openRoom(deep);else setTab('lobby');
+  loadMine();
+  setInterval(()=>{if(document.hidden)return;loadBalance();if(tab==='lobby')loadLobby();if(tab==='mine')loadMine();},15000);
+}
+(async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){$('gate').hidden=false;return;}
+  me={id:session.user.id};
+  const {data:p}=await sb.from('players').select('adult_confirmed_at').eq('id',me.id).maybeSingle();
+  if(!p||!p.adult_confirmed_at){$('adult').hidden=false;return;}
+  start();
+})();
+</script>
+</body>
+</html>

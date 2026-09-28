@@ -2364,3 +2364,359 @@ $$;
 revoke all on function public.admin_wallet_credit(uuid, int, text, text) from public, anon, authenticated;
 grant execute on function public.admin_wallet_credit(uuid, int, text, text) to service_role;
 commit;
+
+-- ── player-vs-player Clash Squad challenges (points escrow) ──────────────
+-- A player creates a challenge (1v1/2v2/3v3/4v4 Clash Squad) with a stake; the stake is
+-- taken from their wallet straight away (escrow). An opponent accepts and their stake is
+-- taken too. The winner receives the pot: 2 × stake, minus challenge_fee_pct() (0 today).
+-- Rules (also shown on /challenges/ and in the terms):
+--   * "We lost" pays the other side immediately.
+--   * Both say "we won" (or both "we lost") -> disputed -> the admin decides.
+--   * One side says "we won" and the other doesn't answer within 2 hours -> claimant wins.
+--   * An open challenge nobody accepts expires after 24 hours -> stake refunded.
+--   * An accepted challenge nobody reports within 12 hours -> both stakes refunded.
+--   * The creator can cancel while it's still open (full refund).
+-- Safeguards: 18+ confirmation, 10-500 point stakes, max 3 open challenges per player,
+-- banned players and unlimited (admin) wallets can't play, room details and chat are only
+-- visible to the two players. All points move through _wallet_apply, so the security
+-- lock and sweep cover challenges too. Idempotent.
+begin;
+
+alter table public.wallet_ledger drop constraint if exists wallet_ledger_reason_check;
+alter table public.wallet_ledger add constraint wallet_ledger_reason_check
+  check (reason in ('load','entry','effect','withdraw','withdraw_returned','refund','adjust','prize','challenge_stake','challenge_win','challenge_refund'));
+
+alter table public.players add column if not exists adult_confirmed_at timestamptz;
+
+create table if not exists public.challenges (
+  id uuid primary key default gen_random_uuid(),
+  creator uuid not null references public.players(id) on delete cascade,
+  opponent uuid references public.players(id) on delete set null,
+  invited uuid references public.players(id) on delete set null,
+  mode text not null check (mode in ('1v1','2v2','3v3','4v4')),
+  stake int not null check (stake between 10 and 500),
+  note text check (note is null or length(note) <= 120),
+  status text not null default 'open' check (status in ('open','accepted','disputed','completed','cancelled','expired','refunded')),
+  room_id text check (room_id is null or length(room_id) <= 30),
+  room_pass text check (room_pass is null or length(room_pass) <= 30),
+  creator_claim text check (creator_claim in ('won','lost')),
+  opponent_claim text check (opponent_claim in ('won','lost')),
+  claim_at timestamptz,
+  winner uuid references public.players(id) on delete set null,
+  resolution text,
+  created_at timestamptz not null default now(),
+  accepted_at timestamptz,
+  resolved_at timestamptz
+);
+create index if not exists challenges_status_idx on public.challenges(status, created_at desc);
+create index if not exists challenges_creator_idx on public.challenges(creator);
+create index if not exists challenges_opponent_idx on public.challenges(opponent);
+alter table public.challenges enable row level security;
+drop policy if exists "participants read own challenges" on public.challenges;
+create policy "participants read own challenges" on public.challenges
+  for select using (auth.uid() in (creator, opponent, invited));
+
+create table if not exists public.challenge_messages (
+  id bigserial primary key,
+  challenge_id uuid not null references public.challenges(id) on delete cascade,
+  sender uuid references public.players(id) on delete set null,
+  body text not null check (length(body) between 1 and 300),
+  created_at timestamptz not null default now()
+);
+create index if not exists challenge_messages_idx on public.challenge_messages(challenge_id, id);
+alter table public.challenge_messages enable row level security;
+drop policy if exists "participants read challenge chat" on public.challenge_messages;
+create policy "participants read challenge chat" on public.challenge_messages
+  for select using (exists(select 1 from public.challenges c where c.id = challenge_id and auth.uid() in (c.creator, c.opponent)));
+
+create or replace function public.challenge_fee_pct() returns int language sql immutable as $$ select 0 $$;
+
+-- ── internal helpers (service role only) ──
+create or replace function public._challenge_player_ok(p_player uuid)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if (select adult_confirmed_at from public.players where id = p_player) is null then
+    raise exception 'Challenges are 18+. Please confirm your age first.';
+  end if;
+  if exists(select 1 from public.banned_players where player_id = p_player) then
+    raise exception 'Your account is banned.';
+  end if;
+  if exists(select 1 from public.wallets where player_id = p_player and unlimited) then
+    raise exception 'The admin wallet can''t be used for challenges.';
+  end if;
+end;
+$$;
+
+create or replace function public._challenge_name(p_player uuid)
+returns text language sql stable security definer set search_path = public as $$
+  select coalesce('@' || username, player_tag, 'a player') from public.players where id = p_player
+$$;
+
+create or replace function public._challenge_payout(p_id uuid, p_winner uuid, p_resolution text)
+returns void language plpgsql security definer set search_path = public as $$
+declare c public.challenges; v_pot int; v_loser uuid;
+begin
+  update public.challenges set status = 'completed', winner = p_winner, resolution = p_resolution, resolved_at = now()
+    where id = p_id and status in ('accepted','disputed') and p_winner in (creator, opponent)
+    returning * into c;
+  if c.id is null then
+    raise exception 'This challenge is already settled.';
+  end if;
+  v_pot := floor(c.stake * 2 * (100 - public.challenge_fee_pct()) / 100.0)::int;
+  perform public._wallet_apply(p_winner, v_pot, 'challenge_win', c.id::text, c.mode || ' challenge');
+  v_loser := case when p_winner = c.creator then c.opponent else c.creator end;
+  insert into public.notifications (player_id, title, body) values
+    (p_winner, '🏆 Challenge won: +' || v_pot || ' JD points', 'You won the ' || c.mode || ' challenge against ' || public._challenge_name(v_loser) || '. ' || v_pot || ' points are in your wallet.'),
+    (v_loser, 'Challenge result: lost', 'The ' || c.mode || ' challenge against ' || public._challenge_name(p_winner) || ' went to them. Better luck next time!');
+end;
+$$;
+
+create or replace function public._challenge_refund(p_id uuid, p_new_status text, p_resolution text)
+returns void language plpgsql security definer set search_path = public as $$
+declare c public.challenges;
+begin
+  update public.challenges set status = p_new_status, resolution = p_resolution, resolved_at = now()
+    where id = p_id and status in ('open','accepted','disputed')
+    returning * into c;
+  if c.id is null then
+    raise exception 'This challenge is already settled.';
+  end if;
+  perform public._wallet_apply(c.creator, c.stake, 'challenge_refund', c.id::text, c.mode || ' challenge');
+  insert into public.notifications (player_id, title, body) values (c.creator, 'Challenge refunded: +' || c.stake || ' points', 'Your ' || c.mode || ' challenge stake was returned (' || p_resolution || ').');
+  if c.opponent is not null and c.accepted_at is not null then
+    perform public._wallet_apply(c.opponent, c.stake, 'challenge_refund', c.id::text, c.mode || ' challenge');
+    insert into public.notifications (player_id, title, body) values (c.opponent, 'Challenge refunded: +' || c.stake || ' points', 'Your ' || c.mode || ' challenge stake was returned (' || p_resolution || ').');
+  end if;
+end;
+$$;
+
+-- ── player actions ──
+create or replace function public.confirm_adult()
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'Please sign in first.'; end if;
+  update public.players set adult_confirmed_at = coalesce(adult_confirmed_at, now()) where id = auth.uid();
+end;
+$$;
+
+create or replace function public.get_open_challenges()
+returns table(id uuid, mode text, stake int, note text, creator_name text, created_at timestamptz, for_me boolean, mine boolean)
+language sql stable security definer set search_path = public as $$
+  select c.id, c.mode, c.stake, c.note, public._challenge_name(c.creator), c.created_at,
+         c.invited is not null and c.invited = auth.uid(), c.creator = auth.uid()
+  from public.challenges c
+  where c.status = 'open' and (c.invited is null or c.invited = auth.uid() or c.creator = auth.uid())
+  order by (c.invited = auth.uid()) desc nulls last, c.created_at desc
+  limit 60
+$$;
+
+create or replace function public.create_challenge(p_mode text, p_stake int, p_invite text default null, p_note text default null)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare v_inv uuid; v_id uuid;
+begin
+  if auth.uid() is null then raise exception 'Please sign in first.'; end if;
+  perform public._challenge_player_ok(auth.uid());
+  if p_mode not in ('1v1','2v2','3v3','4v4') then raise exception 'Pick a mode: 1v1, 2v2, 3v3 or 4v4.'; end if;
+  if p_stake is null or p_stake < 10 or p_stake > 500 then raise exception 'Stake must be between 10 and 500 points.'; end if;
+  if (select count(*) from public.challenges where creator = auth.uid() and status = 'open') >= 3 then
+    raise exception 'You already have 3 open challenges. Cancel one or wait for them to be accepted.';
+  end if;
+  p_invite := nullif(trim(regexp_replace(coalesce(p_invite, ''), '^@', '')), '');
+  if p_invite is not null then
+    select id into v_inv from public.players where lower(username) = lower(p_invite) or upper(player_tag) = upper(p_invite) limit 1;
+    if v_inv is null then raise exception 'No player called %.', p_invite; end if;
+    if v_inv = auth.uid() then raise exception 'You can''t challenge yourself.'; end if;
+  end if;
+  insert into public.challenges (creator, invited, mode, stake, note)
+  values (auth.uid(), v_inv, p_mode, p_stake, nullif(trim(coalesce(p_note, '')), ''))
+  returning id into v_id;
+  perform public._wallet_apply(auth.uid(), -p_stake, 'challenge_stake', v_id::text, p_mode || ' challenge');
+  if v_inv is not null then
+    insert into public.notifications (player_id, title, body)
+    values (v_inv, '⚔️ ' || public._challenge_name(auth.uid()) || ' challenged you', p_mode || ' Clash Squad for ' || p_stake || ' points each — winner takes ' || p_stake * 2 || '. Open Challenges to accept.');
+  end if;
+  return v_id;
+end;
+$$;
+
+create or replace function public.accept_challenge(p_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+declare c public.challenges;
+begin
+  if auth.uid() is null then raise exception 'Please sign in first.'; end if;
+  perform public._challenge_player_ok(auth.uid());
+  update public.challenges set opponent = auth.uid(), status = 'accepted', accepted_at = now()
+    where id = p_id and status = 'open' and creator <> auth.uid() and (invited is null or invited = auth.uid())
+    returning * into c;
+  if c.id is null then
+    raise exception 'This challenge is no longer available.';
+  end if;
+  perform public._wallet_apply(auth.uid(), -c.stake, 'challenge_stake', c.id::text, c.mode || ' challenge');
+  insert into public.notifications (player_id, title, body)
+  values (c.creator, '⚔️ Challenge accepted', public._challenge_name(auth.uid()) || ' accepted your ' || c.mode || ' challenge (' || c.stake * 2 || ' points pot). Open Challenges to share the room and chat.');
+end;
+$$;
+
+create or replace function public.cancel_challenge(p_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'Please sign in first.'; end if;
+  if not exists(select 1 from public.challenges where id = p_id and creator = auth.uid() and status = 'open') then
+    raise exception 'Only an open challenge you created can be cancelled.';
+  end if;
+  perform public._challenge_refund(p_id, 'cancelled', 'cancelled by creator');
+end;
+$$;
+
+create or replace function public.set_challenge_room(p_id uuid, p_room_id text, p_room_pass text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  update public.challenges set room_id = nullif(trim(p_room_id), ''), room_pass = nullif(trim(p_room_pass), '')
+    where id = p_id and status = 'accepted' and auth.uid() in (creator, opponent);
+  if not found then raise exception 'You can only set the room for an accepted challenge you''re in.'; end if;
+end;
+$$;
+
+create or replace function public.report_challenge(p_id uuid, p_result text)
+returns text language plpgsql security definer set search_path = public as $$
+declare c public.challenges; v_me_creator boolean; v_other uuid; v_mine text; v_theirs text;
+begin
+  if auth.uid() is null then raise exception 'Please sign in first.'; end if;
+  if p_result not in ('won','lost') then raise exception 'Report won or lost.'; end if;
+  select * into c from public.challenges where id = p_id for update;
+  if c.id is null or auth.uid() not in (c.creator, c.opponent) then raise exception 'Challenge not found.'; end if;
+  if c.status <> 'accepted' then raise exception 'This challenge isn''t waiting for a result.'; end if;
+  v_me_creator := auth.uid() = c.creator;
+  v_other := case when v_me_creator then c.opponent else c.creator end;
+  if (v_me_creator and c.creator_claim is not null) or (not v_me_creator and c.opponent_claim is not null) then
+    raise exception 'You already reported this result.';
+  end if;
+  if v_me_creator then
+    update public.challenges set creator_claim = p_result, claim_at = coalesce(claim_at, now()) where id = p_id returning * into c;
+  else
+    update public.challenges set opponent_claim = p_result, claim_at = coalesce(claim_at, now()) where id = p_id returning * into c;
+  end if;
+  v_mine := p_result;
+  v_theirs := case when v_me_creator then c.opponent_claim else c.creator_claim end;
+
+  if v_mine = 'lost' and (v_theirs is null or v_theirs = 'won') then
+    perform public._challenge_payout(p_id, v_other, 'loser confirmed');
+    return 'completed';
+  end if;
+  if v_mine = 'won' and v_theirs = 'lost' then
+    perform public._challenge_payout(p_id, auth.uid(), 'both agreed');
+    return 'completed';
+  end if;
+  if v_theirs is not null then
+    update public.challenges set status = 'disputed' where id = p_id;
+    insert into public.notifications (player_id, title, body)
+    select id, '⚖️ Challenge disputed', 'Both sides reported the same result on a ' || c.mode || ' challenge (' || c.stake * 2 || ' pts). Review it in Admin → Challenges.'
+    from public.players where lower(email) = 'ayerprabin95@gmail.com';
+    insert into public.notifications (player_id, title, body) values
+      (c.creator, 'Challenge under review', 'The results don''t match, so the admin will decide. Keep your screenshots and share them in the challenge chat.'),
+      (c.opponent, 'Challenge under review', 'The results don''t match, so the admin will decide. Keep your screenshots and share them in the challenge chat.');
+    return 'disputed';
+  end if;
+  insert into public.notifications (player_id, title, body)
+  values (v_other, '⚔️ Confirm your challenge result', public._challenge_name(auth.uid()) || ' says they won the ' || c.mode || ' challenge. Confirm or dispute within 2 hours — after that they win automatically.');
+  return 'waiting';
+end;
+$$;
+
+create or replace function public.send_challenge_message(p_id uuid, p_body text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'Please sign in first.'; end if;
+  p_body := trim(coalesce(p_body, ''));
+  if length(p_body) < 1 or length(p_body) > 300 then raise exception 'Messages must be 1-300 characters.'; end if;
+  if not exists(select 1 from public.challenges where id = p_id and auth.uid() in (creator, opponent) and status in ('accepted','disputed','completed')) then
+    raise exception 'Chat opens once the challenge is accepted.';
+  end if;
+  if (select count(*) from public.challenge_messages where sender = auth.uid() and created_at > now() - interval '10 seconds') >= 5 then
+    raise exception 'Slow down a little.';
+  end if;
+  insert into public.challenge_messages (challenge_id, sender, body) values (p_id, auth.uid(), p_body);
+end;
+$$;
+
+-- ── timeouts (cron every 5 min) ──
+create or replace function public.challenge_sweep()
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare r record; n_exp int := 0; n_claim int := 0; n_ref int := 0;
+begin
+  if exists(select 1 from public.system_state where id = 1 and locked) then
+    return jsonb_build_object('skipped', 'locked');
+  end if;
+  for r in select id from public.challenges where status = 'open' and created_at < now() - interval '24 hours' loop
+    perform public._challenge_refund(r.id, 'expired', 'nobody accepted within 24 hours'); n_exp := n_exp + 1;
+  end loop;
+  for r in select id, creator, opponent, creator_claim, opponent_claim from public.challenges
+           where status = 'accepted' and claim_at < now() - interval '2 hours'
+             and ((creator_claim = 'won' and opponent_claim is null) or (opponent_claim = 'won' and creator_claim is null)) loop
+    perform public._challenge_payout(r.id, case when r.creator_claim = 'won' then r.creator else r.opponent end, 'no response within 2 hours'); n_claim := n_claim + 1;
+  end loop;
+  for r in select id from public.challenges where status = 'accepted' and claim_at is null and accepted_at < now() - interval '12 hours' loop
+    perform public._challenge_refund(r.id, 'refunded', 'no result reported within 12 hours'); n_ref := n_ref + 1;
+  end loop;
+  return jsonb_build_object('expired', n_exp, 'claims_paid', n_claim, 'refunded', n_ref);
+end;
+$$;
+
+create or replace function public.admin_resolve_challenge(p_id uuid, p_outcome text)
+returns void language plpgsql security definer set search_path = public as $$
+declare c public.challenges;
+begin
+  select * into c from public.challenges where id = p_id;
+  if c.id is null then raise exception 'Challenge not found.'; end if;
+  if p_outcome = 'creator' then perform public._challenge_payout(p_id, c.creator, 'decided by admin');
+  elsif p_outcome = 'opponent' then perform public._challenge_payout(p_id, c.opponent, 'decided by admin');
+  elsif p_outcome = 'refund' then perform public._challenge_refund(p_id, 'refunded', 'refunded by admin');
+  else raise exception 'Outcome must be creator, opponent or refund.';
+  end if;
+end;
+$$;
+
+-- ── who can call what ──
+revoke all on function public._challenge_player_ok(uuid) from public, anon, authenticated;
+revoke all on function public._challenge_name(uuid) from public, anon, authenticated;
+revoke all on function public._challenge_payout(uuid, uuid, text) from public, anon, authenticated;
+revoke all on function public._challenge_refund(uuid, text, text) from public, anon, authenticated;
+revoke all on function public.challenge_sweep() from public, anon, authenticated;
+revoke all on function public.admin_resolve_challenge(uuid, text) from public, anon, authenticated;
+grant execute on function public.challenge_sweep() to service_role;
+grant execute on function public.admin_resolve_challenge(uuid, text) to service_role;
+revoke all on function public.confirm_adult() from public, anon;
+revoke all on function public.get_open_challenges() from public, anon;
+revoke all on function public.create_challenge(text, int, text, text) from public, anon;
+revoke all on function public.accept_challenge(uuid) from public, anon;
+revoke all on function public.cancel_challenge(uuid) from public, anon;
+revoke all on function public.set_challenge_room(uuid, text, text) from public, anon;
+revoke all on function public.report_challenge(uuid, text) from public, anon;
+revoke all on function public.send_challenge_message(uuid, text) from public, anon;
+grant execute on function public.confirm_adult() to authenticated;
+grant execute on function public.get_open_challenges() to authenticated;
+grant execute on function public.create_challenge(text, int, text, text) to authenticated;
+grant execute on function public.accept_challenge(uuid) to authenticated;
+grant execute on function public.cancel_challenge(uuid) to authenticated;
+grant execute on function public.set_challenge_room(uuid, text, text) to authenticated;
+grant execute on function public.report_challenge(uuid, text) to authenticated;
+grant execute on function public.send_challenge_message(uuid, text) to authenticated;
+
+select cron.unschedule(jobid) from cron.job where jobname = 'challenge-sweep';
+select cron.schedule('challenge-sweep', '*/5 * * * *', 'select public.challenge_sweep()');
+commit;
+
+-- display names for the other players in your own challenges (nothing else)
+begin;
+create or replace function public.get_challenge_names(p_ids uuid[])
+returns table(id uuid, name text) language sql stable security definer set search_path = public as $$
+  select p.id, coalesce('@' || p.username, p.player_tag, 'Player')
+  from public.players p
+  where p.id = any(p_ids)
+    and exists(select 1 from public.challenges c
+               where auth.uid() in (c.creator, c.opponent, c.invited)
+                 and p.id in (c.creator, c.opponent, c.invited))
+$$;
+revoke all on function public.get_challenge_names(uuid[]) from public, anon;
+grant execute on function public.get_challenge_names(uuid[]) to authenticated;
+commit;

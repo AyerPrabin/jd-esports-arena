@@ -132,7 +132,7 @@ input[type=text]:focus{border-color:var(--gold)}
 <div class="wrap">
   <div class="top">
     <a class="back" href="/"><img src="/logo.png" alt="">← Back to Arena</a>
-    <div class="top-links"><a class="chip-link" href="/wallet/">Wallet</a><a class="chip-link" href="/leaderboard.html">Leaderboard</a></div>
+    <div class="top-links"><a class="chip-link" href="/challenges/">⚔️ Challenges</a><a class="chip-link" href="/wallet/">Wallet</a><a class="chip-link" href="/leaderboard.html">Leaderboard</a></div>
   </div>
 
   <div id="gate" class="card gate" hidden>
@@ -275,7 +275,7 @@ async function loadWallet(){
   const unl=!!(w&&w.unlimited);
   $('bal').textContent=unl?'∞':((w&&w.balance)||0).toLocaleString();
   if(unl){$('bal-sub').textContent='Admin wallet · unlimited';$('wd-link').hidden=true;}
-  const R={load:'Points loaded',prize:'Tournament prize',entry:'Tournament entry',effect:'Squad effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Entry refund',adjust:'Adjustment'};
+  const R={challenge_stake:'Challenge stake',challenge_win:'Challenge won',challenge_refund:'Challenge refund',load:'Points loaded',prize:'Tournament prize',entry:'Tournament entry',effect:'Squad effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Entry refund',adjust:'Adjustment'};
   $('recent').innerHTML=(l||[]).length?(l.map(x=>`<div><span>${R[x.reason]||x.reason} · ${fmtDate(x.created_at)}</span><b class="${x.delta>0?'plus':''}">${x.delta>0?'+':'−'}${Math.abs(x.delta)}</b></div>`).join('')):'<div><span>No transactions yet.</span></div>';
 }
 async function loadStats(){
