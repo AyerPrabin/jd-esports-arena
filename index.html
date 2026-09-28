@@ -579,6 +579,31 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .pts-pill.bump{animation:ptsBump .6s ease}
 @keyframes ptsBump{40%{transform:scale(1.12);box-shadow:0 0 26px rgba(255,200,61,.6)}}
 @media(max-width:640px){.pts-pill{height:38px;padding:0 10px 0 8px}.pts-pill .pts-unit{display:none}}
+/* ── desktop header: one row, one height. The nav is flattened (display:contents) so
+   its items line up with the pill and bell and can be ordered: quiet text links first
+   (Leaderboard, Admin), then the controls (points, bell, settings gear), and the
+   account chip last. The phone drawer (<=640px) is untouched. ── */
+@media(min-width:641px){
+  .bar-right{gap:8px}
+  .bar-nav{display:contents}
+  .bar-right .lang-btn,.bar-right .pts-pill,#notifhist-btn{height:38px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+  .bar-right .lang-btn{padding:0 15px;font-size:.8rem}
+  .nav-link{order:1;border-color:transparent!important;background:none!important;color:var(--silver)!important;padding:0 10px!important;font-weight:600}
+  .nav-link:hover{color:var(--gold-l)!important}
+  #admin-btn{order:2}
+  .dl-wrap{order:3}
+  .pts-pill{order:4;margin-left:8px;padding:0 13px 0 8px}
+  #notifhist-btn{order:5;width:38px;font-size:1.05rem}
+  #settings-btn{order:6;width:38px;padding:0!important;font-size:1rem}
+  #settings-btn .sb-lbl{display:none}
+  #signup-btn{order:7}
+  #acct-btn{order:8}
+  .lang-btn.acct-btn-signed{padding:0 14px 0 5px;gap:8px}
+  .lang-btn.acct-btn-signed .acct-avatar-mini{width:28px;height:28px}
+  .icon-btn .badge{top:-5px;right:-5px}
+  .bar-right .pts-pill[hidden]{display:none}
+}
+@media(min-width:641px) and (max-width:900px){.nav-link{padding:0 6px!important;font-size:.76rem!important}.pts-pill .pts-unit{display:none}.bar-right{gap:6px}}
 /* ── mobile header: points pill, bell and menu share one size, shape and spacing ── */
 .nt-lines{position:relative;display:block;width:18px;height:12px}
 .nt-lines i{position:absolute;left:0;width:100%;height:2px;border-radius:2px;background:currentColor;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .2s,top .3s cubic-bezier(.16,1,.3,1)}
@@ -911,7 +936,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
       <a id="pts-pill" class="pts-pill" href="/wallet/" aria-label="Points wallet" hidden><span class="jd-coin" aria-hidden="true">JD</span><b id="pts-bal">0</b><span class="pts-unit">pts</span></a>
       <button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History">🔔<span class="badge" id="notif-badge" hidden>0</span></button>
       <button class="nav-toggle" id="nav-toggle-btn" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="acct-nav"><span class="nt-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
-      <nav class="bar-nav" id="acct-nav"><a class="lang-btn" href="/leaderboard.html">🏆 Leaderboard</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="admin-btn" class="lang-btn" href="/admin/" style="display:none">🛠 Admin</a><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none">⚙️ Settings</button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button></div></div></nav>
+      <nav class="bar-nav" id="acct-nav"><a class="lang-btn nav-link" href="/leaderboard.html">🏆 Leaderboard</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="admin-btn" class="lang-btn nav-link" href="/admin/" style="display:none">🛠 Admin</a><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none" aria-label="Settings" title="Settings"><span class="sb-ic" aria-hidden="true">⚙️</span><span class="sb-lbl"> Settings</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button></div></div></nav>
     </div>
   </div>
   <div class="nav-scrim" id="nav-scrim" onclick="closeMobileNav()"></div>
@@ -1143,7 +1168,7 @@ let _deleteConfirmFlow=/confirm_delete=1/.test(location.search);
 /* ---- config: point this at your repo's raw tournaments.json ---- */
 const TOURNAMENTS_URL='https://jdesport.co.uk/tournaments.json'; /* not raw.githubusercontent.com — repo is private, that 404s unauthenticated; Pages serves this file publicly regardless */
 const EDGE_FN_BASE='https://cnoxvqvpmgowdiyrrusv.supabase.co/functions/v1'; // Supabase Edge Functions (moved off Netlify)
-const DISCORD_INVITE='https://discord.gg/wtyRVk8Uh'; /* JD Esports Arena Discord */
+const DISCORD_INVITE='https://discord.gg/dgvQTbNvVu'; /* JD Esports Arena Discord */
 const MAIN_SITE_URL='/about/'; /* clean who-I-am + contact page (no phases). Point to zulu-website.html instead if you want the full portfolio. */
 const WHATSAPP_NUMBER=''; /* ← your WhatsApp number, international format, digits only e.g. 97798XXXXXXXX. Powers one-tap Register. Leave '' to hide it. */
 /* Per-squad visual effect — set per squad in the admin editor's Manual squad list
