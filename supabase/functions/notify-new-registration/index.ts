@@ -2,10 +2,11 @@
 // SUPABASE_SETUP.md's "auto-notify everyone on a new squad" section), so this only ever
 // runs off a real registration row, never something a client could fake by calling this
 // URL directly. Broadcasts a lightweight "new squad just registered" nudge to every OTHER
-// player -- in-app notification + OneSignal push only, deliberately skipping email/Discord
+// player -- in-app notification + Web Push only, deliberately skipping email/Discord
 // DM (those channels stay reserved for essential info like room codes/results, not social
 // nudges that fire on every signup).
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { sendPush } from '../_shared/push.ts';
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -67,26 +68,7 @@ Deno.serve(async (req: Request) => {
   }
 
   let pushed = false;
-  const oneSignalAppId = Deno.env.get('ONESIGNAL_APP_ID');
-  const oneSignalApiKey = Deno.env.get('ONESIGNAL_API_KEY');
-  if (oneSignalAppId && oneSignalApiKey && targets.length) {
-    try {
-      const res = await fetch('https://api.onesignal.com/notifications', {
-        method: 'POST',
-        headers: { Authorization: `Key ${oneSignalApiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          app_id: oneSignalAppId,
-          target_channel: 'push',
-          include_aliases: { external_id: targets.map((t) => t.id) },
-          headings: { en: title },
-          contents: { en: body },
-        }),
-      });
-      pushed = res.ok;
-    } catch {
-      // push failing shouldn't block the in-app notifications already written above
-    }
-  }
+  if (targets.length) pushed = (await sendPush(supabase, targets.map((t: any) => t.id), { title, body, url: 'https://jdesport.co.uk/#tournaments', tag: 'jd-squad' })) > 0;
 
   return new Response(JSON.stringify({ sent: targets.length, pushed }), {
     status: 200,

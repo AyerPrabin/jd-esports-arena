@@ -1,10 +1,11 @@
 // Announces a newly created OPEN challenge to every other player: an in-app notification
-// row each, plus a push alert (OneSignal) that opens the challenge when tapped.
+// row each, plus a push alert (native Web Push) that opens the challenge when tapped.
 // Called by /challenges/ right after create_challenge() succeeds, with the creator's own
 // login token. The caller must be the challenge's creator, the challenge must still be
 // open, not a direct invite, and only minutes old — and broadcast_at makes it once-only,
 // so nobody can use this to spam everyone.
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { sendPush } from '../_shared/push.ts';
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -54,29 +55,6 @@ Deno.serve(async (req: Request) => {
   }
 
   let pushed = 0;
-  const appId = Deno.env.get('ONESIGNAL_APP_ID');
-  const apiKey = Deno.env.get('ONESIGNAL_API_KEY');
-  if (appId && apiKey && ids.length) {
-    for (let i = 0; i < ids.length; i += 2000) {
-      try {
-        const r = await fetch('https://api.onesignal.com/notifications', {
-          method: 'POST',
-          headers: { Authorization: `Key ${apiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            app_id: appId,
-            target_channel: 'push',
-            include_aliases: { external_id: ids.slice(i, i + 2000) },
-            headings: { en: title },
-            contents: { en: text },
-            url: `${SITE_URL}/challenges/?c=${c.id}`,
-            web_push_topic: 'jd-challenge', // a newer challenge alert replaces an older one
-            priority: 10,
-            ttl: 3600,
-          }),
-        });
-        if (r.ok) pushed += Math.min(2000, ids.length - i);
-      } catch { /* push is best-effort; in-app rows are already written */ }
-    }
-  }
+  pushed = await sendPush(db, ids, { title, body: text, url: `${SITE_URL}/challenges/?c=${c.id}`, tag: 'jd-challenge' });
   return json({ sent: ids.length, pushed });
 });

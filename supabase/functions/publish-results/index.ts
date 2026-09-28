@@ -8,6 +8,7 @@
 // the "Generate JSON, then Publish to GitHub" flow in jd-admin-970f8094.html. Run this only
 // after that publish is live, otherwise the link this sends points at a stale board.
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { sendPush } from '../_shared/push.ts';
 
 const SITE_URL = 'https://jdesport.co.uk';
 
@@ -111,29 +112,9 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // ── push (OneSignal) — url opens the results section when the player taps the alert ──
+  // ── push (Web Push) — url opens the results section when the player taps the alert ──
   let pushed = 0;
-  const oneSignalAppId = Deno.env.get('ONESIGNAL_APP_ID');
-  const oneSignalApiKey = Deno.env.get('ONESIGNAL_API_KEY');
-  if (oneSignalAppId && oneSignalApiKey) {
-    try {
-      const res = await fetch('https://api.onesignal.com/notifications', {
-        method: 'POST',
-        headers: { Authorization: `Key ${oneSignalApiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          app_id: oneSignalAppId,
-          target_channel: 'push',
-          include_aliases: { external_id: targets.map((t) => t.id) },
-          headings: { en: title },
-          contents: { en: body },
-          url: resultsUrl,
-        }),
-      });
-      if (res.ok) pushed = targets.length;
-    } catch {
-      // push failing shouldn't block email/in-app delivery, which already happened above
-    }
-  }
+  pushed = await sendPush(supabase, targets.map((t) => t.id), { title, body, url: resultsUrl, tag: 'jd-results' });
 
   // ── Discord DM — only players who ran !link on the bot have a discord_user_id set ──
   let discorded = 0;

@@ -3,10 +3,11 @@
 // hand-picked list of players (payload.player_tags — same tag/username/email lookup
 // as send-room-code) or literally every player on the site if no list is given.
 // Writes one notifications row per player (shows up in jd-arena.html's Notification
-// History), pushes a OneSignal alert if ONESIGNAL_APP_ID/ONESIGNAL_API_KEY are set,
+// History), sends a Web Push alert to their devices,
 // emails them if RESEND_API_KEY is set, and DMs them on Discord if they've linked
 // their account (zulu_discord.py's !link) and DISCORD_BOT_TOKEN is set.
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { sendPush } from '../_shared/push.ts';
 
 // Browser calls this cross-origin with a custom x-admin-secret header, which makes the
 // browser send a CORS preflight OPTIONS request first — without these headers that
@@ -123,32 +124,9 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // ── push (OneSignal) — a true broadcast targets the "Subscribed Users" segment instead
-  // of listing every external_id (that's the correct/efficient way to reach literally
-  // everyone); a targeted send still lists specific external_ids like send-room-code does ──
+  // ── push (native Web Push to every saved device of the targets) ──
   let pushed = 0;
-  const oneSignalAppId = Deno.env.get('ONESIGNAL_APP_ID');
-  const oneSignalApiKey = Deno.env.get('ONESIGNAL_API_KEY');
-  if (oneSignalAppId && oneSignalApiKey) {
-    try {
-      const res = await fetch('https://api.onesignal.com/notifications', {
-        method: 'POST',
-        headers: { Authorization: `Key ${oneSignalApiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          app_id: oneSignalAppId,
-          target_channel: 'push',
-          ...(broadcast
-            ? { included_segments: ['Subscribed Users'] }
-            : { include_aliases: { external_id: targets.map((t) => t.id) } }),
-          headings: { en: title },
-          contents: { en: body },
-        }),
-      });
-      if (res.ok) pushed = targets.length;
-    } catch {
-      // push failing shouldn't block email/in-app delivery, which already happened above
-    }
-  }
+  pushed = await sendPush(supabase, targets.map((t) => t.id), { title, body, url: 'https://jdesport.co.uk/', tag: 'jd-announce' });
 
   // ── Discord DM — only players who ran !link on the bot have a discord_user_id set ──
   let discorded = 0;

@@ -2,11 +2,12 @@
 // list the admin explicitly picked/edited in jd-admin-970f8094.html's Room Codes panel
 // (payload.player_tags), or everyone self-registered for a tournament if no
 // list was given. Writes one notifications row per player (so it shows up in
-// jd-arena.html's Notification History), pushes a OneSignal alert to their
-// device if ONESIGNAL_APP_ID/ONESIGNAL_API_KEY are set, emails them if
+// jd-arena.html's Notification History), sends a Web Push alert to their
+// devices, emails them if
 // RESEND_API_KEY is set, and DMs them on Discord if they've linked their
 // account (zulu_discord.py's !link) and DISCORD_BOT_TOKEN is set.
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { sendPush } from '../_shared/push.ts';
 
 // Browser calls this cross-origin with a custom x-admin-secret header, which makes the
 // browser send a CORS preflight OPTIONS request first — without these headers that
@@ -141,28 +142,9 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // ── push (OneSignal) — external_id was set client-side via OneSignal.login(player.id) ──
+  // ── push (Web Push to the players' saved devices) ──
   let pushed = 0;
-  const oneSignalAppId = Deno.env.get('ONESIGNAL_APP_ID');
-  const oneSignalApiKey = Deno.env.get('ONESIGNAL_API_KEY');
-  if (oneSignalAppId && oneSignalApiKey) {
-    try {
-      const res = await fetch('https://api.onesignal.com/notifications', {
-        method: 'POST',
-        headers: { Authorization: `Key ${oneSignalApiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          app_id: oneSignalAppId,
-          target_channel: 'push',
-          include_aliases: { external_id: targets.map((t) => t.id) },
-          headings: { en: title },
-          contents: { en: `Room ID: ${room_id}${room_pass ? ' · Pass: ' + room_pass : ''}` },
-        }),
-      });
-      if (res.ok) pushed = targets.length;
-    } catch {
-      // push failing shouldn't block email/in-app delivery, which already happened above
-    }
-  }
+  pushed = await sendPush(supabase, targets.map((t) => t.id), { title, body, url: 'https://jdesport.co.uk/#tournaments', tag: 'jd-room' });
 
   // ── Discord DM — a direct call to Discord's bot REST API using the same bot token as
   // zulu_discord.py; the Python bot process doesn't need to be running for this to work.

@@ -10,6 +10,7 @@
 // path does NOT update the DB.
 import { Buffer } from 'node:buffer';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { sendPush } from '../_shared/push.ts';
 
 const GITHUB_OWNER = 'AyerPrabin';
 const GITHUB_REPO = 'jd-esports-arena';
@@ -170,17 +171,7 @@ Deno.serve(async (req: Request) => {
         for (let i = 0; i < ids.length; i += 500) {
           await supabase.from('notifications').insert(ids.slice(i, i + 500).map((pid: string) => ({ player_id: pid, tournament_slug: t.name, title, body })));
         }
-        const appId = Deno.env.get('ONESIGNAL_APP_ID'), apiKey = Deno.env.get('ONESIGNAL_API_KEY');
-        if (appId && apiKey) {
-          try {
-            await fetch('https://api.onesignal.com/notifications', {
-              method: 'POST',
-              headers: { Authorization: `Key ${apiKey}`, 'Content-Type': 'application/json' },
-              body: JSON.stringify({ app_id: appId, target_channel: 'push', included_segments: ['Subscribed Users'],
-                headings: { en: title }, contents: { en: body }, url: 'https://jdesport.co.uk/#tournaments' }),
-            });
-          } catch { /* push is best-effort */ }
-        }
+        await sendPush(supabase, ids, { title, body, url: 'https://jdesport.co.uk/#tournaments', tag: 'jd-new-tournament' });
         announced.push(t.name);
       }
     }

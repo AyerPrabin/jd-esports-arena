@@ -46,6 +46,7 @@
 // function sends real emails/push, forfeits real registrations, and releases
 // real room codes, it must not be publicly triggerable.
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { sendPush as webPush } from '../_shared/push.ts';
 
 async function sendDiscordDM(token: string, discordUserId: string, content: string): Promise<boolean> {
   const authHeaders = { Authorization: `Bot ${token}`, 'Content-Type': 'application/json' };
@@ -68,23 +69,11 @@ async function sendDiscordDM(token: string, discordUserId: string, content: stri
 // reminder, and room-code release) -- one OneSignal call per group of recipients,
 // same include_aliases/external_id targeting send-notification already uses for a
 // targeted (non-broadcast) send. Silently a no-op with no keys set or no recipients.
-async function sendPush(appId: string | undefined, apiKey: string | undefined, playerIds: string[], title: string, body: string): Promise<void> {
-  if (!appId || !apiKey || !playerIds.length) return;
-  try {
-    await fetch('https://api.onesignal.com/notifications', {
-      method: 'POST',
-      headers: { Authorization: `Key ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        app_id: appId,
-        target_channel: 'push',
-        include_aliases: { external_id: playerIds },
-        headings: { en: title },
-        contents: { en: body },
-      }),
-    });
-  } catch {
-    // push failing shouldn't block email/in-app delivery, which already happened
-  }
+async function sendPush(_appId: string | undefined, _apiKey: string | undefined, playerIds: string[], title: string, body: string): Promise<void> {
+  // native Web Push (see _shared/push.ts); the first two parameters are left over from OneSignal
+  if (!playerIds.length) return;
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+  try { await webPush(supabase, playerIds, { title, body, url: 'https://jdesport.co.uk/#tournaments', tag: 'jd-reminder' }); } catch { /* best-effort */ }
 }
 
 const WINDOWS = [
