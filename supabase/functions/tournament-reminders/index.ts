@@ -175,7 +175,7 @@ Deno.serve(async (req: Request) => {
         .limit(1);
       if (already && already.length) continue; // already reminded this player for this window
 
-      await supabase.from('notifications').insert({ player_id: reg.player_id, tournament_slug: t.name, title, body });
+      await supabase.from('notifications').insert({ player_id: reg.player_id, tournament_slug: t.name, title, body, push: false });
       pushIds.push(reg.player_id);
       if (!resendKey || !reg.players.email) continue;
       try {
@@ -223,7 +223,7 @@ Deno.serve(async (req: Request) => {
     const body = "You didn't check in in time, so your spot was released.";
     for (const reg of forfeitedRegs as any[]) {
       forfeited++;
-      await supabase.from('notifications').insert({ player_id: reg.player_id, tournament_slug: t.name, title, body });
+      await supabase.from('notifications').insert({ player_id: reg.player_id, tournament_slug: t.name, title, body, push: false });
       if (!resendKey || !reg.players?.email) continue;
       try {
         await fetch('https://api.resend.com/emails', {
@@ -278,7 +278,7 @@ Deno.serve(async (req: Request) => {
     const title = `Room code: ${t.name}`;
     const body = "Your match is about to start. Don't share this with anyone outside your squad.";
     await supabase.from('notifications').insert(
-      targets.map((tg) => ({ player_id: tg.id, tournament_slug: t.name, title, body, room_id: staged.room_id, room_pass: staged.room_pass || null })),
+      targets.map((tg) => ({ player_id: tg.id, tournament_slug: t.name, title, body, room_id: staged.room_id, room_pass: staged.room_pass || null, push: false })),
     );
     roomCodesSent += targets.length;
 

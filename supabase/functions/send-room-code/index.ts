@@ -113,6 +113,7 @@ Deno.serve(async (req: Request) => {
     body,
     room_id,
     room_pass: room_pass || null,
+    push: false,
   }));
   const { error: insErr } = await supabase.from('notifications').insert(rows);
   if (insErr) return new Response(insErr.message, { status: 500, headers: CORS_HEADERS });

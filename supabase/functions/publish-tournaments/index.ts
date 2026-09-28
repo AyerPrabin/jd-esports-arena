@@ -169,7 +169,7 @@ Deno.serve(async (req: Request) => {
         const title = `🏆 New tournament: ${t.name}`;
         const body = `${t.date || 'Date TBA'}${t.time ? ' · ' + t.time : ''} · ${t.prize ? 'Prize ' + t.prize + ' · ' : ''}${entry}. Slots are limited — tap Join on the site to register.`;
         for (let i = 0; i < ids.length; i += 500) {
-          await supabase.from('notifications').insert(ids.slice(i, i + 500).map((pid: string) => ({ player_id: pid, tournament_slug: t.name, title, body })));
+          await supabase.from('notifications').insert(ids.slice(i, i + 500).map((pid: string) => ({ player_id: pid, tournament_slug: t.name, title, body, push: false })));
         }
         await sendPush(supabase, ids, { title, body, url: 'https://jdesport.co.uk/#tournaments', tag: 'jd-new-tournament' });
         announced.push(t.name);

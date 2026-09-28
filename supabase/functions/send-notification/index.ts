@@ -100,7 +100,7 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  const rows = targets.map((t) => ({ player_id: t.id, title, body }));
+  const rows = targets.map((t) => ({ player_id: t.id, title, body, push: false }));
   const { error: insErr } = await supabase.from('notifications').insert(rows);
   if (insErr) return new Response(insErr.message, { status: 500, headers: CORS_HEADERS });
 

@@ -83,7 +83,7 @@ Deno.serve(async (req: Request) => {
   const body = 'See how your squad placed on the leaderboard.';
   const resultsUrl = `${SITE_URL}/#bo3board`;
 
-  const rows = targets.map((t) => ({ player_id: t.id, tournament_slug, title, body }));
+  const rows = targets.map((t) => ({ player_id: t.id, tournament_slug, title, body, push: false }));
   const { error: insErr } = await supabase.from('notifications').insert(rows);
   if (insErr) return new Response(insErr.message, { status: 500, headers: CORS_HEADERS });
 

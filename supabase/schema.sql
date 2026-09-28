@@ -2852,3 +2852,42 @@ grant execute on function public.save_push_subscription(text, text, text, text) 
 grant execute on function public.delete_push_subscription(text) to authenticated;
 grant execute on function public.my_push_devices() to authenticated;
 commit;
+
+-- ── push every saved notification ─────────────────────────────────────────
+-- Notifications written by SQL (tickets, entry confirmations, wallet credits, prizes,
+-- challenge invites/results, waitlist, security alerts) used to appear only inside the app.
+-- This trigger hands each new row to the push-notifications Edge Function (pg_net, same
+-- vault secrets as the cron jobs), which sends it as a Web Push so it shows on the device
+-- even when JD Arena is closed. Edge Functions that push their own alert (room codes,
+-- results, reminders, announcements, challenge broadcasts) insert with push = false.
+-- A failed hand-off never blocks the insert — the row still lands in Notification History.
+begin;
+alter table public.notifications add column if not exists push boolean not null default true;
+
+create or replace function public.notifications_push() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare v_ids uuid[];
+begin
+  select array_agg(id) into v_ids from new_rows where push;
+  if v_ids is null then return null; end if;
+  begin
+    perform net.http_post(
+      url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/push-notifications',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret')
+      ),
+      body := jsonb_build_object('ids', to_jsonb(v_ids))
+    );
+  exception when others then
+    raise warning 'notifications_push: %', sqlerrm;
+  end;
+  return null;
+end;
+$$;
+revoke all on function public.notifications_push() from public, anon, authenticated;
+
+drop trigger if exists notifications_push on public.notifications;
+create trigger notifications_push after insert on public.notifications
+  referencing new table as new_rows for each statement execute function public.notifications_push();
+commit;

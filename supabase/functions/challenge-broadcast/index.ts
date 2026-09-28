@@ -51,7 +51,7 @@ Deno.serve(async (req: Request) => {
   if (pErr) return json({ error: pErr.message }, 500);
   const ids = (players || []).map((p: any) => p.id);
   for (let i = 0; i < ids.length; i += 500) {
-    await db.from('notifications').insert(ids.slice(i, i + 500).map((pid: string) => ({ player_id: pid, title, body: text })));
+    await db.from('notifications').insert(ids.slice(i, i + 500).map((pid: string) => ({ player_id: pid, title, body: text, push: false })));
   }
 
   let pushed = 0;
