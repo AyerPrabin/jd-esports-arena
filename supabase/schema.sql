@@ -2788,3 +2788,17 @@ commit;
 
 -- challenge-broadcast: records that a new open challenge was announced to everyone (once)
 alter table public.challenges add column if not exists broadcast_at timestamptz;
+
+-- one "new tournament" announcement per tournament (sent by publish-tournaments)
+begin;
+create table if not exists public.tournament_announcements (
+  tournament_slug text primary key,
+  announced_at timestamptz not null default now()
+);
+alter table public.tournament_announcements enable row level security; -- service role only
+-- everything already published counts as announced, so nothing is re-sent now
+insert into public.tournament_announcements (tournament_slug)
+select t->>'name' from public.site_content, jsonb_array_elements(content->'tournaments') t
+where key = 'tournaments' and t->>'name' is not null
+on conflict do nothing;
+commit;

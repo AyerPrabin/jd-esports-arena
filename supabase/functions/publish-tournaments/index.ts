@@ -146,6 +146,48 @@ Deno.serve(async (req: Request) => {
     warning = `Published to GitHub, but syncing tournament settings failed: ${e instanceof Error ? e.message : String(e)}`;
   }
 
+  // New-tournament announcement: the first time a tournament appears (upcoming, start in
+  // the future), every player gets ONE message about it. tournament_announcements makes it
+  // once-only — republishing or editing never re-sends. (This replaced the daily countdown.)
+  let announced: string[] = [];
+  try {
+    const parsed = JSON.parse(content);
+    const fresh = (Array.isArray(parsed?.tournaments) ? parsed.tournaments : []).filter((t: any) =>
+      t && typeof t.name === 'string' && !['completed', 'cancelled'].includes(String(t.status || '').toLowerCase()) &&
+      (!t.start || Date.parse(t.start) > Date.now()));
+    if (fresh.length) {
+      const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+      const { data: claimed } = await supabase.from('tournament_announcements')
+        .upsert(fresh.map((t: any) => ({ tournament_slug: t.name })), { onConflict: 'tournament_slug', ignoreDuplicates: true })
+        .select('tournament_slug');
+      const newNames = new Set((claimed || []).map((r: any) => r.tournament_slug));
+      const { data: players } = newNames.size ? await supabase.from('players').select('id').limit(10000) : { data: [] as any[] };
+      const ids = (players || []).map((p: any) => p.id);
+      for (const t of fresh.filter((x: any) => newNames.has(x.name))) {
+        const entry = !t.entry || /^free$/i.test(String(t.entry).trim()) ? 'Free entry' : `Entry ${t.entry}`;
+        const title = `🏆 New tournament: ${t.name}`;
+        const body = `${t.date || 'Date TBA'}${t.time ? ' · ' + t.time : ''} · ${t.prize ? 'Prize ' + t.prize + ' · ' : ''}${entry}. Slots are limited — tap Join on the site to register.`;
+        for (let i = 0; i < ids.length; i += 500) {
+          await supabase.from('notifications').insert(ids.slice(i, i + 500).map((pid: string) => ({ player_id: pid, tournament_slug: t.name, title, body })));
+        }
+        const appId = Deno.env.get('ONESIGNAL_APP_ID'), apiKey = Deno.env.get('ONESIGNAL_API_KEY');
+        if (appId && apiKey) {
+          try {
+            await fetch('https://api.onesignal.com/notifications', {
+              method: 'POST',
+              headers: { Authorization: `Key ${apiKey}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ app_id: appId, target_channel: 'push', included_segments: ['Subscribed Users'],
+                headings: { en: title }, contents: { en: body }, url: 'https://jdesport.co.uk/#tournaments' }),
+            });
+          } catch { /* push is best-effort */ }
+        }
+        announced.push(t.name);
+      }
+    }
+  } catch (e) {
+    if (!warning) warning = `Published, but announcing new tournaments failed: ${e instanceof Error ? e.message : String(e)}`;
+  }
+
   // Prize payouts: a winner (or per-squad prize on a published board) that just went
   // live gets paid into the squad's wallet as points. award_prizes() only pays each
   // squad's prize once, so running it on every publish is safe.
@@ -159,7 +201,7 @@ Deno.serve(async (req: Request) => {
     if (!warning) warning = `Published, but paying prizes failed: ${e instanceof Error ? e.message : String(e)}`;
   }
 
-  return new Response(JSON.stringify({ ok: true, prizes, ...(warning ? { warning } : {}) }), {
+  return new Response(JSON.stringify({ ok: true, prizes, announced, ...(warning ? { warning } : {}) }), {
     status: 200,
     headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
   });

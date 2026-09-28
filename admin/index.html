@@ -997,6 +997,7 @@ async function publishToGitHub(){
         resultMsg+=nr.ok?(' Notified '+nd.sent+' player(s) about results.'):' (Results notification failed — use "🔔 Notify players" below to retry.)';
       }catch(e){resultMsg+=' (Results notification failed — use "🔔 Notify players" below to retry.)';}
     }
+    if((d.announced||[]).length)resultMsg+=' 📣 Announced to all players: '+d.announced.map(esc).join(', ')+'.';
     const paidList=(d.prizes||[]);
     if(paidList.length)resultMsg+=' '+paidList.map(x=>x.status==='paid'?`🏆 Paid ${x.amount} points to ${esc(x.squad)}.`:`⚠️ ${esc(x.squad)} won ${x.amount} points but isn't registered in-app — add them in 💰 Points.`).join(' ');
     publishMsg(resultMsg,d.warning?'err':'ok');

@@ -3,18 +3,16 @@
 // room-code release below can land close to its 5-minutes-before-start
 // target instead of the ~15-minute window a slower tick would allow).
 // Five jobs share this one tick:
-//   1. Reminds players 24 hours and 1 hour before a tournament they're registered
-//      for starts (email + push + in-app).
+//   1. Reminds players 24 hours before a tournament they're registered for starts
+//      (the "last day" message — email + push + in-app).
 //   2. Nudges confirmed/approved players to check in ~30 minutes before start.
 //   3. Sweeps each tournament exactly once, ~10 minutes before start: anyone
 //      confirmed/approved who never checked in gets forfeited ('no_show'),
 //      which frees their slot — the existing promote_from_waitlist() trigger
 //      (schema.sql) picks that up with zero changes here, since it fires on
 //      ANY update that moves a row out of confirmed/approved.
-//   4. Daily reminder: once per calendar day (UTC), for anyone registered whose
-//      tournament is further out than the 1h window above -- e.g. "5 days until
-//      X" the week after you register, so registered players get a steady daily
-//      nudge instead of just the last-minute 24h/1h ones. See DAILY_HORIZON_MS.
+//   4. (Removed) the daily countdown — too many repeated messages. New tournaments are
+//      announced once by publish-tournaments instead.
 //   5. Auto-releases any room code the admin staged via stage-room-code
 //      (jd-admin's "💾 Stage for auto-release"), ~5 minutes before start —
 //      see ROOM_CODE_RELEASE_MS below.
@@ -91,7 +89,6 @@ async function sendPush(appId: string | undefined, apiKey: string | undefined, p
 
 const WINDOWS = [
   { key: '24h', ms: 24 * 60 * 60 * 1000, label: '24 hours' },
-  { key: '1h', ms: 60 * 60 * 1000, label: '1 hour' },
   { key: 'checkin', ms: 30 * 60 * 1000, label: '30 minutes' },
 ];
 const FORFEIT_CUTOFF_MS = 10 * 60 * 1000; // sweep eligible once a tournament is this close to (or past) start
@@ -252,68 +249,10 @@ Deno.serve(async (req: Request) => {
     await sendPush(oneSignalAppId, oneSignalApiKey, (forfeitedRegs as any[]).map((r) => r.player_id), title, body);
   }
 
-  // ── daily reminder — once per (tournament, calendar day, UTC) for anyone registered
-  // whose tournament is still more than the 1h window away. Anything closer than that
-  // already gets the tighter 24h/1h/check-in cadence above, so this only fires for the
-  // stretch further out (e.g. "5 days until X" the week you register). The date is baked
-  // into the notification title, so it's naturally a fresh, distinct title each day --
-  // that's what makes the per-player "already sent" check below a same-day dedup instead
-  // of needing a separate marker table, the same trick the 24h/1h reminders use per window.
-  let dailySent = 0;
-  const todayKey = new Date(now).toISOString().slice(0, 10); // YYYY-MM-DD, UTC
-  const DAILY_HORIZON_MS = 30 * 24 * 60 * 60 * 1000; // don't nag more than 30 days out
-  for (const t of tournaments) {
-    if (!t.start || ['completed', 'cancelled'].includes((t.status || '').toLowerCase())) continue;
-    const startMs = Date.parse(t.start);
-    if (isNaN(startMs)) continue;
-    const msUntil = startMs - now;
-    if (msUntil <= WINDOWS[1].ms) continue; // within the 1h window (or already started) -- handled above
-    if (msUntil > DAILY_HORIZON_MS) continue;
-    const daysLeft = Math.max(1, Math.ceil(msUntil / (24 * 60 * 60 * 1000)));
-
-    const { data: regs, error: regErr } = await supabase
-      .from('registrations')
-      .select('player_id, players(email)')
-      .eq('tournament_slug', t.name)
-      .in('status', ['confirmed', 'approved']);
-    if (regErr || !regs || !regs.length) continue;
-
-    const title = `${daysLeft} day${daysLeft === 1 ? '' : 's'} until ${t.name} — ${todayKey}`;
-    const body = `${t.name} starts in ${daysLeft} day${daysLeft === 1 ? '' : 's'} (${t.date || ''}${t.time ? ' · ' + t.time : ''}). See you there!`;
-
-    const toNotify: any[] = [];
-    for (const reg of regs as any[]) {
-      const { data: already } = await supabase
-        .from('notifications')
-        .select('id')
-        .eq('player_id', reg.player_id)
-        .eq('tournament_slug', t.name)
-        .eq('title', title)
-        .limit(1);
-      if (already && already.length) continue; // already sent today
-      toNotify.push(reg);
-    }
-    if (!toNotify.length) continue;
-
-    await supabase.from('notifications').insert(toNotify.map((reg) => ({ player_id: reg.player_id, tournament_slug: t.name, title, body })));
-    dailySent += toNotify.length;
-
-    if (resendKey) {
-      for (const reg of toNotify) {
-        if (!reg.players?.email) continue;
-        try {
-          await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ from: resendFrom, to: reg.players.email, subject: title, html: `<p>${body}</p>` }),
-          });
-        } catch {
-          // one player's email failing shouldn't block the rest
-        }
-      }
-    }
-    await sendPush(oneSignalAppId, oneSignalApiKey, toNotify.map((r) => r.player_id), title, body);
-  }
+  // (The old daily "N days until X" countdown was removed: players now get one message
+  // when a tournament is announced — see publish-tournaments — and the last-day (24h)
+  // reminder + check-in nudge above.)
+  const dailySent = 0;
 
   // ── room code auto-release — exactly once per tournament, see file header ──
   let roomCodesSent = 0;
