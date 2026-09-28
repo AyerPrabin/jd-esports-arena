@@ -214,6 +214,10 @@ const pot=st=>st*2-2*FEE;
 const FXTAG={glow:'Glow',steel:'Steel',gold:'Champion',fire:'On fire',ice:'Frozen',neon:'Neon',rainbow:'Prism',galaxy:'Galaxy',thunder:'Thunder',legend:'Legend',bullets:'Bullet Storm',blade:'Blade'};
 function fxDeco(){let h='<span class="sqfx-shine"></span>';for(let k=0;k<6;k++)h+=`<i class="sqp" style="--x:${(k*37+9)%96}%;--y:${(k*53+11)%78}%;--d:${((k*.43)%2.6).toFixed(2)}s;--t:${(1.9+(k%3)*.55).toFixed(2)}s"></i>`;return h;}
 function fxCls(k){return FXTAG[k]?` sqfx sqfx-${k}`:'';}
+// sound + vibration when a new challenge shows up while you're on this page
+let _ding=null,_seenLobby=null;
+document.addEventListener('pointerdown',()=>{if(!_ding){try{_ding=new Audio('/notify.mp3');_ding.volume=.6;_ding.load();}catch(e){}}},{passive:true});
+function alertNew(){try{if(_ding){_ding.currentTime=0;_ding.play().catch(()=>{});}}catch(e){}try{if(navigator.vibrate)navigator.vibrate([180,90,180]);}catch(e){}}
 let me=null,bal=0,mode='1v1',stake=50,who='open',tab='lobby',roomId=null,chatTimer=null,names=new Map();
 function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2000);}
 function confirmBox(title,body,yes){return new Promise(res=>{$('ov-t').textContent=title;$('ov-b').textContent=body;$('ov-yes').textContent=yes||'Confirm';$('ov').classList.add('open');const done=v=>{$('ov').classList.remove('open');res(v);};$('ov-yes').onclick=()=>done(true);$('ov-no').onclick=()=>done(false);});}
@@ -235,6 +239,9 @@ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setTab(b.dataset.tab)
 async function loadLobby(){
   const {data,error}=await sb.rpc('get_open_challenges');
   if(error){$('lobby').innerHTML=`<div class="empty">${esc(error.message)}</div>`;return;}
+  const ids=new Set((data||[]).filter(c=>!c.mine).map(c=>c.id));
+  if(_seenLobby&&[...ids].some(x=>!_seenLobby.has(x))){alertNew();toast('⚔️ New challenge in the lobby');}
+  _seenLobby=ids;
   $('lobby').innerHTML=(data||[]).length?data.map(c=>`<div class="ch${c.for_me?' for-me':''}${fxCls(c.creator_effect)}" data-id="${esc(c.id)}" data-mine="${c.mine?1:0}" data-stake="${c.stake}" data-mode="${esc(c.mode)}" data-by="${esc(c.creator_name)}">${FXTAG[c.creator_effect]?fxDeco():''}<div class="mode">${esc(c.mode)}</div><div class="t"><b>${c.for_me?'⚔️ Challenge for you · ':''}<span class="fx-name">${esc(c.creator_name)}</span></b><small>${c.note?esc(c.note)+' · ':''}${ago(c.created_at)}</small><span class="st ${c.mine?'wait':'live'}">${c.mine?'Yours · waiting':'Tap to accept'}</span>${FXTAG[c.creator_effect]?` <span class="fxt">✨ ${FXTAG[c.creator_effect]}</span>`:''}</div><div class="pot"><b>${pot(c.stake).toLocaleString()}</b><small>to win · ${c.stake} each</small></div></div>`).join(''):'<div class="empty"><span>⚔️</span>No open challenges right now — create one!</div>';
   $('lobby').querySelectorAll('.ch').forEach(el=>el.onclick=async()=>{
     if(el.dataset.mine==='1'){openRoom(el.dataset.id);return;}
@@ -267,7 +274,9 @@ $('c-btn').onclick=async()=>{
   const {data,error}=await sb.rpc('create_challenge',{p_mode:mode,p_stake:stake,p_invite:invite,p_note:$('note').value.trim()||null});
   $('c-btn').disabled=false;
   if(error){msg.className='msg err';msg.textContent=error.message;return;}
-  toast(invite?'Challenge sent to '+invite:'Challenge posted in the lobby');$('note').value='';await loadBalance();openRoom(data);
+  toast(invite?'Challenge sent to '+invite:'Challenge posted — everyone is being notified');$('note').value='';
+  if(!invite){try{const {data:{session}}=await sb.auth.getSession();fetch('https://cnoxvqvpmgowdiyrrusv.supabase.co/functions/v1/challenge-broadcast',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({challenge_id:data})}).catch(()=>{});}catch(e){}}
+  await loadBalance();openRoom(data);
 };
 
 /* mine */
@@ -374,7 +383,7 @@ async function start(){
   const deep=new URLSearchParams(location.search).get('c');
   if(deep)openRoom(deep);else setTab('lobby');
   loadMine();
-  setInterval(()=>{if(document.hidden)return;loadBalance();if(tab==='lobby')loadLobby();if(tab==='mine')loadMine();},15000);
+  setInterval(()=>{if(document.hidden)return;loadBalance();loadLobby();if(tab==='mine')loadMine();},15000);
 }
 (async function init(){
   const {data:{session}}=await sb.auth.getSession();

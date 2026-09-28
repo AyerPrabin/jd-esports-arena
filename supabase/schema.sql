@@ -2785,3 +2785,6 @@ $$;
 revoke all on function public.get_challenge_names(uuid[]) from public, anon;
 grant execute on function public.get_challenge_names(uuid[]) to authenticated;
 commit;
+
+-- challenge-broadcast: records that a new open challenge was announced to everyone (once)
+alter table public.challenges add column if not exists broadcast_at timestamptz;
