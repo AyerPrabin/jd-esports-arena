@@ -76,11 +76,12 @@
 .sqfx-ice::after{inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(220,248,255,.16),transparent 45%),radial-gradient(35% 80% at 0% 0%,rgba(190,240,255,.28),transparent 70%),radial-gradient(35% 80% at 100% 100%,rgba(190,240,255,.22),transparent 70%);box-shadow:inset 0 0 20px rgba(150,230,255,.28);animation:sqBreath 4s ease-in-out infinite}
 .sqfx-neon::after{inset:6px;border-radius:10px;border:1px solid rgba(255,95,210,.6);box-shadow:0 0 10px rgba(255,95,210,.5),inset 0 0 12px rgba(200,107,255,.35);animation:neonFlicker 2.8s linear infinite}
 .sqfx-rainbow::after{top:0;bottom:0;left:-50%;width:200%;background:linear-gradient(115deg,transparent 15%,rgba(255,95,109,.16),rgba(255,224,102,.16),rgba(84,224,160,.16),rgba(79,169,255,.16),rgba(200,107,255,.16),transparent 85%);animation:sqHolo 4s ease-in-out infinite alternate}
-@media(prefers-reduced-motion:reduce){.sqfx-gold::after,.sqfx-fire::after,.sqfx-ice::after,.sqfx-neon::after,.sqfx-rainbow::after{animation:none}}
 .sqfx::before{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.32) 50%,transparent 70%);transform:translateX(-120%);animation:sqReveal .9s .2s ease-out forwards}
+/* Squad effects are something players buy, so they play the same on every device — even when
+   the OS asks for reduced motion (Windows "Animation effects" off, Android "Remove animations",
+   battery saver), which used to freeze them on some laptops/phones only. Only the one-off
+   reveal sweep is skipped there. */
 @media(prefers-reduced-motion:reduce){.sqfx::before{display:none}}
-@media(prefers-reduced-motion:reduce){.sqfx-thunder::after,.sqfx-blade::after,.sqfx-glow::after{display:none}.sqfx-galaxy .sqfx-shine{display:none}}
-@media(prefers-reduced-motion:reduce){.sqfx{animation:chipIn .4s ease forwards!important;--fxring:linear-gradient(var(--fx1),var(--fx1))}.sqfx-shine,.sqp{display:none}.sq-crown{transform:translateX(-50%)}.sq-crown,.sqfx .fx-name,.sqfx .sq-av img,.sqfx .sqitem-nologo{animation:none!important}}
 @keyframes bladeText{0%,54%,100%{color:#e8edf3;text-shadow:0 0 6px rgba(255,90,106,.35)}58%,74%{color:#fff;text-shadow:0 0 6px #fff,0 0 16px #ff5a6a}}
 @keyframes bulletText{0%,100%{color:#ffe2b8;text-shadow:0 0 6px rgba(255,150,50,.7)}8%,38%{color:#fff;text-shadow:0 0 6px #fff,0 0 14px #ffb347}}
 @keyframes chipIn{from{opacity:0;transform:translateY(6px) scale(.92)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -109,8 +110,8 @@
 @keyframes sqSpark{0%,56%{opacity:0;transform:translate(0,0) scale(1)}60%{opacity:1}100%{opacity:0;transform:translate(16px,-20px) scale(.3)}}
 @keyframes sqSpin{to{--sqa:360deg}}
 @keyframes sqStar{0%,68%{transform:translate(-120%,0);opacity:0}72%{opacity:1}100%{transform:translate(430%,30px);opacity:0}}
-@keyframes sqTracerL{0%{opacity:0;transform:translateX(0)}6%{opacity:1}88%{opacity:1}100%{opacity:0;transform:translateX(-520px)}}
-@keyframes sqTracerR{0%{opacity:0;transform:translateX(0)}6%{opacity:1}88%{opacity:1}100%{opacity:0;transform:translateX(520px)}}
+@keyframes sqTracerL{0%{opacity:0;right:-44px}6%{opacity:1}88%{opacity:1}100%{opacity:0;right:100%}}
+@keyframes sqTracerR{0%{opacity:0;left:-44px}6%{opacity:1}88%{opacity:1}100%{opacity:0;left:100%}}
 @keyframes sqTwinkle{0%,100%{opacity:0;transform:scale(.2) rotate(0)}50%{opacity:1;transform:scale(1) rotate(90deg)}}
 @keyframes sqZap{0%,100%{opacity:0}8%{opacity:1;transform:rotate(18deg)}16%{opacity:0}26%{opacity:1;transform:rotate(-22deg) translateY(3px)}34%{opacity:0}}
 @keyframes thunderText{0%,84%,89%,93%,100%{color:#dff8ff;text-shadow:0 0 6px rgba(79,216,255,.8)}86%,91%{color:#fff;text-shadow:0 0 6px #fff,0 0 16px #4fd8ff,0 0 26px #4fd8ff}}

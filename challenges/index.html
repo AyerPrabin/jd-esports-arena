@@ -110,6 +110,41 @@ input:focus,textarea:focus{border-color:var(--gold)}
 .modal h3{margin:0 0 8px;font-family:var(--display);font-size:1.6rem}
 .modal p{margin:0 0 18px;font-size:.88rem;color:var(--silver);white-space:pre-line}
 .modal .two{display:flex;gap:8px}.modal .two .btn{flex:1}
+/* room settings (create form, lobby cards, room) */
+.presets{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.presets::-webkit-scrollbar{display:none}
+.preset{flex:none;padding:8px 12px;border-radius:12px;border:1px solid var(--line-2);background:rgba(255,255,255,.03);color:var(--silver);font-weight:700;font-size:.78rem;cursor:pointer;text-align:left}
+.preset small{display:block;font-weight:500;font-size:.66rem;color:var(--body)}
+.preset.on{border-color:var(--gold);background:rgba(255,200,61,.1);color:var(--gold-l)}
+.sets{margin-top:10px;border-radius:14px;border:1px solid var(--line-2);background:var(--bg-2);padding:2px 12px}
+.set{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0}
+.set+.set{border-top:1px solid var(--line-2)}
+.set b{display:block;font-size:.86rem}
+.set small{display:block;font-size:.7rem;color:var(--body);line-height:1.3}
+.seg{flex:none;display:inline-flex;padding:3px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line-2)}
+.seg button{padding:7px 11px;border:0;border-radius:9px;background:transparent;color:var(--silver);font-weight:700;font-size:.78rem;cursor:pointer;white-space:nowrap}
+.seg button.on{background:linear-gradient(100deg,var(--gold),var(--gold-2));color:#0a0a12}
+.set select{flex:none;padding:8px 10px;border-radius:10px;border:1px solid var(--line-2);background:var(--panel);color:var(--cream);font:inherit;font-size:.8rem;font-weight:700}
+.rcs{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.rc{font-size:.64rem;font-weight:700;line-height:1;padding:4px 7px;border-radius:7px;background:rgba(255,255,255,.05);border:1px solid var(--line-2);color:var(--silver);white-space:nowrap}
+.rc.y{color:var(--green);border-color:rgba(94,219,149,.28);background:rgba(94,219,149,.07)}
+.rc.n{color:var(--red);border-color:rgba(255,138,138,.25);background:rgba(255,138,138,.06)}
+.room-rules{margin:0 0 12px}
+.filters{display:flex;gap:6px;margin:-2px 0 12px;flex-wrap:wrap}
+.filters .chip{padding:6px 12px;font-size:.78rem}
+/* push alerts + daily reminder */
+.alerts{display:flex;align-items:center;gap:10px;margin:0 0 12px;padding:12px 14px;border-radius:16px;border:1px solid rgba(127,178,255,.35);background:linear-gradient(100deg,rgba(127,178,255,.12),rgba(127,178,255,.03));font-size:.84rem;color:var(--cream)}
+.alerts .ic{flex:none!important;font-size:1.3rem}
+.alerts span{flex:1;min-width:0}
+.alerts .btn{padding:9px 14px;font-size:.8rem;flex:none}
+.alerts.warn{border-color:rgba(255,138,138,.35);background:rgba(255,138,138,.07)}
+.dtog{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line-2);font-size:.78rem;color:var(--body)}
+.dtog b{display:block;color:var(--cream);font-size:.86rem}
+.sw{flex:none;position:relative;width:46px;height:26px;padding:0;border-radius:999px;border:1px solid var(--line-2);background:rgba(255,255,255,.08);cursor:pointer;transition:.2s}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--silver);transition:.2s}
+.sw.on{background:linear-gradient(100deg,var(--gold),var(--gold-2));border-color:transparent}
+.sw.on::after{left:23px;background:#0a0a12}
+@media(max-width:420px){.set{flex-wrap:wrap}.set .seg,.set select{margin-left:auto}}
 .toast{position:fixed;left:50%;bottom:22px;z-index:60;transform:translate(-50%,20px);opacity:0;padding:11px 18px;border-radius:999px;background:#1d2638;border:1px solid var(--gold-m);font-size:.84rem;font-weight:600;transition:.25s;pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 </style>
@@ -140,6 +175,7 @@ input:focus,textarea:focus{border-color:var(--gold)}
   </div>
 
   <div id="app" hidden>
+    <div class="alerts" id="alerts" hidden><span class="ic" id="alerts-ic">🔔</span><span id="alerts-t"></span><button class="btn" id="alerts-btn" type="button">Turn on</button></div>
     <nav class="tabs">
       <button class="tab" data-tab="lobby" type="button">Lobby</button>
       <button class="tab" data-tab="create" type="button">＋ Create</button>
@@ -149,7 +185,9 @@ input:focus,textarea:focus{border-color:var(--gold)}
     <section class="pane" id="p-lobby">
       <div class="card">
         <h2>Open challenges</h2>
+        <div class="filters" id="filters"></div>
         <div id="lobby"><div class="empty">Loading…</div></div>
+        <div class="dtog"><span><b>Daily challenge reminder</b>One alert at 6 PM with what's in the lobby — skipped on days you already played</span><button class="sw" id="daily-sw" type="button" role="switch" aria-checked="false" aria-label="Daily challenge reminder"></button></div>
       </div>
     </section>
 
@@ -161,11 +199,20 @@ input:focus,textarea:focus{border-color:var(--gold)}
         <label>Your stake (points)</label>
         <div class="chips" id="stakes"></div>
         <input id="stake-custom" type="number" min="10" max="500" inputmode="numeric" placeholder="Or any amount, 10–500" style="margin-top:8px">
+        <label>Room settings</label>
+        <div class="presets" id="presets"></div>
+        <div class="sets">
+          <div class="set"><span><b>Character skills</b><small>Active &amp; passive character abilities</small></span><div class="seg" data-k="skill"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
+          <div class="set"><span><b>Gun attributes</b><small>Gun skin stat bonuses (damage, rate of fire…)</small></span><div class="seg" data-k="gun"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
+          <div class="set"><span><b>Ammo</b><small>Limited = normal reloads and pickups</small></span><div class="seg" data-k="ammo"><button type="button" data-v="limited">Limited</button><button type="button" data-v="unlimited">Unlimited</button></div></div>
+          <div class="set"><span><b>Rounds</b><small>First side to win this many rounds</small></span><div class="seg" data-k="rounds"><button type="button" data-v="7">First to 4</button><button type="button" data-v="13">First to 7</button></div></div>
+          <div class="set"><span><b>Map</b><small>Whoever makes the room uses this map</small></span><select id="map"><option value="">Any map</option><option>Bermuda</option><option>Purgatory</option><option>Kalahari</option><option>Alpine</option><option>NeXTerra</option></select></div>
+        </div>
         <label>Who can accept?</label>
         <div class="chips" id="who"><button type="button" class="chip on" data-w="open">Anyone</button><button type="button" class="chip" data-w="direct">A specific player</button></div>
         <input id="invite" placeholder="Their username, e.g. ayer_legend" autocomplete="off" hidden style="margin-top:8px">
         <label>Note (optional)</label>
-        <input id="note" maxlength="120" placeholder="e.g. Ranked rules, no gun skins, Bermuda">
+        <input id="note" maxlength="120" placeholder="e.g. No grenades, M1887 only, 8 PM">
         <div class="sum"><span>You put in <b id="s-stake">50</b> · opponent puts in the same<br><small style="color:var(--body)">Platform fee: 1 point per player, only when the match is played</small></span><span style="text-align:right">Winner gets<br><b id="s-pot">98</b></span></div>
         <div class="msg" id="c-msg"></div>
         <button class="btn wide" id="c-btn" type="button" style="margin-top:6px">⚔️ Create challenge</button>
@@ -192,6 +239,7 @@ input:focus,textarea:focus{border-color:var(--gold)}
         <li>If both sides say they won, the admin decides — share screenshots in the challenge chat.</li>
         <li>No one accepts within 24 hours, or nobody reports within 12 hours of accepting: stakes are refunded.</li>
         <li>The winner gets both stakes minus a 1-point platform fee per player (e.g. 50 each → winner gets 98). Cancelled, expired or refunded challenges have no fee.</li>
+        <li>Play with the <b>room settings shown on the challenge</b> (skills, gun attributes, ammo, rounds, map). If the room doesn't match, say so in the chat before the first round — playing on means you accept it.</li>
         <li>Cheating or lying about a result = stake forfeited and a ban. Stakes 10–500 points, 18+ only.</li>
       </ul>
     </div>
@@ -218,7 +266,20 @@ function fxCls(k){return FXTAG[k]?` sqfx sqfx-${k}`:'';}
 let _ding=null,_seenLobby=null;
 document.addEventListener('pointerdown',()=>{if(!_ding){try{_ding=new Audio('/notify.mp3');_ding.volume=.6;_ding.load();}catch(e){}}},{passive:true});
 function alertNew(){try{if(_ding){_ding.currentTime=0;_ding.play().catch(()=>{});}}catch(e){}try{if(navigator.vibrate)navigator.vibrate([180,90,180]);}catch(e){}}
-let me=null,bal=0,mode='1v1',stake=50,who='open',tab='lobby',roomId=null,chatTimer=null,names=new Map();
+let me=null,bal=0,mode='1v1',stake=50,who='open',tab='lobby',roomId=null,chatTimer=null,names=new Map(),lobbyMode='all',_lobbyRows=[];
+/* room settings the creator picks — same columns/defaults as create_challenge() in schema.sql */
+let rs={skill:true,gun:false,ammo:'limited',rounds:7};
+const PRESETS=[
+  {id:'ranked',t:'Ranked style',d:'Skills on · guns off',v:{skill:true,gun:false,ammo:'limited',rounds:7}},
+  {id:'pure',t:'Pure aim',d:'No skills · no gun stats',v:{skill:false,gun:false,ammo:'limited',rounds:7}},
+  {id:'all',t:'Anything goes',d:'All on · unlimited ammo',v:{skill:true,gun:true,ammo:'unlimited',rounds:7}},
+  {id:'long',t:'Long battle',d:'Ranked style · first to 7',v:{skill:true,gun:false,ammo:'limited',rounds:13}}];
+function rulesText(c){return `Skills ${c.char_skill!==false?'on':'off'} · Gun attributes ${c.gun_attr?'on':'off'} · ${c.ammo==='unlimited'?'Unlimited':'Limited'} ammo · First to ${c.rounds===13?7:4}${c.map?' · '+c.map:''}`;}
+// rule chips for a challenge (lobby card, room)
+function ruleChips(c){
+  const sk=c.char_skill!==false,gu=!!c.gun_attr;
+  return `<div class="rcs"><span class="rc ${sk?'y':'n'}">Skills ${sk?'on':'off'}</span><span class="rc ${gu?'y':'n'}">Gun attr ${gu?'on':'off'}</span><span class="rc">${c.ammo==='unlimited'?'∞ Unlimited ammo':'Limited ammo'}</span><span class="rc">First to ${c.rounds===13?7:4}</span>${c.map?`<span class="rc">🗺 ${esc(c.map)}</span>`:''}</div>`;
+}
 function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2000);}
 function confirmBox(title,body,yes){return new Promise(res=>{$('ov-t').textContent=title;$('ov-b').textContent=body;$('ov-yes').textContent=yes||'Confirm';$('ov').classList.add('open');const done=v=>{$('ov').classList.remove('open');res(v);};$('ov-yes').onclick=()=>done(true);$('ov-no').onclick=()=>done(false);});}
 function ago(iso){const s=(Date.now()-Date.parse(iso))/1000;return s<60?'just now':s<3600?Math.floor(s/60)+'m ago':s<86400?Math.floor(s/3600)+'h ago':Math.floor(s/86400)+'d ago';}
@@ -241,13 +302,20 @@ async function loadLobby(){
   if(error){$('lobby').innerHTML=`<div class="empty">${esc(error.message)}</div>`;return;}
   const ids=new Set((data||[]).filter(c=>!c.mine).map(c=>c.id));
   if(_seenLobby&&[...ids].some(x=>!_seenLobby.has(x))){alertNew();toast('⚔️ New challenge in the lobby');}
-  _seenLobby=ids;
-  $('lobby').innerHTML=(data||[]).length?data.map(c=>`<div class="ch${c.for_me?' for-me':''}${fxCls(c.creator_effect)}" data-id="${esc(c.id)}" data-mine="${c.mine?1:0}" data-stake="${c.stake}" data-mode="${esc(c.mode)}" data-by="${esc(c.creator_name)}">${FXTAG[c.creator_effect]?fxDeco():''}<div class="mode">${esc(c.mode)}</div><div class="t"><b>${c.for_me?'⚔️ Challenge for you · ':''}<span class="fx-name">${esc(c.creator_name)}</span></b><small>${c.note?esc(c.note)+' · ':''}${ago(c.created_at)}</small><span class="st ${c.mine?'wait':'live'}">${c.mine?'Yours · waiting':'Tap to accept'}</span>${FXTAG[c.creator_effect]?` <span class="fxt">✨ ${FXTAG[c.creator_effect]}</span>`:''}</div><div class="pot"><b>${pot(c.stake).toLocaleString()}</b><small>to win · ${c.stake} each</small></div></div>`).join(''):'<div class="empty"><span>⚔️</span>No open challenges right now — create one!</div>';
+  _seenLobby=ids;_lobbyRows=data||[];renderLobby();
+}
+function renderLobby(){
+  const all=_lobbyRows,count=m=>all.filter(c=>m==='all'||c.mode===m).length;
+  $('filters').innerHTML=all.length?['all','1v1','2v2','3v3','4v4'].map(m=>`<button type="button" class="chip${m===lobbyMode?' on':''}" data-f="${m}">${m==='all'?'All':m} · ${count(m)}</button>`).join(''):'';
+  $('filters').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{lobbyMode=b.dataset.f;renderLobby();});
+  const data=all.filter(c=>lobbyMode==='all'||c.mode===lobbyMode||c.for_me);
+  $('lobby').innerHTML=data.length?data.map(c=>`<div class="ch${c.for_me?' for-me':''}${fxCls(c.creator_effect)}" data-id="${esc(c.id)}" data-mine="${c.mine?1:0}" data-stake="${c.stake}" data-mode="${esc(c.mode)}" data-by="${esc(c.creator_name)}">${FXTAG[c.creator_effect]?fxDeco():''}<div class="mode">${esc(c.mode)}</div><div class="t"><b>${c.for_me?'⚔️ Challenge for you · ':''}<span class="fx-name">${esc(c.creator_name)}</span></b><small>${c.note?esc(c.note)+' · ':''}${ago(c.created_at)}</small><span class="st ${c.mine?'wait':'live'}">${c.mine?'Yours · waiting':'Tap to accept'}</span>${FXTAG[c.creator_effect]?` <span class="fxt">✨ ${FXTAG[c.creator_effect]}</span>`:''}${ruleChips(c)}</div><div class="pot"><b>${pot(c.stake).toLocaleString()}</b><small>to win · ${c.stake} each</small></div></div>`).join(''):(all.length?`<div class="empty"><span>🔎</span>No ${esc(lobbyMode)} challenges right now — create one!</div>`:'<div class="empty"><span>⚔️</span>No open challenges right now — create one!</div>');
   $('lobby').querySelectorAll('.ch').forEach(el=>el.onclick=async()=>{
     if(el.dataset.mine==='1'){openRoom(el.dataset.id);return;}
     const s=+el.dataset.stake;
     if(bal<s){if(await confirmBox('Not enough points',`This challenge needs ${s} points and you have ${bal}. Load points first?`,'Load points'))location.href='/wallet/#load';return;}
-    if(!await confirmBox(`Accept ${el.dataset.mode} for ${s} points?`,`You play ${el.dataset.by}. ${s} points are held from your wallet now; the winner gets ${pot(s)} (both stakes minus a ${FEE}-point platform fee each).`,'Accept challenge'))return;
+    const c=_lobbyRows.find(x=>x.id===el.dataset.id)||{};
+    if(!await confirmBox(`Accept ${el.dataset.mode} for ${s} points?`,`You play ${el.dataset.by}. ${s} points are held from your wallet now; the winner gets ${pot(s)} (both stakes minus a ${FEE}-point platform fee each).\n\nRoom: ${rulesText(c)}`,'Accept challenge'))return;
     const {error}=await sb.rpc('accept_challenge',{p_id:el.dataset.id});
     if(error){toast(error.message);loadLobby();return;}
     toast('Challenge accepted — good luck!');await loadBalance();openRoom(el.dataset.id);
@@ -261,7 +329,11 @@ function renderCreate(){
   $('stakes').innerHTML=[10,25,50,100,200].map(a=>`<button type="button" class="chip${a===stake?' on':''}" data-a="${a}">${a}</button>`).join('');
   $('stakes').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{stake=+c.dataset.a;$('stake-custom').value='';renderCreate();});
   $('s-stake').textContent=stake;$('s-pot').textContent=pot(stake).toLocaleString();
+  document.querySelectorAll('.seg').forEach(g=>{const k=g.dataset.k,cur=k==='skill'||k==='gun'?(rs[k]?'1':'0'):String(rs[k]);g.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===cur));});
+  $('presets').innerHTML=PRESETS.map(p=>{const on=Object.keys(p.v).every(k=>p.v[k]===rs[k]);return `<button type="button" class="preset${on?' on':''}" data-p="${p.id}">${p.t}<small>${p.d}</small></button>`;}).join('');
+  $('presets').querySelectorAll('.preset').forEach(b=>b.onclick=()=>{rs={...PRESETS.find(p=>p.id===b.dataset.p).v};renderCreate();});
 }
+document.querySelectorAll('.seg').forEach(g=>g.onclick=e=>{const b=e.target.closest('button');if(!b)return;const k=g.dataset.k,v=b.dataset.v;rs[k]=k==='skill'||k==='gun'?v==='1':k==='rounds'?+v:v;renderCreate();});
 $('stake-custom').oninput=e=>{const v=parseInt(e.target.value,10);if(v){stake=v;renderCreate();}};
 $('who').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{who=c.dataset.w;$('who').querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===c));$('invite').hidden=who!=='direct';});
 $('c-btn').onclick=async()=>{
@@ -271,7 +343,7 @@ $('c-btn').onclick=async()=>{
   const invite=who==='direct'?$('invite').value.trim():null;
   if(who==='direct'&&!invite){msg.className='msg err';msg.textContent='Type the player\'s username.';return;}
   $('c-btn').disabled=true;
-  const {data,error}=await sb.rpc('create_challenge',{p_mode:mode,p_stake:stake,p_invite:invite,p_note:$('note').value.trim()||null});
+  const {data,error}=await sb.rpc('create_challenge',{p_mode:mode,p_stake:stake,p_invite:invite,p_note:$('note').value.trim()||null,p_char_skill:rs.skill,p_gun_attr:rs.gun,p_ammo:rs.ammo,p_rounds:rs.rounds,p_map:$('map').value||null});
   $('c-btn').disabled=false;
   if(error){msg.className='msg err';msg.textContent=error.message;return;}
   toast(invite?'Challenge sent to '+invite:'Challenge posted — everyone is being notified');$('note').value='';
@@ -325,7 +397,7 @@ async function renderRoom(quiet){
   }else if(c.status==='disputed'){
     action='<p style="color:var(--red);font-size:.88rem;margin:0">Both sides reported the same result, so the admin will decide. Post your screenshots in the chat below.</p>';
   }else if(c.status==='completed'){
-    action=`<p style="font-size:1rem;margin:0;font-weight:700;color:${c.winner===me.id?'var(--green)':'var(--silver)'}">${c.winner===me.id?`🏆 You won ${pot(c.stake).toLocaleString()} points!`:'This one went to your opponent.'}</p>`;
+    action=`<p style="font-size:1rem;margin:0;font-weight:700;color:${c.winner===me.id?'var(--green)':'var(--silver)'}">${c.winner===me.id?`🏆 You won ${pot(c.stake).toLocaleString()} points!`:'This one went to your opponent.'}</p><button class="btn" id="r-rematch" type="button" style="margin-top:10px">🔁 Rematch · ${c.stake} points</button>`;
   }else{action=`<p style="color:var(--silver);font-size:.88rem;margin:0">${esc(l)}${c.resolution?' — '+esc(c.resolution):''}.</p>`;}
   const roomBlock=(c.status==='accepted'||c.status==='disputed')?`<label>Room (shared only with your opponent)</label>${c.room_id?`<div class="roombox"><button class="copy" type="button" data-copy="${esc(c.room_id)}"><span>Room ID · tap to copy</span><b>${esc(c.room_id)}</b></button><button class="copy" type="button" data-copy="${esc(c.room_pass||'')}"><span>Password · tap to copy</span><b>${esc(c.room_pass||'—')}</b></button></div>`:'<p style="color:var(--body);font-size:.84rem;margin:0">No room yet — whoever makes the custom room, add it here.</p>'}${c.status==='accepted'?`<div class="chat-in" style="margin-top:8px"><input id="r-rid" placeholder="Room ID" maxlength="30" value="${esc(c.room_id||'')}"><input id="r-rpw" placeholder="Password" maxlength="30" value="${esc(c.room_pass||'')}"><button class="btn ghost" id="r-setroom" type="button">Save</button></div>`:''}`:'';
   const chatBlock=['accepted','disputed','completed'].includes(c.status)?`<label>Chat</label><div class="chat" id="chat"></div>${c.status!=='completed'?`<div class="chat-in"><input id="chat-in" maxlength="300" placeholder="Message your opponent" autocomplete="off"><button class="btn" id="chat-send" type="button">Send</button></div>`:''}`:'';
@@ -333,7 +405,8 @@ async function renderRoom(quiet){
   if(!(quiet&&typing)){
     $('room').innerHTML=`<div class="room-head"><h2 style="margin:0">${esc(c.mode)} Clash Squad</h2><span class="st ${cls}">${esc(l)}</span></div>
       <div class="vs">${side(c.creator,nm(c.creator),isCreator)}<div class="x">VS</div>${c.opponent?side(c.opponent,nm(c.opponent),!isCreator):`<div class="side">${c.invited?nm(c.invited)+' (invited)':'Open'}</div>`}</div>
-      <div class="sum" style="margin:0 0 12px"><span>${c.stake} points each${c.note?' · '+esc(c.note):''}</span><span style="text-align:right">Winner gets<br><b>${pot(c.stake).toLocaleString()}</b></span></div>
+      <div class="sum" style="margin:0 0 8px"><span>${c.stake} points each${c.note?' · '+esc(c.note):''}</span><span style="text-align:right">Winner gets<br><b>${pot(c.stake).toLocaleString()}</b></span></div>
+      <div class="room-rules">${ruleChips(c)}</div>
       ${action}${roomBlock}${chatBlock}
       <button class="btn ghost" type="button" style="margin-top:14px" onclick="setTab('mine')">← My challenges</button>`;
     bindRoom(c);
@@ -352,6 +425,16 @@ function bindRoom(c){
   };
   on('r-won',()=>report('won'));on('r-lost',()=>report('lost'));
   on('r-setroom',async()=>{const {error}=await sb.rpc('set_challenge_room',{p_id:c.id,p_room_id:$('r-rid').value,p_room_pass:$('r-rpw').value});if(error){toast(error.message);return;}toast('Room saved');renderRoom();});
+  // rematch: a direct challenge to the same opponent with the same stake and room settings
+  on('r-rematch',async()=>{
+    const other=c.creator===me.id?c.opponent:c.creator,nmv=((names.get(other)||{}).name||'');
+    if(!other||!nmv||nmv==='Player'){toast('Opponent not found');return;}
+    if(bal<c.stake){if(await confirmBox('Not enough points',`A rematch needs ${c.stake} points and you have ${bal}. Load points first?`,'Load points'))location.href='/wallet/#load';return;}
+    if(!await confirmBox('Rematch?',`Send ${nmv} a new ${c.mode} challenge for ${c.stake} points each with the same room settings.\n\n${rulesText(c)}`,'Send rematch'))return;
+    const {data,error}=await sb.rpc('create_challenge',{p_mode:c.mode,p_stake:c.stake,p_invite:nmv,p_note:c.note||null,p_char_skill:c.char_skill!==false,p_gun_attr:!!c.gun_attr,p_ammo:c.ammo||'limited',p_rounds:c.rounds||7,p_map:c.map||null});
+    if(error){toast(error.message);return;}
+    toast('Rematch sent to '+nmv);await loadBalance();openRoom(data);
+  });
   on('chat-send',sendChat);
   const ci=$('chat-in');if(ci)ci.onkeydown=e=>{if(e.key==='Enter')sendChat();};
   document.querySelectorAll('#room .copy').forEach(b=>b.onclick=()=>{(navigator.clipboard?navigator.clipboard.writeText(b.dataset.copy):Promise.reject()).then(()=>toast('Copied')).catch(()=>{});});
@@ -373,13 +456,54 @@ async function sendChat(){
   inp.value='';renderRoom(true);
 }
 
+/* ── push alerts on this page too (same Web Push setup as the homepage: /sw.js shows them
+   even when JD Arena is closed; the device is saved with save_push_subscription) ── */
+const VAPID_PUBLIC_KEY='BPP1cVMCDdmZzwhR48u0BBEFbrg2LP9JEUm8YHAWogBIoegeuJLZaKOvv_6JSciOMwMB0tu4C9RgWghf4HjQo4I';
+function b64ToU8(s){const p='='.repeat((4-s.length%4)%4),b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(b,c=>c.charCodeAt(0));}
+const pushOk=()=>'serviceWorker' in navigator&&'PushManager' in window&&typeof Notification==='function';
+const isIos=()=>/iP(hone|od|ad)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const isApp=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'}).catch(()=>{});
+async function subscribePush(){
+  try{
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    // a subscription made with another key (e.g. the old OneSignal one) can't receive our pushes — replace it
+    if(sub){const k=sub.options&&sub.options.applicationServerKey,want=b64ToU8(VAPID_PUBLIC_KEY);
+      if(!k||k.byteLength!==want.length||!new Uint8Array(k).every((b,i)=>b===want[i])){try{await sub.unsubscribe();}catch(e){}sub=null;}}
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(VAPID_PUBLIC_KEY)});
+    const j=sub.toJSON();
+    const {error}=await sb.rpc('save_push_subscription',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_ua:navigator.userAgent});
+    return !error;
+  }catch(e){return false;}
+}
+function showAlerts(ic,t,btn,warn,fn){const a=$('alerts');a.hidden=false;a.classList.toggle('warn',!!warn);$('alerts-ic').textContent=ic;$('alerts-t').textContent=t;$('alerts-btn').hidden=!btn;$('alerts-btn').textContent=btn||'';$('alerts-btn').onclick=fn||null;}
+async function setupAlerts(){
+  $('alerts').hidden=true;
+  if(isIos()&&!isApp()){showAlerts('📲','On iPhone/iPad, alerts only work in the installed app: tap Share → Add to Home Screen, then open JD Arena from there.');return;}
+  if(!pushOk())return;
+  if(Notification.permission==='denied'){showAlerts('🚫',"Alerts are blocked for this site. Allow notifications in your browser's site settings (icon next to the address bar), then reload.",'',true);return;}
+  if(Notification.permission==='granted'){if(!await subscribePush())showAlerts('⚠️','Alerts couldn\'t start on this browser. On Brave: Settings → Privacy → turn on "Use Google services for push messaging", then reload.','Try again',true,setupAlerts);return;}
+  // ask only from a tap — browsers ignore permission prompts that aren't
+  showAlerts('🔔','Get an alert on your phone when someone challenges you, accepts or reports a result — even when JD Arena is closed.','Turn on',false,async()=>{
+    let p='default';try{p=await Notification.requestPermission();}catch(e){}
+    if(p==='granted'&&await subscribePush()){$('alerts').hidden=true;toast('🔔 Alerts on for this device');}else setupAlerts();
+  });
+}
+async function setupDaily(){
+  const {data}=await sb.from('players').select('daily_challenge_alert').eq('id',me.id).maybeSingle();
+  const sw=$('daily-sw'),paint=on=>{sw.classList.toggle('on',on);sw.setAttribute('aria-checked',String(on));};
+  paint(!data||data.daily_challenge_alert!==false);
+  sw.onclick=async()=>{const on=!sw.classList.contains('on');paint(on);const {error}=await sb.rpc('set_daily_challenge_alert',{p_on:on});if(error){paint(!on);toast(error.message);return;}toast(on?'Daily reminder on':'Daily reminder off');};
+}
+
 $('adult-btn').onclick=async()=>{
   if(!$('adult-cb').checked){toast('Please tick the box to confirm');return;}
   const {error}=await sb.rpc('confirm_adult');if(error){toast(error.message);return;}
   $('adult').hidden=true;start();
 };
 async function start(){
-  $('app').hidden=false;renderCreate();await loadBalance();
+  $('app').hidden=false;renderCreate();setupAlerts();setupDaily();await loadBalance();
   const deep=new URLSearchParams(location.search).get('c');
   if(deep)openRoom(deep);else setTab('lobby');
   loadMine();

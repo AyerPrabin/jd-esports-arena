@@ -2891,3 +2891,143 @@ drop trigger if exists notifications_push on public.notifications;
 create trigger notifications_push after insert on public.notifications
   referencing new table as new_rows for each statement execute function public.notifications_push();
 commit;
+
+-- ── challenges: Clash Squad room settings + daily challenge reminder ──────────
+-- The creator picks the custom-room rules both sides must use: character skills on/off,
+-- gun attributes (weapon-skin stat bonuses) on/off, limited/unlimited ammo, rounds and
+-- map. They're shown on the lobby card, in the room and in the broadcast alert, so the
+-- opponent knows exactly what they're accepting. New create_challenge parameters all have
+-- defaults, so older copies of the page keep working. Idempotent.
+begin;
+alter table public.challenges add column if not exists char_skill boolean not null default true;
+alter table public.challenges add column if not exists gun_attr boolean not null default false;
+alter table public.challenges add column if not exists ammo text not null default 'limited';
+alter table public.challenges add column if not exists rounds int not null default 7;
+alter table public.challenges add column if not exists map text;
+alter table public.challenges drop constraint if exists challenges_ammo_check;
+alter table public.challenges add constraint challenges_ammo_check check (ammo in ('limited','unlimited'));
+alter table public.challenges drop constraint if exists challenges_rounds_check;
+alter table public.challenges add constraint challenges_rounds_check check (rounds in (7,13));
+alter table public.challenges drop constraint if exists challenges_map_check;
+alter table public.challenges add constraint challenges_map_check check (map is null or map in ('Bermuda','Purgatory','Kalahari','Alpine','NeXTerra'));
+
+-- one-line summary of a challenge's room rules, used in notifications
+create or replace function public._challenge_rules(c public.challenges)
+returns text language sql immutable as $$
+  select 'Skills ' || case when c.char_skill then 'on' else 'off' end
+      || ' · Gun attributes ' || case when c.gun_attr then 'on' else 'off' end
+      || ' · ' || case when c.ammo = 'unlimited' then 'Unlimited' else 'Limited' end || ' ammo'
+      || ' · ' || case when c.rounds = 13 then 'First to 7' else 'First to 4' end
+      || coalesce(' · ' || c.map, '')
+$$;
+revoke all on function public._challenge_rules(public.challenges) from public, anon, authenticated;
+
+drop function if exists public.create_challenge(text, int, text, text);
+create or replace function public.create_challenge(p_mode text, p_stake int, p_invite text default null, p_note text default null,
+  p_char_skill boolean default true, p_gun_attr boolean default false, p_ammo text default 'limited', p_rounds int default 7, p_map text default null)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare v_inv uuid; c public.challenges;
+begin
+  if auth.uid() is null then raise exception 'Please sign in first.'; end if;
+  perform public._challenge_player_ok(auth.uid());
+  if p_mode not in ('1v1','2v2','3v3','4v4') then raise exception 'Pick a mode: 1v1, 2v2, 3v3 or 4v4.'; end if;
+  if p_stake is null or p_stake < 10 or p_stake > 500 then raise exception 'Stake must be between 10 and 500 points.'; end if;
+  if coalesce(p_ammo, 'limited') not in ('limited','unlimited') then raise exception 'Ammo must be limited or unlimited.'; end if;
+  if coalesce(p_rounds, 7) not in (7, 13) then raise exception 'Rounds must be first to 4 or first to 7.'; end if;
+  p_map := nullif(trim(coalesce(p_map, '')), '');
+  if p_map is not null and p_map not in ('Bermuda','Purgatory','Kalahari','Alpine','NeXTerra') then raise exception 'Unknown map.'; end if;
+  if (select count(*) from public.challenges where creator = auth.uid() and status = 'open') >= 3 then
+    raise exception 'You already have 3 open challenges. Cancel one or wait for them to be accepted.';
+  end if;
+  p_invite := nullif(trim(regexp_replace(coalesce(p_invite, ''), '^@', '')), '');
+  if p_invite is not null then
+    select id into v_inv from public.players where lower(username) = lower(p_invite) or upper(player_tag) = upper(p_invite) limit 1;
+    if v_inv is null then raise exception 'No player called %.', p_invite; end if;
+    if v_inv = auth.uid() then raise exception 'You can''t challenge yourself.'; end if;
+  end if;
+  insert into public.challenges (creator, invited, mode, stake, note, char_skill, gun_attr, ammo, rounds, map)
+  values (auth.uid(), v_inv, p_mode, p_stake, nullif(trim(coalesce(p_note, '')), ''),
+          coalesce(p_char_skill, true), coalesce(p_gun_attr, false), coalesce(p_ammo, 'limited'), coalesce(p_rounds, 7), p_map)
+  returning * into c;
+  perform public._wallet_apply(auth.uid(), -p_stake, 'challenge_stake', c.id::text, p_mode || ' challenge');
+  if v_inv is not null then
+    insert into public.notifications (player_id, title, body)
+    values (v_inv, '⚔️ ' || public._challenge_name(auth.uid()) || ' challenged you',
+      p_mode || ' Clash Squad for ' || p_stake || ' points each — winner takes ' || (p_stake * 2 - 2 * public.challenge_fee_per_player()) || '. ' || public._challenge_rules(c) || '. Open Challenges to accept.');
+  end if;
+  return c.id;
+end;
+$$;
+revoke all on function public.create_challenge(text, int, text, text, boolean, boolean, text, int, text) from public, anon;
+grant execute on function public.create_challenge(text, int, text, text, boolean, boolean, text, int, text) to authenticated;
+
+drop function if exists public.get_open_challenges();
+create function public.get_open_challenges()
+returns table(id uuid, mode text, stake int, note text, creator_name text, created_at timestamptz, for_me boolean, mine boolean, creator_effect text,
+              char_skill boolean, gun_attr boolean, ammo text, rounds int, map text)
+language sql stable security definer set search_path = public as $$
+  select c.id, c.mode, c.stake, c.note, public._challenge_name(c.creator), c.created_at,
+         c.invited is not null and c.invited = auth.uid(), c.creator = auth.uid(), public._active_effect(c.creator),
+         c.char_skill, c.gun_attr, c.ammo, c.rounds, c.map
+  from public.challenges c
+  where c.status = 'open' and (c.invited is null or c.invited = auth.uid() or c.creator = auth.uid())
+  order by (c.invited = auth.uid()) desc nulls last, c.created_at desc
+  limit 60
+$$;
+revoke all on function public.get_open_challenges() from public, anon;
+grant execute on function public.get_open_challenges() to authenticated;
+
+-- ── daily challenge reminder ──
+-- Once a day (18:00 Nepal time) every player who hasn't turned it off and hasn't already
+-- played a challenge today gets one short alert — a notification row with push = true,
+-- so the notifications_push trigger also sends it to their phone/desktop. The title says
+-- "challenge", so tapping it opens /challenges/. challenge_daily_log makes it once-per-day
+-- even if the job is re-run or triggered by hand.
+alter table public.players add column if not exists daily_challenge_alert boolean not null default true;
+
+create table if not exists public.challenge_daily_log (
+  day date primary key,
+  sent int not null default 0,
+  sent_at timestamptz not null default now()
+);
+alter table public.challenge_daily_log enable row level security; -- service role only
+
+create or replace function public.challenge_daily_reminder()
+returns int language plpgsql security definer set search_path = public as $$
+declare v_day date := (now() at time zone 'Asia/Kathmandu')::date; v_open int; v_top int; v_pot int; v_body text; v_n int;
+begin
+  insert into public.challenge_daily_log (day) values (v_day) on conflict do nothing;
+  if not found then return 0; end if; -- already sent today
+  select count(*), coalesce(max(stake), 0) into v_open, v_top from public.challenges where status = 'open' and invited is null;
+  v_pot := v_top * 2 - 2 * public.challenge_fee_per_player();
+  v_body := case
+    when v_open = 1 then '1 open Clash Squad challenge is waiting — winner takes ' || v_pot || ' points. Tap to accept it.'
+    when v_open > 1 then v_open || ' open Clash Squad challenges are waiting — biggest pot ' || v_pot || ' points. Tap to pick one.'
+    else 'The lobby is empty — post a 1v1 and be the first. You pick skills, gun attributes and ammo; winner takes the pot.'
+  end;
+  insert into public.notifications (player_id, title, body)
+  select p.id, '⚔️ Daily challenge time', v_body from public.players p
+  where p.daily_challenge_alert
+    and not exists(select 1 from public.banned_players b where b.player_id = p.id)
+    and not exists(select 1 from public.challenges c where p.id in (c.creator, c.opponent)
+                   and c.created_at >= (v_day::timestamp at time zone 'Asia/Kathmandu'));
+  get diagnostics v_n = row_count;
+  update public.challenge_daily_log set sent = v_n where day = v_day;
+  return v_n;
+end;
+$$;
+revoke all on function public.challenge_daily_reminder() from public, anon, authenticated;
+
+create or replace function public.set_daily_challenge_alert(p_on boolean)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'Please sign in first.'; end if;
+  update public.players set daily_challenge_alert = coalesce(p_on, true) where id = auth.uid();
+end;
+$$;
+revoke all on function public.set_daily_challenge_alert(boolean) from public, anon;
+grant execute on function public.set_daily_challenge_alert(boolean) to authenticated;
+
+select cron.unschedule(jobid) from cron.job where jobname = 'challenge-daily-reminder';
+select cron.schedule('challenge-daily-reminder', '15 12 * * *', 'select public.challenge_daily_reminder()'); -- 12:15 UTC = 18:00 Nepal
+commit;
