@@ -2978,7 +2978,7 @@ revoke all on function public.get_open_challenges() from public, anon;
 grant execute on function public.get_open_challenges() to authenticated;
 
 -- ── daily challenge reminder ──
--- Once a day (18:00 Nepal time) every player who hasn't turned it off and hasn't already
+-- Once a day (18:00 Nepal time) every 18+-confirmed player who hasn't turned it off and hasn't already
 -- played a challenge today gets one short alert — a notification row with push = true,
 -- so the notifications_push trigger also sends it to their phone/desktop. The title says
 -- "challenge", so tapping it opens /challenges/. challenge_daily_log makes it once-per-day
@@ -3008,6 +3008,7 @@ begin
   insert into public.notifications (player_id, title, body)
   select p.id, '⚔️ Daily challenge time', v_body from public.players p
   where p.daily_challenge_alert
+    and p.adult_confirmed_at is not null -- challenges are 18+: never nudge anyone who hasn't confirmed
     and not exists(select 1 from public.banned_players b where b.player_id = p.id)
     and not exists(select 1 from public.challenges c where p.id in (c.creator, c.opponent)
                    and c.created_at >= (v_day::timestamp at time zone 'Asia/Kathmandu'));
