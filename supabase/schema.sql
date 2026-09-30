@@ -3111,3 +3111,24 @@ $$;
 revoke all on function public.get_open_challenges() from public, anon;
 grant execute on function public.get_open_challenges() to authenticated;
 commit;
+
+-- ── all-time homepage counters ───────────────────────────────────────────────
+-- The "Tournaments" and "Squads Registered" stats used to count only what's in
+-- tournaments.json right now, so they dropped every time an old event was removed.
+-- get_arena_totals() gives every event ever seen (registrations + archived results)
+-- with how many squads signed up for it (confirmed, approved or no-show — rejected,
+-- pending and waitlisted don't count). Only slugs and counts, nothing personal. Idempotent.
+begin;
+create or replace function public.get_arena_totals()
+returns table(tournament_slug text, squads int)
+language sql stable security definer set search_path = public as $$
+  select s.slug, coalesce(r.n, 0)::int
+  from (select tournament_slug slug from public.registrations
+        union select tournament_slug from public.tournament_results) s
+  left join (select tournament_slug, count(*) n from public.registrations
+             where status in ('confirmed','approved','no_show') group by tournament_slug) r
+    on r.tournament_slug = s.slug
+$$;
+revoke all on function public.get_arena_totals() from public;
+grant execute on function public.get_arena_totals() to anon, authenticated;
+commit;

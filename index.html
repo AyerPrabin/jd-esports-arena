@@ -1634,9 +1634,11 @@ document.addEventListener('keydown',e=>{
    more manual "Squad 1 / Squad 2" placeholders to keep in sync by hand. */
 let _liveRoster=new Map();  // tournament name -> [{squad_name, squad_logo}]
 let _rosterLoaded=false;
+let _allTime=null;  // tournament slug -> squads ever registered (get_arena_totals, includes past events)
 async function loadPublicRoster(){
   if(!sb)return;
-  const {data,error}=await sb.rpc('get_public_roster');
+  const [{data,error},tot]=await Promise.all([sb.rpc('get_public_roster'),sb.rpc('get_arena_totals')]);
+  if(!tot.error&&tot.data)_allTime=new Map(tot.data.map(r=>[r.tournament_slug,r.squads||0]));
   if(error)return;
   const m=new Map();
   (data||[]).forEach(r=>{
@@ -1734,8 +1736,12 @@ function render(d){
   renderPredictBoard(d);
   const foot=document.getElementById('arena-foot');if(foot)foot.textContent=d._live?'Live — updates whenever the bracket changes.':'Preview schedule — connect tournaments.json to go live.';
   const statT=document.getElementById('stat-tournaments'),statS=document.getElementById('stat-squads');
-  if(statT)statT.textContent=String(ts.length);
-  if(statS)statS.textContent=String(ts.reduce((sum,t)=>sum+teamsFor(t).length,0));
+  // all-time: every event ever (past ones from the database + the ones listed now), and for
+  // each the bigger of its database sign-ups and the squads shown on its card
+  const perEvent=new Map(_allTime||[]);
+  ts.forEach(t=>perEvent.set(t.name,Math.max(perEvent.get(t.name)||0,teamsFor(t).length)));
+  if(statT)statT.textContent=String(perEvent.size);
+  if(statS)statS.textContent=String([...perEvent.values()].reduce((a,b)=>a+b,0));
 }
 /* Tapping anywhere on a tournament card triggers its primary action — same precedence as
    the visible buttons (external register link wins over in-app if both exist). Taps on an
