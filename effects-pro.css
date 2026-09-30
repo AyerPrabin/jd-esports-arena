@@ -1,0 +1,64 @@
+/* Squad effects — refinement layer, loaded after the base effect rules on every page that
+   shows effects (index.html, /challenges/). It only adds on top of those rules:
+   - every effect card: glass top-edge highlight, deeper coloured shadow, brighter on hover
+   - metallic / spectrum gradient names that flow (gold, steel and all Pro effects)
+   - Pro effects (galaxy, thunder, bullets, blade, legend): breathing aura, a PRO mark on
+     the effect tag and one extra layer each (star drift, holo foil, ammo belt).
+   Plays on every device like the base effects (they're bought), so no reduced-motion opt-out. */
+
+/* ── all effect cards ── */
+.sqfx{box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 12px 30px -14px var(--fx1),0 0 0 1px rgba(0,0,0,.3);transition:filter .2s}
+.sqfx:hover{filter:brightness(1.1) saturate(1.12)}
+.sqfx .sq-av img,.sqfx .sqitem-nologo{box-shadow:0 0 0 1.5px var(--fx2),0 0 0 3px var(--fx1),0 0 20px var(--fx1)}
+
+/* ── flowing gradient names ── */
+@keyframes fxFlow{to{background-position:200% 50%}}
+.sqfx-gold .fx-name,.sqfx-steel .fx-name,
+.sqfx-galaxy .fx-name,.sq-fx-galaxy .fx-name,.sqfx-thunder .fx-name,.sq-fx-thunder .fx-name,
+.sqfx-bullets .fx-name,.sq-fx-bullets .fx-name,.sqfx-blade .fx-name,.sq-fx-blade .fx-name,
+.sqfx-legend .fx-name,.sq-fx-legend .fx-name{
+  background:var(--fxt) 0 50%/200% auto;-webkit-background-clip:text;background-clip:text;
+  color:transparent;-webkit-text-fill-color:transparent;text-shadow:none;font-weight:800;
+  animation:fxFlow var(--fxs,3s) linear infinite;filter:drop-shadow(0 0 5px var(--fxd,rgba(255,200,61,.5)))}
+.sqfx-gold{--fxt:linear-gradient(90deg,#fff6d6,#ffd24a 25%,#c98a00 50%,#ffd24a 75%,#fff6d6);--fxd:rgba(255,200,61,.55);--fxs:2.6s}
+.sqfx-steel{--fxt:linear-gradient(90deg,#ffffff,#9aa6b8 25%,#eef3f8 50%,#7d8898 75%,#ffffff);--fxd:rgba(207,216,227,.35);--fxs:4s}
+.sqfx-galaxy,.sq-fx-galaxy{--fxt:linear-gradient(90deg,#e6dcff,#8f6bff 25%,#5fd3ff 50%,#ff9be6 75%,#e6dcff);--fxd:rgba(143,107,255,.7);--fxs:4s}
+.sqfx-thunder,.sq-fx-thunder{--fxt:linear-gradient(90deg,#ffffff,#9eeaff 30%,#4fd8ff 50%,#9eeaff 70%,#ffffff);--fxd:rgba(79,216,255,.75);--fxs:1.6s}
+.sqfx-bullets,.sq-fx-bullets{--fxt:linear-gradient(90deg,#fff2c0,#ffb347 30%,#ff7a1a 50%,#ffb347 70%,#fff2c0);--fxd:rgba(255,154,61,.7);--fxs:1.4s}
+.sqfx-blade,.sq-fx-blade{--fxt:linear-gradient(90deg,#ffffff,#c9d2de 30%,#ff5a6a 50%,#c9d2de 70%,#ffffff);--fxd:rgba(255,90,106,.6);--fxs:2.6s}
+.sqfx-legend,.sq-fx-legend{--fxt:linear-gradient(90deg,#ffe38a,#fff6d6 20%,#ffc2f0 40%,#c4f3ff 60%,#9ff5c8 80%,#ffe38a);--fxd:rgba(255,210,74,.65);--fxs:3s}
+/* thunder names still flash with the lightning */
+@keyframes fxBolt{0%,84%,89%,93%,100%{filter:drop-shadow(0 0 5px rgba(79,216,255,.75))}86%,91%{filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 14px #4fd8ff)}}
+.sqfx-thunder .fx-name,.sq-fx-thunder .fx-name{animation:fxFlow 1.6s linear infinite,fxBolt 3.4s linear infinite}
+
+/* ── Pro effects ── */
+@keyframes fxAura{0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 12px 30px -14px var(--fx1),0 0 0 1px rgba(0,0,0,.3)}
+  50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 14px 40px -8px var(--fx1),0 0 26px -6px var(--fx2),0 0 0 1px rgba(0,0,0,.3)}}
+.sqfx-galaxy{animation:chipIn .4s ease forwards,sqSpin 5s linear infinite,fxAura 4s ease-in-out infinite}
+.sqfx-thunder{animation:chipIn .4s ease forwards,sqSpin 1.8s linear infinite,fxAura 3.4s ease-in-out infinite}
+.sqfx-bullets{animation:chipIn .4s ease forwards,sqSpin 1.3s linear infinite,fxAura 2.4s ease-in-out infinite}
+.sqfx-blade{animation:chipIn .4s ease forwards,sqSpin 2.6s linear infinite,fxAura 2.6s ease-in-out infinite}
+.sqfx-legend{animation:chipIn .4s ease forwards,sqSpin 3s linear infinite,fxAura 3s ease-in-out infinite}
+/* PRO mark on the effect tag (challenge cards use .fxt, the squad list uses .sqfx-tag) */
+.sqfx-galaxy .fxt,.sqfx-thunder .fxt,.sqfx-bullets .fxt,.sqfx-blade .fxt,.sqfx-legend .fxt,
+.sqfx-galaxy .sqfx-tag,.sqfx-thunder .sqfx-tag,.sqfx-bullets .sqfx-tag,.sqfx-blade .sqfx-tag,.sqfx-legend .sqfx-tag{
+  border:1px solid transparent;background:linear-gradient(rgba(6,8,14,.72),rgba(6,8,14,.72)) padding-box,linear-gradient(90deg,var(--fx1),var(--fx2),var(--fx1)) border-box;
+  box-shadow:0 0 12px -3px var(--fx1)}
+.sqfx-galaxy .fxt::before,.sqfx-thunder .fxt::before,.sqfx-bullets .fxt::before,.sqfx-blade .fxt::before,.sqfx-legend .fxt::before,
+.sqfx-galaxy .sqfx-tag::before,.sqfx-thunder .sqfx-tag::before,.sqfx-bullets .sqfx-tag::before,.sqfx-blade .sqfx-tag::before,.sqfx-legend .sqfx-tag::before{
+  content:'PRO';display:inline-block;margin-right:5px;padding:1px 4px;border-radius:4px;font-size:.52rem;font-weight:900;letter-spacing:.06em;line-height:1.3;
+  color:#07090f;background:linear-gradient(90deg,var(--fx1),var(--fx2));vertical-align:1px}
+/* Galaxy — a slow drifting star field behind the nebula */
+@keyframes fxDrift{to{background-position:140px 0,90px 0,60px 0}}
+.sqfx-galaxy::after{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;opacity:.7;
+  background:radial-gradient(1px 1px at 12% 30%,#fff,transparent 60%) 0 0/140px 70px,radial-gradient(1px 1px at 55% 70%,#d9ccff,transparent 60%) 0 0/90px 50px,radial-gradient(1.5px 1.5px at 80% 20%,#c4f3ff,transparent 60%) 0 0/60px 60px;
+  animation:fxDrift 14s linear infinite}
+/* Legend — holographic foil sheen sliding across the card */
+@keyframes fxFoil{from{background-position:120% 0}to{background-position:-20% 0}}
+.sqfx-legend::after{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;mix-blend-mode:screen;
+  background:linear-gradient(115deg,transparent 25%,rgba(255,107,214,.16) 38%,rgba(95,211,255,.18) 46%,rgba(255,227,138,.22) 54%,rgba(84,224,160,.14) 62%,transparent 75%) 0 0/250% 100%;
+  animation:fxFoil 5s ease-in-out infinite alternate}
+/* Bullet Storm — an ammo belt running along the bottom edge */
+@keyframes fxBelt{to{background-position:12px 0}}
+.sqfx-bullets::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;z-index:0;pointer-events:none;opacity:.7;
+  background:repeating-linear-gradient(90deg,#ffcf7a 0 5px,#b8651d 5px 7px,transparent 7px 12px);animation:fxBelt .45s linear infinite}
