@@ -37,7 +37,7 @@ Deno.serve(async (req: Request) => {
   const { data: c, error: cErr } = await db.from('challenges')
     .update({ broadcast_at: new Date().toISOString() })
     .eq('id', id).eq('creator', user.id).eq('status', 'open').is('invited', null).is('broadcast_at', null).gte('created_at', since)
-    .select('id, mode, stake, note, char_skill, gun_attr, ammo, rounds, map').maybeSingle();
+    .select('id, mode, stake, note, char_skill, gun_attr, ammo, rounds, map, gloo_wall').maybeSingle();
   if (cErr) return json({ error: cErr.message }, 500);
   if (!c) return json({ sent: 0, note: 'Nothing to announce' });
 
@@ -46,7 +46,7 @@ Deno.serve(async (req: Request) => {
   const pot = c.stake * 2 - 2; // matches challenge_fee_per_player() = 1
   const title = `⚔️ New ${c.mode} challenge — win ${pot} points`;
   // same wording as _challenge_rules() in schema.sql
-  const rules = `Skills ${c.char_skill ? 'on' : 'off'} · Gun attributes ${c.gun_attr ? 'on' : 'off'} · ${c.ammo === 'unlimited' ? 'Unlimited' : 'Limited'} ammo · First to ${c.rounds === 13 ? 7 : 4}${c.map ? ' · ' + c.map : ''}`;
+  const rules = `Skills ${c.char_skill ? 'on' : 'off'} · Gun attributes ${c.gun_attr ? 'on' : 'off'} · ${c.ammo === 'unlimited' ? 'Unlimited' : 'Limited'} ammo · ${c.gloo_wall === 'unlimited' ? 'Unlimited' : 'Limited'} gloo walls · First to ${c.rounds === 13 ? 7 : 4}${c.map ? ' · ' + c.map : ''}`;
   const text = `${who} wants a ${c.mode} Clash Squad match: ${c.stake} points each, winner gets ${pot}. ${rules}.${c.note ? ' "' + String(c.note).slice(0, 80) + '"' : ''} Open Challenges to accept.`;
 
   const { data: players, error: pErr } = await db.from('players').select('id').neq('id', user.id).limit(10000);

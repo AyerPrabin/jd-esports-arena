@@ -60,6 +60,15 @@ input:focus,textarea:focus{border-color:var(--gold)}
 .sum{margin-top:14px;padding:14px;border-radius:14px;background:var(--bg-2);border:1px solid var(--line-2);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .sum b{font-family:var(--display);font-size:1.7rem;color:var(--gold-l);line-height:1}
 .sum span{font-size:.8rem;color:var(--silver)}
+/* coins breakdown: what goes in, what the winner gets */
+.pay{margin-top:14px;border-radius:16px;border:1px solid var(--gold-m);background:linear-gradient(160deg,rgba(255,200,61,.1),var(--bg-2) 60%);overflow:hidden}
+.pay .row{display:flex;justify-content:space-between;gap:10px;padding:8px 14px;font-size:.82rem;color:var(--silver)}
+.pay .row b{color:var(--cream);font-family:'JetBrains Mono',monospace;font-size:.84rem}
+.pay .row.fee b{color:var(--red)}
+.pay .win{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border-top:1px dashed var(--gold-m);background:rgba(255,200,61,.08)}
+.pay .win span{font-weight:800;font-size:.9rem}
+.pay .win span small{display:block;font-weight:600;font-size:.72rem;color:var(--green)}
+.pay .win b{font-family:var(--display);font-size:2rem;line-height:1;color:var(--gold-l)}
 /* challenge rows */
 .ch{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;border:1px solid var(--line-2);background:var(--bg-2);cursor:pointer;transition:.15s}
 .ch+.ch{margin-top:8px}
@@ -230,6 +239,7 @@ input:focus,textarea:focus{border-color:var(--gold)}
           <div class="set"><span><b>Character skills</b><small>Active &amp; passive character abilities</small></span><div class="seg" data-k="skill"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
           <div class="set"><span><b>Gun attributes</b><small>Gun skin stat bonuses (damage, rate of fire…)</small></span><div class="seg" data-k="gun"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
           <div class="set"><span><b>Ammo</b><small>Limited = normal reloads and pickups</small></span><div class="seg" data-k="ammo"><button type="button" data-v="limited">Limited</button><button type="button" data-v="unlimited">Unlimited</button></div></div>
+          <div class="set"><span><b>Gloo walls</b><small>Unlimited = throw as many walls as you want</small></span><div class="seg" data-k="gloo"><button type="button" data-v="limited">Limited</button><button type="button" data-v="unlimited">Unlimited</button></div></div>
           <div class="set"><span><b>Rounds</b><small>First side to win this many rounds</small></span><div class="seg" data-k="rounds"><button type="button" data-v="7">First to 4</button><button type="button" data-v="13">First to 7</button></div></div>
           <div class="set"><span><b>Map</b><small>Whoever makes the room uses this map</small></span><select id="map"><option value="">Any map</option><option>Bermuda</option><option>Purgatory</option><option>Kalahari</option><option>Alpine</option><option>NeXTerra</option></select></div>
         </div>
@@ -238,7 +248,7 @@ input:focus,textarea:focus{border-color:var(--gold)}
         <input id="invite" placeholder="Their username, e.g. ayer_legend" autocomplete="off" hidden style="margin-top:8px">
         <label>Note (optional)</label>
         <input id="note" maxlength="120" placeholder="e.g. No grenades, M1887 only, 8 PM">
-        <div class="sum"><span>You put in <b id="s-stake">50</b> · opponent puts in the same<br><small style="color:var(--body)">Platform fee: 1 point per player, only when the match is played</small></span><span style="text-align:right">Winner gets<br><b id="s-pot">98</b></span></div>
+        <div class="pay" id="pay"></div>
         <div class="msg" id="c-msg"></div>
         <button class="btn wide" id="c-btn" type="button" style="margin-top:6px">⚔️ Create challenge</button>
         <p style="font-size:.74rem;color:var(--body);margin:10px 0 0">Your stake is held safely until the result. Cancel any time before someone accepts for a full refund. 2v2–4v4 are captain vs captain — you represent your squad.</p>
@@ -265,7 +275,7 @@ input:focus,textarea:focus{border-color:var(--gold)}
         <li>If both sides say they won, the admin decides — share screenshots in the challenge chat.</li>
         <li>No one accepts within 24 hours, or nobody reports within 12 hours of accepting: stakes are refunded.</li>
         <li>The winner gets both stakes minus a 1-point platform fee per player (e.g. 50 each → winner gets 98). Cancelled, expired or refunded challenges have no fee.</li>
-        <li>Play with the <b>room settings shown on the challenge</b> (skills, gun attributes, ammo, rounds, map). If the room doesn't match, say so in the chat before the first round — playing on means you accept it.</li>
+        <li>Play with the <b>room settings shown on the challenge</b> (skills, gun attributes, ammo, gloo walls, rounds, map). If the room doesn't match, say so in the chat before the first round — playing on means you accept it.</li>
         <li>Cheating or lying about a result = stake forfeited and a ban. Stakes 10–500 points, 18+ only.</li>
       </ul>
     </div>
@@ -299,17 +309,23 @@ document.addEventListener('pointerdown',()=>{if(!_ding){try{_ding=new Audio('/no
 function alertNew(){try{if(_ding){_ding.currentTime=0;_ding.play().catch(()=>{});}}catch(e){}try{if(navigator.vibrate)navigator.vibrate([180,90,180]);}catch(e){}}
 let me=null,bal=0,mode='1v1',stake=50,who='open',tab='lobby',roomId=null,chatTimer=null,names=new Map(),lobbyMode='all',_lobbyRows=[];
 /* room settings the creator picks — same columns/defaults as create_challenge() in schema.sql */
-let rs={skill:true,gun:false,ammo:'limited',rounds:7};
+let rs={skill:true,gun:false,ammo:'limited',gloo:'limited',rounds:7};
 const PRESETS=[
-  {id:'ranked',t:'Ranked style',d:'Skills on · guns off',v:{skill:true,gun:false,ammo:'limited',rounds:7}},
-  {id:'pure',t:'Pure aim',d:'No skills · no gun stats',v:{skill:false,gun:false,ammo:'limited',rounds:7}},
-  {id:'all',t:'Anything goes',d:'All on · unlimited ammo',v:{skill:true,gun:true,ammo:'unlimited',rounds:7}},
-  {id:'long',t:'Long battle',d:'Ranked style · first to 7',v:{skill:true,gun:false,ammo:'limited',rounds:13}}];
-function rulesText(c){return `Skills ${c.char_skill!==false?'on':'off'} · Gun attributes ${c.gun_attr?'on':'off'} · ${c.ammo==='unlimited'?'Unlimited':'Limited'} ammo · First to ${c.rounds===13?7:4}${c.map?' · '+c.map:''}`;}
+  {id:'ranked',t:'Ranked style',d:'Skills on · guns off',v:{skill:true,gun:false,ammo:'limited',gloo:'limited',rounds:7}},
+  {id:'pure',t:'Pure aim',d:'No skills · no gun stats',v:{skill:false,gun:false,ammo:'limited',gloo:'limited',rounds:7}},
+  {id:'walls',t:'Wall war',d:'Unlimited ammo + gloo walls',v:{skill:true,gun:false,ammo:'unlimited',gloo:'unlimited',rounds:7}},
+  {id:'all',t:'Anything goes',d:'Everything on & unlimited',v:{skill:true,gun:true,ammo:'unlimited',gloo:'unlimited',rounds:7}},
+  {id:'long',t:'Long battle',d:'Ranked style · first to 7',v:{skill:true,gun:false,ammo:'limited',gloo:'limited',rounds:13}}];
+function rulesText(c){return `Skills ${c.char_skill!==false?'on':'off'} · Gun attributes ${c.gun_attr?'on':'off'} · ${c.ammo==='unlimited'?'Unlimited':'Limited'} ammo · ${c.gloo_wall==='unlimited'?'Unlimited':'Limited'} gloo walls · First to ${c.rounds===13?7:4}${c.map?' · '+c.map:''}`;}
 // rule chips for a challenge (lobby card, room)
 function ruleChips(c){
   const sk=c.char_skill!==false,gu=!!c.gun_attr;
-  return `<div class="rcs"><span class="rc ${sk?'y':'n'}">Skills ${sk?'on':'off'}</span><span class="rc ${gu?'y':'n'}">Gun attr ${gu?'on':'off'}</span><span class="rc">${c.ammo==='unlimited'?'∞ Unlimited ammo':'Limited ammo'}</span><span class="rc">First to ${c.rounds===13?7:4}</span>${c.map?`<span class="rc">🗺 ${esc(c.map)}</span>`:''}</div>`;
+  return `<div class="rcs"><span class="rc ${sk?'y':'n'}">Skills ${sk?'on':'off'}</span><span class="rc ${gu?'y':'n'}">Gun attr ${gu?'on':'off'}</span><span class="rc">${c.ammo==='unlimited'?'∞ Unlimited ammo':'Limited ammo'}</span><span class="rc">${c.gloo_wall==='unlimited'?'🧱 Unlimited gloo walls':'Limited gloo walls'}</span><span class="rc">First to ${c.rounds===13?7:4}</span>${c.map?`<span class="rc">🗺 ${esc(c.map)}</span>`:''}</div>`;
+}
+// "how many coins at the end": stakes in, fee out, what the winner receives
+function payBox(st){
+  const n=v=>Number(v).toLocaleString();
+  return `<div class="row"><span>You put in</span><b>${n(st)}</b></div><div class="row"><span>Opponent puts in</span><b>${n(st)}</b></div><div class="row"><span>Total pot</span><b>${n(st*2)}</b></div><div class="row fee"><span>Platform fee (${FEE} per player)</span><b>−${n(2*FEE)}</b></div><div class="win"><span>🏆 Winner gets<small>+${n(pot(st)-st)} profit on your ${n(st)}</small></span><b><span class="coin" style="vertical-align:middle;margin-right:6px">JD</span>${n(pot(st))}</b></div>`;
 }
 function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2000);}
 function confirmBox(title,body,yes){return new Promise(res=>{$('ov-t').textContent=title;$('ov-b').textContent=body;$('ov-yes').textContent=yes||'Confirm';$('ov').classList.add('open');const done=v=>{$('ov').classList.remove('open');res(v);};$('ov-yes').onclick=()=>done(true);$('ov-no').onclick=()=>done(false);});}
@@ -361,7 +377,7 @@ function renderCreate(){
   $('modes').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{mode=c.dataset.m;renderCreate();});
   $('stakes').innerHTML=[10,25,50,100,200].map(a=>`<button type="button" class="chip${a===stake?' on':''}" data-a="${a}">${a}</button>`).join('');
   $('stakes').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{stake=+c.dataset.a;$('stake-custom').value='';renderCreate();});
-  $('s-stake').textContent=stake;$('s-pot').textContent=pot(stake).toLocaleString();
+  $('pay').innerHTML=payBox(stake);
   document.querySelectorAll('.seg').forEach(g=>{const k=g.dataset.k,cur=k==='skill'||k==='gun'?(rs[k]?'1':'0'):String(rs[k]);g.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===cur));});
   $('presets').innerHTML=PRESETS.map(p=>{const on=Object.keys(p.v).every(k=>p.v[k]===rs[k]);return `<button type="button" class="preset${on?' on':''}" data-p="${p.id}">${p.t}<small>${p.d}</small></button>`;}).join('');
   $('presets').querySelectorAll('.preset').forEach(b=>b.onclick=()=>{rs={...PRESETS.find(p=>p.id===b.dataset.p).v};renderCreate();});
@@ -376,7 +392,7 @@ $('c-btn').onclick=async()=>{
   const invite=who==='direct'?$('invite').value.trim():null;
   if(who==='direct'&&!invite){msg.className='msg err';msg.textContent='Type the player\'s username.';return;}
   $('c-btn').disabled=true;
-  const {data,error}=await sb.rpc('create_challenge',{p_mode:mode,p_stake:stake,p_invite:invite,p_note:$('note').value.trim()||null,p_char_skill:rs.skill,p_gun_attr:rs.gun,p_ammo:rs.ammo,p_rounds:rs.rounds,p_map:$('map').value||null});
+  const {data,error}=await sb.rpc('create_challenge',{p_mode:mode,p_stake:stake,p_invite:invite,p_note:$('note').value.trim()||null,p_char_skill:rs.skill,p_gun_attr:rs.gun,p_ammo:rs.ammo,p_rounds:rs.rounds,p_map:$('map').value||null,p_gloo:rs.gloo});
   $('c-btn').disabled=false;
   if(error){msg.className='msg err';msg.textContent=error.message;return;}
   toast(invite?'Challenge sent to '+invite:'Challenge posted — everyone is being notified');$('note').value='';
@@ -387,7 +403,7 @@ $('c-btn').onclick=async()=>{
 /* mine */
 const STATUS={open:['Waiting for opponent','wait'],accepted:['In progress','live'],disputed:['Admin reviewing','bad'],completed:['Finished',''],cancelled:['Cancelled',''],expired:['Expired · refunded',''],refunded:['Refunded','']};
 async function loadMine(){
-  const {data,error}=await sb.from('challenges').select('id, creator, opponent, invited, mode, stake, status, winner, creator_claim, opponent_claim, created_at, note, char_skill, gun_attr, ammo, rounds, map').or(`creator.eq.${me.id},opponent.eq.${me.id},invited.eq.${me.id}`).order('created_at',{ascending:false}).limit(40);
+  const {data,error}=await sb.from('challenges').select('id, creator, opponent, invited, mode, stake, status, winner, creator_claim, opponent_claim, created_at, note, char_skill, gun_attr, ammo, rounds, map, gloo_wall').or(`creator.eq.${me.id},opponent.eq.${me.id},invited.eq.${me.id}`).order('created_at',{ascending:false}).limit(40);
   if(error){$('mine').innerHTML=`<div class="empty">${esc(error.message)}</div>`;return;}
   const act=(data||[]).filter(c=>c.status==='accepted'&&((c.creator===me.id&&!c.creator_claim)||(c.opponent===me.id&&!c.opponent_claim))).length;
   $('mine-n').hidden=!act;$('mine-n').textContent=act;
@@ -448,7 +464,7 @@ async function renderRoom(quiet){
   }else if(c.status==='disputed'){
     action='<p style="color:var(--red);font-size:.88rem;margin:0">Both sides said they won, so the admin will decide. Post your screenshots in the chat below.</p>';
   }else if(c.status==='completed'){
-    action=`<p style="font-size:1rem;margin:0;font-weight:700;color:${c.winner===me.id?'var(--green)':'var(--silver)'}">${c.winner===me.id?`🏆 You won ${pot(c.stake).toLocaleString()} points!`:'This one went to your opponent.'}</p><button class="btn" id="r-rematch" type="button" style="margin-top:10px">🔁 Rematch · ${c.stake} points</button>`;
+    action=`<p style="font-size:1rem;margin:0;font-weight:700;color:${c.winner===me.id?'var(--green)':'var(--silver)'}">${c.winner===me.id?`🏆 You won! +${pot(c.stake).toLocaleString()} coins added to your wallet`:`This one went to your opponent · −${c.stake.toLocaleString()} coins`}</p><p style="margin:4px 0 0;font-size:.8rem;color:var(--body)">${c.winner===me.id?`That's +${(pot(c.stake)-c.stake).toLocaleString()} profit on your ${c.stake} stake (pot ${c.stake*2} − ${2*FEE} fee).`:`Your opponent got ${pot(c.stake).toLocaleString()} (pot ${c.stake*2} − ${2*FEE} fee). Win it back with a rematch.`}</p><button class="btn" id="r-rematch" type="button" style="margin-top:10px">🔁 Rematch · ${c.stake} points</button>`;
   }else{action=`<p style="color:var(--silver);font-size:.88rem;margin:0">${esc(l)}${c.resolution?' — '+esc(c.resolution):''}.</p>`;}
   const timer=c.status==='open'?`⏳ Expires in ${left(c.created_at,24)} if nobody accepts — stakes are refunded`
     :c.status==='accepted'&&c.claim_at&&!(myClaim&&theirClaim)?`⏳ ${myClaim?'Your opponent has':'You have'} ${left(c.claim_at,2)} to answer — after that the reported result stands`
@@ -490,7 +506,7 @@ function bindRoom(c){
     if(!other||!nmv||nmv==='Player'){toast('Opponent not found');return;}
     if(bal<c.stake){if(await confirmBox('Not enough points',`A rematch needs ${c.stake} points and you have ${bal}. Load points first?`,'Load points'))location.href='/wallet/#load';return;}
     if(!await confirmBox('Rematch?',`Send ${nmv} a new ${c.mode} challenge for ${c.stake} points each with the same room settings.\n\n${rulesText(c)}`,'Send rematch'))return;
-    const {data,error}=await sb.rpc('create_challenge',{p_mode:c.mode,p_stake:c.stake,p_invite:nmv,p_note:c.note||null,p_char_skill:c.char_skill!==false,p_gun_attr:!!c.gun_attr,p_ammo:c.ammo||'limited',p_rounds:c.rounds||7,p_map:c.map||null});
+    const {data,error}=await sb.rpc('create_challenge',{p_mode:c.mode,p_stake:c.stake,p_invite:nmv,p_note:c.note||null,p_char_skill:c.char_skill!==false,p_gun_attr:!!c.gun_attr,p_ammo:c.ammo||'limited',p_rounds:c.rounds||7,p_map:c.map||null,p_gloo:c.gloo_wall||'limited'});
     if(error){toast(error.message);return;}
     toast('Rematch sent to '+nmv);await loadBalance();openRoom(data);
   });
@@ -561,8 +577,8 @@ async function setupDaily(){
 const TUT=[
   {tab:'lobby',t:'⚔️ Welcome to Challenges',b:'Play <b>Clash Squad</b> against anyone, any time. Both sides put in the same points and <b>the winner takes the pot</b>. Here’s how it works in 30 seconds.'},
   {tab:'lobby',el:'.tab[data-tab="lobby"]',t:'1 · Find a match in the Lobby',b:'Every open challenge shows the mode, <b>what you win</b> and the room rules. Tap one to accept — your stake is held safely until the result.'},
-  {tab:'create',el:'#modes',t:'2 · Or create your own',b:'Pick <b>1v1 to 4v4</b> and your stake (10–500 points). Your opponent puts in the same amount.'},
-  {tab:'create',el:'.sets',t:'3 · Set the room rules',b:'Skills, gun attributes, ammo, rounds and map. Use a preset like <b>Pure aim</b>, or set each one. Both sides must play with these.'},
+  {tab:'create',el:'#modes',t:'2 · Or create your own',b:'Pick <b>1v1 to 4v4</b> and your stake (10–500 points). Your opponent puts in the same amount — the box at the bottom shows exactly how many coins the winner gets.'},
+  {tab:'create',el:'.sets',t:'3 · Set the room rules',b:'Skills on/off, gun attributes on/off, limited or unlimited ammo and gloo walls, rounds and map. Use a preset like <b>Pure aim</b>, or set each one. Both sides must play with these.'},
   {tab:'create',el:'#c-btn',t:'4 · Post it',b:'Everyone gets an alert — or choose <b>A specific player</b> to challenge a friend. Cancel before anyone accepts and you get your points back.'},
   {tab:'mine',el:'.tab[data-tab="mine"]',t:'5 · Play and report',b:'Once accepted you get a <b>private room with chat</b>: share the room ID, play, then both tap <b>We won</b> or <b>We lost</b>. No answer in 2 hours = the result stands. Both say they won = the admin decides from screenshots.'},
   {tab:'lobby',el:()=>$('alerts').hidden?document.querySelector('.dtog'):$('alerts'),t:'6 · Never miss a challenge',b:'Turn on alerts to hear when someone challenges you, accepts or reports a result — even when JD Arena is closed.'}];
