@@ -3132,3 +3132,17 @@ $$;
 revoke all on function public.get_arena_totals() from public;
 grant execute on function public.get_arena_totals() to anon, authenticated;
 commit;
+
+-- ── homepage: players + challenges played counters ───────────────────────────
+-- Two more all-time numbers for the hero stats card, next to get_arena_totals().
+-- Counts only, nothing personal; readable by visitors who aren't signed in. Idempotent.
+begin;
+create or replace function public.get_arena_stats()
+returns table(players int, challenges int)
+language sql stable security definer set search_path = public as $$
+  select (select count(*) from public.players)::int,
+         (select count(*) from public.challenges where status = 'completed')::int
+$$;
+revoke all on function public.get_arena_stats() from public;
+grant execute on function public.get_arena_stats() to anon, authenticated;
+commit;
