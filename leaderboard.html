@@ -85,13 +85,11 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 /* champion banner, once the event is marked completed */
 .champ{position:relative;overflow:hidden;border-radius:18px;border:1px solid rgba(255,200,61,.4);margin:0 0 34px;isolation:isolate;text-align:center;padding:34px 16px 28px}
 .champ[hidden]{display:none}
-.champ::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(7,9,15,.45),rgba(7,9,15,.92)),url('/ff-stage.jpg') center 30%/cover}
+.champ::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(7,9,15,.45),rgba(7,9,15,.92)),url('/ff-gameplay.jpg') center 40%/cover}
 .champ-eye{font-size:.68rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-l)}
 .champ-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:clamp(2rem,6vw,3rem);line-height:1.1;margin:8px 0 2px;overflow-wrap:anywhere}
 .champ-name .fxn-tag{font-family:'Inter',sans-serif;font-size:.66rem;vertical-align:super}
 .champ-sub{color:var(--silver);font-size:.86rem}
-.champ-credit{position:absolute;right:10px;bottom:6px;font-size:.58rem;color:rgba(255,255,255,.45)}
-.champ-credit a{text-decoration:underline}
 .pts-table .fxn-tag{font-size:.54rem}
 @media(prefers-reduced-motion:reduce){.pod-slot,.pts-table td{transition:none!important;animation:none!important}}
 @media(max-width:640px){.pts-table{font-size:.78rem}.pts-table th,.pts-table td{padding:9px 8px}.pts-table .team img{width:20px;height:20px}.podium{gap:8px}.pod-slot{width:100px}.pod-logo{width:38px;height:38px}.pod-name{font-size:.74rem}.pod-pts{font-size:1.1rem}}
@@ -108,7 +106,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 <main class="wrap">
   <div class="sec-h"><h1 id="lb-ttl">Season Leaderboard</h1><span class="ln"></span></div>
   <p class="sub" id="lb-sub">Loading standings…</p>
-  <div class="champ" id="champ" hidden><div class="champ-eye">🏆 Champions</div><div class="champ-name" id="champ-name"></div><div class="champ-sub" id="champ-sub"></div><span class="champ-credit">Photo: <a href="https://commons.wikimedia.org/wiki/File:Free_Fire_World_Cup_2019_gameplay.png" target="_blank" rel="noopener">Sygnustv Media</a>, CC BY 3.0</span></div>
+  <div class="champ" id="champ" hidden><div class="champ-eye">🏆 Champions</div><div class="champ-name" id="champ-name"></div><div class="champ-sub" id="champ-sub"></div></div>
   <div class="podium" id="podium">
     <div class="pod-slot p2"><div class="pod-card"><img class="pod-logo" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">2</div></div>
     <div class="pod-slot p1"><div class="pod-card"><span class="pod-crown">👑</span><img class="pod-logo" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">1</div></div>
