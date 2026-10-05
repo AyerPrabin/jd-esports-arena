@@ -67,22 +67,6 @@
     {
       "name": "JD Free Fire Open #4",
       "game": "Free Fire BR · Squad",
-      "date": "Sat, Oct 10",
-      "time": "10:00 PM NPT",
-      "start": "2026-10-10T22:00:00+05:45",
-      "prize": "400",
-      "entry": "10",
-      "platform": "Mobile only",
-      "slots": 12,
-      "format": "BR · 3 matches",
-      "status": "upcoming",
-      "platform_mode": "mobile",
-      "teams": [],
-      "registered": 0
-    },
-    {
-      "name": "JD Free Fire Open #5",
-      "game": "Free Fire BR · Squad",
       "date": "Sun, Oct 11",
       "time": "10:00 PM NPT",
       "start": "2026-10-11T22:00:00+05:45",
@@ -97,7 +81,7 @@
       "registered": 0
     },
     {
-      "name": "JD Free Fire Open #6",
+      "name": "JD Free Fire Open #5",
       "game": "Free Fire BR · Squad",
       "date": "Mon, Oct 12",
       "time": "10:30 PM NPT",
@@ -228,5 +212,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-05T16:31:28.175Z"
+  "_published_at": "2026-10-05T16:45:21.091Z"
 }
