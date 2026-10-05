@@ -494,6 +494,13 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .shot img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s cubic-bezier(.22,1,.36,1),filter .3s;filter:saturate(1.08)}
 .shot.big img{object-position:50% 0}
 .shot:last-child img{object-position:50% 25%}
+.maps-h{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.4rem;letter-spacing:.02em;margin:26px 0 12px}
+.maps-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.mapt{position:relative;margin:0;border-radius:12px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/10}
+.mapt img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s cubic-bezier(.22,1,.36,1)}
+.mapt:hover img{transform:scale(1.08)}
+.mapt figcaption{position:absolute;left:0;right:0;bottom:0;padding:16px 10px 7px;font-size:.76rem;font-weight:700;background:linear-gradient(180deg,transparent,rgba(7,9,15,.88))}
+@media(max-width:640px){.maps-row{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px}.mapt{flex:0 0 62%;scroll-snap-align:start}}
 .shot:hover img{transform:scale(1.06);filter:saturate(1.2) brightness(1.05)}
 .shot::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(7,9,15,.85));pointer-events:none}
 .shot figcaption{position:absolute;left:12px;bottom:10px;z-index:1;font-size:.8rem;font-weight:700;color:var(--cream);text-shadow:0 1px 6px rgba(0,0,0,.8)}
@@ -1109,6 +1116,8 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
       <figure class="shot"><img src="ff-gloo.jpg" alt="Free Fire mobile gameplay — pushing through gloo walls" loading="lazy" width="1200" height="776"><figcaption>🧊 The push</figcaption></figure>
       <figure class="shot"><img src="ff-gameplay.jpg" alt="Free Fire mobile gameplay — holding cover" loading="lazy" width="1400" height="690"><figcaption>🛡️ Holding cover</figcaption></figure>
     </div>
+    <h3 class="maps-h">Battle maps</h3>
+    <div class="maps-row"><figure class="mapt"><img src="maps/bermuda.jpg" alt="Bermuda map" loading="lazy" width="1200" height="676"><figcaption>🌴 Bermuda</figcaption></figure><figure class="mapt"><img src="maps/purgatory.jpg" alt="Purgatory map" loading="lazy" width="1200" height="676"><figcaption>🌲 Purgatory</figcaption></figure><figure class="mapt"><img src="maps/kalahari.jpg" alt="Kalahari map" loading="lazy" width="1200" height="676"><figcaption>🏜️ Kalahari</figcaption></figure><figure class="mapt"><img src="maps/alpine.jpg" alt="Alpine map" loading="lazy" width="1200" height="676"><figcaption>🏔️ Alpine</figcaption></figure><figure class="mapt"><img src="maps/nexterra.jpg" alt="NeXTerra map" loading="lazy" width="1200" height="676"><figcaption>🌌 NeXTerra</figcaption></figure></div>
   </section>
 
   <section class="sec wrap reveal" id="scoring">
@@ -1781,6 +1790,11 @@ function teamsFor(t){
    thing the admin has to remember to toggle. "live" -> "completed" stays a
    manual admin action since only a human can declare a winner. */
 // "500" / "1,000" typed bare in the editor reads as a currency amount, not a mystery number
+/* Map art per event (maps/*.jpg — original illustrations in each map's style, not Garena's
+   map images). The admin picks the map; events saved before the field existed show Bermuda,
+   the main battle royale map. A custom t.image still wins. */
+const MAP_ART={bermuda:'Bermuda',purgatory:'Purgatory',kalahari:'Kalahari',alpine:'Alpine',nexterra:'NeXTerra'};
+function mapOf(t){const k=String(t.map||'').toLowerCase();return MAP_ART[k]?k:'bermuda';}
 function fmtPrize(p){const v=String(p==null?'':p).trim();if(!v)return '—';return /^\d[\d,]*$/.test(v)?'Rs '+Number(v.replace(/,/g,'')).toLocaleString('en-IN'):v;}
 function effectiveStatus(t){
   const s=(t.status||'upcoming').toLowerCase();
@@ -1837,8 +1851,8 @@ function render(d){
     const open=st==='upcoming'||st==='live';
     const urgency=(open&&slots&&!_myRegs.has(t.name))?(left===0?`<span class="tm-urg full">Full${(sb&&!isPaidTournament(t))?' · waitlist open':''}</span>`:(left<=3?`<span class="tm-urg hot">🔥 ${left} slot${left===1?'':'s'} left</span>`:'')):'';
     const prizeTxt=fmtPrize(t.prize),entryTxt=String(t.entry||'Free');
-    const media=`<div class="tcard-media" style="background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%),url('${esc(t.image||'event-card.jpg')}')"><div class="tm-over">${prizeTxt!=='—'?`<span class="tm-prize">🏆 ${esc(prizeTxt)}</span>`:''}<span class="tm-entry${/^free$/i.test(entryTxt.trim())?' free':''}">${/^free$/i.test(entryTxt.trim())?'Free entry':'Entry '+esc(entryTxt)}</span></div>${urgency}</div>`;
-    return `<div class="tcard" data-tname="${esc(t.name)}" onclick="cardTap(event,this)">${media}<div class="tcard-body"><span class="tbadge ${st}">${st==='live'?'● Live':(st==='cancelled'?'✕ Cancelled':(st.charAt(0).toUpperCase()+st.slice(1)))}</span><div class="tname">${esc(t.name)}</div><div class="tgame">${esc(t.game||'Free Fire')}</div>${(st==='upcoming'&&t.start)?`<div class="tcount" data-start="${esc(t.start)}"></div><div class="tcount-bar"><span></span></div>`:''}<div class="tmeta"><div class="row"><span>Date</span><b>${esc(t.date||'TBA')}${t.time&&t.time!=='—'?' · '+esc(t.time):''}</b></div><div class="row"><span>Format</span><b>${esc(t.format||'BR')}</b></div>${t.platform?`<div class="row"><span>Platform</span><b>📱 ${esc(t.platform)}</b></div>`:''}</div>${slots?`<div class="tslots"><span style="width:${pct}%"></span></div><button class="tslots-label" data-roster="${esc(t.name)}">${reg}/${slots} ${tr('sqview')}</button>`:''}${teams.length?`<div class="troster">${teams.slice(0,CHIP_MAX).map(tm=>{const fx=squadFx(tm);const cls=fx?' '+fx.cls:'';const badge=(fx&&fx.badge)?`<span class="fx-badge">${fx.badge}</span> `:'';const particles=fxParticlesHtml(fx);const nameHtml=fxNameHtml(fx,tm.name);return tm.logo?`<span class="${(fx?fx.cls:'')}"><img src="${esc(tm.logo)}" alt="">${badge}${nameHtml}${particles}</span>`:`<span class="nologo${cls}">${badge}${nameHtml}${particles}</span>`;}).join('')}${teams.length>CHIP_MAX?`<button type="button" class="chip-more" data-roster="${esc(t.name)}">+${teams.length-CHIP_MAX} more</button>`:''}</div>`:''}${btn}${inAppRegBtn(t,st,full)}</div></div>`;
+    const media=`<div class="tcard-media" style="background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%),url('${esc(t.image||('maps/'+mapOf(t)+'.jpg'))}')"><div class="tm-over">${prizeTxt!=='—'?`<span class="tm-prize">🏆 ${esc(prizeTxt)}</span>`:''}<span class="tm-entry${/^free$/i.test(entryTxt.trim())?' free':''}">${/^free$/i.test(entryTxt.trim())?'Free entry':'Entry '+esc(entryTxt)}</span></div>${urgency}</div>`;
+    return `<div class="tcard" data-tname="${esc(t.name)}" onclick="cardTap(event,this)">${media}<div class="tcard-body"><span class="tbadge ${st}">${st==='live'?'● Live':(st==='cancelled'?'✕ Cancelled':(st.charAt(0).toUpperCase()+st.slice(1)))}</span><div class="tname">${esc(t.name)}</div><div class="tgame">${esc(t.game||'Free Fire')}</div>${(st==='upcoming'&&t.start)?`<div class="tcount" data-start="${esc(t.start)}"></div><div class="tcount-bar"><span></span></div>`:''}<div class="tmeta"><div class="row"><span>Date</span><b>${esc(t.date||'TBA')}${t.time&&t.time!=='—'?' · '+esc(t.time):''}</b></div><div class="row"><span>Format</span><b>${esc(t.format||'BR')}</b></div><div class="row"><span>Map</span><b>🗺️ ${MAP_ART[mapOf(t)]}</b></div>${t.platform?`<div class="row"><span>Platform</span><b>📱 ${esc(t.platform)}</b></div>`:''}</div>${slots?`<div class="tslots"><span style="width:${pct}%"></span></div><button class="tslots-label" data-roster="${esc(t.name)}">${reg}/${slots} ${tr('sqview')}</button>`:''}${teams.length?`<div class="troster">${teams.slice(0,CHIP_MAX).map(tm=>{const fx=squadFx(tm);const cls=fx?' '+fx.cls:'';const badge=(fx&&fx.badge)?`<span class="fx-badge">${fx.badge}</span> `:'';const particles=fxParticlesHtml(fx);const nameHtml=fxNameHtml(fx,tm.name);return tm.logo?`<span class="${(fx?fx.cls:'')}"><img src="${esc(tm.logo)}" alt="">${badge}${nameHtml}${particles}</span>`:`<span class="nologo${cls}">${badge}${nameHtml}${particles}</span>`;}).join('')}${teams.length>CHIP_MAX?`<button type="button" class="chip-more" data-roster="${esc(t.name)}">+${teams.length-CHIP_MAX} more</button>`:''}</div>`:''}${btn}${inAppRegBtn(t,st,full)}</div></div>`;
   }).join(''):'<p style="text-align:center;color:var(--silver)">No tournaments posted yet — check back soon.</p>';
   if(gridHTML!==_lastGridHTML){
     _lastGridHTML=gridHTML;
