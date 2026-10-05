@@ -1117,7 +1117,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
       <figure class="shot"><img src="ff-gameplay.jpg" alt="Free Fire mobile gameplay — holding cover" loading="lazy" width="1400" height="690"><figcaption>🛡️ Holding cover</figcaption></figure>
     </div>
     <h3 class="maps-h">Battle maps</h3>
-    <div class="maps-row"><figure class="mapt"><img src="maps/bermuda.jpg" alt="Bermuda map" loading="lazy" width="1200" height="676"><figcaption>🌴 Bermuda</figcaption></figure><figure class="mapt"><img src="maps/purgatory.jpg" alt="Purgatory map" loading="lazy" width="1200" height="676"><figcaption>🌲 Purgatory</figcaption></figure><figure class="mapt"><img src="maps/kalahari.jpg" alt="Kalahari map" loading="lazy" width="1200" height="676"><figcaption>🏜️ Kalahari</figcaption></figure><figure class="mapt"><img src="maps/alpine.jpg" alt="Alpine map" loading="lazy" width="1200" height="676"><figcaption>🏔️ Alpine</figcaption></figure><figure class="mapt"><img src="maps/nexterra.jpg" alt="NeXTerra map" loading="lazy" width="1200" height="676"><figcaption>🌌 NeXTerra</figcaption></figure></div>
+    <div class="maps-row"><figure class="mapt"><img src="maps/bermuda.jpg" alt="Bermuda map" loading="lazy" width="1000" height="1000"><figcaption>🌴 Bermuda</figcaption></figure><figure class="mapt"><img src="maps/purgatory.jpg" alt="Purgatory map" loading="lazy" width="1000" height="1000"><figcaption>🌲 Purgatory</figcaption></figure><figure class="mapt"><img src="maps/kalahari.jpg" alt="Kalahari map" loading="lazy" width="1000" height="1000"><figcaption>🏜️ Kalahari</figcaption></figure><figure class="mapt"><img src="maps/alpine.jpg" alt="Alpine map" loading="lazy" width="1000" height="1000"><figcaption>🏔️ Alpine</figcaption></figure><figure class="mapt"><img src="maps/nexterra.jpg" alt="NeXTerra map" loading="lazy" width="1000" height="1000"><figcaption>🌌 NeXTerra</figcaption></figure></div>
   </section>
 
   <section class="sec wrap reveal" id="scoring">
@@ -1790,8 +1790,8 @@ function teamsFor(t){
    thing the admin has to remember to toggle. "live" -> "completed" stays a
    manual admin action since only a human can declare a winner. */
 // "500" / "1,000" typed bare in the editor reads as a currency amount, not a mystery number
-/* Map art per event (maps/*.jpg — original illustrations in each map's style, not Garena's
-   map images). The admin picks the map; events saved before the field existed show Bermuda,
+/* Map image per event (maps/*.jpg — the real Free Fire top-down maps, from the Free Fire
+   wiki; © Garena). The admin picks the map; events saved before the field existed show Bermuda,
    the main battle royale map. A custom t.image still wins. */
 const MAP_ART={bermuda:'Bermuda',purgatory:'Purgatory',kalahari:'Kalahari',alpine:'Alpine',nexterra:'NeXTerra'};
 function mapOf(t){const k=String(t.map||'').toLowerCase();return MAP_ART[k]?k:'bermuda';}
