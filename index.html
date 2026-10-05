@@ -486,12 +486,24 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .tbtn.done b{color:var(--gold-l)}
 .tbtn.done.win{border-color:rgba(255,200,61,.45);background:linear-gradient(100deg,rgba(255,200,61,.1),transparent 70%);color:var(--cream)}
 .pod{position:relative}
+/* ── From the Arena: own mobile gameplay shots (frames of gameplay/1.mp4, HUD + names removed) ── */
+.shots{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:repeat(2,minmax(0,1fr));gap:12px;height:clamp(340px,38vw,460px)}
+.shot{position:relative;margin:0;overflow:hidden;border-radius:16px;border:1px solid var(--line);background:var(--panel)}
+.shot.big{grid-row:span 2}
+.shot:last-child{grid-column:span 2}
+.shot img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s cubic-bezier(.22,1,.36,1),filter .3s;filter:saturate(1.08)}
+.shot.big img{object-position:50% 0}
+.shot:last-child img{object-position:50% 25%}
+.shot:hover img{transform:scale(1.06);filter:saturate(1.2) brightness(1.05)}
+.shot::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(7,9,15,.85));pointer-events:none}
+.shot figcaption{position:absolute;left:12px;bottom:10px;z-index:1;font-size:.8rem;font-weight:700;color:var(--cream);text-shadow:0 1px 6px rgba(0,0,0,.8)}
+@media(max-width:640px){.shots{grid-template-columns:1fr 1fr;grid-template-rows:none;height:auto}.shot{aspect-ratio:4/3}.shot.big{grid-column:span 2;grid-row:auto;aspect-ratio:16/10}.shot:last-child{grid-column:span 2;aspect-ratio:16/8}}
 .pod-crown{position:absolute;top:-26px;line-height:1;z-index:1;left:50%;transform:translateX(-50%);font-size:20px;filter:drop-shadow(0 0 6px rgba(255,215,80,.9));animation:wsBob 1.8s ease-in-out infinite}
 /* ── winner spotlight: the most recent finished event's champion, over our own Free Fire
-   gameplay (ff-gameplay.jpg: a frame of gameplay/1.mp4 cropped clear of HUD and names) ── */
+   gameplay (ff-*.jpg: frames of gameplay/1.mp4 cropped and painted clear of HUD and names) ── */
 #winner-spot{margin-top:clamp(28px,5vw,48px)}
 .ws{position:relative;overflow:hidden;border-radius:var(--radius-card,22px);border:1px solid rgba(255,200,61,.35);background:#07090F;isolation:isolate;box-shadow:0 30px 70px -30px rgba(255,180,40,.45)}
-.ws-bg{position:absolute;inset:0;z-index:-2;background:url('ff-gameplay.jpg') center 40%/cover;transform:scale(1.04);animation:wsPan 22s ease-in-out infinite alternate}
+.ws-bg{position:absolute;inset:0;z-index:-2;background:url('ff-victory.jpg') center 22%/cover;transform:scale(1.04);animation:wsPan 22s ease-in-out infinite alternate}
 .ws::before{content:'';position:absolute;inset:0;z-index:-1;background:radial-gradient(70% 90% at 50% 40%,rgba(7,9,15,.35),rgba(7,9,15,.9) 75%),linear-gradient(180deg,rgba(7,9,15,.2),rgba(7,9,15,.95))}
 .ws::after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:35%;z-index:-1;background:linear-gradient(100deg,transparent,rgba(255,220,120,.12),transparent);transform:skewX(-18deg);animation:wsSweep 6s ease-in-out infinite}
 .ws-in{display:flex;flex-direction:column;align-items:center;text-align:center;padding:clamp(30px,6vw,56px) 16px clamp(24px,5vw,40px)}
@@ -747,7 +759,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .zmodal .sub{color:var(--body);font-size:.82rem;margin-bottom:16px}
 .zmodal label{display:block;font-size:.7rem;letter-spacing:.01em;color:var(--silver);margin:12px 0 5px}
 .zmodal label.tc-check{display:flex;align-items:flex-start;gap:8px;font-size:.8rem;text-transform:none;letter-spacing:normal;color:var(--pm-muted,#9CA8BE);margin:10px 0 4px;cursor:pointer}
-.reg-hero{margin:-28px -28px 16px;padding:52px 22px 14px;border-radius:26px 26px 0 0;background:linear-gradient(180deg,rgba(10,15,28,.15),rgba(10,15,28,.96) 92%),url('ff-gameplay.jpg') center 40%/cover;border-bottom:1px solid var(--pm-border)}
+.reg-hero{margin:-28px -28px 16px;padding:52px 22px 14px;border-radius:26px 26px 0 0;background:linear-gradient(180deg,rgba(10,15,28,.15),rgba(10,15,28,.96) 92%),url('ff-gloo.jpg') center 45%/cover;border-bottom:1px solid var(--pm-border)}
 .reg-hero-eye{font-size:.64rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-l)}
 .reg-hero h3{margin:4px 0 0;font-size:1.45rem;line-height:1.15;overflow-wrap:anywhere}
 .reg-wa{margin-top:16px;padding:12px 14px;border-radius:14px;border:1px solid rgba(94,219,149,.28);background:linear-gradient(120deg,rgba(37,211,102,.08),transparent 70%)}
@@ -1087,6 +1099,16 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
     <p class="live-hint" style="text-align:center;margin-bottom:14px" id="predict-sub"></p>
     <div style="overflow-x:auto"><table class="pts-table" id="predict-table"></table></div>
     <p class="sub" style="text-align:center;margin-top:10px">Based on each squad's season average — screenshot it, then go prove it wrong.</p>
+  </section>
+
+  <section class="sec wrap reveal" id="arena-shots">
+    <div class="sec-h"><h2>From the Arena</h2><span class="ln"></span><span class="tag">Mobile gameplay</span></div>
+    <div class="shots">
+      <figure class="shot big"><img src="ff-victory.jpg" alt="Free Fire mobile gameplay — the round won" loading="lazy" width="1200" height="964"><figcaption>🏆 Round won</figcaption></figure>
+      <figure class="shot"><img src="ff-fight.jpg" alt="Free Fire mobile gameplay — firefight behind a gloo wall" loading="lazy" width="1200" height="818"><figcaption>🔫 Gloo wall fight</figcaption></figure>
+      <figure class="shot"><img src="ff-gloo.jpg" alt="Free Fire mobile gameplay — pushing through gloo walls" loading="lazy" width="1200" height="776"><figcaption>🧊 The push</figcaption></figure>
+      <figure class="shot"><img src="ff-gameplay.jpg" alt="Free Fire mobile gameplay — holding cover" loading="lazy" width="1400" height="690"><figcaption>🛡️ Holding cover</figcaption></figure>
+    </div>
   </section>
 
   <section class="sec wrap reveal" id="scoring">
