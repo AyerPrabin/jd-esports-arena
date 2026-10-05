@@ -95,6 +95,22 @@
       "platform_mode": "mobile",
       "teams": [],
       "registered": 0
+    },
+    {
+      "name": "New Tournament",
+      "game": "Free Fire BR · Squad",
+      "date": "Mon, Oct 12",
+      "time": "10:30 PM NPT",
+      "start": "2026-10-12T22:30:00+05:45",
+      "prize": "500",
+      "entry": "Free",
+      "platform": "Mobile only",
+      "slots": 12,
+      "format": "BR · 4 matches",
+      "status": "upcoming",
+      "platform_mode": "mobile",
+      "teams": [],
+      "registered": 0
     }
   ],
   "bo3": {
@@ -212,5 +228,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-05T16:25:10.261Z"
+  "_published_at": "2026-10-05T16:27:46.051Z"
 }
