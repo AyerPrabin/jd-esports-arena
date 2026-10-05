@@ -27,7 +27,7 @@ Deno.serve(async (req: Request) => {
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
   let q = supabase
     .from('registrations')
-    .select('id, squad_name, squad_logo, status, payment_screenshot, device_type, checked_in_at, verified_at, created_at, players(player_tag, username, email, squad_logo)')
+    .select('id, squad_name, squad_logo, status, payment_screenshot, device_type, checked_in_at, verified_at, created_at, whatsapp, players(player_tag, username, email, squad_logo)')
     .eq('tournament_slug', tournament_slug)
     .order('created_at', { ascending: true });
   if (status) q = q.eq('status', status);

@@ -117,6 +117,7 @@ h2[id]{scroll-margin-top:64px}
 .tm-pill.rejected,.tm-pill.no_show{border-color:rgba(227,107,107,.45);color:var(--red)}
 .tm-meta{font-size:.8rem;color:var(--body);margin-top:4px;overflow-wrap:anywhere}
 .tm-meta b{color:var(--silver);font-weight:500}
+.tm-wa{color:#5EDB95;text-decoration:underline;text-underline-offset:2px;font-weight:600}
 .tm-actions{display:flex;flex-direction:column;gap:6px;flex:none}
 .tm-btn{font:inherit;font-size:.74rem;padding:7px 12px;border-radius:8px;cursor:pointer;background:transparent;border:1px solid var(--line);color:var(--cream);white-space:nowrap;transition:border-color .15s,background .15s}
 .tm-btn:hover{border-color:var(--gold)}
@@ -748,7 +749,14 @@ document.addEventListener('input',e=>{
     return;
   }
   if(t.dataset.ti!==undefined&&t.dataset.mi!==undefined){const ti=+t.dataset.ti,mi=+t.dataset.mi;data.tournaments[ti].teams[mi][t.dataset.field||'name']=t.value;}
-  else if(t.dataset.i!==undefined){const i=+t.dataset.i,k=t.dataset.k;data.tournaments[i][k]=(t.type==='number')?(t.value===''?'':+t.value):t.value;}
+  else if(t.dataset.i!==undefined){const i=+t.dataset.i,k=t.dataset.k;data.tournaments[i][k]=(t.type==='number')?(t.value===''?'':+t.value):t.value;
+    // marking an event completed fills the winner from the top of its Best-of-3 results
+    // (only when blank — a typed winner always wins), so publish shows the champion straight away
+    if(k==='status'&&t.value==='completed'&&!String(data.tournaments[i].winner||'').trim()){
+      const top=bo3TopTeam(data.tournaments[i].name);
+      if(top){data.tournaments[i].winner=top;const w=t.closest('.card')&&t.closest('.card').querySelector('input[data-k="winner"]');if(w)w.value=top;msg('Winner set to "'+top+'" from the results table — change it if that\'s wrong, then Publish.','ok');}
+    }
+  }
   else if(t.dataset.bi!==undefined&&t.dataset.bri!==undefined){
     const i=+t.dataset.bi,ri=+t.dataset.bri,k=t.dataset.brk;
     data.bo3.teams[i].r[ri][k]=t.value===''?0:+t.value;
@@ -797,6 +805,13 @@ function onTeamLogo(e,ti,mi){
   reader.readAsDataURL(f);
 }
 function bo3Total(t){return (t.r||[]).reduce((s,x)=>s+(+((x&&x.pts)||0)),0);}
+// top squad (points, then kills) of the Best-of-3 table when it belongs to this tournament
+function bo3TopTeam(name){
+  const B=data.bo3;if(!B||(B.tournament&&B.tournament!==name)||!(B.teams||[]).length)return '';
+  const kills=t=>(t.r||[]).reduce((s,x)=>s+(+((x&&x.kills)||0)),0);
+  const best=B.teams.slice().sort((a,b)=>bo3Total(b)-bo3Total(a)||kills(b)-kills(a))[0];
+  return best&&bo3Total(best)>0?String(best.team||'').trim():'';
+}
 function renderBo3(){
   data.bo3=data.bo3||bo3Default();
   const sel=document.getElementById('bo3-tourney');
@@ -1531,11 +1546,21 @@ function renderTeamsAdmin(){
     const logo=r.squad_logo?`<img class="tm-logo" src="${esc(r.squad_logo)}" alt="">`:`<div class="tm-logo">${esc((r.squad_name||p.username||'?').trim().charAt(0).toUpperCase())}</div>`;
     const bits=[`<b>@${esc(p.username||'—')}</b>${p.player_tag?' · '+esc(p.player_tag):''}`];
     if(p.email)bits.push(esc(p.email));
+    if(r.whatsapp)bits.push(`<a class="tm-wa" href="${esc(waReminderLink(r))}" target="_blank" rel="noopener" title="Opens WhatsApp with a reminder ready to send">💬 ${esc(r.whatsapp)} · send reminder</a>`);
     if(r.device_type)bits.push(r.device_type==='emulator'?'🖥 Emulator':'📱 Mobile');
     if(r.checked_in_at)bits.push('✓ checked in '+esc(new Date(r.checked_in_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})));
     bits.push('joined '+esc(new Date(r.created_at).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})));
     return `<div class="card tm-card${cls}">${logo}<div class="tm-main"><div class="tm-top"><span class="tm-name">${esc(r.squad_name||'(no squad name)')}</span><span class="tm-code" title="Click to copy" onclick="copyTicket(this,'${tc}')">${tc}</span><span class="tm-pill ${esc(r.status)}">${esc(String(r.status).replace('_','-'))}</span></div><div class="tm-meta">${bits.join(' · ')}</div></div><div class="tm-actions"><button class="tm-btn${isVer?' ok-on':''}" onclick="tmToggleVerified('${r.id}',this)" title="${isVer?'Verified '+esc(new Date(r.verified_at).toLocaleString())+' — click to undo':'Saved permanently; the player sees a Verified badge'}">${isVer?'✓ Verified':'Mark verified'}</button><button class="tm-btn" onclick="messageTeam('${r.id}')">📣 Message</button><button class="tm-btn danger" onclick="removeTeamAdmin('${r.id}')">✕ Remove</button></div></div>`;
   }).join(''):`<p class="hint">${_teams.length?'No teams with that status.':'No registrations loaded — pick an event and click "↻ Load teams".'}</p>`;
+}
+/* Players can leave a WhatsApp number when registering (optional, this event only).
+   The site can't message WhatsApp by itself — this opens WhatsApp with the reminder
+   already written, so it's one tap to send. */
+function waReminderLink(r){
+  const t=data.tournaments.find(x=>x.name===document.getElementById('tm-tourney').value)||{};
+  const when=[t.date,t.time].filter(x=>x&&x!=='TBA'&&x!=='—').join(' · ');
+  const txt=`Hi ${r.squad_name||'there'}! ⏰ Reminder from JD Esports Arena: ${t.name||'your tournament'}${when?' starts '+when:' is coming up'}. Be online 15 min early — the Room ID and password arrive in your notifications on jdesport.co.uk. Good luck! 🔥`;
+  return 'https://wa.me/'+String(r.whatsapp).replace(/[^0-9]/g,'')+'?text='+encodeURIComponent(txt);
 }
 function copyTicket(el,code){
   navigator.clipboard&&navigator.clipboard.writeText(code).then(()=>{const t=el.textContent;el.textContent='Copied';setTimeout(()=>{el.textContent=t;},900);}).catch(()=>{});

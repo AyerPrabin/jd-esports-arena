@@ -3146,3 +3146,26 @@ $$;
 revoke all on function public.get_arena_stats() from public;
 grant execute on function public.get_arena_stats() to anon, authenticated;
 commit;
+
+-- Optional WhatsApp number per registration, for a reminder text before the match.
+-- Per registration (not the profile): players opt in for that one event. Only the owner
+-- (players read own registration) and the admin (list-registrations, service role) see it —
+-- get_public_roster() never returns it.
+begin;
+alter table public.registrations add column if not exists whatsapp text;
+create or replace function public.set_registration_whatsapp(p_reg_id uuid, p_whatsapp text)
+returns text language plpgsql security definer set search_path = public as $$
+declare v text := regexp_replace(coalesce(p_whatsapp, ''), '[\s\-().]', '', 'g');
+begin
+  if v = '' then v := null;
+  elsif v !~ '^\+?[0-9]{7,15}$' then
+    raise exception 'Enter a valid WhatsApp number with country code, e.g. +977 98XXXXXXXX.';
+  end if;
+  update public.registrations set whatsapp = v where id = p_reg_id and player_id = auth.uid();
+  if not found then raise exception 'Registration not found.'; end if;
+  return v;
+end;
+$$;
+revoke all on function public.set_registration_whatsapp(uuid, text) from public, anon;
+grant execute on function public.set_registration_whatsapp(uuid, text) to authenticated;
+commit;

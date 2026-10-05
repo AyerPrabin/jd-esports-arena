@@ -62,3 +62,35 @@
 @keyframes fxBelt{to{background-position:12px 0}}
 .sqfx-bullets::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;z-index:0;pointer-events:none;opacity:.7;
   background:repeating-linear-gradient(90deg,#ffcf7a 0 5px,#b8651d 5px 7px,transparent 7px 12px);animation:fxBelt .45s linear infinite}
+
+/* ── name-only effects: podiums, results tables, winner banners — places with no card
+   around the squad, so the name itself carries the effect (fxn + fxn-<key>) ── */
+.fxn{font-weight:800}
+.fxn-fire{animation:fireTextColor 1.4s ease-in-out infinite}
+.fxn-ice{animation:iceTextColor 2s ease-in-out infinite}
+.fxn-neon{animation:neonTextColor 2.8s linear infinite}
+.fxn-rainbow{animation:rainbowTextColor 4s linear infinite}
+.fxn-glow{color:#ffe9b0;animation:glowText 2.8s ease-in-out infinite}
+.fxn-gold,.fxn-steel,.fxn-galaxy,.fxn-thunder,.fxn-bullets,.fxn-blade,.fxn-legend{
+  background:var(--fxt) 0 50%/200% auto;-webkit-background-clip:text;background-clip:text;
+  color:transparent;-webkit-text-fill-color:transparent;text-shadow:none;
+  animation:fxFlow var(--fxs,3s) linear infinite;filter:drop-shadow(0 0 5px var(--fxd,rgba(255,200,61,.5)))}
+.fxn-gold{--fxt:linear-gradient(90deg,#fff6d6,#ffd24a 25%,#c98a00 50%,#ffd24a 75%,#fff6d6);--fxd:rgba(255,200,61,.55);--fxs:2.6s}
+.fxn-steel{--fxt:linear-gradient(90deg,#ffffff,#9aa6b8 25%,#eef3f8 50%,#7d8898 75%,#ffffff);--fxd:rgba(207,216,227,.35);--fxs:4s}
+.fxn-galaxy{--fxt:linear-gradient(90deg,#e6dcff,#8f6bff 25%,#5fd3ff 50%,#ff9be6 75%,#e6dcff);--fxd:rgba(143,107,255,.7);--fxs:4s}
+.fxn-thunder{--fxt:linear-gradient(90deg,#ffffff,#9eeaff 30%,#4fd8ff 50%,#9eeaff 70%,#ffffff);--fxd:rgba(79,216,255,.75);--fxs:1.6s;animation:fxFlow 1.6s linear infinite,fxBolt 3.4s linear infinite}
+.fxn-bullets{--fxt:linear-gradient(90deg,#fff2c0,#ffb347 30%,#ff7a1a 50%,#ffb347 70%,#fff2c0);--fxd:rgba(255,154,61,.7);--fxs:1.4s}
+.fxn-blade{--fxt:linear-gradient(90deg,#ffffff,#c9d2de 30%,#ff5a6a 50%,#c9d2de 70%,#ffffff);--fxd:rgba(255,90,106,.6);--fxs:2.6s}
+.fxn-legend{--fxt:linear-gradient(90deg,#ffe38a,#fff6d6 20%,#ffc2f0 40%,#c4f3ff 60%,#9ff5c8 80%,#ffe38a);--fxd:rgba(255,210,74,.65);--fxs:3s}
+.fxn-tag{display:inline-block;vertical-align:middle;margin-left:6px;font-size:.58rem;font-weight:800;letter-spacing:.01em;line-height:1.2;padding:2px 7px;border-radius:999px;color:#fff1b8;background:rgba(0,0,0,.4);border:1px solid rgba(255,200,61,.55);-webkit-text-fill-color:currentColor}
+/* avatar ring in the effect's colour (podium / winner logo) */
+.fxa-fire{box-shadow:0 0 0 2px #ff6b3d,0 0 20px rgba(255,107,61,.7)!important}
+.fxa-ice{box-shadow:0 0 0 2px #5fd3ff,0 0 20px rgba(95,211,255,.7)!important}
+.fxa-neon{box-shadow:0 0 0 2px #c86bff,0 0 20px rgba(255,95,210,.7)!important}
+.fxa-rainbow{animation:rainbowCycle 4s linear infinite}
+.fxa-glow,.fxa-gold,.fxa-legend{box-shadow:0 0 0 2px #ffd24a,0 0 22px rgba(255,210,74,.75)!important}
+.fxa-steel{box-shadow:0 0 0 2px #cfd8e3,0 0 16px rgba(207,216,227,.5)!important}
+.fxa-galaxy{box-shadow:0 0 0 2px #8f6bff,0 0 22px rgba(95,211,255,.6)!important}
+.fxa-thunder{box-shadow:0 0 0 2px #4fd8ff,0 0 22px rgba(79,216,255,.8)!important}
+.fxa-bullets{box-shadow:0 0 0 2px #ff9a3d,0 0 20px rgba(255,154,61,.75)!important}
+.fxa-blade{box-shadow:0 0 0 2px #ff5a6a,0 0 20px rgba(255,90,106,.7)!important}

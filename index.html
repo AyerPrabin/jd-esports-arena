@@ -484,6 +484,43 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .tbtn:hover{transform:translateY(-1px) scale(1.01);box-shadow:0 8px 24px rgba(255,190,50,.3)}
 .tbtn.done{background:transparent;border:1px solid var(--line);color:var(--silver);pointer-events:none}
 .tbtn.done b{color:var(--gold-l)}
+.tbtn.done.win{border-color:rgba(255,200,61,.45);background:linear-gradient(100deg,rgba(255,200,61,.1),transparent 70%);color:var(--cream)}
+.pod{position:relative}
+.pod-crown{position:absolute;top:-26px;line-height:1;z-index:1;left:50%;transform:translateX(-50%);font-size:20px;filter:drop-shadow(0 0 6px rgba(255,215,80,.9));animation:wsBob 1.8s ease-in-out infinite}
+/* ── winner spotlight: the most recent finished event's champion, on the Free Fire
+   World Cup stage photo (ff-stage.jpg, CC BY 3.0 — credited in the corner) ── */
+#winner-spot{margin-top:clamp(28px,5vw,48px)}
+.ws{position:relative;overflow:hidden;border-radius:var(--radius-card,22px);border:1px solid rgba(255,200,61,.35);background:#07090F;isolation:isolate;box-shadow:0 30px 70px -30px rgba(255,180,40,.45)}
+.ws-bg{position:absolute;inset:0;z-index:-2;background:url('ff-stage.jpg') center 30%/cover;transform:scale(1.04);animation:wsPan 22s ease-in-out infinite alternate}
+.ws::before{content:'';position:absolute;inset:0;z-index:-1;background:radial-gradient(70% 90% at 50% 40%,rgba(7,9,15,.35),rgba(7,9,15,.9) 75%),linear-gradient(180deg,rgba(7,9,15,.2),rgba(7,9,15,.95))}
+.ws::after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:35%;z-index:-1;background:linear-gradient(100deg,transparent,rgba(255,220,120,.12),transparent);transform:skewX(-18deg);animation:wsSweep 6s ease-in-out infinite}
+.ws-in{display:flex;flex-direction:column;align-items:center;text-align:center;padding:clamp(30px,6vw,56px) 16px clamp(24px,5vw,40px)}
+.ws-eye{font-size:.7rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-l);background:rgba(0,0,0,.45);border:1px solid rgba(255,200,61,.4);padding:5px 12px;border-radius:999px}
+.ws-ev{margin:10px 0 18px;color:var(--silver);font-size:.9rem}
+.ws-av{position:relative;width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 25%,#2a2f3f,#0d111b);border:2px solid #FFD54A;box-shadow:0 0 0 6px rgba(255,213,74,.12),0 0 40px rgba(255,213,74,.45);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:2.6rem;color:var(--gold-l)}
+.ws-av img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.ws-crown{position:absolute;top:-34px;line-height:1;left:50%;font-size:30px;transform:translateX(-50%);filter:drop-shadow(0 0 8px rgba(255,215,80,.95));animation:wsBob 1.8s ease-in-out infinite}
+.ws-name{margin:16px 0 4px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:clamp(2rem,6vw,3.2rem);line-height:1.05;letter-spacing:.01em;color:var(--cream);max-width:100%;overflow-wrap:anywhere}
+.ws-name .fxn-tag{font-family:'Inter',sans-serif;font-size:.7rem;vertical-align:super}
+.ws-lbl{font-size:.82rem;color:var(--gold-l);font-weight:700;letter-spacing:.04em}
+.ws-meta{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.ws-meta span{font-size:.78rem;color:var(--cream);background:rgba(0,0,0,.5);border:1px solid var(--line);padding:6px 12px;border-radius:999px}
+.ws-meta b{color:var(--gold-l)}
+.ws-ru{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.ws-ru span{font-size:.8rem;color:var(--silver);background:rgba(13,17,27,.7);border:1px solid var(--line);padding:6px 12px;border-radius:12px}
+.ws-cta{margin-top:18px;font-size:.84rem;color:var(--gold-l);text-decoration:underline;text-underline-offset:3px}
+.ws-credit{position:absolute;right:10px;bottom:6px;font-size:.58rem;color:rgba(255,255,255,.45)}
+.ws-credit a{color:inherit;text-decoration:underline}
+.ws.celebrate .ws-av{animation:wsPop .9s cubic-bezier(.34,1.56,.64,1)}
+.ws.celebrate .ws-name{animation:wsRise .8s .15s cubic-bezier(.22,1,.36,1) both}
+.ws-conf{position:absolute;top:-12px;width:8px;height:12px;border-radius:2px;opacity:0;animation:wsConf 2.6s ease-in forwards;pointer-events:none}
+@keyframes wsPan{from{transform:scale(1.04) translateX(-1.5%)}to{transform:scale(1.1) translateX(1.5%)}}
+@keyframes wsSweep{0%,40%{left:-40%}100%{left:130%}}
+@keyframes wsBob{0%,100%{transform:translateX(-50%) rotate(-6deg)}50%{transform:translateX(-50%) rotate(6deg) translateY(-4px)}}
+@keyframes wsPop{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes wsRise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes wsConf{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(420px) rotate(540deg)}}
+@media(max-width:640px){.ws-av{width:78px;height:78px;font-size:2.1rem}.ws-crown{font-size:24px;top:-28px}}
 /* footer */
 footer{position:relative;margin-top:70px;padding:44px 0 36px;text-align:center;color:var(--silver);font-size:.84rem}
 footer::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:min(600px,80%);height:1px;background:linear-gradient(90deg,transparent,var(--gold-m),transparent)}
@@ -712,6 +749,13 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .zmodal .sub{color:var(--body);font-size:.82rem;margin-bottom:16px}
 .zmodal label{display:block;font-size:.7rem;letter-spacing:.01em;color:var(--silver);margin:12px 0 5px}
 .zmodal label.tc-check{display:flex;align-items:flex-start;gap:8px;font-size:.8rem;text-transform:none;letter-spacing:normal;color:var(--pm-muted,#9CA8BE);margin:10px 0 4px;cursor:pointer}
+.reg-hero{margin:-28px -28px 16px;padding:52px 22px 14px;border-radius:26px 26px 0 0;background:linear-gradient(180deg,rgba(10,15,28,.15),rgba(10,15,28,.96) 92%),url('ff-stage.jpg') center 35%/cover;border-bottom:1px solid var(--pm-border)}
+.reg-hero-eye{font-size:.64rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-l)}
+.reg-hero h3{margin:4px 0 0;font-size:1.45rem;line-height:1.15;overflow-wrap:anywhere}
+.reg-wa{margin-top:16px;padding:12px 14px;border-radius:14px;border:1px solid rgba(94,219,149,.28);background:linear-gradient(120deg,rgba(37,211,102,.08),transparent 70%)}
+.zmodal .reg-wa-opt{margin:0;color:var(--cream)}
+.reg-wa-opt small{color:var(--pm-muted,#9CA8BE);font-weight:500}
+.reg-wa #reg-wa-box{margin-top:10px}
 .zmodal .tc-check input{width:auto;flex:none;margin-top:2px;accent-color:var(--gold,#FFC83D)}
 .tc-check span{flex:1;min-width:0}
 .tc-check a{color:var(--gold-l);text-decoration:underline}
@@ -1017,6 +1061,8 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
     </div>
   </section>
 
+  <section class="wrap" id="winner-spot" hidden aria-live="polite"></section>
+
   <section class="sec wrap reveal" id="tournaments">
     <div class="sec-h"><h2 data-i18n="ttl">Tournaments</h2><span class="ln"></span><span class="tag" data-i18n="ttag">Live + Upcoming</span></div>
     <div class="arena-grid" id="arena-grid"></div>
@@ -1100,6 +1146,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
   <div>JD Esports Arena · AyerFire</div>
   <div class="live-note" id="arena-foot"></div>
   <div style="margin-top:10px"><a id="about-link" data-i18n="about" href="#">About</a> · <a href="/ban-list.html">🛡️ Ban List</a></div>
+  <div style="margin-top:8px;font-size:.68rem;opacity:.6">Free Fire World Cup stage photo by <a href="https://commons.wikimedia.org/wiki/File:Free_Fire_World_Cup_2019_gameplay.png" target="_blank" rel="noopener">Sygnustv Media</a>, <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Free Fire is a trademark of Garena; this site is not affiliated with Garena.</div>
 </footer>
 
 <div class="fab-nudge" id="fab-nudge" onclick="fbOpen()"><button class="fab-nudge-x" onclick="event.stopPropagation();dismissNudge()" aria-label="dismiss">×</button><span id="fab-nudge-text"></span></div>
@@ -1116,8 +1163,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 </div>
 <div class="zoverlay" id="reg-overlay" onclick="if(event.target===this)regClose()">
   <div class="zmodal"><button class="fb-x" style="position:absolute;top:12px;right:14px" onclick="regClose()" aria-label="close">×</button>
-    <h3>Register in-app</h3>
-    <p class="sub" id="reg-tname"></p>
+    <div class="reg-hero"><span class="reg-hero-eye">🎮 Register in-app</span><h3 id="reg-tname"></h3></div>
     <label>Squad / team name <span style="color:var(--gold-l)">*</span></label>
     <input id="reg-squad" placeholder="e.g. Ayer Legends" maxlength="40" required>
     <label>Device</label>
@@ -1132,6 +1178,13 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
         <div class="fx-price"><b id="reg-pay-price"></b><span>Paid tournament</span></div>
         <div id="reg-pay-steps" style="margin-top:4px"></div>
         <p class="sub" id="reg-pay-note" style="margin:6px 0 0"></p>
+      </div>
+    </div>
+    <div class="reg-wa">
+      <label class="tc-check reg-wa-opt"><input type="checkbox" id="reg-wa-on" onchange="regWaToggle()"><span><b>💬 Text me a match reminder on WhatsApp</b> <small>optional</small></span></label>
+      <div id="reg-wa-box" hidden>
+        <input id="reg-wa" type="tel" inputmode="tel" autocomplete="tel" placeholder="+977 98XXXXXXXX" maxlength="20">
+        <p class="sub" style="margin:6px 0 0">With country code. Used only to remind you before <b>this</b> tournament — never shown publicly, and not saved for future events.</p>
       </div>
     </div>
     <div class="msg" id="reg-msg"></div>
@@ -1257,6 +1310,27 @@ function fxParticlesHtml(fx){if(!fx||!fx.particles)return'';let h='';for(let k=0
 // Every effect except Champion colors the name itself (a scrolling gradient in that
 // effect's colors) — wrap it separately so only the text gets it, not the logo/badge/particles.
 function fxNameHtml(fx,name){return (fx&&fx.cls!=='sq-fx-gold')?`<span class="fx-name">${esc(name)}</span>`:esc(name);}
+/* Effect of a squad by name within one tournament — for places that only know the name
+   (results table, podium, winner banner). Same sources as the cards: live roster first,
+   then the admin's Manual squad list; names compared trimmed + case-insensitive since the
+   results table and the winner field are typed by hand. */
+const fxKey=s=>String(s||'').trim().toLowerCase();
+function fxForSquad(tname,squad){
+  const k=fxKey(squad);if(!k)return null;
+  const t=((_lastData||{}).tournaments||[]).find(x=>x.name===tname);
+  const hit=(t?teamsFor(t):[]).find(x=>fxKey(x.name)===k)||(_liveRoster.get(tname)||[]).map(x=>({name:x.squad_name,effect:x.effect,logo:x.squad_logo})).find(x=>fxKey(x.name)===k);
+  return hit?{fx:SQUAD_FX[hit.effect]||null,logo:hit.logo||''}:{fx:null,logo:''};
+}
+// name with its effect as text only (no card) — see .fxn-* in effects-pro.css
+function fxText(fx,name,tag){return fx?`<span class="fxn fxn-${fx.key}">${esc(name)}</span>${tag?`<span class="fxn-tag">✨ ${esc(fx.tag)}</span>`:''}`:esc(name);}
+/* The champion of a finished event: the admin's Winner field, or — if that's still blank —
+   the top squad of its published Best-of-3 table, so the name shows the moment it ends. */
+function winnerOf(t,d){
+  const w=String(t.winner||'').trim();if(w)return w;
+  const B=d&&d.bo3;
+  if(B&&B.published&&B.tournament===t.name&&B.teams&&B.teams.length){const top=bo3Standings(B)[0];if(top&&top.totalPts>0)return top.team;}
+  return '';
+}
 
 /* ── career stats & rank tiers ── computed from get_player_career_stats() (see
    supabase/schema.sql), which aggregates every tournament_results row a player's
@@ -1691,6 +1765,9 @@ function teamsFor(t){
 function fmtPrize(p){const v=String(p==null?'':p).trim();if(!v)return '—';return /^\d[\d,]*$/.test(v)?'Rs '+Number(v.replace(/,/g,'')).toLocaleString('en-IN'):v;}
 function effectiveStatus(t){
   const s=(t.status||'upcoming').toLowerCase();
+  // a declared winner means the event is over — the card flips to the champion even if
+  // the admin typed the winner but didn't also switch the status to "completed"
+  if(s!=='cancelled'&&String(t.winner||'').trim())return 'completed';
   if(s==='upcoming'&&t.start){
     const startMs=Date.parse(t.start);
     if(!isNaN(startMs)&&Date.now()>=startMs)return 'live';
@@ -1705,7 +1782,15 @@ function effectiveStatus(t){
    when it differs from last time; ticks where nothing moved are a no-op past this point. */
 let _lastGridHTML=null;
 const CHIP_MAX=8; // squad chips shown on a card before collapsing into "+N more" (opens the full roster)
+/* Results published without picking their tournament (bo3.tournament blank) belong to the
+   event that started most recently — that's the one being played or just finished. */
+function linkBo3(d){
+  const B=d&&d.bo3;if(!B||B.tournament)return;
+  const cand=(d.tournaments||[]).filter(t=>{const st=effectiveStatus(t);return st==='live'||st==='completed';}).sort((a,b)=>(Date.parse(b.start)||0)-(Date.parse(a.start)||0));
+  if(cand[0])B.tournament=cand[0].name;
+}
 function render(d){
+  linkBo3(d);
   _lastData=d;
   const grid=document.getElementById('arena-grid');if(!grid)return;
   const ts=d.tournaments||[];
@@ -1716,7 +1801,7 @@ function render(d){
     const full=slots>0&&reg>=slots&&st!=='completed'&&st!=='cancelled'&&!_myRegs.has(t.name);
     let btn;
     if(st==='cancelled')btn=`<span class="tbtn done">Cancelled</span>`;
-    else if(st==='completed')btn=`<span class="tbtn done">${tr('winner')}: <b>${esc(t.winner||'TBA')}</b></span>`;
+    else if(st==='completed'){const w=winnerOf(t,d),wf=w?fxForSquad(t.name,w):null;btn=`<span class="tbtn done win">🏆 ${tr('winner')}: <b>${w?fxText(wf.fx,w):'TBA'}</b></span>`;}
     // Free tournaments waitlist via inAppRegBtn's "Join Waitlist" button below — don't also
     // show a static "Squads full" label right next to an actual clickable CTA that contradicts
     // it. Paid tournaments (no waitlist yet) and non-Supabase deploys still show it plainly.
@@ -1752,6 +1837,7 @@ function render(d){
   loadReviewSummaries();
   renderBo3Board(d);
   renderPredictBoard(d);
+  renderWinnerSpot(d);
   const foot=document.getElementById('arena-foot');if(foot)foot.textContent=d._live?'Live — updates whenever the bracket changes.':'Preview schedule — connect tournaments.json to go live.';
   const statT=document.getElementById('stat-tournaments'),statS=document.getElementById('stat-squads');
   // all-time: every event ever (past ones from the database + the ones listed now), and for
@@ -1813,6 +1899,41 @@ function bo3Standings(bo3){
   })).sort((a,b)=>a.rank-b.rank);
 }
 function mvArrow(m){return m==='up'?'<span class="mv mv-up">▲</span>':m==='down'?'<span class="mv mv-down">▼</span>':'<span class="mv mv-same">–</span>';}
+/* Winner spotlight: the champion of the most recently finished event, shown for 14 days
+   after it starts. Only rewritten when its HTML changes (render() runs every 5s), and the
+   confetti/pop entrance plays once per event per browser (localStorage), not every visit. */
+let _lastSpotHTML=null;
+const SPOT_DAYS=14;
+function renderWinnerSpot(d){
+  const box=document.getElementById('winner-spot');if(!box)return;
+  const done=(d.tournaments||[]).filter(t=>effectiveStatus(t)==='completed'&&winnerOf(t,d)).filter(t=>{const s=Date.parse(t.start);return isNaN(s)||Date.now()-s<SPOT_DAYS*864e5;});
+  done.sort((a,b)=>(Date.parse(b.start)||0)-(Date.parse(a.start)||0));
+  const t=done[0];
+  if(!t){if(_lastSpotHTML!==''){box.hidden=true;box.innerHTML='';_lastSpotHTML='';}return;}
+  const w=winnerOf(t,d),f=fxForSquad(t.name,w),fx=f.fx;
+  const B=d.bo3,rows=(B&&B.published&&B.tournament===t.name&&B.teams&&B.teams.length)?bo3Standings(B):[];
+  const row=rows.find(r=>fxKey(r.team)===fxKey(w));
+  const logo=(row&&row.logo)||f.logo;
+  const prize=fmtPrize(t.prize);
+  const ru=rows.filter(r=>fxKey(r.team)!==fxKey(w)).slice(0,2);
+  const html=`<div class="ws"><div class="ws-bg" role="img" aria-label="Free Fire esports stage"></div><div class="ws-in">`+
+    `<span class="ws-eye">🏆 Champions</span><div class="ws-ev">${esc(t.name)}${t.date?' · '+esc(t.date):''}</div>`+
+    `<div class="ws-av${fx?' fxa-'+fx.key:''}"><span class="ws-crown">👑</span>${logo?`<img src="${esc(logo)}" alt="">`:esc(w.charAt(0).toUpperCase())}</div>`+
+    `<div class="ws-name">${fxText(fx,w,true)}</div><div class="ws-lbl">${tr('winner')}</div>`+
+    `<div class="ws-meta">${prize!=='—'?`<span>Prize <b>${esc(prize)}</b></span>`:''}${row?`<span><b>${row.totalPts}</b> pts · <b>${row.r1k+row.r2k+row.r3k}</b> kills</span>`:''}</div>`+
+    (ru.length?`<div class="ws-ru">${ru.map((r,i)=>`<span>${i?'🥉':'🥈'} ${fxText(fxForSquad(t.name,r.team).fx,r.team)} · ${r.totalPts} pts</span>`).join('')}</div>`:'')+
+    (rows.length?`<a class="ws-cta" href="/leaderboard.html">Full results →</a>`:'')+
+    `</div><span class="ws-credit">Photo: <a href="https://commons.wikimedia.org/wiki/File:Free_Fire_World_Cup_2019_gameplay.png" target="_blank" rel="noopener">Sygnustv Media</a>, CC BY 3.0</span></div>`;
+  if(html===_lastSpotHTML)return;
+  _lastSpotHTML=html;box.innerHTML=html;box.hidden=false;
+  const key='jd-ws-seen:'+t.name+':'+w;let seen=true;
+  try{seen=!!localStorage.getItem(key);if(!seen)localStorage.setItem(key,'1');}catch(e){}
+  if(!seen){
+    const ws=box.querySelector('.ws');ws.classList.add('celebrate');
+    const cols=['#FFD54A','#ff6b3d','#5fd3ff','#c86bff','#54e0a0','#fff'];
+    for(let i=0;i<36;i++){const c=document.createElement('i');c.className='ws-conf';c.style.left=(Math.random()*100)+'%';c.style.background=cols[i%cols.length];c.style.animationDelay=(Math.random()*.8)+'s';ws.appendChild(c);setTimeout(()=>c.remove(),3800);}
+  }
+}
 function renderBo3Board(d){
   const sec=document.getElementById('bo3board');if(!sec)return;
   const B=d.bo3;
@@ -1827,10 +1948,10 @@ function renderBo3Board(d){
   const pod=document.getElementById('bo3-podium');
   if(pod){
     const top=rows.slice(0,3);
-    const step=(r,place)=>r?`<div class="pod p${place}${r.team===mySquad?' mine':''}"><div class="pod-av">${r.logo?`<img src="${esc(r.logo)}" alt="">`:esc(String(r.team||'?').trim().charAt(0).toUpperCase())}</div><div class="pod-name">${esc(r.team)}</div><div class="pod-pts">${r.totalPts} pts</div><div class="pod-block"><span>${place}</span></div></div>`:'';
+    const step=(r,place)=>{if(!r)return '';const f=fxForSquad(B.tournament,r.team),fx=f.fx,logo=r.logo||f.logo;return `<div class="pod p${place}${r.team===mySquad?' mine':''}">${place===1?'<span class="pod-crown">👑</span>':''}<div class="pod-av${fx?' fxa-'+fx.key:''}">${logo?`<img src="${esc(logo)}" alt="">`:esc(String(r.team||'?').trim().charAt(0).toUpperCase())}</div><div class="pod-name">${fxText(fx,r.team)}</div><div class="pod-pts">${r.totalPts} pts</div><div class="pod-block"><span>${place}</span></div></div>`;};
     pod.innerHTML=top.length>=3&&top.some(r=>r.totalPts>0)?step(top[1],2)+step(top[0],1)+step(top[2],3):'';
   }
-  document.getElementById('bo3-table').innerHTML=`<thead><tr><th>${tr('th_rank')}</th><th>${tr('th_team')}</th><th class="num">R1 ${tr('th_kills')}</th><th class="num">R2 ${tr('th_kills')}</th><th class="num">R3 ${tr('th_kills')}</th><th class="num">${tr('th_total')}</th></tr></thead><tbody>${rows.map(r=>`<tr${r.team===mySquad?' class="mine"':''}><td class="rk">${r.rank}</td><td>${esc(r.team)}${r.team===mySquad?' <span class="you">YOU</span>':''}</td><td class="num">${r.r1k}</td><td class="num">${r.r2k}${mvArrow(r.moveR2)}</td><td class="num">${r.r3k}${mvArrow(r.moveR3)}</td><td class="tot">${r.totalPts}</td></tr>`).join('')}</tbody>`;
+  document.getElementById('bo3-table').innerHTML=`<thead><tr><th>${tr('th_rank')}</th><th>${tr('th_team')}</th><th class="num">R1 ${tr('th_kills')}</th><th class="num">R2 ${tr('th_kills')}</th><th class="num">R3 ${tr('th_kills')}</th><th class="num">${tr('th_total')}</th></tr></thead><tbody>${rows.map(r=>`<tr${r.team===mySquad?' class="mine"':''}><td class="rk">${r.rank}</td><td>${fxText(fxForSquad(B.tournament,r.team).fx,r.team,true)}${r.team===mySquad?' <span class="you">YOU</span>':''}</td><td class="num">${r.r1k}</td><td class="num">${r.r2k}${mvArrow(r.moveR2)}</td><td class="num">${r.r3k}${mvArrow(r.moveR3)}</td><td class="tot">${r.totalPts}</td></tr>`).join('')}</tbody>`;
 }
 /* ── performance prediction: ranks currently-registered squads by season average
    points (get_tournament_squad_history()) and converts that to a win % via softmax —
@@ -1856,7 +1977,7 @@ async function renderPredictBoard(d){
     const ranked=scored.map((r,i)=>({...r,prob:exps[i]/sumExp})).sort((a,b)=>b.prob-a.prob);
     sec.style.display='';
     const sub=document.getElementById('predict-sub');if(sub)sub.textContent=tournamentName;
-    document.getElementById('predict-table').innerHTML=`<thead><tr><th>#</th><th>Squad</th><th class="num">Season avg pts</th><th class="num">Win %</th></tr></thead><tbody>${ranked.map((r,i)=>`<tr><td class="rk">${i+1}</td><td>${esc(r.squad_name)}</td><td class="num">${r.appearances>0?(+r.avg_points).toFixed(1):'—'}</td><td class="tot">${(r.prob*100).toFixed(0)}%</td></tr>`).join('')}</tbody>`;
+    document.getElementById('predict-table').innerHTML=`<thead><tr><th>#</th><th>Squad</th><th class="num">Season avg pts</th><th class="num">Win %</th></tr></thead><tbody>${ranked.map((r,i)=>`<tr><td class="rk">${i+1}</td><td>${fxText(fxForSquad(tournamentName,r.squad_name).fx,r.squad_name)}</td><td class="num">${r.appearances>0?(+r.avg_points).toFixed(1):'—'}</td><td class="tot">${(r.prob*100).toFixed(0)}%</td></tr>`).join('')}</tbody>`;
   }catch(e){sec.style.display='none';}
 }
 function tick(){document.querySelectorAll('.tcount').forEach(el=>{const bar=el.nextElementSibling;const s=Date.parse(el.dataset.start);if(isNaN(s)){el.style.display='none';if(bar)bar.style.display='none';return}let diff=s-Date.now();if(diff<=0){el.textContent='⏱ Starting now';if(bar)bar.style.display='none';return}const d=Math.floor(diff/864e5),h=Math.floor(diff%864e5/36e5),m=Math.floor(diff%36e5/6e4),sec=Math.floor(diff%6e4/1e3);el.textContent='⏱ Starts in '+(d?d+'d ':'')+h+'h '+m+'m'+(d?'':' '+sec+'s')})}
@@ -2444,6 +2565,7 @@ function registerInApp(name){
   if(ln)ln.textContent=_player.squad_logo?'Using your saved logo. Choose a new image only if you want to change it — it replaces the old one everywhere.':'Upload once — it is saved to your profile for every future tournament.';
   const payWrap=document.getElementById('reg-pay-wrap');if(payWrap)payWrap.style.display=paid?'':'none';
   const rc=document.getElementById('reg-code');if(rc)rc.value='';
+  const wo=document.getElementById('reg-wa-on'),wi=document.getElementById('reg-wa');if(wo)wo.checked=false;if(wi)wi.value='';regWaToggle();
   const pp=document.getElementById('reg-pay-price');if(pp)pp.textContent='Entry '+(t.entry||'');
   const ps=document.getElementById('reg-pay-steps');if(ps){const pr=entryAmount(t);ps.innerHTML=paid?`<div class="pts-line" style="font-size:.8rem;color:var(--body)">Entry <b style="color:var(--gold-l)">${pr} points</b> · You have <b style="color:var(--gold-l)">${walletLabel()}</b>${canAfford(pr)?' — paid automatically when you register.':''}</div>`+(!canAfford(pr)?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="goWallet('load')">➕ Load points (need ${pr-_wallet} more)</button>`:''):'';}
   const payNote=document.getElementById('reg-pay-note');if(payNote)payNote.textContent='Not enough points yet? Register now to hold your place, then pay from your ticket once your points are loaded. A held place does not reserve a slot.';
@@ -2456,6 +2578,9 @@ function registerInApp(name){
   }
   document.getElementById('reg-overlay').classList.add('open');
 }
+function regWaToggle(){const on=(document.getElementById('reg-wa-on')||{}).checked,b=document.getElementById('reg-wa-box');if(b){b.hidden=!on;if(on)document.getElementById('reg-wa').focus();}}
+// same rule as set_registration_whatsapp() server-side: digits with an optional +, 7-15 long
+function regWaValue(){if(!(document.getElementById('reg-wa-on')||{}).checked)return '';return ((document.getElementById('reg-wa')||{}).value||'').replace(/[\s\-().]/g,'');}
 function regClose(){document.getElementById('reg-overlay').classList.remove('open');_regTarget=null;}
 function resizeToDataUri(file,maxPx,quality,cb){
   const img=new Image(),reader=new FileReader();
@@ -2498,6 +2623,8 @@ async function submitRegister(){
   const squad=document.getElementById('reg-squad').value.trim()||null;
   const msg=document.getElementById('reg-msg');
   if(!squad||squad.length<2){msg.textContent='Enter your squad name (at least 2 characters).';msg.className='msg err';document.getElementById('reg-squad').focus();return;}
+  const wa=regWaValue();
+  if((document.getElementById('reg-wa-on')||{}).checked&&!/^\+?[0-9]{7,15}$/.test(wa)){msg.textContent='Enter your WhatsApp number with country code (e.g. +977 98XXXXXXXX), or untick the reminder.';msg.className='msg err';document.getElementById('reg-wa').focus();return;}
   msg.textContent='Registering…';msg.className='msg';
   const status=paid?'pending':'confirmed';
   // Goes through register_for_tournament() (see schema.sql) instead of a plain insert —
@@ -2516,6 +2643,8 @@ async function submitRegister(){
   // when this landed, which can differ from the 'status' we asked for above.
   let effectiveStatus=(reg&&reg.status)||status;
   _player.squad_name=squad;if(_regLogoData)_player.squad_logo=_regLogoData;
+  // optional WhatsApp reminder number — a failure here never undoes the registration
+  if(wa&&reg&&reg.id){try{await sb.rpc('set_registration_whatsapp',{p_reg_id:reg.id,p_whatsapp:wa});}catch(e){}}
   // Paid: if they already have their join code, confirm the held place right away.
   let codeErr='';
   const joinCode=paid?((document.getElementById('reg-code')||{}).value||'').trim():'';

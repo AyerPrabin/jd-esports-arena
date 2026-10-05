@@ -10,6 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/effects.css">
+<link rel="stylesheet" href="/effects-pro.css">
 <style>
 :root{
   --bg:#07090F;--bg-2:#0D111B;--panel:#111827;--panel-2:#151D2E;--line:rgba(255,200,80,.14);
@@ -78,6 +80,19 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .pts-table td{will-change:transform}
 .pts-table tr.lead-pulse td{animation:leadPulse 1.1s ease-out}
 @keyframes leadPulse{0%{box-shadow:inset 0 0 0 1px var(--gold)}100%{box-shadow:inset 0 0 0 1px transparent}}
+.pod-card{position:relative}
+.pod-crown{position:absolute;top:-28px;line-height:1;z-index:1;left:50%;font-size:22px;transform:translateX(-50%);filter:drop-shadow(0 0 6px rgba(255,215,80,.9));animation:crownBob 1.7s ease-in-out infinite}
+/* champion banner, once the event is marked completed */
+.champ{position:relative;overflow:hidden;border-radius:18px;border:1px solid rgba(255,200,61,.4);margin:0 0 34px;isolation:isolate;text-align:center;padding:34px 16px 28px}
+.champ[hidden]{display:none}
+.champ::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(7,9,15,.45),rgba(7,9,15,.92)),url('/ff-stage.jpg') center 30%/cover}
+.champ-eye{font-size:.68rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-l)}
+.champ-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:clamp(2rem,6vw,3rem);line-height:1.1;margin:8px 0 2px;overflow-wrap:anywhere}
+.champ-name .fxn-tag{font-family:'Inter',sans-serif;font-size:.66rem;vertical-align:super}
+.champ-sub{color:var(--silver);font-size:.86rem}
+.champ-credit{position:absolute;right:10px;bottom:6px;font-size:.58rem;color:rgba(255,255,255,.45)}
+.champ-credit a{text-decoration:underline}
+.pts-table .fxn-tag{font-size:.54rem}
 @media(prefers-reduced-motion:reduce){.pod-slot,.pts-table td{transition:none!important;animation:none!important}}
 @media(max-width:640px){.pts-table{font-size:.78rem}.pts-table th,.pts-table td{padding:9px 8px}.pts-table .team img{width:20px;height:20px}.podium{gap:8px}.pod-slot{width:100px}.pod-logo{width:38px;height:38px}.pod-name{font-size:.74rem}.pod-pts{font-size:1.1rem}}
 </style>
@@ -93,9 +108,10 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 <main class="wrap">
   <div class="sec-h"><h1 id="lb-ttl">Season Leaderboard</h1><span class="ln"></span></div>
   <p class="sub" id="lb-sub">Loading standings…</p>
+  <div class="champ" id="champ" hidden><div class="champ-eye">🏆 Champions</div><div class="champ-name" id="champ-name"></div><div class="champ-sub" id="champ-sub"></div><span class="champ-credit">Photo: <a href="https://commons.wikimedia.org/wiki/File:Free_Fire_World_Cup_2019_gameplay.png" target="_blank" rel="noopener">Sygnustv Media</a>, CC BY 3.0</span></div>
   <div class="podium" id="podium">
     <div class="pod-slot p2"><div class="pod-card"><img class="pod-logo" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">2</div></div>
-    <div class="pod-slot p1"><div class="pod-card"><img class="pod-logo" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">1</div></div>
+    <div class="pod-slot p1"><div class="pod-card"><span class="pod-crown">👑</span><img class="pod-logo" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">1</div></div>
     <div class="pod-slot p3"><div class="pod-card"><img class="pod-logo" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">3</div></div>
   </div>
   <div id="lb-body"></div>
@@ -105,6 +121,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 
 <footer>JD Esports Arena · AyerFire</footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 const TOURNAMENTS_URL='https://jdesport.co.uk/tournaments.json';
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
@@ -137,6 +154,21 @@ function bo3Standings(bo3){
     moveR3:arrow(rk3.get(t.team),rk2.get(t.team))
   })).sort((a,b)=>a.rank-b.rank);
 }
+/* Squad effects (same keys as index.html's SQUAD_FX) by tournament + squad name, from
+   get_public_roster() — names matched trimmed/case-insensitive since results are typed by hand. */
+const FX_TAG={glow:'Glow',steel:'Steel',gold:'Champion',fire:'On fire',ice:'Frozen',neon:'Neon',rainbow:'Prism',galaxy:'Galaxy',thunder:'Thunder',bullets:'Bullet Storm',blade:'Blade',legend:'Legend'};
+const sb=(typeof supabase!=='undefined')?supabase.createClient('https://cnoxvqvpmgowdiyrrusv.supabase.co','sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil'):null;
+let _roster=[];
+const fxKey=s=>String(s||'').trim().toLowerCase();
+function fxOf(tname,team,doc){
+  const k=fxKey(team);
+  const r=_roster.find(x=>x.tournament_slug===tname&&fxKey(x.squad_name)===k);
+  if(r&&FX_TAG[r.effect])return r.effect;
+  const t=((doc&&doc.tournaments)||[]).find(x=>x.name===tname);
+  const m=t&&(t.teams||[]).find(x=>x&&fxKey(x.name)===k);
+  return m&&FX_TAG[m.effect]?m.effect:'';
+}
+function fxText(fx,name,tag){return fx?`<span class="fxn fxn-${fx}">${esc(name)}</span>${tag?`<span class="fxn-tag">✨ ${FX_TAG[fx]}</span>`:''}`:esc(name);}
 function mvArrow(m){return m==='up'?'<span class="mv mv-up">▲</span>':m==='down'?'<span class="mv mv-down">▼</span>':'<span class="mv mv-same">–</span>';}
 
 /* ═══════════════════════ motion: spring physics + FLIP + confetti ═══════════════════════
@@ -235,7 +267,8 @@ function fillPodiumSlot(sel,r){
   el.style.visibility='';
   const img=el.querySelector('.pod-logo');
   if(r.logo){img.src=r.logo;img.hidden=false;}else{img.hidden=true;}
-  el.querySelector('.pod-name').textContent=r.team;
+  el.querySelector('.pod-name').innerHTML=fxText(r.fx,r.team);
+  img.className='pod-logo'+(r.fx?' fxa-'+r.fx:'');
   const numEl=el.querySelector('.num-val');
   numEl.textContent='0';
   animateCount(numEl,r.totalPts,{stiffness:120,damping:18});
@@ -278,7 +311,7 @@ function tableSkeleton(){
 }
 function rowHTML(r){
   return `<td class="rk" data-role="rk">${r.rank}</td>`+
-    `<td class="team" data-role="team">${r.logo?`<img src="${esc(r.logo)}" alt="">`:''}<span class="team-name">${esc(r.team)}</span></td>`+
+    `<td class="team" data-role="team">${r.logo?`<img src="${esc(r.logo)}" alt="">`:''}<span class="team-name">${fxText(r.fx,r.team,true)}</span></td>`+
     `<td class="num" data-role="r1"><span class="num-val">${r.r1k}</span></td>`+
     `<td class="num" data-role="r2"><span class="num-val">${r.r2k}</span><span class="arrow-slot">${mvArrow(r.moveR2)}</span></td>`+
     `<td class="num" data-role="r3"><span class="num-val">${r.r3k}</span><span class="arrow-slot">${mvArrow(r.moveR3)}</span></td>`+
@@ -286,15 +319,18 @@ function rowHTML(r){
 }
 function makeRow(r){
   const tr=document.createElement('tr');
-  tr.dataset.flipKey=r.team;
+  tr.dataset.flipKey=r.team;tr.dataset.fx=r.fx||'';
   tr.innerHTML=rowHTML(r);
   return tr;
 }
 function updateRow(tr,r,prev){
   tr.querySelector('[data-role="rk"]').textContent=r.rank;
   if(r.logo&&!tr.querySelector('.team img')){
-    tr.querySelector('[data-role="team"]').innerHTML=`<img src="${esc(r.logo)}" alt=""><span class="team-name">${esc(r.team)}</span>`;
+    tr.querySelector('[data-role="team"]').innerHTML=`<img src="${esc(r.logo)}" alt=""><span class="team-name">${fxText(r.fx,r.team,true)}</span>`;
+  }else if(tr.dataset.fx!==(r.fx||'')){
+    tr.querySelector('.team-name').innerHTML=fxText(r.fx,r.team,true);
   }
+  tr.dataset.fx=r.fx||'';
   animateCount(tr.querySelector('[data-role="r1"] .num-val'),r.r1k,{stiffness:170,damping:20});
   animateCount(tr.querySelector('[data-role="r2"] .num-val'),r.r2k,{stiffness:170,damping:20});
   animateCount(tr.querySelector('[data-role="r3"] .num-val'),r.r3k,{stiffness:170,damping:20});
@@ -311,7 +347,17 @@ function staggerRows(tbody){
   });
 }
 
+// same rules as index.html: a typed winner means finished, and results with no tournament
+// picked belong to the most recently started live/finished event
+function isDone(t){const s=String(t.status||'').toLowerCase();return s==='completed'||(s!=='cancelled'&&!!String(t.winner||'').trim());}
+function linkBo3(d){
+  const B=d&&d.bo3;if(!B||B.tournament)return;
+  const now=Date.now();
+  const cand=(d.tournaments||[]).filter(t=>isDone(t)||(String(t.status||'').toLowerCase()==='live')||(String(t.status||'').toLowerCase()==='upcoming'&&Date.parse(t.start)<=now)).sort((a,b)=>(Date.parse(b.start)||0)-(Date.parse(a.start)||0));
+  if(cand[0])B.tournament=cand[0].name;
+}
 function render(d){
+  linkBo3(d);
   const B=d.bo3;
   const has=B&&B.published&&B.teams&&B.teams.length;
   const sub=document.getElementById('lb-sub');
@@ -320,11 +366,14 @@ function render(d){
     sub.textContent="No results published yet.";
     document.getElementById('lb-body').innerHTML='<div class="empty-state">Standings show up here the moment results are published — check back once a bracket is underway.</div>';
     podium.classList.remove('show');
+    document.getElementById('champ').hidden=true;
     _prevRows=null;_revealed=false;_prevTop3=null;
     return;
   }
-  sub.textContent=B.title||B.tournament||'Best-of-3 standings';
+  sub.textContent=B.title||(B.tournament?B.tournament+' · Best-of-3 standings':'Best-of-3 standings');
   const rows=bo3Standings(B);
+  rows.forEach(r=>{r.fx=fxOf(B.tournament,r.team,d);if(!r.logo){const x=_roster.find(y=>y.tournament_slug===B.tournament&&fxKey(y.squad_name)===fxKey(r.team));if(x&&x.squad_logo)r.logo=x.squad_logo;}});
+  renderChamp(d,rows);
   const rowMap=new Map(rows.map(r=>[r.team,r]));
 
   if(!_revealed){
@@ -361,15 +410,48 @@ function render(d){
   _prevRows=rowMap;
   _prevTop3=rows.slice(0,3).map(r=>r.team);
 }
+/* Champion banner: shown once the results' tournament is marked completed. Winner is the
+   admin's Winner field, else the top of the table (same rule as the homepage). */
+function renderChamp(d,rows){
+  const B=d.bo3,el=document.getElementById('champ');
+  const t=((d.tournaments)||[]).find(x=>x.name===B.tournament);
+  const done=t&&isDone(t);
+  const w=done?(String(t.winner||'').trim()||(rows[0]&&rows[0].totalPts>0?rows[0].team:'')):'';
+  if(!w){el.hidden=true;return;}
+  const fx=fxOf(B.tournament,w,d),row=rows.find(r=>fxKey(r.team)===fxKey(w));
+  const html=fxText(fx,w,true),nm=document.getElementById('champ-name');
+  if(nm.innerHTML!==html)nm.innerHTML=html;
+  document.getElementById('champ-sub').textContent=(t.name||'')+(row?` · ${row.totalPts} pts`:'');
+  el.hidden=false;
+}
+/* Two copies of tournaments.json, like the homepage: the GitHub Pages file (lags each
+   publish by minutes) and the live copy in site_content — newer _published_at wins, so
+   a just-published result or winner shows here on the next poll, not 10 minutes later. */
+const pubTime=d=>(d&&Date.parse(d._published_at))||0;
+async function liveDoc(){
+  if(!sb)return null;
+  try{const {data}=await sb.from('site_content').select('content').eq('key','tournaments').maybeSingle();return (data&&data.content)||null;}catch(e){return null;}
+}
+let _rosterAt=0;
+async function loadRoster(){
+  if(!sb||Date.now()-_rosterAt<60000)return;
+  _rosterAt=Date.now();
+  try{const {data,error}=await sb.rpc('get_public_roster');if(!error&&data)_roster=data;}catch(e){}
+}
 function load(){
-  const same=(/^https?:$/.test(location.protocol))?new URL('/tournaments.json',location.href).href:null;
+  const bust='v='+Math.floor(Date.now()/20000);
+  const same=(/^https?:$/.test(location.protocol))?new URL('/tournaments.json?'+bust,location.href).href:null;
   const tryGet=u=>u?fetch(u,{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()):Promise.reject();
-  tryGet(same).catch(()=>tryGet(TOURNAMENTS_URL)).then(render).catch(()=>{
+  Promise.all([tryGet(same).catch(()=>tryGet(TOURNAMENTS_URL+'?'+bust)).catch(()=>null),liveDoc(),loadRoster()]).then(([pages,live])=>{
+    const d=(pages&&live)?(pubTime(live)>=pubTime(pages)?live:pages):(live||pages);
+    if(!d)throw new Error('none');
+    render(d);
+  }).catch(()=>{
     document.getElementById('lb-sub').textContent='Could not load standings right now.';
   });
 }
 load();
-setInterval(()=>{if(!document.hidden)load();},45000);
+setInterval(()=>{if(!document.hidden)load();},15000);
 </script>
 </body>
 </html>
