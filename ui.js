@@ -32,9 +32,15 @@
   nav.setAttribute('aria-label', 'Main');
   nav.innerHTML = tabs.map(function (t) {
     return '<a href="' + t.href + '" data-tab="' + t.k + '"' + (t.k === current ? ' aria-current="page"' : '') + '>' +
-      ICON[t.k] + '<span>' + (ne ? t.np : t.en) + '</span></a>';
+      ICON[t.k] + '<span data-en="' + t.en + '" data-np="' + t.np + '">' + (ne ? t.np : t.en) + '</span></a>';
   }).join('');
   document.body.appendChild(nav);
+  // The homepage switches language in place (applyLang() in index.html calls this), so the
+  // labels follow without a reload.
+  window.jdTabbarLang = function (code) {
+    var np = code === 'ne';
+    nav.querySelectorAll('span[data-en]').forEach(function (s) { s.textContent = np ? s.getAttribute('data-np') : s.getAttribute('data-en'); });
+  };
   document.body.classList.add('has-tabbar');
 
   // On the homepage, Home/Events are in-page: keep the highlight in sync with what's on screen.

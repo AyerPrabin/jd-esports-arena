@@ -20,7 +20,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{scroll-behavior:smooth}
-body{margin:0;min-height:100vh;background:var(--bg);color:var(--cream);font-family:'Geist','Mukta',sans-serif;line-height:1.55;overflow-x:hidden}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--cream);font-family:var(--font-body);line-height:1.55;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(900px 480px at 80% -10%,rgba(255,200,61,.13),transparent 60%),radial-gradient(700px 420px at 0% 110%,rgba(255,174,0,.08),transparent 60%)}
 a{color:inherit;text-decoration:none}
 button,input{font-family:inherit}
@@ -124,7 +124,7 @@ input:focus{border-color:var(--gold)}
 .row .t b{display:block;font-size:.86rem;font-weight:700}
 .row .t small{display:block;font-size:.72rem;color:var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row .amt{text-align:right;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.35rem;letter-spacing:.03em;line-height:1}
-.row .amt small{display:block;font-family:'Geist','Mukta',sans-serif;font-size:.64rem;color:var(--body);letter-spacing:0;margin-top:3px}
+.row .amt small{display:block;font-family:var(--font-body);font-size:.64rem;color:var(--body);letter-spacing:0;margin-top:3px}
 .amt.plus{color:var(--green)}.amt.minus{color:var(--cream)}
 .pill{flex:none;font-size:.66rem;font-weight:800;letter-spacing:.01em;padding:4px 9px;border-radius:999px}
 .pill.pending{background:rgba(255,200,61,.14);color:var(--gold-l)}.pill.paid{background:rgba(94,219,149,.14);color:var(--green)}.pill.rejected{background:rgba(255,138,138,.12);color:var(--red)}
@@ -155,7 +155,7 @@ input:focus{border-color:var(--gold)}
 @keyframes sk{to{background-position:-200% 0}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
-<link rel="stylesheet" href="/ui.css?v=3">
+<link rel="stylesheet" href="/ui.css?v=4">
 </head>
 <body>
 <div class="wrap">
@@ -419,6 +419,6 @@ async function refresh(){
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
 })();
 </script>
-<script src="/ui.js?v=3" defer></script>
+<script src="/ui.js?v=4" defer></script>
 </body>
 </html>

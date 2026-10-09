@@ -81,7 +81,9 @@ img{max-width:100%}
 @media(max-width:640px){
   .tabbar{
     display:grid;grid-template-columns:repeat(5,1fr);
-    position:fixed;left:0;right:0;bottom:0;z-index:57;
+    /* 45: above page content, below every overlay (confirm dialogs .ov 50, drawer
+       scrim 55, modals 60), so an open dialog dims and blocks the tab bar too */
+    position:fixed;left:0;right:0;bottom:0;z-index:45;
     height:calc(var(--tabbar-h) + var(--safe-b));padding:0 4px var(--safe-b);
     background:rgba(9,12,20,.94);border-top:1px solid var(--ui-line);
     box-shadow:0 -10px 30px rgba(3,5,10,.55)}
@@ -104,7 +106,7 @@ img{max-width:100%}
   body.has-tabbar .toast{bottom:calc(var(--tabbar-h) + var(--safe-b) + 14px)}
   body.has-tabbar .tut{bottom:calc(var(--tabbar-h) + var(--safe-b))}
   /* the drawer's own nav links duplicate the tab bar; keep account actions only */
-  body.has-tabbar .bar-nav .nav-link{display:none}
+  body.has-tabbar .bar-nav .nav-link[href="/challenges/"],body.has-tabbar .bar-nav .nav-link[href="/leaderboard.html"]{display:none} /* not #admin-btn: the tab bar has no Admin entry */
   body.nav-locked .fab,body.nav-locked .fab-nudge{visibility:hidden}
 }
 @media(max-width:640px) and (prefers-reduced-motion:reduce){.tabbar a{transition:none}}

@@ -3169,3 +3169,32 @@ $$;
 revoke all on function public.set_registration_whatsapp(uuid, text) from public, anon;
 grant execute on function public.set_registration_whatsapp(uuid, text) to authenticated;
 commit;
+
+-- ── AI review: online, every 30 minutes ───────────────────────────────────────
+-- Calls the ai-review Edge Function (advisory recommendations only; see its header).
+-- It is deployed with JWT verification on, so the call carries the service-role JWT
+-- stored in Vault as 'service_role_key' (plus cron_secret, which the function checks).
+-- timeout 150s: a run stops starting new council votes after ~85s by itself.
+begin;
+create or replace function public.ai_review_sweep()
+returns bigint language plpgsql security definer set search_path = public as $$
+declare v_id bigint;
+begin
+  select net.http_post(
+    url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/ai-review',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'service_role_key'),
+      'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret')
+    ),
+    body := '{}'::jsonb,
+    timeout_milliseconds := 150000
+  ) into v_id;
+  return v_id;
+end;
+$$;
+revoke all on function public.ai_review_sweep() from public, anon, authenticated;
+
+select cron.unschedule(jobid) from cron.job where jobname = 'ai-review-sweep';
+select cron.schedule('ai-review-sweep', '7,37 * * * *', 'select public.ai_review_sweep()');
+commit;

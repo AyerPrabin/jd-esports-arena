@@ -48,9 +48,12 @@ const OPENAI_COMPAT_PROVIDERS: OpenAICompatProvider[] = [
 // Gemini: the moving "-latest" aliases first (they follow Google's current free Flash /
 // Flash-Lite), then pinned names as a fallback. Flash-Lite's free quota is far larger
 // (~1,000+/day) than Flash's (~20/day on 2.5), so it goes first for short chat replies.
-const GEMINI_MODELS = ['gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-2.5-flash-lite', 'gemini-2.5-flash'];
+const GEMINI_MODELS = ['gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-3.5-flash-lite', 'gemini-2.5-flash-lite'];
 
 const TIMEOUT_MS = 20000;
+
+// Last provider error per model (status + start of the body), for ai-review's selftest.
+export const lastAIError: Record<string, string> = {};
 
 function modelsFor(name: string, defaults: string[]): string[] {
   const env = Deno.env.get(name.toUpperCase() + '_MODEL');
@@ -65,20 +68,20 @@ function classify(status: number): Outcome {
   return status === 404 || status === 400 || status === 422 ? 'next-model' : 'next-provider';
 }
 
-async function post(url: string, init: RequestInit): Promise<Response | null> {
+async function post(url: string, init: RequestInit, timeoutMs = TIMEOUT_MS): Promise<Response | null> {
   try {
-    return await fetch(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
+    return await fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
   } catch {
     return null;
   }
 }
 
-async function callOpenAICompatible(base: string, model: string, key: string, messages: AIMessage[]): Promise<Outcome> {
+async function callOpenAICompatible(base: string, model: string, key: string, messages: AIMessage[], timeoutMs = TIMEOUT_MS): Promise<Outcome> {
   const res = await post(base, {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ model, messages, temperature: 0.6, max_tokens: 1024 }),
-  });
+  }, timeoutMs);
   if (!res) return 'next-provider';
   if (!res.ok) return classify(res.status);
   try {
@@ -92,26 +95,44 @@ async function callOpenAICompatible(base: string, model: string, key: string, me
 
 // Gemini's own native generateContent call (not its OpenAI-compat endpoint) -- this
 // request shape is the one already proven live in production.
-async function callGemini(model: string, key: string, messages: AIMessage[], inlineSystem = false): Promise<Outcome> {
+async function callGemini(model: string, key: string, messages: AIMessage[], inlineSystem = false, timeoutMs = TIMEOUT_MS): Promise<Outcome> {
   let systemMsg = messages.find((m) => m.role === 'system');
-  let userText = messages.filter((m) => m.role !== 'system').map((m) => m.content).join('\n\n');
-  if (inlineSystem && systemMsg) { userText = systemMsg.content + '\n\n' + userText; systemMsg = undefined; }
+  // Real multi-turn contents (assistant -> "model"), so chat history keeps who said what.
+  // Gemini wants user-first, alternating turns: drop leading model turns, merge repeats.
+  const turns: { role: string; parts: { text: string }[] }[] = [];
+  for (const m of messages) {
+    if (m.role === 'system') continue;
+    const role = m.role === 'assistant' ? 'model' : 'user';
+    if (!turns.length && role === 'model') continue;
+    const last = turns[turns.length - 1];
+    if (last && last.role === role) last.parts[0].text += '\n\n' + m.content;
+    else turns.push({ role, parts: [{ text: m.content }] });
+  }
+  if (inlineSystem && systemMsg) {
+    if (turns.length && turns[0].role === 'user') turns[0].parts[0].text = systemMsg.content + '\n\n' + turns[0].parts[0].text;
+    else turns.unshift({ role: 'user', parts: [{ text: systemMsg.content }] });
+    systemMsg = undefined;
+  }
   const res = await post(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
     body: JSON.stringify({
       ...(systemMsg ? { systemInstruction: { parts: [{ text: systemMsg.content }] } } : {}),
-      contents: [{ parts: [{ text: userText }] }],
+      contents: turns,
     }),
-  });
-  if (!res) return 'next-provider';
+  }, timeoutMs);
+  // A timeout on one Gemini model (Flash can think for a long time) shouldn't skip Flash-Lite.
+  if (!res) return 'next-model';
+  if (!res.ok) lastAIError[model] = `${res.status}: ${(await res.clone().text()).slice(0, 300)}`;
   // Gemini answers 429 per MODEL (Flash and Flash-Lite have separate quotas), so a
   // quota hit on one model should still try the next one, unlike other providers.
-  if (res.status === 429) return 'next-model';
+  // Gemini/Gemma: quota (429) and server errors (5xx, e.g. gemma-4-31b-it answering 500
+  // "Internal error" on longer prompts) are per model, so try the next model either way.
+  if (res.status === 429 || res.status >= 500) return 'next-model';
   if (!res.ok) return classify(res.status);
   try {
     const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || '').join('');
+    const text = data?.candidates?.[0]?.content?.parts?.filter((p: { thought?: boolean }) => !p.thought).map((p: { text?: string }) => p.text || '').join('');
     return typeof text === 'string' && text.trim() ? { text: text.trim() } : 'next-model';
   } catch {
     return 'next-model';
@@ -126,7 +147,8 @@ async function callGemini(model: string, key: string, messages: AIMessage[], inl
 // the council its 2-family minimum.
 export interface CouncilMember { family: string; provider: string; models: string[]; }
 
-const GEMMA_MODELS = ['gemma-3-27b-it', 'gemma-3-12b-it'];
+// 26b-a4b first: mixture-of-experts (~4B active), noticeably faster; 31b sometimes answers 500.
+const GEMMA_MODELS = ['gemma-4-26b-a4b-it', 'gemma-4-31b-it'];
 
 export function councilMembers(): CouncilMember[] {
   const out: CouncilMember[] = [];
@@ -151,27 +173,31 @@ export function councilMembers(): CouncilMember[] {
   return out;
 }
 
-export async function askMember(member: CouncilMember, messages: AIMessage[]): Promise<string | null> {
+// The one model-fallback loop shared by askAI and askMember: an answer returns, a dead or
+// renamed model moves on to the next model, a provider-level failure stops this provider.
+async function tryModels(models: string[], call: (model: string) => Promise<Outcome>): Promise<{ text: string; model: string } | null> {
+  for (const model of models) {
+    const out = await call(model);
+    if (typeof out === 'object') return { text: out.text, model };
+    if (out === 'next-provider') return null;
+  }
+  return null;
+}
+
+// Jurors get a longer limit than chat: Gemma 4 thinks before answering (~30-60s in testing).
+export async function askMember(member: CouncilMember, messages: AIMessage[], timeoutMs = 55000): Promise<string | null> {
   if (member.provider === 'gemini' || member.provider === 'gemma') {
     const key = Deno.env.get('GEMINI_API_KEY');
     if (!key) return null;
-    for (const model of member.models) {
-      // Gemma on the Gemini API rejects systemInstruction, so its system text rides in the prompt.
-      const out = await callGemini(model, key, messages, member.provider === 'gemma');
-      if (typeof out === 'object') return out.text;
-      if (out === 'next-provider') return null;
-    }
-    return null;
+    // Gemma's system text rides in the prompt (older Gemma rejected systemInstruction).
+    const hit = await tryModels(member.models, (model) => callGemini(model, key, messages, member.provider === 'gemma', timeoutMs));
+    return hit?.text ?? null;
   }
   const cfg = OPENAI_COMPAT_PROVIDERS.find((p) => p.name === member.provider);
   const key = cfg && Deno.env.get(cfg.keyEnv);
   if (!cfg || !key) return null;
-  for (const model of member.models) {
-    const out = await callOpenAICompatible(cfg.base, model, key, messages);
-    if (typeof out === 'object') return out.text;
-    if (out === 'next-provider') return null;
-  }
-  return null;
+  const hit = await tryModels(member.models, (model) => callOpenAICompatible(cfg.base, model, key, messages, timeoutMs));
+  return hit?.text ?? null;
 }
 
 /**
@@ -194,7 +220,7 @@ export async function describeMedia(instruction: string, media: { mime: string; 
     if (!res.ok) { if (res.status === 429 || classify(res.status) === 'next-model') continue; return null; }
     try {
       const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || '').join('');
+      const text = data?.candidates?.[0]?.content?.parts?.filter((p: { thought?: boolean }) => !p.thought).map((p: { text?: string }) => p.text || '').join('');
       if (typeof text === 'string' && text.trim()) return text.trim();
     } catch { /* try next model */ }
   }
@@ -207,29 +233,24 @@ export async function describeMedia(instruction: string, media: { mime: string; 
  * a working chain. Returns null only when every configured provider failed or none are
  * configured at all.
  */
-export async function askAI(messages: AIMessage[], order?: string[]): Promise<AIResult | null> {
+export async function askAI(messages: AIMessage[], order?: string[], opts: { geminiModels?: string[] } = {}): Promise<AIResult | null> {
   const tryOrder = order || (Deno.env.get('AI_PROVIDER_ORDER') || 'groq,gemini,cerebras,mistral,openrouter,together,deepseek')
     .split(',').map((s) => s.trim()).filter(Boolean);
   for (const name of tryOrder) {
     if (name === 'gemini') {
       const key = Deno.env.get('GEMINI_API_KEY');
       if (!key) continue;
-      for (const model of modelsFor('gemini', GEMINI_MODELS)) {
-        const out = await callGemini(model, key, messages);
-        if (typeof out === 'object') return { text: out.text, provider: `gemini:${model}` };
-        if (out === 'next-provider') break;
-      }
+      const models = opts.geminiModels?.length ? opts.geminiModels : modelsFor('gemini', GEMINI_MODELS);
+      const hit = await tryModels(models, (model) => callGemini(model, key, messages));
+      if (hit) return { text: hit.text, provider: `gemini:${hit.model}` };
       continue;
     }
     const cfg = OPENAI_COMPAT_PROVIDERS.find((p) => p.name === name);
     if (!cfg) continue;
     const key = Deno.env.get(cfg.keyEnv);
     if (!key) continue;
-    for (const model of modelsFor(cfg.name, cfg.models)) {
-      const out = await callOpenAICompatible(cfg.base, model, key, messages);
-      if (typeof out === 'object') return { text: out.text, provider: `${cfg.name}:${model}` };
-      if (out === 'next-provider') break;
-    }
+    const hit = await tryModels(modelsFor(cfg.name, cfg.models), (model) => callOpenAICompatible(cfg.base, model, key, messages));
+    if (hit) return { text: hit.text, provider: `${cfg.name}:${hit.model}` };
   }
   return null;
 }

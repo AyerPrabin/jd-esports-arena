@@ -21,7 +21,7 @@
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--cream);font-family:'Geist','Mukta',sans-serif;font-weight:400;line-height:1.6}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:var(--font-body);font-weight:400;line-height:1.6}
 a{color:inherit;text-decoration:none}
 .wrap{max-width:var(--container);margin:0 auto;padding:0 28px}
 header{padding:20px clamp(20px,5vw,80px);border-bottom:1px solid var(--line)}
@@ -29,7 +29,7 @@ header{padding:20px clamp(20px,5vw,80px);border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:10px}
 .jdlogo{width:36px;height:36px;border-radius:8px;object-fit:cover;flex:none;display:block}
 .brand span{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;letter-spacing:.02em;display:block}
-.brand span span{font-family:'Geist','Mukta',sans-serif;font-size:.68rem;font-weight:500;color:var(--gold-l);letter-spacing:.01em}
+.brand span span{font-family:var(--font-body);font-size:.68rem;font-weight:500;color:var(--gold-l);letter-spacing:.01em}
 .back-btn{background:transparent;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:30px;padding:8px 16px;font-size:.8rem;font-weight:600;transition:.2s}
 .back-btn:hover{background:rgba(255,200,61,.12)}
 main{padding:44px 0 80px}
@@ -90,13 +90,13 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .champ::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(7,9,15,.45),rgba(7,9,15,.92)),url('/ff-victory.jpg') center 22%/cover}
 .champ-eye{font-size:.68rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-l)}
 .champ-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:clamp(2rem,6vw,3rem);line-height:1.1;margin:8px 0 2px;overflow-wrap:anywhere}
-.champ-name .fxn-tag{font-family:'Geist','Mukta',sans-serif;font-size:.66rem;vertical-align:super}
+.champ-name .fxn-tag{font-family:var(--font-body);font-size:.66rem;vertical-align:super}
 .champ-sub{color:var(--silver);font-size:.86rem}
 .pts-table .fxn-tag{font-size:.54rem}
 @media(prefers-reduced-motion:reduce){.pod-slot,.pts-table td{transition:none!important;animation:none!important}}
 @media(max-width:640px){.pts-table{font-size:.78rem}.pts-table th,.pts-table td{padding:9px 8px}.pts-table .team img{width:20px;height:20px}.podium{gap:8px}.pod-slot{width:100px}.pod-logo{width:38px;height:38px}.pod-name{font-size:.74rem}.pod-pts{font-size:1.1rem}}
 </style>
-<link rel="stylesheet" href="/ui.css?v=3">
+<link rel="stylesheet" href="/ui.css?v=4">
 </head>
 <body>
 <header>
@@ -454,6 +454,6 @@ function load(){
 load();
 setInterval(()=>{if(!document.hidden)load();},15000);
 </script>
-<script src="/ui.js?v=3" defer></script>
+<script src="/ui.js?v=4" defer></script>
 </body>
 </html>

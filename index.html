@@ -33,7 +33,7 @@
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--cream);font-family:'Geist','Mukta',sans-serif;font-weight:400;line-height:1.6;overflow-x:hidden}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:var(--font-body);font-weight:400;line-height:1.6;overflow-x:hidden}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--gold)}
 a{color:inherit;text-decoration:none}
 a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:6px}
@@ -520,7 +520,7 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .ws-av img{width:100%;height:100%;border-radius:50%;object-fit:cover}
 .ws-crown{position:absolute;top:-34px;line-height:1;left:50%;font-size:30px;transform:translateX(-50%);filter:drop-shadow(0 0 8px rgba(255,215,80,.95));animation:wsBob 1.8s ease-in-out infinite}
 .ws-name{margin:16px 0 4px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:clamp(2rem,6vw,3.2rem);line-height:1.05;letter-spacing:.01em;color:var(--cream);max-width:100%;overflow-wrap:anywhere}
-.ws-name .fxn-tag{font-family:'Geist','Mukta',sans-serif;font-size:.7rem;vertical-align:super}
+.ws-name .fxn-tag{font-family:var(--font-body);font-size:.7rem;vertical-align:super}
 .ws-lbl{font-size:.82rem;color:var(--gold-l);font-weight:700;letter-spacing:.04em}
 .ws-meta{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
 .ws-meta span{font-size:.78rem;color:var(--cream);background:rgba(0,0,0,.5);border:1px solid var(--line);padding:6px 12px;border-radius:999px}
@@ -794,7 +794,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .pm-dot{color:var(--pm-gold,#E8B44D);font-size:.5rem}
 .pm-verified{color:var(--pm-success,#5EDB95);font-weight:600;font-size:.78rem}
 .pm-hint{font-size:.72rem;color:var(--pm-muted,#9CA8BE);margin:2px 0 14px}
-.pm-btn{width:100%;min-height:58px;border-radius:18px;background:var(--pm-card,#1A2336);border:1px solid var(--pm-border,rgba(255,210,90,.18));color:var(--pm-white,#F7F7F7);font-family:'Geist','Mukta',sans-serif;font-weight:600;font-size:.92rem;display:flex;align-items:center;gap:12px;padding:10px 18px;cursor:pointer;transition:.25s;margin-bottom:14px}
+.pm-btn{width:100%;min-height:58px;border-radius:18px;background:var(--pm-card,#1A2336);border:1px solid var(--pm-border,rgba(255,210,90,.18));color:var(--pm-white,#F7F7F7);font-family:var(--font-body);font-weight:600;font-size:.92rem;display:flex;align-items:center;gap:12px;padding:10px 18px;cursor:pointer;transition:.25s;margin-bottom:14px}
 .pm-btn:hover{border-color:var(--pm-gold,#E8B44D);box-shadow:0 0 22px rgba(232,180,77,.25);transform:scale(1.02)}
 .pm-btn:active{transform:scale(.98)}
 .pm-btn[disabled]{cursor:default}
@@ -810,7 +810,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .pm-badge-on{background:rgba(94,219,149,.14);color:var(--pm-success,#5EDB95)}
 /* ── row-list style (grouped card, one row per line, icon circle + chevron) ── */
 .pm-list{background:var(--pm-card,#1A2336);border:1px solid var(--pm-border,rgba(255,210,90,.18));border-radius:18px;overflow:hidden;margin-bottom:14px}
-.pm-row{display:flex;align-items:center;gap:14px;width:100%;padding:13px 16px;background:none;border:none;border-top:1px solid rgba(255,255,255,.07);color:var(--pm-white,#F7F7F7);font-family:'Geist','Mukta',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;text-align:left;text-decoration:none;transition:.15s;box-sizing:border-box}
+.pm-row{display:flex;align-items:center;gap:14px;width:100%;padding:13px 16px;background:none;border:none;border-top:1px solid rgba(255,255,255,.07);color:var(--pm-white,#F7F7F7);font-family:var(--font-body);font-weight:600;font-size:.9rem;cursor:pointer;text-align:left;text-decoration:none;transition:.15s;box-sizing:border-box}
 .pm-list .pm-row:first-child{border-top:none}
 .pm-row:hover{background:rgba(255,255,255,.05)}
 .pm-row-static{cursor:default}
@@ -969,7 +969,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .notif-item .t{font-weight:600;color:var(--cream);font-size:.9rem;margin-bottom:4px}
 .notif-item .b{color:var(--body);font-size:.84rem;white-space:pre-line}
 .notif-item .rc{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:'Courier New',monospace;background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:.86rem;color:var(--gold-l)}
-.rc-copy{flex:none;font-family:'Geist','Mukta',sans-serif;font-size:.72rem;font-weight:600;padding:5px 11px;border-radius:999px;border:1px solid var(--gold-m);background:transparent;color:var(--gold-l);cursor:pointer;transition:.15s}
+.rc-copy{flex:none;font-family:var(--font-body);font-size:.72rem;font-weight:600;padding:5px 11px;border-radius:999px;border:1px solid var(--gold-m);background:transparent;color:var(--gold-l);cursor:pointer;transition:.15s}
 .rc-copy:hover{background:rgba(255,200,61,.12)}
 .rc-copy.done{border-color:var(--green,#5EDB95);color:var(--green,#5EDB95)}
 .notif-item .ts{color:var(--silver);font-size:.7rem;margin-top:6px}
@@ -1022,7 +1022,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .gate-intro span{color:var(--body);font-size:.84rem;display:block;margin-top:4px}
 </style>
 <link rel="stylesheet" href="/effects-pro.css">
-<link rel="stylesheet" href="/ui.css?v=3">
+<link rel="stylesheet" href="/ui.css?v=4">
 </head>
 <body>
 <div id="preloader" aria-hidden="true">
@@ -1564,7 +1564,7 @@ const ADMIN_EMAIL='ayerprabin95@gmail.com'; /* logged-in account that reveals th
    NOT a password gate — jd-admin-970f8094.html still requires its own passcode, this only decides who *sees*
    the shortcut. Page source is public either way, so treat the admin passcode (not this email match) as the
    real boundary. */
-const ZULU_PUBLIC_URL='https://engagement-wheat-hosting-oriental.trycloudflare.com'; /* OPTIONAL: if you host zulu_server.py publicly, put its base URL here (e.g. https://yourserver.com) and ZULU answers with the smart public brain via /public. Leave '' to use the built-in answers. The /public endpoint NEVER sees your private plan. NOTE: this is a cloudflared quick-tunnel URL — it changes every time zulu_server.py/cloudflared restart on Prabin's PC. If ZULU stops answering live questions, re-run cloudflared and paste the new URL here. */
+const ZULU_PUBLIC_URL=''; /* was a temporary trycloudflare tunnel to the desktop zulu_server.py: it died whenever the PC was off, and every chat then fell back to canned answers. ZULU now answers online via the zulu-ai-reply Edge Function. */ /* OPTIONAL: if you host zulu_server.py publicly, put its base URL here (e.g. https://yourserver.com) and ZULU answers with the smart public brain via /public. Leave '' to use the built-in answers. The /public endpoint NEVER sees your private plan. NOTE: this is a cloudflared quick-tunnel URL — it changes every time zulu_server.py/cloudflared restart on Prabin's PC. If ZULU stops answering live questions, re-run cloudflared and paste the new URL here. */
 const SUPABASE_URL='https://cnoxvqvpmgowdiyrrusv.supabase.co'; /* Supabase Project URL (Settings → API). */
 const SUPABASE_ANON_KEY='sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil'; /* Supabase publishable key (Settings → API). Safe to expose here — it's protected by Row Level Security (see supabase/schema.sql). NEVER put the secret key in this file. */
 const sb=(typeof supabase!=='undefined'&&SUPABASE_URL&&SUPABASE_ANON_KEY)?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
@@ -1717,6 +1717,7 @@ let lang=lsGet('jd_lang')||'en';
 function tr(k){return (T[lang]&&T[lang][k]!=null)?T[lang][k]:(T.en[k]!=null?T.en[k]:k)}
 function applyLang(){
   document.documentElement.lang=lang;
+  if(window.jdTabbarLang)window.jdTabbarLang(lang);
   document.querySelectorAll('[data-i18n]').forEach(function(el){var k=el.getAttribute('data-i18n');var v=tr(k);if(el.dataset.html==='1')el.innerHTML=v;else el.textContent=v;});
   var lb=document.getElementById('lang-btn');if(lb)lb.textContent=lang==='en'?'\u0928\u0947\u092a\u093e\u0932\u0940':'EN';
   var hc=document.getElementById('howto-cta');if(hc)hc.innerHTML=(typeof WHATSAPP_NUMBER==='string'&&WHATSAPP_NUMBER)?('<a class="btn-primary" href="'+esc(waLink(WA_DEFAULT_MSG))+'" target="_blank" rel="noopener">'+tr('wacta')+'</a>'):'';
@@ -1829,11 +1830,12 @@ function render(d){
   const grid=document.getElementById('arena-grid');if(!grid)return;
   // The section is "Live + Upcoming", so show it that way: live, then upcoming soonest
   // first, then finished newest first, cancelled last (tournaments.json is in admin order).
-  const stOrder={live:0,upcoming:1,completed:2,cancelled:3},tms=t=>Date.parse(t.start)||0;
+  // No/blank start (date TBA) sorts after dated events, not before them as epoch 0 would.
+  const stOrder={live:0,upcoming:1,completed:2,cancelled:3},tms=t=>Date.parse(t.start)||Number.MAX_SAFE_INTEGER;
   const ts=(d.tournaments||[]).slice().sort((a,b)=>{
     const sa=stOrder[effectiveStatus(a)]??1,sb2=stOrder[effectiveStatus(b)]??1;
     if(sa!==sb2)return sa-sb2;
-    return sa<=1?tms(a)-tms(b):tms(b)-tms(a);
+    return sa<=1?tms(a)-tms(b):(Date.parse(b.start)||0)-(Date.parse(a.start)||0);
   });
   const gridHTML=ts.length?ts.map(t=>{
     const st=effectiveStatus(t);
@@ -3618,28 +3620,32 @@ function zuluRespond(q){
     fbBot(m.fn());return;
   }
   var a=zuluPublic(q);
-  if(a.learn){
-    // Nothing local matched — ask the real AI instead of the old dead-end "I don't
-    // have that one yet". Still falls back to the ticket-log behavior if the AI call
-    // itself fails (no key set, Gemini down, rate-limited, etc.) so a question never
-    // just vanishes either way.
-    var th=document.createElement('div');th.className='fb-msg bot';th.textContent='…';document.getElementById('fb-msgs').appendChild(th);fbScroll();
-    zuluAiReply(q).then(function(reply){
-      if(reply){th.textContent=reply;}
-      else{th.textContent=a.text;logLearn('question',q,a.ticket);}
-      fbScroll();
-    });
-    return;
-  }
-  fbBot(a.text);if(a.feedback)ZMODE='fb';
+  // Short questions and the fixed flows (private-topic refusal, feedback, "my name is")
+  // keep the instant built-in answer. Anything else goes to the online AI, which knows
+  // the same facts plus the live schedule and this chat's history; the built-in answer
+  // is the fallback if the AI is unavailable.
+  var fixed=a.feedback||a.text===zL('secret')||/(my (name|squad|team) is|call me)/i.test(q);
+  var shortQ=q.trim().split(/\s+/).length<=3;
+  if(!a.learn&&(fixed||shortQ)){fbBot(a.text);zuluRemember(q,a.text);if(a.feedback)ZMODE='fb';return;}
+  // If the AI call fails (no key, quota, outage) the built-in answer is shown instead, and
+  // an unanswerable question still gets logged as a ticket, so nothing just vanishes.
+  var th=document.createElement('div');th.className='fb-msg bot';th.textContent='…';document.getElementById('fb-msgs').appendChild(th);fbScroll();
+  zuluAiReply(q).then(function(reply){
+    if(reply){th.textContent=reply;zuluRemember(q,reply);}
+    else{th.textContent=a.text;if(a.learn)logLearn('question',q,a.ticket);zuluRemember(q,a.text);}
+    fbScroll();
+  });
 }
+// Rolling memory of this chat (last 8 turns) so the AI can follow "and the entry fee?".
+var zuluHist=[];
+function zuluRemember(q,reply){zuluHist.push({role:'user',content:String(q).slice(0,500)},{role:'assistant',content:String(reply).slice(0,500)});if(zuluHist.length>8)zuluHist=zuluHist.slice(-8);}
 // Last-resort reply via zulu-ai-reply (Gemini) — only reached when zuluPersonalMatch()
 // and zuluPublic()'s keyword table both come up empty, so this never competes with the
 // free, instant, deterministic answers for anything already known. Returns null (not a
 // thrown error) on any failure so the caller can fall back to the ticket-log behavior.
 async function zuluAiReply(q){
   try{
-    const res=await fetch(EDGE_FN_BASE+'/zulu-ai-reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q,lang:lang})});
+    const res=await fetch(EDGE_FN_BASE+'/zulu-ai-reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q,lang:lang,history:zuluHist})});
     if(!res.ok)return null;
     const d=await res.json();
     return d.reply||null;
@@ -3811,6 +3817,6 @@ document.getElementById('fb-input').addEventListener('keydown',function(e){if(e.
 zChrome();
 setTimeout(showNudge,13000);
 </script>
-<script src="/ui.js?v=3" defer></script>
+<script src="/ui.js?v=4" defer></script>
 </body>
 </html>
