@@ -1,0 +1,143 @@
+/* ── JD Arena shared UI layer ──
+   Loaded LAST on every player-facing page (after each page's own inline <style>), so
+   these rules win on source order without !important wars. Holds only what should look
+   the same everywhere: fonts, gutters, focus/press states, safe areas, the phone tab bar
+   (markup injected by /ui.js) and the subpage top bar. Page-specific layout stays in the
+   page. Bump the ?v= on every <link> to this file when it changes. */
+
+:root{
+  color-scheme:dark;
+  --font-body:'Geist','Mukta',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --font-display:'Barlow Condensed','Mukta',sans-serif;
+  --gutter:clamp(16px,4vw,28px);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --tabbar-h:62px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:env(safe-area-inset-top,0px);
+  --ui-gold:#FFC83D;
+  --ui-muted:#8A94A8;
+  --ui-line:rgba(255,200,80,.14);
+}
+
+/* ── base ── */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{font-family:var(--font-body);-webkit-tap-highlight-color:rgba(255,200,61,.14);font-feature-settings:'ss01' 0}
+a,button,input,select,textarea,label,summary,[role="button"]{touch-action:manipulation}
+h1,h2,h3,.sec-h h2{text-wrap:balance}
+p,li{text-wrap:pretty}
+table,.stat b,.pts-pill b,.nm-count,.tm-urg,[class*="pts"],[class*="score"]{font-variant-numeric:tabular-nums}
+select{background-color:#111827;color:#fff}
+img{max-width:100%}
+@media(pointer:fine){html{overscroll-behavior-y:none}}
+
+/* one focus ring everywhere (the old per-page rules only covered some elements) */
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{
+  outline:2px solid var(--ui-gold);outline-offset:3px;border-radius:8px}
+
+/* tactile press feedback on every primary/secondary action */
+:where(.btn-primary,.btn-ghost,.btn,.lang-btn,.pill,.chip-link,.fx-plan,.tabbar a,.nm-btn,.fab):active{
+  transform:translateY(1px) scale(.98)}
+
+/* sticky header must never hide a focused or anchored element */
+[id]{scroll-margin-top:84px}
+
+/* ── layout: gutters ──
+   index.html's `.sec{padding:… 0 20px}` came after `.wrap{padding:0 28px}` and zeroed
+   the side padding, so every section below the hero touched the screen edge on any
+   window narrower than the 1450px container (phones and tablets included). */
+.wrap{padding-left:var(--gutter);padding-right:var(--gutter)}
+.sec.wrap,section.wrap{padding-left:var(--gutter);padding-right:var(--gutter)}
+
+/* ── homepage hero: tighter on phones so the tournaments are one swipe away ── */
+@media(max-width:640px){
+  .hero{padding:28px 0 32px}
+  .hero-content{padding-left:var(--gutter)!important;padding-right:var(--gutter)!important}
+  .hero .eye{margin-bottom:14px}
+  .hero h1{font-size:clamp(2.6rem,12vw,3.4rem);margin-bottom:14px}
+  .hero p{font-size:1rem;line-height:1.55;margin-bottom:22px}
+  .hero .btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .hero .btns a{display:flex;align-items:center;justify-content:center;text-align:center;padding:14px 12px;font-size:.92rem;min-height:48px;white-space:nowrap}
+  .arena-stats{margin:22px var(--gutter) 0!important;border-radius:18px}
+  .arena-stats .stat{padding:12px 6px}
+  .arena-stats .stat b{font-size:1.75rem}
+  /* 4 stacked full-width feature cards pushed tournaments ~2 screens down: make them a
+     compact 2x2 of icon + title (the one-line descriptions read fine on desktop only) */
+  .feature-strip{grid-template-columns:1fr 1fr!important;gap:10px;margin-top:14px}
+  .feature-card{padding:12px;gap:10px;border-radius:14px}
+  .feature-card svg{width:22px;height:22px}
+  .feature-card b{font-size:.8rem;line-height:1.25}
+  .feature-card span{display:none}
+  .sec{padding-top:40px}
+  .sec-h{flex-wrap:wrap;row-gap:4px;margin-bottom:20px}
+  .sec-h .ln{display:none}
+  .sec-h .tag{flex-basis:100%}
+}
+@media(max-width:360px){.hero .btns{grid-template-columns:1fr}}
+
+/* ── phone bottom tab bar (markup from /ui.js) ── */
+.tabbar{display:none}
+@media(max-width:640px){
+  .tabbar{
+    display:grid;grid-template-columns:repeat(5,1fr);
+    position:fixed;left:0;right:0;bottom:0;z-index:57;
+    height:calc(var(--tabbar-h) + var(--safe-b));padding:0 4px var(--safe-b);
+    background:rgba(9,12,20,.94);border-top:1px solid var(--ui-line);
+    box-shadow:0 -10px 30px rgba(3,5,10,.55)}
+  @supports(backdrop-filter:blur(1px)){
+    .tabbar{background:rgba(9,12,20,.82);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%)}}
+  .tabbar a{
+    position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    min-height:48px;color:var(--ui-muted);font:600 .64rem/1.1 var(--font-body);letter-spacing:.01em;
+    text-decoration:none;transition:color .2s var(--ease-out),transform .15s var(--ease-out)}
+  .tabbar svg{width:22px;height:22px;flex:none}
+  .tabbar a[aria-current="page"]{color:var(--ui-gold)}
+  .tabbar a[aria-current="page"]::before{
+    content:'';position:absolute;top:0;left:30%;right:30%;height:2px;border-radius:0 0 2px 2px;background:var(--ui-gold)}
+  body.has-tabbar{padding-bottom:calc(var(--tabbar-h) + var(--safe-b))}
+  /* everything that floats at the bottom moves up above the bar */
+  body.has-tabbar .fab{bottom:calc(var(--tabbar-h) + var(--safe-b) + 12px);right:14px;padding:9px 13px;font-size:.78rem;box-shadow:0 6px 18px rgba(3,5,10,.5)}
+  body.has-tabbar .fab-nudge{bottom:calc(var(--tabbar-h) + var(--safe-b) + 66px)}
+  body.has-tabbar .fb-panel{bottom:calc(var(--tabbar-h) + var(--safe-b) + 8px);max-height:calc(100dvh - var(--tabbar-h) - var(--safe-b) - 80px)}
+  body.has-tabbar .next-match{bottom:calc(var(--tabbar-h) + var(--safe-b) + 66px)!important}
+  body.has-tabbar .toast{bottom:calc(var(--tabbar-h) + var(--safe-b) + 14px)}
+  body.has-tabbar .tut{bottom:calc(var(--tabbar-h) + var(--safe-b))}
+  /* the drawer's own nav links duplicate the tab bar; keep account actions only */
+  body.has-tabbar .bar-nav .nav-link{display:none}
+  body.nav-locked .fab,body.nav-locked .fab-nudge{visibility:hidden}
+}
+@media(max-width:640px) and (prefers-reduced-motion:reduce){.tabbar a{transition:none}}
+
+/* ── subpage top bar (challenges / profile / wallet) ──
+   These pages shared one `.top` row whose link chips wrapped into a 4-line
+   "← Back to Arena" and overflowed the phone width on /profile/. */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:nowrap;min-height:56px;padding-top:max(10px,var(--safe-t))}
+.top .back{display:inline-flex;align-items:center;gap:10px;white-space:nowrap;font-weight:600;min-height:44px}
+.top .back img{width:34px;height:34px;border-radius:9px;flex:none}
+.top-links{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;min-width:0}
+.top-links::-webkit-scrollbar{display:none}
+.chip-link{white-space:nowrap;min-height:40px;display:inline-flex;align-items:center}
+@media(max-width:640px){
+  .top-links{display:none} /* same destinations live in the tab bar */
+}
+
+/* ── tables never break the page width ── */
+.tbl-scroll,.lb-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+
+/* ── drawers and modals keep scroll inside ── */
+.zmodal,.bar-nav,.fb-panel{overscroll-behavior:contain}
+.zmodal{max-height:calc(100dvh - 40px)}
+@media(max-width:640px){
+  /* bottom-sheet modals on phones: thumb-reachable, full width */
+  .zoverlay{align-items:flex-end;padding:0}
+  .zoverlay .zmodal{width:100%;border-radius:22px 22px 0 0;max-height:calc(100dvh - 24px);padding-bottom:calc(22px + var(--safe-b))}
+}
+
+/* ── tablet (641–1024): roomier cards, header that doesn't squash ── */
+@media(min-width:641px) and (max-width:1024px){
+  .hero h1{font-size:clamp(3rem,8vw,4.6rem)}
+  .feature-strip{grid-template-columns:repeat(2,1fr)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  :where(.btn-primary,.btn-ghost,.btn,.lang-btn,.pill,.chip-link,.fx-plan,.tabbar a,.nm-btn,.fab):active{transform:none}
+}

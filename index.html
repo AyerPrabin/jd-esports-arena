@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#07090F">
 <link rel="icon" type="image/png" href="/favicon-64.png">
 <title>JD Esports Arena — Free Fire Tournaments · Nepal</title>
@@ -22,7 +22,7 @@
 <meta name="twitter:image" content="https://jdesport.co.uk/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#07090F;--bg-2:#0D111B;--panel:#111827;--panel-2:#151D2E;--line:rgba(255,200,80,.14);
@@ -33,7 +33,7 @@
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--cream);font-family:'Inter',sans-serif;font-weight:400;line-height:1.6;overflow-x:hidden}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:'Geist','Mukta',sans-serif;font-weight:400;line-height:1.6;overflow-x:hidden}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--gold)}
 a{color:inherit;text-decoration:none}
 a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:6px}
@@ -520,7 +520,7 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .ws-av img{width:100%;height:100%;border-radius:50%;object-fit:cover}
 .ws-crown{position:absolute;top:-34px;line-height:1;left:50%;font-size:30px;transform:translateX(-50%);filter:drop-shadow(0 0 8px rgba(255,215,80,.95));animation:wsBob 1.8s ease-in-out infinite}
 .ws-name{margin:16px 0 4px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:clamp(2rem,6vw,3.2rem);line-height:1.05;letter-spacing:.01em;color:var(--cream);max-width:100%;overflow-wrap:anywhere}
-.ws-name .fxn-tag{font-family:'Inter',sans-serif;font-size:.7rem;vertical-align:super}
+.ws-name .fxn-tag{font-family:'Geist','Mukta',sans-serif;font-size:.7rem;vertical-align:super}
 .ws-lbl{font-size:.82rem;color:var(--gold-l);font-weight:700;letter-spacing:.04em}
 .ws-meta{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
 .ws-meta span{font-size:.78rem;color:var(--cream);background:rgba(0,0,0,.5);border:1px solid var(--line);padding:6px 12px;border-radius:999px}
@@ -794,7 +794,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .pm-dot{color:var(--pm-gold,#E8B44D);font-size:.5rem}
 .pm-verified{color:var(--pm-success,#5EDB95);font-weight:600;font-size:.78rem}
 .pm-hint{font-size:.72rem;color:var(--pm-muted,#9CA8BE);margin:2px 0 14px}
-.pm-btn{width:100%;min-height:58px;border-radius:18px;background:var(--pm-card,#1A2336);border:1px solid var(--pm-border,rgba(255,210,90,.18));color:var(--pm-white,#F7F7F7);font-family:'Inter',sans-serif;font-weight:600;font-size:.92rem;display:flex;align-items:center;gap:12px;padding:10px 18px;cursor:pointer;transition:.25s;margin-bottom:14px}
+.pm-btn{width:100%;min-height:58px;border-radius:18px;background:var(--pm-card,#1A2336);border:1px solid var(--pm-border,rgba(255,210,90,.18));color:var(--pm-white,#F7F7F7);font-family:'Geist','Mukta',sans-serif;font-weight:600;font-size:.92rem;display:flex;align-items:center;gap:12px;padding:10px 18px;cursor:pointer;transition:.25s;margin-bottom:14px}
 .pm-btn:hover{border-color:var(--pm-gold,#E8B44D);box-shadow:0 0 22px rgba(232,180,77,.25);transform:scale(1.02)}
 .pm-btn:active{transform:scale(.98)}
 .pm-btn[disabled]{cursor:default}
@@ -810,7 +810,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .pm-badge-on{background:rgba(94,219,149,.14);color:var(--pm-success,#5EDB95)}
 /* ── row-list style (grouped card, one row per line, icon circle + chevron) ── */
 .pm-list{background:var(--pm-card,#1A2336);border:1px solid var(--pm-border,rgba(255,210,90,.18));border-radius:18px;overflow:hidden;margin-bottom:14px}
-.pm-row{display:flex;align-items:center;gap:14px;width:100%;padding:13px 16px;background:none;border:none;border-top:1px solid rgba(255,255,255,.07);color:var(--pm-white,#F7F7F7);font-family:'Inter',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;text-align:left;text-decoration:none;transition:.15s;box-sizing:border-box}
+.pm-row{display:flex;align-items:center;gap:14px;width:100%;padding:13px 16px;background:none;border:none;border-top:1px solid rgba(255,255,255,.07);color:var(--pm-white,#F7F7F7);font-family:'Geist','Mukta',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;text-align:left;text-decoration:none;transition:.15s;box-sizing:border-box}
 .pm-list .pm-row:first-child{border-top:none}
 .pm-row:hover{background:rgba(255,255,255,.05)}
 .pm-row-static{cursor:default}
@@ -969,7 +969,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .notif-item .t{font-weight:600;color:var(--cream);font-size:.9rem;margin-bottom:4px}
 .notif-item .b{color:var(--body);font-size:.84rem;white-space:pre-line}
 .notif-item .rc{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:'Courier New',monospace;background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:.86rem;color:var(--gold-l)}
-.rc-copy{flex:none;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:600;padding:5px 11px;border-radius:999px;border:1px solid var(--gold-m);background:transparent;color:var(--gold-l);cursor:pointer;transition:.15s}
+.rc-copy{flex:none;font-family:'Geist','Mukta',sans-serif;font-size:.72rem;font-weight:600;padding:5px 11px;border-radius:999px;border:1px solid var(--gold-m);background:transparent;color:var(--gold-l);cursor:pointer;transition:.15s}
 .rc-copy:hover{background:rgba(255,200,61,.12)}
 .rc-copy.done{border-color:var(--green,#5EDB95);color:var(--green,#5EDB95)}
 .notif-item .ts{color:var(--silver);font-size:.7rem;margin-top:6px}
@@ -1022,6 +1022,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .gate-intro span{color:var(--body);font-size:.84rem;display:block;margin-top:4px}
 </style>
 <link rel="stylesheet" href="/effects-pro.css">
+<link rel="stylesheet" href="/ui.css?v=1">
 </head>
 <body>
 <div id="preloader" aria-hidden="true">
@@ -1502,7 +1503,7 @@ async function generateResultCard(){
   ctx.textAlign='center';
   ctx.fillStyle='#FFDD85';ctx.font="46px 'Barlow Condensed', sans-serif";
   ctx.fillText('JD ESPORTS ARENA',W/2,130);
-  ctx.fillStyle='#8A94A8';ctx.font="24px 'Inter', sans-serif";
+  ctx.fillStyle='#8A94A8';ctx.font="24px 'Geist','Mukta',sans-serif";
   ctx.fillText('by AyerFire · jdesport.co.uk',W/2,168);
 
   const medalColor=mine.rank===1?'#FFD54A':mine.rank===2?'#D9DEE8':mine.rank===3?'#E3A15F':'#FFC83D';
@@ -1517,7 +1518,7 @@ async function generateResultCard(){
   ctx.font="64px 'Barlow Condensed', sans-serif";ctx.fillStyle='#FFFFFF';
   ctx.fillText(squad,W/2,760);
 
-  ctx.font="28px 'Inter', sans-serif";ctx.fillStyle='#A6AFC2';
+  ctx.font="28px 'Geist','Mukta',sans-serif";ctx.fillStyle='#A6AFC2';
   wrapCanvasText(ctx,B.title||B.tournament||'',W/2,800,W-160,34);
 
   const statY=1010,colW=W/3;
@@ -1526,11 +1527,11 @@ async function generateResultCard(){
     const cx=colW*i+colW/2;
     ctx.font="70px 'Barlow Condensed', sans-serif";ctx.fillStyle='#FFDD85';
     ctx.fillText(String(s[1]),cx,statY);
-    ctx.font="22px 'Inter', sans-serif";ctx.fillStyle='#8A94A8';
+    ctx.font="22px 'Geist','Mukta',sans-serif";ctx.fillStyle='#8A94A8';
     ctx.fillText(s[0],cx,statY+36);
   });
 
-  ctx.font="22px 'Inter', sans-serif";ctx.fillStyle='#8A94A8';
+  ctx.font="22px 'Geist','Mukta',sans-serif";ctx.fillStyle='#8A94A8';
   ctx.fillText('jdesport.co.uk',W/2,H-50);
 
   return cv;
@@ -1826,7 +1827,14 @@ function render(d){
   linkBo3(d);
   _lastData=d;
   const grid=document.getElementById('arena-grid');if(!grid)return;
-  const ts=d.tournaments||[];
+  // The section is "Live + Upcoming", so show it that way: live, then upcoming soonest
+  // first, then finished newest first, cancelled last (tournaments.json is in admin order).
+  const stOrder={live:0,upcoming:1,completed:2,cancelled:3},tms=t=>Date.parse(t.start)||0;
+  const ts=(d.tournaments||[]).slice().sort((a,b)=>{
+    const sa=stOrder[effectiveStatus(a)]??1,sb2=stOrder[effectiveStatus(b)]??1;
+    if(sa!==sb2)return sa-sb2;
+    return sa<=1?tms(a)-tms(b):tms(b)-tms(a);
+  });
   const gridHTML=ts.length?ts.map(t=>{
     const st=effectiveStatus(t);
     const teams=teamsFor(t);
@@ -3803,5 +3811,6 @@ document.getElementById('fb-input').addEventListener('keydown',function(e){if(e.
 zChrome();
 setTimeout(showNudge,13000);
 </script>
+<script src="/ui.js?v=1" defer></script>
 </body>
 </html>
