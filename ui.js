@@ -17,7 +17,7 @@
     { k: 'home', href: '/', en: 'Home', np: 'होम' },
     { k: 'events', href: '/#tournaments', en: 'Events', np: 'प्रतियोगिता' },
     { k: 'fight', href: '/challenges/', en: 'Challenges', np: 'च्यालेन्ज' },
-    { k: 'ranks', href: '/leaderboard.html', en: 'Ranks', np: 'र्‍याङ्क' },
+    { k: 'ranks', href: '/leaderboard.html', en: 'Ranks', np: 'र्याङ्क' },
     { k: 'me', href: '/profile/', en: 'Profile', np: 'प्रोफाइल' }
   ];
   var path = location.pathname;
