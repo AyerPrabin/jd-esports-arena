@@ -22,6 +22,8 @@ Tournament hub for **JD Esports Arena** (Free Fire) — live at [jdesport.co.uk]
 | `notify-admin-signup` | Pings admin on new player signup |
 | `tournament-reminders` | Scheduled reminders before a tournament starts |
 | `confirm-account-delete` | Magic-link confirmation for account deletion |
+| `ai-review` | Online AI council: judges pending payments, reports, flags and low-turnout tournaments, writes advisory recommendations for the admin panel (never executes) |
+| `zulu-ai-reply` | Public ZULU chat fallback via free AI providers (`_shared/ai.ts`) |
 
 (Not exhaustive — see `supabase/functions/` for the full list.)
 

@@ -275,9 +275,14 @@ h2[id]{scroll-margin-top:64px}
   <h2 id="ai-recommendations">AI Recommendations <span class="tag">payments/reports/flags: you decide</span></h2>
   <p class="hint">ZULU's AI council independently judges pending items and votes — shown here as a majority verdict with each model's reasoning. Payment approval, report/ban, and anomaly-flag triage NEVER happen by themselves: Confirm calls the exact same approve/dismiss/ban actions you'd use manually elsewhere on this page, and you have to look at the actual evidence before Confirm unlocks. <b>Cancel-tournament is the one exception</b> — a free/low-turnout tournament with no financial stakes gets cancelled and published automatically when the council agrees, no click needed (you can turn this back to recommend-only via AUTO_EXECUTE_CANCEL_TOURNAMENT in zulu_secrets.py). You still get a Discord DM and a history entry below for every auto-cancel, same as everything else here.</p>
   <div class="grid">
+  </div>
+  <details class="hint" style="margin:0 0 10px"><summary>Use the desktop ZULU server instead (optional)</summary>
+  <p class="hint" style="margin:6px 0">Run AI Review now runs online (Supabase <code>ai-review</code>, free Gemini + Gemma models, recommendations only). Fill these in only to use <code>zulu_server.py</code> on your PC instead, e.g. for its opt-in auto-cancel / auto-approve.</p>
+  <div class="grid">
     <div class="f"><label>ZULU server URL</label><input id="ai-server-url" placeholder="e.g. https://xxxx.trycloudflare.com or http://localhost:5005" oninput="localStorage.setItem('jd_zulu_ai_url',this.value)"></div>
     <div class="f"><label>ZULU SECRET_KEY</label><input id="ai-server-key" type="password" placeholder="from zulu_secrets.py" oninput="localStorage.setItem('jd_zulu_ai_key',this.value)"></div>
   </div>
+  </details>
   <div class="row">
     <button class="btn" onclick="runAiReview()">🤖 Run AI Review</button>
     <button class="btn ghost" onclick="loadAiRecommendations()">↻ Load recommendations</button>
@@ -1799,7 +1804,7 @@ const _aiExpanded=new Set();
 async function runAiReview(){
   const url=(document.getElementById('ai-server-url').value||'').trim().replace(/\/$/,'');
   const key=document.getElementById('ai-server-key').value||'';
-  if(!url){aiMsg('Enter your ZULU server URL first (the cloudflared tunnel address, or http://localhost:5005 if running on this machine).','err');return;}
+  if(!url){return runAiReviewOnline();}
   aiMsg('Running AI review — this can take a minute or two (several models judging several items)…','');
   try{
     const r=await fetch(url+'/admin/ai-review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key})});
@@ -1808,6 +1813,25 @@ async function runAiReview(){
     const parts=Object.entries(d.written||{}).map(([k,v])=>v+' '+k.replace(/_/g,' ')).join(', ');
     aiMsg('Done — wrote: '+(parts||'nothing new')+'. Click "↻ Load recommendations" to see them.','ok');
   }catch(e){aiMsg('Failed: '+e.message+' — check the URL/key, and that zulu_server.py is running and reachable.','err');}
+}
+// Online AI review (Supabase ai-review): needs the signed-in Google admin session (the
+// function verifies the login token) plus the admin passcode, same as other admin calls.
+async function runAiReviewOnline(){
+  const secret=adminSecret();
+  if(!secret){aiMsg('Enter the admin passcode first.','err');return;}
+  const {data:{session}}=sb?await sb.auth.getSession():{data:{session:null}};
+  if(!session){aiMsg('Sign in with your admin Google account on this page first (the online AI review checks your login).','err');return;}
+  aiMsg('Running AI review online. Several models are judging each pending item, this can take a minute…','');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/ai-review',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret,Authorization:'Bearer '+session.access_token}});
+    if(!r.ok)throw new Error(await r.text());
+    const d=await r.json();
+    if(!d.ok)throw new Error(d.error||'failed');
+    const parts=Object.entries(d.written||{}).filter(([,v])=>v).map(([k,v])=>v+' '+k.replace(/_/g,' ')).join(', ');
+    const sk=d.skipped||{};
+    aiMsg('Done ('+(d.families||[]).join(' + ')+'). Wrote: '+(parts||'nothing new')+(sk.already_pending?' · '+sk.already_pending+' already waiting':'')+(sk.inconclusive?' · '+sk.inconclusive+' inconclusive':'')+'.','ok');
+    loadAiRecommendations();
+  }catch(e){aiMsg('Failed: '+e.message,'err');}
 }
 async function loadAiRecommendations(){
   const secret=adminSecret();

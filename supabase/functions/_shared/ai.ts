@@ -92,9 +92,10 @@ async function callOpenAICompatible(base: string, model: string, key: string, me
 
 // Gemini's own native generateContent call (not its OpenAI-compat endpoint) -- this
 // request shape is the one already proven live in production.
-async function callGemini(model: string, key: string, messages: AIMessage[]): Promise<Outcome> {
-  const systemMsg = messages.find((m) => m.role === 'system');
-  const userText = messages.filter((m) => m.role !== 'system').map((m) => m.content).join('\n\n');
+async function callGemini(model: string, key: string, messages: AIMessage[], inlineSystem = false): Promise<Outcome> {
+  let systemMsg = messages.find((m) => m.role === 'system');
+  let userText = messages.filter((m) => m.role !== 'system').map((m) => m.content).join('\n\n');
+  if (inlineSystem && systemMsg) { userText = systemMsg.content + '\n\n' + userText; systemMsg = undefined; }
   const res = await post(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
@@ -115,6 +116,89 @@ async function callGemini(model: string, key: string, messages: AIMessage[]): Pr
   } catch {
     return 'next-model';
   }
+}
+
+// ── Council (used by ai-review) ──
+// One juror per MODEL FAMILY, not per provider: Groq/Cerebras can serve the same gpt-oss
+// model, and a "3/3 agree" across those is one model sampled three times. Mirrors
+// zulu_server.py's _model_family() grouping. Gemma runs on the same GEMINI_API_KEY as
+// Gemini but is a genuinely different model family, so one free Google key already gives
+// the council its 2-family minimum.
+export interface CouncilMember { family: string; provider: string; models: string[]; }
+
+const GEMMA_MODELS = ['gemma-3-27b-it', 'gemma-3-12b-it'];
+
+export function councilMembers(): CouncilMember[] {
+  const out: CouncilMember[] = [];
+  const seen = new Set<string>();
+  const add = (family: string, provider: string, models: string[]) => {
+    if (seen.has(family)) return;
+    seen.add(family);
+    out.push({ family, provider, models });
+  };
+  if (Deno.env.get('GEMINI_API_KEY')) {
+    add('gemini', 'gemini', modelsFor('gemini', GEMINI_MODELS));
+    add('gemma', 'gemma', modelsFor('gemma', GEMMA_MODELS));
+  }
+  for (const p of OPENAI_COMPAT_PROVIDERS) {
+    if (!Deno.env.get(p.keyEnv)) continue;
+    const models = modelsFor(p.name, p.models);
+    const m = models[0].toLowerCase();
+    const family = m.includes('gpt') ? 'gpt' : m.includes('llama') ? 'llama' : m.includes('mistral') ? 'mistral'
+      : m.includes('deepseek') ? 'deepseek' : m.includes('qwen') ? 'qwen' : p.name;
+    add(family, p.name, models);
+  }
+  return out;
+}
+
+export async function askMember(member: CouncilMember, messages: AIMessage[]): Promise<string | null> {
+  if (member.provider === 'gemini' || member.provider === 'gemma') {
+    const key = Deno.env.get('GEMINI_API_KEY');
+    if (!key) return null;
+    for (const model of member.models) {
+      // Gemma on the Gemini API rejects systemInstruction, so its system text rides in the prompt.
+      const out = await callGemini(model, key, messages, member.provider === 'gemma');
+      if (typeof out === 'object') return out.text;
+      if (out === 'next-provider') return null;
+    }
+    return null;
+  }
+  const cfg = OPENAI_COMPAT_PROVIDERS.find((p) => p.name === member.provider);
+  const key = cfg && Deno.env.get(cfg.keyEnv);
+  if (!cfg || !key) return null;
+  for (const model of member.models) {
+    const out = await callOpenAICompatible(cfg.base, model, key, messages);
+    if (typeof out === 'object') return out.text;
+    if (out === 'next-provider') return null;
+  }
+  return null;
+}
+
+/**
+ * Perception only: one Gemini call that DESCRIBES images/video (payment screenshot,
+ * report evidence). It never decides anything -- the judgment is a separate multi-model
+ * council vote on this text. `media` items are {mime, base64}.
+ */
+export async function describeMedia(instruction: string, media: { mime: string; base64: string }[]): Promise<string | null> {
+  const key = Deno.env.get('GEMINI_API_KEY');
+  if (!key || !media.length) return null;
+  for (const model of modelsFor('gemini', GEMINI_MODELS)) {
+    const res = await post(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: instruction }, ...media.map((m) => ({ inline_data: { mime_type: m.mime, data: m.base64 } }))] }],
+      }),
+    });
+    if (!res) return null;
+    if (!res.ok) { if (res.status === 429 || classify(res.status) === 'next-model') continue; return null; }
+    try {
+      const data = await res.json();
+      const text = data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || '').join('');
+      if (typeof text === 'string' && text.trim()) return text.trim();
+    } catch { /* try next model */ }
+  }
+  return null;
 }
 
 /**
