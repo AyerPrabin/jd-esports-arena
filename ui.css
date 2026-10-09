@@ -144,3 +144,72 @@ img{max-width:100%}
 @media(prefers-reduced-motion:reduce){
   :where(.btn-primary,.btn-ghost,.btn,.lang-btn,.pill,.chip-link,.fx-plan,.tabbar a,.nm-btn,.fab):active{transform:none}
 }
+
+/* ── standings tables on phones (homepage Best-of-3 + /leaderboard.html share
+   .pts-table: rank, squad, R1-R3 kills, total). Six table columns at 360px wrapped every
+   squad name onto 2-3 lines and clipped "Total" off the right edge, so each row becomes
+   a card: rank | squad name (one line) over a small "R1 25 · R2 23 · R3 6" kills line |
+   big total. Markup is unchanged (it's JS-rendered, and the leaderboard animates rows). */
+@media(max-width:640px){
+  .pts-table,.pts-table tbody{display:block;width:100%}
+  .pts-table thead{display:none}
+  .pts-table tr{
+    display:grid;grid-template-columns:30px auto auto auto 1fr auto;
+    grid-template-areas:"rk team team team team tot" "rk r1 r2 r3 . tot";
+    align-items:center;column-gap:10px;row-gap:3px;
+    margin:0 0 8px;padding:11px 14px 11px 12px;border-radius:14px;
+    background:var(--panel,#111827);border:1px solid rgba(255,200,80,.08)}
+  .pts-table td,.pts-table tr:hover td,.pts-table tr.mine td{
+    display:block;padding:0!important;background:none!important;border-radius:0!important;box-shadow:none!important;border:0!important}
+  .pts-table tbody tr:nth-child(1){border-color:rgba(255,213,74,.45);background:linear-gradient(100deg,rgba(255,200,61,.12),var(--panel,#111827) 60%)}
+  .pts-table tbody tr:nth-child(2){border-color:rgba(217,222,232,.28)}
+  .pts-table tbody tr:nth-child(3){border-color:rgba(227,161,95,.32)}
+  .pts-table tr.mine{background:rgba(94,219,149,.11);box-shadow:inset 3px 0 0 #5EDB95}
+  .pts-table td.rk{grid-area:rk;font-size:1.45rem;line-height:1;text-align:center}
+  .pts-table td:nth-child(2){
+    grid-area:team;min-width:0;display:flex!important;align-items:center;gap:8px;
+    font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden}
+  .pts-table td:nth-child(2) img{width:26px!important;height:26px!important;flex:none;margin:0!important}
+  .pts-table td:nth-child(2) .team-name,.pts-table td:nth-child(2)>.fxn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pts-table td:nth-child(2) .team-name{display:flex;align-items:center;gap:6px}
+  .pts-table td:nth-child(2) .team-name>.fxn{min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .pts-table .fxn-tag{flex:none;font-size:.58rem!important;padding:1px 6px!important;margin-left:6px}
+  .pts-table td:nth-child(3){grid-area:r1}
+  .pts-table td:nth-child(4){grid-area:r2}
+  .pts-table td:nth-child(5){grid-area:r3}
+  .pts-table td.num{font-size:.74rem;color:var(--silver,#A6AFC2);text-align:left;white-space:nowrap;display:flex!important;align-items:center;gap:2px}
+  .pts-table td.num::before{color:rgba(166,175,194,.6);font-weight:600;margin-right:3px}
+  .pts-table td:nth-child(3).num::before{content:'R1'}
+  .pts-table td:nth-child(4).num::before{content:'R2'}
+  .pts-table td:nth-child(5).num::before{content:'R3'}
+  .pts-table td.num .mv{font-size:.62rem;margin-left:1px}
+  .pts-table td.tot{grid-area:tot;font-family:var(--font-display);font-weight:700;font-size:1.7rem;line-height:1;text-align:right;color:var(--gold-l,#FFDD85)}
+  .pts-table td.tot::after{content:'pts';display:block;font-family:var(--font-body);font-size:.58rem;font-weight:600;color:var(--silver,#A6AFC2);letter-spacing:.04em;margin-top:2px}
+
+  /* podium: three equal columns sharing the width (the fixed 100px slots cut every
+     name to "Ancient Og…"); names may take two lines; step bars attach to the cards */
+  .podium{flex-wrap:nowrap!important;gap:8px!important;align-items:flex-end}
+  .pod-slot{width:auto!important;flex:1 1 0;min-width:0}
+  .pod-card{padding:14px 8px 12px!important;border-radius:14px 14px 0 0!important}
+  .pod-name{white-space:normal!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.2;min-height:2.4em;font-size:.78rem!important;overflow-wrap:anywhere}
+  .pod-bar{margin-top:0!important;border-radius:0 0 10px 10px!important;font-size:1.6rem!important}
+}
+
+/* homepage Best-of-3: the winner's crown (top:-26px) sat on top of the event title */
+#bo3board .podium{padding-top:28px}
+
+/* leaderboard podium on tablets: fixed 150px slots cut longer squad names; let names wrap
+   to two lines and keep the step bars attached to their cards at every width */
+@media(min-width:641px){
+  .pod-name{white-space:normal!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.2;overflow-wrap:anywhere}
+  .pod-slot{width:170px!important}
+  .pod-card{border-radius:14px 14px 0 0!important}
+  .pod-bar{margin-top:0!important}
+}
+
+/* leaderboard podium steps: solid gold / silver / bronze like the homepage podium
+   (they were a faint dark fade with a barely visible rank number) */
+.pod-slot .pod-bar{color:rgba(7,9,15,.72)!important;font-size:1.8rem;align-items:center!important;padding-top:0!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.pod-slot.p1 .pod-bar{background:linear-gradient(180deg,#FFE27A,#E9B33A)!important}
+.pod-slot.p2 .pod-bar{background:linear-gradient(180deg,#E9EDF3,#AEB6C6)!important}
+.pod-slot.p3 .pod-bar{background:linear-gradient(180deg,#EDAE72,#B8733B)!important}

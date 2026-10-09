@@ -127,7 +127,7 @@ input[type=text]:focus{border-color:var(--gold)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
-<link rel="stylesheet" href="/ui.css?v=4">
+<link rel="stylesheet" href="/ui.css?v=6">
 </head>
 <body>
 <div class="wrap">
@@ -371,6 +371,6 @@ $('logout').onclick=async()=>{await sb.auth.signOut();location.href='/';};
   setInterval(()=>{if(!document.hidden)loadWallet();},20000);
 })();
 </script>
-<script src="/ui.js?v=4" defer></script>
+<script src="/ui.js?v=6" defer></script>
 </body>
 </html>
