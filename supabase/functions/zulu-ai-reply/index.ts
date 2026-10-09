@@ -25,9 +25,11 @@ const CORS_HEADERS: Record<string, string> = {
 
 const BURST_CAP = Number(Deno.env.get('ZULU_AI_REPLY_BURST_CAP') || '5');       // per IP
 const BURST_WINDOW_SEC = Number(Deno.env.get('ZULU_AI_REPLY_BURST_WINDOW_SEC') || '60');
-const DAILY_CAP = Number(Deno.env.get('ZULU_AI_REPLY_DAILY_CAP') || '15');      // global, all IPs
-// ^ 15, not any single provider's full daily allowance, deliberately leaves headroom for
-// generate-match-recap and zulu_server.py's admin-review council calls sharing keys/quota.
+const DAILY_CAP = Number(Deno.env.get('ZULU_AI_REPLY_DAILY_CAP') || '300');     // global, all IPs
+// ^ 300 sits well under the free chain's combined allowance (Gemini Flash-Lite alone is
+// ~1,000+/day, Groq ~1,000/day), leaving headroom for generate-match-recap and
+// zulu_server.py's admin-review council calls that share the same keys. It was 15 when
+// Gemini 2.5 Flash (~20/day) was the only provider.
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -124,7 +126,7 @@ Rules:
   try {
     const result = await askAI(messages);
     if (!result) {
-      return new Response(JSON.stringify({ reply: null, note: 'No AI provider configured or all failed -- set at least GROQ_API_KEY or GEMINI_API_KEY in Edge Function secrets.' }), {
+      return new Response(JSON.stringify({ reply: null, note: 'No AI provider configured or all failed -- set at least one of GEMINI_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY, CEREBRAS_API_KEY, OPENROUTER_API_KEY in Edge Function secrets.' }), {
         status: 200,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
