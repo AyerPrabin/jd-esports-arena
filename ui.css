@@ -213,3 +213,65 @@ img{max-width:100%}
 .pod-slot.p1 .pod-bar{background:linear-gradient(180deg,#FFE27A,#E9B33A)!important}
 .pod-slot.p2 .pod-bar{background:linear-gradient(180deg,#E9EDF3,#AEB6C6)!important}
 .pod-slot.p3 .pod-bar{background:linear-gradient(180deg,#EDAE72,#B8733B)!important}
+
+/* ── tournaments: past events as slim rows ──
+   Finished/cancelled events used to be full-size posters in the same grid as live ones
+   (each ~760px tall on a phone). index.html now marks them .tcard.past and puts them
+   under a "Past events" heading; only the latest 3 show until "Show older". */
+.past-h{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:18px 0 -6px}
+.past-h h3{margin:0;font-family:var(--font-display);font-weight:700;font-size:1.45rem;letter-spacing:.01em;color:var(--cream,#fff)}
+.past-h span{font-size:.72rem;font-weight:700;color:var(--silver,#A6AFC2);background:rgba(255,255,255,.06);border-radius:999px;padding:2px 9px}
+.past-more{grid-column:1/-1;justify-self:start;background:none;border:0;padding:6px 0;font:600 .86rem var(--font-body);color:var(--gold-l,#FFDD85);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.arena-grid:not(.show-old) .tcard.past.old{display:none}
+.tcard.past{display:grid;grid-template-columns:76px 1fr;align-items:center;column-gap:14px;padding:10px;background:rgba(17,24,39,.55);border-color:rgba(255,200,80,.1)}
+.tcard.past:hover{transform:none}
+.tcard.past .tcard-media{height:76px;width:76px;border-radius:12px;filter:saturate(.6) brightness(.85)}
+.tcard.past .tm-over,.tcard.past .tbadge,.tcard.past .tgame,.tcard.past .tcount,.tcard.past .tcount-bar,
+.tcard.past .tslots,.tcard.past .tslots-label,.tcard.past .troster,.tcard.past .inapp-reg,
+.tcard.past .tmeta .row:not(:first-child),.tcard.past .tmeta .row span{display:none}
+.tcard.past .tcard-body{padding:0;min-width:0;display:flex;flex-direction:column;gap:3px}
+.tcard.past .tname{font-size:1.15rem;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tcard.past .tmeta{margin:0;font-size:.76rem}
+.tcard.past .tmeta .row{display:block}
+.tcard.past .tmeta b{font-weight:500;color:var(--silver,#A6AFC2)}
+.tcard.past .tbtn{display:block;padding:0;margin:0;border:0;background:none;text-align:left;font-size:.8rem;font-weight:600;color:var(--silver,#A6AFC2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── upcoming/live cards on phones: same content, about half the height ── */
+@media(max-width:640px){
+  .arena-grid{gap:14px}
+  .tcard:not(.past) .tcard-media{height:132px}
+  .tcard:not(.past) .tcard-body{padding:16px 16px 18px}
+  .tcard:not(.past) .tbadge{margin-bottom:8px}
+  .tcard:not(.past) .tname{font-size:1.4rem}
+  .tcard:not(.past) .tgame{margin-bottom:12px}
+  .tcard:not(.past) .tmeta{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin-bottom:14px}
+  .tcard:not(.past) .tmeta .row{flex-direction:column;justify-content:flex-start;gap:1px}
+  .tcard:not(.past) .tmeta .row span{font-size:.66rem;color:var(--silver,#A6AFC2)}
+  .tcard:not(.past) .tmeta .row b{font-size:.84rem;text-align:left;font-weight:600}
+  .tcard:not(.past) .troster{display:none} /* who's in: "N/12 squads · tap to view" opens the full list */
+  .tcard:not(.past) .tslots-label{margin-bottom:12px}
+  .tcard.past{padding:8px;column-gap:12px;grid-template-columns:64px 1fr}
+  .tcard.past .tcard-media{height:64px;width:64px}
+
+  /* fewer buttons on phones: one main action in the hero (Discord has its own section
+     further down), and no "Back to site" on the leaderboard (the tab bar has Home) */
+  .hero-inner .btns{grid-template-columns:1fr!important}
+  .hero-inner .btns .discord-cta{display:none!important}
+  header .back-btn{display:none}
+  /* the leaderboard showed the winner 3 times (photo banner, podium, row 1): the podium's
+     crowned #1 is enough on a phone */
+  #champ{display:none!important}
+}
+
+/* squad-effects showcase: it pauses its animations off-screen (.fx-paused), which also froze
+   the entry fade (chipIn) at opacity 0, leaving empty boxes until the observer caught up.
+   !important beats the animated value, so previews are always visible; the effect loops
+   themselves are untouched. */
+#fx-show .sqitem{opacity:1!important;transform:none!important}
+@media(max-width:640px){
+  /* 8 stacked effect previews were ~900px of scrolling: swipe through them instead */
+  #fx-show{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;max-height:none!important;overflow-x:auto!important;overflow-y:hidden!important;scroll-snap-type:x mandatory;gap:10px!important;
+    margin:-10px calc(var(--gutter)*-1) 0!important;padding:14px var(--gutter) 18px!important;scrollbar-width:none;overscroll-behavior-x:contain}
+  #fx-show::-webkit-scrollbar{display:none}
+  #fx-show .fx-show-item{flex:0 0 84%;scroll-snap-align:center}
+}

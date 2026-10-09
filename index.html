@@ -1022,7 +1022,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .gate-intro span{color:var(--body);font-size:.84rem;display:block;margin-top:4px}
 </style>
 <link rel="stylesheet" href="/effects-pro.css">
-<link rel="stylesheet" href="/ui.css?v=6">
+<link rel="stylesheet" href="/ui.css?v=11">
 </head>
 <body>
 <div id="preloader" aria-hidden="true">
@@ -1824,6 +1824,8 @@ function linkBo3(d){
   const cand=(d.tournaments||[]).filter(t=>{const st=effectiveStatus(t);return st==='live'||st==='completed';}).sort((a,b)=>(Date.parse(b.start)||0)-(Date.parse(a.start)||0));
   if(cand[0])B.tournament=cand[0].name;
 }
+function pastLbl(open,n){return open?(lang==='ne'?'कम देखाउनुहोस्':'Show fewer'):(lang==='ne'?'पुराना हेर्नुहोस्':'Show older')+' ('+n+')';}
+function pastToggle(btn,n){const g=btn.parentElement;g.classList.toggle('show-old');btn.textContent=pastLbl(g.classList.contains('show-old'),n);}
 function render(d){
   linkBo3(d);
   _lastData=d;
@@ -1837,7 +1839,7 @@ function render(d){
     if(sa!==sb2)return sa-sb2;
     return sa<=1?tms(a)-tms(b):(Date.parse(b.start)||0)-(Date.parse(a.start)||0);
   });
-  const gridHTML=ts.length?ts.map(t=>{
+  let gridHTML=ts.length?ts.map(t=>{
     const st=effectiveStatus(t);
     const teams=teamsFor(t);
     const slots=+t.slots||0,reg=(sb&&_rosterLoaded)?teams.length:(teams.length||+t.registered||0),pct=slots?Math.min(100,Math.round(reg/slots*100)):0;
@@ -1862,8 +1864,18 @@ function render(d){
     const urgency=(open&&slots&&!_myRegs.has(t.name))?(left===0?`<span class="tm-urg full">Full${(sb&&!isPaidTournament(t))?' · waitlist open':''}</span>`:(left<=3?`<span class="tm-urg hot">🔥 ${left} slot${left===1?'':'s'} left</span>`:'')):'';
     const prizeTxt=fmtPrize(t.prize),entryTxt=String(t.entry||'Free');
     const media=`<div class="tcard-media" style="background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%),url('${esc(t.image||('maps/ff-'+mapOf(t)+'.jpg'))}')"><div class="tm-over">${prizeTxt!=='—'?`<span class="tm-prize">🏆 ${esc(prizeTxt)}</span>`:''}<span class="tm-entry${/^free$/i.test(entryTxt.trim())?' free':''}">${/^free$/i.test(entryTxt.trim())?'Free entry':'Entry '+esc(entryTxt)}</span></div>${urgency}</div>`;
-    return `<div class="tcard" data-tname="${esc(t.name)}" onclick="cardTap(event,this)">${media}<div class="tcard-body"><span class="tbadge ${st}">${st==='live'?'● Live':(st==='cancelled'?'✕ Cancelled':(st.charAt(0).toUpperCase()+st.slice(1)))}</span><div class="tname">${esc(t.name)}</div><div class="tgame">${esc(t.game||'Free Fire')}</div>${(st==='upcoming'&&t.start)?`<div class="tcount" data-start="${esc(t.start)}"></div><div class="tcount-bar"><span></span></div>`:''}<div class="tmeta"><div class="row"><span>Date</span><b>${esc(t.date||'TBA')}${t.time&&t.time!=='—'?' · '+esc(t.time):''}</b></div><div class="row"><span>Format</span><b>${esc(t.format||'BR')}</b></div><div class="row"><span>Map</span><b>🗺️ ${MAP_ART[mapOf(t)]}</b></div>${t.platform?`<div class="row"><span>Platform</span><b>📱 ${esc(t.platform)}</b></div>`:''}</div>${slots?`<div class="tslots"><span style="width:${pct}%"></span></div><button class="tslots-label" data-roster="${esc(t.name)}">${reg}/${slots} ${tr('sqview')}</button>`:''}${teams.length?`<div class="troster">${teams.slice(0,CHIP_MAX).map(tm=>{const fx=squadFx(tm);const cls=fx?' '+fx.cls:'';const badge=(fx&&fx.badge)?`<span class="fx-badge">${fx.badge}</span> `:'';const particles=fxParticlesHtml(fx);const nameHtml=fxNameHtml(fx,tm.name);return tm.logo?`<span class="${(fx?fx.cls:'')}"><img src="${esc(tm.logo)}" alt="">${badge}${nameHtml}${particles}</span>`:`<span class="nologo${cls}">${badge}${nameHtml}${particles}</span>`;}).join('')}${teams.length>CHIP_MAX?`<button type="button" class="chip-more" data-roster="${esc(t.name)}">+${teams.length-CHIP_MAX} more</button>`:''}</div>`:''}${btn}${inAppRegBtn(t,st,full)}</div></div>`;
+    const isPast=st==='completed'||st==='cancelled';
+    return `<div class="tcard${isPast?' past':''}" data-tname="${esc(t.name)}" onclick="cardTap(event,this)">${media}<div class="tcard-body"><span class="tbadge ${st}">${st==='live'?'● Live':(st==='cancelled'?'✕ Cancelled':(st.charAt(0).toUpperCase()+st.slice(1)))}</span><div class="tname">${esc(t.name)}</div><div class="tgame">${esc(t.game||'Free Fire')}</div>${(st==='upcoming'&&t.start)?`<div class="tcount" data-start="${esc(t.start)}"></div><div class="tcount-bar"><span></span></div>`:''}<div class="tmeta"><div class="row"><span>Date</span><b>${esc(t.date||'TBA')}${t.time&&t.time!=='—'?' · '+esc(t.time):''}</b></div><div class="row"><span>Format</span><b>${esc(t.format||'BR')}</b></div><div class="row"><span>Map</span><b>🗺️ ${MAP_ART[mapOf(t)]}</b></div>${t.platform?`<div class="row"><span>Platform</span><b>📱 ${esc(t.platform)}</b></div>`:''}</div>${slots?`<div class="tslots"><span style="width:${pct}%"></span></div><button class="tslots-label" data-roster="${esc(t.name)}">${reg}/${slots} ${tr('sqview')}</button>`:''}${teams.length?`<div class="troster">${teams.slice(0,CHIP_MAX).map(tm=>{const fx=squadFx(tm);const cls=fx?' '+fx.cls:'';const badge=(fx&&fx.badge)?`<span class="fx-badge">${fx.badge}</span> `:'';const particles=fxParticlesHtml(fx);const nameHtml=fxNameHtml(fx,tm.name);return tm.logo?`<span class="${(fx?fx.cls:'')}"><img src="${esc(tm.logo)}" alt="">${badge}${nameHtml}${particles}</span>`:`<span class="nologo${cls}">${badge}${nameHtml}${particles}</span>`;}).join('')}${teams.length>CHIP_MAX?`<button type="button" class="chip-more" data-roster="${esc(t.name)}">+${teams.length-CHIP_MAX} more</button>`:''}</div>`:''}${btn}${inAppRegBtn(t,st,full)}</div></div>`;
   }).join(''):'<p style="text-align:center;color:var(--silver)">No tournaments posted yet — check back soon.</p>';
+  // Finished/cancelled events (sorted last) sit under their own heading as slim rows, the
+  // latest 3 visible and the rest behind "Show older" (styled in /ui.css: .tcard.past).
+  const pastN=ts.filter(t=>{const x=effectiveStatus(t);return x==='completed'||x==='cancelled';}).length;
+  if(pastN){
+    let k=0;gridHTML=gridHTML.replace(/<div class="tcard past"/g,m=>(++k>3?'<div class="tcard past old"':m));
+    const i=gridHTML.indexOf('<div class="tcard past');
+    if(i>=0)gridHTML=gridHTML.slice(0,i)+`<div class="past-h"><h3>${lang==='ne'?'पुराना प्रतियोगिता':'Past events'}</h3><span>${pastN}</span></div>`+gridHTML.slice(i)
+      +(pastN>3?`<button type="button" class="past-more" onclick="pastToggle(this,${pastN-3})">${pastLbl(grid.classList.contains('show-old'),pastN-3)}</button>`:'');
+  }
   if(gridHTML!==_lastGridHTML){
     _lastGridHTML=gridHTML;
     grid.innerHTML=gridHTML;
@@ -1906,7 +1918,8 @@ function cardTap(e,el){
   const t=((_lastData||ARENA_SAMPLE).tournaments||[]).find(x=>x.name===el.dataset.tname);
   if(!t)return;
   const st=effectiveStatus(t);
-  if(st==='completed'||st==='cancelled')return;
+  if(st==='completed'){openRoster(t.name);return;} // past-event row: tap shows who played
+  if(st==='cancelled')return;
   const r=regLink(t);
   if(r){window.open(r,'_blank','noopener');return;}
   if(sb&&!_myRegs.has(t.name))registerInApp(t.name);
@@ -3817,6 +3830,6 @@ document.getElementById('fb-input').addEventListener('keydown',function(e){if(e.
 zChrome();
 setTimeout(showNudge,13000);
 </script>
-<script src="/ui.js?v=6" defer></script>
+<script src="/ui.js?v=11" defer></script>
 </body>
 </html>
