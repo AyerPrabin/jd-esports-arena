@@ -48,15 +48,17 @@ img{max-width:100%}
 .wrap{padding-left:var(--gutter);padding-right:var(--gutter)}
 .sec.wrap,section.wrap{padding-left:var(--gutter);padding-right:var(--gutter)}
 
-/* ── homepage hero: tighter on phones so the tournaments are one swipe away ── */
+/* ── homepage hero: tighter on phones so the tournaments are one swipe away ──
+   Scoped to the homepage's own markup (.hero-content/.hero-inner): challenges, about,
+   profile and wallet each have their own unrelated `section.hero`. The homepage
+   section's padding lives in index.html for the same reason. */
 @media(max-width:640px){
-  .hero{padding:28px 0 32px}
   .hero-content{padding-left:var(--gutter)!important;padding-right:var(--gutter)!important}
-  .hero .eye{margin-bottom:14px}
-  .hero h1{font-size:clamp(2.6rem,12vw,3.4rem);margin-bottom:14px}
-  .hero p{font-size:1rem;line-height:1.55;margin-bottom:22px}
-  .hero .btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .hero .btns a{display:flex;align-items:center;justify-content:center;text-align:center;padding:14px 12px;font-size:.92rem;min-height:48px;white-space:nowrap}
+  .hero-inner .eye{margin-bottom:14px}
+  .hero-inner h1{font-size:clamp(2.6rem,12vw,3.4rem);margin-bottom:14px}
+  .hero-inner p{font-size:1rem;line-height:1.55;margin-bottom:22px}
+  .hero-inner .btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .hero-inner .btns a{display:flex;align-items:center;justify-content:center;text-align:center;padding:13px 10px;font-size:.92rem;line-height:1.25;min-height:48px}
   .arena-stats{margin:22px var(--gutter) 0!important;border-radius:18px}
   .arena-stats .stat{padding:12px 6px}
   .arena-stats .stat b{font-size:1.75rem}
@@ -72,7 +74,7 @@ img{max-width:100%}
   .sec-h .ln{display:none}
   .sec-h .tag{flex-basis:100%}
 }
-@media(max-width:360px){.hero .btns{grid-template-columns:1fr}}
+@media(max-width:340px){.hero-inner .btns{grid-template-columns:1fr}}
 
 /* ── phone bottom tab bar (markup from /ui.js) ── */
 .tabbar{display:none}
@@ -134,7 +136,6 @@ img{max-width:100%}
 
 /* ── tablet (641–1024): roomier cards, header that doesn't squash ── */
 @media(min-width:641px) and (max-width:1024px){
-  .hero h1{font-size:clamp(3rem,8vw,4.6rem)}
   .feature-strip{grid-template-columns:repeat(2,1fr)}
 }
 
