@@ -6,15 +6,15 @@
 <meta name="robots" content="noindex, nofollow, noarchive">
 <link rel="icon" type="image/png" href="/favicon-64.png">
 <title>JD Arena — Editor</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#05080f;--bg-2:#0a0e1a;--panel:#0e1424;--panel-2:#121a2e;--line:#1c2840;--gold:#c9a84c;--gold-l:#e2c97e;--gold-m:#7e6630;--cream:#f4efe6;--silver:#aab4cc;--body:#7e8eb0;--warm-l:#e3ab7e;--red:#e36b6b}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--cream);font-family:'Inter',sans-serif;font-weight:300;line-height:1.6}
 .wrap{max-width:860px;margin:0 auto;padding:28px 22px 80px}
-h1{font-family:'Playfair Display',serif;font-weight:700;font-size:1.7rem;margin:0 0 4px}
+h1{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.7rem;margin:0 0 4px}
 .sub{color:var(--gold-l);font-size:.74rem;letter-spacing:.01em;margin-bottom:24px}
-h2{font-family:'Playfair Display',serif;font-weight:600;font-size:1.25rem;margin:34px 0 14px;border-bottom:1px solid var(--line);padding-bottom:8px}
+h2{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1.25rem;margin:34px 0 14px;border-bottom:1px solid var(--line);padding-bottom:8px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;position:relative}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .f{display:flex;flex-direction:column;gap:5px}
@@ -57,7 +57,7 @@ textarea#out{width:100%;height:300px;font-family:'JetBrains Mono',monospace;font
 #gate input{max-width:280px;text-align:center}
 .ok{color:#5aab8a}.err{color:var(--red)}
 #msg{font-size:.86rem;min-height:20px}
-.dsum{font-family:'Playfair Display',serif;font-weight:600;font-size:1.25rem;margin:34px 0 14px;border-bottom:1px solid var(--line);padding-bottom:8px;cursor:pointer;list-style:none}
+.dsum{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1.25rem;margin:34px 0 14px;border-bottom:1px solid var(--line);padding-bottom:8px;cursor:pointer;list-style:none}
 .dsum::-webkit-details-marker{display:none}
 .dsum::before{content:'▸ ';color:var(--gold-l);font-size:.9rem}
 details[open]>.dsum::before{content:'▾ '}
@@ -70,7 +70,7 @@ details[open]>.dsum-sm::before{content:'▾ '}
 .modal-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;max-width:720px;width:100%;position:relative}
 .modal-close{position:absolute;top:14px;right:14px;background:transparent;border:1px solid var(--line);color:var(--cream);border-radius:8px;padding:5px 10px;font-size:.86rem;cursor:pointer}
 .modal-close:hover{border-color:var(--gold)}
-.online-count{font-family:'Playfair Display',serif;font-size:2.1rem;font-weight:700;color:var(--gold-l)}
+.online-count{font-family:'Barlow Condensed',sans-serif;font-size:2.1rem;font-weight:700;color:var(--gold-l)}
 .online-chip{display:inline-block;font-size:.76rem;padding:4px 11px;border-radius:20px;background:var(--bg-2);border:1px solid var(--line);color:var(--cream);margin:3px 4px 0 0}
 .up-search{max-width:260px}
 /* ── attention dashboard + sticky section nav ── */
@@ -80,7 +80,7 @@ details[open]>.dsum-sm::before{content:'▾ '}
 .dash{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
 .dash-tile{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:14px;border-radius:14px;background:var(--panel);border:1px solid var(--line);color:var(--cream);font-family:inherit;cursor:pointer;transition:transform .15s cubic-bezier(.34,1.56,.64,1),border-color .15s}
 .dash-tile:hover{transform:translateY(-2px);border-color:var(--gold-m)}
-.dash-tile b{font-family:'Playfair Display',serif;font-size:1.9rem;line-height:1;font-weight:700}
+.dash-tile b{font-family:'Barlow Condensed',sans-serif;font-size:1.9rem;line-height:1;font-weight:700}
 .dash-tile b em{font-style:normal;font-size:.95rem;color:var(--body)}
 .dash-tile span{font-size:.78rem;font-weight:600}
 .dash-tile small{font-size:.7rem;color:var(--body)}
@@ -139,6 +139,42 @@ h2[id]{scroll-margin-top:64px}
 .card{animation:cardIn .4s cubic-bezier(.22,1,.36,1) both}
 @keyframes cardIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.card{animation:none}.btn,.btn:active{transition:none;transform:none}}
+
+/* ── broadcast look (same language as the site's /broadcast.css): site gold, condensed
+   uppercase titles with a gold→red slash and rule, scoreboard dashboard tiles, squarer
+   controls. Admin-only: the site's stylesheet isn't loaded here. ── */
+:root{--gold:#FFC83D;--gold-l:#FFDD85;--gold-m:rgba(255,200,80,.42);--bc-red:#FF2E4D;
+  --bc-rule:linear-gradient(90deg,#FFC83D 0%,#FF8A1C 45%,#FF2E4D 75%,rgba(255,46,77,0) 100%);--bc-display:'Barlow Condensed',sans-serif}
+body{font-family:'Geist',system-ui,sans-serif;font-weight:400}
+h1,.online-count,.dash-tile b{font-family:var(--bc-display);font-weight:700}
+h1{font-size:2.1rem;text-transform:uppercase;letter-spacing:.02em}
+h2,.dsum{position:relative;font-family:var(--bc-display);font-weight:700;font-size:1.55rem;text-transform:uppercase;letter-spacing:.03em;
+  padding-left:18px;border-bottom:0;padding-bottom:10px;background:var(--bc-rule) left bottom/100% 2px no-repeat}
+h2::before{content:'';position:absolute;left:2px;top:4px;height:1.1em;width:6px;border-radius:1px;background:linear-gradient(180deg,var(--gold),var(--bc-red));transform:skewX(-16deg)}
+.dsum{padding-left:0}
+h2 .tag,.dsum .tag{vertical-align:4px}
+.tag{position:relative;z-index:0;border:0;color:#fff;font-family:'Geist',sans-serif;font-weight:700;font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;padding:3px 11px}
+.tag::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--bc-red);transform:skewX(-16deg);border-radius:2px;opacity:.85}
+.card{border-radius:10px}
+.btn{border-radius:6px;font-family:var(--bc-display);font-size:1rem;text-transform:uppercase;letter-spacing:.05em;padding:10px 20px}
+.btn.ghost{border-color:#2A3756}
+input,select,textarea{border-radius:6px}
+.adm-nav a{border-radius:4px;text-transform:uppercase;letter-spacing:.05em;font-size:.7rem;font-weight:600}
+.adm-nav{border-bottom:2px solid transparent;border-image:var(--bc-rule) 1}
+/* dashboard = scoreboard */
+.dash-tile{position:relative;overflow:hidden;border-radius:8px;background:#0b111f}
+.dash-tile::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:#2A3756}
+.dash-tile.warn::before{background:#FF9F1C}.dash-tile.info::before{background:#5FD3FF}.dash-tile.danger::before{background:var(--bc-red)}
+.dash-tile.ok::before{background:#5aab8a}.dash-tile.stat::before{background:var(--bc-rule)}
+.dash-tile b{font-size:2.3rem}
+.dash-tile span{text-transform:uppercase;letter-spacing:.06em;font-size:.68rem}
+.dash-head{text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--gold-l)}
+/* undo toast (deleting an unsaved tournament row) */
+#undo-toast{position:fixed;left:50%;bottom:22px;z-index:120;display:flex;align-items:center;gap:14px;padding:10px 12px 10px 18px;border-radius:8px;
+  background:#121a2e;border:1px solid var(--gold-m);box-shadow:0 14px 40px rgba(0,0,0,.6);font-size:.86rem;transform:translate(-50%,30px);opacity:0;pointer-events:none;transition:transform .25s,opacity .2s}
+#undo-toast.show{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+#undo-toast button{border:0;border-radius:4px;background:var(--gold);color:#0a0a12;font:700 .9rem var(--bc-display);text-transform:uppercase;letter-spacing:.05em;padding:6px 14px;cursor:pointer}
+@media(prefers-reduced-motion:reduce){#undo-toast{transition:none}}
 </style>
 </head>
 <body>
@@ -290,7 +326,7 @@ h2[id]{scroll-margin-top:64px}
   </div>
   <div id="ai-list"></div>
 
-  <h3 style="margin:22px 0 6px;font-family:'Playfair Display',serif;font-weight:600;font-size:1.02rem;color:var(--gold-l)">Auto-cancel history</h3>
+  <h3 style="margin:22px 0 6px;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1.02rem;color:var(--gold-l)">Auto-cancel history</h3>
   <p class="hint">Cancellations ZULU already executed on its own — informational only, nothing to confirm here.</p>
   <div class="row">
     <button class="btn ghost" onclick="loadAiHistory()">↻ Load history</button>
@@ -312,8 +348,8 @@ h2[id]{scroll-margin-top:64px}
     <div id="rc-msg" class="hint"></div>
   </div>
 
-  <h2 id="teams">Registered Teams <span class="tag">verify ticket codes · remove</span></h2>
-  <p class="hint">Every in-app registration for an event, with the same ticket code the player sees on their card (<b>JD-XXXXXXXX</b>). Ask a squad for their code, type it below to confirm it's really theirs, then mark them verified — saved permanently, and the player sees a ✅ Verified badge on their ticket. Removing a team deletes only that registration (not the account), notifies the player, and auto-promotes the next waitlisted squad if a slot frees up.</p>
+  <h2 id="teams">Registered Teams <span class="tag">roster · optional ticket check</span></h2>
+  <p class="hint">Every in-app registration for an event, with the ticket code the player sees on their card (<b>JD-XXXXXXXX</b>). Checking codes is <b>optional</b>: confirmed squads get the room code either way. If you want to, type a squad's code below to confirm it's theirs, or tap <b>✓ Verify all</b>; verified squads see a ✅ Verified badge.</p>
   <div class="grid">
     <div class="f"><label>Tournament</label><select id="tm-tourney" onchange="loadTeamsAdmin()"></select></div>
     <div class="f"><label>Check a ticket code</label><input id="tm-code" placeholder="e.g. JD-7F3K2A9C" autocomplete="off" oninput="renderTeamsAdmin()" style="font-family:'JetBrains Mono',monospace;"></div>
@@ -321,6 +357,7 @@ h2[id]{scroll-margin-top:64px}
   <div id="tm-verdict"></div>
   <div class="row">
     <button class="btn ghost" onclick="loadTeamsAdmin()">↻ Load teams</button>
+    <button class="btn ghost" id="tm-verify-all" onclick="tmVerifyAll()">✓ Verify all</button>
     <select id="tm-status" onchange="renderTeamsAdmin()" style="width:auto"><option value="">All statuses</option><option value="active">Confirmed + approved</option><option value="pending">Pending payment</option><option value="waitlisted">Waitlisted</option><option value="no_show">No-show</option><option value="rejected">Rejected</option></select>
     <div id="tm-msg" class="hint"></div>
   </div>
@@ -465,7 +502,6 @@ function unlock(){
   loadLive();loadSecurity();loadLoads();
 }
 function changePasscode(){
-  if(!confirm('Clear the saved admin passcode on this device? You\'ll need to re-enter it to send room codes or notify players again.'))return;
   localStorage.removeItem('jd_admin_secret');
   document.getElementById('app').style.display='none';
   document.getElementById('code').value='';
@@ -783,7 +819,8 @@ document.addEventListener('input',e=>{
 });
 
 function addT(){data.tournaments.push({name:'New Tournament',game:'Free Fire BR · Squad',date:'TBA',time:'TBA',start:'',status:'upcoming',map:'bermuda',prize:'Bragging rights + shoutout',entry:'Free',platform:'Mobile only',platform_mode:'mixed',slots:12,format:'BR · 4 matches',register_type:'whatsapp',register_url:'',winner:'',teams:[]});renderT();window.scrollBy(0,200);}
-function delT(i){if(confirm('Delete this tournament?')){data.tournaments.splice(i,1);renderT();}}
+// no confirm: nothing is saved until Publish, and the toast offers Undo
+function delT(i){const t=data.tournaments.splice(i,1)[0];renderT();undoToast('Deleted "'+(t&&t.name||'tournament')+'"',()=>{data.tournaments.splice(i,0,t);renderT();});}
 function addTeam(ti){data.tournaments[ti].teams=data.tournaments[ti].teams||[];data.tournaments[ti].teams.push({name:'',logo:'',members:''});renderT();}
 function delTeam(ti,mi){data.tournaments[ti].teams.splice(mi,1);renderT();}
 /* Pulls real registered squads (same get_public_roster() RPC as loadBo3Roster())
@@ -983,7 +1020,7 @@ async function publishToGitHub(){
   gen();
   const secret=adminSecret();
   if(!secret){publishMsg('Enter the admin passcode first.','err');return;}
-  if(_lastCleanDropped>0&&!confirm(_lastCleanDropped+' completely blank squad row(s) (no name, logo, or members/scores) will be left out of this publish — that\'s normal for an unused "+ Add squad" row, but Cancel first if you expected one of them to have a name. Publish anyway?')){
+  if(false&&_lastCleanDropped>0&&!confirm(_lastCleanDropped+' completely blank squad row(s) (no name, logo, or members/scores) will be left out of this publish — that\'s normal for an unused "+ Add squad" row, but Cancel first if you expected one of them to have a name. Publish anyway?')){
     publishMsg('Publish cancelled.','');return;
   }
   /* Publish always uploads this whole in-memory copy, overwriting the live file — if the
@@ -1080,7 +1117,7 @@ async function loadDashboard(){
     const tile=(n,label,cls,onclick,sub)=>`<button type="button" class="dash-tile ${n?cls:'ok'}" onclick="${onclick}"><b>${n}</b><span>${label}</span>${sub?`<small>${sub}</small>`:''}</button>`;
     box.innerHTML=
       tile(pending,'Pending payments','warn',`dashGo('pending-payments','pp-tourney',_dashFirst.pending,loadPendingPayments)`,pending?'screenshots to check':'all clear')+
-      tile(unver,'Unverified teams','info',`dashGo('teams','tm-tourney',_dashFirst.unver,loadTeamsAdmin)`,unver?'ask for ticket codes':'all verified')+
+      `<button type="button" class="dash-tile stat" onclick="dashGo('teams','tm-tourney','',loadTeamsAdmin)"><b>${wait}</b><span>Waitlisted</span><small>${wait?'move up when someone withdraws':'nobody waiting'}</small></button>`+
       tile(reports.length,'Open reports','danger',`dashGo('reports',null,'',loadReportsAdmin)`,reports.length?'waiting on you':'nothing new')+
       `<button type="button" class="dash-tile stat" onclick="dashGo('teams','tm-tourney','',loadTeamsAdmin)"><b>${active}${slots?'<em>/'+slots+'</em>':''}</b><span>Squads confirmed</span><small>${open.length} open event${open.length===1?'':'s'}${wait?' · '+wait+' waitlisted':''}</small></button>`;
     staggerReveal(box);
@@ -1173,7 +1210,6 @@ async function sendRoomCode(){
   const room_id=document.getElementById('rc-room-id').value.trim(),room_pass=document.getElementById('rc-room-pass').value.trim();
   if(!secret){rcMsg('Enter the admin passcode first.','err');return;}
   if(!name||!room_id){rcMsg('Pick a tournament and enter a Room ID.','err');return;}
-  if(!confirm('Send this room code to everyone registered for "'+name+'"?'))return;
   rcMsg('Sending…','');
   try{
     const body={tournament_slug:name,room_id,room_pass};
@@ -1509,7 +1545,6 @@ async function resolveWithdrawal(btn,id,paid){
 async function approvePayment(id,approve){
   const secret=adminSecret();
   if(!secret){ppMsg('Enter the admin passcode first.','err');return;}
-  if(!confirm((approve?'Approve':'Reject')+' this registration?'))return;
   ppMsg(approve?'Approving…':'Rejecting…','');
   try{
     const r=await fetch(EDGE_FN_BASE+'/approve-registration',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({registration_id:id,approve})});
@@ -1556,6 +1591,22 @@ async function tmToggleVerified(id,btn){
     loadDashboard();
   }catch(e){tmMsg('Could not save: '+e.message,'err');}
   renderTeamsAdmin();
+}
+// optional: mark every confirmed/approved squad verified in one go (players see ✅ Verified)
+async function tmVerifyAll(){
+  const secret=adminSecret();if(!secret){tmMsg('Enter the admin passcode first.','err');return;}
+  const todo=_teams.filter(r=>(r.status==='confirmed'||r.status==='approved')&&!r.verified_at);
+  if(!todo.length){tmMsg('Every confirmed squad is already verified.','ok');return;}
+  const b=document.getElementById('tm-verify-all');if(b)b.disabled=true;
+  let ok=0;
+  for(const r of todo){
+    tmMsg('Verifying '+(ok+1)+' of '+todo.length+'…','');
+    try{const res=await fetch(EDGE_FN_BASE+'/admin-verify-registration',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({registration_id:r.id,verified:true})});
+      if(res.ok){r.verified_at=(await res.json()).verified_at;ok++;}}catch(e){}
+  }
+  if(b)b.disabled=false;
+  tmMsg('Verified '+ok+' of '+todo.length+' squad(s).',ok===todo.length?'ok':'err');
+  renderTeamsAdmin();loadDashboard();
 }
 async function loadTeamsAdmin(){
   const name=document.getElementById('tm-tourney').value,secret=adminSecret();
@@ -1730,7 +1781,6 @@ async function actionReport(id,action){
     if(!confirm('Ban "'+ident+'" and remove their future registration ability? This becomes visible on the public ban list.'))return;
     body.ban_identifier=ident.trim();body.reason=reason.trim();
   }else{
-    if(!confirm('Dismiss this report with no action?'))return;
   }
   rpMsg(action==='ban'?'Banning…':'Dismissing…','');
   try{
@@ -1760,7 +1810,6 @@ function renderBanListAdmin(){
 async function unbanAdmin(identifier){
   const secret=adminSecret();
   if(!secret){blMsg('Enter the admin passcode first.','err');return;}
-  if(!confirm('Lift the ban on "'+identifier+'"?'))return;
   blMsg('Unbanning…','');
   try{
     const r=await fetch(EDGE_FN_BASE+'/unban-player',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({identifier})});
@@ -1959,7 +2008,6 @@ async function markAiResolved(id,status){
 async function dismissAiRecommendation(id){
   const secret=adminSecret();
   if(!secret){aiMsg('Enter the admin passcode first.','err');return;}
-  if(!confirm('Dismiss this recommendation with no action? (The underlying item stays exactly as it is — you can still act on it manually elsewhere.)'))return;
   await markAiResolved(id,'dismissed');
   aiMsg('Dismissed.','ok');
 }
@@ -1982,7 +2030,6 @@ async function confirmAiRecommendation(id){
   }
   if(rec.kind==='approve_payment'){
     const approve=rec.recommended_action==='approve';
-    if(!confirm((approve?'Approve':'Reject')+' this registration, per the AI recommendation?'))return;
     try{
       const r=await fetch(EDGE_FN_BASE+'/approve-registration',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({registration_id:rec.target_id,approve})});
       if(!r.ok)throw new Error(await r.text());
@@ -1993,7 +2040,6 @@ async function confirmAiRecommendation(id){
   }
   if(rec.kind==='resolve_report'){
     if(rec.recommended_action==='dismiss'){
-      if(!confirm('Dismiss this report, per the AI recommendation?'))return;
       try{
         const r=await fetch(EDGE_FN_BASE+'/action-report',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({report_id:rec.target_id,action:'dismiss'})});
         if(!r.ok)throw new Error(await r.text());
@@ -2051,12 +2097,23 @@ function renderAiHistory(){
   staggerReveal(box);
 }
 
+/* The confirm() popups removed from routine actions were also what stopped a double click
+   from sending twice. guard() keeps that: a second call with the same arguments is ignored
+   while the first is still running. */
+function guard(fn){const busy=new Set();return async function(...a){const k=JSON.stringify(a);if(busy.has(k))return;busy.add(k);try{return await fn.apply(this,a);}finally{busy.delete(k);}};}
+function undoToast(text,undo){
+  let el=document.getElementById('undo-toast');
+  if(!el){el=document.createElement('div');el.id='undo-toast';el.setAttribute('role','status');document.body.appendChild(el);}
+  el.innerHTML='<span></span><button type="button">Undo</button>';
+  el.querySelector('span').textContent=text;
+  el.querySelector('button').onclick=()=>{el.classList.remove('show');undo();};
+  el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),6000);
+}
 async function notifyBo3Results(){
   data.bo3=data.bo3||bo3Default();
   const name=data.bo3.tournament,secret=adminSecret();
   if(!secret){bo3Msg('Enter the admin passcode first.','err');return;}
   if(!name){bo3Msg('Pick a tournament first.','err');return;}
-  if(!confirm('Notify everyone self-registered in-app for "'+name+'" that results are up? Make sure you already published tournaments.json with these results published.'))return;
   bo3Msg('Sending…','');
   try{
     const r=await fetch(EDGE_FN_BASE+'/publish-results',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({tournament_slug:name})});
@@ -2072,6 +2129,10 @@ async function notifyBo3Results(){
   links.forEach(a=>{const h=document.getElementById(a.getAttribute('href').slice(1));if(h)io.observe(h);});
 })();
 updateAdminPushBtn(); // show blocked/iOS/unconfigured state right away, not only after OneSignal finishes loading
+
+// routine actions run once per click (see guard())
+sendRoomCode=guard(sendRoomCode);approvePayment=guard(approvePayment);actionReport=guard(actionReport);unbanAdmin=guard(unbanAdmin);
+dismissAiRecommendation=guard(dismissAiRecommendation);confirmAiRecommendation=guard(confirmAiRecommendation);notifyBo3Results=guard(notifyBo3Results);
 </script>
 </body>
 </html>
