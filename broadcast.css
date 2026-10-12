@@ -1,0 +1,133 @@
+/* ── JD Arena "broadcast" look ──
+   Loaded last on every player page (after ui.css). Gives the site a tournament-stream
+   overlay feel on top of the black + gold design: a gold→red rule under the header,
+   angled section labels, condensed uppercase titles, a scoreboard for the hero stats,
+   angled hero buttons, broadcast-style status tabs on tournament cards, and the homepage
+   hero's LIVE/NEXT bug and ticker (markup + JS in index.html, bcRender()).
+   Rules:
+   - selectors are scoped to page sections (never bare .btn-primary / .lang-btn: dialogs
+     reuse those) and never touch 💬 Messages (.dm-*) or squad effects (.sqfx)
+   - angles are drawn with skewed pseudo-elements, not clip-path, so focus rings show
+   - letter-spacing and uppercase only for English (Nepali sets <html lang="ne"> and
+     letter-spacing breaks Devanagari conjuncts)
+   - no backdrop-filter or big glows, only transform/opacity animations (cheap phones) */
+:root{
+  --bc-gold:#FFC83D;--bc-gold-2:#FFAE00;--bc-red:#FF2E4D;--bc-red-soft:rgba(255,46,77,.14);
+  --bc-rule:linear-gradient(90deg,#FFC83D 0%,#FF8A1C 45%,#FF2E4D 75%,rgba(255,46,77,0) 100%);
+  --bc-display:'Barlow Condensed','Mukta',sans-serif;
+}
+
+/* header: broadcast rule along the bottom */
+body>header{position:relative}
+body>header::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--bc-rule);opacity:.85;pointer-events:none}
+
+/* section titles: slash marker, condensed uppercase title, gradient rule, angled tag */
+.sec-h{align-items:center}
+.sec-h h1,.sec-h h2{position:relative;padding-left:20px;font-family:var(--bc-display);line-height:1}
+.sec-h h1::before,.sec-h h2::before{content:'';position:absolute;left:2px;top:8%;bottom:8%;width:7px;border-radius:1px;background:linear-gradient(180deg,var(--bc-gold),var(--bc-red));transform:skewX(-16deg)}
+html:not([lang="ne"]) .sec-h h1,html:not([lang="ne"]) .sec-h h2{text-transform:uppercase;letter-spacing:.02em}
+.sec-h .ln{height:2px;background:var(--bc-rule);opacity:.55}
+.sec-h .tag{position:relative;z-index:0;flex:none;width:fit-content;max-width:max-content;padding:4px 14px;color:#fff;font-weight:800;font-size:.68rem;white-space:nowrap}
+.sec-h .tag::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--bc-red);transform:skewX(-16deg);border-radius:2px}
+html:not([lang="ne"]) .sec-h .tag{text-transform:uppercase;letter-spacing:.08em}
+
+/* ── homepage hero ── */
+.hero .hero-bg::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px)}
+html:not([lang="ne"]) .hero h1{text-transform:uppercase;letter-spacing:0}
+.hero .eye{display:inline-flex;align-items:center;gap:10px;position:relative;z-index:0;padding:6px 16px 6px 14px;color:#0a0a12;font-weight:800}
+.hero .eye::before{content:'';position:absolute;inset:0;z-index:-1;width:auto;height:auto;margin:0;background:linear-gradient(100deg,var(--bc-gold),var(--bc-gold-2));transform:skewX(-16deg);border-radius:2px}
+html:not([lang="ne"]) .hero .eye{text-transform:uppercase;letter-spacing:.1em;font-size:.74rem}
+/* angled buttons: the slant is a skewed background, the button box itself stays square */
+.hero .btns .btn-primary,.hero .btns .btn-ghost{position:relative;z-index:0;isolation:isolate;border-radius:0;background:none;border:0;box-shadow:none;backdrop-filter:none}
+.hero .btns .btn-primary::before,.hero .btns .btn-ghost::before{content:'';position:absolute;inset:0;z-index:-1;transform:skewX(-14deg);border-radius:4px;transition:transform .2s,background .2s}
+.hero .btns .btn-primary::before{background:linear-gradient(100deg,var(--bc-gold),var(--bc-gold-2))}
+.hero .btns .btn-ghost::before{background:rgba(10,12,20,.72);border:1px solid rgba(255,255,255,.22)}
+.hero .btns .btn-primary:hover,.hero .btns .btn-ghost:hover{transform:translateY(-2px);box-shadow:none;background:none}
+.hero .btns .btn-ghost:hover::before{border-color:var(--bc-gold)}
+.hero .btns a:focus-visible{outline:2px solid #fff;outline-offset:4px}
+@media(max-width:640px){.hero .btns .btn-primary::before,.hero .btns .btn-ghost::before{left:7px;right:7px}}
+html:not([lang="ne"]) .hero .btns a{text-transform:uppercase;letter-spacing:.06em;font-family:var(--bc-display);font-size:1.12rem}
+
+/* hero stats → scoreboard */
+.arena-stats{border-radius:6px;overflow:hidden;background:rgba(9,11,18,.9);backdrop-filter:none}
+.arena-stats::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--bc-rule)}
+.arena-stats .stat b{font-size:2.3rem}
+html:not([lang="ne"]) .arena-stats .stat span{text-transform:uppercase;letter-spacing:.08em;font-size:.6rem;font-weight:700}
+@media(max-width:900px){.arena-stats{position:relative}}
+
+/* LIVE / NEXT bug (top of the hero) */
+.bc-bug{display:flex;width:fit-content;align-items:stretch;margin:0 0 18px;max-width:100%;font-family:var(--bc-display);color:#fff;text-decoration:none;border-radius:4px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.bc-bug[hidden]{display:none}
+.bc-bug .bc-tag{display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--bc-red);font-weight:700;font-size:1rem;letter-spacing:.06em}
+.bc-bug.next .bc-tag{background:var(--bc-gold);color:#0a0a12}
+.bc-bug .bc-dot{width:9px;height:9px;border-radius:50%;background:#fff;animation:bcBlink 1.2s ease-in-out infinite}
+.bc-bug .bc-name{display:flex;align-items:center;padding:7px 14px;background:rgba(9,11,18,.92);font-weight:700;font-size:1.05rem;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bc-bug .bc-time{display:flex;align-items:center;padding:7px 14px;background:rgba(255,255,255,.08);font-weight:700;font-size:1.05rem;font-variant-numeric:tabular-nums;color:var(--bc-gold);white-space:nowrap}
+.bc-bug:hover .bc-name{color:var(--bc-gold)}
+.bc-bug:focus-visible{outline:2px solid #fff;outline-offset:3px}
+@keyframes bcBlink{50%{opacity:.25}}
+
+/* ticker along the bottom of the hero */
+.bc-ticker{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;align-items:stretch;height:42px;background:rgba(6,8,13,.94);border-top:1px solid rgba(255,200,80,.22);overflow:hidden}
+.bc-ticker[hidden]{display:none}
+.bc-tk-label{position:relative;z-index:1;flex:none;display:flex;align-items:center;padding:0 18px 0 16px;background:var(--bc-red);color:#fff;font:700 .95rem var(--bc-display);letter-spacing:.08em;text-transform:uppercase}
+.bc-tk-label::after{content:'';position:absolute;right:-10px;top:0;bottom:0;width:20px;background:var(--bc-red);transform:skewX(-16deg)}
+.bc-tk-view{flex:1;min-width:0;overflow:hidden;display:flex;align-items:center;-webkit-mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 40px),transparent)}
+.bc-tk-track{display:flex;flex:none;align-items:center;white-space:nowrap;animation:bcScroll var(--bc-dur,40s) linear infinite;will-change:transform}
+.bc-ticker:hover .bc-tk-track,.bc-ticker:focus-within .bc-tk-track{animation-play-state:paused}
+.bc-tk-set{display:flex;flex:none;align-items:center}
+.bc-tk-item{display:inline-flex;align-items:center;gap:8px;padding:0 26px 0 22px;font-size:.84rem;color:#C9D0DD}
+.bc-tk-item b{color:#fff;font-weight:700}
+.bc-tk-item em{font-style:normal;color:var(--bc-gold);font-weight:700}
+.bc-tk-item::before{content:'';width:6px;height:6px;flex:none;background:var(--bc-gold);transform:rotate(45deg)}
+@keyframes bcScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.hero.has-ticker{padding-bottom:110px}
+.hero.has-ticker .arena-stats{bottom:70px}
+@media(max-width:900px){
+  .hero.has-ticker{padding-bottom:62px}
+  .hero.has-ticker .arena-stats{bottom:auto}
+}
+@media(max-width:640px){
+  .bc-bug{margin-bottom:16px}
+  .bc-bug .bc-tag,.bc-bug .bc-name,.bc-bug .bc-time{padding:6px 10px;font-size:.92rem}
+  .bc-ticker{height:38px}
+  .bc-tk-label{padding:0 12px;font-size:.82rem}
+  .bc-tk-item{font-size:.78rem}
+}
+
+/* feature cards under the hero */
+.feature-strip .feature-card{border-radius:6px;position:relative;overflow:hidden;background:rgba(12,15,24,.92);backdrop-filter:none}
+.feature-strip .feature-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--bc-gold),var(--bc-red))}
+
+/* tournament cards: square-ish frame, broadcast top rule and status tab */
+.arena-grid .tcard{position:relative;border-radius:8px}
+.arena-grid .tcard::before{content:'';position:absolute;left:0;top:0;width:42%;height:3px;z-index:3;background:var(--bc-rule);pointer-events:none}
+.arena-grid .tcard .tbadge{position:relative;z-index:0;border:0;border-radius:0;padding:4px 12px;color:#0a0a12;background:none;animation:none}
+.arena-grid .tcard .tbadge::before{content:'';position:absolute;inset:0;z-index:-1;transform:skewX(-16deg);border-radius:2px;background:var(--bc-gold)}
+.arena-grid .tcard .tbadge.live{color:#fff}
+.arena-grid .tcard .tbadge.live::before{background:var(--bc-red)}
+.arena-grid .tcard .tbadge.completed::before{background:#3A4256}
+.arena-grid .tcard .tbadge.completed{color:#fff}
+.arena-grid .tcard .tbadge.cancelled::before{background:rgba(255,46,77,.25)}
+.arena-grid .tcard .tbadge.cancelled{color:#FF8A9B}
+html:not([lang="ne"]) .arena-grid .tcard .tbadge{text-transform:uppercase;letter-spacing:.08em}
+.arena-grid .tcard .tname{font-family:var(--bc-display)}
+html:not([lang="ne"]) .arena-grid .tcard .tname{text-transform:uppercase;letter-spacing:.01em}
+
+/* other pages: leaderboard tabs, past events, challenges headers */
+.lb-tabs{margin-bottom:22px}
+.lb-tabs button{border-radius:4px}
+html:not([lang="ne"]) .lb-tabs button{text-transform:uppercase;letter-spacing:.05em;font-family:var(--bc-display);font-size:1rem}
+.pe-head h1{font-family:var(--bc-display)}
+html:not([lang="ne"]) .pe-head h1{text-transform:uppercase}
+
+@media(prefers-reduced-motion:reduce){
+  .bc-bug .bc-dot{animation:none}
+  /* a static strip you can scroll sideways, starting at the first item (the copy is hidden) */
+  .bc-tk-track{animation:none;transform:none}
+  .bc-tk-view{overflow-x:auto;scrollbar-width:none;-webkit-mask-image:none;mask-image:none}
+  .bc-tk-view::-webkit-scrollbar{display:none}
+  .bc-tk-track [aria-hidden="true"]{display:none}
+  .hero .btns .btn-primary::before,.hero .btns .btn-ghost::before{transition:none}
+}

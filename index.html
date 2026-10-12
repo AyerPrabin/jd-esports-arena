@@ -1110,6 +1110,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 </style>
 <link rel="stylesheet" href="/effects-pro.css">
 <link rel="stylesheet" href="/ui.css?v=15">
+<link rel="stylesheet" href="/broadcast.css?v=1">
 </head>
 <body>
 <div id="preloader" aria-hidden="true">
@@ -1139,6 +1140,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
     <div class="hero-bg"></div>
     <div class="hero-content">
       <div class="hero-inner">
+        <a class="bc-bug" id="bc-bug" href="#tournaments" hidden></a>
         <div class="eye" data-i18n="eye">Free Fire · Nepal</div>
         <h1 data-i18n="h1" data-html="1">Where Nepal <em>competes</em></h1>
         <p data-i18n="sub">Free Fire BR tournaments under the AyerFire banner — real prize pools, live brackets, room-ID delivery and a season leaderboard. Built and run solo.</p>
@@ -1155,6 +1157,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
       <a class="stat" id="stat-ch-wrap" href="/challenges/" hidden><b id="stat-challenges">0</b><span>Challenges Played</span></a>
       <div class="stat" id="stat-logo-wrap"><b class="stat-logo"><img src="/logo.png" alt=""></b><span>Made in Nepal</span></div>
     </div>
+    <div class="bc-ticker" id="bc-ticker" role="region" aria-label="Arena news" hidden><span class="bc-tk-label" id="bc-tk-label">Arena</span><div class="bc-tk-view"><div class="bc-tk-track" id="bc-tk-track"></div></div></div>
   </section>
 
   <section class="wrap reveal">
@@ -1903,9 +1906,65 @@ function linkBo3(d){
   const cand=(d.tournaments||[]).filter(t=>{const st=effectiveStatus(t);return st==='live'||st==='completed';}).sort((a,b)=>(Date.parse(b.start)||0)-(Date.parse(a.start)||0));
   if(cand[0])B.tournament=cand[0].name;
 }
+/* ── broadcast LIVE/NEXT bug + news ticker in the hero (styles in /broadcast.css) ──
+   Built from the same tournaments.json data as the cards: LIVE only when an event really
+   is live (effectiveStatus), otherwise NEXT with a countdown; hidden when nothing is on.
+   Only rewritten when its content changes, so the 5-second poll doesn't restart the scroll. */
+let _bcBugKey='',_bcTkHTML='',_bcStart=0;
+function bcRender(d){
+  const bug=document.getElementById('bc-bug'),tk=document.getElementById('bc-ticker'),track=document.getElementById('bc-tk-track');
+  if(!bug||!tk||!track)return;
+  const ne=lang==='ne',ts=d.tournaments||[],now=Date.now();
+  const live=ts.filter(t=>effectiveStatus(t)==='live').sort((a,b)=>(Date.parse(b.start)||0)-(Date.parse(a.start)||0))[0];
+  const ups=ts.filter(t=>effectiveStatus(t)==='upcoming').sort((a,b)=>(Date.parse(a.start)||9e15)-(Date.parse(b.start)||9e15));
+  const next=ups.find(t=>Date.parse(t.start)>now);
+  const ev=live||next;
+  const key=ev?[live?'L':'N',ev.name,ev.start,lang].join('|'):'';
+  if(key!==_bcBugKey){
+    _bcBugKey=key;
+    if(!ev){bug.hidden=true;_bcStart=0;}
+    else{
+      bug.hidden=false;bug.className='bc-bug '+(live?'live':'next');
+      const tag=live?'<span class="bc-dot" aria-hidden="true"></span>'+(ne?'लाइभ':'LIVE'):(ne?'अर्को':'NEXT');
+      bug.innerHTML=`<span class="bc-tag">${tag}</span><span class="bc-name">${esc(ev.name)}</span><span class="bc-time" id="bc-time"></span>`;
+      bug.setAttribute('aria-label',(live?'Live now: ':'Next: ')+ev.name);
+      _bcStart=live?0:Date.parse(ev.start);
+      const tm=document.getElementById('bc-time');if(tm&&live)tm.textContent=ev.prize?(ne?'इनाम ':'PRIZE ')+ev.prize:(ne?'अहिले':'ON AIR');
+      bcTick();
+    }
+  }
+  // ticker items
+  const items=[];
+  const prize=t=>t.prize&&t.prize!=='—'?` · ${ne?'इनाम':'Prize'} <em>${esc(t.prize)}</em>`:'';
+  const slotsOf=t=>{const sl=+t.slots||0,rg=teamsFor(t).length||+t.registered||0;return sl?` · ${rg}/${sl} ${ne?'स्क्वाड':'squads'}`:'';};
+  if(live)items.push(`<span class="bc-tk-item">🔴 <b>${esc(live.name)}</b> ${ne?'अहिले लाइभ':'is live now'}${prize(live)}</span>`);
+  ups.slice(0,3).forEach(t=>items.push(`<span class="bc-tk-item"><b>${esc(t.name)}</b> ${esc([t.date,t.time].filter(x=>x&&x!=='—').join(' · ')||'TBA')}${prize(t)}${slotsOf(t)}${/^free$/i.test(String(t.entry||'').trim())?' · '+(ne?'निःशुल्क':'Free entry'):''}</span>`));
+  const done=ts.filter(t=>effectiveStatus(t)==='completed').sort((a,b)=>(Date.parse(b.start)||0)-(Date.parse(a.start)||0));
+  done.slice(0,2).forEach(t=>{const w=winnerOf(t,d);if(w)items.push(`<span class="bc-tk-item">🏆 <b>${esc(w)}</b> ${ne?'ले जित्यो':'won'} ${esc(t.name)}</span>`);});
+  try{const rows=(d.bo3&&d.bo3.published&&d.bo3.teams&&d.bo3.teams.length)?bo3Standings(d.bo3):[];if(rows[0])items.push(`<span class="bc-tk-item">${ne?'शीर्ष':'Top of the table'}: <b>${esc(rows[0].team)}</b> <em>${rows[0].totalPts||0} ${ne?'अङ्क':'pts'}</em></span>`);}catch(e){}
+  items.push(`<span class="bc-tk-item">⚔️ <b>${ne?'क्ल्यास स्क्वाड':'Clash Squad challenges'}</b> ${ne?'२४/७ खुला — JD अंक जित्नुहोस्':'open 24/7 — 1v1 to 4v4, win JD points'}</span>`);
+  if(items.length<2){tk.hidden=true;document.querySelector('.hero').classList.remove('has-ticker');return;}
+  const set=items.join('');
+  const html=`<div class="bc-tk-set">${set}</div><div class="bc-tk-set" aria-hidden="true">${set}</div>`;
+  if(html!==_bcTkHTML){
+    _bcTkHTML=html;track.innerHTML=html;
+    track.style.setProperty('--bc-dur',Math.max(24,items.length*9)+'s');
+    const lb=document.getElementById('bc-tk-label');if(lb)lb.textContent=ne?'समाचार':'Arena';
+  }
+  tk.hidden=false;document.querySelector('.hero').classList.add('has-ticker');
+}
+function bcTick(){
+  const el=document.getElementById('bc-time');if(!el||!_bcStart)return;
+  let ms=_bcStart-Date.now();
+  if(ms<=0){el.textContent=lang==='ne'?'सुरु हुँदैछ':'STARTING';return;}
+  const dd=Math.floor(ms/864e5),hh=Math.floor(ms%864e5/36e5),mm=Math.floor(ms%36e5/6e4),ss=Math.floor(ms%6e4/1e3),p=n=>String(n).padStart(2,'0');
+  el.textContent=(dd?dd+'D ':'')+p(hh)+':'+p(mm)+':'+p(ss);
+}
+setInterval(bcTick,1000);
 function render(d){
   linkBo3(d);
   _lastData=d;
+  try{bcRender(d);}catch(e){}
   const grid=document.getElementById('arena-grid');if(!grid)return;
   // The section is "Live + Upcoming", so show it that way: live, then upcoming soonest
   // first, then finished newest first, cancelled last (tournaments.json is in admin order).
