@@ -107,7 +107,10 @@ input:focus,textarea:focus{border-color:var(--gold)}
 .bubble.me{align-self:flex-end;background:rgba(255,200,61,.16)}
 .bubble small{display:block;font-size:.66rem;color:var(--body);margin-top:2px}
 .chat-in{display:flex;gap:6px;margin-top:8px}
-.chat-in input{flex:1}
+.chat-in input{flex:1;min-width:0}
+@media(max-width:640px){.chat-in input{font-size:16px}.chat{height:300px}}
+.room-share{display:flex;gap:8px;margin-top:8px}
+.room-share .btn{flex:1}
 .rules{margin-top:14px;padding:12px 14px;border-radius:14px;border:1px solid var(--line-2);font-size:.78rem;color:var(--body)}
 .rules ul{margin:6px 0 0;padding-left:18px}
 .rules b{color:var(--silver)}
@@ -479,7 +482,7 @@ async function renderRoom(quiet){
   const timer=c.status==='open'?`⏳ Expires in ${left(c.created_at,24)} if nobody accepts — stakes are refunded`
     :c.status==='accepted'&&c.claim_at&&!(myClaim&&theirClaim)?`⏳ ${myClaim?'Your opponent has':'You have'} ${left(c.claim_at,2)} to answer — after that the reported result stands`
     :c.status==='accepted'&&c.accepted_at&&!c.claim_at?`⏳ Report the result within ${left(c.accepted_at,12)} or both stakes are refunded`:'';
-  const roomBlock=(c.status==='accepted'||c.status==='disputed')?`<label>Room (shared only with your opponent)</label>${c.room_id?`<div class="roombox"><button class="copy" type="button" data-copy="${esc(c.room_id)}"><span>Room ID · tap to copy</span><b>${esc(c.room_id)}</b></button><button class="copy" type="button" data-copy="${esc(c.room_pass||'')}"><span>Password · tap to copy</span><b>${esc(c.room_pass||'—')}</b></button></div>`:'<p style="color:var(--body);font-size:.84rem;margin:0">No room yet — whoever makes the custom room, add it here.</p>'}${c.status==='accepted'?`<div class="chat-in" style="margin-top:8px"><input id="r-rid" placeholder="Room ID" maxlength="30" value="${esc(c.room_id||'')}"><input id="r-rpw" placeholder="Password" maxlength="30" value="${esc(c.room_pass||'')}"><button class="btn ghost" id="r-setroom" type="button">Save</button></div>`:''}`:'';
+  const roomBlock=(c.status==='accepted'||c.status==='disputed')?`<label>Room (shared only with your opponent)</label>${c.room_id?`<div class="roombox"><button class="copy" type="button" data-copy="${esc(c.room_id)}"><span>Room ID · tap to copy</span><b>${esc(c.room_id)}</b></button><button class="copy" type="button" data-copy="${esc(c.room_pass||'')}"><span>Password · tap to copy</span><b>${esc(c.room_pass||'—')}</b></button></div>`:'<p style="color:var(--body);font-size:.84rem;margin:0">No room yet — whoever makes the custom room, add it here.</p>'}${c.room_id&&window.jdChat?`<div class="room-share"><button class="btn ghost" id="r-share" type="button">📣 Share room to my squad chat</button></div>`:''}${c.status==='accepted'?`<div class="chat-in" style="margin-top:8px"><input id="r-rid" placeholder="Room ID" maxlength="30" value="${esc(c.room_id||'')}"><input id="r-rpw" placeholder="Password" maxlength="30" value="${esc(c.room_pass||'')}"><button class="btn ghost" id="r-setroom" type="button">Save</button></div>`:''}`:'';
   const chatBlock=['accepted','disputed','completed'].includes(c.status)?`<label>Chat</label><div class="chat" id="chat"></div>${c.status!=='completed'?`<div class="chat-in"><input id="chat-in" maxlength="300" placeholder="Message your opponent" autocomplete="off"><button class="btn" id="chat-send" type="button">Send</button></div>`:''}`:'';
   const typing=document.activeElement&&['chat-in','r-rid','r-rpw'].includes(document.activeElement.id);
   if(!(quiet&&typing)){
@@ -522,6 +525,7 @@ function bindRoom(c){
     toast('Rematch sent to '+nmv);await loadBalance();openRoom(data);
   });
   on('chat-send',sendChat);
+  on('r-share',()=>{const o=c.creator===me.id?c.opponent:c.creator;jdChat.shareRoom({id:c.room_id,pass:c.room_pass,label:c.mode+' vs '+((names.get(o)||{}).name||'opponent')});});
   const ci=$('chat-in');if(ci)ci.onkeydown=e=>{if(e.key==='Enter')sendChat();};
   document.querySelectorAll('#room .copy').forEach(b=>b.onclick=()=>{(navigator.clipboard?navigator.clipboard.writeText(b.dataset.copy):Promise.reject()).then(()=>toast('Copied')).catch(()=>{});});
 }
@@ -533,6 +537,8 @@ async function loadChat(c){
   const atBottom=box.scrollTop+box.clientHeight>=box.scrollHeight-30;
   box.innerHTML=rows.length?rows.map(m=>`<div class="bubble${m.sender===me.id?' me':''}">${esc(m.body)}<small>${m.sender===me.id?'You':esc((names.get(m.sender)||{}).name||'Opponent')} · ${ago(m.created_at)}</small></div>`).join(''):'<div class="empty" style="padding:10px">Say hi and share the room details 👋</div>';
   if(atBottom||rows.length!==_lastMsgCount)box.scrollTop=box.scrollHeight;
+  // tell Messages (unread badge) and chat-push (skip the push) that you've seen these
+  if(rows.length!==_lastMsgCount&&rows.some(m=>m.sender!==me.id))sb.rpc('challenge_mark_read',{p_id:c.id}).then(()=>{},()=>{});
   _lastMsgCount=rows.length;
 }
 async function sendChat(){
@@ -651,6 +657,6 @@ async function start(){
 })();
 </script>
 <script src="/ui.js?v=14" defer></script>
-<script src="/chat.js?v=2" defer></script>
+<script src="/chat.js?v=3" defer></script>
 </body>
 </html>

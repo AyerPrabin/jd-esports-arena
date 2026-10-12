@@ -3997,3 +3997,376 @@ begin
   end if;
 end $$;
 commit;
+
+-- ── Messages v2: squad group chats + match (challenge) chat in the inbox + push ──────────
+-- * Squad chats: any player can start a group with up to 7 friends (8 people max) — their
+--   Clash Squad team — from 💬 Messages. Only the adder's friends can be added. Tables are
+--   RPC-only (no RLS policies); every read goes through a member check.
+-- * Match chat: the existing captain-vs-captain challenge chat (challenge_messages) now
+--   shows up in the Messages inbox with unread counts. challenge_reads stores how far each
+--   side has read, so push can skip a message the other captain is already looking at.
+--   challenges / challenge_messages RLS is unchanged.
+-- * Push: new group and challenge messages go to the chat-push Edge Function (pg_net, same
+--   vault secrets as dm-push). A failed hand-off never blocks the send.
+-- * Retention: group messages are deleted after 180 days, like direct messages (/privacy/).
+-- Additive only: dm_poll() and chat_overview() keep every key the old chat.js reads. Idempotent.
+begin;
+create table if not exists public.chat_groups (
+  id uuid primary key default gen_random_uuid(),
+  name text not null check (length(name) between 1 and 40),
+  created_by uuid references public.players(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+alter table public.chat_groups enable row level security; -- no policies: RPC only
+
+create table if not exists public.chat_group_members (
+  group_id uuid not null references public.chat_groups(id) on delete cascade,
+  player_id uuid not null references public.players(id) on delete cascade,
+  added_by uuid references public.players(id) on delete set null,
+  last_read_id bigint not null default 0,
+  muted boolean not null default false,
+  joined_at timestamptz not null default now(),
+  primary key (group_id, player_id)
+);
+create index if not exists chat_group_members_player_idx on public.chat_group_members (player_id);
+alter table public.chat_group_members enable row level security;
+
+create table if not exists public.group_messages (
+  id bigserial primary key,
+  group_id uuid not null references public.chat_groups(id) on delete cascade,
+  sender uuid references public.players(id) on delete set null,
+  kind text not null default 'text' check (kind in ('text','system','room')),
+  body text not null check (length(body) between 1 and 500),
+  created_at timestamptz not null default now()
+);
+create index if not exists group_messages_group_idx on public.group_messages (group_id, id desc);
+create index if not exists group_messages_sender_time_idx on public.group_messages (sender, created_at desc);
+alter table public.group_messages enable row level security;
+
+create table if not exists public.challenge_reads (
+  challenge_id uuid not null references public.challenges(id) on delete cascade,
+  player_id uuid not null references public.players(id) on delete cascade,
+  last_read_id bigint not null default 0,
+  primary key (challenge_id, player_id)
+);
+alter table public.challenge_reads enable row level security;
+
+-- ── helpers ──
+create or replace function public._group_member(g uuid, p uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists(select 1 from public.chat_group_members where group_id = g and player_id = p)
+$$;
+revoke all on function public._group_member(uuid, uuid) from public, anon, authenticated;
+
+create or replace function public._group_system(g uuid, p_body text)
+returns void language sql security definer set search_path = public as $$
+  insert into public.group_messages (group_id, sender, kind, body) values (g, null, 'system', left(p_body, 500))
+$$;
+revoke all on function public._group_system(uuid, text) from public, anon, authenticated;
+
+-- adds friends of v_by to a group; returns how many were added (errors on a non-friend)
+create or replace function public._group_add(g uuid, v_by uuid, p_members uuid[])
+returns int language plpgsql security definer set search_path = public as $$
+declare v uuid; n int := 0; v_name text; v_names text := '';
+begin
+  select name into v_name from public.chat_groups where id = g;
+  foreach v in array coalesce(p_members, '{}'::uuid[]) loop
+    if v = v_by or public._group_member(g, v) then continue; end if;
+    if not public._are_friends(v_by, v) or public._blocked_either(v_by, v) then
+      raise exception 'You can only add your friends.';
+    end if;
+    insert into public.chat_group_members (group_id, player_id, added_by, last_read_id)
+      values (g, v, v_by, coalesce((select max(id) from public.group_messages where group_id = g), 0));
+    insert into public.notifications (player_id, title, body)
+      values (v, '👥 ' || public._chat_name(v_by) || ' added you to the squad chat "' || v_name || '"', 'Open 💬 Messages to chat with your squad.');
+    v_names := v_names || case when n > 0 then ', ' else '' end || public._chat_name(v);
+    n := n + 1;
+  end loop;
+  if (select count(*) from public.chat_group_members where group_id = g) > 8 then
+    raise exception 'A squad chat can have up to 8 players.';
+  end if;
+  if n > 0 then perform public._group_system(g, public._chat_name(v_by) || ' added ' || v_names); end if;
+  return n;
+end;
+$$;
+revoke all on function public._group_add(uuid, uuid, uuid[]) from public, anon, authenticated;
+
+-- ── squad chat RPCs ──
+create or replace function public.create_group_chat(p_name text, p_members uuid[])
+returns uuid language plpgsql security definer set search_path = public as $$
+declare v_me uuid := auth.uid(); g uuid;
+begin
+  if v_me is null then raise exception 'Please sign in first.'; end if;
+  if exists(select 1 from public.banned_players where player_id = v_me) then raise exception 'Your account is banned.'; end if;
+  p_name := trim(coalesce(p_name, ''));
+  if length(p_name) < 1 or length(p_name) > 40 then raise exception 'Give the squad chat a name (up to 40 characters).'; end if;
+  if coalesce(array_length(p_members, 1), 0) < 1 then raise exception 'Pick at least one friend.'; end if;
+  if (select count(*) from public.chat_groups where created_by = v_me and created_at > now() - interval '1 day') >= 10 then
+    raise exception 'You''ve made a lot of squad chats today. Try again tomorrow.';
+  end if;
+  insert into public.chat_groups (name, created_by) values (p_name, v_me) returning id into g;
+  insert into public.chat_group_members (group_id, player_id, added_by) values (g, v_me, v_me);
+  perform public._group_system(g, public._chat_name(v_me) || ' created the squad chat');
+  perform public._group_add(g, v_me, p_members);
+  update public.chat_group_members set last_read_id = (select max(id) from public.group_messages where group_id = g)
+    where group_id = g and player_id = v_me;
+  return g;
+end;
+$$;
+
+create or replace function public.add_group_members(p_group uuid, p_members uuid[])
+returns int language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null or not public._group_member(p_group, auth.uid()) then raise exception 'You''re not in this chat.'; end if;
+  if exists(select 1 from public.banned_players where player_id = auth.uid()) then raise exception 'Your account is banned.'; end if;
+  return public._group_add(p_group, auth.uid(), p_members);
+end;
+$$;
+
+create or replace function public.leave_group_chat(p_group uuid)
+returns void language plpgsql security definer set search_path = public as $$
+declare v_me uuid := auth.uid();
+begin
+  if v_me is null or not public._group_member(p_group, v_me) then return; end if;
+  delete from public.chat_group_members where group_id = p_group and player_id = v_me;
+  if not exists(select 1 from public.chat_group_members where group_id = p_group) then
+    delete from public.chat_groups where id = p_group;
+  else
+    perform public._group_system(p_group, public._chat_name(v_me) || ' left');
+  end if;
+end;
+$$;
+
+create or replace function public.rename_group_chat(p_group uuid, p_name text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null or not public._group_member(p_group, auth.uid()) then raise exception 'You''re not in this chat.'; end if;
+  p_name := trim(coalesce(p_name, ''));
+  if length(p_name) < 1 or length(p_name) > 40 then raise exception 'Names are 1-40 characters.'; end if;
+  if p_name = (select name from public.chat_groups where id = p_group) then return; end if;
+  update public.chat_groups set name = p_name where id = p_group;
+  perform public._group_system(p_group, public._chat_name(auth.uid()) || ' renamed the chat to "' || p_name || '"');
+end;
+$$;
+
+create or replace function public.mute_group_chat(p_group uuid, p_muted boolean)
+returns void language sql security definer set search_path = public as $$
+  update public.chat_group_members set muted = coalesce(p_muted, false) where group_id = p_group and player_id = auth.uid()
+$$;
+
+-- p_kind 'room' = a "share room to squad" card (body = "ROOM|<id>|<password>|<label>")
+create or replace function public.send_group_message(p_group uuid, p_body text, p_kind text default 'text')
+returns bigint language plpgsql security definer set search_path = public as $$
+declare v_me uuid := auth.uid(); v_id bigint;
+begin
+  if v_me is null then raise exception 'Please sign in first.'; end if;
+  if exists(select 1 from public.banned_players where player_id = v_me) then raise exception 'Your account is banned.'; end if;
+  if not public._group_member(p_group, v_me) then raise exception 'You''re not in this chat any more.'; end if;
+  p_body := trim(coalesce(p_body, ''));
+  if length(p_body) < 1 or length(p_body) > 500 then raise exception 'Messages must be 1-500 characters.'; end if;
+  if coalesce(p_kind, 'text') not in ('text','room') then raise exception 'Unknown message type.'; end if;
+  if (select count(*) from public.group_messages where sender = v_me and created_at > now() - interval '10 seconds') >= 8 then
+    raise exception 'Slow down a little.';
+  end if;
+  insert into public.group_messages (group_id, sender, kind, body) values (p_group, v_me, coalesce(p_kind, 'text'), p_body) returning id into v_id;
+  update public.chat_group_members set last_read_id = v_id where group_id = p_group and player_id = v_me;
+  return v_id;
+end;
+$$;
+
+-- newest-first page of a squad chat
+create or replace function public.group_thread(p_group uuid, p_before bigint default null)
+returns table (id bigint, sender uuid, mine boolean, kind text, body text, created_at timestamptz)
+language sql stable security definer set search_path = public as $$
+  select m.id, m.sender, m.sender = auth.uid(), m.kind, m.body, m.created_at
+  from public.group_messages m
+  where m.group_id = p_group and public._group_member(p_group, auth.uid())
+    and (p_before is null or m.id < p_before)
+  order by m.id desc
+  limit 60
+$$;
+
+-- name, members (cards + how far each has read) and my mute setting
+create or replace function public.group_info(p_group uuid)
+returns jsonb language sql stable security definer set search_path = public as $$
+  select jsonb_build_object('id', g.id, 'name', g.name, 'created_by', g.created_by,
+    'muted', (select muted from public.chat_group_members where group_id = g.id and player_id = auth.uid()),
+    'members', coalesce((select jsonb_agg(public._chat_card(m.player_id, auth.uid()) || jsonb_build_object(
+        'read', m.last_read_id, 'me', m.player_id = auth.uid(), 'friend', public._are_friends(m.player_id, auth.uid()))
+      order by m.joined_at) from public.chat_group_members m where m.group_id = g.id), '[]'::jsonb))
+  from public.chat_groups g
+  where g.id = p_group and public._group_member(p_group, auth.uid())
+$$;
+
+create or replace function public.group_mark_read(p_group uuid)
+returns void language sql security definer set search_path = public as $$
+  update public.chat_group_members set last_read_id = coalesce((select max(id) from public.group_messages where group_id = p_group), 0)
+  where group_id = p_group and player_id = auth.uid()
+$$;
+
+-- match chat read marker (captains only, same check as the chat itself)
+create or replace function public.challenge_mark_read(p_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+declare v_last bigint;
+begin
+  if auth.uid() is null or not exists(select 1 from public.challenges where id = p_id and auth.uid() in (creator, opponent)) then return; end if;
+  select coalesce(max(id), 0) into v_last from public.challenge_messages where challenge_id = p_id;
+  insert into public.challenge_reads (challenge_id, player_id, last_read_id) values (p_id, auth.uid(), v_last)
+  on conflict (challenge_id, player_id) do update set last_read_id = greatest(public.challenge_reads.last_read_id, excluded.last_read_id);
+end;
+$$;
+
+-- ── the 5-second badge poll, now counting squad and match chats too ──
+-- Old keys (unread, requests, last) are unchanged; g_unread / m_unread / last_any are new.
+create or replace function public.dm_poll()
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_me uuid := auth.uid(); v_last jsonb; v_g jsonb; v_m jsonb; v_any jsonb;
+begin
+  if v_me is null then return null; end if;
+  update public.players set last_seen_at = now()
+    where id = v_me and (last_seen_at is null or last_seen_at < now() - interval '1 minute');
+  select jsonb_build_object('id', m.id, 'kind', 'dm', 'key', m.sender, 'from', m.sender, 'name', public._chat_name(m.sender), 'body', left(m.body, 140), 'at', m.created_at)
+    into v_last
+    from public.dm_messages m
+    where m.recipient = v_me and m.read_at is null and not public._blocked_either(v_me, m.sender)
+    order by m.id desc limit 1;
+  select jsonb_build_object('id', m.id, 'kind', 'group', 'key', m.group_id, 'from', m.sender, 'name', public._chat_name(m.sender),
+      'title', g.name, 'body', left(case when m.kind = 'room' then '🎮 Shared a room' else m.body end, 140), 'at', m.created_at)
+    into v_g
+    from public.chat_group_members gm
+    join public.group_messages m on m.group_id = gm.group_id and m.id > gm.last_read_id
+    join public.chat_groups g on g.id = gm.group_id
+    where gm.player_id = v_me and not gm.muted and m.sender is distinct from v_me and m.kind <> 'system'
+    order by m.id desc limit 1;
+  select jsonb_build_object('id', m.id, 'kind', 'match', 'key', c.id, 'from', m.sender, 'name', public._chat_name(m.sender),
+      'title', c.mode || ' challenge', 'body', left(m.body, 140), 'at', m.created_at)
+    into v_m
+    from public.challenges c
+    join public.challenge_messages m on m.challenge_id = c.id
+    left join public.challenge_reads r on r.challenge_id = c.id and r.player_id = v_me
+    where v_me in (c.creator, c.opponent) and c.status in ('accepted','disputed')
+      and m.sender is distinct from v_me and m.id > coalesce(r.last_read_id, 0)
+    order by m.id desc limit 1;
+  select x into v_any from (values (v_last), (v_g), (v_m)) t(x) where x is not null order by (x->>'at')::timestamptz desc limit 1;
+  return jsonb_build_object(
+    'unread', (select count(*) from public.dm_messages m where m.recipient = v_me and m.read_at is null
+                 and not exists(select 1 from public.player_blocks b where b.blocker = v_me and b.blocked = m.sender)),
+    'requests', (select count(*) from public.friendships where addressee = v_me and status = 'pending'),
+    'last', v_last,
+    'g_unread', (select count(*) from public.chat_group_members gm
+                   join public.group_messages m on m.group_id = gm.group_id and m.id > gm.last_read_id
+                   where gm.player_id = v_me and not gm.muted and m.sender is distinct from v_me and m.kind <> 'system'),
+    'm_unread', (select count(*) from public.challenges c
+                   join public.challenge_messages m on m.challenge_id = c.id
+                   left join public.challenge_reads r on r.challenge_id = c.id and r.player_id = v_me
+                   where v_me in (c.creator, c.opponent) and c.status in ('accepted','disputed')
+                     and m.sender is distinct from v_me and m.id > coalesce(r.last_read_id, 0)),
+    'last_any', v_any);
+end;
+$$;
+
+-- squad chats + live match chats for the inbox (chat_overview() stays as it is)
+create or replace function public.chat_threads()
+returns jsonb language sql stable security definer set search_path = public as $$
+  with me as (select auth.uid() as id)
+  select jsonb_build_object(
+    'groups', coalesce((select jsonb_agg(x.j order by x.at desc nulls last) from (
+      select g.created_at as gat, coalesce(lm.created_at, g.created_at) as at, jsonb_build_object(
+        'id', g.id, 'name', g.name, 'muted', gm.muted,
+        'count', (select count(*) from public.chat_group_members c where c.group_id = g.id),
+        'faces', (select jsonb_agg(public._chat_card(c.player_id, (select id from me)) order by c.joined_at)
+                  from (select player_id, joined_at from public.chat_group_members c where c.group_id = g.id and c.player_id <> (select id from me) order by joined_at limit 3) c),
+        'last_body', left(case when lm.kind = 'room' then '🎮 Shared a room' else lm.body end, 120), 'last_at', coalesce(lm.created_at, g.created_at),
+        'last_mine', lm.sender = (select id from me), 'last_name', case when lm.sender is null then null else public._chat_name(lm.sender) end,
+        'unread', (select count(*) from public.group_messages u where u.group_id = g.id and u.id > gm.last_read_id
+                     and u.sender is distinct from (select id from me) and u.kind <> 'system')) as j
+      from public.chat_group_members gm
+      join public.chat_groups g on g.id = gm.group_id
+      left join lateral (select * from public.group_messages m where m.group_id = g.id order by m.id desc limit 1) lm on true
+      where gm.player_id = (select id from me)
+    ) x), '[]'::jsonb),
+    'matches', coalesce((select jsonb_agg(x.j order by x.at desc) from (
+      select coalesce(lm.created_at, c.accepted_at, c.created_at) as at, jsonb_build_object(
+        'id', c.id, 'mode', c.mode, 'stake', c.stake, 'status', c.status, 'map', c.map, 'rounds', c.rounds,
+        'room_id', c.room_id, 'room_pass', c.room_pass, 'creator', c.creator = (select id from me),
+        'other', public._chat_card(case when c.creator = (select id from me) then c.opponent else c.creator end, (select id from me)),
+        'last_body', left(lm.body, 120), 'last_at', coalesce(lm.created_at, c.accepted_at), 'last_mine', lm.sender = (select id from me),
+        'unread', case when c.status in ('accepted','disputed') then (select count(*) from public.challenge_messages u where u.challenge_id = c.id
+                     and u.id > coalesce(r.last_read_id, 0) and u.sender is distinct from (select id from me)) else 0 end) as j
+      from public.challenges c
+      left join public.challenge_reads r on r.challenge_id = c.id and r.player_id = (select id from me)
+      left join lateral (select * from public.challenge_messages m where m.challenge_id = c.id order by m.id desc limit 1) lm on true
+      where (select id from me) in (c.creator, c.opponent) and c.opponent is not null
+        and (c.status in ('accepted','disputed') or (c.status = 'completed' and c.resolved_at > now() - interval '3 days'))
+    ) x), '[]'::jsonb)
+  )
+  where (select id from me) is not null
+$$;
+
+revoke all on function public.create_group_chat(text, uuid[]) from public, anon;
+revoke all on function public.add_group_members(uuid, uuid[]) from public, anon;
+revoke all on function public.leave_group_chat(uuid) from public, anon;
+revoke all on function public.rename_group_chat(uuid, text) from public, anon;
+revoke all on function public.mute_group_chat(uuid, boolean) from public, anon;
+revoke all on function public.send_group_message(uuid, text, text) from public, anon;
+revoke all on function public.group_thread(uuid, bigint) from public, anon;
+revoke all on function public.group_info(uuid) from public, anon;
+revoke all on function public.group_mark_read(uuid) from public, anon;
+revoke all on function public.challenge_mark_read(uuid) from public, anon;
+revoke all on function public.dm_poll() from public, anon;
+revoke all on function public.chat_threads() from public, anon;
+grant execute on function public.create_group_chat(text, uuid[]) to authenticated;
+grant execute on function public.add_group_members(uuid, uuid[]) to authenticated;
+grant execute on function public.leave_group_chat(uuid) to authenticated;
+grant execute on function public.rename_group_chat(uuid, text) to authenticated;
+grant execute on function public.mute_group_chat(uuid, boolean) to authenticated;
+grant execute on function public.send_group_message(uuid, text, text) to authenticated;
+grant execute on function public.group_thread(uuid, bigint) to authenticated;
+grant execute on function public.group_info(uuid) to authenticated;
+grant execute on function public.group_mark_read(uuid) to authenticated;
+grant execute on function public.challenge_mark_read(uuid) to authenticated;
+grant execute on function public.dm_poll() to authenticated;
+grant execute on function public.chat_threads() to authenticated;
+
+-- ── push (chat-push Edge Function) ──
+create or replace function public.chat_messages_push() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare v_ids bigint[];
+begin
+  select array_agg(id) into v_ids from new_rows;
+  if v_ids is null then return null; end if;
+  begin
+    perform net.http_post(
+      url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/chat-push',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret')
+      ),
+      body := jsonb_build_object('kind', case when TG_TABLE_NAME = 'group_messages' then 'group' else 'match' end, 'ids', to_jsonb(v_ids))
+    );
+  exception when others then
+    raise warning 'chat_messages_push: %', sqlerrm;
+  end;
+  return null;
+end;
+$$;
+revoke all on function public.chat_messages_push() from public, anon, authenticated;
+drop trigger if exists group_messages_push on public.group_messages;
+create trigger group_messages_push after insert on public.group_messages
+  referencing new table as new_rows for each statement execute function public.chat_messages_push();
+drop trigger if exists challenge_messages_push on public.challenge_messages;
+create trigger challenge_messages_push after insert on public.challenge_messages
+  referencing new table as new_rows for each statement execute function public.chat_messages_push();
+
+-- retention: squad chat messages are deleted after 180 days (stated on /privacy/)
+do $$
+declare d text;
+begin
+  select pg_get_functiondef('public.purge_old_personal_data()'::regprocedure) into d;
+  if position('group_messages' in d) = 0 then
+    d := replace(d, E'  return jsonb_build_object(',
+      E'  delete from public.group_messages where created_at < now() - interval ''180 days'';\n  return jsonb_build_object(');
+    execute d;
+  end if;
+end $$;
+commit;

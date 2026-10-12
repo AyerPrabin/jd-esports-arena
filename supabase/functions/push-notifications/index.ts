@@ -11,6 +11,7 @@ const SITE = 'https://jdesport.co.uk';
 
 function linkFor(n: any): { url: string; tag: string } {
   const t = `${n.title || ''} ${n.body || ''}`;
+  if (/squad chat|friend request|now your friend/i.test(t)) return { url: `${SITE}/?chat=1`, tag: 'jd-chat' };
   if (/challenge/i.test(t)) return { url: `${SITE}/challenges/`, tag: 'jd-challenge' };
   if (/wallet|points added/i.test(t)) return { url: `${SITE}/wallet/`, tag: 'jd-wallet' };
   if (/Admin →/.test(t)) return { url: `${SITE}/admin/`, tag: 'jd-admin' };
