@@ -1110,7 +1110,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 </style>
 <link rel="stylesheet" href="/effects-pro.css">
 <link rel="stylesheet" href="/ui.css?v=15">
-<link rel="stylesheet" href="/broadcast.css?v=3">
+<link rel="stylesheet" href="/broadcast.css?v=4">
 </head>
 <body>
 <div id="preloader" aria-hidden="true">
@@ -1334,6 +1334,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
     <div id="fx-plans-wrap"><label>Choose a plan</label><div class="fx-plans" id="fx-plans"></div><div id="fx-tourney-wrap"></div></div>
     <label>Choose your effect</label>
     <div class="fx-pick" id="fx-pick"></div>
+    <div class="fx-prev-lbl" aria-hidden="true">Live preview</div>
     <div class="sqlist fx-preview" id="fx-preview"></div>
     <div class="fx-pay" id="fx-pay">
       <div id="fx-pay-steps"></div>
@@ -3344,7 +3345,7 @@ function fxShopRender(){
   document.getElementById('fx-plans').innerHTML=Object.entries(FX_PLANS).map(([k,pl])=>`<button type="button" class="fx-plan${k===_fxShop.plan?' on':''}" onclick="_fxShop.plan='${k}';fxShopRender()">${pl.best?'<span class="best">Best value</span>':(pl.popular?'<span class="best pop">Popular</span>':'')}<b>${esc(pl.name)}</b><span class="pr">${esc(pl.price)}</span><small>${esc(pl.per)}</small></button>`).join('');
   document.getElementById('fx-pick').innerHTML=Object.values(SQUAD_FX).map(f=>{
     const ok=fxTierOk(tier,f.key);
-    return `<button type="button" class="${f.key===_fxShop.effect?'on':''}${ok?'':' lock'}" ${ok?`onclick="_fxShop.effect='${f.key}';fxShopRender()"`:`disabled title="Included in Pro plans"`}>${ok?'':'🔒 '}${esc(f.tag)}${f.hot?'<span class="hot">🔥</span>':''}${f.tier==='pro'?'<span class="pro">PRO</span>':''}</button>`;
+    return `<button type="button" data-fx="${f.key}" class="${f.key===_fxShop.effect?'on':''}${ok?'':' lock'}" ${ok?`onclick="_fxShop.effect='${f.key}';fxShopRender()"`:`disabled title="Included in Pro plans"`}>${ok?'':'🔒 '}${esc(f.tag)}${f.hot?'<span class="hot">🔥</span>':''}${f.tier==='pro'?'<span class="pro">PRO</span>':''}</button>`;
   }).join('');
   document.getElementById('fx-preview').innerHTML=sqCardHtml({name:r.squad_name||'Your squad',logo:r.squad_logo||'',members:[],effect:_fxShop.effect},0);
   const pl=FX_PLANS[_fxShop.plan];

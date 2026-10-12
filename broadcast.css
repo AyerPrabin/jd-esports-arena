@@ -201,3 +201,29 @@ html:not([lang="ne"]) #notif-overlay h3{text-transform:uppercase;letter-spacing:
 #notif-overlay .notif-chips button{border-radius:4px}
 #notif-overlay .notif-item .ni-go{border-radius:4px}
 html:not([lang="ne"]) #notif-overlay .notif-chips button,html:not([lang="ne"]) #notif-overlay .ni-go{text-transform:uppercase;letter-spacing:.05em;font-size:.72rem}
+
+/* ── squad effects shop (#fx-overlay): broadcast title, squarer plans, a colour swatch on
+   every effect so players pick by look, and a LIVE PREVIEW label over the preview card.
+   The effects themselves (effects.css / effects-pro.css) are unchanged: players bought them. ── */
+#fx-overlay h3{position:relative;padding-left:16px;font-family:var(--bc-display);font-size:1.6rem}
+#fx-overlay h3::before{content:'';position:absolute;left:1px;top:12%;bottom:12%;width:6px;border-radius:1px;background:linear-gradient(180deg,var(--bc-gold),var(--bc-red));transform:skewX(-16deg)}
+html:not([lang="ne"]) #fx-overlay h3{text-transform:uppercase;letter-spacing:.03em}
+#fx-overlay .fx-plan{border-radius:8px;position:relative}
+#fx-overlay .fx-plan.on::after{content:'';position:absolute;left:8px;right:8px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--bc-rule)}
+#fx-overlay .fx-pick button{display:flex;align-items:center;justify-content:center;gap:7px;border-radius:6px}
+#fx-overlay .fx-pick button::before{content:'';flex:none;width:12px;height:12px;border-radius:50%;background:var(--sw,#888);box-shadow:0 0 8px -1px var(--sw-g,transparent)}
+#fx-overlay .fx-pick button.lock::before{opacity:.35;box-shadow:none}
+#fx-overlay .fx-pick [data-fx="glow"]{--sw:linear-gradient(135deg,#fff3c4,#ffc83d);--sw-g:#ffc83d}
+#fx-overlay .fx-pick [data-fx="steel"]{--sw:linear-gradient(135deg,#ffffff,#7d8898);--sw-g:#cfd8e3}
+#fx-overlay .fx-pick [data-fx="gold"]{--sw:linear-gradient(135deg,#fff6d6,#ffd24a 50%,#c98a00);--sw-g:#ffd24a}
+#fx-overlay .fx-pick [data-fx="fire"]{--sw:linear-gradient(135deg,#ffd166,#ff6b3d);--sw-g:#ff6b3d}
+#fx-overlay .fx-pick [data-fx="ice"]{--sw:linear-gradient(135deg,#e6faff,#5fd3ff);--sw-g:#5fd3ff}
+#fx-overlay .fx-pick [data-fx="neon"]{--sw:linear-gradient(135deg,#c86bff,#ff5fd2);--sw-g:#ff5fd2}
+#fx-overlay .fx-pick [data-fx="rainbow"]{--sw:conic-gradient(#ff5f6d,#ffc371,#5fff9a,#5fd3ff,#c86bff,#ff5f6d);--sw-g:#c86bff}
+#fx-overlay .fx-pick [data-fx="galaxy"]{--sw:radial-gradient(circle at 30% 30%,#fff 0 8%,#8f6bff 30%,#2a1660);--sw-g:#8f6bff}
+#fx-overlay .fx-pick [data-fx="thunder"]{--sw:linear-gradient(135deg,#ffffff,#4fd8ff);--sw-g:#4fd8ff}
+#fx-overlay .fx-pick [data-fx="bullets"]{--sw:linear-gradient(135deg,#fff2c0,#ff7a1a);--sw-g:#ff9a3d}
+#fx-overlay .fx-pick [data-fx="blade"]{--sw:linear-gradient(135deg,#ffffff,#c9d2de 45%,#ff5a6a);--sw-g:#ff5a6a}
+#fx-overlay .fx-pick [data-fx="legend"]{--sw:conic-gradient(#ffe38a,#ffc2f0,#c4f3ff,#9ff5c8,#ffe38a);--sw-g:#ffd24a}
+#fx-overlay .fx-prev-lbl{display:inline-block;position:relative;z-index:0;margin:12px 0 -4px;padding:3px 12px;color:#fff;font:700 .7rem var(--font-body,system-ui);text-transform:uppercase;letter-spacing:.1em}
+#fx-overlay .fx-prev-lbl::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--bc-red);transform:skewX(-16deg);border-radius:2px}
