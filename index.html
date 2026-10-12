@@ -1034,6 +1034,11 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 #acct-push-btn[disabled]:hover{background:none}
 .pm-toggle.warn{background:rgba(255,150,80,.18)}
 .pm-toggle.warn::after{background:var(--warm-l)}
+.mt-cal{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:10px 0 2px}
+.mt-cal-btn{font:inherit;font-size:.8rem;font-weight:700;padding:8px 14px;border-radius:999px;border:1px solid var(--gold-m);background:rgba(255,200,61,.08);color:var(--gold-l);cursor:pointer}
+.mt-cal-btn:hover{background:rgba(255,200,61,.16)}
+.mt-cal-g{font-size:.74rem;color:var(--silver);text-decoration:underline;text-underline-offset:2px}
+.rs-cal .mt-cal{justify-content:center;margin:4px 0 12px}
 .notif-item{position:relative;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:8px}
 .notif-item[class*=" k-"]{padding:12px 30px 12px 60px}
 .notif-item .ni-ic{position:absolute;left:12px;top:12px;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:1.05rem;background:rgba(255,255,255,.05)}
@@ -1366,6 +1371,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
       <div class="rs-row"><span class="rs-lbl">📱 Platform</span><span class="rs-val" id="rs-platform"></span></div>
       <div class="rs-row"><span class="rs-lbl">🛡 Status</span><span class="rs-val" id="rs-status"></span></div>
     </div>
+    <div class="rs-cal" id="rs-cal"></div>
     <div class="rs-actions"><button class="btn-primary" onclick="regSuccessViewNotif()">View Notifications</button><button class="btn-ghost-sm" onclick="regSuccessClose()">Close</button></div>
   </div>
 </div>
@@ -2014,6 +2020,8 @@ function render(d){
     grid.querySelectorAll('[data-pts-entry]').forEach(b=>b.onclick=e=>{e.stopPropagation();payEntryWithPoints(b.getAttribute('data-pts-entry'));});
     grid.querySelectorAll('[data-code-in]').forEach(i=>i.onclick=e=>e.stopPropagation());
     grid.querySelectorAll('[data-fx-buy]').forEach(b=>b.onclick=e=>{e.stopPropagation();fxShopOpen(b.getAttribute('data-fx-buy'));});
+    grid.querySelectorAll('[data-cal]').forEach(b=>b.onclick=e=>{e.stopPropagation();calAdd(b.getAttribute('data-cal'));});
+    grid.querySelectorAll('[data-gcal]').forEach(a=>a.onclick=e=>e.stopPropagation());
     grid.querySelectorAll('[data-withdraw]').forEach(b=>b.onclick=e=>{e.stopPropagation();withdrawSquad(b.getAttribute('data-withdraw'));});
     grid.querySelectorAll('[data-roster]').forEach(b=>b.onclick=e=>{e.stopPropagation();openRoster(b.getAttribute('data-roster'));});
   }
@@ -2964,7 +2972,48 @@ function regSuccessOpen(t,status,reg){
   const statusEl=document.getElementById('rs-status');
   statusEl.textContent=waitlisted?'Waitlisted':(pending?'Pending verification':'Registered ✓');
   statusEl.className='rs-val'+(waitlisted||pending?' warn':' ok');
+  const rc=document.getElementById('rs-cal');if(rc){rc.innerHTML=calBtnHtml(t);const b=rc.querySelector('[data-cal]');if(b)b.onclick=()=>calAdd(t.name);}
   document.getElementById('regsuccess-overlay').classList.add('open');
+}
+/* ── Add to calendar: a standard .ics event with three alarms (1 hour, 15 minutes and
+   5 minutes before), which the phone's own calendar app opens (iPhone Calendar, Google
+   Calendar / Samsung Calendar on Android), so players get an alarm even with the site
+   closed. Plus a Google Calendar link for desktop. Only shown when the start time is known. ── */
+function calTimes(t){const ms=Date.parse(t&&t.start);if(isNaN(ms))return null;return {start:ms,end:ms+2*3600e3};}
+function calStamp(ms){return new Date(ms).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');}
+function calEsc(v){return String(v||'').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/([,;])/g,'\\$1');}
+// RFC 5545: lines longer than 75 bytes are folded (CRLF + space); 60 characters keeps
+// multi-byte text (·, Devanagari) under the limit
+function calFold(l){let o='';while(l.length>60){o+=l.slice(0,60)+'\r\n ';l=l.slice(60);}return o+l;}
+function calBtnHtml(t){
+  const c=calTimes(t);if(!c||c.start<Date.now())return '';
+  const g='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent('JD Arena: '+t.name)+'&dates='+calStamp(c.start)+'/'+calStamp(c.end)+'&details='+encodeURIComponent('Free Fire tournament on JD Esports Arena. Your Room ID and password appear on your ticket at https://jdesport.co.uk about 5 minutes before the start.')+'&location='+encodeURIComponent('https://jdesport.co.uk');
+  return `<div class="mt-cal"><button type="button" class="mt-cal-btn" data-cal="${esc(t.name)}">📅 Add to calendar</button><a class="mt-cal-g" data-gcal href="${esc(g)}" target="_blank" rel="noopener">Google Calendar</a></div>`;
+}
+function calAdd(name){
+  const t=((_lastData||ARENA_SAMPLE).tournaments||[]).find(x=>x.name===name),c=calTimes(t);
+  if(!c){showMsg('No start time yet','This tournament doesn\'t have a start time yet. Add it to your calendar once the time is announced.');return;}
+  const uid='jd-'+String(name).toLowerCase().replace(/[^a-z0-9]+/g,'-')+'@jdesport.co.uk';
+  const alarm=(min,txt)=>['BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+calEsc(txt),'TRIGGER:-PT'+min+'M','END:VALARM'];
+  const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//JD Esports Arena//Tournaments//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH',
+    'BEGIN:VEVENT','UID:'+uid,'DTSTAMP:'+calStamp(Date.now()),'DTSTART:'+calStamp(c.start),'DTEND:'+calStamp(c.end),
+    'SUMMARY:'+calEsc('JD Arena: '+name),
+    'DESCRIPTION:'+calEsc('Free Fire tournament on JD Esports Arena'+(t.format?' ('+t.format+')':'')+'. Your Room ID and password appear on your ticket at https://jdesport.co.uk about 5 minutes before the start. Be online 15 minutes early.'),
+    'LOCATION:'+calEsc('https://jdesport.co.uk'),'URL:https://jdesport.co.uk/#tournaments','STATUS:CONFIRMED']
+    .concat(alarm(60,name+' starts in 1 hour'),alarm(15,name+' starts in 15 minutes. Get online.'),alarm(5,name+': room ID is out now on your ticket'),['END:VEVENT','END:VCALENDAR']).map(calFold).join('\r\n');
+  const file='jd-arena-'+String(name).toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.ics';
+  try{
+    const f=new File([ics],file,{type:'text/calendar'});
+    // phones: hand the event straight to the calendar app through the share sheet when possible
+    if(navigator.canShare&&navigator.canShare({files:[f]})&&/Android|iPhone|iPad/i.test(navigator.userAgent)){navigator.share({files:[f],title:'JD Arena: '+name}).catch(()=>calDownload(ics,file));return;}
+  }catch(e){}
+  calDownload(ics,file);
+}
+function calDownload(ics,file){
+  const url=URL.createObjectURL(new Blob([ics],{type:'text/calendar;charset=utf-8'}));
+  const a=document.createElement('a');a.href=url;a.download=file;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),4000);
+  if(typeof toast==='function')toast('Calendar file saved. Open it to add the event with alarms.');
 }
 function regSuccessClose(){document.getElementById('regsuccess-overlay').classList.remove('open');}
 function regSuccessViewNotif(){regSuccessClose();notifHistOpen();}
@@ -3014,7 +3063,7 @@ function matchTicketHtml(t,r){
     next=`<div class="mt-next">⏰ Check-in opens 12 hours before start${opens?` (<b>${esc(opens)}</b>)`:''} — we will send you a reminder.</div>`;
   }
   const logo=r.squad_logo?`<img class="mt-logo" src="${esc(r.squad_logo)}" alt="">`:`<span class="mt-logo mt-logo-empty">${esc((r.squad_name||'?').trim().charAt(0).toUpperCase()||'?')}</span>`;
-  return `<div class="mt"><div class="mt-head">${logo}<div class="mt-squad"><b>${esc(r.squad_name||'Your squad')}</b><small>${checked&&CHECKIN_REQUIRED?'Checked in':'You\'re in'}${r.verified_at?' · <span class="mt-ver">✅ Verified</span>':''}</small></div><button type="button" class="mt-code" data-copy="${esc(code)}" title="Tap to copy your ticket code">🎫 ${esc(code)}</button></div><ol class="mt-steps">${stepHtml}</ol>${next}${fxTicketHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}</div>`;
+  return `<div class="mt"><div class="mt-head">${logo}<div class="mt-squad"><b>${esc(r.squad_name||'Your squad')}</b><small>${checked&&CHECKIN_REQUIRED?'Checked in':'You\'re in'}${r.verified_at?' · <span class="mt-ver">✅ Verified</span>':''}</small></div><button type="button" class="mt-code" data-copy="${esc(code)}" title="Tap to copy your ticket code">🎫 ${esc(code)}</button></div><ol class="mt-steps">${stepHtml}</ol>${next}${calBtnHtml(t)}${fxTicketHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}</div>`;
 }
 function fxTicketHtml(t,r){
   const own=SQUAD_FX[r.effect],pass=fxPassNow(),pk=pass&&SQUAD_FX[pass.effect];
