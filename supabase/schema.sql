@@ -4573,3 +4573,55 @@ $$;
 revoke all on function public.get_challenge_leaderboard() from public, anon;
 grant execute on function public.get_challenge_leaderboard() to authenticated;
 commit;
+
+-- ── Clash Squad leaderboard (leaderboard.html "⚔️ Clash Squad" tab) ──────────────────────
+-- Settled challenges only (status completed, a winner). Per player: matches played, wins,
+-- win rate, current win streak, last match. Logged-in players only, and no points or
+-- stakes are shown (privacy page: "Challenges" row). Top 50 plus your own row. No squad logos
+-- (they are inline images; 50 of them is too heavy on mobile data). Idempotent.
+begin;
+create or replace function public.get_challenge_leaderboard()
+returns jsonb language sql stable security definer set search_path = public as $$
+  with done as (
+    select c.id, c.creator, c.opponent, c.winner, coalesce(c.resolved_at, c.created_at) as at
+    from public.challenges c
+    where c.status = 'completed' and c.winner is not null and c.opponent is not null
+  ),
+  sides as (
+    select creator as player, winner = creator as won, at from done
+    union all
+    select opponent, winner = opponent, at from done
+  ),
+  streaks as (
+    -- wins since the player's last loss
+    select s.player, count(*) filter (where s.won and s.at > coalesce(l.last_loss, '-infinity'::timestamptz)) as streak
+    from sides s
+    left join (select player, max(at) as last_loss from sides where not won group by player) l on l.player = s.player
+    group by s.player
+  ),
+  agg as (
+    select s.player, count(*) as played, count(*) filter (where s.won) as wins, max(s.at) as last_at
+    from sides s join public.players p on p.id = s.player
+    where not exists (select 1 from public.banned_players b where b.player_id = s.player)
+    group by s.player
+  ),
+  ranked as (
+    select a.*, st.streak, rank() over (order by a.wins desc, (a.wins::numeric / a.played) desc, a.played desc) as rk
+    from agg a join streaks st on st.player = a.player
+  )
+  select jsonb_build_object(
+    'rows', coalesce((select jsonb_agg(jsonb_build_object(
+        'rank', r.rk, 'id', r.player, 'name', public._chat_name(r.player), 'username', p.username, 'tag', p.player_tag,
+        'squad', p.squad_name, 'played', r.played, 'wins', r.wins,
+        'rate', round(100.0 * r.wins / r.played), 'streak', r.streak, 'last_at', r.last_at,
+        'me', r.player = auth.uid(), 'friend', public._are_friends(r.player, auth.uid()))
+      order by r.rk, r.played desc)
+      from (select * from ranked order by rk, played desc limit 50) r join public.players p on p.id = r.player), '[]'::jsonb),
+    'me', (select jsonb_build_object('rank', r.rk, 'played', r.played, 'wins', r.wins, 'rate', round(100.0 * r.wins / r.played), 'streak', r.streak)
+           from ranked r where r.player = auth.uid()),
+    'total', (select count(*) from done))
+  where auth.uid() is not null
+$$;
+revoke all on function public.get_challenge_leaderboard() from public, anon;
+grant execute on function public.get_challenge_leaderboard() to authenticated;
+commit;

@@ -15,7 +15,10 @@ const SITE = 'https://jdesport.co.uk';
 function linkFor(n: any): { url: string; tag: string; category?: string } {
   const t = `${n.title || ''} ${n.body || ''}`;
   if (/squad chat|friend request|now your friend/i.test(t)) return { url: `${SITE}/?chat=1`, tag: 'jd-chat', category: 'friends' };
-  if (/daily challenge time/i.test(t)) return { url: `${SITE}/challenges/`, tag: 'jd-challenge-daily', category: 'lobby' };
+  // daily reminder: daily_challenge_alert already decides whether the row exists, so no category
+  if (/daily challenge time/i.test(t)) return { url: `${SITE}/challenges/`, tag: 'jd-challenge-daily' };
+  // result deadlines and disputes can cost a stake if missed: always pushed
+  if (/confirm your challenge result|challenge disputed|challenge under review/i.test(t)) return { url: `${SITE}/challenges/`, tag: 'jd-challenge-result' };
   if (/challenge/i.test(t)) return { url: `${SITE}/challenges/`, tag: 'jd-challenge', category: 'challenges' };
   if (/wallet|points added/i.test(t)) return { url: `${SITE}/wallet/`, tag: 'jd-wallet', category: 'wallet' };
   if (/Admin →/.test(t)) return { url: `${SITE}/admin/`, tag: 'jd-admin' };

@@ -1143,7 +1143,7 @@
     ['dm', '💬', 'Direct messages', 'When a friend messages you'],
     ['squad', '👥', 'Squad chats', 'New messages in your squad chats (mute one chat from its ⋯ menu)'],
     ['match', '⚔️', 'Match chats', 'The other captain writes in your challenge chat'],
-    ['challenges', '🎯', 'Challenge invites & results', 'Someone challenges you, accepts, or reports a result'],
+    ['challenges', '🎯', 'Challenge invites & results', 'Someone challenges you or accepts, and win/loss/refund results. "Confirm your result" deadlines and disputes always alert'],
     ['lobby', '🔥', 'New open challenges', 'Someone posts a challenge anyone can accept'],
     ['friends', '🤝', 'Friend requests & squad invites', 'Someone adds you or puts you in a squad chat'],
     ['wallet', '🪙', 'Wallet', 'Points loaded, withdrawals paid, prizes']

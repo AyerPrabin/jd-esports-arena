@@ -43,7 +43,11 @@ self.addEventListener("push", e => {
     const loud = !old || now - (od.buzzAt || 0) > 30000;
     const title = (d.title || "JD Arena") + (count > 1 && (chat || room) ? ` · ${count} new` : "");
     const actions = chat ? [{ action: "open", title: "💬 Reply" }] : room ? [{ action: "open", title: "⚔️ Open room" }] : [];
-    await self.registration.showNotification(title, {
+    // if a browser rejects any of the extras, still show a plain alert (a push without a
+    // visible notification can get the subscription cancelled)
+    const plain = () => self.registration.showNotification(d.title || "JD Arena", {
+      body: d.body || "You have a new notification.", icon: "/icon-192.png", badge: "/favicon-64.png", tag, data: { url } });
+    try { await self.registration.showNotification(title, {
       body: d.body || "You have a new notification.",
       icon: "/icon-192.png",
       badge: "/favicon-64.png",
@@ -54,7 +58,7 @@ self.addEventListener("push", e => {
       actions,
       timestamp: now,
       data: { url, count, buzzAt: loud ? now : od.buzzAt },
-    });
+    }); } catch (x) { await plain(); }
     try { if (self.navigator.setAppBadge) await self.navigator.setAppBadge(); } catch (x) {}
   })());
 });
