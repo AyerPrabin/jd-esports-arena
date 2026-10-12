@@ -95,8 +95,20 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .pts-table .fxn-tag{font-size:.54rem}
 @media(prefers-reduced-motion:reduce){.pod-slot,.pts-table td{transition:none!important;animation:none!important}}
 @media(max-width:640px){.pts-table{font-size:.78rem}.pts-table th,.pts-table td{padding:9px 8px}.pts-table .team img{width:20px;height:20px}.podium{gap:8px}.pod-slot{width:100px}.pod-logo{width:38px;height:38px}.pod-name{font-size:.74rem}.pod-pts{font-size:1.1rem}}
+.pred{margin:34px 0 10px}
+.pred-h{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.6rem;margin:0 0 4px}
+.pred-h span{font-family:var(--font-body);font-size:.8rem;font-weight:500;color:var(--silver);margin-left:6px}
+.pred-note{color:var(--body);font-size:.84rem;margin:0 0 14px}
+.pred-list{display:grid;gap:8px}
+.pred-row{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--panel);border:1px solid rgba(255,200,80,.08)}
+.pred-row .rk{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.25rem;color:var(--gold-l);text-align:center}
+.pred-row .nm{min-width:0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pred-row .nm small{display:block;font-weight:500;font-size:.72rem;color:var(--silver)}
+.pred-row .pc{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.4rem;color:var(--cream)}
+.pred-row .bar{grid-column:2/-1;height:4px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden}
+.pred-row .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-2))}
 </style>
-<link rel="stylesheet" href="/ui.css?v=11">
+<link rel="stylesheet" href="/ui.css?v=12">
 </head>
 <body>
 <header>
@@ -116,8 +128,13 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
     <div class="pod-slot p3"><div class="pod-card"><img class="pod-logo" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">3</div></div>
   </div>
   <div id="lb-body"></div>
+  <section class="pred" id="predict" hidden>
+    <h2 class="pred-h">🔮 Prediction <span id="predict-sub"></span></h2>
+    <p class="pred-note">Before results are in: each registered squad ranked by its season average. Screenshot it, then go prove it wrong.</p>
+    <div class="pred-list" id="predict-list"></div>
+  </section>
   <canvas id="confetti-canvas"></canvas>
-  <div class="points-note"><b>How points work:</b> 1 point per kill, no cap, plus placement points — 1st 12 · 2nd 9 · 3rd 6 · 4th 5 · 5th 4 · 6th 3 · 7th 2 · 8th 1. Both add up to a squad's round total.</div>
+  <div class="points-note"><b>How points work:</b> 1 point per kill, plus placement points — 1st 12 · 2nd 9 · 3rd 6 · 4th 5 · 5th 4 · 6th 3 · 7th 2 · 8th 1. Both add up to a squad's round total.</div>
 </main>
 
 <footer>JD Esports Arena · AyerFire</footer>
@@ -357,8 +374,33 @@ function linkBo3(d){
   const cand=(d.tournaments||[]).filter(t=>isDone(t)||(String(t.status||'').toLowerCase()==='live')||(String(t.status||'').toLowerCase()==='upcoming'&&Date.parse(t.start)<=now)).sort((a,b)=>(Date.parse(b.start)||0)-(Date.parse(a.start)||0));
   if(cand[0])B.tournament=cand[0].name;
 }
+/* Prediction (moved here from the homepage): ranks the squads registered for the current
+   bracket by season average points (get_tournament_squad_history), softmax -> win %. A squad
+   with no history is scored at the league average. Hidden once real results are published. */
+let _predFor='',_predAt=0;
+async function renderPredict(d){
+  const sec=document.getElementById('predict'),B=d.bo3||{};
+  const name=B.tournament,hasResults=B.published&&B.teams&&B.teams.length;
+  if(!sb||hasResults||!name){sec.hidden=true;return;}
+  if(_predFor===name&&Date.now()-_predAt<60000)return;
+  _predFor=name;_predAt=Date.now();
+  try{
+    const {data,error}=await sb.rpc('get_tournament_squad_history',{p_tournament_slug:name});
+    if(error||!data||data.length<2){sec.hidden=true;return;}
+    const hist=data.filter(r=>r.appearances>0);
+    const avg=hist.length?hist.reduce((a,r)=>a+(+r.avg_points),0)/hist.length:10;
+    const scored=data.map(r=>({...r,score:r.appearances>0?+r.avg_points:avg}));
+    const exps=scored.map(r=>Math.exp(r.score/10)),sum=exps.reduce((a,b)=>a+b,0)||1;
+    const ranked=scored.map((r,i)=>({...r,prob:exps[i]/sum})).sort((a,b)=>b.prob-a.prob);
+    const top=ranked[0].prob||1;
+    document.getElementById('predict-sub').textContent=name;
+    document.getElementById('predict-list').innerHTML=ranked.map((r,i)=>`<div class="pred-row"><span class="rk">${i+1}</span><span class="nm">${fxText(fxOf(name,r.squad_name,d),r.squad_name)}<small>${r.appearances>0?'Season avg '+(+r.avg_points).toFixed(1)+' pts':'First season event'}</small></span><span class="pc">${(r.prob*100).toFixed(0)}%</span><span class="bar"><i style="width:${Math.round(r.prob/top*100)}%"></i></span></div>`).join('');
+    sec.hidden=false;
+  }catch(e){sec.hidden=true;}
+}
 function render(d){
   linkBo3(d);
+  renderPredict(d);
   const B=d.bo3;
   const has=B&&B.published&&B.teams&&B.teams.length;
   const sub=document.getElementById('lb-sub');
@@ -454,6 +496,6 @@ function load(){
 load();
 setInterval(()=>{if(!document.hidden)load();},15000);
 </script>
-<script src="/ui.js?v=11" defer></script>
+<script src="/ui.js?v=12" defer></script>
 </body>
 </html>

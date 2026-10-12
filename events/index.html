@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#07090F">
+<link rel="icon" type="image/png" href="/favicon-64.png">
+<title>Past Events — JD Esports Arena</title>
+<meta name="description" content="Every finished JD Esports Arena Free Fire tournament — winners, prizes and the squads that played.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090F;--panel:#111827;--line:rgba(255,200,80,.14);
+  --gold:#FFC83D;--gold-2:#FFAE00;--gold-l:#FFDD85;--gold-m:rgba(255,200,80,.42);
+  --cream:#FFFFFF;--silver:#A6AFC2;--body:#8A94A8;
+  --container:900px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:var(--font-body);line-height:1.6}
+a{color:inherit;text-decoration:none}
+header{padding:20px var(--gutter);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;justify-content:space-between;max-width:var(--container);margin:0 auto}
+.brand{display:flex;align-items:center;gap:10px}
+.jdlogo{width:36px;height:36px;border-radius:8px;object-fit:cover;flex:none;display:block}
+.brand span{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;letter-spacing:.02em;display:block}
+.brand span span{font-family:var(--font-body);font-size:.68rem;font-weight:500;color:var(--gold-l);letter-spacing:.01em}
+.back-btn{border:1px solid var(--gold-m);color:var(--gold-l);border-radius:30px;padding:8px 16px;font-size:.8rem;font-weight:600}
+.back-btn:hover{background:rgba(255,200,61,.12)}
+main{max-width:var(--container);margin:0 auto;padding:40px 0 80px}
+footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8rem}
+.next{margin-top:28px;display:flex;gap:10px;flex-wrap:wrap}
+</style>
+<link rel="stylesheet" href="/effects.css">
+<link rel="stylesheet" href="/ui.css?v=12">
+</head>
+<body>
+<header>
+  <div class="bar">
+    <a class="brand" href="/"><img class="jdlogo" src="/logo.png" alt="JD Esports Arena" width="36" height="36"><span>JD Esports Arena<span>by AyerFire</span></span></a>
+    <a class="back-btn" href="/">← Back to site</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="pe-head">
+    <h1>Past events</h1>
+    <p>Every finished tournament: who won, the prize, and the squads that played. Tap an event to see its squads.</p>
+  </div>
+  <div class="pe-stats" id="pe-stats" hidden></div>
+  <div class="pe-list" id="pe-list"><div class="pe-empty">Loading events…</div></div>
+  <div class="next">
+    <a class="ev-link" href="/#tournaments">⚔️ Upcoming events →</a>
+    <a class="ev-link" href="/leaderboard.html">🏆 Leaderboard →</a>
+  </div>
+</main>
+
+<footer>JD Esports Arena · AyerFire</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* Past events: finished/cancelled entries from tournaments.json (the newer of the Pages
+   file and the live site_content copy, same rule as the homepage), plus any older event
+   that only exists in the database now (get_arena_totals). Squads per event come from
+   get_public_roster(). Nothing here needs a login. */
+const TOURNAMENTS_URL='https://jdesport.co.uk/tournaments.json';
+const sb=(typeof supabase!=='undefined')?supabase.createClient('https://cnoxvqvpmgowdiyrrusv.supabase.co','sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil'):null;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pubTime=d=>(d&&Date.parse(d._published_at))||0;
+const MAPS=['bermuda','purgatory','kalahari','alpine','nexterra'];
+
+function status(t){
+  const s=String(t.status||'upcoming').toLowerCase();
+  if(s!=='cancelled'&&String(t.winner||'').trim())return 'completed';
+  return s;
+}
+function mapOf(t){const m=String(t.map||'').toLowerCase();return MAPS.find(x=>m.includes(x))||'bermuda';}
+function fmtDate(t){
+  if(t.date)return t.date;
+  const ms=Date.parse(t.start);
+  return isNaN(ms)?'':new Date(ms).toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'});
+}
+async function getDoc(){
+  const bust='v='+Math.floor(Date.now()/20000);
+  const get=u=>fetch(u,{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject());
+  const pages=get('/tournaments.json?'+bust).catch(()=>get(TOURNAMENTS_URL+'?'+bust)).catch(()=>null);
+  const live=sb?sb.from('site_content').select('content').eq('key','tournaments').maybeSingle().then(r=>(r.data&&r.data.content)||null,()=>null):Promise.resolve(null);
+  const [p,l]=await Promise.all([pages,live]);
+  return (p&&l)?(pubTime(l)>=pubTime(p)?l:p):(l||p);
+}
+async function load(){
+  const list=document.getElementById('pe-list');
+  const [doc,roster,totals]=await Promise.all([
+    getDoc().catch(()=>null),
+    sb?sb.rpc('get_public_roster').then(r=>r.data||[],()=>[]):[],
+    sb?sb.rpc('get_arena_totals').then(r=>r.data||[],()=>[]):[]
+  ]);
+  const squads=new Map();
+  roster.forEach(r=>{if(!squads.has(r.tournament_slug))squads.set(r.tournament_slug,[]);squads.get(r.tournament_slug).push(r);});
+  const count=new Map(totals.map(r=>[r.tournament_slug,r.squads||0]));
+  const listed=(doc&&doc.tournaments)||[];
+  const past=listed.filter(t=>['completed','cancelled'].includes(status(t)))
+    .sort((a,b)=>(Date.parse(b.start)||0)-(Date.parse(a.start)||0));
+  const listedNames=new Set(listed.map(t=>t.name));
+  // older events no longer in tournaments.json, newest number first
+  const older=totals.map(r=>r.tournament_slug).filter(n=>!listedNames.has(n))
+    .sort((a,b)=>b.localeCompare(a,undefined,{numeric:true}));
+
+  if(!past.length&&!older.length){list.innerHTML='<div class="pe-empty">No finished events yet — the first results will show up here.</div>';return;}
+
+  const squadChips=name=>{
+    const sq=squads.get(name)||[];
+    return `<div class="pe-squads">${sq.length?sq.map(s=>`<span>${s.squad_logo?`<img src="${esc(s.squad_logo)}" alt="" loading="lazy">`:''}${esc(s.squad_name)}</span>`).join(''):'<span>No squad list for this event.</span>'}</div>`;
+  };
+  const card=t=>{
+    const st=status(t),n=Math.max(count.get(t.name)||0,(squads.get(t.name)||[]).length);
+    const img=t.image||('/maps/ff-'+mapOf(t)+'.jpg');
+    const entry=String(t.entry||'Free').trim();
+    return `<div class="pe-card" role="button" tabindex="0" aria-expanded="false">
+      <div class="pe-img" style="background-image:url('${esc(img)}')"></div>
+      <div class="pe-main">
+        <div class="pe-name">${esc(t.name)}</div>
+        <div class="pe-meta">${fmtDate(t)?`<span>📅 <b>${esc(fmtDate(t))}</b></span>`:''}${n?`<span>👥 <b>${n}</b> squad${n===1?'':'s'}</span>`:''}${t.prize?`<span>🏆 <b>${esc(t.prize)}</b></span>`:''}<span>${/^free$/i.test(entry)?'Free entry':'Entry '+esc(entry)}</span></div>
+        ${st==='completed'&&String(t.winner||'').trim()?`<div class="pe-win">👑 ${esc(t.winner)}</div>`:''}
+      </div>
+      <span class="pe-status ${st}">${st==='cancelled'?'Cancelled':'Finished'}</span>
+      ${squadChips(t.name)}
+    </div>`;
+  };
+  const slim=name=>`<div class="pe-card slim" role="button" tabindex="0" aria-expanded="false"><div class="pe-main"><div class="pe-name">${esc(name)}</div><div class="pe-meta"><span>👥 <b>${count.get(name)||0}</b> squad${count.get(name)===1?'':'s'}</span></div></div><span class="pe-status">Finished</span>${squadChips(name)}</div>`;
+
+  list.innerHTML=past.map(card).join('')+older.map(slim).join('');
+  list.querySelectorAll('.pe-card').forEach(c=>{
+    const flip=()=>{const o=c.classList.toggle('open');c.setAttribute('aria-expanded',o);};
+    c.onclick=flip;
+    c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();flip();}};
+  });
+
+  const done=past.filter(t=>status(t)==='completed').length+older.length;
+  const totalSquads=[...past.map(t=>t.name),...older].reduce((a,n)=>a+Math.max(count.get(n)||0,(squads.get(n)||[]).length),0);
+  const st=document.getElementById('pe-stats');
+  st.innerHTML=`<div><b>${done}</b><span>Events played</span></div><div><b>${totalSquads}</b><span>Squad entries</span></div><div><b>${past.filter(t=>String(t.winner||'').trim()).length}</b><span>Champions crowned</span></div>`;
+  st.hidden=false;
+}
+load().catch(()=>{document.getElementById('pe-list').innerHTML='<div class="pe-empty">Could not load events right now. Please try again.</div>';});
+</script>
+<script src="/ui.js?v=12" defer></script>
+</body>
+</html>

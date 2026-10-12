@@ -3198,3 +3198,132 @@ revoke all on function public.ai_review_sweep() from public, anon, authenticated
 select cron.unschedule(jobid) from cron.job where jobname = 'ai-review-sweep';
 select cron.schedule('ai-review-sweep', '7,37 * * * *', 'select public.ai_review_sweep()');
 commit;
+
+-- ── check-in opens 12 hours before start; points loads need a screenshot ──
+-- * check_in_for_tournament(): refuses a check-in earlier than 12 hours before the start
+--   (no start time published -> allowed, as before).
+-- * wallet_load_requests: a player asks for points by uploading the eSewa screenshot on
+--   /wallet/ (request_wallet_load). The admin approves it in Admin -> Points (wallet-admin
+--   resolve_load -> admin_wallet_credit with ref LOAD-<id>, so one request can only ever be
+--   credited once) or rejects it. Replaces "send the screenshot on WhatsApp".
+begin;
+
+create or replace function public.check_in_for_tournament(p_tournament_slug text)
+returns public.registrations
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_row public.registrations;
+  v_start timestamptz;
+begin
+  if auth.uid() is null then
+    raise exception 'Not signed in';
+  end if;
+
+  v_start := public.tournament_start_at(p_tournament_slug);
+  if v_start is not null and v_start - now() > interval '12 hours' then
+    raise exception 'Check-in opens 12 hours before the match starts.';
+  end if;
+
+  update public.registrations
+    set checked_in_at = coalesce(checked_in_at, now())
+    where tournament_slug = p_tournament_slug
+      and player_id = auth.uid()
+      and status in ('confirmed', 'approved')
+    returning * into v_row;
+
+  if not found then
+    raise exception 'No confirmed registration found for this tournament';
+  end if;
+
+  return v_row;
+end;
+$$;
+grant execute on function public.check_in_for_tournament(text) to authenticated;
+
+create table if not exists public.wallet_load_requests (
+  id uuid primary key default gen_random_uuid(),
+  player_id uuid not null references public.players(id) on delete cascade,
+  amount int not null check (amount between 1 and 100000),
+  screenshot text not null,
+  status text not null default 'pending' check (status in ('pending','approved','rejected')),
+  note text,
+  created_at timestamptz not null default now(),
+  reviewed_at timestamptz
+);
+create index if not exists wallet_load_requests_player on public.wallet_load_requests(player_id, created_at desc);
+create index if not exists wallet_load_requests_pending on public.wallet_load_requests(created_at) where status = 'pending';
+alter table public.wallet_load_requests enable row level security;
+drop policy if exists "players read own load requests" on public.wallet_load_requests;
+create policy "players read own load requests" on public.wallet_load_requests
+  for select using (auth.uid() = player_id);
+-- no insert/update policies: inserts only via request_wallet_load(), reviews only via wallet-admin
+
+create or replace function public.request_wallet_load(p_amount int, p_screenshot text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_id uuid;
+begin
+  if auth.uid() is null then
+    raise exception 'Please sign in first.';
+  end if;
+  perform public._assert_open();
+  if p_amount is null or p_amount < 1 or p_amount > 100000 then
+    raise exception 'Enter the amount you paid (1 to 100000).';
+  end if;
+  if p_screenshot is null or p_screenshot !~ '^data:image/(png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$' then
+    raise exception 'Please attach your eSewa payment screenshot.';
+  end if;
+  if length(p_screenshot) > 600000 then
+    raise exception 'The screenshot is too large. Please upload a smaller image.';
+  end if;
+  if exists(select 1 from public.banned_players where player_id = auth.uid()) then
+    raise exception 'Your account is banned.';
+  end if;
+  if (select count(*) from public.wallet_load_requests where player_id = auth.uid() and status = 'pending') >= 3 then
+    raise exception 'You already have 3 payments waiting to be checked. Please wait for them first.';
+  end if;
+  insert into public.wallet_load_requests (player_id, amount, screenshot)
+  values (auth.uid(), p_amount, p_screenshot)
+  returning id into v_id;
+  return jsonb_build_object('id', v_id, 'status', 'pending');
+end;
+$$;
+revoke all on function public.request_wallet_load(int, text) from public, anon;
+grant execute on function public.request_wallet_load(int, text) to authenticated;
+
+-- admin: approve (credits points once) or reject a load request
+create or replace function public.admin_resolve_load(p_id uuid, p_approve boolean, p_amount int default null, p_note text default null)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_req public.wallet_load_requests;
+  v_amount int;
+  v_bal int;
+begin
+  select * into v_req from public.wallet_load_requests where id = p_id for update;
+  if v_req.id is null then
+    raise exception 'Request not found.';
+  end if;
+  if v_req.status <> 'pending' then
+    raise exception 'This request was already %.', v_req.status;
+  end if;
+  if p_approve then
+    v_amount := coalesce(p_amount, v_req.amount);
+    v_bal := public.admin_wallet_credit(v_req.player_id, v_amount, 'LOAD-' || v_req.id::text, coalesce(nullif(trim(p_note), ''), 'eSewa screenshot verified'));
+    update public.wallet_load_requests set status = 'approved', amount = v_amount, note = nullif(trim(p_note), ''), reviewed_at = now() where id = p_id;
+    return jsonb_build_object('status', 'approved', 'player_id', v_req.player_id, 'amount', v_amount, 'balance', v_bal);
+  end if;
+  update public.wallet_load_requests set status = 'rejected', note = nullif(trim(p_note), ''), reviewed_at = now() where id = p_id;
+  insert into public.notifications (player_id, title, body)
+  values (v_req.player_id, 'Points not added',
+          'We could not verify your payment of Rs ' || v_req.amount || '.' ||
+          coalesce(' Reason: ' || nullif(trim(p_note), ''), '') ||
+          ' Check the screenshot and try again, or ask on Discord.');
+  return jsonb_build_object('status', 'rejected', 'player_id', v_req.player_id, 'amount', v_req.amount);
+end;
+$$;
+revoke all on function public.admin_resolve_load(uuid, boolean, int, text) from public, anon, authenticated;
+grant execute on function public.admin_resolve_load(uuid, boolean, int, text) to service_role;
+
+commit;

@@ -3,6 +3,8 @@
 //   { action: 'credit', player_id, amount, ref, note? }      -> add verified eSewa payment as points
 //   { action: 'withdrawals' }                                 -> pending withdrawal requests
 //   { action: 'resolve', id, paid: bool, payout_ref? }        -> mark paid, or reject (points returned)
+//   { action: 'loads' }                                       -> pending eSewa screenshots from /wallet/
+//   { action: 'resolve_load', id, approve: bool, amount?, note? } -> credit the points, or reject
 // Balances only change inside admin_wallet_credit / admin_resolve_withdrawal (service role).
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { sendPush, lastPushError } from '../_shared/push.ts';
@@ -165,6 +167,32 @@ Deno.serve(async (req: Request) => {
       p_id: p.id, p_paid: !!p.paid, p_payout_ref: p.payout_ref || null,
     });
     if (error) return fail(error.message);
+    return json(data);
+  }
+
+  // points loads: players upload the eSewa screenshot on /wallet/ (request_wallet_load)
+  if (p.action === 'loads') {
+    const { data, error } = await supabase.from('wallet_load_requests')
+      .select('id, player_id, amount, screenshot, created_at, players(username, player_tag)')
+      .eq('status', 'pending').order('created_at', { ascending: true }).limit(50);
+    if (error) return fail(error.message, 500);
+    return json(data || []);
+  }
+
+  if (p.action === 'resolve_load') {
+    const amount = p.amount == null || p.amount === '' ? null : parseInt(p.amount, 10);
+    const { data, error } = await supabase.rpc('admin_resolve_load', {
+      p_id: p.id, p_approve: !!p.approve, p_amount: amount, p_note: p.note || null,
+    });
+    if (error) return fail(error.message);
+    const ok = data?.status === 'approved';
+    try {
+      await sendPush(supabase, [data.player_id], {
+        title: ok ? `+${data.amount} JD points added` : 'Points not added',
+        body: ok ? `Your payment was verified. Balance: ${data.balance} points.` : 'We could not verify your payment. Open your wallet for details.',
+        url: 'https://jdesport.co.uk/wallet/', tag: 'jd-wallet',
+      });
+    } catch { /* best-effort */ }
     return json(data);
   }
 

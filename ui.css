@@ -195,9 +195,6 @@ img{max-width:100%}
   .pod-bar{margin-top:0!important;border-radius:0 0 10px 10px!important;font-size:1.6rem!important}
 }
 
-/* homepage Best-of-3: the winner's crown (top:-26px) sat on top of the event title */
-#bo3board .podium{padding-top:28px}
-
 /* leaderboard podium on tablets: fixed 150px slots cut longer squad names; let names wrap
    to two lines and keep the step bars attached to their cards at every width */
 @media(min-width:641px){
@@ -214,28 +211,6 @@ img{max-width:100%}
 .pod-slot.p2 .pod-bar{background:linear-gradient(180deg,#E9EDF3,#AEB6C6)!important}
 .pod-slot.p3 .pod-bar{background:linear-gradient(180deg,#EDAE72,#B8733B)!important}
 
-/* ── tournaments: past events as slim rows ──
-   Finished/cancelled events used to be full-size posters in the same grid as live ones
-   (each ~760px tall on a phone). index.html now marks them .tcard.past and puts them
-   under a "Past events" heading; only the latest 3 show until "Show older". */
-.past-h{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:18px 0 -6px}
-.past-h h3{margin:0;font-family:var(--font-display);font-weight:700;font-size:1.45rem;letter-spacing:.01em;color:var(--cream,#fff)}
-.past-h span{font-size:.72rem;font-weight:700;color:var(--silver,#A6AFC2);background:rgba(255,255,255,.06);border-radius:999px;padding:2px 9px}
-.past-more{grid-column:1/-1;justify-self:start;background:none;border:0;padding:6px 0;font:600 .86rem var(--font-body);color:var(--gold-l,#FFDD85);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-.arena-grid:not(.show-old) .tcard.past.old{display:none}
-.tcard.past{display:grid;grid-template-columns:76px 1fr;align-items:center;column-gap:14px;padding:10px;background:rgba(17,24,39,.55);border-color:rgba(255,200,80,.1)}
-.tcard.past:hover{transform:none}
-.tcard.past .tcard-media{height:76px;width:76px;border-radius:12px;filter:saturate(.6) brightness(.85)}
-.tcard.past .tm-over,.tcard.past .tbadge,.tcard.past .tgame,.tcard.past .tcount,.tcard.past .tcount-bar,
-.tcard.past .tslots,.tcard.past .tslots-label,.tcard.past .troster,.tcard.past .inapp-reg,
-.tcard.past .tmeta .row:not(:first-child),.tcard.past .tmeta .row span{display:none}
-.tcard.past .tcard-body{padding:0;min-width:0;display:flex;flex-direction:column;gap:3px}
-.tcard.past .tname{font-size:1.15rem;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tcard.past .tmeta{margin:0;font-size:.76rem}
-.tcard.past .tmeta .row{display:block}
-.tcard.past .tmeta b{font-weight:500;color:var(--silver,#A6AFC2)}
-.tcard.past .tbtn{display:block;padding:0;margin:0;border:0;background:none;text-align:left;font-size:.8rem;font-weight:600;color:var(--silver,#A6AFC2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
 /* ── upcoming/live cards on phones: same content, about half the height ── */
 @media(max-width:640px){
   .arena-grid{gap:14px}
@@ -250,8 +225,6 @@ img{max-width:100%}
   .tcard:not(.past) .tmeta .row b{font-size:.84rem;text-align:left;font-weight:600}
   .tcard:not(.past) .troster{display:none} /* who's in: "N/12 squads · tap to view" opens the full list */
   .tcard:not(.past) .tslots-label{margin-bottom:12px}
-  .tcard.past{padding:8px;column-gap:12px;grid-template-columns:64px 1fr}
-  .tcard.past .tcard-media{height:64px;width:64px}
 
   /* fewer buttons on phones: one main action in the hero (Discord has its own section
      further down), and no "Back to site" on the leaderboard (the tab bar has Home) */
@@ -275,3 +248,62 @@ img{max-width:100%}
   #fx-show::-webkit-scrollbar{display:none}
   #fx-show .fx-show-item{flex:0 0 84%;scroll-snap-align:center}
 }
+
+/* ── homepage tutorial ("How to join"): numbered steps that read as one path ──
+   Desktop: five cards in a row joined by a thin gold line. Phones: a vertical timeline. */
+.howto-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;position:relative;counter-reset:none}
+.howto-list::before{content:'';position:absolute;left:8%;right:8%;top:34px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-m,rgba(255,200,80,.42)),transparent)}
+.howto-step{position:relative;display:flex;flex-direction:column;gap:12px;padding:18px 16px 18px;border-radius:16px;background:var(--panel,#111827);border:1px solid var(--line,rgba(255,200,80,.14))}
+.howto-step .snum{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;flex:none;background:linear-gradient(135deg,var(--gold,#FFC83D),var(--gold-2,#FFAE00));color:#07090F;font-weight:800;font-size:.95rem;box-shadow:0 0 0 5px var(--bg,#07090F)}
+.howto-step b{display:block;font-size:1rem;margin-bottom:4px;color:var(--cream,#fff)}
+.howto-step span:not(.snum){display:block;font-size:.84rem;line-height:1.5;color:var(--silver,#A6AFC2)}
+.howto-link{display:inline-block;margin-top:8px;font-size:.82rem;font-weight:700;color:var(--gold-l,#FFDD85)}
+.howto-link:hover{text-decoration:underline;text-underline-offset:3px}
+@media(max-width:1024px){
+  .howto-list{grid-template-columns:1fr;gap:0}
+  .howto-list::before{left:33px;right:auto;top:24px;bottom:24px;width:1px;height:auto;background:linear-gradient(180deg,var(--gold-m,rgba(255,200,80,.42)),rgba(255,200,80,.08))}
+  .howto-step{flex-direction:row;align-items:flex-start;gap:14px;padding:14px 0 14px 16px;background:none;border:0;border-radius:0}
+}
+
+/* links under the event grid + empty state */
+.ev-links{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.ev-link{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:10px 18px;border-radius:999px;border:1px solid var(--line,rgba(255,200,80,.14));background:rgba(255,255,255,.03);font-weight:600;font-size:.88rem;color:var(--cream,#fff);transition:border-color .2s,background .2s}
+.ev-link:hover{border-color:var(--gold-m,rgba(255,200,80,.42));background:rgba(255,200,61,.06)}
+.ev-empty{grid-column:1/-1;text-align:center;color:var(--silver,#A6AFC2);padding:34px 18px;border:1px dashed var(--line,rgba(255,200,80,.14));border-radius:16px;margin:0}
+.ev-empty a{color:var(--gold-l,#FFDD85);text-decoration:underline;text-underline-offset:3px}
+@media(max-width:640px){.ev-links{display:grid;grid-template-columns:1fr 1fr}.ev-link{justify-content:center;padding:10px}}
+
+/* ── /events/: past events archive ── */
+.pe-head{margin:0 0 22px}
+.pe-head h1{font-family:var(--font-display);font-weight:700;font-size:clamp(2.2rem,6vw,3.2rem);line-height:1;margin:0 0 8px}
+.pe-head p{margin:0;color:var(--silver,#A6AFC2)}
+.pe-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0 26px}
+.pe-stats div{padding:14px 16px;min-width:0;border-radius:14px;background:var(--panel,#111827);border:1px solid var(--line,rgba(255,200,80,.14))}
+.pe-stats b{display:block;font-family:var(--font-display);font-size:1.9rem;line-height:1;color:var(--gold-l,#FFDD85)}
+.pe-stats span{font-size:.76rem;color:var(--silver,#A6AFC2)}
+.pe-list{display:grid;gap:12px}
+.pe-card{display:grid;grid-template-columns:96px 1fr auto;gap:16px;align-items:center;padding:12px;border-radius:16px;background:var(--panel,#111827);border:1px solid var(--line,rgba(255,200,80,.14));cursor:pointer;text-align:left;width:100%;color:inherit;font:inherit;transition:border-color .2s,transform .2s var(--ease-out)}
+.pe-card:hover{border-color:var(--gold-m,rgba(255,200,80,.42))}
+.pe-img{width:96px;height:96px;border-radius:12px;background-size:cover;background-position:center;filter:saturate(.75)}
+.pe-main{min-width:0}
+.pe-name{font-family:var(--font-display);font-weight:700;font-size:1.35rem;line-height:1.1;margin:0 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pe-meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.8rem;color:var(--silver,#A6AFC2)}
+.pe-meta b{color:var(--cream,#fff);font-weight:600}
+.pe-win{margin-top:8px;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:rgba(255,200,61,.1);border:1px solid rgba(255,200,61,.3);font-size:.8rem;font-weight:700;color:var(--gold-l,#FFDD85);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pe-status{font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--silver,#A6AFC2);white-space:nowrap}
+.pe-status.cancelled{background:rgba(255,138,138,.1);color:#FF8A8A}
+.pe-card.slim{grid-template-columns:1fr auto;padding:14px 16px}
+.pe-squads{grid-column:1/-1;display:none;flex-wrap:wrap;gap:6px;padding-top:4px;border-top:1px solid var(--line,rgba(255,200,80,.14));margin-top:2px}
+.pe-card.open .pe-squads{display:flex;padding-top:12px}
+.pe-squads span{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.05);font-size:.8rem}
+.pe-squads img{width:20px;height:20px;border-radius:50%;object-fit:cover}
+.pe-empty{text-align:center;color:var(--silver,#A6AFC2);padding:40px 16px;border:1px dashed var(--line,rgba(255,200,80,.14));border-radius:16px}
+@media(max-width:640px){
+  .pe-card{grid-template-columns:64px 1fr;gap:12px;padding:10px}
+  .pe-img{width:64px;height:64px}
+  .pe-name{font-size:1.15rem}
+  .pe-card>.pe-status{display:none}
+  .pe-card.slim{grid-template-columns:1fr auto}
+  .pe-card.slim>.pe-status{display:inline-block}
+}
+@media(prefers-reduced-motion:reduce){.pe-card,.ev-link{transition:none}}

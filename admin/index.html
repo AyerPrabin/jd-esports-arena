@@ -396,7 +396,10 @@ h2[id]{scroll-margin-top:64px}
   <div id="pp-list"></div>
 
   <h2 id="wallets">Points <span class="tag">1 point = Rs 1</span></h2>
-  <p class="hint">Got a payment screenshot on WhatsApp? Search the username from the eSewa remarks, check it's the right player, then add the points.</p>
+  <p class="hint">Players upload their eSewa screenshot on the Wallet page. Check each one below (amount, and the username in the remarks), then approve to add the points or reject it.</p>
+  <div class="row" style="margin:0 0 6px"><button class="btn" onclick="loadLoads()">🧾 Payment screenshots to check <span id="wl-count"></span></button><div id="wl-msg" class="hint"></div></div>
+  <div id="wl-list"></div>
+  <p class="hint" style="margin-top:14px">Need to add points by hand? Search the player, then add them.</p>
   <div class="grid">
     <div class="f full"><label>Find player</label><input id="wa-q" placeholder="Type a username, tag or email" autocomplete="off" oninput="waSearch()"></div>
   </div>
@@ -459,7 +462,7 @@ function unlock(){
   localStorage.setItem('jd_admin_secret',v);
   document.getElementById('gate').style.display='none';
   document.getElementById('app').style.display='';
-  loadLive();loadSecurity();
+  loadLive();loadSecurity();loadLoads();
 }
 function changePasscode(){
   if(!confirm('Clear the saved admin passcode on this device? You\'ll need to re-enter it to send room codes or notify players again.'))return;
@@ -658,8 +661,8 @@ window.fetch=async function(input,init){
   return _rawFetch(input,Object.assign({},init||{},{headers:h}));
 };
 (async function(){
-  if(await refreshAdminSecret()){document.getElementById('gate').style.display='none';document.getElementById('app').style.display='';loadLive();loadSecurity();return;}
-  if(adminSecret()){document.getElementById('gate').style.display='none';document.getElementById('app').style.display='';loadLive();loadSecurity();return;}
+  if(await refreshAdminSecret()){document.getElementById('gate').style.display='none';document.getElementById('app').style.display='';loadLive();loadSecurity();loadLoads();return;}
+  if(adminSecret()){document.getElementById('gate').style.display='none';document.getElementById('app').style.display='';loadLive();loadSecurity();loadLoads();return;}
   tryGoogleSession();
 })();
 const TF=[['name','Name','text'],['game','Game / mode','text'],['date','Date (display)','text'],['time','Time','text'],['start','Start (ISO, for countdown)','text'],['prize','Prize pool','text'],['entry','Entry fee','text'],['platform','Platform','text'],['slots','Slots (max squads)','number'],['format','Format','text'],['register_url','Register URL','text'],['winner','Winner (if done)','text']];
@@ -1437,6 +1440,40 @@ async function loadChallenges(){
     });
     chgMsg((d.disputed||[]).length+' dispute(s).',(d.disputed||[]).length?'err':'ok');
   }catch(e){chgMsg(e.message,'err');}
+}
+/* ── points loads: screenshots uploaded on /wallet/ (wallet-admin loads / resolve_load) ── */
+function wlMsg(t,c){const el=document.getElementById('wl-msg');if(el){el.textContent=t;el.className='hint '+(c||'');}}
+async function loadLoads(){
+  const box=document.getElementById('wl-list');wlMsg('Loading…','');
+  try{
+    const rows=await waCall({action:'loads'});
+    document.getElementById('wl-count').textContent=rows.length?'('+rows.length+')':'';
+    box.innerHTML=rows.length?rows.map(r=>`<div class="card" style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start">
+      <a href="${esc(r.screenshot)}" target="_blank" rel="noopener" title="Open full size"><img src="${esc(r.screenshot)}" alt="Payment screenshot" style="width:150px;max-height:260px;object-fit:contain;border-radius:10px;border:1px solid var(--line);background:#000"></a>
+      <div style="flex:1;min-width:200px">
+        <b style="font-size:1.05rem">${esc(r.players?('@'+(r.players.username||r.players.player_tag)):'player')}</b>
+        <div class="hint" style="margin:2px 0 8px">${esc(r.players&&r.players.player_tag||'')} · sent ${esc(new Date(r.created_at).toLocaleString())}</div>
+        <div class="grid">
+          <div class="f"><label>Points to add (they said Rs ${r.amount})</label><input id="wl-amt-${r.id}" type="number" min="1" value="${r.amount}"></div>
+          <div class="f"><label>Note to player <span class="tag">optional</span></label><input id="wl-note-${r.id}" placeholder="e.g. reason for rejecting"></div>
+        </div>
+        <div class="row" style="margin-top:10px"><button class="btn" data-wl-ok="${r.id}">✓ Approve &amp; add points</button><button class="btn ghost" data-wl-no="${r.id}">✕ Reject</button></div>
+      </div></div>`).join(''):'<p class="hint">No screenshots waiting. 🎉</p>';
+    box.querySelectorAll('[data-wl-ok]').forEach(b=>b.onclick=()=>resolveLoad(b,b.dataset.wlOk,true));
+    box.querySelectorAll('[data-wl-no]').forEach(b=>b.onclick=()=>resolveLoad(b,b.dataset.wlNo,false));
+    wlMsg(rows.length+' waiting.','ok');
+  }catch(e){wlMsg(e.message,'err');}
+}
+async function resolveLoad(btn,id,approve){
+  const amount=parseInt((document.getElementById('wl-amt-'+id)||{}).value,10),note=(document.getElementById('wl-note-'+id)||{}).value||'';
+  if(approve&&!(amount>0)){wlMsg('Enter the points to add.','err');return;}
+  if(!confirm(approve?`Add ${amount} points to this player? Only do this if the payment is in your eSewa.`:'Reject this payment screenshot?'))return;
+  btn.disabled=true;
+  try{
+    const d=await waCall({action:'resolve_load',id,approve,amount,note});
+    wlMsg(approve?`Added ${d.amount} points — new balance ${d.balance}. The player was notified.`:'Rejected — the player was notified.','ok');
+    loadLoads();
+  }catch(e){wlMsg(e.message,'err');btn.disabled=false;}
 }
 async function loadWithdrawals(){
   const box=document.getElementById('wa-wlist');waMsg('Loading…','');

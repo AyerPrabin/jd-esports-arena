@@ -5,7 +5,8 @@
 // Five jobs share this one tick:
 //   1. Reminds players 24 hours before a tournament they're registered for starts
 //      (the "last day" message — email + push + in-app).
-//   2. Nudges confirmed/approved players to check in ~30 minutes before start.
+//   2. Tells confirmed/approved players check-in is open (12 hours before start), and
+//      nudges anyone still not checked in ~30 minutes before start.
 //   3. Sweeps each tournament exactly once, ~10 minutes before start: anyone
 //      confirmed/approved who never checked in gets forfeited ('no_show'),
 //      which frees their slot — the existing promote_from_waitlist() trigger
@@ -78,6 +79,7 @@ async function sendPush(_appId: string | undefined, _apiKey: string | undefined,
 
 const WINDOWS = [
   { key: '24h', ms: 24 * 60 * 60 * 1000, label: '24 hours' },
+  { key: 'checkin_open', ms: 12 * 60 * 60 * 1000, label: '12 hours' },
   { key: 'checkin', ms: 30 * 60 * 1000, label: '30 minutes' },
 ];
 const FORFEIT_CUTOFF_MS = 10 * 60 * 1000; // sweep eligible once a tournament is this close to (or past) start
@@ -146,7 +148,7 @@ Deno.serve(async (req: Request) => {
 
   let sent = 0;
   for (const { tournament: t, window: w } of due) {
-    const isCheckin = w.key === 'checkin';
+    const isCheckin = w.key === 'checkin' || w.key === 'checkin_open';
     let regsQuery = supabase
       .from('registrations')
       .select('player_id, checked_in_at, players(email, username)')
@@ -155,11 +157,16 @@ Deno.serve(async (req: Request) => {
     const { data: regs, error: regErr } = await regsQuery;
     if (regErr || !regs || !regs.length) continue;
 
-    const title = isCheckin
+    // distinct titles: the "already reminded" check below matches on the title
+    const title = w.key === 'checkin_open'
+      ? `Check-in is open: ${t.name}`
+      : isCheckin
       ? `Check in now: ${t.name}`
       : `Reminder: ${t.name} starts in ${w.label}`;
-    const body = isCheckin
-      ? `${t.name} starts in 30 minutes — tap Check In on the tournament card or you may lose your spot to the waitlist.`
+    const body = w.key === 'checkin_open'
+      ? `${t.name} starts in 12 hours. Check in now on your ticket — check in at least 10 minutes before the start or your slot goes to the waitlist.`
+      : isCheckin
+      ? `${t.name} starts in 30 minutes — tap Check In on your ticket now, or your slot is released to the waitlist 10 minutes before the start.`
       : `${t.name} starts in ${w.label} (${t.date || ''}${t.time ? ' - ' + t.time : ''}). Make sure you're ready.`;
 
     const pushIds: string[] = [];

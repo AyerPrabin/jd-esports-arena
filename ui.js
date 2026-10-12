@@ -23,6 +23,7 @@
   var path = location.pathname;
   var current =
     /^\/challenges/.test(path) ? 'fight' :
+    /^\/events/.test(path) ? 'events' :
     /^\/leaderboard/.test(path) ? 'ranks' :
     /^\/(profile|wallet)/.test(path) ? 'me' :
     (path === '/' || /^\/index\.html$/.test(path)) ? (location.hash === '#tournaments' ? 'events' : 'home') : '';
