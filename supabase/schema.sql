@@ -3538,3 +3538,347 @@ E'  declare v_open timestamptz;
 end $$;
 
 commit;
+
+-- ── friends + direct messages (Messenger) ─────────────────────────────────
+-- Players add each other by username or JD tag; once a request is accepted they can
+-- message each other 1:1 (chat.js, the 💬 bubble on every page). Everything goes through
+-- the SECURITY DEFINER RPCs below (players RLS only exposes a player's own row).
+-- * Friend requests/accepts land in notifications (push = true, so the existing trigger
+--   pushes them). DMs do NOT — they'd flood Notification History — they are pushed by
+--   the dm-push Edge Function instead (trigger dm_messages_push, same vault secrets).
+-- * Block: removes the friendship and stops requests/messages both ways.
+-- * last_seen_at drives the green "online" dot; dm_poll() refreshes it at most once a minute.
+-- * Messages are kept 180 days (purge_old_personal_data, see /privacy/) and are deleted
+--   with either account (on delete cascade). Idempotent.
+begin;
+alter table public.players add column if not exists last_seen_at timestamptz;
+
+create table if not exists public.friendships (
+  id bigserial primary key,
+  requester uuid not null references public.players(id) on delete cascade,
+  addressee uuid not null references public.players(id) on delete cascade,
+  status text not null default 'pending' check (status in ('pending','accepted')),
+  created_at timestamptz not null default now(),
+  accepted_at timestamptz,
+  check (requester <> addressee)
+);
+create unique index if not exists friendships_pair_idx on public.friendships (least(requester, addressee), greatest(requester, addressee));
+create index if not exists friendships_addressee_idx on public.friendships (addressee, status);
+create index if not exists friendships_requester_idx on public.friendships (requester, status);
+alter table public.friendships enable row level security;
+drop policy if exists "players read own friendships" on public.friendships;
+create policy "players read own friendships" on public.friendships
+  for select using (auth.uid() in (requester, addressee));
+
+create table if not exists public.player_blocks (
+  blocker uuid not null references public.players(id) on delete cascade,
+  blocked uuid not null references public.players(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (blocker, blocked)
+);
+alter table public.player_blocks enable row level security;
+drop policy if exists "players read own blocks" on public.player_blocks;
+create policy "players read own blocks" on public.player_blocks
+  for select using (auth.uid() = blocker);
+
+create table if not exists public.dm_messages (
+  id bigserial primary key,
+  sender uuid not null references public.players(id) on delete cascade,
+  recipient uuid not null references public.players(id) on delete cascade,
+  body text not null check (length(body) between 1 and 500),
+  created_at timestamptz not null default now(),
+  read_at timestamptz
+);
+create index if not exists dm_messages_pair_idx on public.dm_messages (least(sender, recipient), greatest(sender, recipient), id desc);
+create index if not exists dm_messages_unread_idx on public.dm_messages (recipient, sender) where read_at is null;
+create index if not exists dm_messages_sender_time_idx on public.dm_messages (sender, created_at desc);
+alter table public.dm_messages enable row level security;
+drop policy if exists "participants read direct messages" on public.dm_messages;
+create policy "participants read direct messages" on public.dm_messages
+  for select using (auth.uid() in (sender, recipient));
+
+-- ── helpers ──
+create or replace function public._find_player(p_who text)
+returns uuid language sql stable security definer set search_path = public as $$
+  select id from public.players
+  where lower(username) = lower(trim(regexp_replace(coalesce(p_who, ''), '^\s*@', '')))
+     or upper(player_tag) = upper(trim(coalesce(p_who, '')))
+  limit 1
+$$;
+
+create or replace function public._blocked_either(a uuid, b uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists(select 1 from public.player_blocks where (blocker = a and blocked = b) or (blocker = b and blocked = a))
+$$;
+
+create or replace function public._are_friends(a uuid, b uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists(select 1 from public.friendships
+    where status = 'accepted' and least(requester, addressee) = least(a, b) and greatest(requester, addressee) = greatest(a, b))
+$$;
+
+create or replace function public._chat_name(p uuid)
+returns text language sql stable security definer set search_path = public as $$
+  select coalesce('@' || username, player_tag, 'a player') from public.players where id = p
+$$;
+
+create or replace function public._chat_card(p uuid)
+returns jsonb language sql stable security definer set search_path = public as $$
+  select jsonb_build_object('id', id, 'username', username, 'tag', player_tag, 'logo', squad_logo,
+    'squad', squad_name, 'app', app_installed_at is not null,
+    'online', coalesce(last_seen_at > now() - interval '2 minutes', false), 'seen', last_seen_at)
+  from public.players where id = p
+$$;
+
+-- ── friend requests ──
+create or replace function public.send_friend_request(p_who text)
+returns text language plpgsql security definer set search_path = public as $$
+declare v_me uuid := auth.uid(); v_to uuid; f public.friendships;
+begin
+  if v_me is null then raise exception 'Please sign in first.'; end if;
+  if exists(select 1 from public.banned_players where player_id = v_me) then raise exception 'Your account is banned.'; end if;
+  v_to := public._find_player(p_who);
+  if v_to is null or public._blocked_either(v_me, v_to) then
+    raise exception 'No player called %.', coalesce(nullif(trim(p_who), ''), '(blank)');
+  end if;
+  if v_to = v_me then raise exception 'That''s you!'; end if;
+  select * into f from public.friendships
+    where least(requester, addressee) = least(v_me, v_to) and greatest(requester, addressee) = greatest(v_me, v_to);
+  if f.id is not null then
+    if f.status = 'accepted' then return 'already'; end if;
+    if f.requester = v_me then return 'pending'; end if;
+    -- they already asked us: adding them back accepts it
+    update public.friendships set status = 'accepted', accepted_at = now() where id = f.id;
+    insert into public.notifications (player_id, title, body)
+      values (v_to, '🤝 ' || public._chat_name(v_me) || ' is now your friend', 'You can message each other now. Tap 💬 Messages to say hi.');
+    return 'accepted';
+  end if;
+  if (select count(*) from public.friendships where requester = v_me and created_at > now() - interval '1 hour') >= 30 then
+    raise exception 'Too many friend requests. Try again in a while.';
+  end if;
+  insert into public.friendships (requester, addressee) values (v_me, v_to);
+  insert into public.notifications (player_id, title, body)
+    values (v_to, '👋 Friend request from ' || public._chat_name(v_me), 'Open 💬 Messages to accept or decline.');
+  return 'sent';
+end;
+$$;
+
+create or replace function public.respond_friend_request(p_from uuid, p_accept boolean)
+returns void language plpgsql security definer set search_path = public as $$
+declare v_me uuid := auth.uid(); v_id bigint;
+begin
+  if v_me is null then raise exception 'Please sign in first.'; end if;
+  select id into v_id from public.friendships where requester = p_from and addressee = v_me and status = 'pending';
+  if v_id is null then raise exception 'That request is no longer pending.'; end if;
+  if p_accept then
+    update public.friendships set status = 'accepted', accepted_at = now() where id = v_id;
+    insert into public.notifications (player_id, title, body)
+      values (p_from, '🤝 ' || public._chat_name(v_me) || ' accepted your friend request', 'You can message each other now. Tap 💬 Messages to say hi.');
+  else
+    delete from public.friendships where id = v_id;
+  end if;
+end;
+$$;
+
+-- unfriend, or cancel a request either of you sent
+create or replace function public.remove_friend(p_who uuid)
+returns void language sql security definer set search_path = public as $$
+  delete from public.friendships
+  where auth.uid() is not null
+    and least(requester, addressee) = least(auth.uid(), p_who) and greatest(requester, addressee) = greatest(auth.uid(), p_who)
+$$;
+
+create or replace function public.block_player(p_who uuid)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'Please sign in first.'; end if;
+  if p_who = auth.uid() then raise exception 'That''s you!'; end if;
+  perform public.remove_friend(p_who);
+  insert into public.player_blocks (blocker, blocked) values (auth.uid(), p_who) on conflict do nothing;
+end;
+$$;
+
+create or replace function public.unblock_player(p_who uuid)
+returns void language sql security definer set search_path = public as $$
+  delete from public.player_blocks where blocker = auth.uid() and blocked = p_who
+$$;
+
+-- ── messages ──
+create or replace function public.send_dm(p_to uuid, p_body text)
+returns bigint language plpgsql security definer set search_path = public as $$
+declare v_me uuid := auth.uid(); v_id bigint;
+begin
+  if v_me is null then raise exception 'Please sign in first.'; end if;
+  p_body := trim(coalesce(p_body, ''));
+  if length(p_body) < 1 or length(p_body) > 500 then raise exception 'Messages must be 1-500 characters.'; end if;
+  if exists(select 1 from public.banned_players where player_id = v_me) then raise exception 'Your account is banned.'; end if;
+  if not public._are_friends(v_me, p_to) or public._blocked_either(v_me, p_to) then
+    raise exception 'You can only message your friends.';
+  end if;
+  if (select count(*) from public.dm_messages where sender = v_me and created_at > now() - interval '10 seconds') >= 8 then
+    raise exception 'Slow down a little.';
+  end if;
+  insert into public.dm_messages (sender, recipient, body) values (v_me, p_to, p_body) returning id into v_id;
+  return v_id;
+end;
+$$;
+
+-- newest-first page of a conversation; p_after = only messages newer than that id
+create or replace function public.dm_thread(p_with uuid, p_before bigint default null, p_after bigint default null)
+returns table (id bigint, mine boolean, body text, created_at timestamptz, read_at timestamptz)
+language sql stable security definer set search_path = public as $$
+  select m.id, m.sender = auth.uid(), m.body, m.created_at, m.read_at
+  from public.dm_messages m
+  where auth.uid() is not null
+    and least(m.sender, m.recipient) = least(auth.uid(), p_with) and greatest(m.sender, m.recipient) = greatest(auth.uid(), p_with)
+    and (p_before is null or m.id < p_before)
+    and (p_after is null or m.id > p_after)
+  order by m.id desc
+  limit 60
+$$;
+
+create or replace function public.dm_mark_read(p_with uuid)
+returns int language plpgsql security definer set search_path = public as $$
+declare n int;
+begin
+  update public.dm_messages set read_at = now() where recipient = auth.uid() and sender = p_with and read_at is null;
+  get diagnostics n = row_count;
+  return n;
+end;
+$$;
+
+-- the cheap 5-second poll behind the 💬 badge: unread total, pending requests, the newest
+-- unread message (for the in-app banner), and a throttled "online" heartbeat
+create or replace function public.dm_poll()
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_me uuid := auth.uid(); v_last jsonb;
+begin
+  if v_me is null then return null; end if;
+  update public.players set last_seen_at = now()
+    where id = v_me and (last_seen_at is null or last_seen_at < now() - interval '1 minute');
+  select jsonb_build_object('id', m.id, 'from', m.sender, 'name', public._chat_name(m.sender), 'body', left(m.body, 140))
+    into v_last
+    from public.dm_messages m
+    where m.recipient = v_me and m.read_at is null and not public._blocked_either(v_me, m.sender)
+    order by m.id desc limit 1;
+  return jsonb_build_object(
+    'unread', (select count(*) from public.dm_messages m where m.recipient = v_me and m.read_at is null
+                 and not exists(select 1 from public.player_blocks b where b.blocker = v_me and b.blocked = m.sender)),
+    'requests', (select count(*) from public.friendships where addressee = v_me and status = 'pending'),
+    'last', v_last);
+end;
+$$;
+
+-- everything the Messages panel lists: friends (latest message + unread first), requests, blocks
+create or replace function public.chat_overview()
+returns jsonb language sql stable security definer set search_path = public as $$
+  with me as (select auth.uid() as id),
+  fr as (
+    select f.*, case when f.requester = me.id then f.addressee else f.requester end as other
+    from public.friendships f, me where me.id in (f.requester, f.addressee)
+  ),
+  friends as (
+    select fr.other, lm.id as last_id, lm.body as last_body, lm.created_at as last_at, lm.sender = (select id from me) as last_mine, lm.read_at as last_read,
+      (select count(*) from public.dm_messages u where u.recipient = (select id from me) and u.sender = fr.other and u.read_at is null) as unread
+    from fr
+    left join lateral (
+      select m.* from public.dm_messages m
+      where least(m.sender, m.recipient) = least((select id from me), fr.other) and greatest(m.sender, m.recipient) = greatest((select id from me), fr.other)
+      order by m.id desc limit 1
+    ) lm on true
+    where fr.status = 'accepted'
+  )
+  select jsonb_build_object(
+    'friends', coalesce((select jsonb_agg(public._chat_card(f.other) || jsonb_build_object(
+        'last_id', f.last_id, 'last_body', left(f.last_body, 120), 'last_at', f.last_at, 'last_mine', f.last_mine,
+        'last_read', f.last_read is not null, 'unread', f.unread)
+      order by f.last_at desc nulls last) from friends f), '[]'::jsonb),
+    'incoming', coalesce((select jsonb_agg(public._chat_card(fr.other) || jsonb_build_object('at', fr.created_at) order by fr.created_at desc)
+      from fr where fr.status = 'pending' and fr.addressee = (select id from me)), '[]'::jsonb),
+    'outgoing', coalesce((select jsonb_agg(public._chat_card(fr.other) || jsonb_build_object('at', fr.created_at) order by fr.created_at desc)
+      from fr where fr.status = 'pending' and fr.requester = (select id from me)), '[]'::jsonb),
+    'blocked', coalesce((select jsonb_agg(public._chat_card(b.blocked) order by b.created_at desc)
+      from public.player_blocks b where b.blocker = (select id from me)), '[]'::jsonb)
+  )
+  where (select id from me) is not null
+$$;
+
+-- player card for a ?dm=<tag> deep link / search preview (friends or anyone you're not blocked by)
+create or replace function public.chat_player(p_who text)
+returns jsonb language plpgsql stable security definer set search_path = public as $$
+declare v uuid;
+begin
+  if auth.uid() is null then return null; end if;
+  v := public._find_player(p_who);
+  if v is null or public._blocked_either(auth.uid(), v) then return null; end if;
+  return public._chat_card(v) || jsonb_build_object('friend', public._are_friends(auth.uid(), v));
+end;
+$$;
+
+revoke all on function public._find_player(text) from public, anon, authenticated;
+revoke all on function public._blocked_either(uuid, uuid) from public, anon, authenticated;
+revoke all on function public._are_friends(uuid, uuid) from public, anon, authenticated;
+revoke all on function public._chat_name(uuid) from public, anon, authenticated;
+revoke all on function public._chat_card(uuid) from public, anon, authenticated;
+revoke all on function public.send_friend_request(text) from public, anon;
+revoke all on function public.respond_friend_request(uuid, boolean) from public, anon;
+revoke all on function public.remove_friend(uuid) from public, anon;
+revoke all on function public.block_player(uuid) from public, anon;
+revoke all on function public.unblock_player(uuid) from public, anon;
+revoke all on function public.send_dm(uuid, text) from public, anon;
+revoke all on function public.dm_thread(uuid, bigint, bigint) from public, anon;
+revoke all on function public.dm_mark_read(uuid) from public, anon;
+revoke all on function public.dm_poll() from public, anon;
+revoke all on function public.chat_overview() from public, anon;
+revoke all on function public.chat_player(text) from public, anon;
+grant execute on function public.send_friend_request(text) to authenticated;
+grant execute on function public.respond_friend_request(uuid, boolean) to authenticated;
+grant execute on function public.remove_friend(uuid) to authenticated;
+grant execute on function public.block_player(uuid) to authenticated;
+grant execute on function public.unblock_player(uuid) to authenticated;
+grant execute on function public.send_dm(uuid, text) to authenticated;
+grant execute on function public.dm_thread(uuid, bigint, bigint) to authenticated;
+grant execute on function public.dm_mark_read(uuid) to authenticated;
+grant execute on function public.dm_poll() to authenticated;
+grant execute on function public.chat_overview() to authenticated;
+grant execute on function public.chat_player(text) to authenticated;
+
+-- ── push each new DM (dm-push Edge Function; a failed hand-off never blocks the send) ──
+create or replace function public.dm_messages_push() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare v_ids bigint[];
+begin
+  select array_agg(id) into v_ids from new_rows;
+  if v_ids is null then return null; end if;
+  begin
+    perform net.http_post(
+      url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/dm-push',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret')
+      ),
+      body := jsonb_build_object('ids', to_jsonb(v_ids))
+    );
+  exception when others then
+    raise warning 'dm_messages_push: %', sqlerrm;
+  end;
+  return null;
+end;
+$$;
+revoke all on function public.dm_messages_push() from public, anon, authenticated;
+drop trigger if exists dm_messages_push on public.dm_messages;
+create trigger dm_messages_push after insert on public.dm_messages
+  referencing new table as new_rows for each statement execute function public.dm_messages_push();
+
+-- retention: direct messages are deleted after 180 days (stated on /privacy/)
+do $$
+declare d text;
+begin
+  select pg_get_functiondef('public.purge_old_personal_data()'::regprocedure) into d;
+  if position('dm_messages' in d) = 0 then
+    d := replace(d, E'  return jsonb_build_object(',
+      E'  delete from public.dm_messages where created_at < now() - interval ''180 days'';\n  return jsonb_build_object(');
+    execute d;
+  end if;
+end $$;
+commit;

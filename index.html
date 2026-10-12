@@ -600,12 +600,12 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .notify-btn.on{background:var(--gold);color:#0a0a12;border-color:var(--gold)}
 .icon-btn{position:relative;background:transparent;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:30px;width:42px;height:42px;display:inline-flex;align-items:center;justify-content:center;font-size:1.2rem;cursor:pointer;transition:.2s;flex:none}
 .icon-btn:hover{background:rgba(255,200,61,.12)}
-.icon-btn .badge{position:absolute;top:-6px;right:-6px;background:var(--gold);color:#0a0a12;font-size:.66rem;font-weight:700;border-radius:10px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1;box-shadow:0 0 0 2px var(--bg,#05080f)}
+.icon-btn .badge{position:absolute;top:-6px;right:-6px;background:#FF3B5C;color:#fff;font-size:.66rem;font-weight:800;border-radius:10px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;padding:0 4px;line-height:1;box-shadow:0 0 0 2px var(--bg,#05080f),0 2px 8px rgba(255,59,92,.45)}
 .icon-btn .badge[hidden]{display:none}
 #notifhist-btn.has-unread{border-color:var(--gold);box-shadow:0 0 14px rgba(255,200,61,.28)}
 #notifhist-btn.has-unread .badge{animation:badgePulse 2.2s ease-out infinite}
 #notifhist-btn.ring{animation:bellRing .9s cubic-bezier(.36,.07,.19,.97)}
-@keyframes badgePulse{0%{box-shadow:0 0 0 2px var(--bg,#05080f),0 0 0 2px rgba(255,200,61,.55)}70%{box-shadow:0 0 0 2px var(--bg,#05080f),0 0 0 9px rgba(255,200,61,0)}100%{box-shadow:0 0 0 2px var(--bg,#05080f),0 0 0 2px rgba(255,200,61,0)}}
+@keyframes badgePulse{0%{box-shadow:0 0 0 2px var(--bg,#05080f),0 0 0 2px rgba(255,59,92,.6)}70%{box-shadow:0 0 0 2px var(--bg,#05080f),0 0 0 9px rgba(255,59,92,0)}100%{box-shadow:0 0 0 2px var(--bg,#05080f),0 0 0 2px rgba(255,59,92,0)}}
 @keyframes bellRing{0%,100%{transform:rotate(0)}15%{transform:rotate(14deg)}30%{transform:rotate(-12deg)}45%{transform:rotate(9deg)}60%{transform:rotate(-6deg)}75%{transform:rotate(3deg)}}
 @media(prefers-reduced-motion:reduce){#notifhist-btn.has-unread .badge,#notifhist-btn.ring{animation:none}}
 .dl-wrap{position:relative}
@@ -3308,7 +3308,9 @@ function notifItemHtml(n){
   const unreadClass=n.read_at?'':' unread';
   if(n.body&&n.body.startsWith('TICKET::'))return notifTicketHtml(n,unreadClass);
   const rc=n.room_id?`<div class="rc"><span>Room ID: <b>${esc(n.room_id)}</b>${n.room_pass?' · Pass: <b>'+esc(n.room_pass)+'</b>':''}</span><button type="button" class="rc-copy" data-id="${esc(n.room_id)}" data-pass="${esc(n.room_pass||'')}" onclick="copyRoom(this,this.dataset.id,this.dataset.pass)">Copy</button></div>`:'';
-  return `<div class="notif-item${unreadClass}"><div class="t">${esc(n.title)}</div>${n.body?`<div class="b">${esc(n.body)}</div>`:''}${rc}${notifTimeHtml(n.created_at)}</div>`;
+  // friend requests/accepts (schema.sql "friends + direct messages") open the 💬 Messages panel (chat.js)
+  const fr=/friend request|your friend/i.test(n.title||'')&&window.jdChat?`<button type="button" class="rc-copy" style="margin-top:8px" onclick="notifHistClose();jdChat.open()">💬 Open Messages</button>`:'';
+  return `<div class="notif-item${unreadClass}"><div class="t">${esc(n.title)}</div>${n.body?`<div class="b">${esc(n.body)}</div>`:''}${rc}${fr}${notifTimeHtml(n.created_at)}</div>`;
 }
 /* ── chime: 'notify' plays the real notify.mp3 file; 'install' (and 'notify' if the
    file ever fails to play — blocked autoplay, missing file, etc.) falls back to a
@@ -3330,9 +3332,10 @@ function notifBanner(n){
   let b=document.getElementById('notif-banner');
   if(!b){b=document.createElement('button');b.id='notif-banner';b.type='button';b.className='notif-banner';document.body.appendChild(b);}
   const isChallenge=/challenge/i.test(n.title||'');
+  const isFriend=/friend request|your friend/i.test(n.title||'')&&window.jdChat;
   const body=String(n.body||'').startsWith('TICKET::')?'Your ticket is ready — tap to view.':String(n.body||'');
-  b.innerHTML=`<span class="nb-ic">${isChallenge?'⚔️':'🔔'}</span><span class="nb-t"><b>${esc(n.title||'New notification')}</b><small>${esc(body.slice(0,110))}${body.length>110?'…':''}</small></span>`;
-  b.onclick=()=>{b.classList.remove('show');if(isChallenge)location.href='/challenges/';else notifHistOpen();};
+  b.innerHTML=`<span class="nb-ic">${isChallenge?'⚔️':isFriend?'👋':'🔔'}</span><span class="nb-t"><b>${esc(n.title||'New notification')}</b><small>${esc(body.slice(0,110))}${body.length>110?'…':''}</small></span>`;
+  b.onclick=()=>{b.classList.remove('show');if(isChallenge)location.href='/challenges/';else if(isFriend)window.jdChat.open();else notifHistOpen();};
   b.classList.remove('show');void b.offsetWidth;b.classList.add('show');
   clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('show'),6500);
 }
@@ -3841,5 +3844,6 @@ zChrome();
 setTimeout(showNudge,13000);
 </script>
 <script src="/ui.js?v=14" defer></script>
+<script src="/chat.js?v=1" defer></script>
 </body>
 </html>
