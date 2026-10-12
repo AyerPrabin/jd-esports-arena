@@ -436,6 +436,14 @@ async function openRoom(id){
   clearInterval(chatTimer);chatTimer=setInterval(()=>{if(!document.hidden&&roomId===id)renderRoom(true);},4000);
   window.scrollTo({top:0,behavior:'smooth'});
 }
+// "Add friend / message" for the other player (💬 Messages, /chat.js)
+function friendBtn(c,isCreator){
+  const other=isCreator?c.opponent:c.creator;
+  if(!other||!window.jdChat)return '';
+  const raw=String((names.get(other)||{}).name||'').replace(/^@/,'').split(/\s/)[0].replace(/[^A-Za-z0-9_-]/g,'');
+  if(!raw)return '';
+  return `<button class="btn ghost" type="button" style="margin:0 0 10px;width:100%" onclick="jdChat.connect('${raw}')">💬 Message or add @${esc(raw)} as a friend</button>`;
+}
 async function renderRoom(quiet){
   const {data:c}=await sb.from('challenges').select('*').eq('id',roomId).maybeSingle();
   if(!c){
@@ -479,6 +487,7 @@ async function renderRoom(quiet){
       <div class="vs">${side(c.creator,nm(c.creator),isCreator)}<div class="x">VS</div>${c.opponent?side(c.opponent,nm(c.opponent),!isCreator):`<div class="side">${c.invited?nm(c.invited)+' (invited)':'Open'}</div>`}</div>
       <div class="sum" style="margin:0 0 8px"><span>${c.stake} points each${c.note?' · '+esc(c.note):''}</span><span style="text-align:right">Winner gets<br><b>${pot(c.stake).toLocaleString()}</b></span></div>
       <div class="room-rules">${ruleChips(c)}</div>
+      ${friendBtn(c,isCreator)}
       ${timer?`<div class="timer">${timer}</div>`:''}${action}${roomBlock}${chatBlock}
       <button class="btn ghost" type="button" style="margin-top:14px" onclick="setTab('mine')">← My challenges</button>`;
     bindRoom(c);
@@ -625,7 +634,10 @@ async function start(){
   $('app').hidden=false;renderCreate();setupAlerts();setupDaily();await loadBalance();
   const deep=new URLSearchParams(location.search).get('c');
   $('help-btn').hidden=false;
-  if(deep)openRoom(deep);else{setTab('lobby');tutMaybe();}
+  const inv=new URLSearchParams(location.search).get('invite'); // "Challenge" from a 💬 Messages chat
+  if(deep)openRoom(deep);
+  else if(inv){setTab('create');const ch=$('who').querySelector('.chip[data-w="direct"]');if(ch)ch.click();$('invite').value=inv.replace(/[^A-Za-z0-9_-]/g,'');}
+  else{setTab('lobby');tutMaybe();}
   loadMine();
   setInterval(()=>{if(document.hidden)return;loadBalance();loadLobby();if(tab==='mine')loadMine();},15000);
 }
@@ -639,6 +651,6 @@ async function start(){
 })();
 </script>
 <script src="/ui.js?v=14" defer></script>
-<script src="/chat.js?v=1" defer></script>
+<script src="/chat.js?v=2" defer></script>
 </body>
 </html>

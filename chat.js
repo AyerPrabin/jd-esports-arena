@@ -12,7 +12,7 @@
   if (!SB || !document.body) return;
 
   var css = document.createElement('link');
-  css.rel = 'stylesheet'; css.href = '/chat.css?v=1';
+  css.rel = 'stylesheet'; css.href = '/chat.css?v=2';
   document.head.appendChild(css);
 
   var NE = false;
@@ -111,6 +111,7 @@
       '<div class="dm-head"><h2>' + T('messages') + '</h2><button type="button" class="dm-ib" id="dm-close" aria-label="Close">' + ICON.x + '</button></div>' +
       '<form class="dm-add" id="dm-add" autocomplete="off"><input id="dm-add-in" maxlength="40" placeholder="' + esc(T('addPh')) + '" aria-label="' + esc(T('addPh')) + '" enterkeyhint="send"><button type="submit">' + T('add') + '</button></form>' +
       '<div class="dm-note" id="dm-note" role="status"></div>' +
+      '<div class="dm-mytag" id="dm-mytag" hidden></div>' +
       '<div class="dm-tabs" role="tablist"><button type="button" role="tab" data-t="chats" aria-selected="true">' + T('chats') + '<b id="dm-tb-chats" hidden></b></button><button type="button" role="tab" data-t="requests" aria-selected="false">' + T('requests') + '<b id="dm-tb-req" hidden></b></button></div>' +
       '<div class="dm-list" id="dm-list"></div>' +
     '</div>' +
@@ -149,6 +150,8 @@
     fab.classList.toggle('has-unread', n > 0);
     fab.setAttribute('aria-label', T('messages') + (n ? ', ' + n + ' new' : ''));
     var nc = $('nav-dm-count'); if (nc) { nc.textContent = c.textContent; nc.hidden = !n; }
+    var base = document.title.replace(/^\(\d+\+?\) /, '');
+    document.title = (badge.unread ? '(' + (badge.unread > 99 ? '99+' : badge.unread) + ') ' : '') + base;
     var tc = $('dm-tb-chats'), tr = $('dm-tb-req');
     tc.textContent = badge.unread; tc.hidden = !badge.unread;
     tr.textContent = badge.requests; tr.hidden = !badge.requests;
@@ -162,8 +165,20 @@
     fab.hidden = !me; if (navRow) navRow.hidden = !me;
     document.body.classList.toggle('has-dm', !!me);
     if (!me) { close(true); return; }
-    poll();
+    poll(); loadMyTag();
     if (pendingDeepLink) { var w = pendingDeepLink; pendingDeepLink = null; openWith(w); }
+  }
+
+  // your own JD tag, so friends can add you
+  async function loadMyTag() {
+    var id = me, r = await SB.from('players').select('username, player_tag').eq('id', id).maybeSingle();
+    var box = $('dm-mytag'); if (!r.data || id !== me) return;
+    box.innerHTML = '<span>Your tag <b>' + esc(r.data.player_tag) + '</b>' + (r.data.username ? ' · @' + esc(r.data.username) : '') + '</span><button type="button">Copy</button>';
+    box.hidden = false;
+    box.querySelector('button').onclick = function () {
+      var b = this, t = 'Add me on JD Arena: ' + (r.data.username ? '@' + r.data.username + ' · ' : '') + r.data.player_tag + ' https://jdesport.co.uk/';
+      (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { b.textContent = 'Copied ✓'; setTimeout(function () { b.textContent = 'Copy'; }, 1800); }, function () { b.textContent = r.data.player_tag; });
+    };
   }
 
   // ── polling ──
@@ -469,6 +484,7 @@
     if (!peer) return;
     var n = esc(nameOf(peer));
     sheet('<h3>' + n + '</h3>' +
+      (peer.username ? '<button type="button" class="dm-opt" data-a="challenge">⚔️ Challenge ' + n + ' to a match</button>' : '') +
       '<button type="button" class="dm-opt" data-a="remove">👋 Remove friend</button>' +
       '<button type="button" class="dm-opt red" data-a="block">⛔ Block ' + n + '</button>' +
       '<button type="button" class="dm-opt red" data-a="report">🚩 Report ' + n + '</button>' +
@@ -478,6 +494,7 @@
     var b = e.target.closest('[data-a]'); if (!b || !peer) return;
     var a = b.dataset.a, p = peer, n = esc(nameOf(p)), r;
     if (a === 'close') return closeSheet();
+    if (a === 'challenge') { location.href = '/challenges/?invite=' + encodeURIComponent(p.username); return; }
     if (a === 'remove') return sheet('<h3>Remove ' + n + '?</h3><p>You won\'t be able to message each other until one of you adds the other again. Your chat history stays.</p><div class="dm-row2"><button type="button" class="dm-btn ghost" data-a="close">' + T('cancel') + '</button><button type="button" class="dm-btn danger" data-a="remove-yes">Remove</button></div>');
     if (a === 'block') return sheet('<h3>Block ' + n + '?</h3><p>They won\'t be able to message you or send you friend requests, and they disappear from your chats. You can unblock them under Requests.</p><div class="dm-row2"><button type="button" class="dm-btn ghost" data-a="close">' + T('cancel') + '</button><button type="button" class="dm-btn danger" data-a="block-yes">Block</button></div>');
     if (a === 'report') return sheet('<h3>Report ' + n + '</h3><p>Tell the admin what happened (abuse, scams, cheating). Your report is private.</p><textarea id="dm-rep" maxlength="600" placeholder="What happened?"></textarea><div class="dm-row2"><button type="button" class="dm-btn ghost" data-a="close">' + T('cancel') + '</button><button type="button" class="dm-btn danger" data-a="report-yes">Send report</button></div>');
@@ -511,5 +528,20 @@
     }
   } catch (e) {}
 
-  window.jdChat = { open: open, close: close, openWith: openWith };
+  // "Message / add friend" buttons elsewhere (challenge room): chat if already friends, else send the request
+  async function connect(who) {
+    if (!me) return;
+    who = String(who || '').replace(/[^A-Za-z0-9_-]/g, '');
+    if (!who) return;
+    var r = await SB.rpc('chat_player', { p_who: who });
+    if (r.data && r.data.friend) { if (!isOpen) open(); openThread(r.data); return; }
+    var q = await SB.rpc('send_friend_request', { p_who: who });
+    open();
+    if (q.error) { note(q.error.message, 'err'); return; }
+    if (q.data === 'accepted') { note('You\'re friends now — say hi! 👋', 'ok'); if (r.data) { r.data.friend = true; openThread(r.data); } return; }
+    note(q.data === 'pending' ? 'Request already sent — waiting for @' + who + '.' : 'Friend request sent to @' + who + '. You can chat once they accept.', 'ok');
+    tab = 'requests'; loadOverview();
+  }
+
+  window.jdChat = { open: open, close: close, openWith: openWith, connect: connect };
 })();

@@ -57,6 +57,10 @@ body.has-zulu-fab .dm-panel{bottom:156px;height:min(600px,calc(100vh - 184px))}
 .dm-note:not(:empty){padding:6px 18px 2px}
 .dm-note.err{color:#FF8A9B}.dm-note.ok{color:var(--dm-green)}
 
+.dm-mytag{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 14px 0;padding:8px 8px 8px 14px;border-radius:12px;border:1px dashed var(--dm-line-2);font-size:.78rem;color:var(--dm-muted)}
+.dm-mytag[hidden]{display:none}
+.dm-mytag b{color:var(--dm-gold);letter-spacing:.04em}
+.dm-mytag button{flex:none;height:28px;padding:0 12px;border-radius:999px;border:0;background:rgba(255,200,61,.14);color:var(--dm-gold);font:700 .74rem var(--font-body,system-ui);cursor:pointer}
 .dm-tabs{display:flex;gap:6px;padding:10px 14px 8px}
 .dm-tabs button{position:relative;flex:none;height:34px;padding:0 14px;border-radius:999px;border:1px solid var(--dm-line);background:transparent;color:var(--dm-muted);font:700 .8rem var(--font-body,system-ui);cursor:pointer}
 .dm-tabs button[aria-selected="true"]{background:rgba(255,200,61,.14);border-color:var(--dm-line-2);color:var(--dm-gold)}
