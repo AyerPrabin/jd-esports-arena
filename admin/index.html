@@ -140,40 +140,39 @@ h2[id]{scroll-margin-top:64px}
 @keyframes cardIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.card{animation:none}.btn,.btn:active{transition:none;transform:none}}
 
-/* ── broadcast look (same language as the site's /broadcast.css): site gold, condensed
-   uppercase titles with a gold→red slash and rule, scoreboard dashboard tiles, squarer
-   controls. Admin-only: the site's stylesheet isn't loaded here. ── */
-:root{--gold:#FFC83D;--gold-l:#FFDD85;--gold-m:rgba(255,200,80,.42);--bc-red:#FF2E4D;
-  --bc-rule:linear-gradient(90deg,#FFC83D 0%,#FF8A1C 45%,#FF2E4D 75%,rgba(255,46,77,0) 100%);--bc-display:'Barlow Condensed',sans-serif}
+/* ── calm admin look: the site's fonts and gold, but gold only on primary buttons and the
+   active section link; everything else neutral grey. Colour on dashboard tiles only when it
+   means something (warning / danger). ── */
+:root{--gold:#FFC83D;--gold-l:#FFDD85;--gold-m:rgba(255,200,80,.42);--line:#1F2737;--panel:#0F141F;--bg-2:#0B0F18;--bc-display:'Barlow Condensed',sans-serif}
 body{font-family:'Geist',system-ui,sans-serif;font-weight:400}
 h1,.online-count,.dash-tile b{font-family:var(--bc-display);font-weight:700}
-h1{font-size:2.1rem;text-transform:uppercase;letter-spacing:.02em}
-h2,.dsum{position:relative;font-family:var(--bc-display);font-weight:700;font-size:1.55rem;text-transform:uppercase;letter-spacing:.03em;
-  padding-left:18px;border-bottom:0;padding-bottom:10px;background:var(--bc-rule) left bottom/100% 2px no-repeat}
-h2::before{content:'';position:absolute;left:2px;top:4px;height:1.1em;width:6px;border-radius:1px;background:linear-gradient(180deg,var(--gold),var(--bc-red));transform:skewX(-16deg)}
-.dsum{padding-left:0}
-h2 .tag,.dsum .tag{vertical-align:4px}
-.tag{position:relative;z-index:0;border:0;color:#fff;font-family:'Geist',sans-serif;font-weight:700;font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;padding:3px 11px}
-.tag::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--bc-red);transform:skewX(-16deg);border-radius:2px;opacity:.85}
-.card{border-radius:10px}
-.btn{border-radius:6px;font-family:var(--bc-display);font-size:1rem;text-transform:uppercase;letter-spacing:.05em;padding:10px 20px}
-.btn.ghost{border-color:#2A3756}
+h1{font-size:2rem;letter-spacing:.01em}
+h2,.dsum{font-family:var(--bc-display);font-weight:700;font-size:1.45rem;letter-spacing:.01em;border-bottom:1px solid var(--line);padding-bottom:8px}
+.tag{border:0;padding:0;margin-left:10px;color:var(--body);font-family:'Geist',sans-serif;font-weight:500;font-size:.74rem;letter-spacing:0;vertical-align:2px}
+.card{border-radius:10px;border-color:var(--line)}
+.btn{border-radius:6px;font-weight:600;padding:10px 18px}
+.btn:not(.ghost){background:var(--gold)}
+.btn.ghost{border-color:#2A3346;color:#DDE3EE}
+.btn.ghost:hover{border-color:#3E4A63}
 input,select,textarea{border-radius:6px}
-.adm-nav a{border-radius:4px;text-transform:uppercase;letter-spacing:.05em;font-size:.7rem;font-weight:600}
-.adm-nav{border-bottom:2px solid transparent;border-image:var(--bc-rule) 1}
-/* dashboard = scoreboard */
-.dash-tile{position:relative;overflow:hidden;border-radius:8px;background:#0b111f}
-.dash-tile::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:#2A3756}
-.dash-tile.warn::before{background:#FF9F1C}.dash-tile.info::before{background:#5FD3FF}.dash-tile.danger::before{background:var(--bc-red)}
-.dash-tile.ok::before{background:#5aab8a}.dash-tile.stat::before{background:var(--bc-rule)}
-.dash-tile b{font-size:2.3rem}
-.dash-tile span{text-transform:uppercase;letter-spacing:.06em;font-size:.68rem}
-.dash-head{text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--gold-l)}
+.adm-nav a{border-radius:6px;font-size:.76rem}
+.adm-nav a:hover{border-color:#3E4A63;background:transparent}
+.adm-nav a.on{color:#14110A;border-color:var(--gold);background:var(--gold)}
+/* dashboard: neutral tiles, coloured only when there's something to act on */
+.dash-tile{border-radius:10px;background:var(--panel);border-color:var(--line)}
+.dash-tile.warn,.dash-tile.info,.dash-tile.danger{background:var(--panel)}
+.dash-tile.warn{border-color:rgba(245,166,35,.55)}.dash-tile.warn b{color:#F5A623}
+.dash-tile.danger{border-color:rgba(229,72,77,.55)}.dash-tile.danger b{color:#E5484D}
+.dash-tile.info{border-color:var(--line)}.dash-tile.info b{color:#DDE3EE}
+.dash-tile.ok b,.dash-tile.stat b{color:#DDE3EE}
+.dash-tile b{font-size:2.2rem}
+.dash-tile span{font-size:.76rem}
+.dash-head{font-weight:600;color:var(--silver)}
 /* undo toast (deleting an unsaved tournament row) */
-#undo-toast{position:fixed;left:50%;bottom:22px;z-index:120;display:flex;align-items:center;gap:14px;padding:10px 12px 10px 18px;border-radius:8px;
-  background:#121a2e;border:1px solid var(--gold-m);box-shadow:0 14px 40px rgba(0,0,0,.6);font-size:.86rem;transform:translate(-50%,30px);opacity:0;pointer-events:none;transition:transform .25s,opacity .2s}
+#undo-toast{position:fixed;left:50%;bottom:22px;z-index:120;display:flex;align-items:center;gap:14px;padding:10px 12px 10px 18px;border-radius:10px;
+  background:#151B28;border:1px solid #2A3346;box-shadow:0 14px 40px rgba(0,0,0,.6);font-size:.86rem;transform:translate(-50%,30px);opacity:0;pointer-events:none;transition:transform .25s,opacity .2s}
 #undo-toast.show{transform:translate(-50%,0);opacity:1;pointer-events:auto}
-#undo-toast button{border:0;border-radius:4px;background:var(--gold);color:#0a0a12;font:700 .9rem var(--bc-display);text-transform:uppercase;letter-spacing:.05em;padding:6px 14px;cursor:pointer}
+#undo-toast button{border:0;border-radius:6px;background:var(--gold);color:#0a0a12;font:600 .84rem 'Geist',sans-serif;padding:6px 14px;cursor:pointer}
 @media(prefers-reduced-motion:reduce){#undo-toast{transition:none}}
 </style>
 </head>
