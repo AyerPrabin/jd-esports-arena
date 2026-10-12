@@ -873,7 +873,7 @@
     var add = function () { for (var i = 0; i < arguments.length; i++) if (out.indexOf(arguments[i]) < 0 && arguments[i].toLowerCase().indexOf(q.toLowerCase()) < 0) out.push(arguments[i]); };
     if (/(point|wallet|esewa|balance|withdraw|load)/.test(t)) add('💰 How do I load points?', '🏧 How do I withdraw?');
     if (/(challenge|clash|1v1|2v2|pot|stake)/.test(t)) add('⚔️ How does the pot work?', '🏳️ What if both say they won?');
-    if (/(tournament|register|join|check.?in|room)/.test(t)) add('✅ How do I check in?', '🎮 When do I get the room ID?');
+    if (/(tournament|register|join|room)/.test(t)) add('📝 How do I join?', '🎮 When do I get the room ID?');
     if (/(rank|leaderboard|points work|placement|kill)/.test(t)) add('🏆 How do points work?');
     if (/(cheat|hack|report|ban)/.test(t)) add('🚩 How do I report a cheater?');
     add('🏆 Next tournament?', '🎯 Free Fire tips');
@@ -896,7 +896,7 @@
       var tours = (tourCache && tourCache.tournaments) || [];
       (r[1].data || []).forEach(function (g) {
         var t = tours.find(function (x) { return x.name === g.tournament_slug; }) || {};
-        lines.push('My ticket: ' + g.tournament_slug + ' (' + g.status + (g.checked_in_at ? ', checked in' : ', not checked in yet') + ')' + (t.date ? ', ' + t.date + ' ' + (t.time || '') : '') + (t.status ? ', event ' + t.status : ''));
+        lines.push('My ticket: ' + g.tournament_slug + ' (' + (g.status === 'no_show' ? 'released earlier' : g.status) + ', slot kept, no check-in needed)' + (t.date ? ', ' + t.date + ' ' + (t.time || '') : '') + (t.status ? ', event ' + t.status : ''));
       });
       var mt = ((th || (r[2] && r[2].data) || {}).matches) || [];
       mt.forEach(function (m) { lines.push('My challenge: ' + m.mode + ' vs ' + nameOf(m.other) + ', ' + m.status + ', ' + m.stake + ' pts each' + (m.status !== 'completed' ? (m.room_id ? ', room posted' : ', no room posted yet') : '')); });
@@ -1165,7 +1165,7 @@
         return '<label class="dm-pref"><span class="dm-pref-ic" aria-hidden="true">' + x[1] + '</span><span class="dm-mid"><b>' + x[2] + '</b><small>' + x[3] + '</small></span>' + sw(x[0], off.indexOf(x[0]) < 0, x[2]) + '</label>';
       }).join('') +
       '<label class="dm-pref"><span class="dm-pref-ic" aria-hidden="true">⏰</span><span class="dm-mid"><b>Daily challenge reminder</b><small>One alert a day at 6 pm with the open challenges</small></span>' + sw('daily', daily, 'Daily challenge reminder') + '</label>' +
-      '<div class="dm-pref locked"><span class="dm-pref-ic" aria-hidden="true">🏆</span><span class="dm-mid"><b>Tournaments & account</b><small>Check-in, room ID and password, results and security alerts are always on, so you never miss your match.</small></span><span class="dm-on">Always on</span></div>' +
+      '<div class="dm-pref locked"><span class="dm-pref-ic" aria-hidden="true">🏆</span><span class="dm-mid"><b>Tournaments & account</b><small>Match reminders, room ID and password, results and security alerts are always on, so you never miss your match.</small></span><span class="dm-on">Always on</span></div>' +
       '</div><div class="dm-sheet-note" id="dm-sheet-note"></div><div class="dm-row2"><button type="button" class="dm-btn" data-a="close">Done</button></div>');
   }
   $('dm-sheet-in').addEventListener('change', async function (e) {
