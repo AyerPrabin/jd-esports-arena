@@ -127,7 +127,7 @@ input[type=text]:focus{border-color:var(--gold)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
-<link rel="stylesheet" href="/ui.css?v=13">
+<link rel="stylesheet" href="/ui.css?v=14">
 </head>
 <body>
 <div class="wrap">
@@ -251,9 +251,10 @@ function resize(file,maxPx,cb){
 }
 
 async function loadProfile(){
-  const {data:p}=await sb.from('players').select('username, player_tag, discord_username, squad_name, squad_logo').eq('id',me.id).maybeSingle();
+  const {data:p}=await sb.from('players').select('username, player_tag, discord_username, squad_name, squad_logo, app_installed_at').eq('id',me.id).maybeSingle();
   Object.assign(me,p||{});
   $('uname').textContent=me.username?'@'+me.username:'Player';
+  if(p&&p.app_installed_at&&!$('app-badge')){const ab=document.createElement('span');ab.id='app-badge';ab.title='JD Arena app user';ab.textContent=' 📱';$('uname').after(ab);}
   $('ptag').textContent=me.player_tag||'';
   $('pver').innerHTML=me.verified?'<span class="badge ok">✓ Verified</span>':'';
   $('pemail').textContent=me.email||'';
@@ -371,6 +372,6 @@ $('logout').onclick=async()=>{await sb.auth.signOut();location.href='/';};
   setInterval(()=>{if(!document.hidden)loadWallet();},20000);
 })();
 </script>
-<script src="/ui.js?v=13" defer></script>
+<script src="/ui.js?v=14" defer></script>
 </body>
 </html>

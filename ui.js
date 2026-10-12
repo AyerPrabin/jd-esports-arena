@@ -93,3 +93,83 @@
   };
   document.body.appendChild(n);
 })();
+
+// ── App required on phones ──
+// Phone visitors in a normal browser see an install screen instead of the site, so every
+// player has the installed app (push alerts, perks, early access). Not gated: desktop,
+// the installed app itself, search bots, the legal pages, password reset, and the
+// account-deletion confirmation link (it must work from the email in any browser).
+(function () {
+  var ua = navigator.userAgent || '';
+  var ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var android = /Android/i.test(ua);
+  var mm = function (q) { return window.matchMedia && window.matchMedia(q).matches; };
+  var standalone = mm('(display-mode: standalone)') || mm('(display-mode: fullscreen)') || mm('(display-mode: minimal-ui)') || navigator.standalone === true;
+  var path = location.pathname;
+  var exempt = /^\/(privacy|terms|reset-password|admin|about)/.test(path) ||
+    /confirm_delete=1|type=recovery/.test(location.search + location.hash) ||
+    /bot|crawl|spider|slurp|lighthouse|inspectiontool|headless/i.test(ua);
+  if (!(ios || android) || standalone || exempt) return;
+
+  // installing needs the manifest + service worker on this page too
+  if (!document.querySelector('link[rel="manifest"]')) {
+    var l = document.createElement('link'); l.rel = 'manifest'; l.href = '/manifest.json'; document.head.appendChild(l);
+  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' }).catch(function () {});
+
+  var inApp = /FBAN|FBAV|FB_IAB|Instagram|musical_ly|BytedanceWebview|TikTok|Snapchat|Line\/|MicroMessenger|; wv\)|GSA\//i.test(ua);
+  var iosNonSafari = ios && /CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+  var samsung = /SamsungBrowser/i.test(ua);
+  var url = 'https://jdesport.co.uk' + path;
+
+  var steps;
+  if (inApp) {
+    steps = '<p class="ag-lead">This page is open inside another app. Open it in ' + (ios ? 'Safari' : 'Chrome') + ' to install JD Arena.</p>' +
+      (android
+        ? '<a class="ag-btn" href="intent://' + url.replace(/^https:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end">Open in Chrome</a>'
+        : '<ol class="ag-steps"><li>Tap <b>•••</b> or the share icon</li><li>Choose <b>Open in Safari</b> (or Open in browser)</li></ol>') +
+      '<button type="button" class="ag-ghost" id="ag-copy">Copy link</button>';
+  } else if (ios) {
+    steps = '<ol class="ag-steps"><li>Tap the <b>Share</b> button ' + (iosNonSafari ? 'in the address bar' : 'at the bottom of Safari') + '</li>' +
+      '<li>Scroll down and tap <b>Add to Home Screen</b></li><li>Tap <b>Add</b>, then open <b>JD Arena</b> from your home screen</li></ol>';
+  } else {
+    steps = '<button type="button" class="ag-btn" id="ag-install" hidden>Install JD Arena</button>' +
+      '<ol class="ag-steps" id="ag-manual"><li>Tap the menu <b>' + (samsung ? '≡' : '⋮') + '</b> ' + (samsung ? 'at the bottom' : 'at the top right') + '</li>' +
+      '<li>Tap ' + (samsung ? '<b>Add page to → Home screen</b>' : '<b>Install app</b> or <b>Add to Home screen</b>') + '</li>' +
+      '<li>Open <b>JD Arena</b> from your home screen</li></ol>';
+  }
+  var g = document.createElement('div');
+  g.className = 'app-gate';
+  g.setAttribute('role', 'dialog');
+  g.setAttribute('aria-modal', 'true');
+  g.setAttribute('aria-labelledby', 'ag-t');
+  g.innerHTML = '<div class="ag-card"><img src="/logo.png" alt="" width="64" height="64"><h1 id="ag-t">Get the JD Arena app</h1>' +
+    '<p class="ag-lead">On phones, JD Arena runs as an app. It takes 10 seconds, it is free, and there is no app store.</p>' + steps +
+    '<ul class="ag-perks"><li>🔔 Room IDs and check-in alerts straight to your phone</li><li>✨ A free 7-day squad effect</li>' +
+    '<li>📱 App badge on your username</li><li>⚡ Join selected events 24 hours early</li></ul>' +
+    '<p class="ag-installed" id="ag-installed" hidden>✅ Already installed? Open <b>JD Arena</b> from your home screen.</p>' +
+    '<p class="ag-foot"><a href="/privacy/">Privacy</a> · <a href="/terms.html">Terms</a></p></div>';
+  document.documentElement.classList.add('app-gated');
+  var mount = function () { document.body.appendChild(g); var b = g.querySelector('a.ag-btn,button:not([hidden])'); if (b) b.focus(); };
+  if (document.body) mount(); else document.addEventListener('DOMContentLoaded', mount);
+
+  var installed = function () { var b = g.querySelector('#ag-install'); if (b) b.hidden = true; g.querySelector('#ag-installed').hidden = false; };
+  var copy = g.querySelector('#ag-copy');
+  if (copy) copy.onclick = function () {
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(
+      function () { copy.textContent = 'Link copied — paste it in your browser'; },
+      function () { copy.textContent = url; });
+  };
+  var btn = g.querySelector('#ag-install'), manual = g.querySelector('#ag-manual'), deferred = null;
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault(); deferred = e;
+    if (btn) { btn.hidden = false; if (manual) manual.hidden = true; }
+  });
+  if (btn) btn.onclick = function () {
+    if (!deferred) return;
+    deferred.prompt();
+    deferred.userChoice.then(function (c) { if (c && c.outcome === 'accepted') installed(); deferred = null; });
+  };
+  window.addEventListener('appinstalled', installed);
+  if (navigator.getInstalledRelatedApps) navigator.getInstalledRelatedApps().then(function (apps) { if (apps && apps.length) installed(); }).catch(function () {});
+})();

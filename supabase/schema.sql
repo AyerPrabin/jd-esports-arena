@@ -3443,3 +3443,98 @@ begin
   end if;
 end $$;
 commit;
+
+-- ── app perks + early access ─────────────────────────────────────────────
+-- * players.app_installed_at: set the first time a signed-in player opens the installed
+--   app (claim_app_perks, called by index.html only in standalone mode). The client check
+--   can't be proven server-side; the perks are cosmetic + an early registration window.
+-- * claim_app_perks(p_effect): once per account, a free 7-day Lite pass (glow or steel)
+--   and the 📱 badge (_display_name, used by the challenge lobby/room names).
+-- * Early access: a tournament with "early_access": "yes" and "reg_opens" (ISO) in
+--   tournaments.json opens to app users 24 hours before reg_opens and to everyone else at
+--   reg_opens. register_for_tournament() enforces it.
+begin;
+
+alter table public.players add column if not exists app_installed_at timestamptz;
+
+create or replace function public.claim_app_perks(p_effect text default 'glow')
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_at timestamptz; v_res jsonb;
+begin
+  if auth.uid() is null then
+    raise exception 'Please sign in first.';
+  end if;
+  select app_installed_at into v_at from public.players where id = auth.uid() for update;
+  if v_at is not null then
+    return jsonb_build_object('new', false, 'since', v_at);
+  end if;
+  if p_effect not in ('glow','steel') then p_effect := 'glow'; end if;
+  update public.players set app_installed_at = now() where id = auth.uid();
+  v_res := public._apply_effect_plan(auth.uid(), 'fx_lite_week', p_effect, null, 'APP-WELCOME');
+  insert into public.notifications (player_id, title, body)
+  values (auth.uid(), '📱 Welcome to the JD Arena app',
+          'Your free 7-day Lite squad effect is on, your username now shows the 📱 app badge, and you get early access to marked events — 24 hours before everyone else.');
+  return jsonb_build_object('new', true, 'effect', p_effect, 'expires_at', v_res->>'expires_at');
+end;
+$$;
+revoke all on function public.claim_app_perks(text) from public, anon;
+grant execute on function public.claim_app_perks(text) to authenticated;
+
+create or replace function public.tournament_field(p_slug text, p_key text)
+returns text language sql stable security definer set search_path = public as $$
+  select t->>p_key
+  from public.site_content, jsonb_array_elements(content->'tournaments') t
+  where key = 'tournaments' and t->>'name' = p_slug
+  limit 1;
+$$;
+
+-- display name for other players to see: @username, plus 📱 for app users
+create or replace function public._display_name(p_player uuid)
+returns text language sql stable security definer set search_path = public as $$
+  select coalesce('@' || username, player_tag, 'a player') || case when app_installed_at is not null then ' 📱' else '' end
+  from public.players where id = p_player
+$$;
+
+do $$
+declare d text;
+begin
+  -- challenge lobby + room names show the badge (notification texts keep _challenge_name)
+  select pg_get_functiondef('public.get_open_challenges()'::regprocedure) into d;
+  if position('_display_name' in d) = 0 then
+    d := replace(d, 'public._challenge_name(c.creator)', 'public._display_name(c.creator)');
+    execute d;
+  end if;
+  select pg_get_functiondef('public.get_challenge_names(uuid[])'::regprocedure) into d;
+  if position('_display_name' in d) = 0 then
+    d := replace(d, E'coalesce(''@'' || p.username, p.player_tag, ''Player'')', 'public._display_name(p.id)');
+    if position('_display_name' in d) = 0 then raise exception 'get_challenge_names patch did not apply'; end if;
+    execute d;
+  end if;
+
+  -- early access window in register_for_tournament()
+  select pg_get_functiondef('public.register_for_tournament(text,text,text,text,text,text)'::regprocedure) into d;
+  if position('early_access' in d) = 0 then
+    d := replace(d, E'  if p_device_type not in (''mobile'',''emulator'') then',
+E'  declare v_open timestamptz;
+  begin
+    if lower(coalesce(public.tournament_field(p_tournament_slug, ''early_access''), '''')) in (''yes'',''true'')
+       and not exists(select 1 from public.registrations where tournament_slug = p_tournament_slug and player_id = auth.uid()) then
+      begin v_open := nullif(public.tournament_field(p_tournament_slug, ''reg_opens''), '''')::timestamptz;
+      exception when others then v_open := null; end;
+      if v_open is not null and now() < v_open then
+        if now() < v_open - interval ''24 hours'' then
+          raise exception ''Registration opens at % (app users 24 hours earlier).'', to_char(v_open at time zone ''Asia/Kathmandu'', ''Dy DD Mon, HH12:MI AM'') || '' NPT'';
+        end if;
+        if (select app_installed_at from public.players where id = auth.uid()) is null then
+          raise exception ''Early access: only JD Arena app users can join before %. Open the app to join now.'', to_char(v_open at time zone ''Asia/Kathmandu'', ''Dy DD Mon, HH12:MI AM'') || '' NPT'';
+        end if;
+      end if;
+    end if;
+  end;
+  if p_device_type not in (''mobile'',''emulator'') then');
+    if position('early_access' in d) = 0 then raise exception 'register_for_tournament patch did not apply'; end if;
+    execute d;
+  end if;
+end $$;
+
+commit;

@@ -27,5 +27,11 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://jdesport.co.uk/manifest.json"
+    }
   ]
 }

@@ -106,8 +106,7 @@ img{max-width:100%}
   body.has-tabbar .toast{bottom:calc(var(--tabbar-h) + var(--safe-b) + 14px)}
   body.has-tabbar .tut{bottom:calc(var(--tabbar-h) + var(--safe-b))}
   /* the drawer's own nav links duplicate the tab bar; keep account actions only */
-  body.has-tabbar .bar-nav .nav-link[href="/challenges/"],body.has-tabbar .bar-nav .nav-link[href="/leaderboard.html"]{display:none} /* not #admin-btn: the tab bar has no Admin entry */
-  body.nav-locked .fab,body.nav-locked .fab-nudge{visibility:hidden}
+  body.nav-locked .fab,body.nav-locked .fab-nudge,body.nav-locked .storage-note{visibility:hidden}
 }
 @media(max-width:640px) and (prefers-reduced-motion:reduce){.tabbar a{transition:none}}
 
@@ -335,3 +334,21 @@ img{max-width:100%}
 .pe-form textarea{width:100%;min-height:70px;border-radius:10px;border:1px solid var(--line,rgba(255,200,80,.14));background:#0D111B;color:#fff;padding:8px;font:inherit}
 .pe-form button{justify-self:start;min-height:40px;padding:8px 16px;border-radius:999px;border:0;background:var(--ui-gold);color:#07090F;font-weight:700;cursor:pointer}
 .pe-msg{margin:0;color:var(--silver,#A6AFC2)}
+
+/* ── app-required screen on phone browsers (/ui.js) ── */
+html.app-gated,html.app-gated body{overflow:hidden!important}
+html.app-gated .tabbar,html.app-gated .fab,html.app-gated .storage-note,html.app-gated .fab-nudge,html.app-gated #preloader{display:none!important}
+.app-gate{position:fixed;inset:0;z-index:2147483000;overflow-y:auto;background:radial-gradient(900px 500px at 50% -10%,rgba(255,200,61,.14),transparent 60%),#07090F;color:#fff;display:flex;justify-content:center;padding:max(28px,var(--safe-t)) 16px calc(28px + var(--safe-b))}
+.ag-card{width:100%;max-width:420px;margin:auto 0;text-align:center}
+.ag-card img{border-radius:16px;margin-bottom:14px}
+.ag-card h1{font-family:var(--font-display);font-weight:700;font-size:2.2rem;line-height:1.05;margin:0 0 10px}
+.ag-lead{color:#C9D0DD;font-size:.95rem;line-height:1.55;margin:0 0 18px}
+.ag-btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;border:0;border-radius:14px;background:linear-gradient(100deg,#FFC83D,#FFAE00);color:#07090F;font:800 1.02rem var(--font-body);text-decoration:none;cursor:pointer;margin-bottom:14px}
+.ag-btn[hidden],.ag-steps[hidden],.ag-installed[hidden]{display:none}
+.ag-ghost{width:100%;min-height:46px;border-radius:14px;border:1px solid rgba(255,200,80,.42);background:none;color:#FFDD85;font:700 .92rem var(--font-body);cursor:pointer;margin-bottom:14px;overflow-wrap:anywhere}
+.ag-steps{text-align:left;margin:0 0 18px;padding:14px 16px 14px 36px;border-radius:14px;background:#111827;border:1px solid rgba(255,200,80,.14);font-size:.92rem;line-height:1.6;color:#C9D0DD}
+.ag-steps li{margin:4px 0}.ag-steps b{color:#fff}
+.ag-perks{list-style:none;text-align:left;margin:0 0 14px;padding:0;display:grid;gap:8px}
+.ag-perks li{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);font-size:.86rem;color:#E4E8F0}
+.ag-installed{color:#5EDB95;font-size:.9rem;margin:0 0 12px}
+.ag-foot{font-size:.8rem;color:#8A94A8;margin:6px 0 0}.ag-foot a{color:#A6AFC2}

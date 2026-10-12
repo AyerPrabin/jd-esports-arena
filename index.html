@@ -58,6 +58,19 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .bar-nav a:not(.cta):hover{color:var(--gold-l)}
 .nav-toggle{display:none;position:relative;z-index:61;background:transparent;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:10px;width:38px;height:38px;align-items:center;justify-content:center;cursor:pointer;flex:none;font-size:1.1rem}
 .nav-toggle:hover{background:rgba(255,200,61,.12)}
+.nav-m{display:none}
+.app-badge{font-size:.8em;margin-left:4px}
+.ea-note{margin-top:6px;font-size:.78rem;color:var(--gold-l);text-align:center}
+.nav-toggle.has-unread::after{content:'';position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 2px var(--bg)}
+@media(max-width:640px){
+  /* phones: header = logo + ☰ only; points and notifications are rows in the drawer */
+  .bar-right>#pts-pill,.bar-right>#notifhist-btn{display:none!important}
+  .bar-nav .nav-m{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%}
+  .bar-nav .nav-m[hidden]{display:none}
+  .bar-nav .nav-m b{font-family:'Barlow Condensed',sans-serif;font-size:1.15rem;color:var(--gold-l)}
+  .bar-nav #nav-notif-count{min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--gold);color:#0a0a12;font:700 .72rem var(--font-body);display:inline-flex;align-items:center;justify-content:center}
+  .bar-nav #nav-notif-count[hidden]{display:none}
+}
 .nav-scrim{display:none;position:fixed;inset:0;background:rgba(5,7,12,.6);z-index:55;opacity:0;transition:opacity .3s}
 @media(max-width:640px){
   .nav-toggle{display:inline-flex}
@@ -1022,7 +1035,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .gate-intro span{color:var(--body);font-size:.84rem;display:block;margin-top:4px}
 </style>
 <link rel="stylesheet" href="/effects-pro.css">
-<link rel="stylesheet" href="/ui.css?v=13">
+<link rel="stylesheet" href="/ui.css?v=14">
 </head>
 <body>
 <div id="preloader" aria-hidden="true">
@@ -1041,7 +1054,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
       <a id="pts-pill" class="pts-pill" href="/wallet/" aria-label="Points wallet" hidden><span class="jd-coin" aria-hidden="true">JD</span><b id="pts-bal">0</b><span class="pts-unit">pts</span></a>
       <button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History">🔔<span class="badge" id="notif-badge" hidden>0</span></button>
       <button class="nav-toggle" id="nav-toggle-btn" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="acct-nav"><span class="nt-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
-      <nav class="bar-nav" id="acct-nav"><a class="lang-btn nav-link" href="/challenges/">⚔️ Challenges</a><a class="lang-btn nav-link" href="/events/" data-i18n="evnav">📅 Events</a><a class="lang-btn nav-link" href="/leaderboard.html">🏆 Leaderboard</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="admin-btn" class="lang-btn nav-link" href="/admin/" style="display:none">🛠 Admin</a><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none" aria-label="Settings" title="Settings"><span class="sb-ic" aria-hidden="true">⚙️</span><span class="sb-lbl"> Settings</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button></div></div></nav>
+      <nav class="bar-nav" id="acct-nav"><a class="lang-btn nav-m" id="nav-pts" href="/wallet/" hidden><span>🪙 Points wallet</span><b id="nav-pts-bal">0</b></a><button type="button" class="lang-btn nav-m" id="nav-notif" onclick="notifHistOpen()"><span>🔔 Notifications</span><b id="nav-notif-count" hidden>0</b></button><a class="lang-btn nav-link" href="/challenges/">⚔️ Challenges</a><a class="lang-btn nav-link" href="/events/" data-i18n="evnav">📅 Events</a><a class="lang-btn nav-link" href="/leaderboard.html">🏆 Leaderboard</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="admin-btn" class="lang-btn nav-link" href="/admin/" style="display:none">🛠 Admin</a><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none" aria-label="Settings" title="Settings"><span class="sb-ic" aria-hidden="true">⚙️</span><span class="sb-lbl"> Settings</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button></div></div></nav>
     </div>
   </div>
   <div class="nav-scrim" id="nav-scrim" onclick="closeMobileNav()"></div>
@@ -2451,17 +2464,36 @@ async function authConfirmDeleteAccount(){
   }catch(e){authMsg('Could not delete your account: '+e.message);}
 }
 
+/* App perks: the first time a signed-in player opens the installed app, claim_app_perks()
+   (schema.sql) gives a free 7-day Lite effect, the 📱 badge and early access — once per
+   account. Then ask for push alerts, the main reason the app is required on phones. */
+async function claimAppPerks(){
+  if(!sb||!_player||_player.app||!isStandaloneApp())return;
+  const {data,error}=await sb.rpc('claim_app_perks',{p_effect:'glow'});
+  if(error)return;
+  _player.app=true;updateAcctBtn();
+  if(data&&data.new){
+    loadMyRegs(); // picks up the new pass
+    const push=('Notification' in window)&&Notification.permission!=='granted';
+    const ok=await confirmBox('📱 Welcome to the app!',
+      'Your free 7-day Lite squad effect (Glow) is on, your username now has the 📱 badge, and you can join marked events 24 hours early.'+(push?'\n\nTurn on notifications so you get room IDs and check-in alerts the moment they are sent.':''),
+      push?'Turn on notifications':'Nice!',push?'Later':'Close');
+    if(ok&&push)enablePush();
+  }
+}
 async function authRefreshPlayer(){
   const {data:{user}}=await sb.auth.getUser();
   if(!user){_player=null;updateAcctBtn();updateGate();trackPresence();return;}
   let tag=null,uname=null;
-  const {data}=await sb.from('players').select('player_tag, username, discord_username, terms_accepted_at, squad_name, squad_logo').eq('id',user.id).single();
+  const {data}=await sb.from('players').select('player_tag, username, discord_username, terms_accepted_at, squad_name, squad_logo, app_installed_at').eq('id',user.id).single();
   if(data){tag=data.player_tag;uname=data.username;}
   _player={id:user.id,email:user.email,tag:tag,username:uname,discord_username:data&&data.discord_username||null,avatar:null,termsAccepted:!!(data&&data.terms_accepted_at&&Date.parse(data.terms_accepted_at)>=TERMS_UPDATED_AT),verified:!!user.email_confirmed_at,squad_name:(data&&data.squad_name)||'',squad_logo:(data&&data.squad_logo)||''};
+  _player.app=!!(data&&data.app_installed_at);
   updateAcctBtn();
   updateGate();
   trackPresence();
   ensurePushSubscribed();
+  claimAppPerks();
   await loadMyAvatarUrl();
   updateAcctBtn();
   const avImg=document.getElementById('pm-avatar-img');if(avImg&&_player.avatar)avImg.src=_player.avatar;
@@ -2474,12 +2506,13 @@ function updateAcctBtn(){
   if(!ac)return;
   document.body.classList.toggle('signed-in',!!_player);
   const pp=document.getElementById('pts-pill');if(pp)pp.hidden=!_player;
+  const np=document.getElementById('nav-pts');if(np)np.hidden=!_player;
   if(typeof renderFxShow==='function')setTimeout(renderFxShow,0);
   if(st)st.style.display=_player?'':'none';
   if(_player){
     if(su)su.style.display='none';
     ac.classList.add('acct-btn-signed');
-    ac.innerHTML=`<img class="acct-avatar-mini" src="${esc(_player.avatar||'/logo.png')}" alt="">${esc(_player.username||_player.tag||'Account')}`;
+    ac.innerHTML=`<img class="acct-avatar-mini" src="${esc(_player.avatar||'/logo.png')}" alt="">${esc(_player.username||_player.tag||'Account')}${_player.app?' <span class="app-badge" title="JD Arena app user">📱</span>':''}`;
     ac.onclick=()=>{location.href='/profile/';}; // profile has its own page; account settings stay reachable via /?account=1
     if(ad)ad.style.display=((_player.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase())?'':'none';
   }else{
@@ -2791,6 +2824,12 @@ async function payEntryWithPoints(name){
   showMsg('Entry confirmed',`${price} points paid. Your squad is confirmed for ${name}. Wallet balance: ${data&&data.balance!=null?data.balance:'—'} points.`);
   await loadWallet();await loadPublicRoster();render(_lastData||ARENA_SAMPLE);
 }
+function earlyAccess(t){
+  if(String(t.early_access||'').toLowerCase()!=='yes')return '';
+  const open=Date.parse(t.reg_opens);if(isNaN(open)||Date.now()>=open)return '';
+  return Date.now()<open-864e5?'closed':'app-only';
+}
+function fmtOpen(iso){const d=new Date(iso);return isNaN(d)?'soon':d.toLocaleString([],{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}
 function inAppRegBtn(t,st,full){
   if(st==='cancelled')return _myRegs.has(t.name)?`<div class="inapp-reg-done rejected"><span>✕ This tournament was cancelled — sorry for the mix-up, watch Discord for the reschedule</span></div>`:'';
   if(st==='completed')return sb?`<div class="review-summary" data-review-summary="${esc(t.name)}"></div>`:'';
@@ -2809,6 +2848,12 @@ function inAppRegBtn(t,st,full){
   // Paid tournaments still have no waitlist (see registerInApp's early gate) — only free
   // ones show "Join Waitlist" here; the button still opens the normal registration modal,
   // the RPC just lands them as waitlisted instead of confirmed.
+  // Early access (admin: early_access + reg_opens): app users can join 24h before reg_opens;
+  // register_for_tournament() enforces the same window server-side.
+  const ea=earlyAccess(t);
+  if(ea==='closed')return `<button class="inapp-reg" disabled>Opens ${esc(fmtOpen(t.reg_opens))}</button><div class="ea-note">⚡ App users can join 24 hours earlier</div>`;
+  if(ea==='app-only'&&!(_player&&_player.app))return `<button class="inapp-reg" disabled>📱 App early access until ${esc(fmtOpen(t.reg_opens))}</button><div class="ea-note">Install the JD Arena app on your phone to join now</div>`;
+  if(ea==='app-only')return `<button class="inapp-reg" data-reg="${esc(t.name)}">⚡ Join early (app)</button>`;
   if(full)return isPaidTournament(t)?`<button class="inapp-reg" disabled>Squads full</button>`:`<button class="inapp-reg" data-reg="${esc(t.name)}">Join Waitlist</button>`;
   return `<button class="inapp-reg" data-reg="${esc(t.name)}">Join</button>`;
 }
@@ -3029,6 +3074,7 @@ async function loadWallet(){
   const {data}=await sb.from('wallets').select('balance, unlimited').eq('player_id',_player.id).maybeSingle();
   const prev=_wallet;_wallet=(data&&data.balance)||0;_walletUnlimited=!!(data&&data.unlimited);_walletLoaded=true;
   const el=document.getElementById('pts-bal');if(el)el.textContent=walletLabel();
+  const nb=document.getElementById('nav-pts-bal');if(nb)nb.textContent=walletLabel();
   const pill=document.getElementById('pts-pill');
   if(pill&&pill.dataset.seen&&_wallet>prev){pill.classList.remove('bump');void pill.offsetWidth;pill.classList.add('bump');} // points just arrived
   if(pill)pill.dataset.seen='1';
@@ -3220,6 +3266,8 @@ function msgClose(){document.getElementById('msg-overlay').classList.remove('ope
 function updateNotifHistBtn(){
   const b=document.getElementById('notif-badge'),btn=document.getElementById('notifhist-btn');if(!b)return;
   if(_notifUnread>0){b.textContent=_notifUnread>99?'99+':_notifUnread;b.hidden=false;}else{b.hidden=true;}
+  const nc=document.getElementById('nav-notif-count');if(nc){nc.textContent=b.textContent;nc.hidden=!(_notifUnread>0);}
+  const nt=document.getElementById('nav-toggle-btn');if(nt)nt.classList.toggle('has-unread',_notifUnread>0);
   if(btn){btn.classList.toggle('has-unread',_notifUnread>0);btn.setAttribute('aria-label',_notifUnread>0?`Notifications, ${_notifUnread} unread`:'Notifications');}
 }
 // one-shot bell swing when something new lands; re-triggerable by removing/re-adding the class
@@ -3400,7 +3448,7 @@ function closeMobileNav(){
 }
 document.getElementById('acct-nav').addEventListener('click',e=>{
   if(e.target.closest('#dl-btn'))return; // opens the download submenu in place, shouldn't close the panel
-  if(e.target.closest('a,.lang-btn,.icon-btn,.dl-menu button'))closeMobileNav();
+  if(e.target.closest('a,.lang-btn,.icon-btn,.dl-menu button')&&!e.target.closest('#dl-btn'))closeMobileNav();
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMobileNav();});
 function isIOSDevice(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
@@ -3791,6 +3839,6 @@ document.getElementById('fb-input').addEventListener('keydown',function(e){if(e.
 zChrome();
 setTimeout(showNudge,13000);
 </script>
-<script src="/ui.js?v=13" defer></script>
+<script src="/ui.js?v=14" defer></script>
 </body>
 </html>
