@@ -126,6 +126,22 @@
       "status": "upcoming",
       "teams": [],
       "registered": 0
+    },
+    {
+      "name": "JD Free Fire Open #7",
+      "game": "Free Fire BR · Squad",
+      "date": "Sat, Oct 17",
+      "time": "10:30 PM NPT",
+      "start": "2026-10-17T22:30:00+05:45",
+      "prize": "400",
+      "entry": "Free",
+      "platform": "Mobile only",
+      "slots": 12,
+      "format": "BR · 3 matches",
+      "status": "upcoming",
+      "platform_mode": "mobile",
+      "teams": [],
+      "registered": 0
     }
   ],
   "bo3": {
@@ -207,5 +223,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-12T17:58:32.381Z"
+  "_published_at": "2026-10-12T20:57:23.751Z"
 }
