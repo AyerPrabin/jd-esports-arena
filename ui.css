@@ -352,3 +352,4 @@ html.app-gated .tabbar,html.app-gated .fab,html.app-gated .storage-note,html.app
 .ag-perks li{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);font-size:.86rem;color:#E4E8F0}
 .ag-installed{color:#5EDB95;font-size:.9rem;margin:0 0 12px}
 .ag-foot{font-size:.8rem;color:#8A94A8;margin:6px 0 0}.ag-foot a{color:#A6AFC2}
+.ag-ok{margin:0 0 16px;padding:12px 14px;border-radius:14px;background:rgba(94,219,149,.1);border:1px solid rgba(94,219,149,.35);color:#BFF2D6;font-size:.95rem}

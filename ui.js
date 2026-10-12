@@ -138,6 +138,10 @@
       '<li>Tap ' + (samsung ? '<b>Add page to → Home screen</b>' : '<b>Install app</b> or <b>Add to Home screen</b>') + '</li>' +
       '<li>Open <b>JD Arena</b> from your home screen</li></ol>';
   }
+  // signup confirmation links open in the phone browser, even for people who signed up in the app
+  if (/type=signup/.test(location.search + location.hash)) {
+    steps = '<p class="ag-ok">✅ Email confirmed! Open <b>JD Arena</b> from your home screen and log in.</p><p class="ag-lead">Not installed yet?</p>' + steps;
+  }
   var g = document.createElement('div');
   g.className = 'app-gate';
   g.setAttribute('role', 'dialog');
