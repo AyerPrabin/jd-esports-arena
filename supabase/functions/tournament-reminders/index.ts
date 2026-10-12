@@ -5,9 +5,9 @@
 // Five jobs share this one tick:
 //   1. Reminds players 24 hours before a tournament they're registered for starts
 //      (the "last day" message — email + push + in-app).
-//   2. Tells confirmed/approved players check-in is open (12 hours before start), and
-//      nudges anyone still not checked in ~30 minutes before start.
-//   3. Sweeps each tournament exactly once, ~10 minutes before start: anyone
+//   2. (Off — CHECKIN_REQUIRED) told players check-in was open (12 hours before start)
+//      and nudged anyone not checked in ~30 minutes before start.
+//   3. (Off — CHECKIN_REQUIRED) swept each tournament once, ~10 minutes before start: anyone
 //      confirmed/approved who never checked in gets forfeited ('no_show'),
 //      which frees their slot — the existing promote_from_waitlist() trigger
 //      (schema.sql) picks that up with zero changes here, since it fires on
@@ -78,10 +78,16 @@ async function sendPush(_appId: string | undefined, _apiKey: string | undefined,
   try { await webPush(supabase, playerIds, { title, body, url: 'https://jdesport.co.uk/#tournaments', tag: 'jd-reminder' }); } catch { /* best-effort */ }
 }
 
+// Player check-in was removed (Oct 2026): a confirmed/approved squad keeps its slot without
+// checking in, so there are no check-in alerts and no forfeit sweep. Set this back to true
+// (and restore the site's Check in buttons) to bring the rule back.
+const CHECKIN_REQUIRED = false;
 const WINDOWS = [
   { key: '24h', ms: 24 * 60 * 60 * 1000, label: '24 hours' },
-  { key: 'checkin_open', ms: 12 * 60 * 60 * 1000, label: '12 hours' },
-  { key: 'checkin', ms: 30 * 60 * 1000, label: '30 minutes' },
+  ...(CHECKIN_REQUIRED ? [
+    { key: 'checkin_open', ms: 12 * 60 * 60 * 1000, label: '12 hours' },
+    { key: 'checkin', ms: 30 * 60 * 1000, label: '30 minutes' },
+  ] : []),
 ];
 const FORFEIT_CUTOFF_MS = 10 * 60 * 1000; // sweep eligible once a tournament is this close to (or past) start
 const ROOM_CODE_RELEASE_MS = 5 * 60 * 1000; // auto-release eligible once a tournament is this close to (or past) start
@@ -207,7 +213,7 @@ Deno.serve(async (req: Request) => {
   // ── forfeit sweep — exactly once per tournament, see file header ──
   let forfeited = 0;
   const swept: string[] = [];
-  for (const t of tournaments) {
+  for (const t of CHECKIN_REQUIRED ? tournaments : []) {
     if (!t.start || ['completed', 'cancelled'].includes((t.status || '').toLowerCase())) continue;
     const startMs = Date.parse(t.start);
     if (isNaN(startMs)) continue;
