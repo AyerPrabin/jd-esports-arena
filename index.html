@@ -3723,6 +3723,22 @@ function zuluRespond(q){
     fbScroll();
   });
 }
+// For the ZULU chat in 💬 Messages (chat.js), which replaces this panel for logged-in
+// players: the same built-in answers as zuluRespond() — personal ones (your room ID, your
+// match time) and instant short ones — without touching this panel's DOM. Resolves to
+// { text } when a built-in answer should be used as is, or { fallback } when the online AI
+// should answer and fallback is only for when the AI is unavailable.
+window.zuluLocalAnswer=async function(q){
+  try{
+    var m=zuluPersonalMatch(q);
+    if(m){var t=m.async?await m.fn():m.fn();if(t)return {text:String(t)};}
+    var a=zuluPublic(q);
+    var fixed=a.text===zL('secret')||/(my (name|squad|team) is|call me)/i.test(q);
+    var shortQ=q.trim().split(/\s+/).length<=3;
+    if(!a.learn&&!a.feedback&&(fixed||shortQ))return {text:a.text};
+    return {fallback:a.text};
+  }catch(e){return null;}
+};
 // Rolling memory of this chat (last 8 turns) so the AI can follow "and the entry fee?".
 var zuluHist=[];
 function zuluRemember(q,reply){zuluHist.push({role:'user',content:String(q).slice(0,500)},{role:'assistant',content:String(reply).slice(0,500)});if(zuluHist.length>8)zuluHist=zuluHist.slice(-8);}
@@ -3905,6 +3921,6 @@ zChrome();
 setTimeout(showNudge,13000);
 </script>
 <script src="/ui.js?v=14" defer></script>
-<script src="/chat.js?v=3" defer></script>
+<script src="/chat.js?v=4" defer></script>
 </body>
 </html>

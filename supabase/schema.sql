@@ -4370,3 +4370,109 @@ begin
   end if;
 end $$;
 commit;
+
+-- ── Messages v3: ZULU (AI) inside squad and match chats ─────────────────────────────────
+-- * "@zulu …" in a squad chat or a match chat gets an answer from ZULU in that chat. The
+--   chat-push Edge Function sees every new message anyway (membership and send limits are
+--   already enforced by send_group_message / send_challenge_message), asks the AI with the
+--   last few lines of that chat, and inserts the reply with the service role as kind 'ai'
+--   and no sender — players can't post as ZULU, and chat-push never answers a row without
+--   a sender, so ZULU can't trigger itself. Calls count towards zulu_ai_reply_log's daily cap.
+-- * challenge_messages gets a kind column ('text' | 'ai') so a ZULU line isn't mistaken for
+--   a message from a deleted player (sender is also null then).
+-- * dm_poll / chat_threads name ZULU's lines "ZULU". Idempotent.
+begin;
+alter table public.group_messages drop constraint if exists group_messages_kind_check;
+alter table public.group_messages add constraint group_messages_kind_check check (kind in ('text','system','room','ai'));
+alter table public.challenge_messages add column if not exists kind text not null default 'text';
+alter table public.challenge_messages drop constraint if exists challenge_messages_kind_check;
+alter table public.challenge_messages add constraint challenge_messages_kind_check check (kind in ('text','ai'));
+
+create or replace function public.dm_poll()
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_me uuid := auth.uid(); v_last jsonb; v_g jsonb; v_m jsonb; v_any jsonb;
+begin
+  if v_me is null then return null; end if;
+  update public.players set last_seen_at = now()
+    where id = v_me and (last_seen_at is null or last_seen_at < now() - interval '1 minute');
+  select jsonb_build_object('id', m.id, 'kind', 'dm', 'key', m.sender, 'from', m.sender, 'name', public._chat_name(m.sender), 'body', left(m.body, 140), 'at', m.created_at)
+    into v_last
+    from public.dm_messages m
+    where m.recipient = v_me and m.read_at is null and not public._blocked_either(v_me, m.sender)
+    order by m.id desc limit 1;
+  select jsonb_build_object('id', m.id, 'kind', 'group', 'key', m.group_id, 'from', m.sender, 'name', coalesce(public._chat_name(m.sender), 'ZULU'),
+      'title', g.name, 'body', left(case when m.kind = 'room' then '🎮 Shared a room' else m.body end, 140), 'at', m.created_at)
+    into v_g
+    from public.chat_group_members gm
+    join public.group_messages m on m.group_id = gm.group_id and m.id > gm.last_read_id
+    join public.chat_groups g on g.id = gm.group_id
+    where gm.player_id = v_me and not gm.muted and m.sender is distinct from v_me and m.kind <> 'system'
+    order by m.id desc limit 1;
+  select jsonb_build_object('id', m.id, 'kind', 'match', 'key', c.id, 'from', m.sender, 'name', coalesce(public._chat_name(m.sender), 'ZULU'),
+      'title', c.mode || ' challenge', 'body', left(m.body, 140), 'at', m.created_at)
+    into v_m
+    from public.challenges c
+    join public.challenge_messages m on m.challenge_id = c.id
+    left join public.challenge_reads r on r.challenge_id = c.id and r.player_id = v_me
+    where v_me in (c.creator, c.opponent) and c.status in ('accepted','disputed')
+      and m.sender is distinct from v_me and m.id > coalesce(r.last_read_id, 0)
+    order by m.id desc limit 1;
+  select x into v_any from (values (v_last), (v_g), (v_m)) t(x) where x is not null order by (x->>'at')::timestamptz desc limit 1;
+  return jsonb_build_object(
+    'unread', (select count(*) from public.dm_messages m where m.recipient = v_me and m.read_at is null
+                 and not exists(select 1 from public.player_blocks b where b.blocker = v_me and b.blocked = m.sender)),
+    'requests', (select count(*) from public.friendships where addressee = v_me and status = 'pending'),
+    'last', v_last,
+    'g_unread', (select count(*) from public.chat_group_members gm
+                   join public.group_messages m on m.group_id = gm.group_id and m.id > gm.last_read_id
+                   where gm.player_id = v_me and not gm.muted and m.sender is distinct from v_me and m.kind <> 'system'),
+    'm_unread', (select count(*) from public.challenges c
+                   join public.challenge_messages m on m.challenge_id = c.id
+                   left join public.challenge_reads r on r.challenge_id = c.id and r.player_id = v_me
+                   where v_me in (c.creator, c.opponent) and c.status in ('accepted','disputed')
+                     and m.sender is distinct from v_me and m.id > coalesce(r.last_read_id, 0)),
+    'last_any', v_any);
+end;
+$$;
+
+create or replace function public.chat_threads()
+returns jsonb language sql stable security definer set search_path = public as $$
+  with me as (select auth.uid() as id)
+  select jsonb_build_object(
+    'groups', coalesce((select jsonb_agg(x.j order by x.at desc nulls last) from (
+      select g.created_at as gat, coalesce(lm.created_at, g.created_at) as at, jsonb_build_object(
+        'id', g.id, 'name', g.name, 'muted', gm.muted,
+        'count', (select count(*) from public.chat_group_members c where c.group_id = g.id),
+        'faces', (select jsonb_agg(public._chat_card(c.player_id, (select id from me)) order by c.joined_at)
+                  from (select player_id, joined_at from public.chat_group_members c where c.group_id = g.id and c.player_id <> (select id from me) order by joined_at limit 3) c),
+        'last_body', left(case when lm.kind = 'room' then '🎮 Shared a room' else lm.body end, 120), 'last_at', coalesce(lm.created_at, g.created_at),
+        'last_mine', lm.sender = (select id from me), 'last_name', case when lm.kind = 'ai' then 'ZULU' when lm.sender is null then null else public._chat_name(lm.sender) end,
+        'unread', (select count(*) from public.group_messages u where u.group_id = g.id and u.id > gm.last_read_id
+                     and u.sender is distinct from (select id from me) and u.kind <> 'system')) as j
+      from public.chat_group_members gm
+      join public.chat_groups g on g.id = gm.group_id
+      left join lateral (select * from public.group_messages m where m.group_id = g.id order by m.id desc limit 1) lm on true
+      where gm.player_id = (select id from me)
+    ) x), '[]'::jsonb),
+    'matches', coalesce((select jsonb_agg(x.j order by x.at desc) from (
+      select coalesce(lm.created_at, c.accepted_at, c.created_at) as at, jsonb_build_object(
+        'id', c.id, 'mode', c.mode, 'stake', c.stake, 'status', c.status, 'map', c.map, 'rounds', c.rounds,
+        'room_id', c.room_id, 'room_pass', c.room_pass, 'creator', c.creator = (select id from me),
+        'other', public._chat_card(case when c.creator = (select id from me) then c.opponent else c.creator end, (select id from me)),
+        'last_body', case when lm.kind = 'ai' then 'ZULU: ' else '' end || left(lm.body, 120), 'last_at', coalesce(lm.created_at, c.accepted_at), 'last_mine', lm.sender = (select id from me),
+        'unread', case when c.status in ('accepted','disputed') then (select count(*) from public.challenge_messages u where u.challenge_id = c.id
+                     and u.id > coalesce(r.last_read_id, 0) and u.sender is distinct from (select id from me)) else 0 end) as j
+      from public.challenges c
+      left join public.challenge_reads r on r.challenge_id = c.id and r.player_id = (select id from me)
+      left join lateral (select * from public.challenge_messages m where m.challenge_id = c.id order by m.id desc limit 1) lm on true
+      where (select id from me) in (c.creator, c.opponent) and c.opponent is not null
+        and (c.status in ('accepted','disputed') or (c.status = 'completed' and c.resolved_at > now() - interval '3 days'))
+    ) x), '[]'::jsonb)
+  )
+  where (select id from me) is not null
+$$;
+revoke all on function public.dm_poll() from public, anon;
+revoke all on function public.chat_threads() from public, anon;
+grant execute on function public.dm_poll() to authenticated;
+grant execute on function public.chat_threads() to authenticated;
+commit;
