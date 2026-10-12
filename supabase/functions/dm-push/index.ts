@@ -36,7 +36,7 @@ Deno.serve(async (req: Request) => {
       sent += await sendPush(db, [m.recipient], {
         title: `💬 ${name}`,
         body: String(m.body || '').slice(0, 200),
-        url: `${SITE}/?dm=${encodeURIComponent(p.player_tag || '')}`,
+        url: `${SITE}/chat/?dm=${encodeURIComponent(p.player_tag || '')}`,
         tag: 'jd-dm-' + String(m.sender).slice(0, 8),
         category: 'dm',
       });

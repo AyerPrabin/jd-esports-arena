@@ -124,7 +124,7 @@ Deno.serve(async (req: Request) => {
         sent += await sendPush(db, to, {
           title: `👥 ${g?.name || 'Squad chat'}`,
           body: `${nameOf(m.sender)}: ${text}`.slice(0, 200),
-          url: `${SITE}/?g=${chat}`,
+          url: `${SITE}/chat/?g=${chat}`,
           tag: 'jd-g-' + String(chat).slice(0, 8),
           category: 'squad',
         });

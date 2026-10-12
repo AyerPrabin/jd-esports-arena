@@ -14,7 +14,7 @@ const SITE = 'https://jdesport.co.uk';
 // tournament and admin alerts have none, so they always push.
 function linkFor(n: any): { url: string; tag: string; category?: string } {
   const t = `${n.title || ''} ${n.body || ''}`;
-  if (/squad chat|friend request|now your friend/i.test(t)) return { url: `${SITE}/?chat=1`, tag: 'jd-chat', category: 'friends' };
+  if (/squad chat|friend request|now your friend/i.test(t)) return { url: `${SITE}/chat/`, tag: 'jd-chat', category: 'friends' };
   // daily reminder: daily_challenge_alert already decides whether the row exists, so no category
   if (/daily challenge time/i.test(t)) return { url: `${SITE}/challenges/`, tag: 'jd-challenge-daily' };
   // result deadlines and disputes can cost a stake if missed: always pushed
