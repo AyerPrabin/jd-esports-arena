@@ -88,11 +88,9 @@
       "start": "2026-10-12T22:30:00+05:45",
       "prize": "500",
       "entry": "Free",
-      "platform": "Mobile only",
       "slots": 12,
       "format": "BR · 4 matches",
       "status": "upcoming",
-      "platform_mode": "mobile",
       "teams": [],
       "registered": 0
     },
@@ -227,5 +225,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-12T15:38:23.743Z"
+  "_published_at": "2026-10-12T15:46:36.277Z"
 }
