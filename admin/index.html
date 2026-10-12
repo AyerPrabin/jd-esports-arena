@@ -6,15 +6,15 @@
 <meta name="robots" content="noindex, nofollow, noarchive">
 <link rel="icon" type="image/png" href="/favicon-64.png">
 <title>JD Arena — Editor</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#05080f;--bg-2:#0a0e1a;--panel:#0e1424;--panel-2:#121a2e;--line:#1c2840;--gold:#c9a84c;--gold-l:#e2c97e;--gold-m:#7e6630;--cream:#f4efe6;--silver:#aab4cc;--body:#7e8eb0;--warm-l:#e3ab7e;--red:#e36b6b}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--cream);font-family:'Inter',sans-serif;font-weight:300;line-height:1.6}
 .wrap{max-width:860px;margin:0 auto;padding:28px 22px 80px}
-h1{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.7rem;margin:0 0 4px}
+h1{font-family:'Playfair Display',serif;font-weight:700;font-size:1.7rem;margin:0 0 4px}
 .sub{color:var(--gold-l);font-size:.74rem;letter-spacing:.01em;margin-bottom:24px}
-h2{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1.25rem;margin:34px 0 14px;border-bottom:1px solid var(--line);padding-bottom:8px}
+h2{font-family:'Playfair Display',serif;font-weight:600;font-size:1.25rem;margin:34px 0 14px;border-bottom:1px solid var(--line);padding-bottom:8px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;position:relative}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .f{display:flex;flex-direction:column;gap:5px}
@@ -57,7 +57,7 @@ textarea#out{width:100%;height:300px;font-family:'JetBrains Mono',monospace;font
 #gate input{max-width:280px;text-align:center}
 .ok{color:#5aab8a}.err{color:var(--red)}
 #msg{font-size:.86rem;min-height:20px}
-.dsum{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1.25rem;margin:34px 0 14px;border-bottom:1px solid var(--line);padding-bottom:8px;cursor:pointer;list-style:none}
+.dsum{font-family:'Playfair Display',serif;font-weight:600;font-size:1.25rem;margin:34px 0 14px;border-bottom:1px solid var(--line);padding-bottom:8px;cursor:pointer;list-style:none}
 .dsum::-webkit-details-marker{display:none}
 .dsum::before{content:'▸ ';color:var(--gold-l);font-size:.9rem}
 details[open]>.dsum::before{content:'▾ '}
@@ -70,7 +70,7 @@ details[open]>.dsum-sm::before{content:'▾ '}
 .modal-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;max-width:720px;width:100%;position:relative}
 .modal-close{position:absolute;top:14px;right:14px;background:transparent;border:1px solid var(--line);color:var(--cream);border-radius:8px;padding:5px 10px;font-size:.86rem;cursor:pointer}
 .modal-close:hover{border-color:var(--gold)}
-.online-count{font-family:'Barlow Condensed',sans-serif;font-size:2.1rem;font-weight:700;color:var(--gold-l)}
+.online-count{font-family:'Playfair Display',serif;font-size:2.1rem;font-weight:700;color:var(--gold-l)}
 .online-chip{display:inline-block;font-size:.76rem;padding:4px 11px;border-radius:20px;background:var(--bg-2);border:1px solid var(--line);color:var(--cream);margin:3px 4px 0 0}
 .up-search{max-width:260px}
 /* ── attention dashboard + sticky section nav ── */
@@ -80,7 +80,7 @@ details[open]>.dsum-sm::before{content:'▾ '}
 .dash{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
 .dash-tile{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:14px;border-radius:14px;background:var(--panel);border:1px solid var(--line);color:var(--cream);font-family:inherit;cursor:pointer;transition:transform .15s cubic-bezier(.34,1.56,.64,1),border-color .15s}
 .dash-tile:hover{transform:translateY(-2px);border-color:var(--gold-m)}
-.dash-tile b{font-family:'Barlow Condensed',sans-serif;font-size:1.9rem;line-height:1;font-weight:700}
+.dash-tile b{font-family:'Playfair Display',serif;font-size:1.9rem;line-height:1;font-weight:700}
 .dash-tile b em{font-style:normal;font-size:.95rem;color:var(--body)}
 .dash-tile span{font-size:.78rem;font-weight:600}
 .dash-tile small{font-size:.7rem;color:var(--body)}
@@ -139,40 +139,10 @@ h2[id]{scroll-margin-top:64px}
 .card{animation:cardIn .4s cubic-bezier(.22,1,.36,1) both}
 @keyframes cardIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.card{animation:none}.btn,.btn:active{transition:none;transform:none}}
-
-/* ── calm admin look: the site's fonts and gold, but gold only on primary buttons and the
-   active section link; everything else neutral grey. Colour on dashboard tiles only when it
-   means something (warning / danger). ── */
-:root{--gold:#FFC83D;--gold-l:#FFDD85;--gold-m:rgba(255,200,80,.42);--line:#1F2737;--panel:#0F141F;--bg-2:#0B0F18;--bc-display:'Barlow Condensed',sans-serif}
-body{font-family:'Geist',system-ui,sans-serif;font-weight:400}
-h1,.online-count,.dash-tile b{font-family:var(--bc-display);font-weight:700}
-h1{font-size:2rem;letter-spacing:.01em}
-h2,.dsum{font-family:var(--bc-display);font-weight:700;font-size:1.45rem;letter-spacing:.01em;border-bottom:1px solid var(--line);padding-bottom:8px}
-.tag{border:0;padding:0;margin-left:10px;color:var(--body);font-family:'Geist',sans-serif;font-weight:500;font-size:.74rem;letter-spacing:0;vertical-align:2px}
-.card{border-radius:10px;border-color:var(--line)}
-.btn{border-radius:6px;font-weight:600;padding:10px 18px}
-.btn:not(.ghost){background:var(--gold)}
-.btn.ghost{border-color:#2A3346;color:#DDE3EE}
-.btn.ghost:hover{border-color:#3E4A63}
-input,select,textarea{border-radius:6px}
-.adm-nav a{border-radius:6px;font-size:.76rem}
-.adm-nav a:hover{border-color:#3E4A63;background:transparent}
-.adm-nav a.on{color:#14110A;border-color:var(--gold);background:var(--gold)}
-/* dashboard: neutral tiles, coloured only when there's something to act on */
-.dash-tile{border-radius:10px;background:var(--panel);border-color:var(--line)}
-.dash-tile.warn,.dash-tile.info,.dash-tile.danger{background:var(--panel)}
-.dash-tile.warn{border-color:rgba(245,166,35,.55)}.dash-tile.warn b{color:#F5A623}
-.dash-tile.danger{border-color:rgba(229,72,77,.55)}.dash-tile.danger b{color:#E5484D}
-.dash-tile.info{border-color:var(--line)}.dash-tile.info b{color:#DDE3EE}
-.dash-tile.ok b,.dash-tile.stat b{color:#DDE3EE}
-.dash-tile b{font-size:2.2rem}
-.dash-tile span{font-size:.76rem}
-.dash-head{font-weight:600;color:var(--silver)}
 /* undo toast (deleting an unsaved tournament row) */
-#undo-toast{position:fixed;left:50%;bottom:22px;z-index:120;display:flex;align-items:center;gap:14px;padding:10px 12px 10px 18px;border-radius:10px;
-  background:#151B28;border:1px solid #2A3346;box-shadow:0 14px 40px rgba(0,0,0,.6);font-size:.86rem;transform:translate(-50%,30px);opacity:0;pointer-events:none;transition:transform .25s,opacity .2s}
+#undo-toast{position:fixed;left:50%;bottom:22px;z-index:120;display:flex;align-items:center;gap:14px;padding:10px 12px 10px 18px;border-radius:14px;background:var(--panel-2);border:1px solid var(--gold-m);box-shadow:0 14px 40px rgba(0,0,0,.6);font-size:.86rem;transform:translate(-50%,30px);opacity:0;pointer-events:none;transition:transform .25s,opacity .2s}
 #undo-toast.show{transform:translate(-50%,0);opacity:1;pointer-events:auto}
-#undo-toast button{border:0;border-radius:6px;background:var(--gold);color:#0a0a12;font:600 .84rem 'Geist',sans-serif;padding:6px 14px;cursor:pointer}
+#undo-toast button{border:0;border-radius:30px;background:var(--gold);color:#0a0a12;font-weight:700;font-size:.8rem;padding:6px 14px;cursor:pointer}
 @media(prefers-reduced-motion:reduce){#undo-toast{transition:none}}
 </style>
 </head>
@@ -325,7 +295,7 @@ input,select,textarea{border-radius:6px}
   </div>
   <div id="ai-list"></div>
 
-  <h3 style="margin:22px 0 6px;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1.02rem;color:var(--gold-l)">Auto-cancel history</h3>
+  <h3 style="margin:22px 0 6px;font-family:'Playfair Display',serif;font-weight:600;font-size:1.02rem;color:var(--gold-l)">Auto-cancel history</h3>
   <p class="hint">Cancellations ZULU already executed on its own — informational only, nothing to confirm here.</p>
   <div class="row">
     <button class="btn ghost" onclick="loadAiHistory()">↻ Load history</button>
