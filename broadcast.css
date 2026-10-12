@@ -96,7 +96,8 @@ html:not([lang="ne"]) .arena-stats .stat span{text-transform:uppercase;letter-sp
   .bc-tk-item{font-size:.78rem}
 }
 
-/* feature cards under the hero */
+/* feature cards under the hero: they used to tuck 30px up into the hero; with the ticker there they sit below it */
+.hero.has-ticker+.wrap .feature-strip{margin-top:22px}
 .feature-strip .feature-card{border-radius:6px;position:relative;overflow:hidden;background:rgba(12,15,24,.92);backdrop-filter:none}
 .feature-strip .feature-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--bc-gold),var(--bc-red))}
 
