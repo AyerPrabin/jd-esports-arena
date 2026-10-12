@@ -2055,6 +2055,9 @@ let _roomCodes=new Map(); // tournament name -> {room_id, room_pass}, from the p
 let _notifHasLoadedOnce=false; // suppress the chime on the very first load (existing unread shouldn't "ding")
 let _gateActive=false; // true while the whole site sits behind the forced login/signup gate
 let _termsGateActive=false; // true while a signed-in player hasn't accepted the current Terms & Conditions yet
+// Bump when the Terms or Privacy Policy change in a way players must accept again: anyone
+// whose terms_accepted_at is older sees the accept box once on their next visit.
+const TERMS_UPDATED_AT=Date.parse('2026-10-12T00:00:00Z');
 
 /* Full login wall: nobody sees tournaments/prizes/how-to-join without an account. Runs
    after every _player change (see authRefreshPlayer) so it always reflects the real
@@ -2100,7 +2103,7 @@ function authRender(){
   const el=document.getElementById('auth-body');if(!el)return;
   if(!sb){el.innerHTML='<h3>Accounts coming soon</h3><p class="sub">Sign-in isn\'t set up on this deploy yet.</p>';return;}
   if(_termsGateActive){
-    el.innerHTML=`<h3>One more thing</h3><p class="sub">Please review and accept our Terms &amp; Conditions to keep using JD Esports Arena.</p>
+    el.innerHTML=`<h3>One more thing</h3><p class="sub">We've updated our Terms &amp; Conditions and added a Privacy Policy. Please review and accept them to keep using JD Esports Arena.</p>
       <label class="tc-check"><input type="checkbox" id="au-tc-accept-gate"><span>I am 13 or older (under 18: my parent or guardian agrees) and I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a></span></label>
       <div class="msg" id="au-msg"></div>
       <div class="row2"><button class="btn-primary" style="flex:1" onclick="authAcceptTermsGate()">Continue</button></div>
@@ -2454,7 +2457,7 @@ async function authRefreshPlayer(){
   let tag=null,uname=null;
   const {data}=await sb.from('players').select('player_tag, username, discord_username, terms_accepted_at, squad_name, squad_logo').eq('id',user.id).single();
   if(data){tag=data.player_tag;uname=data.username;}
-  _player={id:user.id,email:user.email,tag:tag,username:uname,discord_username:data&&data.discord_username||null,avatar:null,termsAccepted:!!(data&&data.terms_accepted_at),verified:!!user.email_confirmed_at,squad_name:(data&&data.squad_name)||'',squad_logo:(data&&data.squad_logo)||''};
+  _player={id:user.id,email:user.email,tag:tag,username:uname,discord_username:data&&data.discord_username||null,avatar:null,termsAccepted:!!(data&&data.terms_accepted_at&&Date.parse(data.terms_accepted_at)>=TERMS_UPDATED_AT),verified:!!user.email_confirmed_at,squad_name:(data&&data.squad_name)||'',squad_logo:(data&&data.squad_logo)||''};
   updateAcctBtn();
   updateGate();
   trackPresence();
