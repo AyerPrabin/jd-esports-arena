@@ -4476,3 +4476,100 @@ revoke all on function public.chat_threads() from public, anon;
 grant execute on function public.dm_poll() to authenticated;
 grant execute on function public.chat_threads() to authenticated;
 commit;
+
+-- ── push alert settings ──────────────────────────────────────────────────────────────────
+-- Players can switch off phone alerts per type (⚙️ in 💬 Messages and in Notifications):
+--   dm (direct messages) · squad (squad chats) · match (match chats) · friends (friend
+--   requests, squad chat invites) · challenges (challenge invites and results) · lobby (new
+--   open challenges) · wallet (points loaded, withdrawals, prizes)
+-- push_prefs.off lists the switched-off types. _shared/push.ts sendPush() drops those players
+-- when a message carries that category. Only the push is skipped: notification rows still
+-- land in Notification History. Tournament alerts (check-in, room ID, results) and account
+-- security alerts have no category and can't be switched off. RPC only. Idempotent.
+begin;
+create table if not exists public.push_prefs (
+  player_id uuid primary key references public.players(id) on delete cascade,
+  off text[] not null default '{}',
+  updated_at timestamptz not null default now()
+);
+create index if not exists push_prefs_off_idx on public.push_prefs using gin (off);
+alter table public.push_prefs enable row level security; -- no policies: RPC / service role only
+
+create or replace function public.get_push_prefs()
+returns jsonb language sql stable security definer set search_path = public as $$
+  select jsonb_build_object(
+    'off', coalesce((select to_jsonb(off) from public.push_prefs where player_id = auth.uid()), '[]'::jsonb),
+    'daily_challenge_alert', coalesce((select daily_challenge_alert from public.players where id = auth.uid()), true))
+  where auth.uid() is not null
+$$;
+
+create or replace function public.set_push_pref(p_type text, p_on boolean)
+returns jsonb language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'Please sign in first.'; end if;
+  if p_type not in ('dm','squad','match','friends','challenges','lobby','wallet') then raise exception 'Unknown alert type.'; end if;
+  insert into public.push_prefs (player_id, off) values (auth.uid(), '{}') on conflict (player_id) do nothing;
+  update public.push_prefs set
+    off = case when coalesce(p_on, true) then array_remove(off, p_type)
+               else array_append(array_remove(off, p_type), p_type) end,
+    updated_at = now()
+  where player_id = auth.uid();
+  return public.get_push_prefs();
+end;
+$$;
+revoke all on function public.get_push_prefs() from public, anon;
+revoke all on function public.set_push_pref(text, boolean) from public, anon;
+grant execute on function public.get_push_prefs() to authenticated;
+grant execute on function public.set_push_pref(text, boolean) to authenticated;
+commit;
+
+-- ── Clash Squad leaderboard (leaderboard.html "⚔️ Clash Squad" tab) ──────────────────────
+-- Settled challenges only (status completed, a winner). Per player: matches played, wins,
+-- win rate, current win streak, last match. Logged-in players only, and no points or
+-- stakes are shown (privacy page: "Challenges" row). Top 50 plus your own row. Idempotent.
+begin;
+create or replace function public.get_challenge_leaderboard()
+returns jsonb language sql stable security definer set search_path = public as $$
+  with done as (
+    select c.id, c.creator, c.opponent, c.winner, coalesce(c.resolved_at, c.created_at) as at
+    from public.challenges c
+    where c.status = 'completed' and c.winner is not null and c.opponent is not null
+  ),
+  sides as (
+    select creator as player, winner = creator as won, at from done
+    union all
+    select opponent, winner = opponent, at from done
+  ),
+  streaks as (
+    -- wins since the player's last loss
+    select s.player, count(*) filter (where s.won and s.at > coalesce(l.last_loss, '-infinity'::timestamptz)) as streak
+    from sides s
+    left join (select player, max(at) as last_loss from sides where not won group by player) l on l.player = s.player
+    group by s.player
+  ),
+  agg as (
+    select s.player, count(*) as played, count(*) filter (where s.won) as wins, max(s.at) as last_at
+    from sides s join public.players p on p.id = s.player
+    where not exists (select 1 from public.banned_players b where b.player_id = s.player)
+    group by s.player
+  ),
+  ranked as (
+    select a.*, st.streak, rank() over (order by a.wins desc, (a.wins::numeric / a.played) desc, a.played desc) as rk
+    from agg a join streaks st on st.player = a.player
+  )
+  select jsonb_build_object(
+    'rows', coalesce((select jsonb_agg(jsonb_build_object(
+        'rank', r.rk, 'id', r.player, 'name', public._chat_name(r.player), 'username', p.username, 'tag', p.player_tag,
+        'squad', p.squad_name, 'logo', p.squad_logo, 'played', r.played, 'wins', r.wins,
+        'rate', round(100.0 * r.wins / r.played), 'streak', r.streak, 'last_at', r.last_at,
+        'me', r.player = auth.uid(), 'friend', public._are_friends(r.player, auth.uid()))
+      order by r.rk, r.played desc)
+      from (select * from ranked order by rk, played desc limit 50) r join public.players p on p.id = r.player), '[]'::jsonb),
+    'me', (select jsonb_build_object('rank', r.rk, 'played', r.played, 'wins', r.wins, 'rate', round(100.0 * r.wins / r.played), 'streak', r.streak)
+           from ranked r where r.player = auth.uid()),
+    'total', (select count(*) from done))
+  where auth.uid() is not null
+$$;
+revoke all on function public.get_challenge_leaderboard() from public, anon;
+grant execute on function public.get_challenge_leaderboard() to authenticated;
+commit;

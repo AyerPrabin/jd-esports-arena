@@ -80,7 +80,7 @@ img{max-width:100%}
 .tabbar{display:none}
 @media(max-width:640px){
   .tabbar{
-    display:grid;grid-template-columns:repeat(5,1fr);
+    display:grid;grid-template-columns:repeat(6,1fr);
     /* 45: above page content, below every overlay (confirm dialogs .ov 50, drawer
        scrim 55, modals 60), so an open dialog dims and blocks the tab bar too */
     position:fixed;left:0;right:0;bottom:0;z-index:45;
@@ -94,6 +94,7 @@ img{max-width:100%}
     min-height:48px;color:var(--ui-muted);font:600 .64rem/1.1 var(--font-body);letter-spacing:.01em;
     text-decoration:none;transition:color .2s var(--ease-out),transform .15s var(--ease-out)}
   .tabbar svg{width:22px;height:22px;flex:none}
+  .tabbar a span{max-width:100%;padding:0 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .tabbar a[aria-current="page"]{color:var(--ui-gold)}
   .tabbar a[aria-current="page"]::before{
     content:'';position:absolute;top:0;left:30%;right:30%;height:2px;border-radius:0 0 2px 2px;background:var(--ui-gold)}
@@ -353,3 +354,8 @@ html.app-gated .tabbar,html.app-gated .fab,html.app-gated .storage-note,html.app
 .ag-installed{color:#5EDB95;font-size:.9rem;margin:0 0 12px}
 .ag-foot{font-size:.8rem;color:#8A94A8;margin:6px 0 0}.ag-foot a{color:#A6AFC2}
 .ag-ok{margin:0 0 16px;padding:12px 14px;border-radius:14px;background:rgba(94,219,149,.1);border:1px solid rgba(94,219,149,.35);color:#BFF2D6;font-size:.95rem}
+
+/* Chat tab: unread count from 💬 Messages (chat.js setBadges) */
+.tabbar a{position:relative}
+.tabbar .tb-count{position:absolute;top:4px;left:calc(50% + 4px);min-width:17px;height:17px;padding:0 5px;border-radius:9px;background:#FF3B5C;color:#fff;font:800 .62rem/17px var(--font-body,system-ui);text-align:center;box-shadow:0 0 0 2px #07090F}
+.tabbar .tb-count[hidden]{display:none}

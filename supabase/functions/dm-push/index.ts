@@ -38,6 +38,7 @@ Deno.serve(async (req: Request) => {
         body: String(m.body || '').slice(0, 200),
         url: `${SITE}/?dm=${encodeURIComponent(p.player_tag || '')}`,
         tag: 'jd-dm-' + String(m.sender).slice(0, 8),
+        category: 'dm',
       });
     }
     console.log('dm-push sent', sent);

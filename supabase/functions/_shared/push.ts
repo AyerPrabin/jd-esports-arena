@@ -22,14 +22,28 @@ export interface PushMessage {
   body: string;
   url?: string;   // opened when the notification is tapped
   tag?: string;   // same tag replaces an older notification instead of stacking
+  /** Alert type players can switch off (push_prefs.off): dm, squad, match, friends,
+   *  challenges, lobby, wallet. No category = always sent (tournaments, security). */
+  category?: string;
 }
 
 /** Push to every saved device of the given players. Returns how many devices accepted it. */
 export async function sendPush(supabase: any, playerIds: string[], msg: PushMessage): Promise<number> {
-  const ids = [...new Set((playerIds || []).filter(Boolean))];
+  let ids = [...new Set((playerIds || []).filter(Boolean))];
   lastPushError = '';
   if (!ids.length) return 0;
   if (!configure()) { lastPushError = 'VAPID keys not set'; return 0; }
+  // players who switched this alert type off (⚙️ alert settings) — they still get the
+  // notification row in history, just no push
+  if (msg.category) {
+    const muted = new Set<string>();
+    for (let i = 0; i < ids.length; i += 300) {
+      const { data } = await supabase.from('push_prefs').select('player_id').in('player_id', ids.slice(i, i + 300)).contains('off', [msg.category]);
+      (data || []).forEach((r: any) => muted.add(r.player_id));
+    }
+    ids = ids.filter((id) => !muted.has(id));
+    if (!ids.length) return 0;
+  }
   const subs: any[] = [];
   for (let i = 0; i < ids.length; i += 300) {
     const { data } = await supabase.from('push_subscriptions').select('endpoint, p256dh, auth').in('player_id', ids.slice(i, i + 300));
@@ -40,6 +54,7 @@ export async function sendPush(supabase: any, playerIds: string[], msg: PushMess
     body: msg.body,
     url: msg.url || 'https://jdesport.co.uk/',
     tag: msg.tag || 'jd-arena',
+    category: msg.category || '',
   });
   let ok = 0;
   const dead: string[] = [];

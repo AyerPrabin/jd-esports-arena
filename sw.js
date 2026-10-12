@@ -23,19 +23,40 @@ self.addEventListener("fetch", e => {
 // A push always shows a notification — even if the payload can't be read — because a
 // silent push makes Chrome show its own "site updated in the background" message and can
 // cancel the subscription.
+// Bundling: a new alert with the same tag (one per chat / challenge) replaces the old one
+// and says how many arrived ("3 new messages"); the phone only buzzes again if the last
+// buzz for that chat was over 30 seconds ago. Action buttons show on Android and desktop
+// Chrome/Edge (iOS ignores them). The app icon gets a badge dot until JD Arena is opened.
 self.addEventListener("push", e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (x) { d = { body: e.data ? e.data.text() : "" }; }
-  const title = d.title || "JD Arena";
-  e.waitUntil(self.registration.showNotification(title, {
-    body: d.body || "You have a new notification.",
-    icon: "/icon-192.png",
-    badge: "/favicon-64.png",
-    tag: d.tag || "jd-arena",
-    renotify: true,
-    vibrate: [200, 100, 200, 100, 200],
-    data: { url: d.url || "/" },
-  }));
+  const tag = d.tag || "jd-arena";
+  const url = d.url || "/";
+  const chat = /[?&](dm|g|chat)=|\/chat\//.test(url);
+  const room = /\/challenges\/\?c=/.test(url);
+  e.waitUntil((async () => {
+    let old = null;
+    try { old = (await self.registration.getNotifications({ tag }))[0] || null; } catch (x) {}
+    const od = (old && old.data) || {};
+    const count = old ? (od.count || 1) + 1 : 1;
+    const now = Date.now();
+    const loud = !old || now - (od.buzzAt || 0) > 30000;
+    const title = (d.title || "JD Arena") + (count > 1 && (chat || room) ? ` · ${count} new` : "");
+    const actions = chat ? [{ action: "open", title: "💬 Reply" }] : room ? [{ action: "open", title: "⚔️ Open room" }] : [];
+    await self.registration.showNotification(title, {
+      body: d.body || "You have a new notification.",
+      icon: "/icon-192.png",
+      badge: "/favicon-64.png",
+      tag,
+      renotify: loud,
+      silent: !loud,
+      vibrate: loud ? [200, 100, 200, 100, 200] : undefined,
+      actions,
+      timestamp: now,
+      data: { url, count, buzzAt: loud ? now : od.buzzAt },
+    });
+    try { if (self.navigator.setAppBadge) await self.navigator.setAppBadge(); } catch (x) {}
+  })());
 });
 
 // Tap: focus an open JD Arena tab (and take it to the link) or open a new one.

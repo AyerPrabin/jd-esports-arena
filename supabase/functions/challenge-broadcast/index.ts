@@ -57,6 +57,6 @@ Deno.serve(async (req: Request) => {
   }
 
   let pushed = 0;
-  pushed = await sendPush(db, ids, { title, body: text, url: `${SITE_URL}/challenges/?c=${c.id}`, tag: 'jd-challenge' });
+  pushed = await sendPush(db, ids, { title, body: text, url: `${SITE_URL}/challenges/?c=${c.id}`, tag: 'jd-challenge', category: 'lobby' });
   return json({ sent: ids.length, pushed });
 });

@@ -56,6 +56,13 @@ Deno.serve(async (req: Request) => {
     .filter((h: any) => h && (h.role === 'user' || h.role === 'assistant') && typeof h.content === 'string' && h.content.trim())
     .map((h: any) => ({ role: h.role, content: String(h.content).slice(0, 500) }));
   if (!message) return new Response('message is required', { status: 400, headers: CORS_HEADERS });
+  // Logged-in players chatting with ZULU in 💬 Messages (chat.js) also send a short summary
+  // of their OWN account (squad, points balance, tickets, live challenges) so ZULU can answer
+  // "how many points do I have?" or "when is my match?". It is the player's own data, typed
+  // by their own app, so it only ever goes in as a user turn, never into the system prompt,
+  // and it is capped hard. This is deliberately NOT in _shared/zulu.ts: @zulu in squad and
+  // match chats (chat-push) must never see one player's account.
+  const account = typeof payload.account === 'string' ? payload.account.replace(/[^\S\n]+/g, ' ').trim().slice(0, 900) : '';
 
   const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
@@ -97,7 +104,13 @@ Deno.serve(async (req: Request) => {
   const systemPrompt = await zuluSystemPrompt(lang);
 
   const messages: AIMessage[] = [
-    { role: 'system', content: systemPrompt },
+    { role: 'system', content: systemPrompt + (account ? `
+
+This player is signed in, and the conversation starts with a MY ACCOUNT note their own app sent. You may use it to answer questions about their own account (points, tickets, check-in, their challenges) and to suggest a useful next step. It overrides the "no per-player data" rule for that player only. Never invent anything that isn't in it; if it doesn't say, tell them where to look.` : '') },
+    ...(account ? [
+      { role: 'user' as const, content: 'MY ACCOUNT (sent by my JD Arena app):\n' + account },
+      { role: 'assistant' as const, content: 'Got it — I\'ll use that for questions about your account.' },
+    ] : []),
     ...history,
     { role: 'user', content: message },
   ];

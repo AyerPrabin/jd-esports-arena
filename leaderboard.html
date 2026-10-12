@@ -107,8 +107,45 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .pred-row .pc{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.4rem;color:var(--cream)}
 .pred-row .bar{grid-column:2/-1;height:4px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden}
 .pred-row .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-2))}
+/* tabs: Season (tournament squads) | Clash Squad (1v1–4v4 challenges) */
+.lb-tabs{display:flex;gap:8px;margin:28px 0 6px}
+.lb-tabs button{flex:none;height:40px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--silver);font:700 .88rem var(--font-body);cursor:pointer;transition:background .2s,color .2s}
+.lb-tabs button[aria-selected="true"]{background:linear-gradient(135deg,var(--gold),var(--gold-2));border-color:transparent;color:#0a0a12}
+.cs-me{display:flex;align-items:center;gap:14px;margin:18px 0 14px;padding:16px 18px;border-radius:18px;border:1px solid var(--gold-m);background:linear-gradient(120deg,rgba(255,200,61,.12),rgba(255,95,95,.05) 70%)}
+.cs-me .rk{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:2.2rem;line-height:1;color:var(--gold-l)}
+.cs-me .st{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.84rem;color:var(--silver)}
+.cs-me .st b{color:var(--cream);font-size:1rem}
+.cs-chips{display:flex;gap:6px;margin:0 0 12px}
+.cs-chips button{height:32px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--silver);font:700 .78rem var(--font-body);cursor:pointer}
+.cs-chips button[aria-selected="true"]{border-color:var(--gold-m);background:rgba(255,200,61,.12);color:var(--gold-l)}
+.cs-list{display:grid;gap:8px}
+.cs-row{display:grid;grid-template-columns:38px 44px 1fr auto;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:var(--panel);border:1px solid rgba(255,200,80,.08)}
+.cs-row.me{border-color:var(--gold-m);background:linear-gradient(120deg,rgba(255,200,61,.1),var(--panel) 60%)}
+.cs-row .rk{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.35rem;text-align:center;color:var(--silver)}
+.cs-row .rk.m{font-size:1.5rem}
+.cs-row .av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;overflow:hidden;font-weight:800;color:#fff;text-transform:uppercase}
+.cs-row .av img{width:100%;height:100%;object-fit:cover}
+.cs-row .nm{min-width:0}
+.cs-row .nm b{display:block;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cs-row .nm small{display:block;font-size:.74rem;color:var(--silver);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cs-row .wr{grid-column:3/-1;display:flex;align-items:center;gap:10px;font-size:.76rem;color:var(--silver)}
+.cs-row .wr .bar{flex:1;height:5px;border-radius:5px;background:rgba(255,255,255,.07);overflow:hidden}
+.cs-row .wr .bar i{display:block;height:100%;background:linear-gradient(90deg,#5EDB95,var(--gold))}
+.cs-row .acts{display:flex;gap:6px}
+.cs-row .acts a,.cs-row .acts button{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--cream);font-size:.95rem;cursor:pointer}
+.cs-row .acts a:hover,.cs-row .acts button:hover{background:rgba(255,200,61,.12)}
+.cs-row .stat{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.15rem;text-align:right;line-height:1.1}
+.cs-row .stat small{display:block;font-family:var(--font-body);font-weight:500;font-size:.66rem;color:var(--body)}
+.cs-empty{padding:34px 20px;text-align:center;border:1px dashed var(--line);border-radius:18px;color:var(--body)}
+.cs-empty b{display:block;color:var(--cream);font-size:1.05rem;margin:6px 0 4px}
+.cs-empty a{display:inline-block;margin-top:14px;padding:10px 20px;border-radius:999px;background:var(--gold);color:#0a0a12;font-weight:800}
+@media(max-width:640px){
+  .lb-tabs{margin-top:18px}
+  .cs-row{grid-template-columns:30px 38px 1fr auto;gap:10px;padding:11px 12px}
+  .cs-row .av{width:38px;height:38px}
+}
 </style>
-<link rel="stylesheet" href="/ui.css?v=14">
+<link rel="stylesheet" href="/ui.css?v=15">
 </head>
 <body>
 <header>
@@ -119,6 +156,16 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 </header>
 
 <main class="wrap">
+  <div class="lb-tabs" role="tablist" aria-label="Leaderboards">
+    <button type="button" role="tab" id="tab-season" aria-selected="true" aria-controls="lb-season" onclick="lbTab('season')">🏆 Season</button>
+    <button type="button" role="tab" id="tab-clash" aria-selected="false" aria-controls="lb-clash" onclick="lbTab('clash')">⚔️ Clash Squad</button>
+  </div>
+  <section id="lb-clash" role="tabpanel" aria-labelledby="tab-clash" hidden>
+    <div class="sec-h"><h1>Clash Squad Ranks</h1><span class="ln"></span></div>
+    <p class="sub">Players ranked by challenge wins (1v1 to 4v4), then win rate. Message or challenge anyone from here.</p>
+    <div id="cs-body"><p class="sub">Loading…</p></div>
+  </section>
+  <div id="lb-season" role="tabpanel" aria-labelledby="tab-season">
   <div class="sec-h"><h1 id="lb-ttl">Season Leaderboard</h1><span class="ln"></span></div>
   <p class="sub" id="lb-sub">Loading standings…</p>
   <div class="champ" id="champ" hidden><div class="champ-eye">🏆 Champions</div><div class="champ-name" id="champ-name"></div><div class="champ-sub" id="champ-sub"></div></div>
@@ -134,7 +181,8 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
     <div class="pred-list" id="predict-list"></div>
   </section>
   <canvas id="confetti-canvas"></canvas>
-  <div class="points-note"><b>How points work:</b> 1 point per kill, plus placement points — 1st 12 · 2nd 9 · 3rd 6 · 4th 5 · 5th 4 · 6th 3 · 7th 2 · 8th 1. Both add up to a squad's round total.</div>
+  </div>
+  <div class="points-note" id="lb-points-note"><b>How points work:</b> 1 point per kill, plus placement points — 1st 12 · 2nd 9 · 3rd 6 · 4th 5 · 5th 4 · 6th 3 · 7th 2 · 8th 1. Both add up to a squad's round total.</div>
 </main>
 
 <footer>JD Esports Arena · AyerFire</footer>
@@ -143,6 +191,45 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 <script>
 const TOURNAMENTS_URL='https://jdesport.co.uk/tournaments.json';
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+/* ── ⚔️ Clash Squad tab: get_challenge_leaderboard() (schema.sql) — signed-in players only ── */
+let _cs=null,_csFilter='all';
+function lbTab(t){
+  const clash=t==='clash';
+  document.getElementById('tab-season').setAttribute('aria-selected',!clash);
+  document.getElementById('tab-clash').setAttribute('aria-selected',clash);
+  document.getElementById('lb-season').hidden=clash;
+  document.getElementById('lb-clash').hidden=!clash;
+  document.getElementById('lb-points-note').hidden=clash;
+  try{history.replaceState(null,'',clash?'#clash':location.pathname+location.search);}catch(e){}
+  if(clash)loadClash();
+}
+async function loadClash(){
+  const box=document.getElementById('cs-body');
+  const {data:{session}}=sb?await sb.auth.getSession():{data:{}};
+  if(!session){box.innerHTML='<div class="cs-empty"><span style="font-size:2rem">🔒</span><b>Sign in to see Clash Squad ranks</b>Challenge records are only shown to JD Arena players.<br><a href="/?signin=1">Sign in</a></div>';return;}
+  if(!_cs){const {data,error}=await sb.rpc('get_challenge_leaderboard');if(error){box.innerHTML='<p class="sub">Couldn\'t load ranks. Check your connection.</p>';return;}_cs=data||{rows:[]};}
+  renderClash();
+}
+function csAv(r){let h=0;const k=String(r.id||r.name);for(let i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))%360;
+  return `<span class="av" style="background:linear-gradient(145deg,hsl(${h} 70% 52%),hsl(${(h+40)%360} 75% 38%))">${r.logo&&/^(https:|data:image\/)/.test(r.logo)?`<img src="${esc(r.logo)}" alt="" loading="lazy">`:esc(String(r.username||r.tag||'?').charAt(0))}</span>`;}
+function renderClash(){
+  const box=document.getElementById('cs-body'),d=_cs||{rows:[]},rows=d.rows||[];
+  if(!rows.length){box.innerHTML='<div class="cs-empty"><span style="font-size:2rem">⚔️</span><b>No Clash Squad results yet</b>Win a 1v1, 2v2, 3v3 or 4v4 challenge to be the first on this board.<br><a href="/challenges/">Play a challenge</a></div>';return;}
+  const me=d.me;
+  let h=me?`<div class="cs-me"><span class="rk">#${me.rank}</span><div><div style="font-weight:700;margin-bottom:2px">Your rank</div><div class="st"><span><b>${me.wins}</b> wins</span><span><b>${me.played}</b> played</span><span><b>${me.rate}%</b> win rate</span>${me.streak>1?`<span>🔥 <b>${me.streak}</b> in a row</span>`:''}</div></div></div>`
+    :'<div class="cs-me"><span class="rk">–</span><div><div style="font-weight:700">You\'re not ranked yet</div><div class="st">Finish a challenge to get on the board. <a href="/challenges/" style="color:var(--gold-l);font-weight:700">Play one →</a></div></div></div>';
+  const fr=rows.some(r=>r.friend);
+  if(fr)h+=`<div class="cs-chips" role="tablist"><button type="button" role="tab" aria-selected="${_csFilter==='all'}" onclick="_csFilter='all';renderClash()">Everyone</button><button type="button" role="tab" aria-selected="${_csFilter==='friends'}" onclick="_csFilter='friends';renderClash()">🤝 Friends</button></div>`;
+  const list=rows.filter(r=>_csFilter!=='friends'||r.friend||r.me);
+  const medal=n=>n===1?'🥇':n===2?'🥈':n===3?'🥉':n;
+  h+='<div class="cs-list">'+list.map(r=>{
+    const u=String(r.username||'').replace(/[^A-Za-z0-9_-]/g,'');
+    const acts=r.me||!u?'':`<span class="acts"><button type="button" title="Message @${esc(u)}" aria-label="Message @${esc(u)}" onclick="window.jdChat&&jdChat.connect('${u}')">💬</button><a href="/challenges/?invite=${encodeURIComponent(u)}" title="Challenge @${esc(u)}" aria-label="Challenge @${esc(u)}">⚔️</a></span>`;
+    return `<div class="cs-row${r.me?' me':''}"><span class="rk${r.rank<=3?' m':''}">${medal(r.rank)}</span>${csAv(r)}<span class="nm"><b>${esc(r.name)}${r.me?' · You':''}</b><small>${esc(r.squad||r.tag||'')}${r.streak>1?' · 🔥 '+r.streak+' streak':''}</small></span>${acts||`<span class="stat">${r.wins}<small>wins</small></span>`}
+      <span class="wr"><span>${r.wins}W · ${r.played-r.wins}L</span><span class="bar"><i style="width:${r.rate}%"></i></span><span>${r.rate}%</span></span></div>`;
+  }).join('')+'</div>';
+  box.innerHTML=h;
+}
 /* Same standings math as index.html's bo3Standings()/renderBo3Board() — kept in
    sync deliberately rather than shared, since this is a separate static file with
    no build step to import from. */
@@ -494,9 +581,10 @@ function load(){
   });
 }
 load();
+if(location.hash==="#clash")lbTab("clash");
 setInterval(()=>{if(!document.hidden)load();},15000);
 </script>
-<script src="/ui.js?v=14" defer></script>
-<script src="/chat.js?v=4" defer></script>
+<script src="/ui.js?v=15" defer></script>
+<script src="/chat.js?v=5" defer></script>
 </body>
 </html>

@@ -265,6 +265,25 @@ button.dm-row:hover{background:rgba(255,255,255,.05)}
 .dm-pk input:checked+.dm-ck{background:var(--dm-gold) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='%230A0A12'%3E%3Cpath d='M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z'/%3E%3C/svg%3E") center/14px no-repeat;border-color:var(--dm-gold)}
 .dm-pk input:focus-visible+.dm-ck{outline:2px solid var(--dm-gold);outline-offset:2px}
 .dm-pk .dm-btn{flex:none;display:inline-grid;place-items:center}
+/* alert settings */
+.dm-warn{padding:9px 12px;border-radius:12px;background:rgba(255,150,80,.09);border:1px solid rgba(255,170,110,.3);color:#FFC9A3!important}
+.dm-prefs{display:flex;flex-direction:column;gap:2px;margin:0 -4px}
+.dm-pref{display:flex;align-items:center;gap:12px;padding:10px 8px;border-radius:12px;cursor:pointer}
+.dm-pref:hover{background:rgba(255,255,255,.04)}
+.dm-pref.locked{cursor:default;opacity:.85}
+.dm-pref-ic{flex:none;width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:rgba(255,255,255,.05);font-size:1.05rem}
+.dm-pref .dm-mid{flex:1;min-width:0}
+.dm-pref b{display:block;font-size:.88rem}
+.dm-pref small{display:block;font-size:.74rem;color:var(--dm-muted);line-height:1.35}
+.dm-on{flex:none;font-size:.7rem;font-weight:700;color:var(--dm-green)}
+.dm-sw{position:relative;flex:none;width:44px;height:26px}
+.dm-sw input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:1}
+.dm-sw i{position:absolute;inset:0;border-radius:13px;background:#2A3246;transition:background .2s}
+.dm-sw i::after{content:'';position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s var(--dm-ease)}
+.dm-sw input:checked+i{background:var(--dm-green)}
+.dm-sw input:checked+i::after{transform:translateX(18px)}
+.dm-sw input:focus-visible+i{outline:2px solid var(--dm-gold);outline-offset:2px}
+.dm-sw input:disabled+i{opacity:.6}
 .dm-sheet-note{min-height:1em;margin:6px 6px 0;font-size:.76rem;color:#FF8A9B}
 
 /* new-message banner (Messenger "chat head" style) */
@@ -277,21 +296,28 @@ button.dm-row:hover{background:rgba(255,255,255,.05)}
 .dm-banner small{display:block;font-size:.8rem;color:#C9D0DD;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dm-banner .dm-bk{flex:none;font-size:.7rem;color:var(--dm-gold);font-weight:700}
 
-/* laptop: list + conversation side by side */
+/* list + conversation side by side: chat.js adds .wide from 1024px (floating panel) or
+   760px (the /chat/ page) */
 .dm-pick{display:none}
-@media(min-width:1024px){
-  .dm-panel.wide{flex-direction:row;width:min(880px,calc(100vw - 40px));height:min(720px,calc(100vh - 116px))}
-  body.has-zulu-fab .dm-panel.wide{height:min(720px,calc(100vh - 180px))}
-  .dm-panel.wide #dm-home{display:flex;flex:none;width:350px;border-right:1px solid var(--dm-line)}
-  .dm-panel.wide #dm-thread{flex:1;min-width:0}
-  .dm-panel.wide #dm-back,.dm-panel.wide #dm-close2{display:none}
-  .dm-panel.wide:not(.has-cur) .dm-pick{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:24px;text-align:center;color:var(--dm-muted);font-size:.86rem;background:radial-gradient(80% 50% at 50% 40%,rgba(255,200,61,.06),transparent 70%)}
-  .dm-pick svg{width:56px;height:56px;color:var(--dm-gold);opacity:.8;margin-bottom:6px}
-  .dm-pick b{color:var(--dm-text);font-size:1.05rem}
-  .dm-panel.wide .dm-b{max-width:68%}
-  .dm-panel.wide .dm-msgs{padding:18px 20px 10px}
-  .dm-panel.wide .dm-thead{padding:12px 14px}
-}
+.dm-panel.wide{flex-direction:row;width:min(880px,calc(100vw - 40px));height:min(720px,calc(100vh - 116px))}
+body.has-zulu-fab .dm-panel.wide{height:min(720px,calc(100vh - 180px))}
+.dm-panel.wide #dm-home{display:flex;flex:none;width:350px;border-right:1px solid var(--dm-line)}
+.dm-panel.wide #dm-thread{flex:1;min-width:0}
+.dm-panel.wide #dm-back,.dm-panel.wide #dm-close2{display:none}
+.dm-panel.wide:not(.has-cur) .dm-pick{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:24px;text-align:center;color:var(--dm-muted);font-size:.86rem;background:radial-gradient(80% 50% at 50% 40%,rgba(255,200,61,.06),transparent 70%)}
+.dm-pick svg{width:56px;height:56px;color:var(--dm-gold);opacity:.8;margin-bottom:6px}
+.dm-pick b{color:var(--dm-text);font-size:1.05rem}
+.dm-panel.wide .dm-b{max-width:68%}
+.dm-panel.wide .dm-msgs{padding:18px 20px 10px}
+.dm-panel.wide .dm-thead{padding:12px 14px}
+
+/* /chat/ page: Messages built into the page */
+.dm-panel.page,.dm-panel.page.wide,body.has-zulu-fab .dm-panel.page{position:relative;inset:auto;right:auto;bottom:auto;z-index:1;width:100%;height:100%;
+  opacity:1;transform:none;visibility:visible;pointer-events:auto;transition:none;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.dm-panel.page[hidden]{display:none}
+.dm-panel.page #dm-close,.dm-panel.page #dm-close2{display:none}
+.dm-panel.page.wide #dm-home{width:380px}
+.dm-fab.page-hide{display:none!important}
 
 /* drawer row (homepage menu) */
 #nav-dm-count{min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--dm-red);color:#fff;font:700 .72rem var(--font-body,system-ui);display:inline-flex;align-items:center;justify-content:center}
@@ -303,6 +329,10 @@ button.dm-row:hover{background:rgba(255,255,255,.05)}
   body.has-tabbar.has-zulu-fab.has-dm .fab-nudge{bottom:calc(var(--tabbar-h,62px) + var(--safe-b,0px) + 128px)}
   .dm-panel,body.has-zulu-fab .dm-panel{inset:0;width:auto;height:auto;border:0;border-radius:0;padding-top:var(--safe-t,0px);transform:translateY(24px);transform-origin:bottom center}
   .dm-panel.open{transform:none}
+  .dm-panel.page,body.has-zulu-fab .dm-panel.page{border:0;border-radius:0;box-shadow:none;padding-top:0}
+  /* a conversation on the /chat/ page takes the whole screen (the tab bar hides) */
+  body.dm-in-thread .dm-panel.page{position:fixed;inset:0;z-index:58;padding-top:var(--safe-t,0px)}
+  body.dm-in-thread .tabbar{display:none}
   .dm-b{max-width:80%}
   body.dm-locked{overflow:hidden}
   /* 16px inputs: iOS Safari zooms the page into anything smaller */
@@ -321,3 +351,7 @@ html.app-gated .dm-fab,html.app-gated .dm-panel,html.app-gated .dm-banner{displa
   .dm-fab,.dm-panel,.dm-banner,.dm-sheet,.dm-sheet-in{transition:none}
   .dm-fab.has-unread,.dm-fab.bump,.dm-line.new,.dm-skel i,.dm-typing i{animation:none}
 }
+
+/* ZULU: site links in answers become buttons */
+.dm-b a.dm-pathbtn{display:inline-flex;align-items:center;margin:4px 2px 0;padding:4px 10px;border-radius:999px;border:1px solid rgba(124,92,255,.4);background:rgba(124,92,255,.14);color:#E4DEFF!important;font-size:.8rem;font-weight:700;text-decoration:none;white-space:nowrap}
+.dm-b a.dm-pathbtn:hover{background:rgba(124,92,255,.26)}

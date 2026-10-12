@@ -126,6 +126,7 @@ Deno.serve(async (req: Request) => {
           body: `${nameOf(m.sender)}: ${text}`.slice(0, 200),
           url: `${SITE}/?g=${chat}`,
           tag: 'jd-g-' + String(chat).slice(0, 8),
+          category: 'squad',
         });
       } else {
         const [{ data: c }, { data: reads }] = await Promise.all([
@@ -141,6 +142,7 @@ Deno.serve(async (req: Request) => {
           body: text.slice(0, 200),
           url: `${SITE}/challenges/?c=${chat}`,
           tag: 'jd-c-' + String(chat).slice(0, 8),
+          category: 'match',
         });
       }
     }

@@ -1028,7 +1028,24 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 #acct-push-btn[disabled]:hover{background:none}
 .pm-toggle.warn{background:rgba(255,150,80,.18)}
 .pm-toggle.warn::after{background:var(--warm-l)}
-.notif-item{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
+.notif-item{position:relative;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:8px}
+.notif-item[class*=" k-"]{padding:12px 30px 12px 60px}
+.notif-item .ni-ic{position:absolute;left:12px;top:12px;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:1.05rem;background:rgba(255,255,255,.05)}
+.notif-item.k-tour .ni-ic{background:rgba(255,200,61,.14)}
+.notif-item.k-challenge .ni-ic{background:rgba(255,95,95,.14)}
+.notif-item.k-wallet .ni-ic{background:rgba(94,219,149,.14)}
+.notif-item.k-social .ni-ic{background:rgba(120,160,255,.15)}
+.notif-item.unread::after{content:'';position:absolute;right:12px;top:14px;width:8px;height:8px;border-radius:50%;background:var(--gold)}
+.notif-item .ni-go{display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:6px 12px;border-radius:999px;border:1px solid var(--gold-m);background:transparent;color:var(--gold-l);font:inherit;font-size:.76rem;font-weight:700;cursor:pointer}
+.notif-item .ni-go:hover{background:rgba(255,200,61,.1)}
+.notif-chips{display:flex;gap:6px;overflow-x:auto;margin:0 0 10px;padding-bottom:2px;scrollbar-width:none}
+.notif-chips::-webkit-scrollbar{display:none}
+.notif-chips button{flex:none;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--body);font:inherit;font-size:.78rem;font-weight:700;cursor:pointer}
+.notif-chips button[aria-selected="true"]{border-color:var(--gold-m);background:rgba(255,200,61,.12);color:var(--gold-l)}
+.notif-chips b{margin-left:5px;padding:0 6px;border-radius:9px;background:var(--gold);color:#0a0a12;font-size:.66rem}
+.notif-day{margin:12px 2px 6px;font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--body)}
+.notif-gear{margin-left:4px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--gold-l);font:inherit;font-size:.74rem;cursor:pointer}
+.notif-gear[hidden]{display:none}
 .notif-item.unread{border-color:var(--gold-m);background:rgba(255,200,61,.06)}
 .notif-item .t{font-weight:600;color:var(--cream);font-size:.9rem;margin-bottom:4px}
 .notif-item .b{color:var(--body);font-size:.84rem;white-space:pre-line}
@@ -1086,7 +1103,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .gate-intro span{color:var(--body);font-size:.84rem;display:block;margin-top:4px}
 </style>
 <link rel="stylesheet" href="/effects-pro.css">
-<link rel="stylesheet" href="/ui.css?v=14">
+<link rel="stylesheet" href="/ui.css?v=15">
 </head>
 <body>
 <div id="preloader" aria-hidden="true">
@@ -1278,8 +1295,9 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 <div class="zoverlay" id="notif-overlay" onclick="if(event.target===this)notifHistClose()">
   <div class="zmodal" style="max-width:460px"><button class="fb-x" style="position:absolute;top:12px;right:14px" onclick="notifHistClose()" aria-label="close">×</button>
     <h3>Notifications</h3>
-    <p class="sub">Your tickets, check-in reminders, room details and results for every tournament you join.</p>
+    <p class="sub">Tickets, room details, challenges, wallet and friends, newest first. <button type="button" class="notif-gear" id="notif-gear" onclick="notifSettings()" hidden>⚙️ Alert settings</button></p>
     <div id="notif-push" class="notif-push" hidden></div>
+    <div class="notif-chips" id="notif-chips" role="tablist" aria-label="Filter notifications"></div>
     <div id="notif-list"></div>
   </div>
 </div>
@@ -3429,13 +3447,41 @@ function copyRoom(btn,id,pass){
   const text='Room ID: '+id+(pass?'\nPassword: '+pass:'');
   (navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject()).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done');},1400);}).catch(()=>{btn.textContent='Copy failed';});
 }
+/* Which bucket a notification belongs to, where tapping it goes, and its icon. Keep these
+   patterns in step with linkFor() in supabase/functions/push-notifications (push alerts use
+   the same buckets for ⚙️ alert settings). */
+function notifKind(n){
+  const t=(n.title||'')+' '+(n.body||'');
+  if(/squad chat|friend request|now your friend/i.test(t))return {k:'social',ic:/squad chat/i.test(t)?'👥':'🤝',go:'chat',lbl:'💬 Open Messages'};
+  if(/challenge/i.test(t))return {k:'challenge',ic:'⚔️',go:'/challenges/',lbl:'⚔️ Open challenges'};
+  if(/wallet|points added|withdraw/i.test(t))return {k:'wallet',ic:'🪙',go:'/wallet/',lbl:'🪙 Open wallet'};
+  if(n.tournament_slug||String(n.body||'').startsWith('TICKET::'))return {k:'tour',ic:n.room_id?'🎮':'🏆',go:'',lbl:''};
+  return {k:'other',ic:'🔔',go:'',lbl:''};
+}
+function notifGo(where){notifHistClose();if(where==='chat'){if(window.jdChat)jdChat.open();return;}location.href=where;}
+function notifSettings(){notifHistClose();if(window.jdChat&&jdChat.settings)jdChat.settings();}
+let _notifRows=[],_notifFilter='all';
+const NOTIF_TABS=[['all','All'],['tour','🏆 Tournaments'],['challenge','⚔️ Challenges'],['wallet','🪙 Wallet'],['social','🤝 Friends']];
+function renderNotifList(){
+  const list=document.getElementById('notif-list'),chips=document.getElementById('notif-chips');if(!list)return;
+  const rows=_notifRows,kinds=rows.map(notifKind);
+  const shown=NOTIF_TABS.filter(([k])=>k==='all'||kinds.some(x=>x.k===k));
+  if(chips){chips.innerHTML=rows.length&&shown.length>2?shown.map(([k,l])=>{const un=rows.filter((r,i)=>!r.read_at&&(k==='all'||kinds[i].k===k)).length;return `<button type="button" role="tab" aria-selected="${_notifFilter===k}" onclick="_notifFilter='${k}';renderNotifList()">${l}${un?`<b>${un}</b>`:''}</button>`;}).join(''):'';}
+  if(!shown.some(([k])=>k===_notifFilter))_notifFilter='all';
+  const day=d=>{const x=new Date(d),n=new Date(),y=new Date();y.setDate(n.getDate()-1);return x.toDateString()===n.toDateString()?'Today':x.toDateString()===y.toDateString()?'Yesterday':(n-x<7*864e5?'This week':'Earlier');};
+  let last='',h='';
+  rows.forEach((r,i)=>{if(_notifFilter!=='all'&&kinds[i].k!==_notifFilter)return;const d=day(r.created_at);if(d!==last){h+=`<div class="notif-day">${d}</div>`;last=d;}h+=notifItemHtml(r);});
+  list.innerHTML=h||(rows.length?'<div class="notif-empty"><span>🗂️</span><b>Nothing here</b><p>No notifications of this type yet.</p></div>':'<div class="notif-empty"><span>🔕</span><b>No notifications yet</b><p>Tickets, check-in reminders, room details, challenges and results will appear here.</p></div>');
+  const g=document.getElementById('notif-gear');if(g)g.hidden=!(window.jdChat&&jdChat.settings);
+}
 function notifItemHtml(n){
   const unreadClass=n.read_at?'':' unread';
   if(n.body&&n.body.startsWith('TICKET::'))return notifTicketHtml(n,unreadClass);
+  const kd=notifKind(n);
   const rc=n.room_id?`<div class="rc"><span>Room ID: <b>${esc(n.room_id)}</b>${n.room_pass?' · Pass: <b>'+esc(n.room_pass)+'</b>':''}</span><button type="button" class="rc-copy" data-id="${esc(n.room_id)}" data-pass="${esc(n.room_pass||'')}" onclick="copyRoom(this,this.dataset.id,this.dataset.pass)">Copy</button></div>`:'';
   // friend requests/accepts (schema.sql "friends + direct messages") open the 💬 Messages panel (chat.js)
-  const fr=/^(👋 Friend request from|🤝 )/.test(n.title||'')&&window.jdChat?`<button type="button" class="rc-copy" style="margin-top:8px" onclick="notifHistClose();jdChat.open()">💬 Open Messages</button>`:'';
-  return `<div class="notif-item${unreadClass}"><div class="t">${esc(n.title)}</div>${n.body?`<div class="b">${esc(n.body)}</div>`:''}${rc}${fr}${notifTimeHtml(n.created_at)}</div>`;
+  const fr=kd.go&&(kd.go!=='chat'||window.jdChat)?`<button type="button" class="ni-go" onclick="notifGo('${kd.go}')">${kd.lbl} →</button>`:'';
+  return `<div class="notif-item k-${kd.k}${unreadClass}"><span class="ni-ic" aria-hidden="true">${kd.ic}</span><div class="t">${esc(n.title)}</div>${n.body?`<div class="b">${esc(n.body)}</div>`:''}${rc}${fr}${notifTimeHtml(n.created_at)}</div>`;
 }
 /* ── chime: 'notify' plays the real notify.mp3 file; 'install' (and 'notify' if the
    file ever fails to play — blocked autoplay, missing file, etc.) falls back to a
@@ -3513,7 +3559,7 @@ async function loadNotifications(markSeenOnOpen){
   const rc=new Map();
   for(const r of rows)if(r.room_id&&r.tournament_slug&&!rc.has(r.tournament_slug))rc.set(r.tournament_slug,{room_id:r.room_id,room_pass:r.room_pass||''});
   if(JSON.stringify([...rc])!==JSON.stringify([..._roomCodes])){_roomCodes=rc;render(_lastData||ARENA_SAMPLE);}
-  list.innerHTML=rows.length?rows.map(notifItemHtml).join(''):'<div class="notif-empty"><span>🔕</span><b>No notifications yet</b><p>Tickets, check-in reminders, room details and results for the tournaments you join will appear here.</p></div>';
+  _notifRows=rows;if(markSeenOnOpen)_notifFilter='all';renderNotifList();
   if(markSeenOnOpen&&rows.some(r=>!r.read_at)){
     const ids=rows.filter(r=>!r.read_at).map(r=>r.id);
     sb.from('notifications').update({read_at:new Date().toISOString()}).in('id',ids).then(()=>{_notifUnread=0;updateNotifHistBtn();});
@@ -3984,7 +4030,7 @@ document.getElementById('fb-input').addEventListener('keydown',function(e){if(e.
 zChrome();
 setTimeout(showNudge,13000);
 </script>
-<script src="/ui.js?v=14" defer></script>
-<script src="/chat.js?v=4" defer></script>
+<script src="/ui.js?v=15" defer></script>
+<script src="/chat.js?v=5" defer></script>
 </body>
 </html>

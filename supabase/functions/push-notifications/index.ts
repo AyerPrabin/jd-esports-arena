@@ -9,11 +9,15 @@ import { sendPush } from '../_shared/push.ts';
 
 const SITE = 'https://jdesport.co.uk';
 
-function linkFor(n: any): { url: string; tag: string } {
+// Keep these patterns in step with notifKind() in index.html (the Notifications list uses the
+// same buckets). category = the alert type players can switch off (push_prefs, ⚙️ settings);
+// tournament and admin alerts have none, so they always push.
+function linkFor(n: any): { url: string; tag: string; category?: string } {
   const t = `${n.title || ''} ${n.body || ''}`;
-  if (/squad chat|friend request|now your friend/i.test(t)) return { url: `${SITE}/?chat=1`, tag: 'jd-chat' };
-  if (/challenge/i.test(t)) return { url: `${SITE}/challenges/`, tag: 'jd-challenge' };
-  if (/wallet|points added/i.test(t)) return { url: `${SITE}/wallet/`, tag: 'jd-wallet' };
+  if (/squad chat|friend request|now your friend/i.test(t)) return { url: `${SITE}/?chat=1`, tag: 'jd-chat', category: 'friends' };
+  if (/daily challenge time/i.test(t)) return { url: `${SITE}/challenges/`, tag: 'jd-challenge-daily', category: 'lobby' };
+  if (/challenge/i.test(t)) return { url: `${SITE}/challenges/`, tag: 'jd-challenge', category: 'challenges' };
+  if (/wallet|points added/i.test(t)) return { url: `${SITE}/wallet/`, tag: 'jd-wallet', category: 'wallet' };
   if (/Admin →/.test(t)) return { url: `${SITE}/admin/`, tag: 'jd-admin' };
   if (n.tournament_slug) return { url: `${SITE}/#tournaments`, tag: 'jd-t-' + String(n.tournament_slug).slice(0, 40) };
   return { url: `${SITE}/`, tag: 'jd-arena' };
