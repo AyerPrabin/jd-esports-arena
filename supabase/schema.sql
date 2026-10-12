@@ -3327,3 +3327,66 @@ revoke all on function public.admin_resolve_load(uuid, boolean, int, text) from 
 grant execute on function public.admin_resolve_load(uuid, boolean, int, text) to service_role;
 
 commit;
+
+-- ── entries are points-only; admin is alerted to new payment screenshots ──
+-- * redeem_code(): entry codes are refused (the raise rolls the code back to unused).
+--   Effect codes keep working.
+-- * request_wallet_load(): notifies the organiser's account (push via notifications_push)
+--   so a screenshot waiting in Admin -> Points doesn't go unnoticed.
+begin;
+
+do $$
+declare d text;
+begin
+  select pg_get_functiondef('public.redeem_code(text,text,text)'::regprocedure) into d;
+  if position('paid with points only' in d) = 0 then
+    d := replace(d, E'  if v_code.kind = ''entry'' then\n',
+      E'  if v_code.kind = ''entry'' then\n    raise exception ''Entry codes are no longer used — tournaments are paid with points only. Load points in your wallet.'';\n');
+    if position('paid with points only' in d) = 0 then
+      raise exception 'redeem_code patch did not apply';
+    end if;
+    execute d;
+  end if;
+end $$;
+
+create or replace function public.request_wallet_load(p_amount int, p_screenshot text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_id uuid; v_admin uuid; v_who text;
+begin
+  if auth.uid() is null then
+    raise exception 'Please sign in first.';
+  end if;
+  perform public._assert_open();
+  if p_amount is null or p_amount < 1 or p_amount > 100000 then
+    raise exception 'Enter the amount you paid (1 to 100000).';
+  end if;
+  if p_screenshot is null or p_screenshot !~ '^data:image/(png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$' then
+    raise exception 'Please attach your eSewa payment screenshot.';
+  end if;
+  if length(p_screenshot) > 600000 then
+    raise exception 'The screenshot is too large. Please upload a smaller image.';
+  end if;
+  if exists(select 1 from public.banned_players where player_id = auth.uid()) then
+    raise exception 'Your account is banned.';
+  end if;
+  if (select count(*) from public.wallet_load_requests where player_id = auth.uid() and status = 'pending') >= 3 then
+    raise exception 'You already have 3 payments waiting to be checked. Please wait for them first.';
+  end if;
+  insert into public.wallet_load_requests (player_id, amount, screenshot)
+  values (auth.uid(), p_amount, p_screenshot)
+  returning id into v_id;
+
+  select id into v_admin from public.players where lower(email) = 'ayerprabin95@gmail.com';
+  if v_admin is not null then
+    select coalesce('@' || username, player_tag, 'A player') into v_who from public.players where id = auth.uid();
+    insert into public.notifications (player_id, title, body)
+    values (v_admin, '🧾 Payment screenshot to check',
+            coalesce(v_who, 'A player') || ' sent a Rs ' || p_amount || ' eSewa screenshot. Open Admin → Points to approve or reject it.');
+  end if;
+  return jsonb_build_object('id', v_id, 'status', 'pending');
+end;
+$$;
+revoke all on function public.request_wallet_load(int, text) from public, anon;
+grant execute on function public.request_wallet_load(int, text) to authenticated;
+
+commit;

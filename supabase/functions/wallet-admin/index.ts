@@ -185,14 +185,7 @@ Deno.serve(async (req: Request) => {
       p_id: p.id, p_approve: !!p.approve, p_amount: amount, p_note: p.note || null,
     });
     if (error) return fail(error.message);
-    const ok = data?.status === 'approved';
-    try {
-      await sendPush(supabase, [data.player_id], {
-        title: ok ? `+${data.amount} JD points added` : 'Points not added',
-        body: ok ? `Your payment was verified. Balance: ${data.balance} points.` : 'We could not verify your payment. Open your wallet for details.',
-        url: 'https://jdesport.co.uk/wallet/', tag: 'jd-wallet',
-      });
-    } catch { /* best-effort */ }
+    // the player's notification (and its push) is inserted by admin_resolve_load / admin_wallet_credit
     return json(data);
   }
 

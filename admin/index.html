@@ -1449,7 +1449,7 @@ async function loadLoads(){
     const rows=await waCall({action:'loads'});
     document.getElementById('wl-count').textContent=rows.length?'('+rows.length+')':'';
     box.innerHTML=rows.length?rows.map(r=>`<div class="card" style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start">
-      <a href="${esc(r.screenshot)}" target="_blank" rel="noopener" title="Open full size"><img src="${esc(r.screenshot)}" alt="Payment screenshot" style="width:150px;max-height:260px;object-fit:contain;border-radius:10px;border:1px solid var(--line);background:#000"></a>
+      <img src="${esc(r.screenshot)}" alt="Payment screenshot" title="Tap to enlarge" onclick="this.style.width=this.style.width==='100%'?'240px':'100%';this.style.maxHeight=this.style.maxHeight==='none'?'420px':'none'" style="width:240px;max-height:420px;object-fit:contain;border-radius:10px;border:1px solid var(--line);background:#000;cursor:zoom-in">
       <div style="flex:1;min-width:200px">
         <b style="font-size:1.05rem">${esc(r.players?('@'+(r.players.username||r.players.player_tag)):'player')}</b>
         <div class="hint" style="margin:2px 0 8px">${esc(r.players&&r.players.player_tag||'')} · sent ${esc(new Date(r.created_at).toLocaleString())}</div>

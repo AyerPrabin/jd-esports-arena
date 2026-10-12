@@ -412,11 +412,12 @@ as a separate follow-up, not solved here.
 ## 16. Match check-in / no-show forfeit
 
 Confirmed/approved players now see a **"✅ Check In Now"** button on their tournament card
-starting 30 minutes before it begins. Tapping it calls `check_in_for_tournament()`, which
+starting 12 hours before it begins (the function refuses anything earlier). Tapping it calls `check_in_for_tournament()`, which
 stamps `checked_in_at` on their own registration — nothing else changes about their slot.
 
 `tournament-reminders` (the same 15-minute cron job that already sends the 24h/1h email
 reminders) now does two more things on every tick:
+- **Check-in open** — 12 hours before start, confirmed/approved players are told check-in is open.
 - **Check-in nudge** — ~30 minutes before start, anyone confirmed/approved who hasn't checked
   in yet gets a notification (and email, if `RESEND_API_KEY` is set) telling them to.
 - **Forfeit sweep** — once a tournament is within ~10 minutes of start (the exact moment

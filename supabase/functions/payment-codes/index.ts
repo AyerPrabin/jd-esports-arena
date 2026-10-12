@@ -43,7 +43,7 @@ Deno.serve(async (req: Request) => {
     const kind = String(payload.kind || '');
     if (!(kind in PRICES)) return new Response('Unknown code type', { status: 400, headers: CORS_HEADERS });
     const slug = payload.tournament_slug ? String(payload.tournament_slug) : null;
-    if (kind === 'entry' && !slug) return new Response('Pick the tournament for an entry code', { status: 400, headers: CORS_HEADERS });
+    if (kind === 'entry') return new Response('Entries are paid with points only — no entry codes.', { status: 400, headers: CORS_HEADERS });
     const count = Math.min(Math.max(parseInt(payload.count) || 1, 1), 20);
     const rows = Array.from({ length: count }, () => ({
       code: newCode(),
