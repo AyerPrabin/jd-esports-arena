@@ -743,8 +743,14 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
   .lang-btn.acct-btn-signed .acct-avatar-mini{width:28px;height:28px}
   .icon-btn .badge{top:-5px;right:-5px}
   .bar-right .pts-pill[hidden]{display:none}
+  /* the rules above set display on bar items at a higher specificity than [hidden] and
+     .nav-m, which let hidden items (and the phone drawer's wallet / notifications /
+     messages rows, already covered by the points pill, bell and 💬 bubble) show here */
+  .bar-right [hidden],.bar-nav .nav-m{display:none!important}
+  .bar-right .lang-btn,.bar-right .pts-pill{white-space:nowrap}
 }
-@media(min-width:641px) and (max-width:900px){.nav-link{padding:0 5px!important;font-size:.74rem!important}.brand span span{display:none}.lang-btn.acct-btn-signed{font-size:0;padding:0 5px!important;gap:0}.pts-pill .pts-unit{display:none}.bar-right{gap:6px}}
+@media(min-width:641px) and (max-width:900px){.nav-link{padding:0 5px!important;font-size:.74rem!important}.brand>span{display:none}.lang-btn.acct-btn-signed{font-size:0;padding:0 5px!important;gap:0}.pts-pill .pts-unit{display:none}.bar-right{gap:6px}}
+@media(min-width:641px) and (max-width:780px){.dl-wrap{display:none!important}}
 /* ── mobile header: points pill, bell and menu share one size, shape and spacing ── */
 .nt-lines{position:relative;display:block;width:18px;height:12px}
 .nt-lines i{position:absolute;left:0;width:100%;height:2px;border-radius:2px;background:currentColor;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .2s,top .3s cubic-bezier(.16,1,.3,1)}
