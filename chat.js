@@ -24,7 +24,7 @@
   var PAGE = document.getElementById('chat-page');
 
   var css = document.createElement('link');
-  css.rel = 'stylesheet'; css.href = '/chat.css?v=5';
+  css.rel = 'stylesheet'; css.href = '/chat.css?v=6';
   document.head.appendChild(css);
 
   var NE = false;

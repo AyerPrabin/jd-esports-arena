@@ -355,3 +355,19 @@ html.app-gated .dm-fab,html.app-gated .dm-panel,html.app-gated .dm-banner{displa
 /* ZULU: site links in answers become buttons */
 .dm-b a.dm-pathbtn{display:inline-flex;align-items:center;margin:4px 2px 0;padding:4px 10px;border-radius:999px;border:1px solid rgba(124,92,255,.4);background:rgba(124,92,255,.14);color:#E4DEFF!important;font-size:.8rem;font-weight:700;text-decoration:none;white-space:nowrap}
 .dm-b a.dm-pathbtn:hover{background:rgba(124,92,255,.26)}
+
+/* broadcast touches (match /broadcast.css): gold→red rule under the headers, slash title,
+   squarer tabs. Uppercase only (no letter-spacing) so Nepali labels stay intact. */
+.dm-head,.dm-thead{position:relative}
+.dm-head::after,.dm-thead::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;pointer-events:none;
+  background:linear-gradient(90deg,#FFC83D 0%,#FF8A1C 45%,#FF2E4D 75%,rgba(255,46,77,0) 100%);opacity:.75}
+.dm-head h2{position:relative;padding-left:16px;font-family:'Barlow Condensed',var(--font-body,system-ui);font-size:1.55rem;text-transform:uppercase}
+.dm-head h2::before{content:'';position:absolute;left:1px;top:10%;bottom:10%;width:6px;border-radius:1px;background:linear-gradient(180deg,#FFC83D,#FF2E4D);transform:skewX(-16deg)}
+.dm-tabs button{border-radius:6px}
+.dm-tabs button[aria-selected="true"]{background:linear-gradient(100deg,#FFC83D,#FFAE00);border-color:transparent;color:#0A0A12}
+.dm-tabs button[aria-selected="true"] b{box-shadow:0 0 0 2px #FFC83D}
+.dm-sec{display:flex;align-items:center;gap:8px}
+.dm-sec::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(255,200,61,.35),transparent)}
+.dm-thead .dm-who b{font-family:'Barlow Condensed',var(--font-body,system-ui);font-size:1.12rem;text-transform:uppercase}
+.dm-rec{border-radius:10px}
+.dm-pin{border-left:3px solid #FF2E4D}
