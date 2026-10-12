@@ -3309,7 +3309,7 @@ function notifItemHtml(n){
   if(n.body&&n.body.startsWith('TICKET::'))return notifTicketHtml(n,unreadClass);
   const rc=n.room_id?`<div class="rc"><span>Room ID: <b>${esc(n.room_id)}</b>${n.room_pass?' · Pass: <b>'+esc(n.room_pass)+'</b>':''}</span><button type="button" class="rc-copy" data-id="${esc(n.room_id)}" data-pass="${esc(n.room_pass||'')}" onclick="copyRoom(this,this.dataset.id,this.dataset.pass)">Copy</button></div>`:'';
   // friend requests/accepts (schema.sql "friends + direct messages") open the 💬 Messages panel (chat.js)
-  const fr=/friend request|your friend/i.test(n.title||'')&&window.jdChat?`<button type="button" class="rc-copy" style="margin-top:8px" onclick="notifHistClose();jdChat.open()">💬 Open Messages</button>`:'';
+  const fr=/^(👋 Friend request from|🤝 )/.test(n.title||'')&&window.jdChat?`<button type="button" class="rc-copy" style="margin-top:8px" onclick="notifHistClose();jdChat.open()">💬 Open Messages</button>`:'';
   return `<div class="notif-item${unreadClass}"><div class="t">${esc(n.title)}</div>${n.body?`<div class="b">${esc(n.body)}</div>`:''}${rc}${fr}${notifTimeHtml(n.created_at)}</div>`;
 }
 /* ── chime: 'notify' plays the real notify.mp3 file; 'install' (and 'notify' if the
@@ -3331,8 +3331,8 @@ function buzz(){try{if(navigator.vibrate)navigator.vibrate([180,90,180]);}catch(
 function notifBanner(n){
   let b=document.getElementById('notif-banner');
   if(!b){b=document.createElement('button');b.id='notif-banner';b.type='button';b.className='notif-banner';document.body.appendChild(b);}
-  const isChallenge=/challenge/i.test(n.title||'');
-  const isFriend=/friend request|your friend/i.test(n.title||'')&&window.jdChat;
+  const isFriend=/^(👋 Friend request from|🤝 )/.test(n.title||'')&&!!window.jdChat;
+  const isChallenge=!isFriend&&/challenge/i.test(n.title||'');
   const body=String(n.body||'').startsWith('TICKET::')?'Your ticket is ready — tap to view.':String(n.body||'');
   b.innerHTML=`<span class="nb-ic">${isChallenge?'⚔️':isFriend?'👋':'🔔'}</span><span class="nb-t"><b>${esc(n.title||'New notification')}</b><small>${esc(body.slice(0,110))}${body.length>110?'…':''}</small></span>`;
   b.onclick=()=>{b.classList.remove('show');if(isChallenge)location.href='/challenges/';else if(isFriend)window.jdChat.open();else notifHistOpen();};
