@@ -825,6 +825,18 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .zmodal .reg-wa-opt{margin:0;color:var(--cream)}
 .reg-wa-opt small{color:var(--pm-muted,#9CA8BE);font-weight:500}
 .reg-wa #reg-wa-box{margin-top:10px}
+/* WhatsApp number: country picker (flag + code shown, full country names in the native list) + local number */
+.wa-row{display:flex;gap:8px}
+.wa-cc{position:relative;flex:none;display:flex;align-items:center;gap:6px;height:46px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg-2);color:var(--cream);font-weight:700;font-size:.92rem;white-space:nowrap}
+.wa-cc:focus-within{border-color:var(--gold-m)}
+.wa-cc .wa-flag{font-size:1.2rem;line-height:1}
+.wa-cc .wa-caret{color:var(--body);font-size:.7rem}
+.wa-cc select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+.wa-row #reg-wa{flex:1;min-width:0}
+.wa-preview{margin:6px 2px 0;font-size:.78rem;color:var(--body)}
+.wa-preview b{color:#5EDB95;letter-spacing:.02em}
+.wa-preview.bad b{color:#FF8A9B}
+@media(max-width:640px){.wa-row #reg-wa{font-size:16px}}
 .zmodal .tc-check input{width:auto;flex:none;margin-top:2px;accent-color:var(--gold,#FFC83D)}
 .tc-check span{flex:1;min-width:0}
 .tc-check a{color:var(--gold-l);text-decoration:underline}
@@ -1251,8 +1263,12 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
     <div class="reg-wa">
       <label class="tc-check reg-wa-opt"><input type="checkbox" id="reg-wa-on" onchange="regWaToggle()"><span><b>💬 Text me a match reminder on WhatsApp</b> <small>optional</small></span></label>
       <div id="reg-wa-box" hidden>
-        <input id="reg-wa" type="tel" inputmode="tel" autocomplete="tel" placeholder="+977 98XXXXXXXX" maxlength="20">
-        <p class="sub" style="margin:6px 0 0">With country code. Used only to remind you before <b>this</b> tournament — never shown publicly, and deleted 2 days after it starts. <a href="/privacy/" target="_blank" rel="noopener">Privacy</a></p>
+        <div class="wa-row">
+          <label class="wa-cc" title="Country"><span class="wa-flag" id="reg-wa-flag">🇳🇵</span><span id="reg-wa-code">+977</span><span class="wa-caret" aria-hidden="true">▼</span><select id="reg-wa-cc" aria-label="Country code" onchange="regWaCountry()"></select></label>
+          <input id="reg-wa" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="98XXXXXXXX" maxlength="20" oninput="regWaPreview()" aria-label="WhatsApp number">
+        </div>
+        <p class="wa-preview" id="reg-wa-preview" aria-live="polite"></p>
+        <p class="sub" style="margin:6px 0 0">Pick your country (Nepal is set already), then type your number. Used only to remind you before <b>this</b> tournament — never shown publicly, and deleted 2 days after it starts. <a href="/privacy/" target="_blank" rel="noopener">Privacy</a></p>
       </div>
     </div>
     <div class="msg" id="reg-msg"></div>
@@ -2695,7 +2711,7 @@ function registerInApp(name){
   const ln=document.getElementById('reg-logo-note');
   if(ln)ln.textContent=_player.squad_logo?'Using your saved logo. Choose a new image only if you want to change it — it replaces the old one everywhere.':'Upload once — it is saved to your profile for every future tournament.';
   const payWrap=document.getElementById('reg-pay-wrap');if(payWrap)payWrap.style.display=paid?'':'none';
-    const wo=document.getElementById('reg-wa-on'),wi=document.getElementById('reg-wa');if(wo)wo.checked=false;if(wi)wi.value='';regWaToggle();
+    const wo=document.getElementById('reg-wa-on'),wi=document.getElementById('reg-wa');if(wo)wo.checked=false;if(wi)wi.value='';regWaToggle();regWaPreview();
   const pp=document.getElementById('reg-pay-price');if(pp)pp.textContent='Entry '+(t.entry||'');
   const ps=document.getElementById('reg-pay-steps');if(ps){const pr=entryAmount(t);ps.innerHTML=paid?`<div class="pts-line" style="font-size:.8rem;color:var(--body)">Entry <b style="color:var(--gold-l)">${pr} points</b> · You have <b style="color:var(--gold-l)">${walletLabel()}</b>${canAfford(pr)?' — paid automatically when you register.':''}</div>`+(!canAfford(pr)?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="goWallet('load')">➕ Load points (need ${pr-_wallet} more)</button>`:''):'';}
   const payNote=document.getElementById('reg-pay-note');if(payNote)payNote.textContent='Not enough points yet? Register now to hold your place, then pay from your ticket once your points are loaded. A held place does not reserve a slot.';
@@ -2708,9 +2724,56 @@ function registerInApp(name){
   }
   document.getElementById('reg-overlay').classList.add('open');
 }
-function regWaToggle(){const on=(document.getElementById('reg-wa-on')||{}).checked,b=document.getElementById('reg-wa-box');if(b){b.hidden=!on;if(on)document.getElementById('reg-wa').focus();}}
-// same rule as set_registration_whatsapp() server-side: digits with an optional +, 7-15 long
-function regWaValue(){if(!(document.getElementById('reg-wa-on')||{}).checked)return '';return ((document.getElementById('reg-wa')||{}).value||'').replace(/[\s\-().]/g,'');}
+function regWaToggle(){const on=(document.getElementById('reg-wa-on')||{}).checked,b=document.getElementById('reg-wa-box');if(b){b.hidden=!on;if(on){regWaFill();document.getElementById('reg-wa').focus();}}}
+/* Country calling codes (ITU E.164). The first group is where most JD Arena players live or
+   work; the rest are A–Z. Only the chosen country is remembered on this device (jd_wa_cc),
+   never the number. */
+const WA_COMMON='NP|Nepal|977,IN|India|91,QA|Qatar|974,AE|United Arab Emirates|971,SA|Saudi Arabia|966,MY|Malaysia|60,KW|Kuwait|965,OM|Oman|968,BH|Bahrain|973,JP|Japan|81,KR|South Korea|82,GB|United Kingdom|44,US|United States|1,AU|Australia|61,CA|Canada|1';
+const WA_ALL='AF|Afghanistan|93,AL|Albania|355,DZ|Algeria|213,AD|Andorra|376,AO|Angola|244,AR|Argentina|54,AM|Armenia|374,AU|Australia|61,AT|Austria|43,AZ|Azerbaijan|994,BS|Bahamas|1,BH|Bahrain|973,BD|Bangladesh|880,BB|Barbados|1,BY|Belarus|375,BE|Belgium|32,BZ|Belize|501,BJ|Benin|229,BT|Bhutan|975,BO|Bolivia|591,BA|Bosnia and Herzegovina|387,BW|Botswana|267,BR|Brazil|55,BN|Brunei|673,BG|Bulgaria|359,BF|Burkina Faso|226,BI|Burundi|257,KH|Cambodia|855,CM|Cameroon|237,CA|Canada|1,CV|Cape Verde|238,CF|Central African Republic|236,TD|Chad|235,CL|Chile|56,CN|China|86,CO|Colombia|57,KM|Comoros|269,CG|Congo|242,CD|Congo (DR)|243,CR|Costa Rica|506,CI|Côte d’Ivoire|225,HR|Croatia|385,CU|Cuba|53,CY|Cyprus|357,CZ|Czechia|420,DK|Denmark|45,DJ|Djibouti|253,DO|Dominican Republic|1,EC|Ecuador|593,EG|Egypt|20,SV|El Salvador|503,GQ|Equatorial Guinea|240,ER|Eritrea|291,EE|Estonia|372,SZ|Eswatini|268,ET|Ethiopia|251,FJ|Fiji|679,FI|Finland|358,FR|France|33,GA|Gabon|241,GM|Gambia|220,GE|Georgia|995,DE|Germany|49,GH|Ghana|233,GR|Greece|30,GT|Guatemala|502,GN|Guinea|224,GY|Guyana|592,HT|Haiti|509,HN|Honduras|504,HK|Hong Kong|852,HU|Hungary|36,IS|Iceland|354,IN|India|91,ID|Indonesia|62,IR|Iran|98,IQ|Iraq|964,IE|Ireland|353,IL|Israel|972,IT|Italy|39,JM|Jamaica|1,JP|Japan|81,JO|Jordan|962,KZ|Kazakhstan|7,KE|Kenya|254,KW|Kuwait|965,KG|Kyrgyzstan|996,LA|Laos|856,LV|Latvia|371,LB|Lebanon|961,LS|Lesotho|266,LR|Liberia|231,LY|Libya|218,LI|Liechtenstein|423,LT|Lithuania|370,LU|Luxembourg|352,MO|Macau|853,MG|Madagascar|261,MW|Malawi|265,MY|Malaysia|60,MV|Maldives|960,ML|Mali|223,MT|Malta|356,MR|Mauritania|222,MU|Mauritius|230,MX|Mexico|52,MD|Moldova|373,MC|Monaco|377,MN|Mongolia|976,ME|Montenegro|382,MA|Morocco|212,MZ|Mozambique|258,MM|Myanmar|95,NA|Namibia|264,NP|Nepal|977,NL|Netherlands|31,NZ|New Zealand|64,NI|Nicaragua|505,NE|Niger|227,NG|Nigeria|234,MK|North Macedonia|389,NO|Norway|47,OM|Oman|968,PK|Pakistan|92,PS|Palestine|970,PA|Panama|507,PG|Papua New Guinea|675,PY|Paraguay|595,PE|Peru|51,PH|Philippines|63,PL|Poland|48,PT|Portugal|351,QA|Qatar|974,RO|Romania|40,RU|Russia|7,RW|Rwanda|250,SA|Saudi Arabia|966,SN|Senegal|221,RS|Serbia|381,SC|Seychelles|248,SL|Sierra Leone|232,SG|Singapore|65,SK|Slovakia|421,SI|Slovenia|386,SO|Somalia|252,ZA|South Africa|27,KR|South Korea|82,SS|South Sudan|211,ES|Spain|34,LK|Sri Lanka|94,SD|Sudan|249,SR|Suriname|597,SE|Sweden|46,CH|Switzerland|41,SY|Syria|963,TW|Taiwan|886,TJ|Tajikistan|992,TZ|Tanzania|255,TH|Thailand|66,TL|Timor-Leste|670,TG|Togo|228,TT|Trinidad and Tobago|1,TN|Tunisia|216,TR|Turkey|90,TM|Turkmenistan|993,UG|Uganda|256,UA|Ukraine|380,AE|United Arab Emirates|971,GB|United Kingdom|44,US|United States|1,UY|Uruguay|598,UZ|Uzbekistan|998,VE|Venezuela|58,VN|Vietnam|84,YE|Yemen|967,ZM|Zambia|260,ZW|Zimbabwe|263';
+const waFlag=iso=>iso.replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt(0)));
+const waParse=s=>s.split(',').map(x=>{const p=x.split('|');return {iso:p[0],name:p[1],code:p[2]};});
+function regWaFill(){
+  const sel=document.getElementById('reg-wa-cc');if(!sel||sel.options.length)return regWaCountry();
+  const opt=c=>`<option value="${c.iso}">${waFlag(c.iso)} ${esc(c.name)} (+${c.code})</option>`;
+  sel.innerHTML=`<optgroup label="Common">${waParse(WA_COMMON).map(opt).join('')}</optgroup><optgroup label="All countries">${waParse(WA_ALL).map(opt).join('')}</optgroup>`;
+  let iso='NP';try{iso=localStorage.getItem('jd_wa_cc')||'NP';}catch(e){}
+  sel.value=iso;if(!sel.value)sel.value='NP';
+  regWaCountry(true);
+}
+function regWaCc(){const sel=document.getElementById('reg-wa-cc'),iso=(sel&&sel.value)||'NP';return waParse(WA_COMMON+','+WA_ALL).find(c=>c.iso===iso)||{iso:'NP',name:'Nepal',code:'977'};}
+function regWaCountry(quiet){
+  const c=regWaCc();
+  document.getElementById('reg-wa-flag').textContent=waFlag(c.iso);
+  document.getElementById('reg-wa-code').textContent='+'+c.code;
+  const wi=document.getElementById('reg-wa');if(wi)wi.placeholder=c.iso==='NP'?'98XXXXXXXX':'Your number';
+  if(!quiet){try{localStorage.setItem('jd_wa_cc',c.iso);}catch(e){}if(wi)wi.focus();}
+  regWaPreview();
+}
+// The full international number: country code + the number without its leading 0 (UK 07… →
+// +447…). A number typed or pasted with + or 00 already has its code and is used as is.
+function regWaNumber(){
+  const raw=((document.getElementById('reg-wa')||{}).value||'').replace(/[\s\-().]/g,'');
+  if(!raw)return '';
+  if(/^\+/.test(raw))return raw;
+  if(/^00/.test(raw))return '+'+raw.slice(2);
+  return '+'+regWaCc().code+raw.replace(/^0+/,'');
+}
+// same rule as set_registration_whatsapp() server-side (digits with an optional +, 7-15 long),
+// plus Nepal's 10-digit mobiles starting with 9
+function regWaError(){
+  const n=regWaNumber();
+  if(!n)return 'Enter your WhatsApp number, or untick the reminder.';
+  if(!/^\+[0-9]{7,15}$/.test(n))return 'That number doesn\'t look right. Check the country and the number, or untick the reminder.';
+  if(/^\+977/.test(n)&&!/^\+9779[0-9]{9}$/.test(n))return 'Nepal mobile numbers have 10 digits and start with 9 (98XXXXXXXX).';
+  return '';
+}
+function regWaPreview(){
+  const el=document.getElementById('reg-wa-preview');if(!el)return;
+  const n=regWaNumber(),err=n?regWaError():'';
+  el.className='wa-preview'+(err?' bad':'');
+  el.innerHTML=n?(err?esc(err):'We\'ll text <b>'+esc(n)+'</b> on WhatsApp'):'';
+}
+function regWaValue(){if(!(document.getElementById('reg-wa-on')||{}).checked)return '';return regWaNumber();}
 function regClose(){document.getElementById('reg-overlay').classList.remove('open');_regTarget=null;}
 function resizeToDataUri(file,maxPx,quality,cb){
   const img=new Image(),reader=new FileReader();
@@ -2754,7 +2817,8 @@ async function submitRegister(){
   const msg=document.getElementById('reg-msg');
   if(!squad||squad.length<2){msg.textContent='Enter your squad name (at least 2 characters).';msg.className='msg err';document.getElementById('reg-squad').focus();return;}
   const wa=regWaValue();
-  if((document.getElementById('reg-wa-on')||{}).checked&&!/^\+?[0-9]{7,15}$/.test(wa)){msg.textContent='Enter your WhatsApp number with country code (e.g. +977 98XXXXXXXX), or untick the reminder.';msg.className='msg err';document.getElementById('reg-wa').focus();return;}
+  const waErr=(document.getElementById('reg-wa-on')||{}).checked?regWaError():'';
+  if(waErr){msg.textContent=waErr;msg.className='msg err';document.getElementById('reg-wa').focus();return;}
   msg.textContent='Registering…';msg.className='msg';
   const status=paid?'pending':'confirmed';
   // Goes through register_for_tournament() (see schema.sql) instead of a plain insert —
