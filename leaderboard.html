@@ -108,7 +108,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .pred-row .bar{grid-column:2/-1;height:4px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden}
 .pred-row .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-2))}
 </style>
-<link rel="stylesheet" href="/ui.css?v=12">
+<link rel="stylesheet" href="/ui.css?v=13">
 </head>
 <body>
 <header>
@@ -123,9 +123,9 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
   <p class="sub" id="lb-sub">Loading standings…</p>
   <div class="champ" id="champ" hidden><div class="champ-eye">🏆 Champions</div><div class="champ-name" id="champ-name"></div><div class="champ-sub" id="champ-sub"></div></div>
   <div class="podium" id="podium">
-    <div class="pod-slot p2"><div class="pod-card"><img class="pod-logo" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">2</div></div>
-    <div class="pod-slot p1"><div class="pod-card"><span class="pod-crown">👑</span><img class="pod-logo" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">1</div></div>
-    <div class="pod-slot p3"><div class="pod-card"><img class="pod-logo" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">3</div></div>
+    <div class="pod-slot p2"><div class="pod-card"><img class="pod-logo" alt="" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">2</div></div>
+    <div class="pod-slot p1"><div class="pod-card"><span class="pod-crown">👑</span><img class="pod-logo" alt="" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">1</div></div>
+    <div class="pod-slot p3"><div class="pod-card"><img class="pod-logo" alt="" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">3</div></div>
   </div>
   <div id="lb-body"></div>
   <section class="pred" id="predict" hidden>
@@ -139,7 +139,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 
 <footer>JD Esports Arena · AyerFire</footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
 <script>
 const TOURNAMENTS_URL='https://jdesport.co.uk/tournaments.json';
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
@@ -496,6 +496,6 @@ function load(){
 load();
 setInterval(()=>{if(!document.hidden)load();},15000);
 </script>
-<script src="/ui.js?v=12" defer></script>
+<script src="/ui.js?v=13" defer></script>
 </body>
 </html>

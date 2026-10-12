@@ -8,6 +8,7 @@
 // their account (zulu_discord.py's !link) and DISCORD_BOT_TOKEN is set.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { sendPush } from '../_shared/push.ts';
+import { optionalEmailExtras } from '../_shared/email.ts';
 
 // Browser calls this cross-origin with a custom x-admin-secret header, which makes the
 // browser send a CORS preflight OPTIONS request first — without these headers that
@@ -68,9 +69,9 @@ Deno.serve(async (req: Request) => {
     // username, or their account email — check all three columns, no
     // string-built filters (avoids any injection risk from admin-typed input).
     const [byTag, byUser, byEmail] = await Promise.all([
-      supabase.from('players').select('id, email, player_tag, username, discord_user_id').in('player_tag', player_tags),
-      supabase.from('players').select('id, email, player_tag, username, discord_user_id').in('username', player_tags),
-      supabase.from('players').select('id, email, player_tag, username, discord_user_id').in('email', player_tags),
+      supabase.from('players').select('id, email, email_opt_out, player_tag, username, discord_user_id').in('player_tag', player_tags),
+      supabase.from('players').select('id, email, email_opt_out, player_tag, username, discord_user_id').in('username', player_tags),
+      supabase.from('players').select('id, email, email_opt_out, player_tag, username, discord_user_id').in('email', player_tags),
     ]);
     if (byTag.error) return new Response(byTag.error.message, { status: 500, headers: CORS_HEADERS });
     if (byUser.error) return new Response(byUser.error.message, { status: 500, headers: CORS_HEADERS });
@@ -88,7 +89,7 @@ Deno.serve(async (req: Request) => {
   } else {
     const { data: players, error: playersErr } = await supabase
       .from('players')
-      .select('id, email, player_tag, username, discord_user_id');
+      .select('id, email, email_opt_out, player_tag, username, discord_user_id');
     if (playersErr) return new Response(playersErr.message, { status: 500, headers: CORS_HEADERS });
     targets = players || [];
   }
@@ -110,12 +111,13 @@ Deno.serve(async (req: Request) => {
   if (resendKey) {
     const from = Deno.env.get('RESEND_FROM') || 'JD Arena <onboarding@resend.dev>';
     for (const t of targets) {
-      if (!t.email) continue;
+      if (!t.email || t.email_opt_out) continue; // announcements are optional (unsubscribe link)
       try {
+        const extra = await optionalEmailExtras(t.id);
         const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ from, to: t.email, subject: title, html: `<p>${body}</p>` }),
+          body: JSON.stringify({ from, to: t.email, subject: title, html: `<p>${body}</p>${extra.footer}`, headers: extra.headers }),
         });
         if (res.ok) emailed++;
       } catch {

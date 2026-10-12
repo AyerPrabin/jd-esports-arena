@@ -127,7 +127,7 @@ input[type=text]:focus{border-color:var(--gold)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
-<link rel="stylesheet" href="/ui.css?v=12">
+<link rel="stylesheet" href="/ui.css?v=13">
 </head>
 <body>
 <div class="wrap">
@@ -226,7 +226,7 @@ input[type=text]:focus{border-color:var(--gold)}
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
 <script>
 /* Same project + publishable key as the main site — the login session is shared through
    localStorage on this origin. Everything here is the signed-in player's own data (RLS). */
@@ -371,6 +371,6 @@ $('logout').onclick=async()=>{await sb.auth.signOut();location.href='/';};
   setInterval(()=>{if(!document.hidden)loadWallet();},20000);
 })();
 </script>
-<script src="/ui.js?v=12" defer></script>
+<script src="/ui.js?v=13" defer></script>
 </body>
 </html>

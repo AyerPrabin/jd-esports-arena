@@ -307,3 +307,31 @@ img{max-width:100%}
   .pe-card.slim>.pe-status{display:inline-block}
 }
 @media(prefers-reduced-motion:reduce){.pe-card,.ev-link{transition:none}}
+
+/* ── legal links (injected into every footer by /ui.js) ── */
+.legal-links{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin-top:14px;font-size:.8rem}
+.legal-links a{color:var(--silver,#A6AFC2);text-decoration:underline;text-underline-offset:3px;min-height:24px;display:inline-flex;align-items:center}
+.legal-links a:hover{color:var(--gold-l,#FFDD85)}
+.legal-links span{flex-basis:100%;text-align:center;color:var(--ui-muted);font-size:.74rem}
+/* one-time storage notice: sits above the phone tab bar, out of the way of content */
+.storage-note{position:fixed;left:16px;bottom:16px;z-index:44;max-width:380px;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#111827;border:1px solid var(--ui-line);box-shadow:0 12px 30px rgba(3,5,10,.6);font-size:.8rem;color:#C9D0DD}
+.storage-note p{margin:0}
+.storage-note a{color:#FFDD85;text-decoration:underline;text-underline-offset:2px}
+.storage-note button{flex:none;min-height:40px;padding:8px 16px;border-radius:999px;border:0;background:var(--ui-gold);color:#07090F;font:700 .82rem var(--font-body);cursor:pointer}
+@media(max-width:640px){.storage-note{left:12px;right:12px;max-width:none;bottom:calc(var(--tabbar-h) + var(--safe-b) + 64px)}}
+
+/* /events/ reviews (inside an opened event card) */
+.pe-rev{grid-column:1/-1;display:none}
+.pe-card.open .pe-rev{display:block;padding-top:12px;border-top:1px solid var(--line,rgba(255,200,80,.14));cursor:default}
+.pe-rev:empty{display:none!important}
+.pe-rev-sum{font-size:.84rem;color:var(--cream,#fff);margin-bottom:6px}
+.pe-stars{color:#FFC83D;letter-spacing:1px}
+.pe-rev-item{margin:4px 0;font-size:.82rem;color:var(--silver,#A6AFC2)}
+.pe-rate{margin-top:6px;min-height:40px;padding:8px 14px;border-radius:999px;border:1px solid var(--gold-m,rgba(255,200,80,.42));background:none;color:var(--gold-l,#FFDD85);font:600 .82rem var(--font-body);cursor:pointer}
+.pe-form{display:grid;gap:8px;margin-top:8px;font-size:.84rem}
+.pe-form fieldset{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:10px}
+.pe-form legend{padding:0;margin-bottom:4px;color:var(--cream,#fff)}
+.pe-form label{display:inline-flex;align-items:center;gap:4px;min-height:32px}
+.pe-form textarea{width:100%;min-height:70px;border-radius:10px;border:1px solid var(--line,rgba(255,200,80,.14));background:#0D111B;color:#fff;padding:8px;font:inherit}
+.pe-form button{justify-self:start;min-height:40px;padding:8px 16px;border-radius:999px;border:0;background:var(--ui-gold);color:#07090F;font-weight:700;cursor:pointer}
+.pe-msg{margin:0;color:var(--silver,#A6AFC2)}

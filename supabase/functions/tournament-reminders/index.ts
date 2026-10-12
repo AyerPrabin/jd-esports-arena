@@ -48,6 +48,7 @@
 // real room codes, it must not be publicly triggerable.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { sendPush as webPush } from '../_shared/push.ts';
+import { optionalEmailExtras } from '../_shared/email.ts';
 
 async function sendDiscordDM(token: string, discordUserId: string, content: string): Promise<boolean> {
   const authHeaders = { Authorization: `Bot ${token}`, 'Content-Type': 'application/json' };
@@ -151,7 +152,7 @@ Deno.serve(async (req: Request) => {
     const isCheckin = w.key === 'checkin' || w.key === 'checkin_open';
     let regsQuery = supabase
       .from('registrations')
-      .select('player_id, checked_in_at, players(email, username)')
+      .select('player_id, checked_in_at, players(email, email_opt_out, username)')
       .eq('tournament_slug', t.name)
       .in('status', ['confirmed', 'approved']); // skip unverified-payment registrations
     const { data: regs, error: regErr } = await regsQuery;
@@ -185,11 +186,14 @@ Deno.serve(async (req: Request) => {
       await supabase.from('notifications').insert({ player_id: reg.player_id, tournament_slug: t.name, title, body, push: false });
       pushIds.push(reg.player_id);
       if (!resendKey || !reg.players.email) continue;
+      // the 24h reminder is optional (unsubscribe link); check-in notices are service messages
+      if (!isCheckin && reg.players.email_opt_out) continue;
       try {
+        const extra = isCheckin ? { footer: '', headers: undefined } : await optionalEmailExtras(reg.player_id);
         const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ from: resendFrom, to: reg.players.email, subject: title, html: `<p>${body}</p>` }),
+          body: JSON.stringify({ from: resendFrom, to: reg.players.email, subject: title, html: `<p>${body}</p>${extra.footer}`, headers: extra.headers }),
         });
         if (res.ok) sent++;
       } catch {

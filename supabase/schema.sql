@@ -3390,3 +3390,56 @@ revoke all on function public.request_wallet_load(int, text) from public, anon;
 grant execute on function public.request_wallet_load(int, text) to authenticated;
 
 commit;
+-- ── privacy: email opt-out + data retention ──────────────────────────────
+-- * players.email_opt_out: set by the email-unsubscribe link; the optional emails
+--   (24h reminder, results, announcements) skip these players.
+-- * purge_old_personal_data() runs daily (pg_cron 'privacy-purge'):
+--     - points-load payment screenshots 30 days after review
+--     - registration payment screenshots 30 days after the registration
+--     - the optional WhatsApp reminder number 2 days after the tournament starts
+--       (the registration form promises it isn't kept for future events)
+--   These periods are the ones stated on /privacy/.
+begin;
+
+alter table public.players add column if not exists email_opt_out boolean not null default false;
+
+alter table public.wallet_load_requests alter column screenshot drop not null;
+
+create or replace function public.purge_old_personal_data()
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare a int; c int; d int;
+begin
+  update public.wallet_load_requests set screenshot = null
+    where screenshot is not null and status <> 'pending' and reviewed_at < now() - interval '30 days';
+  get diagnostics a = row_count;
+
+  update public.registrations set payment_screenshot = null
+    where payment_screenshot is not null and created_at < now() - interval '30 days';
+  get diagnostics c = row_count;
+  update public.registrations set whatsapp = null
+    where whatsapp is not null
+      and coalesce(public.tournament_start_at(tournament_slug), created_at + interval '14 days') < now() - interval '2 days';
+  get diagnostics d = row_count;
+  return jsonb_build_object('load_screenshots', a, 'registration_screenshots', c, 'whatsapp_numbers', d);
+end;
+$$;
+revoke all on function public.purge_old_personal_data() from public, anon, authenticated;
+
+select cron.unschedule(jobid) from cron.job where jobname = 'privacy-purge';
+select cron.schedule('privacy-purge', '17 3 * * *', 'select public.purge_old_personal_data()');
+
+commit;
+
+-- ZULU rate-limit log (visitor IPs) is only needed for a few minutes; keep at most 7 days.
+begin;
+do $$
+declare d text;
+begin
+  select pg_get_functiondef('public.purge_old_personal_data()'::regprocedure) into d;
+  if position('zulu_ai_reply_log' in d) = 0 then
+    d := replace(d, E'  return jsonb_build_object(',
+      E'  delete from public.zulu_ai_reply_log where created_at < now() - interval ''7 days'';\n  return jsonb_build_object(');
+    execute d;
+  end if;
+end $$;
+commit;

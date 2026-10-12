@@ -161,7 +161,7 @@ input:focus{border-color:var(--gold)}
 @keyframes sk{to{background-position:-200% 0}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
-<link rel="stylesheet" href="/ui.css?v=12">
+<link rel="stylesheet" href="/ui.css?v=13">
 </head>
 <body>
 <div class="wrap">
@@ -222,7 +222,7 @@ input:focus{border-color:var(--gold)}
           </li>
           <li class="step">
             <h3>Upload the payment screenshot</h3>
-            <p>A screenshot is required — no screenshot, no points. Make sure the amount, date and your username in the remarks are visible.</p>
+            <p>A screenshot is required — no screenshot, no points. Make sure the amount, date and your username in the remarks are visible. We delete it 30 days after checking (<a href="/privacy/" style="color:var(--gold-l)">privacy</a>).</p>
             <label class="shot-pick" id="shot-pick" for="shot-file">
               <input id="shot-file" type="file" accept="image/png,image/jpeg,image/webp">
               <img id="shot-prev" alt="" hidden>
@@ -290,7 +290,7 @@ input:focus{border-color:var(--gold)}
 <div class="ov" id="ov"><div class="modal"><h3 id="ov-t"></h3><p id="ov-b"></p><div class="two"><button class="btn ghost" id="ov-no" type="button">Cancel</button><button class="btn" id="ov-yes" type="button">Confirm</button></div></div></div>
 <div class="toast" id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
 <script>
 /* Same project + publishable key as the main site (index.html) — the login session is
    shared through localStorage on this origin, so a signed-in player lands straight in. */
@@ -481,6 +481,6 @@ async function refresh(){
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
 })();
 </script>
-<script src="/ui.js?v=12" defer></script>
+<script src="/ui.js?v=13" defer></script>
 </body>
 </html>

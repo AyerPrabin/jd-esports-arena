@@ -9,6 +9,7 @@
 // after that publish is live, otherwise the link this sends points at a stale board.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { sendPush } from '../_shared/push.ts';
+import { optionalEmailExtras } from '../_shared/email.ts';
 
 const SITE_URL = 'https://jdesport.co.uk';
 
@@ -64,13 +65,13 @@ Deno.serve(async (req: Request) => {
 
   const { data: regs, error: regErr } = await supabase
     .from('registrations')
-    .select('player_id, players(email, player_tag, username, discord_user_id)')
+    .select('player_id, players(email, email_opt_out, player_tag, username, discord_user_id)')
     .eq('tournament_slug', tournament_slug)
     .in('status', ['confirmed', 'approved']); // skip unverified-payment registrations
   if (regErr) return new Response(regErr.message, { status: 500, headers: CORS_HEADERS });
   const targets = (regs || [])
     .filter((r: any) => r.players)
-    .map((r: any) => ({ id: r.player_id, email: r.players.email, player_tag: r.players.player_tag, username: r.players.username, discord_user_id: r.players.discord_user_id }));
+    .map((r: any) => ({ id: r.player_id, email: r.players.email, email_opt_out: !!r.players.email_opt_out, player_tag: r.players.player_tag, username: r.players.username, discord_user_id: r.players.discord_user_id }));
 
   if (!targets.length) {
     return new Response(
@@ -81,7 +82,7 @@ Deno.serve(async (req: Request) => {
 
   const title = `Results are in: ${tournament_slug}`;
   const body = 'See how your squad placed on the leaderboard.';
-  const resultsUrl = `${SITE_URL}/#bo3board`;
+  const resultsUrl = `${SITE_URL}/leaderboard.html`;
 
   const rows = targets.map((t) => ({ player_id: t.id, tournament_slug, title, body, push: false }));
   const { error: insErr } = await supabase.from('notifications').insert(rows);
@@ -93,8 +94,9 @@ Deno.serve(async (req: Request) => {
   if (resendKey) {
     const from = Deno.env.get('RESEND_FROM') || 'JD Arena <onboarding@resend.dev>';
     for (const t of targets) {
-      if (!t.email) continue;
+      if (!t.email || t.email_opt_out) continue; // results emails are optional (unsubscribe link)
       try {
+        const extra = await optionalEmailExtras(t.id);
         const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
@@ -102,7 +104,8 @@ Deno.serve(async (req: Request) => {
             from,
             to: t.email,
             subject: title,
-            html: `<p>${body}</p><p><a href="${resultsUrl}">View the leaderboard</a></p>`,
+            html: `<p>${body}</p><p><a href="${resultsUrl}">View the leaderboard</a></p>${extra.footer}`,
+            headers: extra.headers,
           }),
         });
         if (res.ok) emailed++;

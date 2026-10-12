@@ -33,7 +33,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .next{margin-top:28px;display:flex;gap:10px;flex-wrap:wrap}
 </style>
 <link rel="stylesheet" href="/effects.css">
-<link rel="stylesheet" href="/ui.css?v=12">
+<link rel="stylesheet" href="/ui.css?v=13">
 </head>
 <body>
 <header>
@@ -58,7 +58,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 
 <footer>JD Esports Arena · AyerFire</footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
 <script>
 /* Past events: finished/cancelled entries from tournaments.json (the newer of the Pages
    file and the live site_content copy, same rule as the homepage), plus any older event
@@ -111,7 +111,7 @@ async function load(){
 
   const squadChips=name=>{
     const sq=squads.get(name)||[];
-    return `<div class="pe-squads">${sq.length?sq.map(s=>`<span>${s.squad_logo?`<img src="${esc(s.squad_logo)}" alt="" loading="lazy">`:''}${esc(s.squad_name)}</span>`).join(''):'<span>No squad list for this event.</span>'}</div>`;
+    return `<div class="pe-rev" data-rev="${esc(name)}"></div><div class="pe-squads">${sq.length?sq.map(s=>`<span>${s.squad_logo?`<img src="${esc(s.squad_logo)}" alt="" loading="lazy">`:''}${esc(s.squad_name)}</span>`).join(''):'<span>No squad list for this event.</span>'}</div>`;
   };
   const card=t=>{
     const st=status(t),n=Math.max(count.get(t.name)||0,(squads.get(t.name)||[]).length);
@@ -131,6 +131,7 @@ async function load(){
   const slim=name=>`<div class="pe-card slim" role="button" tabindex="0" aria-expanded="false"><div class="pe-main"><div class="pe-name">${esc(name)}</div><div class="pe-meta"><span>👥 <b>${count.get(name)||0}</b> squad${count.get(name)===1?'':'s'}</span></div></div><span class="pe-status">Finished</span>${squadChips(name)}</div>`;
 
   list.innerHTML=past.map(card).join('')+older.map(slim).join('');
+  loadReviews(list);
   list.querySelectorAll('.pe-card').forEach(c=>{
     const flip=()=>{const o=c.classList.toggle('open');c.setAttribute('aria-expanded',o);};
     c.onclick=flip;
@@ -143,8 +144,43 @@ async function load(){
   st.innerHTML=`<div><b>${done}</b><span>Events played</span></div><div><b>${totalSquads}</b><span>Squad entries</span></div><div><b>${past.filter(t=>String(t.winner||'').trim()).length}</b><span>Champions crowned</span></div>`;
   st.hidden=false;
 }
+/* Reviews: only players who were confirmed for an event can post one
+   (submit_tournament_review checks that server-side), shown here for everyone. */
+const stars=n=>'★'.repeat(Math.round(n))+'☆'.repeat(5-Math.round(n));
+async function loadReviews(list){
+  if(!sb)return;
+  const {data:{session}}=await sb.auth.getSession().catch(()=>({data:{session:null}}));
+  let mine=new Set();
+  if(session){
+    const {data}=await sb.from('registrations').select('tournament_slug,status').eq('player_id',session.user.id);
+    (data||[]).filter(r=>r.status==='confirmed'||r.status==='approved').forEach(r=>mine.add(r.tournament_slug));
+  }
+  for(const el of list.querySelectorAll('[data-rev]')){
+    const name=el.dataset.rev;
+    const {data}=await sb.rpc('get_tournament_reviews',{p_tournament_slug:name});
+    const rows=data||[];
+    const avg=rows.length?rows.reduce((a,r)=>a+r.rating,0)/rows.length:0;
+    el.innerHTML=(rows.length?`<div class="pe-rev-sum"><span class="pe-stars" aria-label="${avg.toFixed(1)} out of 5">${stars(avg)}</span> ${avg.toFixed(1)} · ${rows.length} review${rows.length===1?'':'s'}</div>`+
+      rows.slice(0,5).map(r=>`<p class="pe-rev-item"><span class="pe-stars" aria-label="${r.rating} out of 5">${stars(r.rating)}</span> <b>@${esc(r.username||'player')}</b>${r.comment?' — '+esc(r.comment):''}</p>`).join(''):'')+
+      (mine.has(name)?`<button type="button" class="pe-rate">⭐ Rate this event</button>`:'');
+    const b=el.querySelector('.pe-rate');
+    if(b)b.onclick=e=>{e.stopPropagation();rateForm(el,name);};
+    el.onclick=e=>e.stopPropagation();
+  }
+}
+function rateForm(el,name){
+  el.querySelector('.pe-rate').outerHTML=`<form class="pe-form"><fieldset><legend>Your rating</legend>${[1,2,3,4,5].map(n=>`<label><input type="radio" name="r" value="${n}"${n===5?' checked':''}> ${n}★</label>`).join('')}</fieldset><label for="c-${esc(name)}">Comment (optional)</label><textarea id="c-${esc(name)}" maxlength="500"></textarea><button type="submit">Submit review</button><p class="pe-msg" role="status"></p></form>`;
+  const f=el.querySelector('.pe-form');
+  f.onsubmit=async e=>{
+    e.preventDefault();
+    const msg=f.querySelector('.pe-msg');msg.textContent='Saving…';
+    const {error}=await sb.rpc('submit_tournament_review',{p_tournament_slug:name,p_rating:+f.r.value,p_comment:f.querySelector('textarea').value.trim()||null});
+    if(error){msg.textContent=error.message;return;}
+    loadReviews(el.closest('.pe-list'));
+  };
+}
 load().catch(()=>{document.getElementById('pe-list').innerHTML='<div class="pe-empty">Could not load events right now. Please try again.</div>';});
 </script>
-<script src="/ui.js?v=12" defer></script>
+<script src="/ui.js?v=13" defer></script>
 </body>
 </html>
