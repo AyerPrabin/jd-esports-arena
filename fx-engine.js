@@ -59,26 +59,17 @@
 
   // ── effects: spawn rate (per second), spawn(), step() → alive?, draw(), optional frame() for set pieces ──
   var FX = {
-    // soft warm motes drifting up
-    glow: { rate: 7,
-      spawn: function (I) { return { x: R(0, I.w), y: I.h + 6, vx: R(-6, 6), vy: -R(10, 22), l: 0, m: R(2.4, 4), s: R(5, 10) }; },
+    // Lite: a few faint warm motes drifting up (kept quiet on purpose, see effects-styles.css)
+    glow: { rate: 1.6,
+      spawn: function (I) { return { x: R(0, I.w), y: I.h + 6, vx: R(-4, 4), vy: -R(8, 16), l: 0, m: R(3, 4.5), s: R(4, 7) }; },
       step: function (I, p, dt) { p.x += p.vx * dt; p.y += p.vy * dt; return (p.l += dt) < p.m; },
-      draw: function (I, ctx, p) { dot(ctx, I.c1, p.x, p.y, p.s, Math.sin(Math.PI * p.l / p.m) * 0.5); } },
+      draw: function (I, ctx, p) { dot(ctx, I.c1, p.x, p.y, p.s, Math.sin(Math.PI * p.l / p.m) * 0.22); } },
 
-    // grinder sparks: short bursts off the edge, falling with gravity
+    // Lite: now and then a soft glint slides along the top edge, like light on brushed metal
     steel: { rate: 0,
       frame: function (I, ctx, dt) {
-        if ((I.t1 = (I.t1 || 0) - dt) <= 0) {
-          I.t1 = R(0.9, 2);
-          var x = R(I.w * 0.15, I.w * 0.85), y = Math.random() < 0.5 ? 0 : I.h;
-          for (var k = 0; k < 12 && I.p.length < CAP; k++) I.p.push({ x: x, y: y, vx: R(-110, 110), vy: (y ? -1 : 1) * R(40, 150), l: 0, m: R(0.35, 0.8), g: 320 });
-        }
-      },
-      step: function (I, p, dt) { p.vy += p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt; return (p.l += dt) < p.m; },
-      draw: function (I, ctx, p) {
-        var a = 1 - p.l / p.m; ctx.globalAlpha = a; ctx.strokeStyle = '#F4F7FB'; ctx.lineWidth = 1.2;
-        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 0.035, p.y - p.vy * 0.035); ctx.stroke();
-        dot(ctx, I.c1, p.x, p.y, 3, a * 0.8);
+        I.gl = ((I.gl === undefined ? R(0, 4) : I.gl) + dt) % 5; var u = I.gl / 1.4;
+        if (u < 1) dot(ctx, '#FFFFFF', u * (I.w + 40) - 20, 1.5, 10, Math.sin(Math.PI * u) * 0.35);
       } },
 
     // champion: gold glints popping across the card + rising gold dust
@@ -422,7 +413,7 @@
   var BURST = {
     fire: { g: -60, c: ['#FFF1A8', '#FFB347', '#FF6B3D'] }, ice: { g: 30, c: ['#EAFFFF', '#5FD3FF', '#FFFFFF'] },
     thunder: { g: 0, c: ['#FFFFFF', '#9EEAFF', '#4FD8FF'], spark: true }, bullets: { g: 260, c: ['#FFE19A', '#FFB347', '#FF7A1A'], spark: true },
-    blade: { g: 200, c: ['#FFFFFF', '#FF5A6A', '#C9D2DE'], spark: true }, steel: { g: 300, c: ['#FFFFFF', '#CFD8E3'], spark: true },
+    blade: { g: 200, c: ['#FFFFFF', '#FF5A6A', '#C9D2DE'], spark: true }, steel: { g: 60, c: ['#FFFFFF', '#CFD8E3'] },
     legend: { g: -20, hue: true }, rainbow: { g: 80, hue: true }, galaxy: { g: 0, c: ['#FFFFFF', '#D9CCFF', '#C4F3FF'] },
     clay: { g: 420, ball: true, c: ['#FFFFFF', '#FFE07A', '#8FE3CF', '#9FC9FF', '#C2185B'] }, brutal: { g: 0, sq: true, c: ['#000000', '#FF3B30', '#FFFFFF'] },
     mono: { g: 0, c: ['#FFFFFF'] }, maximal: { g: 120, hue: true }, bento: { g: 0, sq: true, c: ['#C6F432', '#FFFFFF', '#C6F432'] },
@@ -430,6 +421,7 @@
   };
   function burst(I, x, y, n, quiet) {
     var B = BURST[I.key] || { g: 40, c: [I.c1, I.c2, '#FFFFFF'] };
+    if (I.key === 'glow' || I.key === 'steel') n = Math.ceil(n / 3);   // Lite: a small pop, not a show
     I.b = I.b || []; I.rings = I.rings || [];
     for (var k = 0; k < n && I.b.length < (low ? 30 : 60); k++) {
       var a = quiet ? R(-Math.PI * 0.9, -Math.PI * 0.1) : R(0, TAU), v = R(quiet ? 40 : 70, quiet ? 120 : 260);

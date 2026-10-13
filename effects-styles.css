@@ -217,3 +217,23 @@
 #fx-overlay .fx-pick [data-fx="soft"]::before{box-shadow:1px 1px 2px rgba(0,0,0,.7),-1px -1px 2px rgba(255,255,255,.15)}
 /* 22 effects: two per row on phones so every name fits on one line */
 @media(max-width:480px){#fx-overlay .fx-pick button{flex:1 1 40%;white-space:nowrap;justify-content:flex-start;gap:4px;padding:9px 7px;font-size:.74rem}#fx-overlay .fx-pick button .pro{margin-left:0}#fx-overlay .fx-pick button .hot{margin-left:0}}
+
+/* ── Lite effects (Glow, Steel): toned down to look close to a normal card. A soft
+   border, a calm name and a faint glow; no spinning ring or flowing/pulsing name, and
+   fewer particles in fx-engine.js. They're the cheap tier, so the Pro ones stay the
+   showy ones. ── */
+.sqfx.sqfx-glow{border:1px solid rgba(255,210,122,.45);background:linear-gradient(100deg,rgba(255,210,122,.07),transparent 60%),var(--panel,#111827);box-shadow:0 8px 22px -16px rgba(255,210,122,.6);animation:chipIn .4s ease forwards}
+.sqfx-glow::after{box-shadow:inset 0 0 18px rgba(255,210,122,.16);animation:none}
+.sqfx.sqfx-glow .fx-name{color:#ffe9b0;text-shadow:0 0 6px rgba(255,210,122,.3);animation:none}
+.sqfx.sqfx-steel{border:1px solid rgba(207,216,227,.4);background:linear-gradient(100deg,rgba(207,216,227,.06),transparent 60%),var(--panel,#111827);box-shadow:0 8px 22px -16px rgba(207,216,227,.5);animation:chipIn .4s ease forwards}
+.sqfx-steel .sqfx-shine{animation-duration:8s;background:linear-gradient(100deg,transparent,rgba(255,255,255,.08),transparent)}
+.sqfx.sqfx-steel .fx-name{background:none;-webkit-text-fill-color:currentColor;color:#eef3f8;filter:none;text-shadow:0 1px 0 rgba(0,0,0,.6);animation:none}
+.sqfx.sqfx-glow .sq-av img,.sqfx.sqfx-glow .sqitem-nologo{box-shadow:0 0 0 1.5px rgba(255,210,122,.7)}
+.sqfx.sqfx-steel .sq-av img,.sqfx.sqfx-steel .sqitem-nologo{box-shadow:0 0 0 1.5px rgba(207,216,227,.7)}
+.sqfx.sqfx-glow .sq-no,.sqfx.sqfx-steel .sq-no{text-shadow:none;opacity:.8}
+.sqfx-glow .sqfx-tag,.sqfx-steel .sqfx-tag,.sqfx-glow .fxt,.sqfx-steel .fxt{box-shadow:none}
+.sq-fx-glow{box-shadow:0 0 0 1px rgba(255,210,122,.5)}
+.fxn-glow{text-shadow:0 0 6px rgba(255,210,122,.3);animation:none}
+.fxn-steel{background:none;-webkit-text-fill-color:currentColor;color:#eef3f8;filter:none;animation:none}
+.fxa-glow{box-shadow:0 0 0 2px rgba(255,210,122,.8)!important}
+.fxa-steel{box-shadow:0 0 0 2px rgba(207,216,227,.8)!important}
