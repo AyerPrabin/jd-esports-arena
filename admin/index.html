@@ -139,6 +139,34 @@ h2[id]{scroll-margin-top:64px}
 .card{animation:cardIn .4s cubic-bezier(.22,1,.36,1) both}
 @keyframes cardIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.card{animation:none}.btn,.btn:active{transition:none;transform:none}}
+/* what's going on + history */
+.now-box{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+.now-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 14px;border-radius:12px;background:var(--panel);border:1px solid var(--line);font-size:.86rem;color:var(--cream)}
+.now-row .ic{font-size:1rem;line-height:1}
+.now-row b{font-weight:700}
+.now-row small{color:var(--silver);font-size:.78rem}
+.now-row.live{border-color:rgba(255,90,90,.5);background:rgba(255,90,90,.06)}
+.now-row.warn{border-color:rgba(255,180,60,.55);background:rgba(255,180,60,.07)}
+.now-row .btn{margin-left:auto;padding:6px 12px;font-size:.74rem}
+.t-overdue{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px;padding:10px 12px;border-radius:10px;background:rgba(255,180,60,.08);border:1px solid rgba(255,180,60,.5);font-size:.84rem}
+.t-overdue .btn{padding:6px 12px;font-size:.76rem}
+.t-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 220px 14px 0;min-height:32px}
+.t-head b{font-size:1.05rem}
+@media(max-width:640px){.t-head{margin-right:0;margin-top:34px}}
+.hist{padding:14px 16px}
+.hist-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hist-top b{font-size:1rem}
+.pill{font-size:.66rem;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid var(--line)}
+.pill.done{color:#7be0a8;border-color:rgba(123,224,168,.45);background:rgba(123,224,168,.08)}
+.pill.cancel{color:#ff9a9a;border-color:rgba(255,154,154,.45);background:rgba(255,154,154,.08)}
+.hist-when{margin-top:4px;color:var(--silver);font-size:.8rem}
+.hist-facts{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:.84rem}
+.hist-facts span{color:var(--silver)}
+.hist-facts span b{color:var(--cream);font-weight:600}
+.hist-top3{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+.hist-top3 li{font-size:.78rem;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.hist-acts{display:flex;gap:8px;margin-top:12px}
+.hist-acts .btn{padding:6px 12px;font-size:.76rem}
 /* undo toast (deleting an unsaved tournament row) */
 #undo-toast{position:fixed;left:50%;bottom:22px;z-index:120;display:flex;align-items:center;gap:14px;padding:10px 12px 10px 18px;border-radius:14px;background:var(--panel-2);border:1px solid var(--gold-m);box-shadow:0 14px 40px rgba(0,0,0,.6);font-size:.86rem;transform:translate(-50%,30px);opacity:0;pointer-events:none;transition:transform .25s,opacity .2s}
 #undo-toast.show{transform:translate(-50%,0);opacity:1;pointer-events:auto}
@@ -216,11 +244,14 @@ h2[id]{scroll-margin-top:64px}
   </div>
   <p class="hint" style="margin-top:-8px">Edit any event's Name, Date, Time, etc. below, then hit this button — that's the only step needed to make it live.</p>
 
+  <div class="dash-head"><span>What's going on</span></div>
+  <div id="now-box" class="now-box"></div>
+
   <div class="dash-head"><span>Needs your attention</span><button class="dash-refresh" onclick="loadDashboard()" title="Refresh">↻</button></div>
   <div class="dash" id="dash"><div class="dash-tile loading"><b>…</b><span>Loading</span></div></div>
 
   <nav class="adm-nav" id="adm-nav">
-    <a href="#tournaments">🏆 Tournaments</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#challenges">⚔️ Challenges</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
+    <a href="#tournaments">🏆 Tournaments</a><a href="#history">📜 History</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#challenges">⚔️ Challenges</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
   </nav>
 
   <div class="f full" style="margin-bottom:8px">
@@ -229,8 +260,12 @@ h2[id]{scroll-margin-top:64px}
   </div>
 
   <h2 id="tournaments">Tournaments</h2>
+  <p class="hint" style="margin-top:-4px">Upcoming and live events. Once an event is finished or cancelled it moves to History below.</p>
   <div id="tlist"></div>
   <button class="btn ghost" onclick="addT()">+ Add Event</button>
+
+  <h2 id="history">History <span class="tag">finished &amp; cancelled · what happened</span></h2>
+  <div id="thist"></div>
 
   <details>
   <summary class="dsum">Best-of-3 Results <span class="tag">round-by-round · rank arrows</span></summary>
@@ -727,8 +762,8 @@ async function loadLiveCounts(){
   for(const r of rows||[])_liveCounts.set(r.tournament_slug,(_liveCounts.get(r.tournament_slug)||0)+1);
   renderT();
 }
-function renderT(){
-  document.getElementById('tlist').innerHTML=data.tournaments.map((t,i)=>{
+function tEditorHtml(t,i){
+  {
     const fields=TF.map(([k,lbl,type])=>{
       return `<div class="f ${['format','register_url','name'].includes(k)?'full':''}"><label>${lbl}</label><input data-i="${i}" data-k="${k}" type="${type}" value="${esc(t[k]??'')}"></div>`;
     }).join('');
@@ -743,8 +778,89 @@ function renderT(){
     const liveLine=sb?`<div class="f full"><label>Squads actually registered</label><p class="hint" style="margin:0"><span class="live-count">${live}${t.slots?'/'+t.slots:''}</span> — real players who signed up in the app. This is the number that matters; it updates on its own as people join.</p></div>`:'';
     const roster=`${liveLine}<details class="f full"><summary class="dsum-sm">Manual squad list <span class="tag">for special effects</span></summary><p class="hint">Also doubles as a display fallback if Supabase is ever unreachable, or if nobody's registered live yet for this event. Click "↻ Load from live roster" to pull in real registered squads here so you can give one an effect — it won't duplicate the live count above.</p><div class="row" style="margin:0 0 8px"><button class="btn ghost" style="font-size:.72rem;padding:7px 12px" onclick="loadSquadsFromRoster(${i})">↻ Load from live roster</button></div><div class="rosterlist">${teams.map((tm,mi)=>`<div class="rrow"><div class="rrow-top"><img class="rlogo" src="${esc(safeImg(tm.logo)||PLACEHOLDER_LOGO)}" alt=""><input data-ti="${i}" data-mi="${mi}" data-field="name" value="${esc(tm.name)}" placeholder="Squad name"><label class="rlogo-btn">Logo<input type="file" accept="image/*" hidden onchange="onTeamLogo(event,${i},${mi})"></label><button class="del" onclick="delTeam(${i},${mi})">✕</button></div><input class="rmembers" data-ti="${i}" data-mi="${mi}" data-field="members" value="${esc(Array.isArray(tm.members)?tm.members.join(', '):(tm.members||''))}" placeholder="Members, comma separated — e.g. PlayerA, PlayerB, PlayerC, PlayerD"><label class="rfx-label">Special effect <select class="rfx" data-ti="${i}" data-mi="${mi}" data-field="effect">${SQUAD_EFFECTS.map(([v,lbl])=>`<option value="${v}" ${(tm.effect||'')===v?'selected':''}>${lbl}</option>`).join('')}</select></label></div>`).join('')||'<p class="hint" style="margin:0">Empty.</p>'}</div><button class="btn ghost" style="margin-top:8px" onclick="addTeam(${i})">+ Add squad</button></details>`;
     return `<div class="card"><button class="del" onclick="delT(${i})">Delete</button><button class="btn ghost" style="position:absolute;top:14px;right:92px;font-size:.72rem;padding:7px 12px" onclick="jumpToRoomCode(${i})">📨 Send Room Code</button><div class="grid">${sel}${reg}${mapSel}${platMode}${early}${startPicker}${fields}${roster}</div></div>`;
-  }).join('')||'<p class="hint">No tournaments yet — click "+ Add Event".</p>';
+  }
 }
+/* An event is history once it's marked completed or cancelled. One still marked
+   upcoming/live hours after its start is "overdue": it stays with the active events with a
+   one-tap button to finish it, so nothing lingers by accident. */
+const OVERDUE_MS=4*3600e3;
+let _histEdit=new WeakSet(); // history events opened for editing (by object, so deletes can't shift it)
+function tStatus(t){return String(t.status||'upcoming').toLowerCase();}
+// same rule as the live site's effectiveStatus(): a typed winner means it's over, even if the status was left on upcoming
+function tIsHistory(t){const st=tStatus(t);return st==='completed'||st==='cancelled'||!!String(t.winner||'').trim();}
+function tStartMs(t){const ms=Date.parse(t&&t.start);return isNaN(ms)?null:ms;}
+function tOverdue(t){const ms=tStartMs(t);return !tIsHistory(t)&&ms!==null&&Date.now()-ms>OVERDUE_MS;}
+function agoText(ms){const m=Math.round(Math.abs(Date.now()-ms)/60000);if(m<60)return m+' min';const h=Math.round(m/60);if(h<48)return h+'h';return Math.round(h/24)+' days';}
+function inText(ms){const m=Math.max(0,Math.round((ms-Date.now())/60000)),d=Math.floor(m/1440),h=Math.floor(m%1440/60),mi=m%60;return d?d+'d '+h+'h':(h?h+'h '+mi+'m':mi+' min');}
+function tSquads(t){
+  const live=_liveCounts.get(t.name)||0,manual=(t.teams||[]).filter(x=>x&&String(x.name||'').trim()).length;
+  const bo3=data.bo3&&data.bo3.tournament===t.name?(data.bo3.teams||[]).length:0;
+  return Math.max(live,manual,bo3);
+}
+function histCardHtml(t,i){
+  const st=tStatus(t),cancelled=st==='cancelled',ms=tStartMs(t);
+  const when=[t.date,t.time].filter(x=>x&&x!=='TBA').join(' · ')||(ms?new Date(ms).toLocaleString():'No date set');
+  const n=tSquads(t);
+  const fact=(ic,lbl,val)=>val?`<span>${ic} ${lbl} <b>${esc(val)}</b></span>`:'';
+  let top='';
+  if(!cancelled&&data.bo3&&data.bo3.tournament===t.name&&(data.bo3.teams||[]).length){
+    const rows=[...data.bo3.teams].map(x=>({team:x.team,pts:bo3Total(x)})).sort((a,b)=>b.pts-a.pts).slice(0,3);
+    top=`<ul class="hist-top3">${rows.map((r,k)=>`<li>${['🥇','🥈','🥉'][k]} ${esc(r.team||'?')} · ${r.pts} pts</li>`).join('')}</ul>`;
+  }
+  return `<div class="card hist"><div class="hist-top"><b>${esc(t.name)}</b><span class="pill ${cancelled?'cancel':'done'}">${cancelled?'Cancelled':'Finished'}</span></div>`+
+    `<div class="hist-when">📅 ${esc(when)}${ms?` · ${agoText(ms)} ago`:''}</div>`+
+    `<div class="hist-facts">${cancelled?'':fact('🏆','Winner',String(t.winner||'').trim()||'not set')}${fact('👥','Squads',n?(n+(t.slots?' of '+t.slots:'')):'none recorded')}${fact('💰','Prize',t.prize)}${fact('🎟️','Entry',t.entry)}${fact('🎮','',[t.format,(MAPS.find(m=>m[0]===t.map)||[])[1]].filter(Boolean).join(' · '))}</div>`+
+    top+
+    `<div class="hist-acts"><button class="btn ghost" onclick="histEdit(${i})">✏️ Edit</button><button class="btn ghost" onclick="delT(${i})">Delete</button></div></div>`;
+}
+function renderT(){
+  const act=[],hist=[];
+  data.tournaments.forEach((t,i)=>{(tIsHistory(t)&&!_histEdit.has(t)?hist:act).push(i);});
+  act.sort((a,b)=>(tStartMs(data.tournaments[a])??9e15)-(tStartMs(data.tournaments[b])??9e15)); // soonest first
+  document.getElementById('tlist').innerHTML=act.map(i=>{
+    const t=data.tournaments[i];let h=tEditorHtml(t,i);
+    // a title line so each editor says which event it is and where it stands
+    const ms=tStartMs(t),when=ms===null?'no start time yet':(ms>Date.now()?'starts in '+inText(ms):'started '+agoText(ms)+' ago');
+    h=h.replace('<div class="card">','<div class="card"><div class="t-head"><b>'+esc(t.name||'Untitled event')+'</b><span class="pill">'+esc(tStatus(t))+' · '+when+'</span></div>');
+    if(_histEdit.has(t))h=h.replace('<div class="card">','<div class="card"><div class="t-overdue">✏️ Editing a past event. <button class="btn ghost" onclick="histDone('+i+')">✓ Done, back to History</button></div>');
+    else if(tOverdue(t))h=h.replace('<div class="card">','<div class="card"><div class="t-overdue">⚠️ Started '+agoText(tStartMs(t))+' ago but still marked <b>'+esc(tStatus(t))+'</b>. <button class="btn" onclick="markFinished('+i+')">✓ Mark finished</button><button class="btn ghost" onclick="markCancelled('+i+')">Cancelled</button></div>');
+    return h;
+  }).join('')||'<p class="hint">No upcoming events. Click "+ Add Event" to make one.</p>';
+  hist.sort((a,b)=>(tStartMs(data.tournaments[b])||0)-(tStartMs(data.tournaments[a])||0));
+  const hb=document.getElementById('thist');
+  if(hb){hb.innerHTML=hist.map(i=>histCardHtml(data.tournaments[i],i)).join('')||'<p class="hint">Nothing here yet. Finished and cancelled events show up here.</p>';staggerReveal(hb);}
+  renderNow();
+}
+function histEdit(i){_histEdit.add(data.tournaments[i]);renderT();const c=document.querySelectorAll('#tlist .card');const el=[...c].find(x=>x.querySelector('[data-i="'+i+'"]'));if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+function histDone(i){_histEdit.delete(data.tournaments[i]);renderT();msg('Moved back to History. Publish to save any changes.','ok');}
+function markFinished(i){
+  const t=data.tournaments[i];t.status='completed';
+  if(!String(t.winner||'').trim()){const top=bo3TopTeam(t.name);if(top)t.winner=top;}
+  renderT();msg('"'+esc(t.name)+'" moved to History'+(t.winner?' (winner: '+esc(t.winner)+')':'')+'. Hit Publish to save.','ok');
+}
+function markCancelled(i){const t=data.tournaments[i];t.status='cancelled';renderT();msg('"'+esc(t.name)+'" marked cancelled and moved to History. Hit Publish to save.','ok');}
+/* "What's going on": one line each for what's live, what's next, anything overdue and the
+   last event that finished, worked out from the loaded tournaments (no extra requests). */
+function renderNow(){
+  const box=document.getElementById('now-box');if(!box)return;
+  const T=data.tournaments.map((t,i)=>({t,i,ms:tStartMs(t)}));
+  const squads=t=>{const n=tSquads(t);return n+(t.slots?'/'+t.slots:'')+' squads';};
+  const rows=[];
+  T.filter(x=>!tIsHistory(x.t)&&!tOverdue(x.t)&&(tStatus(x.t)==='live'||(x.ms!==null&&x.ms<=Date.now()))).forEach(x=>rows.push(`<div class="now-row live"><span class="ic">🔴</span><span><b>Live now:</b> ${esc(x.t.name)}</span><small>${x.ms?'started '+agoText(x.ms)+' ago · ':''}${squads(x.t)}</small><button class="btn ghost" onclick="jumpToRoomCode(${x.i})">📨 Room code</button></div>`));
+  T.filter(x=>tOverdue(x.t)).forEach(x=>rows.push(`<div class="now-row warn"><span class="ic">⚠️</span><span><b>${esc(x.t.name)}</b> started ${agoText(x.ms)} ago and is still marked ${esc(tStatus(x.t))}</span><button class="btn" onclick="markFinished(${x.i})">✓ Mark finished</button></div>`));
+  const next=T.filter(x=>tStatus(x.t)==='upcoming'&&!tIsHistory(x.t)&&(x.ms===null||x.ms>Date.now())).sort((a,b)=>(a.ms??9e15)-(b.ms??9e15));
+  next.slice(0,2).forEach((x,k)=>{
+    const ro=Date.parse(x.t.reg_opens),reg=!isNaN(ro)&&ro>Date.now()?'registration opens in '+inText(ro):'registration open';
+    rows.push(`<div class="now-row"><span class="ic">⏳</span><span><b>${k?'After that':'Next'}:</b> ${esc(x.t.name)}</span><small>${x.ms?(x.ms>Date.now()?'in '+inText(x.ms)+' · ':''):'no start time yet · '}${squads(x.t)} · ${reg}</small></div>`);
+  });
+  const last=T.filter(x=>tIsHistory(x.t)).sort((a,b)=>(b.ms||0)-(a.ms||0))[0];
+  if(last)rows.push(`<div class="now-row"><span class="ic">${tStatus(last.t)==='cancelled'?'✕':'✅'}</span><span><b>Last ${tStatus(last.t)==='cancelled'?'cancelled':'finished'}:</b> ${esc(last.t.name)}</span><small>${last.ms?agoText(last.ms)+' ago':''}${String(last.t.winner||'').trim()&&tStatus(last.t)!=='cancelled'?' · winner '+esc(last.t.winner):''}</small><a class="btn ghost" href="#history">📜 History</a></div>`);
+  if(!rows.length)rows.push('<div class="now-row"><span class="ic">💤</span><span>Nothing scheduled. Add an event below.</span></div>');
+  box.innerHTML=rows.join('');
+}
+setInterval(()=>{if(document.getElementById('app').style.display!=='none')renderNow();},60000);
+// changing an event's status to completed/cancelled (or back) moves it between the lists
+document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.k==='status'&&t.dataset.i!==undefined)setTimeout(renderT,0);});
 function renderAll(){document.getElementById('tagline').value=data.tagline||'';renderT();renderBo3();renderRcTourney();renderPpTourney();renderTmTourney();renderAnAudience();renderRvTourney();renderMrTourney();loadLiveCounts();}
 
 // live two-way binding (no re-render on keystroke, so focus stays)
