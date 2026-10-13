@@ -4649,3 +4649,70 @@ returns boolean language sql immutable as $$
     else false end;
 $$;
 commit;
+
+-- ── Messages v4: profile pictures in chat + message requests ─────────────────────────────
+-- * Profile pictures (private `avatars` bucket) can now be read by the people you chat
+--   with: friends (and pending friend requests, so you can see who's asking), members of a
+--   squad chat you're in, and the other captain of a challenge. Still never public, never
+--   for blocked players. Anyone else still can't open them.
+-- * Message requests: you can message someone who isn't your friend yet once a friend
+--   request is pending between you (either way), up to 3 messages until they accept, so
+--   "talk by username" works without opening chat up to spam. Friends are unchanged.
+-- Additive. Idempotent.
+begin;
+create or replace function public.can_see_avatar(p_folder text)
+returns boolean language plpgsql stable security definer set search_path = public as $$
+declare v uuid; v_me uuid := auth.uid();
+begin
+  if v_me is null then return false; end if;
+  begin v := p_folder::uuid; exception when others then return false; end;
+  if v = v_me then return true; end if;
+  if public._blocked_either(v_me, v) then return false; end if;
+  return exists(select 1 from public.friendships f
+                 where least(f.requester, f.addressee) = least(v_me, v) and greatest(f.requester, f.addressee) = greatest(v_me, v))
+      or exists(select 1 from public.chat_group_members a join public.chat_group_members b on b.group_id = a.group_id
+                 where a.player_id = v_me and b.player_id = v)
+      or exists(select 1 from public.challenges c
+                 where (c.creator = v_me and c.opponent = v) or (c.creator = v and c.opponent = v_me));
+end;
+$$;
+revoke all on function public.can_see_avatar(text) from public, anon;
+grant execute on function public.can_see_avatar(text) to authenticated;
+
+drop policy if exists "avatars select chat contacts" on storage.objects;
+create policy "avatars select chat contacts" on storage.objects
+  for select to authenticated
+  using (bucket_id = 'avatars' and public.can_see_avatar((storage.foldername(name))[1]));
+
+create or replace function public.send_dm(p_to uuid, p_body text)
+returns bigint language plpgsql security definer set search_path = public as $$
+declare v_me uuid := auth.uid(); v_id bigint;
+begin
+  if v_me is null then raise exception 'Please sign in first.'; end if;
+  p_body := trim(coalesce(p_body, ''));
+  if length(p_body) < 1 or length(p_body) > 500 then raise exception 'Messages must be 1-500 characters.'; end if;
+  if exists(select 1 from public.banned_players where player_id = v_me) then raise exception 'Your account is banned.'; end if;
+  if p_to is null or p_to = v_me or public._blocked_either(v_me, p_to) then
+    raise exception 'You can only message your friends.';
+  end if;
+  if not public._are_friends(v_me, p_to) then
+    -- message request: needs a pending friend request between you, and at most 3 messages until it's accepted
+    if not exists(select 1 from public.friendships f
+                   where least(f.requester, f.addressee) = least(v_me, p_to) and greatest(f.requester, f.addressee) = greatest(v_me, p_to)
+                     and f.status = 'pending') then
+      raise exception 'Send a friend request first, then you can message them.';
+    end if;
+    if (select count(*) from public.dm_messages where sender = v_me and recipient = p_to) >= 3 then
+      raise exception 'You can send 3 messages until they accept your request.';
+    end if;
+  end if;
+  if (select count(*) from public.dm_messages where sender = v_me and created_at > now() - interval '10 seconds') >= 8 then
+    raise exception 'Slow down a little.';
+  end if;
+  insert into public.dm_messages (sender, recipient, body) values (v_me, p_to, p_body) returning id into v_id;
+  return v_id;
+end;
+$$;
+revoke all on function public.send_dm(uuid, text) from public, anon;
+grant execute on function public.send_dm(uuid, text) to authenticated;
+commit;

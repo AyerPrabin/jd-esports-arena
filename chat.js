@@ -12,7 +12,12 @@
 //   badge:    dm_poll (every 5s on a visible tab: unread counts, newest unread for the banner)
 // No realtime: the open conversation refreshes every 2.5s. New messages also arrive as Web
 // Push (dm-push / chat-push Edge Functions) that open /?dm=<tag>, /?g=<group> or the challenge.
-// ZULU talks to the zulu-ai-reply Edge Function; its chat is kept on this device only.
+// ZULU talks to the zulu-ai-reply Edge Function; its chat is kept on this device only. The
+// ZULU thread also shows your alerts (the notifications table: room ID + password, event
+// reminders, results) as ZULU messages with copy buttons, and counts unread ones.
+// Profile pictures come from the private avatars bucket as signed URLs (schema.sql
+// "Messages v4": readable by the people you chat with). Non-friends: a friend request plus up
+// to 3 messages (message request) until they accept.
 // Phones: full screen, follows the on-screen keyboard. Laptops (≥1024px): two panes.
 // Page mode (/chat/, an element #chat-page on the page): the same Messages built into the
 // page instead of the floating bubble — always open, two panes from 760px, the phone tab
@@ -24,7 +29,7 @@
   var PAGE = document.getElementById('chat-page');
 
   var css = document.createElement('link');
-  css.rel = 'stylesheet'; css.href = '/chat.css?v=7';
+  css.rel = 'stylesheet'; css.href = '/chat.css?v=8';
   document.head.appendChild(css);
 
   var NE = false;
@@ -32,7 +37,7 @@
   var L = {
     messages: ['Messages', 'सन्देश'], all: ['All', 'सबै'], friends: ['Friends', 'साथी'], squads: ['Squads', 'स्क्वाड'],
     matches: ['Matches', 'म्याच'], requests: ['Requests', 'अनुरोध'],
-    add: ['Add', 'थप्नुहोस्'], addPh: ['Search, or add @username / JD tag', 'खोज्नुहोस् वा @युजरनेम / JD ट्याग थप्नुहोस्'],
+    add: ['Add', 'थप्नुहोस्'], addPh: ['Search, or message @username / JD tag', 'खोज्नुहोस् वा @युजरनेम / JD ट्यागलाई सन्देश'],
     typePh: ['Message…', 'सन्देश लेख्नुहोस्…'], you: ['You', 'तपाईं'], now: ['Active now', 'अहिले सक्रिय'],
     accept: ['Accept', 'स्वीकार'], decline: ['Decline', 'अस्वीकार'], cancel: ['Cancel', 'रद्द'],
     newSquad: ['New squad chat', 'नयाँ स्क्वाड च्याट'], create: ['Create', 'बनाउनुहोस्'], members: ['members', 'सदस्य'],
@@ -92,11 +97,30 @@
     return d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }) + ', ' + t;
   }
   function hue(s) { var h = 0; s = String(s || '?'); for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360; return h; }
+  // profile pictures: signed in batches (one request for everyone on screen), cached ~50 min
+  var AV = {}, avWant = {}, avTimer = null;
+  function wantAv(id) { if (AV[id] === undefined && !avWant[id]) { avWant[id] = 1; clearTimeout(avTimer); avTimer = setTimeout(signAvs, 80); } }
+  async function signAvs() {
+    var ids = Object.keys(avWant); avWant = {};
+    if (!ids.length || !me) return;
+    ids.forEach(function (i) { AV[i] = null; });
+    try {
+      var r = await SB.storage.from('avatars').createSignedUrls(ids.map(function (i) { return i + '/avatar.jpg'; }), 3600);
+      (r.data || []).forEach(function (x, k) { var id = String(x.path || ids[k]).split('/')[0]; AV[id] = !x.error && x.signedUrl ? x.signedUrl : false; });
+    } catch (e) {}
+    var got = false;
+    ids.forEach(function (i) { if (!AV[i]) AV[i] = false; else got = true; });
+    if (got && isOpen) { if (!cur || wide()) renderOverview(); if (cur) { renderPeer(); if (cur.kind !== 'zulu') renderMsgs(false); } }
+  }
+  setInterval(function () { AV = {}; }, 50 * 60000);
   function avatar(p, size) {
     p = p || {};
     var name = p.username || p.tag || '?', h = hue(p.id || name);
     var bg = 'linear-gradient(145deg,hsl(' + h + ' 70% 52%),hsl(' + ((h + 40) % 360) + ' 75% 38%))';
-    var logo = p.logo && /^(https:|data:image\/)/.test(p.logo) ? '<img src="' + esc(p.logo) + '" alt="" loading="lazy">' : esc(name.charAt(0));
+    var pic = p.id && /^[0-9a-f-]{36}$/i.test(p.id) ? AV[p.id] : false;
+    if (pic === undefined) wantAv(p.id);
+    var logo = pic ? '<img src="' + esc(pic) + '" alt="" loading="lazy" onerror="this.remove()">'
+      : p.logo && /^(https:|data:image\/)/.test(p.logo) ? '<img src="' + esc(p.logo) + '" alt="" loading="lazy">' : esc(name.charAt(0));
     return '<span class="dm-av' + (size ? ' ' + size : '') + (p.online ? ' on' : '') + '" style="background:' + bg + '" aria-hidden="true">' + logo + '</span>';
   }
   // squad chat avatar: two stacked faces (or the first letter of the chat name)
@@ -208,13 +232,13 @@
   // cur = the open conversation: { kind: 'dm'|'group'|'match'|'zulu', id, ... }
   var me = null, myCard = null, isOpen = false, tab = 'all', ov = null, th = null, cur = null, filter = '';
   var msgs = [], hasOlder = false, threadTimer = null, polled = false, lastAt = 0;
-  var badge = { dm: 0, g: 0, m: 0, requests: 0 }, sending = false, tmp = 0, bannerTimer = null, pendingDeepLink = null;
+  var badge = { dm: 0, g: 0, m: 0, requests: 0, z: 0 }, sending = false, tmp = 0, bannerTimer = null, pendingDeepLink = null;
   var ginfo = null, readMark = 0;
   var recs = null, recAt = 0, tourCache = null, zuluWait = null, chipFor = null;
   var MENTION = /(^|[^a-z0-9_])@zulu\b/i;
 
   function setBadges() {
-    var chats = badge.dm + badge.g + badge.m, n = chats + badge.requests;
+    var chats = badge.dm + badge.g + badge.m + badge.z, n = chats + badge.requests;
     var c = fab.querySelector('.dm-count');
     c.textContent = n > 99 ? '99+' : n; c.hidden = !n;
     fab.classList.toggle('has-unread', n > 0);
@@ -234,7 +258,7 @@
     var id = u ? u.id : null;
     if (id === me) return;
     me = id; polled = false; lastAt = 0; ov = null; th = null; cur = null; msgs = []; myCard = null;
-    badge = { dm: 0, g: 0, m: 0, requests: 0 }; setBadges();
+    badge = { dm: 0, g: 0, m: 0, requests: 0, z: 0 }; zn = []; znTop = null; setBadges();
     fab.hidden = !me || !!PAGE; if (navRow) navRow.hidden = !me;
     if (PAGE) { var si = $('cp-signin'); if (si) si.hidden = !!me; panel.hidden = !me; }
     document.body.classList.toggle('has-dm', !!me);
@@ -271,7 +295,8 @@
     var r = await SB.rpc('dm_poll');
     if (r.error || !r.data) return;
     var d = r.data;
-    var next = { dm: d.unread || 0, g: d.g_unread || 0, m: d.m_unread || 0, requests: d.requests || 0 };
+    if (pollN++ % 3 === 0) await loadZn(true);
+    var next = { dm: d.unread || 0, g: d.g_unread || 0, m: d.m_unread || 0, requests: d.requests || 0, z: badge.z };
     var changed = JSON.stringify(next) !== JSON.stringify(badge);
     var grewReq = polled && next.requests > badge.requests;
     badge = next; setBadges();
@@ -286,6 +311,42 @@
     if (grewReq) { pop(); bump(); }
     polled = true;
     if (isOpen && changed && (!cur || wide())) loadOverview();
+  }
+  // ── ZULU alerts: your notifications (room ID + password, reminders, results) as ZULU messages ──
+  var zn = [], znTop = null, pollN = 0;
+  async function loadZn(fromPoll) {
+    if (!me) return zn;
+    var id = me, r = await SB.from('notifications').select('id, title, body, room_id, room_pass, tournament_slug, created_at, read_at')
+      .eq('player_id', me).order('created_at', { ascending: false }).limit(40);
+    if (r.error || id !== me) return zn;
+    zn = r.data || [];
+    var newest = zn[0] ? zn[0].id : null, isNew = znTop !== null && newest && newest !== znTop && !zn[0].read_at;
+    znTop = newest || znTop || '';
+    var watchingZ = isOpen && cur && cur.kind === 'zulu' && $('dm-thread').classList.contains('on') && !document.hidden;
+    if (watchingZ) { if (zn.some(function (n) { return !n.read_at; })) markZnRead(); if (isNew) { msgs = zuluLoad(); msgs[msgs.length - 1].fresh = true; renderMsgs(true); } }
+    else {
+      badge.z = zn.filter(function (n) { return !n.read_at; }).length;
+      // the homepage shows its own alert banner for these, so only other pages get one here
+      if (isNew && fromPoll && typeof window.notifBanner !== 'function') notifyZulu(zn[0]);
+    }
+    if (!fromPoll) setBadges();
+    return zn;
+  }
+  async function markZnRead() {
+    var ids = zn.filter(function (n) { return !n.read_at; }).map(function (n) { return n.id; });
+    badge.z = 0; setBadges();
+    if (!ids.length) return;
+    var at = new Date().toISOString();
+    zn.forEach(function (n) { if (!n.read_at) n.read_at = at; });
+    await SB.from('notifications').update({ read_at: at }).in('id', ids);
+  }
+  function notifyZulu(n) {
+    pop(); buzz(); bump();
+    banner.innerHTML = zuluAv('sm') + '<span class="dm-bt"><b>ZULU</b><small>' + esc(n.title + (n.room_id ? ' · Room ' + n.room_id : '')) + '</small></span><span class="dm-bk">Open</span>';
+    banner.onclick = function () { banner.classList.remove('show'); openZulu(); };
+    banner.classList.add('show');
+    clearTimeout(bannerTimer);
+    bannerTimer = setTimeout(function () { banner.classList.remove('show'); }, 5500);
   }
   function bump() { if (reduced()) return; fab.classList.remove('bump'); void fab.offsetWidth; fab.classList.add('bump'); }
   function notify(m) {
@@ -452,11 +513,15 @@
     return out;
   }
   function zuluRow() {
-    var z = store.get('jd_zulu_dm') || [], last = z[z.length - 1];
+    var z = store.get('jd_zulu_dm') || [], last = z[z.length - 1], n = zn[0];
     var active = cur && cur.kind === 'zulu' ? ' active' : '';
-    return '<button type="button" class="dm-row zulu' + active + '" data-k="zulu" data-open="zulu">' + zuluAv() +
+    var useN = n && (!last || new Date(n.created_at) > new Date(last.at || 0));
+    var prev = useN ? '🔔 ' + n.title + (n.room_id ? ' · Room ' + n.room_id : '') : last ? (last.role === 'user' ? T('you') + ': ' : '') + last.content : T('zuluSub');
+    var at = useN ? n.created_at : last && last.at;
+    var dot = badge.z ? '<span class="dm-dot">' + (badge.z > 9 ? '9+' : badge.z) + '</span>' : '';
+    return '<button type="button" class="dm-row zulu' + (badge.z ? ' unread' : '') + active + '" data-k="zulu" data-open="zulu">' + zuluAv() +
       '<span class="dm-mid"><span class="dm-name">' + T('zulu') + ' <span class="dm-tag ai">AI</span></span>' +
-      '<span class="dm-prev"><span>' + esc(last ? (last.role === 'user' ? T('you') + ': ' : '') + last.content : T('zuluSub')) + '</span></span></span></button>';
+      '<span class="dm-prev"><span>' + esc(prev) + '</span>' + (at ? '<span>· ' + short(at) + '</span>' : '') + '</span></span>' + dot + '</button>';
   }
 
   function renderOverview() {
@@ -468,11 +533,11 @@
     if (tab === 'requests') {
       if (ov.incoming.length) h += '<div class="dm-sec">Friend requests</div>' + ov.incoming.map(function (p) {
         return '<div class="dm-row">' + avatar(p) + '<span class="dm-mid"><span class="dm-name">' + esc(nameOf(p)) + '</span><span class="dm-prev"><span>' + esc(p.tag || '') + ' · ' + short(p.at) + '</span></span></span>' +
-          '<span class="dm-acts"><button type="button" class="dm-btn" data-accept="' + esc(p.id) + '">' + T('accept') + '</button><button type="button" class="dm-btn ghost" data-decline="' + esc(p.id) + '" aria-label="' + T('decline') + ' ' + esc(nameOf(p)) + '">✕</button></span></div>';
+          '<span class="dm-acts"><button type="button" class="dm-btn ghost" data-chat="' + esc(p.id) + '" aria-label="Open chat with ' + esc(nameOf(p)) + '">💬</button><button type="button" class="dm-btn" data-accept="' + esc(p.id) + '">' + T('accept') + '</button><button type="button" class="dm-btn ghost" data-decline="' + esc(p.id) + '" aria-label="' + T('decline') + ' ' + esc(nameOf(p)) + '">✕</button></span></div>';
       }).join('');
       if (ov.outgoing.length) h += '<div class="dm-sec">Sent · waiting</div>' + ov.outgoing.map(function (p) {
         return '<div class="dm-row">' + avatar(p) + '<span class="dm-mid"><span class="dm-name">' + esc(nameOf(p)) + '</span><span class="dm-prev"><span>Request sent ' + short(p.at) + '</span></span></span>' +
-          '<span class="dm-acts"><button type="button" class="dm-btn ghost" data-remove="' + esc(p.id) + '">' + T('cancel') + '</button></span></div>';
+          '<span class="dm-acts"><button type="button" class="dm-btn ghost" data-chat="' + esc(p.id) + '">💬 Message</button><button type="button" class="dm-btn ghost" data-remove="' + esc(p.id) + '">' + T('cancel') + '</button></span></div>';
       }).join('');
       if (ov.blocked.length) h += '<div class="dm-sec">Blocked</div>' + ov.blocked.map(function (p) {
         return '<div class="dm-row">' + avatar(p) + '<span class="dm-mid"><span class="dm-name">' + esc(nameOf(p)) + '</span></span>' +
@@ -513,6 +578,7 @@
     if (b.dataset.rec) { var rc = recs && recs[Number(b.dataset.rec)]; if (rc && rc.go) rc.go(); return; }
     if (b.dataset.new) { newSquadSheet(); return; }
     if ((id = b.dataset.open)) { openKind(b.dataset.k, id); return; }
+    if ((id = b.dataset.chat)) { openRequest(id); return; }
     b.disabled = true;
     var r;
     if ((id = b.dataset.accept)) r = await SB.rpc('respond_friend_request', { p_from: id, p_accept: true });
@@ -531,6 +597,19 @@
     if (f) openThread(Object.assign({ kind: 'dm', friend: true }, f));
   }
 
+  // who someone is to you: 'friend', 'in' (they asked you), 'out' (you asked them) or 'none'
+  function rel(id) {
+    if (!ov) return 'none';
+    if (ov.friends.some(function (f) { return f.id === id; })) return 'friend';
+    if (ov.incoming.some(function (x) { return x.id === id; })) return 'in';
+    if (ov.outgoing.some(function (x) { return x.id === id; })) return 'out';
+    return 'none';
+  }
+  function openRequest(id) {
+    var who = ov && (ov.incoming.concat(ov.outgoing).find(function (x) { return x.id === id; }));
+    if (!who) return;
+    openThread(Object.assign({ kind: 'dm', friend: false, req: rel(id) }, who));
+  }
   function note(t, cls) { var n = $('dm-note'); n.className = 'dm-note' + (cls ? ' ' + cls : ''); n.textContent = t || ''; }
   $('dm-add-in').addEventListener('input', function () { filter = this.value.trim(); if (tab === 'requests') tab = 'all'; renderOverview(); });
   $('dm-add').onsubmit = async function (e) {
@@ -546,7 +625,9 @@
     note({ sent: 'Request sent to ' + who + '. You can chat once they accept.', pending: 'Already sent — waiting for ' + who + ' to accept.',
       already: 'You and ' + who + ' are already friends.', accepted: 'They had already added you — you\'re friends now! 🎉' }[r.data] || 'Done.', 'ok');
     tab = (r.data === 'sent' || r.data === 'pending') ? 'requests' : 'friends';
-    loadOverview(); poll();
+    await loadOverview(); poll();
+    await openWith(v);
+    if (cur && cur.kind === 'dm' && cur.friend === false && cur.req === 'none' && (r.data === 'sent' || r.data === 'pending')) { cur.req = 'out'; renderMsgs(false); }
   };
 
   // ── conversations ──
@@ -560,7 +641,7 @@
       var r = await SB.rpc('chat_player', { p_who: String(who) });
       if (r.error || !r.data) { open(); note('That player isn\'t available to chat.', 'err'); return; }
       card = Object.assign({ kind: 'dm' }, r.data);
-      if (!card.friend) { open(); $('dm-add-in').value = card.username || card.tag; note('Add ' + nameOf(card) + ' as a friend to start chatting.', ''); return; }
+      if (!card.friend) { card.friend = false; card.req = rel(card.id); }
     }
     if (!isOpen) open();
     openThread(card);
@@ -592,7 +673,7 @@
     $('dm-pin').innerHTML = ''; $('dm-chips').innerHTML = '';
     $('dm-msgs').innerHTML = '<div class="dm-skel msgs"><i></i><i></i><i></i></div>';
     var foot = '';
-    if (p.kind === 'dm' && p.friend === false) foot = '<div class="dm-locked">You\'re no longer friends, so you can\'t send messages.</div>';
+    if (p.kind === 'dm' && p.friend === false) foot = composer(p.req === 'in' ? 'Reply…' : 'Message request…', 500);
     else if (p.kind === 'zulu') foot = composer(T('askZulu'), 500);
     else if (p.kind === 'match') foot = composer('Message… · @zulu asks AI', 300);
     else if (p.kind === 'group') foot = composer('Message… · @zulu asks AI', 500);
@@ -614,7 +695,11 @@
       if (!phone()) setTimeout(function () { try { inp.focus(); } catch (e) {} }, 60);
     }
     stopThread();
-    if (p.kind === 'zulu') { msgs = zuluLoad(); renderMsgs(true); return; }
+    if (p.kind === 'zulu') {
+      msgs = zuluLoad(); renderMsgs(true);
+      loadZn().then(function () { if (cur !== p) return; msgs = zuluLoad(); renderMsgs(true); markZnRead(); });
+      return;
+    }
     refreshThread(true);
     threadTimer = setInterval(function () { if (!document.hidden) refreshThread(); }, 2500);
   }
@@ -760,7 +845,12 @@
   async function loadMeta(p) {
     if (p.kind === 'dm') {
       var c = await SB.rpc('chat_player', { p_who: p.tag });
-      if (c.data && cur === p) { Object.assign(p, { online: c.data.online, seen: c.data.seen, logo: c.data.logo }); renderPeer(); }
+      if (c.data && cur === p) {
+        var became = p.friend === false && c.data.friend;
+        Object.assign(p, { online: c.data.online, seen: c.data.seen, logo: c.data.logo });
+        if (became) { p.friend = true; p.req = 'friend'; renderMsgs(false); loadOverview(); }
+        renderPeer();
+      }
     } else if (p.kind === 'group') {
       var g = await SB.rpc('group_info', { p_group: p.id });
       if (cur !== p) return;
@@ -811,7 +901,10 @@
     var nearBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 80;
     var h = '';
     if (hasOlder) h += '<button type="button" class="dm-more" id="dm-older">Load earlier messages</button>';
-    else if (p.kind === 'dm') h += '<div class="dm-hello">' + avatar(p) + '<b>' + esc(nameOf(p)) + '</b>' + esc(p.tag || '') + (p.squad ? ' · ' + esc(p.squad) : '') + '<br>You\'re friends on JD Arena</div>';
+    else if (p.kind === 'dm') h += '<div class="dm-hello">' + avatar(p) + '<b>' + esc(nameOf(p)) + '</b>' + esc(p.tag || '') + (p.squad ? ' · ' + esc(p.squad) : '') + '<br>' +
+      (p.friend !== false ? 'You\'re friends on JD Arena'
+        : p.req === 'in' ? esc(nameOf(p)) + ' wants to be friends. Accept to chat freely.<span class="dm-req"><button type="button" class="dm-btn" data-th-accept="1">' + T('accept') + '</button><button type="button" class="dm-btn ghost" data-th-decline="1">' + T('decline') + '</button></span>'
+        : 'Not friends yet. ' + (p.req === 'out' ? 'Your request is waiting. ' : 'Sending a message also sends a friend request. ') + 'You can send 3 messages until they accept.') + '</div>';
     else if (p.kind === 'group') h += '<div class="dm-hello">' + groupAv(p) + '<b>' + esc(p.name) + '</b>Squad chat · plan matches, share room IDs<br><span class="dm-hint">Type <b>@zulu</b> + a question and ZULU (AI) answers here. It reads the last few messages.</span></div>';
     else if (p.kind === 'match') h += '<div class="dm-hello">' + matchAv() + '<b>' + esc((p.mode || '') + ' Clash Squad') + '</b>Only you and the other captain can see this chat.<br>Agree the room, play, then report the result on the challenge.<br><span class="dm-hint">Type <b>@zulu</b> to ask ZULU (AI) about the rules. It reads the last few messages.</span></div>';
     else h += '<div class="dm-hello">' + zuluAv() + '<b>ZULU</b>Your JD Arena buddy. Chat about anything gaming, get Free Fire tips, or ask about tournaments and your own points, tickets and challenges. It never sees your private chats.</div>';
@@ -823,7 +916,8 @@
       var gapBefore = !prev || t - new Date(prev.created_at).getTime() > 15 * 60000;
       if (gapBefore) h += '<div class="dm-time">' + esc(stamp(m.created_at)) + '</div>';
       if (m.kind === 'system') { h += '<div class="dm-sys">' + esc(m.body) + '</div>'; continue; }
-      var same = function (a) { return a && a.kind !== 'system' && a.sender === m.sender && a.mine === m.mine; };
+      if (m.kind === 'zn') { h += znHtml(m); continue; }
+      var same = function (a) { return a && a.kind !== 'system' && a.kind !== 'zn' && a.sender === m.sender && a.mine === m.mine; };
       var head = gapBefore || !same(prev) || t - new Date(prev.created_at).getTime() > 5 * 60000;
       var tail = !next || !same(next) || new Date(next.created_at).getTime() - t > 5 * 60000;
       var room = m.kind === 'room' ? roomOf(m.body) : null;
@@ -847,6 +941,14 @@
     box.innerHTML = h;
     if (jump || nearBottom) box.scrollTop = box.scrollHeight;
     var older = $('dm-older'); if (older) older.onclick = loadOlder;
+  }
+  // one alert from the notifications table, as a ZULU message (room ID + password copy buttons)
+  function znHtml(m) {
+    var n = m.n, room = n.room_id ? '<span class="dm-room-r"><button type="button" class="dm-copy" data-copy="' + esc(n.room_id) + '"><small>Room ID</small><b>' + esc(n.room_id) + '</b></button>' +
+      '<button type="button" class="dm-copy" data-copy="' + esc(n.room_pass || '') + '"><small>Password</small><b>' + esc(n.room_pass || '—') + '</b></button></span>' : '';
+    return '<div class="dm-line them head tail' + (m.fresh && !reduced() ? ' new' : '') + '" title="' + esc(stamp(m.created_at)) + '">' + zuluAv('xs') +
+      '<div class="dm-b dm-zn' + (room ? ' dm-room' : '') + '"><span class="dm-zn-k">🔔 Alert' + (n.tournament_slug ? ' · ' + esc(n.tournament_slug) : '') + '</span><b>' + esc(n.title) + '</b>' +
+      (n.body ? '<span class="dm-zn-t">' + linkify(n.body) + '</span>' : '') + room + '</div></div>';
   }
   function seenLine(m) {
     if (m.pending) return 'Sending…';
@@ -905,7 +1007,16 @@
     acctCache = lines.join('\n'); acctAt = Date.now();
     return acctCache;
   }
-  $('dm-msgs').addEventListener('click', function (e) {
+  $('dm-msgs').addEventListener('click', async function (e) {
+    var a = e.target.closest('[data-th-accept],[data-th-decline]');
+    if (a && cur && cur.kind === 'dm') {
+      var p = cur, yes = !!a.dataset.thAccept; a.disabled = true;
+      var rr = await SB.rpc('respond_friend_request', { p_from: p.id, p_accept: yes });
+      if (rr.error) { a.disabled = false; return; }
+      if (yes) { p.friend = true; p.req = 'friend'; renderMsgs(false); } else { showHome(); }
+      loadOverview(); poll();
+      return;
+    }
     var b = e.target.closest('[data-retry]'); if (!b) return;
     var m = msgs.find(function (x) { return String(x.id) === b.dataset.retry; });
     if (m) { msgs.splice(msgs.indexOf(m), 1); send(m.body); }
@@ -935,6 +1046,10 @@
     msgs.push(m); renderMsgs(true);
     sending = true;
     var r;
+    if (p.kind === 'dm' && p.friend === false && p.req === 'none') {
+      var fq = await SB.rpc('send_friend_request', { p_who: p.username || p.tag });
+      if (!fq.error) { p.req = fq.data === 'accepted' || fq.data === 'already' ? 'friend' : 'out'; if (p.req === 'friend') p.friend = true; loadOverview(); }
+    }
     if (p.kind === 'dm') r = await SB.rpc('send_dm', { p_to: p.id, p_body: body });
     else if (p.kind === 'group') r = await SB.rpc('send_group_message', { p_group: p.id, p_body: body, p_kind: kind || 'text' });
     else r = await SB.rpc('send_challenge_message', { p_id: p.id, p_body: body });
@@ -943,7 +1058,7 @@
     m.pending = false;
     if (r.error) {
       m.failed = r.error.message || 'Not sent';
-      if (/only message your friends/i.test(m.failed)) p.friend = false;
+      if (/only message your friends/i.test(m.failed)) { p.friend = false; $('dm-foot').innerHTML = '<div class="dm-locked">You can\'t message this player.</div>'; }
       renderMsgs(true); return;
     }
     if (p.kind !== 'dm' && MENTION.test(body)) {
@@ -960,7 +1075,9 @@
   // ── ZULU (AI) — history kept on this device, last 40 lines ──
   var zuluBusy = false;
   function zuluLoad() {
-    return (store.get('jd_zulu_dm') || []).map(function (z, i) { return { id: 'z' + i, mine: z.role === 'user', kind: 'text', body: z.content, created_at: z.at || new Date().toISOString() }; });
+    var chat = (store.get('jd_zulu_dm') || []).map(function (z, i) { return { id: 'z' + i, mine: z.role === 'user', kind: 'text', body: z.content, created_at: z.at || new Date().toISOString() }; });
+    var alerts = zn.slice(0, 25).map(function (n) { return { id: 'n' + n.id, mine: false, kind: 'zn', n: n, body: n.title, created_at: n.created_at }; });
+    return alerts.concat(chat).sort(function (a, b) { return new Date(a.created_at) - new Date(b.created_at); });
   }
   async function askZulu(q) {
     if (zuluBusy) return;

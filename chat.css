@@ -370,3 +370,13 @@ html.app-gated .dm-fab,html.app-gated .dm-panel,html.app-gated .dm-banner{displa
 .dm-thead .dm-who b{font-family:'Barlow Condensed',var(--font-body,system-ui);font-size:1.12rem;text-transform:uppercase}
 .dm-rec{border-radius:10px}
 .dm-pin{border-left:0}
+
+/* ZULU alerts (room ID + password, reminders) inside the ZULU chat */
+.dm-b.dm-zn{display:flex;flex-direction:column;gap:3px;max-width:min(320px,78%);white-space:normal}
+.dm-line.them .dm-b.dm-zn{background:var(--dm-panel-2);border:1px solid var(--dm-line-2);color:var(--dm-text)}
+.dm-zn-k{font-size:.68rem;font-weight:700;color:var(--dm-gold,#FFC83D)}
+.dm-zn b{font-size:.9rem}
+.dm-zn-t{font-size:.84rem;color:var(--dm-muted);line-height:1.4}
+.dm-zn .dm-room-r{margin-top:6px}
+/* message request: accept / decline inside the chat */
+.dm-req{display:flex;gap:8px;justify-content:center;margin-top:10px}
