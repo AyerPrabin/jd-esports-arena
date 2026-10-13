@@ -237,7 +237,7 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const RANKS=[['Bronze',0,'🥉'],['Silver',20,'🥈'],['Gold',50,'🥇'],['Platinum',100,'💠'],['Diamond',200,'💎'],['Heroic',350,'🔥'],['Ace',550,'👑']];
-const FX={glow:'Glow',steel:'Steel',gold:'Champion',fire:'On fire',ice:'Frozen',neon:'Neon',rainbow:'Prism',galaxy:'Galaxy',thunder:'Thunder',legend:'Legend',bullets:'Bullet Storm',blade:'Blade'};
+const FX={glow:'Glow',steel:'Steel',gold:'Champion',fire:'On fire',ice:'Frozen',neon:'Neon',rainbow:'Prism',galaxy:'Galaxy',thunder:'Thunder',legend:'Legend',bullets:'Bullet Storm',blade:'Blade',skeuo:'Metal Plate',soft:'Soft Touch',glass:'Frosted',clay:'Clay',brutal:'Brutal',mono:'Mono',maximal:'Overload',liquid:'Liquid Glass',bento:'Bento',spatial:'Spatial 3D'};
 const STATUS={confirmed:['Registered','ok'],approved:['Confirmed','ok'],pending:['Place held','wait'],waitlisted:['Waitlist','wait'],rejected:['Not verified','bad'],no_show:['Missed check-in','bad']};
 let me=null;
 function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),1900);}

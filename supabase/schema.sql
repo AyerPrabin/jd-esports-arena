@@ -4625,3 +4625,27 @@ $$;
 revoke all on function public.get_challenge_leaderboard() from public, anon;
 grant execute on function public.get_challenge_leaderboard() to authenticated;
 commit;
+
+-- ── design-style pro effects: skeuo, soft, glass, clay, brutal, mono, maximal, liquid, bento, spatial ──
+-- Ten effects drawn from UI design styles (Metal Plate = skeuomorphism, Soft Touch =
+-- neumorphism, Frosted = glassmorphism, Clay, Brutal, Mono = minimalism, Overload =
+-- maximalism, Liquid Glass, Bento grid, Spatial 3D). All Pro-only. Additive. Idempotent.
+begin;
+alter table public.registrations drop constraint if exists registrations_effect_check;
+alter table public.registrations add constraint registrations_effect_check
+  check (effect is null or effect in ('glow','steel','gold','fire','ice','neon','rainbow','galaxy','thunder','legend','bullets','blade',
+    'skeuo','soft','glass','clay','brutal','mono','maximal','liquid','bento','spatial'));
+alter table public.effect_passes drop constraint if exists effect_passes_effect_check;
+alter table public.effect_passes add constraint effect_passes_effect_check
+  check (effect in ('glow','steel','gold','fire','ice','neon','rainbow','galaxy','thunder','legend','bullets','blade',
+    'skeuo','soft','glass','clay','brutal','mono','maximal','liquid','bento','spatial'));
+create or replace function public.fx_tier_ok(p_tier text, p_effect text)
+returns boolean language sql immutable as $$
+  select case p_tier
+    when 'lite' then p_effect in ('glow','steel')
+    when 'game' then p_effect in ('gold','fire','ice','neon','rainbow')
+    when 'pro'  then p_effect in ('glow','steel','gold','fire','ice','neon','rainbow','galaxy','thunder','legend','bullets','blade',
+      'skeuo','soft','glass','clay','brutal','mono','maximal','liquid','bento','spatial')
+    else false end;
+$$;
+commit;

@@ -1,0 +1,219 @@
+/* Design-style squad effects (all Pro): ten effects that each wear a UI design style.
+     skeuo   Metal Plate   skeuomorphism: brushed steel, bevels, rivets, engraved name
+     soft    Soft Touch    neumorphism: the card is pressed out of the page and breathes in and out
+     glass   Frosted       glassmorphism: colour blobs drifting under a frosted pane
+     clay    Clay          claymorphism: puffy pastel clay that squishes
+     brutal  Brutal        brutalism: yellow slab, black border, hard shadow that jolts
+     mono    Mono          minimalism: hairline border, one line drawing under the name
+     maximal Overload      maximalism: stripes, dots, spinning rainbow rim, stacked 3D name
+     liquid  Liquid Glass  a web approximation of Apple's Liquid Glass (Apple only documents
+                           it for its own platforms): moving specular light + a rainbow rim
+     bento   Bento         bento grid: number, logo and name become tiles that light in turn
+     spatial Spatial 3D    spatial UI: the card floats and tilts in 3D, follows your finger
+   Loaded after effects.css / effects-pro.css on every page that shows effects. Card rules use
+   .sqfx.sqfx-x (two classes) so they beat the base .sqfx look. No backdrop-filter on purpose:
+   a roster of 12+ blurred cards stutters on cheap Androids, and the cards sit on a flat panel
+   anyway, so the "glass" is drawn with gradients. Like every bought effect these keep moving
+   with reduced motion on (owner decision). Particles for each live in fx-engine.js. */
+@property --spx{syntax:'<number>';inherits:true;initial-value:0}
+@property --spy{syntax:'<number>';inherits:true;initial-value:0}
+
+/* ── Metal Plate ── */
+.sqfx.sqfx-skeuo{--fx1:#c9d1dc;--fx2:#ffffff;border:1px solid #9aa4b2;background:repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px),linear-gradient(180deg,#59616d 0%,#3a414b 48%,#2b3139 52%,#20252c 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 0 rgba(0,0,0,.55),inset 0 0 0 3px rgba(0,0,0,.16),0 8px 18px -8px rgba(0,0,0,.85);animation:chipIn .4s ease forwards}
+.sqfx-skeuo::after{content:'';position:absolute;inset:5px;z-index:0;pointer-events:none;--rv:radial-gradient(circle,#f1f4f8 0 .8px,#8a94a2 1.6px,#1b2026 2.6px,transparent 3.2px);background:var(--rv) left top/7px 7px no-repeat,var(--rv) right top/7px 7px no-repeat,var(--rv) left bottom/7px 7px no-repeat,var(--rv) right bottom/7px 7px no-repeat}
+.sqfx-skeuo .sqfx-shine{width:30%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.2),transparent);animation-duration:5s}
+.sqfx-skeuo .fx-name{color:#eef2f6;text-shadow:0 -1px 0 rgba(0,0,0,.85),0 1px 0 rgba(255,255,255,.28)}
+.sqfx-skeuo .sqfx-tag,.sqfx-skeuo .fxt{color:#1d232b;background:linear-gradient(#f3f5f8,#b9c1cc);border:1px solid #6e7886;box-shadow:inset 0 1px 0 #fff,0 1px 2px rgba(0,0,0,.6)}
+.sqfx.sqfx-skeuo .sq-av img,.sqfx.sqfx-skeuo .sqitem-nologo{box-shadow:0 0 0 2px #1b1f25,0 0 0 4px #aab3bf,0 3px 6px rgba(0,0,0,.7)}
+.sqfx-skeuo .sqitem-nologo{background:linear-gradient(#4a525e,#262b33);color:#eef2f6}
+.sqfx.sqfx-skeuo .sq-no{color:#d7dde5;text-shadow:0 -1px 0 #000}
+.sqfx-skeuo .sqitem-members span{background:rgba(0,0,0,.35);border-color:rgba(255,255,255,.16);box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
+
+/* ── Soft Touch ── */
+@keyframes softPress{0%,100%{box-shadow:7px 7px 16px rgba(0,0,0,.62),-6px -6px 14px rgba(255,255,255,.05),inset 0 0 0 rgba(0,0,0,0),inset 0 0 0 rgba(255,255,255,0)}
+  50%{box-shadow:2px 2px 5px rgba(0,0,0,.5),-2px -2px 5px rgba(255,255,255,.03),inset 5px 5px 10px rgba(0,0,0,.55),inset -4px -4px 9px rgba(255,255,255,.045)}}
+.sqfx.sqfx-soft{--fx1:#8fe3cf;--fx2:#e8fff8;border:1px solid rgba(255,255,255,.035);border-radius:16px;background:#1c222c;animation:chipIn .4s ease forwards,softPress 4.2s ease-in-out infinite}
+.sqfx-soft .sqfx-shine{display:none}
+.sqfx-soft .fx-name{color:#e4ebf3;text-shadow:1px 1px 2px rgba(0,0,0,.75),-1px -1px 1px rgba(255,255,255,.07)}
+.sqfx-soft .sqfx-tag,.sqfx-soft .fxt{color:#8fe3cf;background:#1c222c;border:1px solid transparent;box-shadow:inset 2px 2px 4px rgba(0,0,0,.6),inset -2px -2px 4px rgba(255,255,255,.05)}
+.sqfx.sqfx-soft .sq-av img,.sqfx.sqfx-soft .sqitem-nologo{box-shadow:4px 4px 8px rgba(0,0,0,.6),-3px -3px 6px rgba(255,255,255,.055)}
+.sqfx-soft .sqitem-nologo{background:#1c222c;color:#8fe3cf}
+.sqfx.sqfx-soft .sq-no{color:#8fe3cf;text-shadow:none;opacity:.8}
+.sqfx-soft .sqitem-members span{background:#1c222c;border-color:transparent;box-shadow:inset 2px 2px 4px rgba(0,0,0,.55),inset -1px -1px 3px rgba(255,255,255,.05)}
+
+/* ── Frosted ── (.sqfx-shine = the colour blobs, ::after = the frosted pane over them) */
+@keyframes glassDrift{0%{translate:-12% -6%;rotate:0deg}100%{translate:12% 6%;rotate:25deg}}
+.sqfx.sqfx-glass{--fx1:#9fd8ff;--fx2:#ffb8e6;border:1px solid rgba(255,255,255,.24);border-radius:16px;background:linear-gradient(135deg,#1a2233,#121826);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 12px 28px -12px rgba(0,0,0,.8);animation:chipIn .4s ease forwards}
+.sqfx-glass .sqfx-shine{inset:-40%;width:auto;transform:none;background:radial-gradient(22% 32% at 30% 42%,rgba(110,185,255,.6),transparent 70%),radial-gradient(22% 30% at 68% 58%,rgba(255,130,205,.5),transparent 70%),radial-gradient(18% 26% at 50% 26%,rgba(130,255,215,.38),transparent 70%);animation:glassDrift 8s ease-in-out infinite alternate}
+.sqfx-glass::after{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;background:linear-gradient(135deg,rgba(255,255,255,.17),rgba(255,255,255,.05) 45%,rgba(255,255,255,.09));box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),inset 0 12px 18px -14px rgba(255,255,255,.6)}
+.sqfx-glass .fx-name{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45),0 0 14px rgba(159,216,255,.55)}
+.sqfx-glass .sqfx-tag,.sqfx-glass .fxt{color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+.sqfx.sqfx-glass .sq-av img,.sqfx.sqfx-glass .sqitem-nologo{box-shadow:0 0 0 1.5px rgba(255,255,255,.55),0 6px 16px rgba(0,0,0,.45)}
+.sqfx-glass .sqitem-nologo{background:rgba(255,255,255,.12);color:#fff}
+.sqfx.sqfx-glass .sq-no{color:#fff;text-shadow:none;opacity:.7}
+.sqfx-glass .sqitem-members span{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.22)}
+
+/* ── Clay ── */
+@keyframes claySquish{0%,100%{scale:1 1}45%{scale:1.012 .982}60%{scale:.996 1.008}}
+.sqfx.sqfx-clay{--fx1:#ff8fb8;--fx2:#ffe2ee;color:#4b0f2b;border:1px solid transparent;border-radius:20px;background:linear-gradient(145deg,#ffb4d1,#ff86b0);box-shadow:inset 6px 6px 12px rgba(255,255,255,.55),inset -8px -8px 14px rgba(150,20,70,.35),0 12px 22px -8px rgba(0,0,0,.7);animation:chipIn .4s ease forwards,claySquish 3.2s ease-in-out infinite}
+.sqfx-clay .sqfx-shine{background:linear-gradient(100deg,transparent,rgba(255,255,255,.3),transparent)}
+.sqfx-clay .fx-name{color:#4b0f2b;font-weight:900;text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.sqfx-clay .sqfx-tag,.sqfx-clay .fxt{color:#c2185b;background:#fff;border:1px solid transparent;box-shadow:inset -2px -2px 4px rgba(194,24,91,.22),0 2px 4px rgba(120,0,50,.3)}
+.sqfx.sqfx-clay .sq-av img,.sqfx.sqfx-clay .sqitem-nologo{border-radius:14px;box-shadow:0 0 0 3px #ffd3e4,0 4px 8px rgba(120,0,50,.4)}
+.sqfx-clay .sqitem-nologo{background:#fff;color:#c2185b}
+.sqfx.sqfx-clay .sq-no{color:#7a2148;text-shadow:none;opacity:.85}
+.sqfx-clay .sqitem-members span{background:rgba(255,255,255,.55);border-color:transparent;color:#5a1235;box-shadow:inset -1px -2px 3px rgba(150,20,70,.2)}
+
+/* ── Brutal ── (mono font and hard edges; no uppercase or letter-spacing on the name, which can be Devanagari) */
+@keyframes brutalJolt{0%,44%,56%,100%{translate:0 0;box-shadow:6px 6px 0 #ff3b30}46%,54%{translate:4px 4px;box-shadow:2px 2px 0 #ff3b30}}
+.sqfx.sqfx-brutal{--fx1:#ffe500;--fx2:#ff3b30;color:#000;border:3px solid #000;border-radius:0;background:#ffe500;box-shadow:6px 6px 0 #ff3b30;animation:chipIn .4s ease forwards,brutalJolt 2.4s steps(1) infinite}
+.sqfx-brutal::after{content:'';position:absolute;top:0;right:0;width:46px;height:46px;z-index:0;pointer-events:none;background:repeating-linear-gradient(45deg,#000 0 5px,transparent 5px 10px);clip-path:polygon(0 0,100% 0,100% 100%)}
+.sqfx-brutal .sqfx-shine{display:none}
+.sqfx-brutal .fx-name{color:#000;font-family:'Courier New',ui-monospace,monospace;font-weight:900;text-shadow:none}
+.sqfx-brutal .sqfx-tag,.sqfx-brutal .fxt{color:#ffe500;background:#000;border:0;border-radius:0;box-shadow:none;font-family:ui-monospace,'Courier New',monospace;text-transform:uppercase}
+.sqfx.sqfx-brutal .sq-av img,.sqfx.sqfx-brutal .sqitem-nologo{border-radius:0;box-shadow:0 0 0 3px #000}
+.sqfx-brutal .sqitem-nologo{background:#fff;color:#000;border:0}
+.sqfx.sqfx-brutal .sq-no{color:#000;opacity:1;text-shadow:none;background:#fff;border:2px solid #000;padding:0 3px}
+.sqfx-brutal .sqitem-members span{background:#fff;border:2px solid #000;border-radius:0;color:#000}
+
+/* ── Mono ── */
+@keyframes monoLine{0%{clip-path:inset(0 100% 0 0)}40%,60%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(0 0 0 100%)}}
+.sqfx.sqfx-mono{--fx1:#ffffff;--fx2:#9aa3ad;border:1px solid rgba(255,255,255,.16);border-radius:6px;background:#0d0f13;box-shadow:none;animation:chipIn .4s ease forwards}
+.sqfx-mono .sqfx-shine{display:none}
+.sqfx-mono .sqitem-name{position:relative;padding-bottom:4px}
+.sqfx-mono .sqitem-name::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:#fff;animation:monoLine 4.5s cubic-bezier(.7,0,.3,1) infinite}
+.sqfx-mono .fx-name{color:#fff;font-weight:600;text-shadow:none}
+.sqfx-mono .sqfx-tag,.sqfx-mono .fxt{color:#fff;background:transparent;border:1px solid rgba(255,255,255,.45);border-radius:2px;box-shadow:none}
+.sqfx.sqfx-mono .sq-av img,.sqfx.sqfx-mono .sqitem-nologo{box-shadow:0 0 0 1px rgba(255,255,255,.5)}
+.sqfx-mono .sqitem-nologo{background:#0d0f13;color:#fff}
+.sqfx.sqfx-mono .sq-no{color:#fff;opacity:.4;text-shadow:none}
+.sqfx-mono .sqitem-members span{background:transparent;border-color:rgba(255,255,255,.18)}
+
+/* ── Overload ── */
+@keyframes maxShadow{0%,100%{text-shadow:2px 2px 0 #ff2e88,4px 4px 0 #ffd600,6px 6px 0 #00e0ff}33%{text-shadow:2px 2px 0 #00e0ff,4px 4px 0 #ff2e88,6px 6px 0 #ffd600}66%{text-shadow:2px 2px 0 #ffd600,4px 4px 0 #00e0ff,6px 6px 0 #ff2e88}}
+@keyframes maxShadowS{0%,100%{text-shadow:1px 1px 0 #ff2e88,2px 2px 0 #00e0ff}50%{text-shadow:1px 1px 0 #00e0ff,2px 2px 0 #ff2e88}}
+@keyframes maxWiggle{0%,100%{rotate:-4deg}50%{rotate:3deg}}
+.sqfx.sqfx-maximal{--fx1:#ff2e88;--fx2:#00e0ff;--fxring:conic-gradient(from var(--sqa),#ff2e88,#ffd600,#00e0ff,#7cff4f,#b44bff,#ff2e88);border:2px solid transparent;background:repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 6px,transparent 6px 14px) padding-box,radial-gradient(circle at 86% 18%,rgba(255,214,0,.5),transparent 38%) padding-box,radial-gradient(circle at 8% 92%,rgba(0,224,255,.45),transparent 44%) padding-box,linear-gradient(120deg,#3a0a5e,#7a0f5a 50%,#0b2a6b) padding-box,var(--fxring) border-box;box-shadow:5px 5px 0 #ff2e88,-3px -3px 0 #00e0ff;animation:chipIn .4s ease forwards,sqSpin 2s linear infinite}
+.sqfx-maximal::after{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.22) 1.2px,transparent 1.7px) 0 0/10px 10px;-webkit-mask:linear-gradient(90deg,transparent 30%,#000);mask:linear-gradient(90deg,transparent 30%,#000)}
+.sqfx-maximal .sqfx-shine{width:50%;background:linear-gradient(100deg,transparent,rgba(255,46,136,.3),rgba(255,214,0,.3),rgba(0,224,255,.3),transparent);animation-duration:2.6s}
+.sqfx-maximal .fx-name{color:#fff;font-weight:900;animation:maxShadow 1.8s steps(1) infinite}
+.sqfx-maximal .sqfx-tag,.sqfx-maximal .fxt{color:#000;background:#ffd600;border:2px solid #000;box-shadow:2px 2px 0 #ff2e88;animation:maxWiggle 1.4s ease-in-out infinite}
+.sqfx.sqfx-maximal .sq-av img,.sqfx.sqfx-maximal .sqitem-nologo{box-shadow:0 0 0 2px #000,0 0 0 4px #ffd600,0 0 0 6px #ff2e88,0 0 18px #00e0ff}
+.sqfx-maximal .sqitem-nologo{background:#000;color:#ffd600}
+.sqfx.sqfx-maximal .sq-no{color:#ffd600;opacity:1;text-shadow:2px 2px 0 #ff2e88}
+.sqfx-maximal .sqitem-members span{background:#000;border-color:#ffd600;color:#ffd600}
+
+/* ── Liquid Glass ── (approximation: a specular highlight sliding through the glass + a thin rainbow rim) */
+@keyframes liquidFloat{0%{translate:0 0}100%{translate:190% 8%}}
+@keyframes liquidRim{to{--sqa:360deg}}
+.sqfx.sqfx-liquid{--fx1:#cfe8ff;--fx2:#ffffff;border:1px solid rgba(255,255,255,.3);border-radius:18px;background:radial-gradient(70% 120% at 0% 0%,rgba(120,170,255,.22),transparent 60%),radial-gradient(60% 120% at 100% 100%,rgba(255,140,200,.16),transparent 60%),linear-gradient(180deg,#1d2638,#131a28);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -1px 0 rgba(255,255,255,.18),inset 0 0 18px rgba(255,255,255,.07),0 12px 28px -12px rgba(0,0,0,.8);animation:chipIn .4s ease forwards}
+.sqfx-liquid .sqfx-shine{top:-50%;bottom:auto;left:-30%;width:55%;height:200%;border-radius:50%;transform:none;background:radial-gradient(closest-side,rgba(255,255,255,.26),rgba(255,255,255,.07) 55%,transparent);animation:liquidFloat 5.5s ease-in-out infinite alternate}
+.sqfx-liquid::after{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;padding:1.5px;background:conic-gradient(from var(--sqa),rgba(255,120,200,.8),rgba(120,200,255,.8),rgba(140,255,200,.8),rgba(255,230,120,.8),rgba(255,120,200,.8));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);opacity:.6;animation:liquidRim 6s linear infinite}
+.sqfx-liquid .fx-name{color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.4),0 0 12px rgba(200,230,255,.5)}
+.sqfx-liquid .sqfx-tag,.sqfx-liquid .fxt{color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
+.sqfx.sqfx-liquid .sq-av img,.sqfx.sqfx-liquid .sqitem-nologo{box-shadow:0 0 0 1.5px rgba(255,255,255,.65),0 4px 14px rgba(0,0,0,.5)}
+.sqfx-liquid .sqitem-nologo{background:rgba(255,255,255,.1);color:#fff}
+.sqfx.sqfx-liquid .sq-no{color:#fff;opacity:.7;text-shadow:none}
+.sqfx-liquid .sqitem-members span{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.25)}
+
+/* ── Bento ── (the roster card's own number / logo / name become tiles; other cards get the tile look) */
+@keyframes bentoLit{0%,30%,100%{border-color:rgba(255,255,255,.07);box-shadow:none}8%,20%{border-color:#c6f432;box-shadow:inset 0 0 0 1px rgba(198,244,50,.45),0 0 16px -4px #c6f432}}
+.sqfx.sqfx-bento{--fx1:#c6f432;--fx2:#ffffff;border:1px solid rgba(198,244,50,.35);border-radius:16px;background:#0c0f14;box-shadow:0 10px 24px -14px #c6f432;animation:chipIn .4s ease forwards}
+.sqitem.sqfx-bento{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:6px;padding:6px}
+.sqitem.sqfx-bento > .sq-no,.sqitem.sqfx-bento > .sq-av,.sqitem.sqfx-bento > .sqitem-body{align-self:stretch;background:rgba(23,28,36,.88);border:1px solid rgba(255,255,255,.07);border-radius:11px;animation:bentoLit 3.6s ease-in-out infinite}
+.sqitem.sqfx-bento > .sq-no{display:grid;place-items:center;padding:0 8px}
+.sqitem.sqfx-bento > .sq-av{width:auto;height:auto;padding:6px;display:grid;place-items:center;animation-delay:.6s}
+.sqitem.sqfx-bento > .sqitem-body{padding:7px 10px;animation-delay:1.2s}
+.sqfx-bento .sqfx-shine{display:none}
+.sqfx-bento .fx-name{color:#f2ffd6;text-shadow:none}
+.sqfx-bento .sqfx-tag,.sqfx-bento .fxt{color:#0c0f14;background:#c6f432;border:0;border-radius:6px;box-shadow:none}
+.sqfx.sqfx-bento .sq-av img,.sqfx.sqfx-bento .sqitem-nologo{box-shadow:none;border-radius:8px}
+.sqfx-bento .sqitem-nologo{background:#c6f432;color:#0c0f14}
+.sqfx.sqfx-bento .sq-no{color:#c6f432;opacity:1;text-shadow:none}
+.sqfx-bento .sqitem-members span{background:#0c0f14;border-color:rgba(198,244,50,.3)}
+
+/* ── Spatial 3D ── (--spx/--spy run -1..1: an idle float, or your finger via fx-engine.js, which
+   adds .sp-on. The card can't use chipIn: its fill would pin transform, so it fades in on its own.) */
+@keyframes spIn{from{opacity:0}to{opacity:1}}
+@keyframes spFloat{0%,100%{--spx:0;--spy:-.5}25%{--spx:.8;--spy:0}50%{--spx:0;--spy:.5}75%{--spx:-.8;--spy:0}}
+.sqfx.sqfx-spatial{--fx1:#a8c8ff;--fx2:#ffffff;border:1px solid rgba(255,255,255,.22);border-radius:18px;background:linear-gradient(160deg,rgba(255,255,255,.11),rgba(255,255,255,.02)),linear-gradient(#151c29,#0e131c);box-shadow:calc(var(--spx) * -12px) calc(18px + var(--spy) * -8px) 30px -14px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.18);transform:perspective(700px) rotateX(calc(var(--spy) * -8deg)) rotateY(calc(var(--spx) * 10deg));animation:spIn .4s ease forwards,spFloat 7s ease-in-out infinite}
+.sqfx.sqfx-spatial.sp-on{animation:spIn .4s ease forwards}
+.sqfx-spatial::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;background:radial-gradient(60% 90% at calc(50% + var(--spx) * 45%) calc(50% + var(--spy) * 60%),rgba(255,255,255,.16),transparent 65%)}
+.sqfx-spatial .sqfx-shine{display:none}
+.sqfx-spatial .sq-av{translate:calc(var(--spx) * 5px) calc(var(--spy) * 4px)}
+.sqfx-spatial .sq-no{translate:calc(var(--spx) * 8px) calc(var(--spy) * 6px)}
+.sqfx-spatial .sqitem-body,.sqfx-spatial .nm{translate:calc(var(--spx) * 2px) calc(var(--spy) * 2px)}
+.sqfx-spatial .fx-name{color:#fff;text-shadow:calc(var(--spx) * -3px) 3px 8px rgba(0,0,0,.7)}
+.sqfx-spatial .sqfx-tag,.sqfx-spatial .fxt{color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.35);box-shadow:0 4px 10px rgba(0,0,0,.4)}
+.sqfx.sqfx-spatial .sq-av img,.sqfx.sqfx-spatial .sqitem-nologo{box-shadow:calc(var(--spx) * -4px) 6px 14px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.4)}
+.sqfx-spatial .sqitem-nologo{background:rgba(255,255,255,.1);color:#fff}
+.sqfx.sqfx-spatial .sq-no{color:#a8c8ff;opacity:.9;text-shadow:none}
+.sqfx-spatial .sqitem-members span{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.2)}
+
+/* ── challenge cards (/challenges/): the light cards need dark small text ── */
+.ch.sqfx-clay .t small,.ch.sqfx-brutal .t small,.side.sqfx-clay .nm,.side.sqfx-brutal .nm{color:inherit}
+.ch.sqfx-clay .t small,.ch.sqfx-brutal .t small{opacity:.75}
+
+/* ── tournament-card chips, the account name tag and rank tag ── */
+.sq-fx-skeuo,.troster > span.sq-fx-skeuo{background:linear-gradient(#59616d,#2b3139);border-color:#9aa4b2;color:#eef2f6;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 1px 2px rgba(0,0,0,.6)}
+.sq-fx-skeuo .fx-name{font-weight:800;text-shadow:0 -1px 0 rgba(0,0,0,.85),0 1px 0 rgba(255,255,255,.25)}
+.sq-fx-soft,.troster > span.sq-fx-soft{background:#1c222c;border-color:rgba(255,255,255,.04);color:#8fe3cf;box-shadow:3px 3px 6px rgba(0,0,0,.6),-2px -2px 5px rgba(255,255,255,.05)}
+.sq-fx-soft .fx-name{font-weight:800;color:#e4ebf3;text-shadow:1px 1px 2px rgba(0,0,0,.7)}
+.sq-fx-glass,.troster > span.sq-fx-glass{background:linear-gradient(135deg,rgba(159,216,255,.24),rgba(255,184,230,.12));border-color:rgba(255,255,255,.35);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+.sq-fx-glass .fx-name{font-weight:800;text-shadow:0 0 10px rgba(159,216,255,.6)}
+.sq-fx-clay,.troster > span.sq-fx-clay{background:linear-gradient(145deg,#ffb4d1,#ff86b0);border-color:transparent;color:#4b0f2b;box-shadow:inset 2px 2px 4px rgba(255,255,255,.6),inset -3px -3px 5px rgba(150,20,70,.35)}
+.sq-fx-clay .fx-name{font-weight:900;color:#4b0f2b}
+.sq-fx-brutal,.troster > span.sq-fx-brutal{background:#ffe500;border:2px solid #000;border-radius:0;color:#000;box-shadow:3px 3px 0 #ff3b30}
+.sq-fx-brutal .fx-name{font-weight:900;color:#000;font-family:'Courier New',ui-monospace,monospace}
+.sq-fx-mono,.troster > span.sq-fx-mono{background:transparent;border-color:rgba(255,255,255,.45);border-radius:4px;color:#fff}
+.sq-fx-mono .fx-name{font-weight:600;color:#fff}
+.sq-fx-maximal,.troster > span.sq-fx-maximal{border:1.5px solid transparent;background:linear-gradient(120deg,#7a0f5a,#0b2a6b) padding-box,conic-gradient(from var(--sqa),#ff2e88,#ffd600,#00e0ff,#7cff4f,#b44bff,#ff2e88) border-box;color:#fff;box-shadow:2px 2px 0 #ff2e88}
+.troster > span.sq-fx-maximal{animation:chipIn .4s ease forwards,sqSpin 2s linear infinite}
+.sq-fx-maximal .fx-name{font-weight:900;color:#fff;animation:maxShadowS 1.8s steps(1) infinite}
+.sq-fx-liquid,.troster > span.sq-fx-liquid{background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.04));border-color:rgba(255,255,255,.42);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -1px 0 rgba(255,255,255,.2),0 2px 8px rgba(0,0,0,.35)}
+.sq-fx-liquid .fx-name{font-weight:800;text-shadow:0 0 10px rgba(200,230,255,.55)}
+.sq-fx-bento,.troster > span.sq-fx-bento{background:#171c24;border-color:#c6f432;border-radius:8px;color:#f2ffd6}
+.sq-fx-bento .fx-name{font-weight:800}
+.sq-fx-spatial,.troster > span.sq-fx-spatial{background:linear-gradient(160deg,rgba(255,255,255,.15),rgba(255,255,255,.03));border-color:rgba(255,255,255,.3);color:#fff;box-shadow:0 6px 12px -4px rgba(0,0,0,.85)}
+@keyframes spBob{0%,100%{translate:0 0}50%{translate:0 -2px}}
+.troster > span.sq-fx-spatial{animation:chipIn .4s ease forwards,spBob 3s ease-in-out infinite}
+.sq-fx-spatial .fx-name{font-weight:800;text-shadow:0 3px 6px rgba(0,0,0,.8)}
+
+/* ── name as text only (leaderboard, results, podium) ── */
+.fxn-skeuo{color:#e9eef4;text-shadow:0 -1px 0 #000,0 1px 0 rgba(255,255,255,.3)}
+.fxn-soft{color:#dfe8f1;text-shadow:2px 2px 3px rgba(0,0,0,.7),-1px -1px 2px rgba(255,255,255,.08)}
+.fxn-glass{color:#fff;text-shadow:0 0 10px rgba(159,216,255,.75)}
+.fxn-clay{color:#ffb4d1;text-shadow:0 2px 0 #c2185b}
+.fxn-brutal{color:#ffe500;text-shadow:2px 2px 0 #000;font-family:'Courier New',ui-monospace,monospace;font-weight:900}
+.fxn-mono{color:#fff;font-weight:600}
+.fxn-maximal{color:#fff;font-weight:900;animation:maxShadowS 1.8s steps(1) infinite}
+.fxn-liquid{color:#fff;text-shadow:0 0 12px rgba(200,230,255,.6)}
+.fxn-bento{color:#c6f432}
+.fxn-spatial{color:#fff;text-shadow:0 5px 10px rgba(0,0,0,.85)}
+
+/* ── avatar ring (podium / winner logo) ── */
+.fxa-skeuo{box-shadow:0 0 0 2px #1b1f25,0 0 0 4px #aab3bf!important}
+.fxa-soft{box-shadow:5px 5px 10px rgba(0,0,0,.6),-4px -4px 8px rgba(255,255,255,.06),0 0 0 2px #8fe3cf!important}
+.fxa-glass,.fxa-liquid,.fxa-spatial{box-shadow:0 0 0 2px rgba(255,255,255,.7),0 0 22px rgba(159,216,255,.6)!important}
+.fxa-clay{box-shadow:0 0 0 3px #ff9cc0,0 0 18px rgba(255,140,180,.6)!important}
+.fxa-brutal{box-shadow:0 0 0 3px #000,4px 4px 0 3px #ffe500!important}
+.fxa-mono{box-shadow:0 0 0 1px #fff!important}
+.fxa-maximal{box-shadow:0 0 0 2px #000,0 0 0 4px #ffd600,0 0 0 6px #ff2e88,0 0 20px #00e0ff!important}
+.fxa-bento{box-shadow:0 0 0 2px #c6f432,0 0 18px rgba(198,244,50,.55)!important}
+
+/* ── effects-shop swatches ── */
+#fx-overlay .fx-pick [data-fx="skeuo"]{--sw:linear-gradient(180deg,#e6ebf1,#6f7a89 50%,#3a414b)}
+#fx-overlay .fx-pick [data-fx="soft"]{--sw:radial-gradient(circle at 35% 35%,#e8fff8,#8fe3cf 55%,#3d5a55)}
+#fx-overlay .fx-pick [data-fx="glass"]{--sw:linear-gradient(135deg,rgba(159,216,255,.9),rgba(255,184,230,.7))}
+#fx-overlay .fx-pick [data-fx="clay"]{--sw:radial-gradient(circle at 35% 30%,#ffe2ee,#ff86b0 60%)}
+#fx-overlay .fx-pick [data-fx="brutal"]{--sw:linear-gradient(#ffe500,#ffe500)}
+#fx-overlay .fx-pick [data-fx="mono"]{--sw:linear-gradient(#fff,#fff)}
+#fx-overlay .fx-pick [data-fx="maximal"]{--sw:conic-gradient(#ff2e88,#ffd600,#00e0ff,#7cff4f,#b44bff,#ff2e88)}
+#fx-overlay .fx-pick [data-fx="liquid"]{--sw:radial-gradient(circle at 35% 30%,#fff,#cfe8ff 35%,#7aa6d8)}
+#fx-overlay .fx-pick [data-fx="bento"]{--sw:linear-gradient(90deg,#c6f432 0 45%,transparent 45% 55%,#c6f432 55%)}
+#fx-overlay .fx-pick [data-fx="spatial"]{--sw:radial-gradient(circle at 40% 30%,#fff,#a8c8ff 40%,#3a4f78)}
+#fx-overlay .fx-pick [data-fx="brutal"]::before{border:2px solid #000;border-radius:0}
+#fx-overlay .fx-pick [data-fx="mono"]::before{border-radius:2px}
+#fx-overlay .fx-pick [data-fx="soft"]::before{box-shadow:1px 1px 2px rgba(0,0,0,.7),-1px -1px 2px rgba(255,255,255,.15)}
+/* 22 effects: two per row on phones so every name fits on one line */
+@media(max-width:480px){#fx-overlay .fx-pick button{flex:1 1 40%;white-space:nowrap;justify-content:flex-start;gap:4px;padding:9px 7px;font-size:.74rem}#fx-overlay .fx-pick button .pro{margin-left:0}#fx-overlay .fx-pick button .hot{margin-left:0}}

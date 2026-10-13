@@ -1116,6 +1116,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 <link rel="stylesheet" href="/effects-pro.css">
 <link rel="stylesheet" href="/ui.css?v=15">
 <link rel="stylesheet" href="/broadcast.css?v=5">
+<link rel="stylesheet" href="/effects-styles.css?v=1">
 </head>
 <body>
 <div id="preloader" aria-hidden="true">
@@ -1415,7 +1416,18 @@ const SQUAD_FX={
   thunder:{key:'thunder',cls:'sq-fx-thunder',badge:'',particles:0,tag:'Thunder',tier:'pro'},
   bullets:{key:'bullets',cls:'sq-fx-bullets',badge:'💥',particles:0,tag:'Bullet Storm',tier:'pro',hot:true},
   blade:{key:'blade',cls:'sq-fx-blade',badge:'⚔️',particles:0,tag:'Blade',tier:'pro'},
-  legend:{key:'legend',cls:'sq-fx-legend',badge:'💎',particles:0,tag:'Legend',tier:'pro',hot:true}
+  legend:{key:'legend',cls:'sq-fx-legend',badge:'💎',particles:0,tag:'Legend',tier:'pro',hot:true},
+  /* design-style effects, all Pro (styles in /effects-styles.css) */
+  skeuo:{key:'skeuo',cls:'sq-fx-skeuo',badge:'',particles:0,tag:'Metal Plate',tier:'pro'},
+  soft:{key:'soft',cls:'sq-fx-soft',badge:'',particles:0,tag:'Soft Touch',tier:'pro'},
+  glass:{key:'glass',cls:'sq-fx-glass',badge:'',particles:0,tag:'Frosted',tier:'pro'},
+  clay:{key:'clay',cls:'sq-fx-clay',badge:'',particles:0,tag:'Clay',tier:'pro'},
+  brutal:{key:'brutal',cls:'sq-fx-brutal',badge:'',particles:0,tag:'Brutal',tier:'pro'},
+  mono:{key:'mono',cls:'sq-fx-mono',badge:'',particles:0,tag:'Mono',tier:'pro'},
+  maximal:{key:'maximal',cls:'sq-fx-maximal',badge:'🎉',particles:0,tag:'Overload',tier:'pro'},
+  liquid:{key:'liquid',cls:'sq-fx-liquid',badge:'',particles:0,tag:'Liquid Glass',tier:'pro',hot:true},
+  bento:{key:'bento',cls:'sq-fx-bento',badge:'',particles:0,tag:'Bento',tier:'pro'},
+  spatial:{key:'spatial',cls:'sq-fx-spatial',badge:'',particles:0,tag:'Spatial 3D',tier:'pro',hot:true}
 };
 function fxTierOk(tier,key){const f=SQUAD_FX[key];return !!f&&(tier==='pro'||f.tier===tier);}
 function squadFx(tm){return SQUAD_FX[tm&&tm.effect]||null;}
@@ -3410,7 +3422,7 @@ function fxShopRender(){
   document.getElementById('fx-submit').innerHTML=change?'Save effect':('<span class="jd-coin sm" aria-hidden="true">JD</span> Pay '+(_walletUnlimited?'(admin) ':'')+parseInt(pl.price.replace(/[^0-9]/g,''),10)+' points &amp; activate');
 }
 /* homepage showcase: live previews of the effects, paused while scrolled off-screen */
-const FX_SHOWCASE=[['bullets','Night Raiders'],['blade','Red Samurai'],['legend','Diamond Kings'],['galaxy','Cosmic Crew'],['thunder','Storm Riders'],['gold','Kings XI'],['fire','Inferno Squad'],['neon','Night Shift']];
+const FX_SHOWCASE=[['liquid','Glass Wolves'],['spatial','Sky Squad'],['brutal','Raw Gang'],['bullets','Night Raiders'],['blade','Red Samurai'],['legend','Diamond Kings'],['galaxy','Cosmic Crew'],['thunder','Storm Riders'],['gold','Kings XI'],['fire','Inferno Squad'],['neon','Night Shift']];
 function renderFxShow(){
   const box=document.getElementById('fx-show');if(!box)return;
   const mine=_player&&_player.squad_name;
@@ -3809,7 +3821,7 @@ var Z={
   wallet:"Your JD points wallet: 1 point = Rs 1. Points are the only way to pay for paid entries and squad effects.\nTo load: open the wallet (the coin at the top) \u2192 Load \u2192 pay the eSewa QR with your username in the remarks, then upload the payment screenshot. No screenshot, no points. Points arrive once it's verified.",
   withdrawpts:"To cash out: open your wallet (the coin at the top) \u2192 Withdraw \u2192 enter the points, your eSewa ID and account name. The points leave your wallet now and the money is sent to your eSewa by hand, usually within a day.",
   refund:"Withdrawing from a paid tournament: 24h+ before the start = full refund, last 24 hours = 10% back, nothing once room details are out. Points refunds go straight back to your wallet. Tap Withdraw squad on your ticket.",
-  effects:"Squad effects make your squad stand out on the site (cosmetic only): Rs 2 for one match, Rs 5 lite week, Rs 10 pro week, Rs 30 pro month (every effect, incl. Bullet Storm, Blade, Legend). Tap Squad effects on your ticket and pay with points. \u2728",
+  effects:"Squad effects make your squad stand out on the site (cosmetic only): Rs 2 for one match, Rs 5 lite week, Rs 10 pro week, Rs 30 pro month (every effect, incl. Bullet Storm, Blade, Legend and the design styles: Liquid Glass, Spatial 3D, Clay, Brutal, Bento and more). Tap Squad effects on your ticket and pay with points. \u2728",
   profile:"Your profile (tap your name at the top) shows your rank, stats, points, tournaments and saved squad. Change your squad name or logo there \u2014 the logo is uploaded once and used for every tournament.",
   challenge:"Want a match now? Open \u2694\uFE0F Challenges (top menu): create a 1v1, 2v2, 3v3 or 4v4 Clash Squad challenge with a points stake, or accept one from the lobby. Both sides put in the same points and the winner takes the pot, minus just a 1-point platform fee per player (50 each \u2192 winner gets 98). Chat and share the room inside the challenge. 18+ only.",
   howjoinwa:"Tap the green Register button on any tournament to start on WhatsApp.",
@@ -4103,7 +4115,7 @@ function zuluPublic(q){var s=q.toLowerCase();
   if(/(challenge|1v1|2v2|3v3|4v4|clash squad|\bcs\b|wager|\bbet\b|versus|\bvs\b|play against|custom room)/.test(s))return {text:zL('challenge')};
   if(/(refund|cancel.*(entry|registration|squad)|withdraw (my )?(squad|team|registration)|leave (the )?(tournament|match)|late cancel)/.test(s))return {text:zL('refund')};
   if(/(withdraw|cash ?out|take out (money|points)|points? to esewa|get (my )?money out|nikal|\u0928\u093F\u0915\u093E\u0932)/.test(s))return {text:zL('withdrawpts')};
-  if(/(effect|glow|animation|bullet storm|blade|legend|galaxy|thunder|pro pass|lite pass|\bpass\b)/.test(s))return {text:zL('effects')};
+  if(/(effect|glow|animation|bullet storm|blade|legend|galaxy|thunder|liquid glass|spatial|bento|brutal|clay|neumorph|glassmorph|skeuomorph|pro pass|lite pass|\bpass\b)/.test(s))return {text:zL('effects')};
   if(/(wallet|load points|add points|buy points|top ?up|recharge|jd points?|my points|point balance|\bbalance\b|\bcoins?\b|how.*get points|qr|\u092A\u094B\u0907\u0928\u094D\u091F)/.test(s))return {text:zL('wallet')};
   if(/(profile|my account|squad logo|change logo|team logo|squad name|team name|avatar|profile pic)/.test(s))return {text:zL('profile')};
   if(/(winning money|win.*money|get.*(paid|money)|receive.*(money|prize|winnings)|withdraw|claim.*(prize|money|winnings)|\besewa\b|how.*paid|\bpayout\b)/.test(s))return {text:zL('payout')};
@@ -4152,6 +4164,6 @@ setTimeout(showNudge,13000);
 </script>
 <script src="/ui.js?v=15" defer></script>
 <script src="/chat.js?v=8" defer></script>
-<script src="/fx-engine.js?v=2" defer></script>
+<script src="/fx-engine.js?v=3" defer></script>
 </body>
 </html>

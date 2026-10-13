@@ -147,6 +147,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 </style>
 <link rel="stylesheet" href="/ui.css?v=15">
 <link rel="stylesheet" href="/broadcast.css?v=5">
+<link rel="stylesheet" href="/effects-styles.css?v=1">
 </head>
 <body>
 <header>
@@ -262,7 +263,7 @@ function bo3Standings(bo3){
 }
 /* Squad effects (same keys as index.html's SQUAD_FX) by tournament + squad name, from
    get_public_roster() — names matched trimmed/case-insensitive since results are typed by hand. */
-const FX_TAG={glow:'Glow',steel:'Steel',gold:'Champion',fire:'On fire',ice:'Frozen',neon:'Neon',rainbow:'Prism',galaxy:'Galaxy',thunder:'Thunder',bullets:'Bullet Storm',blade:'Blade',legend:'Legend'};
+const FX_TAG={glow:'Glow',steel:'Steel',gold:'Champion',fire:'On fire',ice:'Frozen',neon:'Neon',rainbow:'Prism',galaxy:'Galaxy',thunder:'Thunder',bullets:'Bullet Storm',blade:'Blade',legend:'Legend',skeuo:'Metal Plate',soft:'Soft Touch',glass:'Frosted',clay:'Clay',brutal:'Brutal',mono:'Mono',maximal:'Overload',liquid:'Liquid Glass',bento:'Bento',spatial:'Spatial 3D'};
 const sb=(typeof supabase!=='undefined')?supabase.createClient('https://cnoxvqvpmgowdiyrrusv.supabase.co','sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil'):null;
 let _roster=[];
 const fxKey=s=>String(s||'').trim().toLowerCase();

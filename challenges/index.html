@@ -189,6 +189,7 @@ input:focus,textarea:focus{border-color:var(--gold)}
 <link rel="stylesheet" href="/effects-pro.css">
 <link rel="stylesheet" href="/ui.css?v=15">
 <link rel="stylesheet" href="/broadcast.css?v=5">
+<link rel="stylesheet" href="/effects-styles.css?v=1">
 </head>
 <body>
 <div class="wrap">
@@ -307,7 +308,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const FEE=1; // platform fee per player per settled match (challenge_fee_per_player() in the database)
 const pot=st=>st*2-2*FEE;
-const FXTAG={glow:'Glow',steel:'Steel',gold:'Champion',fire:'On fire',ice:'Frozen',neon:'Neon',rainbow:'Prism',galaxy:'Galaxy',thunder:'Thunder',legend:'Legend',bullets:'Bullet Storm',blade:'Blade'};
+const FXTAG={glow:'Glow',steel:'Steel',gold:'Champion',fire:'On fire',ice:'Frozen',neon:'Neon',rainbow:'Prism',galaxy:'Galaxy',thunder:'Thunder',legend:'Legend',bullets:'Bullet Storm',blade:'Blade',skeuo:'Metal Plate',soft:'Soft Touch',glass:'Frosted',clay:'Clay',brutal:'Brutal',mono:'Mono',maximal:'Overload',liquid:'Liquid Glass',bento:'Bento',spatial:'Spatial 3D'};
 function fxDeco(){let h='<span class="sqfx-shine"></span>';for(let k=0;k<6;k++)h+=`<i class="sqp" style="--x:${(k*37+9)%96}%;--y:${(k*53+11)%78}%;--d:${((k*.43)%2.6).toFixed(2)}s;--t:${(1.9+(k%3)*.55).toFixed(2)}s"></i>`;return h;}
 function fxCls(k){return FXTAG[k]?` sqfx sqfx-${k}`:'';}
 // sound + vibration when a new challenge shows up while you're on this page
@@ -660,6 +661,6 @@ async function start(){
 </script>
 <script src="/ui.js?v=15" defer></script>
 <script src="/chat.js?v=8" defer></script>
-<script src="/fx-engine.js?v=2" defer></script>
+<script src="/fx-engine.js?v=3" defer></script>
 </body>
 </html>
