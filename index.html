@@ -3961,10 +3961,11 @@ window.zuluLocalAnswer=async function(q){
   try{
     var m=zuluPersonalMatch(q);
     if(m){var t=m.async?await m.fn():m.fn();if(t)return {text:String(t)};}
+    // everything else goes to the AI so ZULU can actually chat ("hi", "how are you", jokes);
+    // the built-in answer is only the fallback when the AI is busy. The private-topic refusal
+    // stays instant.
     var a=zuluPublic(q);
-    var fixed=a.text===zL('secret')||/(my (name|squad|team) is|call me)/i.test(q);
-    var shortQ=q.trim().split(/\s+/).length<=3;
-    if(!a.learn&&!a.feedback&&(fixed||shortQ))return {text:a.text};
+    if(a.text===zL('secret'))return {text:a.text};
     return {fallback:a.text};
   }catch(e){return null;}
 };

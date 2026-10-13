@@ -36,7 +36,7 @@
     typePh: ['Message…', 'सन्देश लेख्नुहोस्…'], you: ['You', 'तपाईं'], now: ['Active now', 'अहिले सक्रिय'],
     accept: ['Accept', 'स्वीकार'], decline: ['Decline', 'अस्वीकार'], cancel: ['Cancel', 'रद्द'],
     newSquad: ['New squad chat', 'नयाँ स्क्वाड च्याट'], create: ['Create', 'बनाउनुहोस्'], members: ['members', 'सदस्य'],
-    zulu: ['ZULU · AI assistant', 'ZULU · AI सहायक'], zuluSub: ['Ask about tournaments, rules, points…', 'प्रतियोगिता, नियम, अंक बारे सोध्नुहोस्…'],
+    zulu: ['ZULU · AI assistant', 'ZULU · AI सहायक'], zuluSub: ['Chat, or ask about tournaments, tips, points…', 'प्रतियोगिता, नियम, अंक बारे सोध्नुहोस्…'],
     askZulu: ['Ask ZULU…', 'ZULU लाई सोध्नुहोस्…'], pick: ['Pick a chat to start messaging', 'सन्देश पठाउन च्याट छान्नुहोस्'],
     shareRoom: ['Share room to squad', 'स्क्वाडलाई रुम पठाउनुहोस्'], copy: ['Copy', 'कपी'], copied: ['Copied ✓', 'कपी भयो ✓'],
     seenBy: ['Seen by', 'हेर्नुभयो:'], openMatch: ['Open challenge', 'च्यालेन्ज खोल्नुहोस्']
@@ -599,7 +599,7 @@
     else foot = composer(T('typePh'), 500);
     $('dm-foot').innerHTML = foot;
     chipFor = null;
-    if (p.kind === 'zulu') chips(['🪙 How many points do I have?', '🎮 When is my next match?', '🏆 Next tournament?', '⚔️ Challenge rules', '💰 How do I load points?', '🎯 Free Fire tips']);
+    if (p.kind === 'zulu') chips(['👋 Hey ZULU!', '🪙 How many points do I have?', '🎮 When is my next match?', '🏆 Next tournament?', '🎯 Free Fire tips', '😂 Tell me a gaming joke']);
     var inp = $('dm-in');
     if (inp) {
       var sync = function () {
@@ -814,7 +814,7 @@
     else if (p.kind === 'dm') h += '<div class="dm-hello">' + avatar(p) + '<b>' + esc(nameOf(p)) + '</b>' + esc(p.tag || '') + (p.squad ? ' · ' + esc(p.squad) : '') + '<br>You\'re friends on JD Arena</div>';
     else if (p.kind === 'group') h += '<div class="dm-hello">' + groupAv(p) + '<b>' + esc(p.name) + '</b>Squad chat · plan matches, share room IDs<br><span class="dm-hint">Type <b>@zulu</b> + a question and ZULU (AI) answers here. It reads the last few messages.</span></div>';
     else if (p.kind === 'match') h += '<div class="dm-hello">' + matchAv() + '<b>' + esc((p.mode || '') + ' Clash Squad') + '</b>Only you and the other captain can see this chat.<br>Agree the room, play, then report the result on the challenge.<br><span class="dm-hint">Type <b>@zulu</b> to ask ZULU (AI) about the rules. It reads the last few messages.</span></div>';
-    else h += '<div class="dm-hello">' + zuluAv() + '<b>ZULU</b>The JD Arena AI assistant. Ask about tournaments, rules, Free Fire tips — or your own points, tickets and challenges. It never sees your private chats.</div>';
+    else h += '<div class="dm-hello">' + zuluAv() + '<b>ZULU</b>Your JD Arena buddy. Chat about anything gaming, get Free Fire tips, or ask about tournaments and your own points, tickets and challenges. It never sees your private chats.</div>';
     var lastMine = -1;
     msgs.forEach(function (m, i) { if (m.mine) lastMine = i; });
     for (var i = 0; i < msgs.length; i++) {
@@ -860,7 +860,8 @@
   var PATHS = { '/challenges/': '⚔️ Challenges', '/wallet/': '🪙 Wallet', '/events/': '📅 Events', '/leaderboard.html': '🏆 Leaderboard',
     '/profile/': '👤 Profile', '/chat/': '💬 Chat', '/privacy/': 'Privacy', '/ban-list.html': '🚫 Ban list' };
   function linkify(s) {
-    return esc(s)
+    return esc(s).replace(/\*\*([^*
+]{1,80})\*\*/g, '<b>$1</b>')
       .replace(/(?:https?:\/\/)?(?:www\.)?jdesport\.co\.uk(\/[a-z-]*\/?(?:[a-z-]+\.html)?)/g, function (m, path) { return path; })
       .replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)'"])/g, '<a href="$1" target="_blank" rel="noopener">$1</a>')
       .replace(/(^|[\s(])(\/(?:[a-z-]+\/|[a-z-]+\.html))(?=[\s.,;:!?)]|$)/g, function (m, pre, path) {
