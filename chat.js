@@ -860,8 +860,7 @@
   var PATHS = { '/challenges/': '⚔️ Challenges', '/wallet/': '🪙 Wallet', '/events/': '📅 Events', '/leaderboard.html': '🏆 Leaderboard',
     '/profile/': '👤 Profile', '/chat/': '💬 Chat', '/privacy/': 'Privacy', '/ban-list.html': '🚫 Ban list' };
   function linkify(s) {
-    return esc(s).replace(/\*\*([^*
-]{1,80})\*\*/g, '<b>$1</b>')
+    return esc(s).replace(/\*\*([^*\n]{1,80})\*\*/g, '<b>$1</b>')
       .replace(/(?:https?:\/\/)?(?:www\.)?jdesport\.co\.uk(\/[a-z-]*\/?(?:[a-z-]+\.html)?)/g, function (m, path) { return path; })
       .replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)'"])/g, '<a href="$1" target="_blank" rel="noopener">$1</a>')
       .replace(/(^|[\s(])(\/(?:[a-z-]+\/|[a-z-]+\.html))(?=[\s.,;:!?)]|$)/g, function (m, pre, path) {
