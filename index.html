@@ -211,7 +211,7 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .tmeta .row b{color:var(--cream);font-weight:600}
 .tslots{height:6px;background:rgba(255,255,255,.07);border-radius:6px;overflow:hidden;margin-bottom:6px}
 .tslots>span{display:block;height:100%;background:linear-gradient(90deg,var(--gold-m),var(--gold-l));border-radius:6px;transition:width .8s ease}
-.tslots-label{display:block;width:100%;font:inherit;background:none;border:none;cursor:pointer;font-size:.74rem;font-weight:600;color:var(--gold-l);margin-bottom:16px;text-align:right;text-decoration:underline;text-underline-offset:3px}
+.tslots-label{display:block;width:100%;min-height:32px;font:inherit;background:none;border:none;cursor:pointer;font-size:.74rem;font-weight:600;color:var(--gold-l);margin-bottom:8px;text-align:right;text-decoration:underline;text-underline-offset:3px}
 .tslots-label:hover{color:var(--gold-l)}
 .troster{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 16px}
 .troster > span{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;padding:3px 10px 3px 3px;border-radius:20px;background:rgba(255,200,61,.1);border:1px solid var(--gold-m);color:var(--gold-l);opacity:0;animation:chipIn .4s ease forwards}
@@ -593,10 +593,11 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 /* footer */
 footer{position:relative;margin-top:70px;padding:44px 0 36px;text-align:center;color:var(--silver);font-size:.84rem}
 footer::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:min(600px,80%);height:1px;background:linear-gradient(90deg,transparent,var(--gold-m),transparent)}
-footer .soc{display:flex;gap:22px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
-footer .soc a{color:var(--gold-l);font-size:.85rem;transition:.2s}
+footer .soc{display:flex;gap:2px 22px;justify-content:center;margin-bottom:12px;flex-wrap:wrap}
+footer .soc a{color:var(--gold-l);font-size:.85rem;transition:.2s;min-height:36px;display:inline-flex;align-items:center}
 footer .soc a:hover{color:var(--gold)}
 footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
+footer #about-link,footer a[href="/ban-list.html"]{display:inline-flex;align-items:center;min-height:32px}
 /* ── feedback chatbot ── */
 .fab{position:fixed;right:20px;bottom:20px;z-index:50;background:var(--gold);color:#0a0a12;border:none;border-radius:30px;padding:12px 18px;font-weight:700;font-size:.85rem;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.45),0 0 0 0 rgba(255,200,61,.5);transition:transform .2s;animation:fabPulse 3.2s ease-out infinite}
 .fab:hover{transform:translateY(-2px)}
@@ -607,7 +608,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .fab.fab-quiet{animation:none}
 .fab-nudge{position:fixed;right:20px;bottom:78px;z-index:49;max-width:min(260px,calc(100vw - 40px));background:var(--panel-2);border:1px solid var(--gold-m);border-radius:16px;border-bottom-right-radius:4px;padding:12px 30px 12px 14px;font-size:.82rem;line-height:1.4;color:var(--cream);box-shadow:0 12px 30px rgba(0,0,0,.5);cursor:pointer;opacity:0;transform:translateY(8px) scale(.98);pointer-events:none;transition:opacity .35s ease,transform .35s ease}
 .fab-nudge.show{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
-.fab-nudge-x{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--silver);font-size:1rem;cursor:pointer;line-height:1;padding:2px}
+.fab-nudge-x{position:absolute;top:0;right:0;width:36px;height:36px;display:grid;place-items:center;background:none;border:none;color:var(--silver);font-size:1.1rem;cursor:pointer;line-height:1;padding:0}
 @media(max-width:640px){.fab-nudge{bottom:74px}}
 .fb-panel{position:fixed;right:20px;bottom:20px;z-index:51;width:min(360px,calc(100vw - 32px));height:480px;max-height:calc(100vh - 40px);background:var(--panel-2);border:1px solid var(--line);border-radius:18px;display:none;flex-direction:column;overflow:hidden;box-shadow:0 18px 54px rgba(0,0,0,.55)}
 .fb-panel.open{display:flex}
@@ -1114,7 +1115,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 .gate-intro span{color:var(--body);font-size:.84rem;display:block;margin-top:4px}
 </style>
 <link rel="stylesheet" href="/effects-pro.css">
-<link rel="stylesheet" href="/ui.css?v=15">
+<link rel="stylesheet" href="/ui.css?v=16">
 <link rel="stylesheet" href="/broadcast.css?v=5">
 <link rel="stylesheet" href="/effects-styles.css?v=1">
 </head>
@@ -1127,7 +1128,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 <div class="made-in-np" aria-hidden="true"><img src="/logo.png" alt="" width="20" height="20"><span>Made in Nepal</span></div>
 <header>
   <div class="bar">
-    <a class="brand" href="#">
+    <a class="brand" href="/" aria-label="JD Esports Arena home">
       <img class="jdlogo" src="/logo.png" alt="JD Esports Arena" width="40" height="40">
       <span><b>JD Esports Arena</b><span>by AyerFire</span></span>
     </a>
@@ -1152,7 +1153,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
         <p data-i18n="sub">Free Fire BR tournaments under the AyerFire banner — real prize pools, live brackets, room-ID delivery and a season leaderboard. Built and run solo.</p>
         <div class="btns">
           <a class="btn-primary" href="#tournaments" data-i18n="see">See what's on</a>
-          <a class="btn-ghost discord-cta" id="discord-btn" href="#" target="_blank" rel="noopener" data-i18n="discord">Join the Discord</a>
+          <a class="btn-ghost discord-cta" id="discord-btn" href="https://discord.gg/dgvQTbNvVu" target="_blank" rel="noopener" data-i18n="discord">Join the Discord</a>
         </div>
       </div>
     </div>
@@ -1243,7 +1244,7 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
       <div class="discord-glow"></div>
       <h2>Squad up on Discord</h2>
       <p>Announcements, room IDs and the rest of the roster — all in one place.</p>
-      <a class="btn-primary discord-cta" href="#" target="_blank" rel="noopener" data-i18n="discord">Join the Discord</a>
+      <a class="btn-primary discord-cta" href="https://discord.gg/dgvQTbNvVu" target="_blank" rel="noopener" data-i18n="discord">Join the Discord</a>
     </div>
   </section>
 
@@ -1251,14 +1252,14 @@ footer .live-note{font-size:.76rem;color:var(--silver);margin-top:8px}
 
 <footer class="wrap">
   <div class="soc">
-    <a class="discord-cta" href="#" target="_blank" rel="noopener">Discord</a>
+    <a class="discord-cta" href="https://discord.gg/dgvQTbNvVu" target="_blank" rel="noopener">Discord</a>
     <a href="https://www.tiktok.com/@ayer_fire" target="_blank" rel="noopener">TikTok @ayer_fire</a>
     <a href="https://instagram.com/ayerprabin" target="_blank" rel="noopener">Instagram</a>
     <a href="https://github.com/AyerPrabin" target="_blank" rel="noopener">GitHub</a>
   </div>
   <div>JD Esports Arena · AyerFire</div>
   <div class="live-note" id="arena-foot"></div>
-  <div style="margin-top:10px"><a id="about-link" data-i18n="about" href="#">About</a> · <a href="/ban-list.html">🛡️ Ban List</a></div>
+  <div style="margin-top:10px"><a id="about-link" data-i18n="about" href="/about/">About</a> · <a href="/ban-list.html">🛡️ Ban List</a></div>
 </footer>
 
 <div class="fab-nudge" id="fab-nudge" onclick="fbOpen()"><button class="fab-nudge-x" onclick="event.stopPropagation();dismissNudge()" aria-label="dismiss">×</button><span id="fab-nudge-text"></span></div>
@@ -4162,7 +4163,7 @@ document.getElementById('fb-input').addEventListener('keydown',function(e){if(e.
 zChrome();
 setTimeout(showNudge,13000);
 </script>
-<script src="/ui.js?v=15" defer></script>
+<script src="/ui.js?v=16" defer></script>
 <script src="/chat.js?v=8" defer></script>
 <script src="/fx-engine.js?v=3" defer></script>
 </body>

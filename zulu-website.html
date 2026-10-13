@@ -30,6 +30,8 @@
   --body:#7e8eb0;--green:#5aab8a;--warm:#d4956a;--warm-l:#e3ab7e;
 }
 html{scroll-behavior:smooth}
+html{overflow-x:hidden}
+@supports (overflow:clip){html,body{overflow-x:clip}}
 body{background:var(--bg);color:var(--cream);font-family:'Inter',sans-serif;font-weight:300;line-height:1.65;overflow-x:hidden}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--gold-m)}
 a{color:inherit;text-decoration:none}

@@ -308,9 +308,20 @@ img{max-width:100%}
 }
 @media(prefers-reduced-motion:reduce){.pe-card,.ev-link{transition:none}}
 
+/* ── no sideways page scroll on any page: anything wider than the screen is clipped (clip,
+   unlike hidden, doesn't break position:sticky) ── */
+html{overflow-x:hidden}
+@supports (overflow:clip){html,body{overflow-x:clip}}
+img,video,canvas,iframe{max-width:100%}
+/* ── footer added by /ui.js on pages that had none ── */
+.site-foot{margin:40px auto 0;padding:24px 16px 32px;border-top:1px solid var(--ui-line,rgba(255,255,255,.08));text-align:center;font-size:.82rem;color:var(--silver,#A6AFC2)}
+/* ── site links (injected into every footer by /ui.js) ── */
+.site-links{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 18px;margin-top:12px;font-size:.84rem}
+.site-links a{color:var(--gold-l,#FFDD85);text-decoration:none;min-height:32px;display:inline-flex;align-items:center}
+.site-links a:hover{text-decoration:underline;text-underline-offset:3px}
 /* ── legal links (injected into every footer by /ui.js) ── */
 .legal-links{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin-top:14px;font-size:.8rem}
-.legal-links a{color:var(--silver,#A6AFC2);text-decoration:underline;text-underline-offset:3px;min-height:24px;display:inline-flex;align-items:center}
+.legal-links a{color:var(--silver,#A6AFC2);text-decoration:underline;text-underline-offset:3px;min-height:32px;display:inline-flex;align-items:center}
 .legal-links a:hover{color:var(--gold-l,#FFDD85)}
 .legal-links span{flex-basis:100%;text-align:center;color:var(--ui-muted);font-size:.74rem}
 /* one-time storage notice: sits above the phone tab bar, out of the way of content */

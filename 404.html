@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#07090F">
 <link rel="icon" type="image/png" href="/favicon-64.png">
 <title>Page not found — JD Esports Arena</title>
+<meta name="description" content="This page doesn't exist on JD Esports Arena. Find Free Fire tournaments, challenges and the leaderboard from the homepage.">
+<meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Geist:wght@300..800&family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
@@ -14,23 +16,24 @@
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px 16px;background:radial-gradient(800px 420px at 70% -10%,rgba(255,200,61,.13),transparent 60%),var(--bg);color:var(--cream);font-family:var(--font-body);text-align:center}
 .box{max-width:420px}
-img{width:64px;height:64px;border-radius:16px}
+.box img{width:64px;height:64px;border-radius:16px;display:block;margin:0 auto}
+.box .home{display:inline-block;padding:0;border:0;border-radius:16px}
 h1{font-family:'Barlow Condensed',sans-serif;font-size:4.5rem;line-height:1;margin:18px 0 4px;color:var(--gold-l)}
 p{color:var(--body);margin:0 0 24px}
 .links{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
-a{display:inline-flex;align-items:center;padding:12px 18px;border-radius:999px;font-weight:700;font-size:.9rem;text-decoration:none;border:1px solid var(--gold-m);color:var(--gold-l)}
-a.main{background:linear-gradient(100deg,var(--gold),var(--gold-2));color:#0a0a12;border-color:transparent}
+.links a{display:inline-flex;align-items:center;padding:12px 18px;border-radius:999px;font-weight:700;font-size:.9rem;text-decoration:none;border:1px solid var(--gold-m);color:var(--gold-l)}
+.links a.main{background:linear-gradient(100deg,var(--gold),var(--gold-2));color:#0a0a12;border-color:transparent}
 </style>
-<link rel="stylesheet" href="/ui.css?v=15">
+<link rel="stylesheet" href="/ui.css?v=16">
 <link rel="stylesheet" href="/broadcast.css?v=5">
 </head>
 <body>
 <div class="box">
-  <img src="/logo.png" alt="JD Esports Arena">
+  <a class="home" href="/" aria-label="JD Esports Arena home"><img src="/logo.png" alt="JD Esports Arena"></a>
   <h1>404</h1>
   <p>This page doesn't exist — it may have moved. Let's get you back in the game.</p>
-  <div class="links"><a class="main" href="/">Tournaments</a><a href="/profile/">My profile</a><a href="/wallet/">Wallet</a><a href="/leaderboard.html">Leaderboard</a></div>
+  <div class="links"><a class="main" href="/">Tournaments</a><a href="/profile/">My profile</a><a href="/wallet/">Wallet</a><a href="/leaderboard.html">Leaderboard</a><a href="/challenges/">Challenges</a></div>
 </div>
-<script src="/ui.js?v=15" defer></script>
+<script src="/ui.js?v=16" defer></script>
 </body>
 </html>

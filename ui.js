@@ -72,14 +72,33 @@
 // Legal links on every page (Privacy · Terms · Refunds · Contact) and a one-time note
 // that the site only stores what it needs. There is nothing to opt in or out of (no
 // analytics or tracking), so this is a notice, not an accept/reject banner.
+// Pages without a footer of their own get one (not the full-screen chat or the admin tools),
+// and every footer gets the same site links, so no page is a dead end on a phone. The
+// copyright year comes from the clock, so it never goes stale.
 (function () {
   var f = document.querySelector('footer');
+  if (!f && !/^\/(chat|admin)/.test(location.pathname) && !/^\/zulu-/.test(location.pathname)) {
+    f = document.createElement('footer');
+    f.className = 'site-foot';
+    var tb = document.querySelector('.tabbar');
+    document.body.insertBefore(f, tb || null);
+  }
+  if (f && !f.querySelector('.site-links')) {
+    var links = [['/', 'Tournaments'], ['/challenges/', 'Challenges'], ['/leaderboard.html', 'Leaderboard'], ['/events/', 'Past events'], ['/about/', 'About'], ['/ban-list.html', 'Ban list']];
+    var here = location.pathname.replace(/index\.html$/, '');
+    var s = document.createElement('nav');
+    s.className = 'site-links';
+    s.setAttribute('aria-label', 'Site');
+    s.innerHTML = links.filter(function (l) { return l[0] !== here && !f.querySelector('a[href="' + l[0] + '"]'); })
+      .map(function (l) { return '<a href="' + l[0] + '">' + l[1] + '</a>'; }).join('');
+    f.appendChild(s);
+  }
   if (f && !f.querySelector('.legal-links')) {
     var d = document.createElement('nav');
     d.className = 'legal-links';
     d.setAttribute('aria-label', 'Legal');
     d.innerHTML = '<a href="/privacy/">Privacy</a><a href="/terms.html">Terms</a><a href="/terms.html#s8">Refunds</a><a href="mailto:prabinayer7@gmail.com">Contact</a>' +
-      '<span>JD Esports Arena is run by Prabin Ayer (AyerFire), UK · Not affiliated with Garena</span>';
+      '<span>© ' + new Date().getFullYear() + ' JD Esports Arena · Run by Prabin Ayer (AyerFire), UK · Not affiliated with Garena</span>';
     f.appendChild(d);
   }
   var seen = false;
