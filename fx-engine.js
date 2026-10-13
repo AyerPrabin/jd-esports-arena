@@ -188,7 +188,9 @@
         I.tr = I.tr || [];
         if ((I.t1 = (I.t1 || 0) - dt) <= 0) { I.t1 = R(0.18, 0.55); I.tr.push({ y: R(I.h * 0.15, I.h * 0.85), x: -40, v: R(700, 1000) }); I.flash = 0.06; }
         for (var i = I.tr.length - 1; i >= 0; i--) {
-          var t = I.tr[i]; t.x += t.v * dt; if (t.x > I.w + 80) { I.tr.splice(i, 1); continue; }
+          var t = I.tr[i]; t.x += t.v * dt;
+          if (!t.hit && t.x >= I.w - 4) { t.hit = true; burst(I, I.w - 3, t.y, 6, true); } // impact sparks on the edge
+          if (t.x > I.w + 80) { I.tr.splice(i, 1); continue; }
           var g = ctx.createLinearGradient(t.x - 70, t.y, t.x, t.y); g.addColorStop(0, 'rgba(255,170,60,0)'); g.addColorStop(1, 'rgba(255,236,170,1)');
           ctx.globalAlpha = 1; ctx.strokeStyle = g; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(t.x - 70, t.y); ctx.lineTo(t.x, t.y); ctx.stroke();
           dot(ctx, I.c1, t.x, t.y, 5, 0.9);
@@ -252,6 +254,85 @@
     return pts;
   }
 
+  // ── scenery behind the particles: one set piece per effect, cheap (a few big sprites or one gradient) ──
+  var AURA = {
+    // Galaxy: slow nebula clouds in the effect's two colours
+    galaxy: function (I, ctx) {
+      if (!I.neb) { I.neb = []; for (var k = 0; k < 3; k++) I.neb.push({ x: R(0, I.w), y: R(0, I.h), r: R(I.h * 0.7, I.h * 1.3), v: R(-6, 6), c: k % 2 ? I.c2 : I.c1 }); }
+      for (var i = 0; i < I.neb.length; i++) { var n = I.neb[i]; n.x += n.v * 0.016; if (n.x < -n.r) n.x = I.w + n.r; if (n.x > I.w + n.r) n.x = -n.r; dot(ctx, n.c, n.x, n.y, n.r, 0.13 + 0.05 * Math.sin(I.t * 0.7 + i)); }
+    },
+    // Legend: light rays turning slowly out from the squad logo
+    legend: function (I, ctx) {
+      var cx = Math.min(70, I.w * 0.2), cy = I.h / 2, L = I.w * 1.1;
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(I.t * 0.25);
+      for (var k = 0; k < 6; k++) {
+        ctx.rotate(TAU / 6); ctx.globalAlpha = 0.07 + 0.03 * Math.sin(I.t * 1.5 + k);
+        ctx.fillStyle = 'hsl(' + (((I.t * 40) + k * 60) % 360 | 0) + ',100%,80%)';
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(L, -L * 0.07); ctx.lineTo(L, L * 0.07); ctx.closePath(); ctx.fill();
+      }
+      ctx.restore();
+    },
+    // Champion: a bright gold sweep across the card every few seconds
+    gold: function (I, ctx, dt) {
+      I.sw = (I.sw === undefined ? R(0, 3) : I.sw) + dt; var u = (I.sw % 3.2) / 0.9; if (u > 1) return;
+      var x = -I.w * 0.3 + u * I.w * 1.6, g = ctx.createLinearGradient(x - 50, 0, x + 50, 0);
+      g.addColorStop(0, 'rgba(255,220,120,0)'); g.addColorStop(0.5, 'rgba(255,236,170,.35)'); g.addColorStop(1, 'rgba(255,220,120,0)');
+      ctx.globalAlpha = 1; ctx.fillStyle = g; ctx.fillRect(0, 0, I.w, I.h);
+    },
+    // Frozen: cold mist hanging along the top
+    ice: function (I, ctx) {
+      var g = ctx.createLinearGradient(0, 0, 0, I.h * 0.6), a = 0.14 + 0.04 * Math.sin(I.t * 1.3);
+      g.addColorStop(0, 'rgba(180,235,255,' + a + ')'); g.addColorStop(1, 'rgba(180,235,255,0)');
+      ctx.globalAlpha = 1; ctx.fillStyle = g; ctx.fillRect(0, 0, I.w, I.h * 0.6);
+    },
+    // Thunder: small sparks crawling along the card edge between strikes
+    thunder: function (I, ctx, dt) {
+      if ((I.ea = (I.ea || 0) - dt) <= 0) { I.ea = R(0.12, 0.4); var per = 2 * (I.w + I.h), d = R(0, per), a = edge(I, d), b = edge(I, (d + R(18, 40)) % per); I.arc = { pts: bolt(a[0], a[1], b[0], b[1], 3), l: 0 }; }
+      var A = I.arc; if (!A || (A.l += dt) > 0.16) return;
+      ctx.beginPath(); ctx.moveTo(A.pts[0][0], A.pts[0][1]); for (var i = 1; i < A.pts.length; i++) ctx.lineTo(A.pts[i][0], A.pts[i][1]);
+      ctx.globalAlpha = 0.9 * (1 - A.l / 0.16); ctx.strokeStyle = '#E8FBFF'; ctx.lineWidth = 1.2; ctx.stroke();
+    },
+    // Fire: every so often the flames flare up
+    fire: function (I, ctx, dt) {
+      if ((I.fl = (I.fl === undefined ? R(1, 3) : I.fl) - dt) <= 0) { I.fl = R(2.5, 5); burst(I, R(I.w * 0.2, I.w * 0.8), I.h, 14, true); }
+    }
+  };
+
+  // ── bursts: tap a card (or let it scroll into view) and it explodes in its own style ──
+  var BURST = {
+    fire: { g: -60, c: ['#FFF1A8', '#FFB347', '#FF6B3D'] }, ice: { g: 30, c: ['#EAFFFF', '#5FD3FF', '#FFFFFF'] },
+    thunder: { g: 0, c: ['#FFFFFF', '#9EEAFF', '#4FD8FF'], spark: true }, bullets: { g: 260, c: ['#FFE19A', '#FFB347', '#FF7A1A'], spark: true },
+    blade: { g: 200, c: ['#FFFFFF', '#FF5A6A', '#C9D2DE'], spark: true }, steel: { g: 300, c: ['#FFFFFF', '#CFD8E3'], spark: true },
+    legend: { g: -20, hue: true }, rainbow: { g: 80, hue: true }, galaxy: { g: 0, c: ['#FFFFFF', '#D9CCFF', '#C4F3FF'] }
+  };
+  function burst(I, x, y, n, quiet) {
+    var B = BURST[I.key] || { g: 40, c: [I.c1, I.c2, '#FFFFFF'] };
+    I.b = I.b || []; I.rings = I.rings || [];
+    for (var k = 0; k < n && I.b.length < (low ? 30 : 60); k++) {
+      var a = quiet ? R(-Math.PI * 0.9, -Math.PI * 0.1) : R(0, TAU), v = R(quiet ? 40 : 70, quiet ? 120 : 260);
+      I.b.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, l: 0, m: R(0.45, 0.95), s: R(2.5, 5), g: B.g,
+        c: B.hue ? 'hsl(' + (R(0, 360) | 0) + ',100%,72%)' : (B.c ? B.c[k % B.c.length] : I.c1), spark: B.spark });
+    }
+    if (!quiet) I.rings.push({ x: x, y: y, l: 0 });
+    wake();
+  }
+  function drawBursts(I, ctx, dt) {
+    var b = I.b, rg = I.rings;
+    if (rg) for (var i = rg.length - 1; i >= 0; i--) {
+      var r = rg[i]; if ((r.l += dt) > 0.5) { rg.splice(i, 1); continue; }
+      ctx.globalAlpha = 0.7 * (1 - r.l / 0.5); ctx.strokeStyle = I.c2; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(r.x, r.y, 6 + r.l * 160, 0, TAU); ctx.stroke();
+    }
+    if (b) for (var j = b.length - 1; j >= 0; j--) {
+      var p = b[j]; if ((p.l += dt) > p.m) { b.splice(j, 1); continue; }
+      p.vx *= 0.97; p.vy = p.vy * 0.97 + p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+      var a2 = 1 - p.l / p.m;
+      if (p.spark) { ctx.globalAlpha = a2; ctx.strokeStyle = p.c; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 0.03, p.y - p.vy * 0.03); ctx.stroke(); }
+      else if (p.c.charAt(0) === 'h') { ctx.globalAlpha = a2; ctx.fillStyle = p.c; ctx.fillRect(p.x - p.s / 2, p.y - p.s / 2, p.s, p.s); }
+      else dot(ctx, p.c, p.x, p.y, p.s * 1.6, a2);
+    }
+  }
+
   // ── instances ──
   var live = [], byEl = new WeakMap(), io = null, running = false, last = 0;
   function keyOf(el) {
@@ -279,13 +360,16 @@
     if (I) unmount(I);
     var cv = document.createElement('canvas'); cv.className = 'fxc'; cv.setAttribute('aria-hidden', 'true');
     el.insertBefore(cv, el.firstChild); el.classList.add('fx-live');
-    I = { el: el, key: key, fx: FX[key], cv: cv, ctx: cv.getContext('2d'), w: 0, h: 0, p: [], t: R(0, 10), acc: 0, vis: false };
+    I = { el: el, key: key, fx: FX[key], cv: cv, ctx: cv.getContext('2d'), w: 0, h: 0, p: [], t: R(0, 10), acc: 0, vis: false, entered: false };
     colors(I); size(I);
+    // tap / click: the card bursts where you touched it (doesn't block the card's own buttons)
+    I.tap = function (e) { var r = el.getBoundingClientRect(); burst(I, e.clientX - r.left, e.clientY - r.top, low ? 18 : 30); };
+    el.addEventListener('pointerdown', I.tap, { passive: true });
     byEl.set(el, I); live.push(I);
     io.observe(el);
   }
   function unmount(I) {
-    io.unobserve(I.el); if (I.cv.parentNode) I.cv.parentNode.removeChild(I.cv);
+    io.unobserve(I.el); I.el.removeEventListener('pointerdown', I.tap); if (I.cv.parentNode) I.cv.parentNode.removeChild(I.cv);
     I.el.classList.remove('fx-live'); byEl.delete(I.el);
     var i = live.indexOf(I); if (i >= 0) live.splice(i, 1);
   }
@@ -311,16 +395,26 @@
       var ctx = I.ctx, fx = I.fx; I.t += dt;
       ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.clearRect(0, 0, I.w, I.h);
       ctx.globalCompositeOperation = 'lighter';
+      if (AURA[I.key]) AURA[I.key](I, ctx, dt);
       if (fx.rate) { I.acc += fx.rate * dt; while (I.acc >= 1) { I.acc -= 1; if (I.p.length < CAP) I.p.push(fx.spawn(I)); } }
       if (fx.frame) fx.frame(I, ctx, dt);
       for (var n = I.p.length - 1; n >= 0; n--) { var p = I.p[n]; if (!fx.step(I, p, dt)) { I.p.splice(n, 1); continue; } fx.draw(I, ctx, p); }
+      drawBursts(I, ctx, dt);
     }
   }
   function wake() { if (!running && !document.hidden) { running = true; last = 0; requestAnimationFrame(frame); } }
 
   function start() {
     io = new IntersectionObserver(function (es) {
-      es.forEach(function (e) { var I = byEl.get(e.target); if (I) { I.vis = e.isIntersecting; if (I.vis) { colors(I); size(I); } } });
+      es.forEach(function (e) {
+        var I = byEl.get(e.target); if (!I) return;
+        I.vis = e.isIntersecting;
+        if (I.vis) {
+          colors(I); size(I);
+          // first time on screen: a burst from the squad logo, staggered so a list ripples
+          if (!I.entered) { I.entered = true; var d = Math.min(900, live.indexOf(I) * 90); setTimeout(function () { if (I.vis) burst(I, Math.min(70, I.w * 0.2), I.h / 2, low ? 14 : 24); }, d); }
+        }
+      });
       wake();
     }, { rootMargin: '60px' });
     var t = null;
