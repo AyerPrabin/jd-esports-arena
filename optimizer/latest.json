@@ -1,9 +1,9 @@
 {
-  "version": "4.3",
-  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.3.exe",
-  "sha256": "f8f6431443291602ef384f368765322ef6fea1fed9760724c2fa79565a5fa725",
-  "size": 1061302,
-  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.3.zip",
-  "notes": "v4.3: Deep clean built in - optimize the whole PC (clear junk, free RAM, debloat telemetry/Copilot/Recall), reversible. Tray > Optimization suite opens the full JD-Sentinel tool (debloat, startup/WMI audit, Defender hardening, service-boost, ransomware watchdog).",
+  "version": "4.4",
+  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.4.exe",
+  "sha256": "4405ef0063afccc49851df0f62f1302fc42b0bbe3fc581e2b3ed7d3fded126f9",
+  "size": 1067420,
+  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.4.zip",
+  "notes": "v4.4: Aim Studio - customise your Aim X (sensitivity) and Y (up/down), see a live acceleration curve, toggle pointer precision. Recommended values one tap away.",
   "date": "2026-10-16"
 }
