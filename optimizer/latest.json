@@ -1,9 +1,9 @@
 {
-  "version": "4.2",
-  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.2.exe",
-  "sha256": "20f4d0a54218b2baf6ffcfe5bfae1cfa89b1e76212c2759ac5a7cb5e1fc96bc7",
-  "size": 1058759,
-  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.2.zip",
-  "notes": "v4.2: boost ANY PC game (add .exe or auto-detect), Performance modes (Balanced / Extreme / Potato), plan chip in the title bar. New lower prices: Optimizer Pro 49 points, Max 99 points per 30 days. Max now also gives a 30-day Pro squad effect, early entry to marked events, and a verified tag.",
+  "version": "4.3",
+  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.3.exe",
+  "sha256": "f8f6431443291602ef384f368765322ef6fea1fed9760724c2fa79565a5fa725",
+  "size": 1061302,
+  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.3.zip",
+  "notes": "v4.3: Deep clean built in - optimize the whole PC (clear junk, free RAM, debloat telemetry/Copilot/Recall), reversible. Tray > Optimization suite opens the full JD-Sentinel tool (debloat, startup/WMI audit, Defender hardening, service-boost, ransomware watchdog).",
   "date": "2026-10-16"
 }
