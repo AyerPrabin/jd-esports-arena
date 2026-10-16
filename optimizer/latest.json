@@ -1,9 +1,9 @@
 {
-  "version": "4.4",
-  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.4.exe",
-  "sha256": "4405ef0063afccc49851df0f62f1302fc42b0bbe3fc581e2b3ed7d3fded126f9",
-  "size": 1067420,
-  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.4.zip",
-  "notes": "v4.4: Aim Studio - customise your Aim X (sensitivity) and Y (up/down), see a live acceleration curve, toggle pointer precision. Recommended values one tap away.",
+  "version": "4.5",
+  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.5.exe",
+  "sha256": "73cab816779c2e2e636bf16a3b16bc83538921ec3f7bd9507afaa958207109f1",
+  "size": 1071245,
+  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.5.zip",
+  "notes": "v4.5: Aim Studio now lets you DRAG the curve to set your aim speed live, and SAVE aim profiles (loadouts) to switch between setups. Plus the custom X/Y and acceleration graph from before.",
   "date": "2026-10-16"
 }
