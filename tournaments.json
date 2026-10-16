@@ -70,8 +70,8 @@
       "date": "Sun, Oct 25",
       "time": "10:00 PM NPT",
       "start": "2026-10-25T22:00:00+05:45",
-      "prize": "450",
-      "entry": "15",
+      "prize": "350",
+      "entry": "Free",
       "platform": "Mobile only",
       "slots": 12,
       "format": "BR · 3 matches",
@@ -223,5 +223,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-13T23:58:19.557Z"
+  "_published_at": "2026-10-16T20:37:16.448Z"
 }
