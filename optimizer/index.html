@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#05080f">
 <link rel="icon" type="image/png" href="/favicon-64.png">
 <title>JD-Optimiers — JD Esports Arena</title>
-<meta name="description" content="JD-Optimiers: free Windows FPS booster, mouse tuner and panel scanner for Free Fire on MSI App Player / BlueStacks 5. By AyerFire.">
+<meta name="description" content="JD-Optimiers: Windows FPS booster, mouse tuner and panel scanner for Free Fire on MSI App Player / BlueStacks 5. By AyerFire.">
 <meta property="og:title" content="JD-Optimiers — Free Fire PC booster">
-<meta property="og:description" content="Free FPS booster, mouse tuner and panel scanner for Free Fire on MSI App Player / BlueStacks 5.">
+<meta property="og:description" content="FPS booster, mouse tuner and panel scanner for Free Fire on MSI App Player / BlueStacks 5.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://jdesport.co.uk/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -62,6 +62,27 @@ ol.steps li{margin:0 0 10px}
 ol.steps b{color:var(--cream);font-weight:500}
 .note{border-left:3px solid var(--gold);background:rgba(201,168,76,.06);padding:12px 16px;border-radius:0 12px 12px 0;color:var(--body);font-size:.9rem;margin-top:16px}
 .note b{color:var(--cream);font-weight:500}
+[hidden]{display:none!important}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:6px}
+.plan{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px}
+.plan.max{border-color:var(--gold-m);background:linear-gradient(180deg,rgba(255,200,61,.07),var(--panel) 55%)}
+.plan h3{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.35rem;margin:0}
+.plan .price{font-family:'Barlow Condensed',sans-serif;font-size:2.2rem;font-weight:700;color:var(--cta);line-height:1}
+.plan .price small{font-size:.9rem;color:var(--silver);font-family:inherit;font-weight:400}
+.plan ul{margin:0;padding-left:1.1em;color:var(--body);font-size:.9rem}
+.plan .buy{margin-top:auto;border:0;cursor:pointer;justify-content:center;font-size:1.1rem;padding:11px 18px}
+.plan .buy[disabled]{opacity:.55;cursor:not-allowed;transform:none}
+.badge{display:inline-block;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:#07090F;background:var(--cta);border-radius:20px;padding:2px 9px;font-weight:700;vertical-align:middle;margin-left:6px}
+.acct{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px 20px;margin:26px 0 0;display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center}
+.acct .who{color:var(--silver);font-size:.86rem}.acct .who b{color:var(--cream);font-weight:500}
+.acct .status{font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:700}
+.acct .status.on{color:var(--cta)}.acct .status.off{color:var(--silver)}
+.ghostbtn{display:inline-block;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:30px;padding:7px 14px;font-size:.8rem;font-weight:600;background:none;cursor:pointer}
+.ghostbtn:hover{background:rgba(201,168,76,.12)}
+.devs{width:100%;border-collapse:collapse;font-size:.86rem;margin-top:4px}
+.devs td{padding:8px 4px;border-bottom:1px solid var(--line);color:var(--body)}.devs td:first-child{color:var(--cream)}
+.msg{min-height:1.2em;font-size:.88rem;margin-top:8px;color:var(--silver)}.msg.err{color:#ff7676}.msg.ok{color:#5EDB95}
+.gate{text-align:center}.gate p{color:var(--body);margin:6px 0 16px}
 footer{border-top:1px solid var(--line);margin-top:54px;padding:30px 0 40px;text-align:center;color:var(--silver);font-size:.82rem}
 footer a{color:var(--gold-l)}
 </style>
@@ -78,20 +99,58 @@ footer a{color:var(--gold-l)}
   <section class="hero">
     <img class="logo" src="/logo.png" alt="JD" width="132" height="132">
     <div>
-      <div class="eye">Free · Windows 10 / 11</div>
+      <div class="eye">Optimizer Pro &amp; Max · Windows 10 / 11</div>
       <h1>JD-Optimiers</h1>
       <p>FPS booster, mouse tuner and panel scanner for <strong>Free Fire</strong> on <strong>MSI App Player / BlueStacks 5</strong>. One button: it optimizes Windows, opens the game and boosts until you close it.</p>
     </div>
   </section>
 
-  <div class="dl">
-    <a class="btn" id="dl-btn" href="#" aria-disabled="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
-      <span id="dl-label">Download</span>
-    </a>
-    <div class="meta" id="dl-meta">Loading the latest version…</div>
+  <div class="acct gate" id="gate" hidden>
+    <div style="width:100%">
+      <div class="status">Sign in to download</div>
+      <p>JD-Optimiers uses your JD Esports Arena account — the same login as tournaments and your points wallet (email or Google).</p>
+      <a class="btn" id="gate-btn" href="/?signin=1&amp;next=%2Foptimizer%2F">Sign in</a>
+    </div>
+  </div>
+
+  <div class="acct" id="acct" hidden>
+    <div><div class="who">Signed in as <b id="me">…</b> · <span id="bal">…</span> points · <a href="/wallet/" style="color:var(--gold-l)">load points</a></div>
+      <div class="status off" id="plan-status">…</div></div>
+    <div class="dl" style="margin:0;padding:0;border:0;background:none" id="dl-box">
+      <a class="btn" id="dl-btn" href="#" aria-disabled="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
+        <span id="dl-label">Download</span>
+      </a>
+      <div class="meta" id="dl-meta">Loading the latest version…</div>
+    </div>
   </div>
   <div class="notes" id="dl-notes"></div>
+
+  <section>
+    <div class="sec-h"><h2>Plans</h2><span class="ln"></span></div>
+    <div class="plans">
+      <div class="plan">
+        <h3>Optimizer Pro</h3>
+        <div class="price">100 <small>points / 30 days</small></div>
+        <ul><li>One-tap boost: power plan, Game Mode, background apps paused</li><li>Graphics: High FPS, VSync off, GPU scheduling, 1080p on high-end PCs</li><li>Mouse presets and aim check</li><li>Live FPS and session reports</li><li>2 PCs</li></ul>
+        <button class="btn buy" data-tier="pro" type="button">Get Pro · 100 pts</button>
+      </div>
+      <div class="plan max">
+        <h3>Optimizer Max <span class="badge">Panel scan</span></h3>
+        <div class="price">170 <small>points / 30 days</small></div>
+        <ul><li>Everything in Pro</li><li><b style="color:var(--cream);font-weight:500">Panel scan</b>: checks a PC for known Free Fire cheat panels and saves a report</li><li>Deep scan (Shift+click)</li><li>2 PCs</li></ul>
+        <button class="btn buy" data-tier="max" type="button">Get Max · 170 pts</button>
+      </div>
+    </div>
+    <div class="msg" id="buy-msg"></div>
+    <p class="notes">Paid with JD points (1 point = Rs 1 — load them on your <a href="/wallet/" style="color:var(--gold-l)">wallet</a> with eSewa). Buying again adds 30 days. Upgrading Pro → Max turns the Pro days you have left into Max days (×100/170) and adds 30. Plans don't renew by themselves.</p>
+  </section>
+
+  <section id="pcs-sec" hidden>
+    <div class="sec-h"><h2>Your PCs</h2><span class="ln"></span></div>
+    <table class="devs" id="devs"></table>
+    <p class="notes">Up to 2 PCs. Linking a third unlinks the oldest. Unlink a PC you no longer use, or if you didn't link it.</p>
+  </section>
 
   <section>
     <div class="sec-h"><h2>Install</h2><span class="ln"></span></div>
@@ -99,6 +158,7 @@ footer a{color:var(--gold-l)}
       <li><b>Download</b> the zip above and <b>extract</b> it (right-click → Extract all). Keep the folder anywhere, e.g. Documents.</li>
       <li>Open <b>JD-Optimiers.exe</b>. Windows SmartScreen may say “Windows protected your PC” because the app is new and not code-signed — click <b>More info → Run anyway</b>.</li>
       <li>Accept the <b>Administrator</b> prompt (needed for power plan, GPU settings and live FPS).</li>
+      <li>The app shows a code like <b>ABCD-2345</b> and opens this site. Check the code matches, then press <b>Link this PC</b>. The app opens by itself.</li>
       <li>Close MSI App Player, press <b>Apply best profile</b>, then <b>Play Free Fire</b>.</li>
     </ol>
     <div class="note"><b>Updates are automatic and required.</b> When a new version is posted here, the app shows a pop-up at start and updates itself in a few seconds (the download is checked with SHA-256 before it replaces anything). It only checks when the app starts.</div>
@@ -110,7 +170,7 @@ footer a{color:var(--gold-l)}
       <div class="card"><h3>Boost</h3><p>Ultimate power plan, Game Mode, background apps paused while you play, emulator on the graphics card at high priority.</p></div>
       <div class="card"><h3>Graphics</h3><p>High FPS on, VSync off, dedicated GPU, GPU scheduling — and 1080p on high-end PCs. Every change can be undone with Restore all.</p></div>
       <div class="card"><h3>Mouse</h3><p>Sensitivity presets, pointer acceleration off for steady aim, aim key position check.</p></div>
-      <div class="card"><h3>Panel scan</h3><p>Looks for known cheat panels on the PC and reports them. Detect-only — it never deletes anything.</p></div>
+      <div class="card"><h3>Panel scan <span class="badge">Max</span></h3><p>Looks for known cheat panels on the PC and reports them. Detect-only — it never deletes anything.</p></div>
     </div>
     <div class="note"><b>Account-safe by design:</b> JD-Optimiers changes Windows settings, the emulator's settings file and — only when you press Aim fix or remove macros — its key-mapping file, always with a backup. It never reads or edits the game's memory, never injects anything, and adds no macros or aim assist.</div>
   </section>
@@ -119,27 +179,93 @@ footer a{color:var(--gold-l)}
   <div>JD-Optimiers · JD Esports Arena · AyerFire</div>
   <div style="margin-top:8px"><a href="/">← Back to JD Esports Arena</a></div>
 </footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
 <script>
-(function () {
-  var btn = document.getElementById('dl-btn'), label = document.getElementById('dl-label'),
-      meta = document.getElementById('dl-meta'), notes = document.getElementById('dl-notes');
-  fetch('latest.json?t=' + Date.now(), { cache: 'no-store' })
-    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-    .then(function (j) {
-      btn.href = j.zip || j.url;
-      btn.removeAttribute('aria-disabled');
-      label.textContent = 'Download v' + j.version;
-      meta.textContent = '';
-      var b = document.createElement('b'); b.textContent = 'v' + j.version;
-      meta.appendChild(document.createTextNode('Latest: ')); meta.appendChild(b);
-      if (j.date) meta.appendChild(document.createTextNode(' · ' + j.date));
-      var alt = document.createElement('span'); alt.className = 'alt';
-      var a = document.createElement('a'); a.href = j.url; a.textContent = 'app only (.exe)';
-      alt.appendChild(document.createTextNode('Already installed? Get the ')); alt.appendChild(a);
-      meta.appendChild(alt);
-      if (j.notes) notes.textContent = 'New in v' + j.version + ': ' + j.notes;
+/* Same project + publishable key as the main site: the login session is shared on this origin. */
+const SUPABASE_URL='https://cnoxvqvpmgowdiyrrusv.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const $=id=>document.getElementById(id);
+const fmtDate=d=>new Date(d).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
+let st=null,busy=false,signedIn=false;
+
+function msg(t,c){const m=$('buy-msg');m.textContent=t||'';m.className='msg '+(c||'');}
+
+function loadLatest(){
+  fetch('latest.json?t='+Date.now(),{cache:'no-store'})
+    .then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
+    .then(j=>{
+      const btn=$('dl-btn');btn.href=j.zip||j.url;btn.removeAttribute('aria-disabled');
+      $('dl-label').textContent='Download v'+j.version;
+      const meta=$('dl-meta');meta.textContent='';
+      const b=document.createElement('b');b.textContent='v'+j.version;
+      meta.append('Latest: ',b,j.date?' · '+j.date:'');
+      const alt=document.createElement('span');alt.className='alt';
+      const a=document.createElement('a');a.href=j.url;a.textContent='app only (.exe)';
+      alt.append('Already installed? Get the ',a);meta.appendChild(alt);
+      if(j.notes)$('dl-notes').textContent='New in v'+j.version+': '+j.notes;
     })
-    .catch(function () { meta.textContent = 'Could not load the download right now — refresh in a minute.'; });
+    .catch(()=>{$('dl-meta').textContent='Could not load the download right now — refresh in a minute.';});
+}
+
+function render(){
+  const on=st&&st.tier;
+  const ps=$('plan-status');
+  ps.className='status '+(on?'on':'off');
+  ps.textContent=on?`Optimizer ${st.tier==='max'?'Max':'Pro'} · until ${fmtDate(st.expires_at)}`
+                   :(st&&st.last_tier?`Your Optimizer ${st.last_tier==='max'?'Max':'Pro'} ended ${fmtDate(st.last_expires_at)}`:'No plan yet — pick one below');
+  document.querySelectorAll('.buy').forEach(b=>{
+    const t=b.dataset.tier,price=t==='max'?170:100;
+    b.disabled=busy||(on&&st.tier==='max'&&t==='pro');
+    b.textContent=on&&st.tier===t?`Add 30 days · ${price} pts`:on&&st.tier==='pro'&&t==='max'?`Upgrade to Max · ${price} pts`:`Get ${t==='max'?'Max':'Pro'} · ${price} pts`;
+    b.title=b.disabled&&!busy?'You have Max — renew Max instead':'';
+  });
+  const devs=(st&&st.devices)||[];
+  $('pcs-sec').hidden=!devs.length;
+  const tb=$('devs');tb.textContent='';
+  devs.forEach(d=>{
+    const tr=document.createElement('tr');
+    const n=document.createElement('td');n.textContent=d.name;
+    const w=document.createElement('td');w.textContent='linked '+fmtDate(d.created_at)+(d.last_seen?' · last used '+new Date(d.last_seen).toLocaleString():'');
+    const x=document.createElement('td');x.style.textAlign='right';
+    const u=document.createElement('button');u.className='ghostbtn';u.type='button';u.textContent='Unlink';
+    u.onclick=async()=>{if(!confirm('Unlink "'+d.name+'"? The app on that PC will ask to sign in again.'))return;
+      const {error}=await sb.rpc('optimizer_revoke_device',{p_id:d.id});if(error)msg(error.message,'err');else{msg('PC unlinked.','ok');refresh();}};
+    x.appendChild(u);tr.append(n,w,x);tb.appendChild(tr);
+  });
+}
+
+async function refresh(){
+  const [{data,error},w]=await Promise.all([sb.rpc('optimizer_my_status'),sb.from('wallets').select('balance, unlimited').maybeSingle()]);
+  if(error){msg(error.message,'err');return;}
+  st=data;
+  $('bal').textContent=w.data?(w.data.unlimited?'∞':Number(w.data.balance||0).toLocaleString()):'0';
+  render();
+}
+
+async function buy(tier){
+  if(!signedIn){location.href=$('gate-btn').href;return;}
+  const price=tier==='max'?170:100,name=tier==='max'?'Optimizer Max':'Optimizer Pro';
+  if(!confirm(`Pay ${price} points for 30 days of ${name}?`))return;
+  busy=true;render();msg('Paying…','');
+  const {data,error}=await sb.rpc('optimizer_buy',{p_tier:tier});
+  busy=false;
+  if(error){msg(error.message,'err');render();return;}
+  msg(`Done — ${name} until ${fmtDate(data.expires_at)}. ${data.balance} points left. Open JD-Optimiers (or restart it) to use it.`,'ok');
+  refresh();
+}
+
+document.querySelectorAll('.buy').forEach(b=>b.onclick=()=>buy(b.dataset.tier));
+
+(async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){$('gate').hidden=false;document.querySelectorAll('.buy').forEach(b=>b.textContent='Sign in to buy');return;}
+  signedIn=true;
+  const {data:pl}=await sb.from('players').select('username, player_tag').eq('id',session.user.id).maybeSingle();
+  $('me').textContent=pl&&pl.username?'@'+pl.username:(pl&&pl.player_tag)||session.user.email;
+  $('acct').hidden=false;
+  loadLatest();
+  await refresh();
 })();
 </script>
 </body>

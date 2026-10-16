@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#05080f">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="/favicon-64.png">
+<title>Link JD-Optimiers — JD Esports Arena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#05080f;--panel:#0e1424;--line:#1c2840;--gold:#c9a84c;--gold-l:#e2c97e;--gold-m:#7e6630;--cream:#f4efe6;--silver:#aab4cc;--body:#7e8eb0;--cta:#FFC83D;--cta-2:#FFAE00}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:'Geist',system-ui,sans-serif;font-weight:300;line-height:1.6;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(900px 500px at 70% -10%,rgba(201,168,76,.12),transparent 60%);pointer-events:none}
+a{color:var(--gold-l)}
+.wrap{position:relative;max-width:480px;margin:0 auto;padding:40px 18px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:26px 22px;text-align:center}
+.logo{width:72px;height:72px;mix-blend-mode:lighten}
+h1{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.9rem;margin:6px 0 4px}
+p{color:var(--body);margin:8px 0}
+p b{color:var(--cream);font-weight:500}
+.code{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:2.6rem;letter-spacing:.12em;color:var(--cta);margin:14px 0 2px}
+.dev{color:var(--silver);font-size:.9rem}
+.warn{border-left:3px solid #ff9f1c;background:rgba(255,159,28,.07);padding:10px 14px;border-radius:0 12px 12px 0;color:var(--body);font-size:.86rem;text-align:left;margin:18px 0}
+.warn b{color:var(--cream);font-weight:500}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;cursor:pointer;background:linear-gradient(90deg,#FFDD85,var(--cta) 55%,var(--cta-2));color:#07090F;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;padding:13px 22px;border-radius:14px;text-decoration:none}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+.ghost{display:inline-block;margin-top:12px;color:var(--silver);font-size:.86rem;background:none;border:0;cursor:pointer;text-decoration:underline}
+.msg{min-height:1.3em;margin-top:12px;font-size:.92rem}.msg.err{color:#ff7676}.msg.ok{color:#5EDB95}
+.big-ok{font-size:2.6rem;line-height:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card" id="card">
+    <img class="logo" src="/logo.png" alt="JD" width="72" height="72">
+    <h1>Link JD-Optimiers</h1>
+    <div id="body"><p>Loading…</p></div>
+    <div class="msg" id="msg"></div>
+  </div>
+  <p style="text-align:center;font-size:.82rem"><a href="/optimizer/">JD-Optimiers plans &amp; download</a> · <a href="/">JD Esports Arena</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL='https://cnoxvqvpmgowdiyrrusv.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const $=id=>document.getElementById(id);
+const code=((new URLSearchParams(location.search).get('c')||'').toUpperCase().replace(/[^A-Z0-9-]/g,'')).slice(0,9);
+function msg(t,c){$('msg').textContent=t||'';$('msg').className='msg '+(c||'');}
+function el(tag,attrs,text){const e=document.createElement(tag);Object.assign(e,attrs||{});if(text!=null)e.textContent=text;return e;}
+
+(async function(){
+  const body=$('body');
+  if(!/^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)){
+    body.replaceChildren(el('p',null,'This link has no code. In JD-Optimiers, press "Sign in" — it opens this page with your code.'));return;
+  }
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){
+    const next='/optimizer/link/?c='+code;
+    body.replaceChildren(
+      el('p',null,'Sign in with your JD Esports Arena account to link this PC.'),
+      el('div',{className:'code'},code),
+      el('a',{className:'btn',href:'/?signin=1&next='+encodeURIComponent(next)},'Sign in'));
+    return;
+  }
+  const {data:info,error}=await sb.rpc('optimizer_link_info',{p_code:code});
+  if(error){msg(error.message,'err');body.replaceChildren();return;}
+  if(info.status!=='pending'){
+    body.replaceChildren(el('p',null,info.status==='used'?'This code was already used. If the app is still waiting, press "Sign in" in the app again.':'This code has expired. Press "Sign in" in JD-Optimiers again to get a new one.'));
+    return;
+  }
+  const {data:pl}=await sb.from('players').select('username').eq('id',session.user.id).maybeSingle();
+  const warn=el('div',{className:'warn'});
+  warn.append(el('b',null,'Only press the button if JD-Optimiers on your own PC shows this exact code right now. '),
+              'Never approve a code someone sent you — it would put their PC on your plan.');
+  const btn=el('button',{className:'btn',type:'button'},'Link this PC');
+  const who=el('p');who.append('Account: ',el('b',null,pl&&pl.username?'@'+pl.username:session.user.email));
+  body.replaceChildren(el('div',{className:'code'},code),el('div',{className:'dev'},'PC: '+info.device),who,warn,btn,
+                       el('button',{className:'ghost',type:'button',onclick:()=>{body.replaceChildren(el('p',null,'Not linked. You can close this page.'));msg('');}},'This is not my code'));
+  btn.onclick=async()=>{
+    btn.disabled=true;msg('Linking…');
+    const {error:e}=await sb.rpc('optimizer_link_approve',{p_code:code});
+    if(e){msg(e.message,'err');btn.disabled=false;return;}
+    const {data:st}=await sb.rpc('optimizer_my_status');
+    const done=[el('div',{className:'big-ok'},'✓'),el('p',null,'PC linked. Go back to JD-Optimiers — it opens by itself in a few seconds.')];
+    if(!st||!st.tier){const p=el('p');p.append('You also need a plan to use the app: ',el('a',{href:'/optimizer/'},'get Optimizer Pro or Max'),'.');done.push(p);}
+    body.replaceChildren(...done);msg('');
+  };
+})();
+</script>
+</body>
+</html>

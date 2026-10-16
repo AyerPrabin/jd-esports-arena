@@ -1386,6 +1386,10 @@ footer #about-link,footer a[href="/ban-list.html"]{display:inline-flex;align-ite
 if(/[?&]shop=1/.test(location.search))window.addEventListener('load',()=>setTimeout(()=>{if(typeof _player!=='undefined'&&_player)fxShopOpen(null);else authOpen('login');},1400));
 if(/[?&]account=1/.test(location.search))window.addEventListener('load',()=>setTimeout(()=>{if(typeof _player!=='undefined'&&_player)authOpen('login');},1200));
 if(/[?&]signin=1/.test(location.search))window.addEventListener('load',()=>setTimeout(()=>{if(typeof _player==='undefined'||!_player)authOpen('login');},900));
+/* ?signin=1&next=/optimizer/ : once signed in (password or Google), go back to that page on this site.
+   Only same-site paths are accepted ("/x", never "//host" or "https:"). */
+(function(){const m=/[?&]next=([^&#]+)/.exec(location.search);if(!m)return;let n='';try{n=decodeURIComponent(m[1]);}catch(e){return;}
+  if(/^\/(?![\/\\])[A-Za-z0-9_\-\/.?=&%]*$/.test(n))try{sessionStorage.setItem('jd_next',n);}catch(e){}})();
 let _emailVerifyFlow=/type=signup/.test(location.hash)||/type=signup/.test(location.search);
 /* Same idea, for the delete-account flow: set before supabase-js can consume the redirect
    hash, so the SIGNED_IN handler below knows this login came from the "confirm deletion"
@@ -2720,7 +2724,11 @@ async function authSetNewPassword(){
 
 if(sb){
   initPresence();
-  sb.auth.onAuthStateChange((event)=>{
+  sb.auth.onAuthStateChange((event,session)=>{
+    if(session&&(event==='SIGNED_IN'||event==='INITIAL_SESSION')&&!_emailVerifyFlow&&!_deleteConfirmFlow){
+      let n=null;try{n=sessionStorage.getItem('jd_next');if(n)sessionStorage.removeItem('jd_next');}catch(e){}
+      if(n){setTimeout(()=>{location.href=n;},50);return;}
+    }
     if(event==='PASSWORD_RECOVERY'){
       _authView='login';
       document.getElementById('auth-body').innerHTML=`<h3>Set a new password</h3><label>New password</label><input id="au-newpass" type="password" placeholder="At least 6 characters"><div class="msg" id="au-msg"></div><div class="row2"><button class="btn-primary" style="flex:1" onclick="authSetNewPassword()">Save password</button></div>`;

@@ -251,7 +251,7 @@ h2[id]{scroll-margin-top:64px}
   <div class="dash" id="dash"><div class="dash-tile loading"><b>…</b><span>Loading</span></div></div>
 
   <nav class="adm-nav" id="adm-nav">
-    <a href="#tournaments">🏆 Tournaments</a><a href="#history">📜 History</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#challenges">⚔️ Challenges</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
+    <a href="#tournaments">🏆 Tournaments</a><a href="#history">📜 History</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#optimizer">🚀 Optimizer</a><a href="#challenges">⚔️ Challenges</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
   </nav>
 
   <div class="f full" style="margin-bottom:8px">
@@ -455,6 +455,19 @@ h2[id]{scroll-margin-top:64px}
   <div id="wa-wlist"></div>
   <div id="wa-prizes"></div>
   <div id="wa-balances"></div>
+
+  <h2 id="optimizer">JD-Optimiers <span class="tag">Optimizer Pro 100 · Max 170 points / 30 days</span></h2>
+  <p class="hint">Players buy plans with points on <a href="/optimizer/" target="_blank">/optimizer/</a>; the Windows app only opens with an active plan (Max also unlocks Panel scan). Give free days here (sponsors, refunds, testers), end a plan, or unlink a PC. 2 PCs per account.</p>
+  <div class="grid">
+    <div class="f full"><label>Find player</label><input id="op-q" placeholder="Type a username, tag or email" autocomplete="off" oninput="opSearch()"></div>
+  </div>
+  <div id="op-results"></div>
+  <div id="op-player"></div>
+  <div class="row" style="margin-top:10px">
+    <button class="btn ghost" onclick="opList()">📋 All plans</button>
+    <div id="op-msg" class="hint"></div>
+  </div>
+  <div id="op-list"></div>
 
   <h2 id="challenges">Challenges <span class="tag">player vs player · disputes</span></h2>
   <p class="hint">When both captains claim the win, the challenge waits here. Read the chat and screenshots, then pay the winner or refund both. Everything else settles automatically.</p>
@@ -1446,7 +1459,7 @@ async function waCall(body){
   if(!r.ok)throw new Error(await r.text());
   return r.json();
 }
-const WA_REASON={challenge_stake:'Challenge stake',challenge_win:'Challenge won',challenge_refund:'Challenge refund',prize:'Prize',load:'Loaded',entry:'Entry',effect:'Effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Refund',adjust:'Adjustment'};
+const WA_REASON={optimizer:'Optimizer plan',challenge_stake:'Challenge stake',challenge_win:'Challenge won',challenge_refund:'Challenge refund',prize:'Prize',load:'Loaded',entry:'Entry',effect:'Effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Refund',adjust:'Adjustment'};
 let _waTimer=null;
 function waSearch(){
   clearTimeout(_waTimer);
@@ -1545,6 +1558,92 @@ async function setLock(lock){
   if(!lock&&!confirm('Unlock and resume payments? Only do this once the problem is fixed.'))return;
   try{await waCall({action:lock?'lock':'unlock',reason});loadSecurity();}catch(e){alert(e.message);}
 }
+/* ── JD-Optimiers plans (optimizer-admin Edge Function) ── */
+let _opPlayer=null,_opTimer=null;
+function opMsg(t,c){const el=document.getElementById('op-msg');if(el){el.textContent=t;el.className='hint '+(c||'');}}
+async function opCall(body){
+  const secret=adminSecret();
+  if(!secret)throw new Error('Enter the admin passcode first.');
+  const r=await fetch(EDGE_FN_BASE+'/optimizer-admin',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify(body)});
+  if(!r.ok)throw new Error(await r.text());
+  return r.json();
+}
+function opPlanText(tier,exp){
+  if(!tier||!exp)return '<span class="hint" style="margin:0">no plan</span>';
+  const live=new Date(exp)>new Date();
+  return `<b style="color:${live?'var(--gold-l)':'var(--muted,#8a94a8)'}">${tier==='max'?'Max':'Pro'}</b> <span class="hint" style="margin:0">${live?'until':'ended'} ${esc(new Date(exp).toLocaleDateString())}</span>`;
+}
+function opSearch(){
+  clearTimeout(_opTimer);
+  const q=document.getElementById('op-q').value.trim(),box=document.getElementById('op-results');
+  if(q.length<2){box.innerHTML='';return;}
+  _opTimer=setTimeout(async()=>{
+    try{
+      const rows=await opCall({action:'search',q});
+      if(document.getElementById('op-q').value.trim()!==q)return;
+      box.innerHTML=rows.length?`<div class="card" style="padding:6px">${rows.map(r=>`<button type="button" class="op-pick" data-id="${esc(r.id)}" style="display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;padding:8px 10px;background:none;border:0;border-radius:8px;color:inherit;cursor:pointer;text-align:left"><span><b>${esc(r.username?'@'+r.username:r.player_tag)}</b> <span class="hint" style="margin:0">${esc(r.email||'')}</span></span><span>${opPlanText(r.tier,r.expires_at)}</span></button>`).join('')}</div>`:'<p class="hint">No player found.</p>';
+      box.querySelectorAll('.op-pick').forEach(b=>{const r=rows.find(x=>x.id===b.dataset.id);b.onclick=()=>{box.innerHTML='';opOpen(r);};});
+    }catch(e){opMsg(e.message,'err');}
+  },250);
+}
+async function opOpen(r){
+  _opPlayer=r;
+  const box=document.getElementById('op-player');
+  opMsg('Loading…','');
+  try{
+    const devs=await opCall({action:'devices',player_id:r.id});
+    box.innerHTML=`<div class="card">
+      <div class="row" style="margin:0 0 10px;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <div><b style="font-size:1.05rem">${esc(r.username?'@'+r.username:'(no username)')}</b><div class="hint" style="margin:2px 0 0">${esc(r.player_tag||'')} · ${esc(r.email||'')}</div></div>
+        <div style="text-align:right">${opPlanText(r.tier,r.expires_at)}</div>
+      </div>
+      <div class="grid">
+        <div class="f"><label>Plan</label><select id="op-tier"><option value="pro">Optimizer Pro</option><option value="max">Optimizer Max (+ Panel scan)</option></select></div>
+        <div class="f"><label>Days to add</label><input id="op-days" type="number" min="1" max="3660" value="30" inputmode="numeric"></div>
+        <div class="f full"><label>Note <span class="tag">optional</span></label><input id="op-note" placeholder="e.g. sponsor, refund, tester" autocomplete="off"></div>
+      </div>
+      <div class="row" style="margin:8px 0 0"><button class="btn" id="op-grant" onclick="opGrant()">🎁 Give free days</button>${r.tier&&new Date(r.expires_at)>new Date()?'<button class="btn ghost" onclick="opEnd()">⛔ End plan now</button>':''}</div>
+      <p class="hint" style="margin-top:12px">Linked PCs</p>
+      ${devs.length?`<table style="width:100%;font-size:.76rem;border-collapse:collapse">${devs.map(d=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 4px">${esc(d.device_name)}</td><td class="hint" style="padding:5px 4px">linked ${esc(new Date(d.created_at).toLocaleDateString())}${d.last_seen?' · seen '+esc(new Date(d.last_seen).toLocaleString()):''}</td><td style="padding:5px 4px;text-align:right">${d.revoked_at?'<span class="hint" style="margin:0">unlinked</span>':`<button class="btn ghost" style="font-size:.7rem;padding:4px 10px" onclick="opRevoke('${esc(d.id)}')">Unlink</button>`}</td></tr>`).join('')}</table>`:'<p class="hint" style="margin:0">No PC linked yet.</p>'}
+    </div>`;
+    opMsg('','');
+  }catch(e){box.innerHTML='';opMsg(e.message,'err');}
+}
+async function opGrant(){
+  if(!_opPlayer)return;
+  const tier=document.getElementById('op-tier').value,days=parseInt(document.getElementById('op-days').value,10),note=document.getElementById('op-note').value.trim();
+  if(!days||days<1){opMsg('Enter the number of days.','err');return;}
+  if(!confirm(`Give ${days} free days of Optimizer ${tier==='max'?'Max':'Pro'} to ${_opPlayer.username||_opPlayer.player_tag}?`))return;
+  const btn=document.getElementById('op-grant');btn.disabled=true;opMsg('Saving…','');
+  try{
+    const d=await opCall({action:'grant',player_id:_opPlayer.id,tier,days,note});
+    _opPlayer.tier=d.tier;_opPlayer.expires_at=d.expires_at;
+    opMsg(`Done: Optimizer ${d.tier==='max'?'Max':'Pro'} until ${new Date(d.expires_at).toLocaleDateString()}.`,'ok');
+    opOpen(_opPlayer);
+  }catch(e){opMsg(e.message,'err');btn.disabled=false;}
+}
+async function opEnd(){
+  if(!_opPlayer||!confirm(`End ${_opPlayer.username||_opPlayer.player_tag}'s Optimizer plan now? No points are refunded.`))return;
+  try{await opCall({action:'end',player_id:_opPlayer.id});_opPlayer.expires_at=new Date().toISOString();opMsg('Plan ended.','ok');opOpen(_opPlayer);}
+  catch(e){opMsg(e.message,'err');}
+}
+async function opRevoke(id){
+  if(!confirm('Unlink this PC? The app on it will ask to sign in again.'))return;
+  try{await opCall({action:'revoke_device',id});opMsg('PC unlinked.','ok');if(_opPlayer)opOpen(_opPlayer);}
+  catch(e){opMsg(e.message,'err');}
+}
+async function opList(){
+  const box=document.getElementById('op-list');opMsg('Loading plans…','');
+  try{
+    const rows=await opCall({action:'list'});
+    const act=rows.filter(r=>r.active),pro=act.filter(r=>r.tier==='pro').length,max=act.length-pro;
+    box.innerHTML=`<p class="hint">${act.length} active (Pro ${pro} · Max ${max}) · ${rows.length-act.length} ended · about ${(pro*100+max*170).toLocaleString()} points / month</p>`+
+      (rows.length?`<table style="width:100%;font-size:.78rem;border-collapse:collapse">${rows.map(r=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px"><b>${esc(r.username?'@'+r.username:r.player_tag||'')}</b></td><td style="padding:6px 4px">${opPlanText(r.tier,r.expires_at)}</td><td class="hint" style="padding:6px 4px">${r.pcs} PC${r.pcs===1?'':'s'}${r.note?' · '+esc(r.note):''}</td><td style="padding:6px 4px;text-align:right"><button class="btn ghost" style="font-size:.7rem;padding:4px 10px" data-id="${esc(r.player_id)}">Open</button></td></tr>`).join('')}</table>`:'<p class="hint">No plans yet.</p>');
+    box.querySelectorAll('button[data-id]').forEach(b=>{const r=rows.find(x=>x.player_id===b.dataset.id);b.onclick=()=>{opOpen({id:r.player_id,username:r.username,player_tag:r.player_tag,email:r.email,tier:r.tier,expires_at:r.expires_at});document.getElementById('op-player').scrollIntoView({behavior:'smooth'});};});
+    opMsg('','');
+  }catch(e){opMsg(e.message,'err');}
+}
+
 /* ── challenges (wallet-admin: challenges / resolve_challenge) ── */
 function chgMsg(t,c){const el=document.getElementById('chg-msg');if(el){el.textContent=t;el.className='hint '+(c||'');}}
 function chgName(p){return p?('@'+(p.username||p.player_tag||'player')):'—';}
