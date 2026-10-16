@@ -1,9 +1,9 @@
 {
-  "version": "4.0",
-  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.0.exe",
-  "sha256": "89f5d4fe2bb0392c9f1b148057fd0477db046ea738eacbc8634b74b1a99852a7",
-  "size": 1027338,
-  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.0.zip",
-  "notes": "New JD Esports gold look and logo, more GPU power for graphics (1080p on high-end PCs, GPU scheduling) and automatic updates.",
+  "version": "4.1",
+  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.1.exe",
+  "sha256": "5aaa811487ace1b90bcbbc8cbdb1bacfcfb469a1651f0828362ad743d7f1bb5e",
+  "size": 1045690,
+  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.1.zip",
+  "notes": "Required: JD-Optimiers now needs a JD Esports Arena account with Optimizer Pro (100 points / 30 days) or Optimizer Max (170 points / 30 days, adds Panel scan). After updating you sign in once: the app shows a code, approve it on jdesport.co.uk. Buy a plan at jdesport.co.uk/optimizer.",
   "date": "2026-10-16"
 }
