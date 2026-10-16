@@ -456,8 +456,8 @@ h2[id]{scroll-margin-top:64px}
   <div id="wa-prizes"></div>
   <div id="wa-balances"></div>
 
-  <h2 id="optimizer">JD-Optimiers <span class="tag">Optimizer Pro 100 · Max 170 points / 30 days</span></h2>
-  <p class="hint">Players buy plans with points on <a href="/optimizer/" target="_blank">/optimizer/</a>; the Windows app only opens with an active plan (Max also unlocks Panel scan). Give free days here (sponsors, refunds, testers), end a plan, or unlink a PC. 2 PCs per account.</p>
+  <h2 id="optimizer">JD-Optimiers <span class="tag">Optimizer Pro 49 · Max 99 points / 30 days</span></h2>
+  <p class="hint">Players buy plans with points on <a href="/optimizer/" target="_blank">/optimizer/</a>; the Windows app only opens with an active plan. Max also unlocks Panel scan, a 30-day Pro squad effect per purchase, early entry and the ✔ tag. Give free days here (sponsors, refunds, testers), end a plan, or unlink a PC. 2 PCs per account.</p>
   <div class="grid">
     <div class="f full"><label>Find player</label><input id="op-q" placeholder="Type a username, tag or email" autocomplete="off" oninput="opSearch()"></div>
   </div>
@@ -1598,7 +1598,8 @@ async function opOpen(r){
         <div style="text-align:right">${opPlanText(r.tier,r.expires_at)}</div>
       </div>
       <div class="grid">
-        <div class="f"><label>Plan</label><select id="op-tier"><option value="pro">Optimizer Pro</option><option value="max">Optimizer Max (+ Panel scan)</option></select></div>
+        <div class="f"><label>Plan</label><select id="op-tier"><option value="pro">Optimizer Pro</option><option value="max">Optimizer Max (+ Panel scan, perks)</option></select></div>
+        <div class="f"><label>Max: also give a 30-day Pro effect?</label><select id="op-fx"><option value="">No</option><option value="gold">Yes - Gold</option><option value="fire">Yes - Fire</option><option value="galaxy">Yes - Galaxy</option><option value="legend">Yes - Legend</option></select></div>
         <div class="f"><label>Days to add</label><input id="op-days" type="number" min="1" max="3660" value="30" inputmode="numeric"></div>
         <div class="f full"><label>Note <span class="tag">optional</span></label><input id="op-note" placeholder="e.g. sponsor, refund, tester" autocomplete="off"></div>
       </div>
@@ -1616,7 +1617,8 @@ async function opGrant(){
   if(!confirm(`Give ${days} free days of Optimizer ${tier==='max'?'Max':'Pro'} to ${_opPlayer.username||_opPlayer.player_tag}?`))return;
   const btn=document.getElementById('op-grant');btn.disabled=true;opMsg('Saving…','');
   try{
-    const d=await opCall({action:'grant',player_id:_opPlayer.id,tier,days,note});
+    const effect=tier==='max'?document.getElementById('op-fx').value:'';
+    const d=await opCall({action:'grant',player_id:_opPlayer.id,tier,days,note,effect});
     _opPlayer.tier=d.tier;_opPlayer.expires_at=d.expires_at;
     opMsg(`Done: Optimizer ${d.tier==='max'?'Max':'Pro'} until ${new Date(d.expires_at).toLocaleDateString()}.`,'ok');
     opOpen(_opPlayer);
@@ -1637,7 +1639,7 @@ async function opList(){
   try{
     const rows=await opCall({action:'list'});
     const act=rows.filter(r=>r.active),pro=act.filter(r=>r.tier==='pro').length,max=act.length-pro;
-    box.innerHTML=`<p class="hint">${act.length} active (Pro ${pro} · Max ${max}) · ${rows.length-act.length} ended · about ${(pro*100+max*170).toLocaleString()} points / month</p>`+
+    box.innerHTML=`<p class="hint">${act.length} active (Pro ${pro} · Max ${max}) · ${rows.length-act.length} ended · about ${(pro*49+max*99).toLocaleString()} points / month</p>`+
       (rows.length?`<table style="width:100%;font-size:.78rem;border-collapse:collapse">${rows.map(r=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px"><b>${esc(r.username?'@'+r.username:r.player_tag||'')}</b></td><td style="padding:6px 4px">${opPlanText(r.tier,r.expires_at)}</td><td class="hint" style="padding:6px 4px">${r.pcs} PC${r.pcs===1?'':'s'}${r.note?' · '+esc(r.note):''}</td><td style="padding:6px 4px;text-align:right"><button class="btn ghost" style="font-size:.7rem;padding:4px 10px" data-id="${esc(r.player_id)}">Open</button></td></tr>`).join('')}</table>`:'<p class="hint">No plans yet.</p>');
     box.querySelectorAll('button[data-id]').forEach(b=>{const r=rows.find(x=>x.player_id===b.dataset.id);b.onclick=()=>{opOpen({id:r.player_id,username:r.username,player_tag:r.player_tag,email:r.email,tier:r.tier,expires_at:r.expires_at});document.getElementById('op-player').scrollIntoView({behavior:'smooth'});};});
     opMsg('','');

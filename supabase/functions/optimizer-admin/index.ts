@@ -1,7 +1,7 @@
 // Admin-only: JD-Optimiers plans (Optimizer Pro / Max) and linked PCs (see supabase/optimizer.sql).
 //   { action: 'list' }                                   -> every plan (active first) with username + PC count
 //   { action: 'search', q }                              -> players by username / tag / email + their plan
-//   { action: 'grant', player_id, tier, days, note? }    -> add days of pro|max (free, e.g. sponsor or refund)
+//   { action: 'grant', player_id, tier, days, note?, effect? } -> add days of pro|max (free); max + effect also gives a 30-day Pro squad effect
 //   { action: 'end', player_id }                         -> end the plan now
 //   { action: 'devices', player_id }                     -> linked PCs
 //   { action: 'revoke_device', id }                      -> unlink a PC (the app asks to sign in again)
@@ -72,6 +72,11 @@ Deno.serve(async (req: Request) => {
       p_player: p.player_id, p_tier: p.tier, p_days: days, p_note: String(p.note || 'admin grant').slice(0, 200),
     });
     if (error) return fail(error.message);
+    if (p.tier === 'max' && p.effect) {
+      const fx = await supabase.rpc('_optimizer_max_effect', { p_player: p.player_id, p_effect: String(p.effect), p_ref: 'admin-grant' });
+      if (fx.error) return json({ ...data, effect_error: fx.error.message });
+      return json({ ...data, effect: fx.data?.effect, effect_expires_at: fx.data?.expires_at });
+    }
     return json(data);
   }
 
