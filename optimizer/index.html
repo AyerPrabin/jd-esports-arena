@@ -85,6 +85,27 @@ ol.steps b{color:var(--cream);font-weight:500}
 .devs td{padding:8px 4px;border-bottom:1px solid var(--line);color:var(--body)}.devs td:first-child{color:var(--cream)}
 .msg{min-height:1.2em;font-size:.88rem;margin-top:8px;color:var(--silver)}.msg.err{color:#ff7676}.msg.ok{color:#5EDB95}
 .gate{text-align:center}.gate p{color:var(--body);margin:6px 0 16px}
+.trust{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0}
+.trust span{display:inline-flex;align-items:center;gap:6px;font-size:.76rem;color:var(--gold-l);border:1px solid var(--gold-m);border-radius:30px;padding:5px 12px;background:rgba(201,168,76,.06)}
+.cmp{width:100%;border-collapse:collapse;font-size:.92rem;margin-top:4px}
+.cmp th,.cmp td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line)}
+.cmp thead th{font-family:'Barlow Condensed',sans-serif;font-size:1.15rem;color:var(--cream);border-bottom:1px solid var(--gold-m)}
+.cmp thead th:last-child{color:var(--cta)}
+.cmp td:first-child{color:var(--body)}
+.cmp td.c{text-align:center;width:120px}
+.cmp .yes{color:#5EDB95;font-weight:600}.cmp .no{color:#5a6577}
+.cmp tr:hover td{background:rgba(255,200,61,.03)}
+.faq{display:grid;gap:10px}
+.faq details{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:4px 16px}
+.faq summary{cursor:pointer;padding:12px 0;font-weight:500;color:var(--cream);list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:'+ ';color:var(--cta);font-weight:700}
+.faq details[open] summary::before{content:'\2013 '}
+.faq p{margin:0 0 14px;color:var(--body);font-size:.9rem}
+.soon{background:linear-gradient(180deg,rgba(255,200,61,.06),var(--panel) 60%);border:1px solid var(--gold-m);border-radius:18px;padding:20px 22px;margin-top:8px}
+.soon h3{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;margin:0 0 8px}
+.soon ul{margin:0;padding-left:1.1em;color:var(--body);font-size:.9rem;columns:2;column-gap:28px}
+@media(max-width:560px){.soon ul{columns:1}.cmp td.c{width:70px}.cmp th,.cmp td{padding:9px 7px;font-size:.84rem}}
 footer{border-top:1px solid var(--line);margin-top:54px;padding:30px 0 40px;text-align:center;color:var(--silver);font-size:.82rem}
 footer a{color:var(--gold-l)}
 </style>
@@ -103,7 +124,14 @@ footer a{color:var(--gold-l)}
     <div>
       <div class="eye">Optimizer Pro &amp; Max · Windows 10 / 11</div>
       <h1>JD-Optimiers</h1>
-      <p>FPS booster, mouse tuner and panel scanner for <strong>Free Fire</strong> on <strong>MSI App Player / BlueStacks 5</strong>. One button: it optimizes Windows, opens the game and boosts until you close it.</p>
+      <p>One button for <strong>more FPS and smoother, lower-lag gaming</strong> — <strong>Free Fire</strong> on MSI App Player / BlueStacks <em>and any other PC game</em>. It optimizes Windows, opens the game and boosts until you close it. Works on <strong>any PC or laptop</strong>, strong or weak. From <strong>49 points / month</strong> (Rs 49).</p>
+      <div class="trust">
+        <span>✓ Account-safe · no ban risk</span>
+        <span>✓ Any PC game</span>
+        <span>✓ Weak PCs too (Potato mode)</span>
+        <span>✓ Every change reversible</span>
+        <span>✓ Auto-updates</span>
+      </div>
     </div>
   </section>
 
@@ -177,6 +205,53 @@ footer a{color:var(--gold-l)}
       <div class="card"><h3>Panel scan <span class="badge">Max</span></h3><p>Looks for known cheat panels on the PC and reports them. Detect-only — it never deletes anything.</p></div>
     </div>
     <div class="note"><b>Account-safe by design:</b> JD-Optimiers changes Windows settings, the emulator's settings file and — only when you press Aim fix or remove macros — its key-mapping file, always with a backup. It never reads or edits the game's memory, never injects anything, and adds no macros or aim assist.</div>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>Pro vs Max</h2><span class="ln"></span></div>
+    <table class="cmp">
+      <thead><tr><th>Feature</th><th class="c">Pro · 49</th><th class="c">Max · 99</th></tr></thead>
+      <tbody>
+        <tr><td>One-tap boost — Free Fire &amp; any PC game</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+        <tr><td>Performance modes: Balanced · Extreme · Potato (weak PCs)</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+        <tr><td>Graphics: High FPS, VSync off, GPU scheduling, 1080p</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+        <tr><td>Mouse presets, aim check, live FPS &amp; session reports</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+        <tr><td>Use on 2 PCs</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+        <tr><td><b>Panel scan</b> + Deep scan (cheat-panel check)</td><td class="c no">—</td><td class="c yes">✓</td></tr>
+        <tr><td><b>30-day Pro squad effect</b> every month</td><td class="c no">—</td><td class="c yes">✓</td></tr>
+        <tr><td><b>Early entry</b> to custom rooms &amp; tournaments (24h)</td><td class="c no">—</td><td class="c yes">✓</td></tr>
+        <tr><td><b>Verified ✔ tag</b> by your name in lobbies</td><td class="c no">—</td><td class="c yes">✓</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>Coming soon</h2><span class="ln"></span></div>
+    <div class="soon">
+      <h3>Even more, included — no price change</h3>
+      <p style="margin:0 0 10px;color:var(--body);font-size:.9rem">Your plan keeps getting better. Already in the works for Pro &amp; Max:</p>
+      <ul>
+        <li>Deep Clean &amp; Security pack — safe debloat, telemetry off, standby-RAM flush, cache cleanup, startup auditor</li>
+        <li>Ransomware canary &amp; exploit-chain alerts (alert-only, never freezes your game)</li>
+        <li>One-click NVIDIA / AMD best-settings profile</li>
+        <li>Per-game profiles you can save and switch</li>
+        <li>FPS overlay while you play</li>
+        <li>Discord "boost on" status</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>Questions</h2><span class="ln"></span></div>
+    <div class="faq">
+      <details><summary>Will it get my game account banned?</summary><p>No. JD-Optimiers only changes Windows and the emulator's own settings — the same things you could change by hand. It never touches the game's memory, never injects anything, and adds no macros or aim assist. Everything it changes can be undone with "Restore all".</p></details>
+      <details><summary>Does it work on a weak PC or laptop?</summary><p>Yes. It detects your hardware and tunes itself — strong PCs get the full treatment (1080p, GPU scheduling), weak PCs get Potato mode (lowest graphics, highest FPS). It works on any Windows 10/11 PC or laptop.</p></details>
+      <details><summary>Can I use it for games other than Free Fire?</summary><p>Yes. Add any game's .exe, or leave auto-detect on and any full-screen PC game is boosted automatically — Steam, Epic, Riot, anything.</p></details>
+      <details><summary>How do I pay?</summary><p>With JD points (1 point = Rs 1). Load points on your <a href="/wallet/">wallet</a> with eSewa, then buy a plan here. Pro is 49 points, Max is 99 points for 30 days.</p></details>
+      <details><summary>How many PCs can I use it on?</summary><p>Two at a time per account (up to 4 new links in 30 days). You sign in once per PC with a code — no password is typed into the app.</p></details>
+      <details><summary>Do plans renew automatically?</summary><p>No. A plan lasts 30 days and simply ends — you buy again when you want. Buying again adds 30 days; upgrading Pro → Max keeps the days you already paid for.</p></details>
+      <details><summary>Can I get a refund?</summary><p>Points aren't refunded once a plan starts, except where the law requires it or the app never worked for you because of a fault on our side — see the <a href="/terms.html#s19">JD-Optimiers terms</a>.</p></details>
+    </div>
   </section>
 </main>
 <footer class="wrap">
