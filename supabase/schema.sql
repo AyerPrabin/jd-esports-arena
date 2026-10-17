@@ -5190,3 +5190,16 @@ create table if not exists public.moderators (
 alter table public.moderators enable row level security;
 -- no policies on purpose: only the service role (mod-panel / admin) touches it
 commit;
+
+
+begin;
+create or replace function public.is_moderator()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists(
+    select 1 from public.moderators m
+    where m.email = lower((select email from auth.users where id = auth.uid()))
+  );
+$$;
+revoke all on function public.is_moderator() from public;
+grant execute on function public.is_moderator() to authenticated;
+commit;

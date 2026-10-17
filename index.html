@@ -1136,7 +1136,7 @@ footer #about-link,footer a[href="/ban-list.html"]{display:inline-flex;align-ite
       <a id="pts-pill" class="pts-pill" href="/wallet/" aria-label="Points wallet" hidden><span class="jd-coin" aria-hidden="true">JD</span><b id="pts-bal">0</b><span class="pts-unit">pts</span></a>
       <button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History">🔔<span class="badge" id="notif-badge" hidden>0</span></button>
       <button class="nav-toggle" id="nav-toggle-btn" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="acct-nav"><span class="nt-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
-      <nav class="bar-nav" id="acct-nav"><a class="lang-btn nav-m" id="nav-pts" href="/wallet/" hidden><span>🪙 Points wallet</span><b id="nav-pts-bal">0</b></a><button type="button" class="lang-btn nav-m" id="nav-notif" onclick="notifHistOpen()"><span>🔔 Notifications</span><b id="nav-notif-count" hidden>0</b></button><a class="lang-btn nav-link" href="/challenges/">⚔️ Challenges</a><a class="lang-btn nav-link" href="/events/" data-i18n="evnav">📅 Events</a><a class="lang-btn nav-link" href="/leaderboard.html">🏆 Leaderboard</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="admin-btn" class="lang-btn nav-link" href="/admin/" style="display:none">🛠 Admin</a><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none" aria-label="Settings" title="Settings"><span class="sb-ic" aria-hidden="true">⚙️</span><span class="sb-lbl"> Settings</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button></div></div></nav>
+      <nav class="bar-nav" id="acct-nav"><a class="lang-btn nav-m" id="nav-pts" href="/wallet/" hidden><span>🪙 Points wallet</span><b id="nav-pts-bal">0</b></a><button type="button" class="lang-btn nav-m" id="nav-notif" onclick="notifHistOpen()"><span>🔔 Notifications</span><b id="nav-notif-count" hidden>0</b></button><a class="lang-btn nav-link" href="/challenges/">⚔️ Challenges</a><a class="lang-btn nav-link" href="/events/" data-i18n="evnav">📅 Events</a><a class="lang-btn nav-link" href="/leaderboard.html">🏆 Leaderboard</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="mod-btn" class="lang-btn nav-link" href="/mod/" style="display:none">🛡 Mod</a><a id="admin-btn" class="lang-btn nav-link" href="/admin/" style="display:none">🛠 Admin</a><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none" aria-label="Settings" title="Settings"><span class="sb-ic" aria-hidden="true">⚙️</span><span class="sb-lbl"> Settings</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button></div></div></nav>
     </div>
   </div>
   <div class="nav-scrim" id="nav-scrim" onclick="closeMobileNav()"></div>
@@ -2702,12 +2702,15 @@ function updateAcctBtn(){
     ac.innerHTML=`<img class="acct-avatar-mini" src="${esc(_player.avatar||'/logo.png')}" alt="">${esc(_player.username||_player.tag||'Account')}${_player.app?' <span class="app-badge" title="JD Arena app user">📱</span>':''}`;
     ac.onclick=()=>{location.href='/profile/';}; // profile has its own page; account settings stay reachable via /?account=1
     if(ad)ad.style.display=((_player.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase())?'':'none';
+    const md=document.getElementById('mod-btn');
+    if(md){ md.style.display='none'; if(typeof sb!=='undefined'&&sb) sb.rpc('is_moderator').then(r=>{ md.style.display=r.data?'':'none'; }).catch(()=>{}); }
   }else{
     if(su)su.style.display='';
     ac.classList.remove('acct-btn-signed');
     ac.textContent='Login';
     ac.onclick=()=>authOpen('login');
     if(ad)ad.style.display='none';
+    const md=document.getElementById('mod-btn'); if(md)md.style.display='none';
   }
 }
 
