@@ -251,7 +251,7 @@ h2[id]{scroll-margin-top:64px}
   <div class="dash" id="dash"><div class="dash-tile loading"><b>…</b><span>Loading</span></div></div>
 
   <nav class="adm-nav" id="adm-nav">
-    <a href="#tournaments">🏆 Tournaments</a><a href="#history">📜 History</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#optimizer">🚀 Optimizer</a><a href="#challenges">⚔️ Challenges</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
+    <a href="#tournaments">🏆 Tournaments</a><a href="#history">📜 History</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#optimizer">🚀 Optimizer</a><a href="#moderators">🛡 Mods</a><a href="#challenges">⚔️ Challenges</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
   </nav>
 
   <div class="f full" style="margin-bottom:8px">
@@ -468,6 +468,15 @@ h2[id]{scroll-margin-top:64px}
     <div id="op-msg" class="hint"></div>
   </div>
   <div id="op-list"></div>
+
+  <h2 id="moderators">Moderators <span class="tag">limited: push + view only</span></h2>
+  <p class="hint">A moderator signs in at <a href="/mod/" target="_blank">/mod/</a> with their JD account and can ONLY: send push notifications, view today's &amp; upcoming tournaments, and see squads' WhatsApp numbers for reminders. They cannot touch money, bans, tournaments or plans. Add them by the email they sign in with.</p>
+  <div class="grid">
+    <div class="f"><label>Add moderator email</label><input id="mod-email" placeholder="name@example.com" autocomplete="off"></div>
+    <div class="f"><label>Note <span class="tag">optional</span></label><input id="mod-note" placeholder="e.g. Ramesh - reminders"></div>
+  </div>
+  <div class="row" style="margin:8px 0 0"><button class="btn" onclick="modAdd()">➕ Add moderator</button><button class="btn ghost" onclick="modList()">🔄 Refresh list</button><div id="mod-msg" class="hint"></div></div>
+  <div id="mod-list"></div>
 
   <h2 id="challenges">Challenges <span class="tag">player vs player · disputes</span></h2>
   <p class="hint">When both captains claim the win, the challenge waits here. Read the chat and screenshots, then pay the winner or refund both. Everything else settles automatically.</p>
@@ -1558,6 +1567,33 @@ async function setLock(lock){
   if(!lock&&!confirm('Unlock and resume payments? Only do this once the problem is fixed.'))return;
   try{await waCall({action:lock?'lock':'unlock',reason});loadSecurity();}catch(e){alert(e.message);}
 }
+/* ── moderators (mod-panel Edge Function, admin secret) ── */
+function modMsg(t,c){const el=document.getElementById('mod-msg');if(el){el.textContent=t;el.className='hint '+(c||'');}}
+async function modCall(body){
+  const secret=adminSecret(); if(!secret)throw new Error('Enter the admin passcode first.');
+  const r=await fetch(EDGE_FN_BASE+'/mod-panel',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify(body)});
+  if(!r.ok)throw new Error(await r.text()); return r.json();
+}
+async function modList(){
+  const box=document.getElementById('mod-list'); modMsg('Loading…','');
+  try{
+    const rows=await modCall({action:'mod_list'});
+    box.innerHTML=rows.length?`<table style="width:100%;font-size:.8rem;border-collapse:collapse;margin-top:10px">${rows.map(m=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px"><b>${esc(m.email)}</b>${m.note?' <span class="hint">· '+esc(m.note)+'</span>':''}</td><td style="padding:6px 4px;text-align:right"><button class="btn ghost" style="font-size:.7rem;padding:4px 10px" data-e="${esc(m.email)}">Remove</button></td></tr>`).join('')}</table>`:'<p class="hint">No moderators yet.</p>';
+    box.querySelectorAll('button[data-e]').forEach(b=>b.onclick=()=>modRemove(b.dataset.e));
+    modMsg('','');
+  }catch(e){modMsg(e.message,'err');}
+}
+async function modAdd(){
+  const email=document.getElementById('mod-email').value.trim(),note=document.getElementById('mod-note').value.trim();
+  if(!email){modMsg('Enter an email.','err');return;}
+  try{ await modCall({action:'mod_add',email,note}); document.getElementById('mod-email').value='';document.getElementById('mod-note').value=''; modMsg('Added '+email+'.','ok'); modList(); }
+  catch(e){modMsg(e.message,'err');}
+}
+async function modRemove(email){
+  if(!confirm('Remove moderator '+email+'?'))return;
+  try{ await modCall({action:'mod_remove',email}); modMsg('Removed.','ok'); modList(); }catch(e){modMsg(e.message,'err');}
+}
+
 /* ── JD-Optimiers plans (optimizer-admin Edge Function) ── */
 let _opPlayer=null,_opTimer=null;
 function opMsg(t,c){const el=document.getElementById('op-msg');if(el){el.textContent=t;el.className='hint '+(c||'');}}

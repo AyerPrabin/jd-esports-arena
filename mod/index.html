@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#05080f">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="/favicon-64.png">
+<title>Moderator — JD Esports Arena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#05080f;--panel:#0e1424;--line:#1c2840;--gold:#c9a84c;--gold-l:#e2c97e;--gold-m:#7e6630;--cream:#f4efe6;--silver:#aab4cc;--body:#7e8eb0;--cta:#FFC83D;--cta-2:#FFAE00;--ok:#5EDB95;--warn:#ff9f1c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:'Geist',system-ui,sans-serif;font-weight:300;line-height:1.55;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(900px 480px at 70% -10%,rgba(201,168,76,.10),transparent 60%);pointer-events:none}
+a{color:var(--gold-l)}
+.wrap{position:relative;max-width:720px;margin:0 auto;padding:18px}
+.bar{display:flex;align-items:center;justify-content:space-between;padding:8px 0 16px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{width:34px;height:34px;border-radius:8px}
+.brand b{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.05rem}
+.brand span{display:block;font-size:.64rem;color:var(--gold-l)}
+.who{font-size:.82rem;color:var(--silver)}
+h2{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;margin:22px 0 10px;display:flex;align-items:center;gap:10px}
+h2 .ln{flex:1;height:1px;background:var(--line)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.gate{text-align:center;padding:40px 16px}
+.gate h1{font-family:'Barlow Condensed',sans-serif;font-size:2rem;margin:0 0 6px}
+.gate p{color:var(--body);margin:6px 0 18px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;background:linear-gradient(90deg,#FFDD85,var(--cta) 55%,var(--cta-2));color:#07090F;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.05rem;padding:11px 20px;border-radius:12px;text-decoration:none}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+.btn.sm{font-size:.86rem;padding:8px 14px}
+.ghost{background:none;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:30px;padding:7px 13px;font-size:.82rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}
+.ghost:hover{background:rgba(201,168,76,.12)}
+label{display:block;font-size:.72rem;color:var(--gold-l);margin:10px 0 4px;letter-spacing:.02em}
+input,textarea,select{width:100%;background:#0a0f1c;color:var(--cream);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit}
+textarea{min-height:78px;resize:vertical}
+.tlist{display:grid;gap:10px}
+.trow{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#0a0f1c;border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer}
+.trow:hover{border-color:var(--gold-m)}
+.trow.sel{border-color:var(--gold);background:rgba(255,200,61,.06)}
+.trow .t{font-weight:500;color:var(--cream)}
+.trow .d{font-size:.8rem;color:var(--body)}
+.tag{font-size:.64rem;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:20px;border:1px solid var(--gold-m);color:var(--gold-l)}
+.tag.live{color:#07090F;background:var(--cta);border-color:var(--cta)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+td,th{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line)}
+th{font-size:.7rem;color:var(--gold-l);text-transform:uppercase;letter-spacing:.03em}
+td.st{color:var(--body)}
+.wa{display:inline-flex;align-items:center;gap:5px;color:var(--ok);text-decoration:none;font-weight:500;border:1px solid rgba(94,219,149,.3);border-radius:20px;padding:4px 10px;font-size:.82rem}
+.wa:hover{background:rgba(94,219,149,.1)}
+.nowa{color:var(--body);font-size:.82rem}
+.msg{min-height:1.2em;font-size:.88rem;margin-top:8px;color:var(--silver)}.msg.err{color:#ff7676}.msg.ok{color:var(--ok)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.hint{color:var(--body);font-size:.82rem;margin:4px 0 0}
+footer{text-align:center;color:var(--silver);font-size:.78rem;margin:26px 0 10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar">
+    <a class="brand" href="/" style="text-decoration:none;color:inherit"><img src="/logo.png" alt="JD"><div><b>JD Esports Arena</b><span>Moderator</span></div></a>
+    <span class="who" id="who"></span>
+  </div>
+
+  <div id="gate" class="card gate" hidden>
+    <h1>Moderator sign-in</h1>
+    <p>Sign in with your JD Esports Arena account (the one the admin added as a moderator).</p>
+    <a class="btn" id="gate-btn" href="/?signin=1&amp;next=%2Fmod%2F">Sign in</a>
+    <p class="hint" id="gate-note"></p>
+  </div>
+
+  <div id="app" hidden>
+    <h2>📣 Send a notification <span class="ln"></span></h2>
+    <div class="card">
+      <label>Title</label>
+      <input id="n-title" maxlength="80" placeholder="e.g. Room ID coming soon">
+      <label>Message</label>
+      <textarea id="n-body" maxlength="500" placeholder="Type the message players will get as a push alert…"></textarea>
+      <label>Send to</label>
+      <select id="n-target"><option value="">Everyone on JD Arena</option></select>
+      <div class="row" style="margin-top:12px"><button class="btn" id="n-send">Send notification</button></div>
+      <div class="msg" id="n-msg"></div>
+    </div>
+
+    <h2>🏆 Today &amp; upcoming <span class="ln"></span></h2>
+    <div id="t-list" class="tlist"><p class="hint">Loading tournaments…</p></div>
+
+    <div id="reg-wrap" hidden>
+      <h2>👥 Squads &amp; reminders <span class="ln"></span><button class="ghost" id="reg-refresh" style="margin-left:auto">↻ Refresh</button></h2>
+      <div class="card">
+        <div id="reg-head" class="row" style="justify-content:space-between;margin-bottom:8px"></div>
+        <div id="reg-body"></div>
+        <p class="hint">Tap a WhatsApp number to message that squad a reminder. Numbers are shown only to moderators.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>JD Esports Arena · Moderator panel</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL='https://cnoxvqvpmgowdiyrrusv.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil';
+const FN=SUPABASE_URL+'/functions/v1/mod-panel';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let token=null, tournaments=[], selected=null;
+
+async function call(body){
+  const r=await fetch(FN,{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+token},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+function waLink(num){ const n=String(num).replace(/[^\d]/g,''); return n.length>=9?'https://wa.me/'+(n.length<=10?'977'+n:n):null; }
+
+function isUpcoming(t){
+  const s=(t.status||'').toLowerCase();
+  if(s==='finished'||s==='cancelled'||s==='completed') return false;
+  if(t.start){ const d=new Date(t.start); if(!isNaN(d)) return d.getTime() > Date.now()-6*3600*1000; }
+  return true;
+}
+function fmtWhen(t){ return [t.date,t.time].filter(Boolean).join(' · ') || (t.start?new Date(t.start).toLocaleString():''); }
+
+async function loadTournaments(){
+  try{
+    const r=await fetch('/tournaments.json?t='+Date.now(),{cache:'no-store'});
+    const j=await r.json();
+    tournaments=(j.tournaments||[]).filter(isUpcoming).sort((a,b)=>new Date(a.start||0)-new Date(b.start||0));
+    const list=$('t-list'), sel=$('n-target');
+    if(!tournaments.length){ list.innerHTML='<p class="hint">No upcoming tournaments right now.</p>'; return; }
+    list.innerHTML='';
+    tournaments.forEach((t,i)=>{
+      const live=t.start && Math.abs(new Date(t.start)-Date.now())<3*3600*1000;
+      const row=document.createElement('div'); row.className='trow'; row.dataset.i=i;
+      row.innerHTML=`<div><div class="t">${esc(t.name)}</div><div class="d">${esc(fmtWhen(t))} · ${esc(t.entry||'')}</div></div><span class="tag${live?' live':''}">${live?'LIVE SOON':esc((t.status||'upcoming'))}</span>`;
+      row.onclick=()=>selectTournament(i);
+      list.appendChild(row);
+      const o=document.createElement('option'); o.value=t.name; o.textContent='Players in: '+t.name; sel.appendChild(o);
+    });
+  }catch(e){ $('t-list').innerHTML='<p class="msg err">Could not load tournaments.</p>'; }
+}
+
+async function selectTournament(i){
+  selected=tournaments[i];
+  document.querySelectorAll('.trow').forEach(r=>r.classList.toggle('sel',+r.dataset.i===i));
+  $('n-target').value=selected.name;
+  $('reg-wrap').hidden=false;
+  $('reg-head').innerHTML=`<b>${esc(selected.name)}</b><span class="hint">${esc(fmtWhen(selected))}</span>`;
+  $('reg-body').innerHTML='<p class="hint">Loading squads…</p>';
+  $('reg-wrap').scrollIntoView({behavior:'smooth'});
+  try{
+    const rows=await call({action:'registrations',slug:selected.name});
+    if(!rows.length){ $('reg-body').innerHTML='<p class="hint">No squads registered yet.</p>'; return; }
+    const body=rows.map(r=>{
+      const wl=r.whatsapp?waLink(r.whatsapp):null;
+      const wa=r.whatsapp?(wl?`<a class="wa" href="${wl}" target="_blank" rel="noopener">💬 ${esc(r.whatsapp)}</a>`:`<span class="nowa">${esc(r.whatsapp)}</span>`):'<span class="nowa">—</span>';
+      const st=r.status==='approved'||r.status==='confirmed'?'confirmed':r.status;
+      return `<tr><td>${esc(r.squad_name||'(squad)')}<div class="hint">${esc(r.captain||'')}</div></td><td class="st">${esc(st)}</td><td>${wa}</td></tr>`;
+    }).join('');
+    $('reg-body').innerHTML=`<table><thead><tr><th>Squad</th><th>Status</th><th>WhatsApp</th></tr></thead><tbody>${body}</tbody></table>`;
+  }catch(e){ $('reg-body').innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; }
+}
+$('reg-refresh').onclick=()=>{ if(selected) selectTournament(tournaments.indexOf(selected)); };
+
+$('n-send').onclick=async()=>{
+  const title=$('n-title').value.trim(), body=$('n-body').value.trim(), slug=$('n-target').value||null;
+  if(!title||!body){ $('n-msg').textContent='Enter a title and a message.'; $('n-msg').className='msg err'; return; }
+  const who=slug?('players in '+slug):'EVERYONE on JD Arena';
+  if(!confirm('Send this notification to '+who+'?')) return;
+  const btn=$('n-send'); btn.disabled=true; $('n-msg').textContent='Sending…'; $('n-msg').className='msg';
+  try{
+    const r=await call({action:'notify',title,body,slug});
+    $('n-msg').textContent='Sent to '+(r.sent_to==='everyone'?'everyone':r.sent_to+' player(s)')+'. ✓';
+    $('n-msg').className='msg ok'; $('n-title').value=''; $('n-body').value='';
+  }catch(e){ $('n-msg').textContent=e.message; $('n-msg').className='msg err'; }
+  btn.disabled=false;
+};
+
+(async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){ $('gate').hidden=false; return; }
+  token=session.access_token;
+  try{
+    const me=await call({action:'whoami'});
+    $('who').textContent=me.email;
+    $('app').hidden=false;
+    loadTournaments();
+  }catch(e){
+    $('gate').hidden=false;
+    $('gate-note').textContent=/not a moderator/i.test(e.message)?'Signed in as '+(session.user.email||'')+', but that account is not a moderator yet. Ask the JD admin to add you.':e.message;
+    $('gate-btn').textContent='Sign in with a different account';
+  }
+})();
+</script>
+</body>
+</html>
