@@ -73,14 +73,34 @@ footer{text-align:center;color:var(--silver);font-size:.78rem;margin:26px 0 10px
   </div>
 
   <div id="app" hidden>
-    <h2>📣 Send a notification <span class="ln"></span></h2>
+    <details class="card" id="howto">
+      <summary style="cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.15rem;color:var(--gold-l)">📖 How to use this panel (tap to open)</summary>
+      <div style="margin-top:12px;color:var(--body);font-size:.9rem;line-height:1.6">
+        <p style="margin:0 0 6px"><b style="color:var(--cream)">1 · Send an event notification</b><br>
+        Pick the event (the nearest one is already chosen). Tap a quick template, or type your own title and message. Choose who gets it — <b style="color:var(--cream)">All players</b> (to promote the event) or <b style="color:var(--cream)">only registered squads</b> (for room IDs / reminders). Press <b style="color:var(--cream)">Send</b>. Players get a push alert on their phone, plus an in-app notification.</p>
+        <p style="margin:10px 0 6px"><b style="color:var(--cream)">2 · Contact a player</b><br>
+        Tap an event under “Today &amp; upcoming”, then scroll to <b style="color:var(--cream)">Squads &amp; reminders</b>. Each squad’s WhatsApp number is a green button — tap it to open WhatsApp and message them directly (great for room-ID reminders).</p>
+        <p style="margin:10px 0 6px"><b style="color:var(--cream)">3 · How the point system works</b> (so you can answer players)<br>
+        1 point = Rs 1. Players load points on their <a href="/wallet/">Wallet</a> by paying the eSewa QR and uploading the screenshot — the admin checks it and adds the points. Points pay for paid-event entries, squad effects and the JD-Optimiers app. <b style="color:var(--warn)">Only the admin adds or removes points</b> — moderators can’t change balances.</p>
+        <p style="margin:10px 0 0;color:var(--silver)"><b style="color:var(--cream)">What you can do:</b> send event notifications, view events, message squads. <b style="color:var(--cream)">What you can’t:</b> money/points, bans, editing events or plans — those stay with the admin.</p>
+      </div>
+    </details>
+
+    <h2>📣 Event notification <span class="ln"></span></h2>
     <div class="card">
+      <label>Event</label>
+      <select id="n-event"></select>
+      <label>Quick templates</label>
+      <div class="row" id="n-templates" style="gap:8px"></div>
       <label>Title</label>
       <input id="n-title" maxlength="80" placeholder="e.g. Room ID coming soon">
       <label>Message</label>
       <textarea id="n-body" maxlength="500" placeholder="Type the message players will get as a push alert…"></textarea>
       <label>Send to</label>
-      <select id="n-target"><option value="">Everyone on JD Arena</option></select>
+      <div class="row" style="gap:16px;margin-top:2px">
+        <label style="display:inline-flex;align-items:center;gap:6px;margin:0;color:var(--cream);font-size:.9rem;text-transform:none;letter-spacing:0;cursor:pointer"><input type="radio" name="aud" value="all" checked style="width:auto"> All players</label>
+        <label style="display:inline-flex;align-items:center;gap:6px;margin:0;color:var(--cream);font-size:.9rem;text-transform:none;letter-spacing:0;cursor:pointer"><input type="radio" name="aud" value="event" style="width:auto"> Only registered squads</label>
+      </div>
       <div class="row" style="margin-top:12px"><button class="btn" id="n-send">Send notification</button></div>
       <div class="msg" id="n-msg"></div>
     </div>
@@ -126,13 +146,26 @@ function isUpcoming(t){
 }
 function fmtWhen(t){ return [t.date,t.time].filter(Boolean).join(' · ') || (t.start?new Date(t.start).toLocaleString():''); }
 
+const TEMPLATES=[
+  ['📢 Registration open', e=>['Registration open: '+e.name, e.name+' is open for registration! Join now on JD Esports Arena before slots fill up. '+fmtWhen(e)+'.']],
+  ['🔑 Room ID soon', e=>['Room details coming', 'Get ready! Room ID & password for '+e.name+' will be sent here about 5 minutes before the match. Be online.']],
+  ['⏰ Starting soon', e=>['Starting soon: '+e.name, e.name+' starts soon ('+fmtWhen(e)+'). Open the game and get ready!']],
+  ['🏆 Results posted', e=>['Results are up', 'Results for '+e.name+' are posted on JD Esports Arena. Check the leaderboard to see how your squad did. GG!']],
+];
+function renderTemplates(){
+  const box=$('n-templates'); box.innerHTML='';
+  const e=tournaments[+($('n-event').value||0)]; if(!e) return;
+  TEMPLATES.forEach(([label,fn])=>{ const b=document.createElement('button'); b.type='button'; b.className='ghost'; b.textContent=label;
+    b.onclick=()=>{ const [t,m]=fn(e); $('n-title').value=t; $('n-body').value=m; }; box.appendChild(b); });
+}
 async function loadTournaments(){
   try{
     const r=await fetch('/tournaments.json?t='+Date.now(),{cache:'no-store'});
     const j=await r.json();
     tournaments=(j.tournaments||[]).filter(isUpcoming).sort((a,b)=>new Date(a.start||0)-new Date(b.start||0));
-    const list=$('t-list'), sel=$('n-target');
-    if(!tournaments.length){ list.innerHTML='<p class="hint">No upcoming tournaments right now.</p>'; return; }
+    const list=$('t-list'), ev=$('n-event');
+    ev.innerHTML='';
+    if(!tournaments.length){ list.innerHTML='<p class="hint">No upcoming tournaments right now.</p>'; ev.innerHTML='<option>No upcoming event</option>'; return; }
     list.innerHTML='';
     tournaments.forEach((t,i)=>{
       const live=t.start && Math.abs(new Date(t.start)-Date.now())<3*3600*1000;
@@ -140,15 +173,18 @@ async function loadTournaments(){
       row.innerHTML=`<div><div class="t">${esc(t.name)}</div><div class="d">${esc(fmtWhen(t))} · ${esc(t.entry||'')}</div></div><span class="tag${live?' live':''}">${live?'LIVE SOON':esc((t.status||'upcoming'))}</span>`;
       row.onclick=()=>selectTournament(i);
       list.appendChild(row);
-      const o=document.createElement('option'); o.value=t.name; o.textContent='Players in: '+t.name; sel.appendChild(o);
+      const o=document.createElement('option'); o.value=i; o.textContent=t.name+'  ('+fmtWhen(t)+')'; ev.appendChild(o);
     });
+    ev.value='0';                 /* nearest upcoming event selected by default */
+    ev.onchange=renderTemplates;
+    renderTemplates();
   }catch(e){ $('t-list').innerHTML='<p class="msg err">Could not load tournaments.</p>'; }
 }
 
 async function selectTournament(i){
   selected=tournaments[i];
   document.querySelectorAll('.trow').forEach(r=>r.classList.toggle('sel',+r.dataset.i===i));
-  $('n-target').value=selected.name;
+  $('n-event').value=i; renderTemplates();
   $('reg-wrap').hidden=false;
   $('reg-head').innerHTML=`<b>${esc(selected.name)}</b><span class="hint">${esc(fmtWhen(selected))}</span>`;
   $('reg-body').innerHTML='<p class="hint">Loading squads…</p>';
@@ -168,9 +204,12 @@ async function selectTournament(i){
 $('reg-refresh').onclick=()=>{ if(selected) selectTournament(tournaments.indexOf(selected)); };
 
 $('n-send').onclick=async()=>{
-  const title=$('n-title').value.trim(), body=$('n-body').value.trim(), slug=$('n-target').value||null;
+  const title=$('n-title').value.trim(), body=$('n-body').value.trim();
+  const ev=tournaments[+($('n-event').value||0)];
+  const onlyReg=document.querySelector('input[name=aud]:checked').value==='event';
+  const slug=(onlyReg && ev)?ev.name:null;
   if(!title||!body){ $('n-msg').textContent='Enter a title and a message.'; $('n-msg').className='msg err'; return; }
-  const who=slug?('players in '+slug):'EVERYONE on JD Arena';
+  const who=slug?('registered squads in '+slug):'ALL players on JD Arena';
   if(!confirm('Send this notification to '+who+'?')) return;
   const btn=$('n-send'); btn.disabled=true; $('n-msg').textContent='Sending…'; $('n-msg').className='msg';
   try{
