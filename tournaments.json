@@ -138,7 +138,7 @@
       "platform": "Mobile only",
       "slots": 12,
       "format": "BR · 3 matches",
-      "status": "upcoming",
+      "status": "completed",
       "platform_mode": "mobile",
       "teams": [],
       "registered": 0
@@ -223,5 +223,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-16T20:37:16.448Z"
+  "_published_at": "2026-10-17T23:17:05.713Z"
 }
