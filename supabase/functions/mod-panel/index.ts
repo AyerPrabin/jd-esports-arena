@@ -110,7 +110,8 @@ Deno.serve(async (req: Request) => {
     let player_tags: string[] | undefined;
     if (p.slug) {
       const { data } = await admin.from('registrations')
-        .select('players(player_tag)').eq('tournament_slug', String(p.slug));
+        .select('players(player_tag)').eq('tournament_slug', String(p.slug))
+        .in('status', ['confirmed', 'approved']); // only active squads — not no_show/pending/rejected
       player_tags = [...new Set((data || []).map((r: any) => r.players?.player_tag).filter(Boolean))];
       if (!player_tags.length) return fail('No registered players found for that tournament.');
     }
