@@ -1,0 +1,29 @@
+/* Design tokens — single source of truth for the rebuilt UI (gold-on-dark theme). */
+:root {
+  --bg: #0b0e14;
+  --panel: #141926;
+  --line: #243049;
+  --cream: #f3f1e9;
+  --body: #c7cedd;
+  --silver: #8b96ad;
+  --gold: #ffc83d;
+  --gold-l: #ffdd85;
+  --gold-m: #ffae00;
+  --green: #5edb95;
+  --warn: #ffb020;
+  --red: #ff6161;
+  --radius: 14px;
+  --space: 16px;
+  --font: 'Barlow', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--body);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--gold-l); }
+h1, h2, h3 { color: var(--cream); font-weight: 700; }
