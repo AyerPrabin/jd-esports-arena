@@ -5203,3 +5203,83 @@ $$;
 revoke all on function public.is_moderator() from public;
 grant execute on function public.is_moderator() to authenticated;
 commit;
+
+-- ── hourly "seats open" reminder (added 2026-10-18) ───────────────────────
+-- Hourly "seats open — join now" reminder for Open #6, daytime NPT only.
+-- Pushes to players NOT currently holding a #6 seat (confirmed/approved/waitlisted);
+-- released no-shows are eligible again. Stops itself when #6 fills or starts.
+begin;
+
+create table if not exists public.seat_reminder_log (
+  slug text not null,
+  sent_hour timestamptz not null,
+  primary key (slug, sent_hour)
+);
+
+create or replace function public.jd_seat_reminder(p_slug text default 'JD Free Fire Open #6')
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_start timestamptz;
+  v_slots int;
+  v_taken int;
+  v_open int;
+  v_npt timestamptz := now() at time zone 'UTC' + interval '5 hours 45 minutes';
+  v_hour timestamptz := date_trunc('hour', now());
+  v_sent int := 0;
+begin
+  select (t->>'start')::timestamptz, (t->>'slots')::int
+    into v_start, v_slots
+    from public.site_content, jsonb_array_elements(content->'tournaments') t
+    where key = 'tournaments' and t->>'name' = p_slug;
+
+  if v_start is null then
+    return jsonb_build_object('status','no_tournament');
+  end if;
+
+  select count(*) into v_taken from public.registrations
+    where tournament_slug = p_slug and status in ('confirmed','approved','waitlisted');
+  v_open := coalesce(v_slots,0) - v_taken;
+
+  -- stop the job once the event has started or the bracket is full
+  if now() >= v_start or v_open <= 0 then
+    perform cron.unschedule(jobid) from cron.job where jobname = 'jd-seat-reminder';
+    return jsonb_build_object('status','stopped','open',v_open,'started', now() >= v_start);
+  end if;
+
+  -- daytime only: 08:00–21:00 Nepal time
+  if extract(hour from v_npt) < 8 or extract(hour from v_npt) >= 21 then
+    return jsonb_build_object('status','quiet_hours','npt_hour', extract(hour from v_npt));
+  end if;
+
+  -- one send per clock hour
+  insert into public.seat_reminder_log(slug, sent_hour) values (p_slug, v_hour)
+  on conflict do nothing;
+  if not found then
+    return jsonb_build_object('status','already_sent_this_hour');
+  end if;
+
+  insert into public.notifications (player_id, tournament_slug, title, body, push)
+  select pl.id, p_slug,
+    '🔥 Open #6 seats open — join now!',
+    v_open || ' seat' || case when v_open=1 then '' else 's' end ||
+    ' just opened for JD Free Fire Open #6 (Mon Oct 19, 9:30 PM NPT · free entry · mobile). Grab yours at jdesport.co.uk — tap Join. Only register if you''ll actually show up: no-shows risk a ban from future tournaments.',
+    true
+  from public.players pl
+  where pl.id not in (
+    select player_id from public.registrations
+    where tournament_slug = p_slug and status in ('confirmed','approved','waitlisted')
+  );
+  get diagnostics v_sent = row_count;
+  return jsonb_build_object('status','sent','open',v_open,'notified',v_sent);
+end;
+$$;
+
+revoke all on function public.jd_seat_reminder(text) from public, anon, authenticated;
+grant execute on function public.jd_seat_reminder(text) to service_role;
+
+-- schedule hourly (guards daytime + dedup internally); replace if it already exists
+select cron.unschedule(jobid) from cron.job where jobname = 'jd-seat-reminder';
+select cron.schedule('jd-seat-reminder', '15 * * * *', $cron$select public.jd_seat_reminder()$cron$);
+
+commit;
+
