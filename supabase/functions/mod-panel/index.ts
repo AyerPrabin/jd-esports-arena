@@ -3,6 +3,7 @@
 //      { action: 'whoami' }                    -> { ok, email }
 //      { action: 'registrations', slug }       -> squads + WhatsApp + status for one tournament (for reminders)
 //      { action: 'notify', title, body, slug? }-> send a push/announcement (everyone, or that tournament's players)
+//      { action: 'room_code', slug, room_id, room_pass? } -> send Room ID/password to that tournament's registered squads
 //  * The ADMIN (x-admin-secret) manages the moderator list:
 //      { action: 'mod_list' } | { action: 'mod_add', email, note? } | { action: 'mod_remove', email }
 // Moderators can NOT touch money, bans, tournaments, plans or anything else.
@@ -80,6 +81,26 @@ Deno.serve(async (req: Request) => {
       checked_in: !!r.checked_in_at, verified: !!r.verified_at,
       captain: r.players?.username ? '@' + r.players.username : (r.players?.player_tag || null),
     })));
+  }
+
+  if (action === 'room_code') {
+    const slug = String(p.slug || '').trim();
+    const room_id = String(p.room_id || '').trim();
+    const room_pass = String(p.room_pass || '').trim();
+    if (!slug) return fail('Pick the tournament first');
+    if (!room_id) return fail('Enter the Room ID');
+    // hand off to the admin-only room-code sender (service creds stay server-side).
+    // No player_tags -> it goes to that tournament's confirmed/approved squads only.
+    const r = await fetch(`${URL_}/functions/v1/send-room-code`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET,
+                 'Authorization': `Bearer ${SERVICE}`, 'apikey': SERVICE },
+      body: JSON.stringify({ tournament_slug: slug, room_id, room_pass: room_pass || undefined }),
+    });
+    const text = await r.text();
+    if (!r.ok) return fail('Could not send room code: ' + text, 502);
+    let out: any; try { out = JSON.parse(text); } catch { out = {}; }
+    return json({ ok: true, sent_to: out.sent ?? 0, unresolved: out.unresolved || [] });
   }
 
   if (action === 'notify') {

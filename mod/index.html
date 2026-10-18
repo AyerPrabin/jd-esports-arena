@@ -78,9 +78,11 @@ footer{text-align:center;color:var(--silver);font-size:.78rem;margin:26px 0 10px
       <div style="margin-top:12px;color:var(--body);font-size:.9rem;line-height:1.6">
         <p style="margin:0 0 6px"><b style="color:var(--cream)">1 · Send an event notification</b><br>
         Pick the event (the nearest one is already chosen). Tap a quick template, or type your own title and message. Choose who gets it — <b style="color:var(--cream)">All players</b> (to promote the event) or <b style="color:var(--cream)">only registered squads</b> (for room IDs / reminders). Press <b style="color:var(--cream)">Send</b>. Players get a push alert on their phone, plus an in-app notification.</p>
-        <p style="margin:10px 0 6px"><b style="color:var(--cream)">2 · Contact a player</b><br>
+        <p style="margin:10px 0 6px"><b style="color:var(--cream)">2 · Send the Room ID &amp; password</b><br>
+        In <b style="color:var(--cream)">🔑 Send Room ID &amp; password</b>, pick the event, type the Room ID (and password if any), and press <b style="color:var(--cream)">Send room code</b>. It goes <b style="color:var(--cream)">only to the squads registered</b> for that event, as a phone push, in-app alert, email and Discord DM. Send it about 5 minutes before the match starts.</p>
+        <p style="margin:10px 0 6px"><b style="color:var(--cream)">3 · Contact a player</b><br>
         Tap an event under “Today &amp; upcoming”, then scroll to <b style="color:var(--cream)">Squads &amp; reminders</b>. Each squad’s WhatsApp number is a green button — tap it to open WhatsApp and message them directly (great for room-ID reminders).</p>
-        <p style="margin:10px 0 6px"><b style="color:var(--cream)">3 · How the point system works</b> (so you can answer players)<br>
+        <p style="margin:10px 0 6px"><b style="color:var(--cream)">4 · How the point system works</b> (so you can answer players)<br>
         1 point = Rs 1. Players load points on their <a href="/wallet/">Wallet</a> by paying the eSewa QR and uploading the screenshot — the admin checks it and adds the points. Points pay for paid-event entries, squad effects and the JD-Optimiers app. <b style="color:var(--warn)">Only the admin adds or removes points</b> — moderators can’t change balances.</p>
         <p style="margin:10px 0 0;color:var(--silver)"><b style="color:var(--cream)">What you can do:</b> send event notifications, view events, message squads. <b style="color:var(--cream)">What you can’t:</b> money/points, bans, editing events or plans — those stay with the admin.</p>
       </div>
@@ -103,6 +105,19 @@ footer{text-align:center;color:var(--silver);font-size:.78rem;margin:26px 0 10px
       </div>
       <div class="row" style="margin-top:12px"><button class="btn" id="n-send">Send notification</button></div>
       <div class="msg" id="n-msg"></div>
+    </div>
+
+    <h2>🔑 Send Room ID &amp; password <span class="ln"></span></h2>
+    <div class="card">
+      <label>Event</label>
+      <select id="rc-event"></select>
+      <label>Room ID</label>
+      <input id="rc-id" maxlength="40" placeholder="e.g. 123456789" autocomplete="off">
+      <label>Password <span class="hint" style="text-transform:none;letter-spacing:0">(leave blank if none)</span></label>
+      <input id="rc-pass" maxlength="40" placeholder="e.g. jd2026" autocomplete="off">
+      <div class="row" style="margin-top:12px"><button class="btn" id="rc-send">Send room code</button></div>
+      <p class="hint">Goes only to the squads registered for this event — as a phone push, in-app alert, email and Discord DM. Send it ~5 minutes before the match starts.</p>
+      <div class="msg" id="rc-msg"></div>
     </div>
 
     <h2>🏆 Today &amp; upcoming <span class="ln"></span></h2>
@@ -164,8 +179,8 @@ async function loadTournaments(){
     const j=await r.json();
     tournaments=(j.tournaments||[]).filter(isUpcoming).sort((a,b)=>new Date(a.start||0)-new Date(b.start||0));
     const list=$('t-list'), ev=$('n-event');
-    ev.innerHTML='';
-    if(!tournaments.length){ list.innerHTML='<p class="hint">No upcoming tournaments right now.</p>'; ev.innerHTML='<option>No upcoming event</option>'; return; }
+    ev.innerHTML=''; $('rc-event').innerHTML='';
+    if(!tournaments.length){ list.innerHTML='<p class="hint">No upcoming tournaments right now.</p>'; ev.innerHTML='<option>No upcoming event</option>'; $('rc-event').innerHTML='<option>No upcoming event</option>'; return; }
     list.innerHTML='';
     tournaments.forEach((t,i)=>{
       const live=t.start && Math.abs(new Date(t.start)-Date.now())<3*3600*1000;
@@ -174,8 +189,10 @@ async function loadTournaments(){
       row.onclick=()=>selectTournament(i);
       list.appendChild(row);
       const o=document.createElement('option'); o.value=i; o.textContent=t.name+'  ('+fmtWhen(t)+')'; ev.appendChild(o);
+      const o2=document.createElement('option'); o2.value=i; o2.textContent=t.name+'  ('+fmtWhen(t)+')'; $('rc-event').appendChild(o2);
     });
     ev.value='0';                 /* nearest upcoming event selected by default */
+    $('rc-event').value='0';
     ev.onchange=renderTemplates;
     renderTemplates();
   }catch(e){ $('t-list').innerHTML='<p class="msg err">Could not load tournaments.</p>'; }
@@ -217,6 +234,21 @@ $('n-send').onclick=async()=>{
     $('n-msg').textContent='Sent to '+(r.sent_to==='everyone'?'everyone':r.sent_to+' player(s)')+'. ✓';
     $('n-msg').className='msg ok'; $('n-title').value=''; $('n-body').value='';
   }catch(e){ $('n-msg').textContent=e.message; $('n-msg').className='msg err'; }
+  btn.disabled=false;
+};
+
+$('rc-send').onclick=async()=>{
+  const ev=tournaments[+($('rc-event').value||0)];
+  const room_id=$('rc-id').value.trim(), room_pass=$('rc-pass').value.trim();
+  if(!ev){ $('rc-msg').textContent='No event selected.'; $('rc-msg').className='msg err'; return; }
+  if(!room_id){ $('rc-msg').textContent='Enter the Room ID.'; $('rc-msg').className='msg err'; return; }
+  if(!confirm('Send Room ID '+room_id+(room_pass?(' / pass '+room_pass):'')+' to all squads registered for '+ev.name+'?')) return;
+  const btn=$('rc-send'); btn.disabled=true; $('rc-msg').textContent='Sending…'; $('rc-msg').className='msg';
+  try{
+    const r=await call({action:'room_code',slug:ev.name,room_id,room_pass});
+    $('rc-msg').textContent='Sent to '+(r.sent_to||0)+' squad(s). ✓'+((r.unresolved&&r.unresolved.length)?' (unmatched: '+r.unresolved.join(', ')+')':'');
+    $('rc-msg').className='msg ok'; $('rc-id').value=''; $('rc-pass').value='';
+  }catch(e){ $('rc-msg').textContent=e.message; $('rc-msg').className='msg err'; }
   btn.disabled=false;
 };
 
