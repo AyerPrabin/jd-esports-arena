@@ -449,6 +449,7 @@ h2[id]{scroll-margin-top:64px}
   <div class="row" style="margin-top:10px">
     <button class="btn ghost" onclick="loadWithdrawals()">💸 Withdrawal requests</button>
     <button class="btn ghost" onclick="loadBalances()">📊 Everyone's points</button>
+    <button class="btn ghost" onclick="loadMoney()">💰 Money in / out</button>
     <button class="btn ghost" onclick="payPrizesNow()" title="Prizes pay automatically when you publish a winner — use this only to retry">🏆 Pay prizes now</button>
     <div id="wa-msg" class="hint"></div>
   </div>
@@ -1518,6 +1519,28 @@ async function walletCredit(){
   }catch(e){waMsg(e.message,'err');btn.disabled=false;}
 }
 let _balRows=[];
+function fmtRs(n){return 'Rs '+(Number(n)||0).toLocaleString();}
+async function loadMoney(){
+  const box=document.getElementById('wa-balances');waMsg('Loading money…','');
+  try{
+    const m=await waCall({action:'money'});
+    const col=w=>`<td>${fmtRs(w.cash_in)}</td><td>${fmtRs(w.cash_out_paid)}</td><td>${fmtRs(w.pending_payouts)}</td><td>${fmtRs(w.fees_collected)}</td><td>${fmtRs(w.prize_given)}</td><td>${fmtRs(w.adjust_given)}</td><td>${(w.earned_points||0).toLocaleString()} pts</td>`;
+    box.innerHTML=`<div class="card">
+      <div class="row" style="gap:18px;flex-wrap:wrap;margin:0 0 12px">
+        <span class="hint" style="margin:0">💵 Cash on eSewa (all-time loads − paid out): <b style="color:${m.cash_on_esewa>=0?'var(--gold-l)':'#ff8a8a'}">${fmtRs(m.cash_on_esewa)}</b></span>
+        <span class="hint" style="margin:0">👥 Owed to players (could be withdrawn): <b>${fmtRs(m.owed_points)}</b></span>
+      </div>
+      <div style="overflow:auto"><table><thead><tr><th>Period</th><th>In (loads)</th><th>Out (paid)</th><th>Pending out</th><th>Fees kept</th><th>Prizes</th><th>Comp</th><th>Earned</th></tr></thead>
+      <tbody>
+        <tr><td><b>All time</b></td>${col(m.all)}</tr>
+        <tr><td>This month</td>${col(m.month)}</tr>
+        <tr><td>Today</td>${col(m.today)}</tr>
+      </tbody></table></div>
+      <p class="hint" style="margin:8px 0 0">“In” = points loaded via eSewa · “Out” = net sent to players’ eSewa (after the 1% fee) · “Earned” = points kept from entries, effects, optimizer and challenges · “Comp” = manual adjustments · the owner’s unlimited wallet is excluded.</p>
+    </div>`;
+    waMsg('Money summary loaded.','ok');
+  }catch(e){waMsg(e.message,'err');}
+}
 async function loadBalances(){
   const box=document.getElementById('wa-balances');waMsg('Loading balances…','');
   try{

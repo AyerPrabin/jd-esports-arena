@@ -5746,3 +5746,80 @@ begin
 end; $$;
 
 commit;
+
+-- ── confirm window 48h->24h (2026-10-18) ──
+create or replace function public.confirm_attendance(p_slug text)
+returns public.registrations language plpgsql security definer set search_path = public as $$
+declare v_row public.registrations; v_start timestamptz;
+begin
+  if auth.uid() is null then raise exception 'Not signed in'; end if;
+  v_start := public.tournament_start_at(p_slug);
+  if v_start is not null then
+    if now() < v_start - interval '48 hours' then
+      raise exception 'Confirmation opens 48 hours before the match (at % NPT).',
+        to_char((v_start - interval '48 hours') at time zone 'Asia/Kathmandu', 'Dy DD Mon, HH12:MI AM');
+    end if;
+    if now() >= v_start - interval '24 hours' then
+      raise exception 'Confirmation has closed (it closes 24 hours before start).';
+    end if;
+  end if;
+  update public.registrations set checked_in_at = coalesce(checked_in_at, now())
+    where tournament_slug = p_slug and player_id = auth.uid() and status in ('confirmed','approved')
+    returning * into v_row;
+  if not found then raise exception 'No confirmed registration found for this tournament.'; end if;
+  return v_row;
+end; $$;
+revoke all on function public.confirm_attendance(text) from public, anon;
+grant execute on function public.confirm_attendance(text) to authenticated;
+
+-- ── admin money in/out dashboard (2026-10-18) ──
+-- Real cash: IN = points loaded via eSewa (reason 'load'); OUT = paid withdrawals (net payout).
+-- Points kept (earned) and given (prizes/comp) are internal. Owner's unlimited wallet excluded.
+begin;
+
+create or replace function public._money_window(p_since timestamptz)
+returns jsonb language sql stable security definer set search_path = public as $$
+  with led as (
+    select l.reason, l.delta from public.wallet_ledger l
+    join public.wallets w on w.player_id = l.player_id and coalesce(w.unlimited,false) = false
+    where (p_since is null or l.created_at >= p_since)
+  ),
+  wd as (
+    select status, coalesce(payout, amount) as net, coalesce(fee,0) as fee
+    from public.withdraw_requests
+    where (p_since is null or created_at >= p_since)
+  )
+  select jsonb_build_object(
+    'cash_in',         (select coalesce(sum(delta),0) from led where reason = 'load'),
+    'cash_out_paid',   (select coalesce(sum(net),0)  from wd  where status = 'paid'),
+    'pending_payouts', (select coalesce(sum(net),0)  from wd  where status = 'pending'),
+    'fees_collected',  (select coalesce(sum(fee),0)  from wd  where status = 'paid'),
+    'prize_given',     (select coalesce(sum(delta),0) from led where reason = 'prize'),
+    'adjust_given',    (select coalesce(sum(delta),0) from led where reason = 'adjust'),
+    'earned_points',   (select coalesce(-sum(delta),0) from led
+                         where reason in ('entry','effect','optimizer','challenge_stake','refund','challenge_win','challenge_refund'))
+  );
+$$;
+revoke all on function public._money_window(timestamptz) from public, anon, authenticated;
+grant execute on function public._money_window(timestamptz) to service_role;
+
+create or replace function public.admin_money_flow()
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_day   timestamptz := (date_trunc('day',   now() at time zone 'Asia/Kathmandu')) at time zone 'Asia/Kathmandu';
+  v_month timestamptz := (date_trunc('month', now() at time zone 'Asia/Kathmandu')) at time zone 'Asia/Kathmandu';
+  v_all jsonb := public._money_window(null);
+begin
+  return jsonb_build_object(
+    'owed_points',   (select coalesce(sum(balance),0) from public.wallets where coalesce(unlimited,false) = false),
+    'cash_on_esewa', ((v_all->>'cash_in')::int - (v_all->>'cash_out_paid')::int),
+    'all',   v_all,
+    'month', public._money_window(v_month),
+    'today', public._money_window(v_day)
+  );
+end; $$;
+revoke all on function public.admin_money_flow() from public, anon, authenticated;
+grant execute on function public.admin_money_flow() to service_role;
+
+commit;
+

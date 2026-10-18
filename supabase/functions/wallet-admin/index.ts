@@ -127,6 +127,12 @@ Deno.serve(async (req: Request) => {
     return json({ ok: true });
   }
 
+  if (p.action === 'money') {
+    const { data, error } = await supabase.rpc('admin_money_flow');
+    if (error) return fail(error.message, 500);
+    return json(data);
+  }
+
   if (p.action === 'balances') {
     const { data, error } = await supabase.from('players')
       .select('id, username, player_tag, email, wallets(balance, unlimited, updated_at)');
