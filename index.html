@@ -1294,14 +1294,15 @@ footer #about-link,footer a[href="/ban-list.html"]{display:inline-flex;align-ite
       </div>
     </div>
     <div class="reg-wa">
-      <label class="tc-check reg-wa-opt"><input type="checkbox" id="reg-wa-on" onchange="regWaToggle()"><span><b>💬 Text me a match reminder on WhatsApp</b> <small>optional</small></span></label>
-      <div id="reg-wa-box" hidden>
+      <input type="checkbox" id="reg-wa-on" checked hidden>
+      <label style="display:block;margin:0 0 4px;color:var(--cream);font-size:.9rem;text-transform:none;letter-spacing:0"><b>💬 WhatsApp number</b> <span style="color:var(--gold-l)">*</span> <small style="color:var(--pm-muted,#9CA8BE);font-weight:500">required — your Room ID &amp; reminders are sent here</small></label>
+      <div id="reg-wa-box">
         <div class="wa-row">
           <label class="wa-cc" title="Country"><span class="wa-flag" id="reg-wa-flag">🇳🇵</span><span id="reg-wa-code">+977</span><span class="wa-caret" aria-hidden="true">▼</span><select id="reg-wa-cc" aria-label="Country code" onchange="regWaCountry()"></select></label>
           <input id="reg-wa" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="98XXXXXXXX" maxlength="20" oninput="regWaPreview()" aria-label="WhatsApp number">
         </div>
         <p class="wa-preview" id="reg-wa-preview" aria-live="polite"></p>
-        <p class="sub" style="margin:6px 0 0">Pick your country (Nepal is set already), then type your number. Used only to remind you before <b>this</b> tournament — never shown publicly, and deleted 2 days after it starts. <a href="/privacy/" target="_blank" rel="noopener">Privacy</a></p>
+        <p class="sub" style="margin:6px 0 0">Pick your country (Nepal is set already), then type your number. Used to send your <b>Room ID and reminders</b> for this tournament — never shown publicly, and deleted 2 days after it starts. <a href="/privacy/" target="_blank" rel="noopener">Privacy</a></p>
       </div>
     </div>
     <p class="sub" style="color:var(--warm-l);margin:12px 0 0"><b>⚠️ Please show up.</b> Registering means you're committing to play. Squads that register and then don't join can be removed and <b>banned from future JD tournaments</b>.</p>
@@ -2829,7 +2830,7 @@ function registerInApp(name){
   const ln=document.getElementById('reg-logo-note');
   if(ln)ln.textContent=_player.squad_logo?'Using your saved logo. Choose a new image only if you want to change it — it replaces the old one everywhere.':'Upload once — it is saved to your profile for every future tournament.';
   const payWrap=document.getElementById('reg-pay-wrap');if(payWrap)payWrap.style.display=paid?'':'none';
-    const wo=document.getElementById('reg-wa-on'),wi=document.getElementById('reg-wa');if(wo)wo.checked=false;if(wi)wi.value='';regWaToggle();regWaPreview();
+    const wo=document.getElementById('reg-wa-on'),wi=document.getElementById('reg-wa');if(wo)wo.checked=true;if(wi)wi.value='';const _wb=document.getElementById('reg-wa-box');if(_wb)_wb.hidden=false;regWaFill();regWaPreview();
   const pp=document.getElementById('reg-pay-price');if(pp)pp.textContent='Entry '+(t.entry||'');
   const ps=document.getElementById('reg-pay-steps');if(ps){const pr=entryAmount(t);ps.innerHTML=paid?`<div class="pts-line" style="font-size:.8rem;color:var(--body)">Entry <b style="color:var(--gold-l)">${pr} points</b> · You have <b style="color:var(--gold-l)">${walletLabel()}</b>${canAfford(pr)?' — paid automatically when you register.':''}</div>`+(!canAfford(pr)?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="goWallet('load')">➕ Load points (need ${pr-_wallet} more)</button>`:''):'';}
   const payNote=document.getElementById('reg-pay-note');if(payNote)payNote.textContent='Not enough points yet? Register now to hold your place, then pay from your ticket once your points are loaded. A held place does not reserve a slot.';
@@ -2880,8 +2881,8 @@ function regWaNumber(){
 // plus Nepal's 10-digit mobiles starting with 9
 function regWaError(){
   const n=regWaNumber();
-  if(!n)return 'Enter your WhatsApp number, or untick the reminder.';
-  if(!/^\+[0-9]{7,15}$/.test(n))return 'That number doesn\'t look right. Check the country and the number, or untick the reminder.';
+  if(!n)return 'Enter your WhatsApp number — it\'s required.';
+  if(!/^\+[0-9]{7,15}$/.test(n))return 'That number doesn\'t look right. Check the country and the number.';
   if(/^\+977/.test(n)&&!/^\+9779[0-9]{9}$/.test(n))return 'Nepal mobile numbers have 10 digits and start with 9 (98XXXXXXXX).';
   return '';
 }
@@ -2934,9 +2935,9 @@ async function submitRegister(){
   const squad=document.getElementById('reg-squad').value.trim()||null;
   const msg=document.getElementById('reg-msg');
   if(!squad||squad.length<2){msg.textContent='Enter your squad name (at least 2 characters).';msg.className='msg err';document.getElementById('reg-squad').focus();return;}
-  const wa=regWaValue();
-  const waErr=(document.getElementById('reg-wa-on')||{}).checked?regWaError():'';
-  if(waErr){msg.textContent=waErr;msg.className='msg err';document.getElementById('reg-wa').focus();return;}
+  const wa=regWaNumber();
+  const waErr=regWaError();
+  if(!wa||waErr){msg.textContent=waErr||'Add your WhatsApp number — it\'s required so we can send your Room ID and reminders.';msg.className='msg err';const _b=document.getElementById('reg-wa-box');if(_b)_b.hidden=false;document.getElementById('reg-wa').focus();return;}
   msg.textContent='Registering…';msg.className='msg';
   const status=paid?'pending':'confirmed';
   // Goes through register_for_tournament() (see schema.sql) instead of a plain insert —
