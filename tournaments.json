@@ -139,6 +139,7 @@
       "slots": 12,
       "format": "BR · 3 matches",
       "status": "completed",
+      "winner": "A1-GOLPHA",
       "platform_mode": "mobile",
       "teams": [],
       "registered": 0
@@ -223,5 +224,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-17T23:17:05.713Z"
+  "_published_at": "2026-10-18T10:39:43.856Z"
 }
