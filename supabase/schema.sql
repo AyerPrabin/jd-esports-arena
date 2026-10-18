@@ -5538,3 +5538,106 @@ end;
 $function$
 ;
 commit;
+
+-- ── confirm-or-be-removed rule (2026-10-18) ──
+-- Squads must CONFIRM they're playing. The sweep reminds unconfirmed squads in the
+-- 48h→24h window before start, then at 24h-before removes the ones still unconfirmed
+-- (logged + deleted so they can re-register), refunding any entry points. Runs hourly.
+begin;
+
+create table if not exists public.jd_no_show_log (
+  id bigserial primary key,
+  tournament_slug text not null,
+  player_id uuid,
+  squad_name text,
+  reason text not null default 'did_not_confirm',
+  removed_at timestamptz not null default now()
+);
+alter table public.jd_no_show_log enable row level security;
+
+create table if not exists public.jd_confirm_reminders (tournament_slug text primary key, sent_at timestamptz not null default now());
+create table if not exists public.jd_confirm_sweeps   (tournament_slug text primary key, swept_at timestamptz not null default now());
+
+-- player confirms attendance (any time from registration until start). Idempotent.
+create or replace function public.confirm_attendance(p_slug text)
+returns public.registrations language plpgsql security definer set search_path = public as $$
+declare v_row public.registrations; v_start timestamptz;
+begin
+  if auth.uid() is null then raise exception 'Not signed in'; end if;
+  v_start := public.tournament_start_at(p_slug);
+  if v_start is not null and now() >= v_start then raise exception 'This tournament has already started.'; end if;
+  update public.registrations set checked_in_at = coalesce(checked_in_at, now())
+    where tournament_slug = p_slug and player_id = auth.uid() and status in ('confirmed','approved')
+    returning * into v_row;
+  if not found then raise exception 'No confirmed registration found for this tournament.'; end if;
+  return v_row;
+end; $$;
+revoke all on function public.confirm_attendance(text) from public, anon;
+grant execute on function public.confirm_attendance(text) to authenticated;
+
+-- hourly sweep: remind (48h→24h), then remove unconfirmed (at 24h-before)
+create or replace function public.jd_confirm_sweep()
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_doc jsonb; t record; r record;
+  v_removed int := 0; v_reminded int := 0; v_tmp int := 0;
+begin
+  select content into v_doc from public.site_content where key = 'tournaments';
+  for t in
+    select (x->>'name') as name, (x->>'start')::timestamptz as start_at,
+           coalesce(x->>'date','') as d, coalesce(x->>'time','') as tm
+    from jsonb_array_elements(coalesce(v_doc->'tournaments','[]'::jsonb)) x
+    where nullif(x->>'start','') is not null
+      and lower(coalesce(x->>'status','upcoming')) not in ('completed','cancelled')
+  loop
+    if t.start_at is null then continue; end if;
+
+    -- 1) remind: in the 48h→24h window before start, once
+    if now() >= t.start_at - interval '48 hours' and now() < t.start_at - interval '24 hours' then
+      begin
+        insert into public.jd_confirm_reminders(tournament_slug) values (t.name);
+        insert into public.notifications (player_id, tournament_slug, title, body, push)
+        select r2.player_id, t.name,
+          '⚠️ Confirm your spot: ' || t.name,
+          'Open JD Esports Arena and tap "Confirm you''re playing" for ' || t.name ||
+          ' (' || nullif(t.d,'') || ' ' || nullif(t.tm,'') || '). Squads not confirmed by 24 hours before start lose their seat to another team. We need real players!',
+          true
+        from public.registrations r2
+        where r2.tournament_slug = t.name and r2.status in ('confirmed','approved') and r2.checked_in_at is null;
+        get diagnostics v_tmp = row_count; v_reminded := v_reminded + v_tmp;
+      exception when unique_violation then null; end;
+    end if;
+
+    -- 2) remove: once we're within 24h of start (and it hasn't started), remove unconfirmed
+    if now() >= t.start_at - interval '24 hours' and now() < t.start_at then
+      begin
+        insert into public.jd_confirm_sweeps(tournament_slug) values (t.name);
+        for r in select * from public.registrations
+                 where tournament_slug = t.name and status in ('confirmed','approved') and checked_in_at is null
+        loop
+          insert into public.jd_no_show_log(tournament_slug, player_id, squad_name, reason)
+            values (t.name, r.player_id, r.squad_name, 'did_not_confirm');
+          if coalesce(r.paid_points,0) > 0 then
+            perform public._wallet_apply(r.player_id, r.paid_points, 'refund', 'noshow_refund:'||r.id::text,
+                     'Auto-refund: removed from '||t.name||' for not confirming');
+          end if;
+          insert into public.notifications (player_id, tournament_slug, title, body)
+            values (r.player_id, t.name, '❌ Removed from ' || t.name || ' — not confirmed',
+              'You didn''t confirm you were playing by the deadline (24h before start), so your seat went to another squad. ' ||
+              case when coalesce(r.paid_points,0) > 0 then 'Your entry points were refunded. ' else '' end ||
+              'You can register again if seats are open — please confirm next time. Repeated no-shows can be banned from future tournaments.');
+          delete from public.registrations where id = r.id;  -- delete so they can re-register
+          v_removed := v_removed + 1;
+        end loop;
+      exception when unique_violation then null; end;
+    end if;
+  end loop;
+  return jsonb_build_object('reminded', v_reminded, 'removed', v_removed);
+end; $$;
+revoke all on function public.jd_confirm_sweep() from public, anon, authenticated;
+grant execute on function public.jd_confirm_sweep() to service_role;
+
+select cron.unschedule(jobid) from cron.job where jobname = 'jd-confirm-sweep';
+select cron.schedule('jd-confirm-sweep', '25 * * * *', $cron$select public.jd_confirm_sweep()$cron$);
+
+commit;
