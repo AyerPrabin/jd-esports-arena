@@ -5283,3 +5283,55 @@ select cron.schedule('jd-seat-reminder', '15 * * * *', $cron$select public.jd_se
 
 commit;
 
+
+-- ── admin alert on new withdrawal requests + Zulu real-time announcements (2026-10-18) ──
+begin;
+
+create index if not exists notifications_created_at_idx on public.notifications(created_at);
+
+-- 1) tell the owner whenever a player files a withdrawal (pushes via notifications_push)
+create or replace function public.notify_admin_withdrawal() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare v_admin uuid;
+begin
+  select id into v_admin from public.players where lower(email) = 'ayerprabin95@gmail.com' limit 1;
+  if v_admin is not null then
+    insert into public.notifications (player_id, title, body)
+    values (v_admin,
+      '💸 New withdrawal request: Rs ' || NEW.amount,
+      'A player requested to withdraw Rs ' || NEW.amount || ' to eSewa ' || NEW.esewa_id ||
+      ' (' || NEW.esewa_name || '). Review and pay it in Admin → Wallet → Withdrawals.');
+  end if;
+  return NEW;
+end; $$;
+revoke all on function public.notify_admin_withdrawal() from public, anon, authenticated;
+drop trigger if exists trg_notify_admin_withdrawal on public.withdraw_requests;
+create trigger trg_notify_admin_withdrawal after insert on public.withdraw_requests
+  for each row execute function public.notify_admin_withdrawal();
+
+-- 2) recent broadcast announcements for ZULU's context. Privacy: broadcasts only
+--    (>=10 distinct recipients, last 3 days), never room codes, tickets, or
+--    wallet/prize/withdraw messages. Titles only, max 5.
+create or replace function public.recent_announcements()
+returns table(title text, body text)
+language sql stable security definer set search_path = public as $$
+  select title, body from (
+    select n.title, n.body, count(distinct n.player_id) as recips, max(n.created_at) as last_at
+    from public.notifications n
+    where n.created_at > now() - interval '3 days'
+      and n.room_id is null and n.room_pass is null
+      and n.title not like 'Room code%'
+      and coalesce(n.body,'') not like 'TICKET::%'
+      and n.title !~* 'withdraw|prize|wallet|points|🪙|💸'
+      and coalesce(n.body,'') !~* 'wallet|withdraw|esewa|prize for|points were added'
+    group by n.title, n.body
+    having count(distinct n.player_id) >= 10
+    order by max(n.created_at) desc
+    limit 5
+  ) x;
+$$;
+revoke all on function public.recent_announcements() from public, anon, authenticated;
+grant execute on function public.recent_announcements() to service_role;
+
+commit;
+

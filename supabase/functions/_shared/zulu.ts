@@ -1,7 +1,33 @@
 // ZULU's system prompt (JD Arena facts + the live schedule from tournaments.json), shared by
 // zulu-ai-reply (public Ask ZULU / the ZULU chat in Messages) and chat-push (@zulu in squad
 // and match chats) so every ZULU answer uses the same facts.
+import { createClient } from 'npm:@supabase/supabase-js@2';
+
 export async function zuluSystemPrompt(lang: 'en' | 'ne'): Promise<string> {
+  // Real-time context: the broadcast announcements JD Arena recently pushed to players,
+  // so ZULU knows what's going on right now (new events, open seats, results posted).
+  // Privacy-filtered server-side (recent_announcements RPC): broadcasts only, never room
+  // codes, tickets, or wallet/prize/withdraw messages. Best-effort; never blocks the reply.
+  let announceContext = '';
+  try {
+    const url = Deno.env.get('SUPABASE_URL');
+    const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (url && key) {
+      const sb = createClient(url, key);
+      const { data } = await sb.rpc('recent_announcements');
+      const seen = new Set<string>();
+      const titles = (Array.isArray(data) ? data : [])
+        .map((a: any) => String(a?.title || '').trim())
+        .filter((t: string) => t && !seen.has(t) && seen.add(t));
+      if (titles.length) {
+        announceContext = '\n\nLatest announcements JD Arena pushed to players (use them so you know what is happening right now — new events, open seats, results posted — but do not repeat them word for word): ' +
+          titles.map((t) => `"${t}"`).join('; ');
+      }
+    }
+  } catch {
+    // announcement fetch failing shouldn't block the reply
+  }
+
   // Grounds the fallback in the real, current schedule instead of making it guess or
   // deflect every scheduling/prize/entry question — tournaments.json is the same public
   // file the site itself renders from (see TOURNAMENTS_URL in tournament-reminders),
@@ -72,6 +98,6 @@ Rules:
 - You still do NOT have access to per-player account data (room IDs, a specific player's points, their registration status). NEVER invent those. If asked something that needs THAT kind of live account-specific data, tell them to check their account panel / Notification History on the site instead of guessing.
 - Language: reply in the same language and script the player used in their last message (English, Nepali in Devanagari only (never Hindi, Gujarati or other scripts), or Romanized Nepali like "kasari join garne"). If unclear, use ${lang === 'ne' ? 'Nepali (Devanagari)' : 'English'}.
 - Keep it short and useful: plain sentences, no markdown headings, tables or bold, at most a short numbered list for steps. Use the earlier turns of this chat to understand follow-up questions.
-- If you are not sure of a fact, say so and point them to the Discord rather than guessing.${scheduleContext}`;
+- If you are not sure of a fact, say so and point them to the Discord rather than guessing.${scheduleContext}${announceContext}`;
   return systemPrompt;
 }
