@@ -172,6 +172,12 @@ h2[id]{scroll-margin-top:64px}
 #undo-toast.show{transform:translate(-50%,0);opacity:1;pointer-events:auto}
 #undo-toast button{border:0;border-radius:30px;background:var(--gold);color:#0a0a12;font-weight:700;font-size:.8rem;padding:6px 14px;cursor:pointer}
 @media(prefers-reduced-motion:reduce){#undo-toast{transition:none}}
+/* quick-actions home grid + stronger mobile layout */
+.qa{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px;margin:4px 0 10px}
+.qa-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:15px 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--cream);text-decoration:none;font-weight:600;font-size:.85rem;cursor:pointer;text-align:center;font-family:inherit}
+.qa-tile:hover{border-color:var(--gold);background:rgba(201,168,76,.1)}
+.qa-ic{font-size:1.5rem;line-height:1}
+@media(max-width:640px){.qa{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr!important}.btn,.qa-tile{min-height:46px}table{display:block;overflow-x:auto}input,select,textarea{font-size:16px}}
 </style>
 </head>
 <body>
@@ -243,6 +249,18 @@ h2[id]{scroll-margin-top:64px}
     <div id="publish-top-msg" class="hint"></div>
   </div>
   <p class="hint" style="margin-top:-8px">Edit any event's Name, Date, Time, etc. below, then hit this button — that's the only step needed to make it live.</p>
+
+  <div class="dash-head"><span>⚡ Quick actions</span></div>
+  <div class="qa">
+    <button class="qa-tile" onclick="publishNow()"><span class="qa-ic">🚀</span>Publish changes</button>
+    <a class="qa-tile" href="#room-codes"><span class="qa-ic">🔑</span>Send room code</a>
+    <button class="qa-tile" onclick="payPrizesNow()"><span class="qa-ic">🏆</span>Pay prizes</button>
+    <a class="qa-tile" href="#wallets" onclick="setTimeout(loadWithdrawals,60)"><span class="qa-ic">💸</span>Withdrawals</a>
+    <a class="qa-tile" href="#wallets" onclick="setTimeout(loadMoney,60)"><span class="qa-ic">💰</span>Money in/out</a>
+    <a class="qa-tile" href="#moderators"><span class="qa-ic">🛡</span>Mods</a>
+    <a class="qa-tile" href="#tournaments"><span class="qa-ic">🏆</span>Events</a>
+    <a class="qa-tile" href="#teams"><span class="qa-ic">👥</span>Players</a>
+  </div>
 
   <div class="dash-head"><span>What's going on</span></div>
   <div id="now-box" class="now-box"></div>
