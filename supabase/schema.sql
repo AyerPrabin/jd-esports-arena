@@ -5641,3 +5641,108 @@ select cron.unschedule(jobid) from cron.job where jobname = 'jd-confirm-sweep';
 select cron.schedule('jd-confirm-sweep', '25 * * * *', $cron$select public.jd_confirm_sweep()$cron$);
 
 commit;
+
+-- ── confirm-sweep v2 + admin net-payout alert + balances net (2026-10-18) ──
+begin;
+
+-- admin withdrawal alert: show the NET amount to send (payout), not the gross
+create or replace function public.notify_admin_withdrawal() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare v_admin uuid;
+begin
+  select id into v_admin from public.players where lower(email) = 'ayerprabin95@gmail.com' limit 1;
+  if v_admin is not null then
+    insert into public.notifications (player_id, title, body)
+    values (v_admin,
+      '💸 New withdrawal request: send Rs ' || coalesce(NEW.payout, NEW.amount),
+      'Send Rs ' || coalesce(NEW.payout, NEW.amount) || ' to eSewa ' || NEW.esewa_id ||
+      ' (' || NEW.esewa_name || '). Requested ' || NEW.amount || ', fee ' || coalesce(NEW.fee,0) ||
+      '. Pay and mark it paid in Admin → Wallet → Withdrawals.');
+  end if;
+  return NEW;
+end; $$;
+
+-- confirm sweep v2: safe start-cast guard, coalesced reminder body, and a
+-- "seats open — join now" broadcast whenever a removal frees seats (any tournament).
+create or replace function public.jd_confirm_sweep()
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_doc jsonb; t record; r record;
+  v_removed int := 0; v_reminded int := 0; v_tmp int := 0; v_here int := 0;
+  v_slots int; v_taken int; v_open int;
+begin
+  select content into v_doc from public.site_content where key = 'tournaments';
+  for t in
+    select (x->>'name') as name, (x->>'start')::timestamptz as start_at,
+           coalesce(x->>'date','') as d, coalesce(x->>'time','') as tm
+    from jsonb_array_elements(coalesce(v_doc->'tournaments','[]'::jsonb)) x
+    where (x->>'start') ~ '^\d{4}-\d{2}-\d{2}T'          -- only valid ISO timestamps
+      and lower(coalesce(x->>'status','upcoming')) not in ('completed','cancelled')
+  loop
+    if t.start_at is null then continue; end if;
+
+    -- 1) remind unconfirmed squads in the 48h→24h window, once per tournament
+    if now() >= t.start_at - interval '48 hours' and now() < t.start_at - interval '24 hours' then
+      begin
+        insert into public.jd_confirm_reminders(tournament_slug) values (t.name);
+        insert into public.notifications (player_id, tournament_slug, title, body, push)
+        select r2.player_id, t.name,
+          '⚠️ Confirm your spot: ' || t.name,
+          'Open JD Esports Arena and tap "Confirm you''re playing" for ' || t.name ||
+          ' (' || t.d || ' ' || t.tm || '). Squads not confirmed by 24 hours before start lose their seat to another team. We need real players!',
+          true
+        from public.registrations r2
+        where r2.tournament_slug = t.name and r2.status in ('confirmed','approved') and r2.checked_in_at is null;
+        get diagnostics v_tmp = row_count; v_reminded := v_reminded + v_tmp;
+      exception when unique_violation then null; end;
+    end if;
+
+    -- 2) within 24h of start: remove still-unconfirmed squads (once per tournament)
+    if now() >= t.start_at - interval '24 hours' and now() < t.start_at then
+      begin
+        insert into public.jd_confirm_sweeps(tournament_slug) values (t.name);
+        v_here := 0;
+        for r in select * from public.registrations
+                 where tournament_slug = t.name and status in ('confirmed','approved') and checked_in_at is null
+        loop
+          insert into public.jd_no_show_log(tournament_slug, player_id, squad_name, reason)
+            values (t.name, r.player_id, r.squad_name, 'did_not_confirm');
+          if coalesce(r.paid_points,0) > 0 then
+            perform public._wallet_apply(r.player_id, r.paid_points, 'refund', 'noshow_refund:'||r.id::text,
+                     'Auto-refund: removed from '||t.name||' for not confirming');
+          end if;
+          insert into public.notifications (player_id, tournament_slug, title, body)
+            values (r.player_id, t.name, '❌ Removed from ' || t.name || ' — not confirmed',
+              'You didn''t confirm you were playing by the deadline (24h before start), so your seat went to another squad. ' ||
+              case when coalesce(r.paid_points,0) > 0 then 'Your entry points were refunded. ' else '' end ||
+              'You can register again if seats are open — please confirm next time. Repeated no-shows can be banned from future tournaments.');
+          delete from public.registrations where id = r.id;
+          v_here := v_here + 1;
+        end loop;
+        v_removed := v_removed + v_here;
+
+        -- freed seats? broadcast "join now" to players not registered for this tournament
+        if v_here > 0 then
+          select slots into v_slots from public.tournament_capacity where tournament_slug = t.name;
+          select count(*) into v_taken from public.registrations
+            where tournament_slug = t.name and status in ('confirmed','approved','waitlisted');
+          v_open := coalesce(v_slots,0) - v_taken;
+          if v_open > 0 then
+            insert into public.notifications (player_id, tournament_slug, title, body, push)
+            select pl.id, t.name,
+              '🔥 Seats open — join ' || t.name || ' now!',
+              v_open || ' seat' || case when v_open=1 then '' else 's' end || ' just opened for ' || t.name ||
+              ' (' || t.d || ' ' || t.tm || '). Register at jdesport.co.uk — and confirm your spot after. Only join if you''ll actually play.',
+              true
+            from public.players pl
+            where pl.id not in (select player_id from public.registrations
+                                where tournament_slug = t.name and status in ('confirmed','approved','waitlisted'));
+          end if;
+        end if;
+      exception when unique_violation then null; end;
+    end if;
+  end loop;
+  return jsonb_build_object('reminded', v_reminded, 'removed', v_removed);
+end; $$;
+
+commit;

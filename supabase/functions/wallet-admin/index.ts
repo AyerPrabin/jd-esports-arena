@@ -136,8 +136,8 @@ Deno.serve(async (req: Request) => {
       return { id: x.id, username: x.username, player_tag: x.player_tag, email: x.email,
         balance: w?.balance ?? 0, unlimited: !!w?.unlimited, updated_at: w?.updated_at ?? null };
     }).sort((a: any, b: any) => (b.unlimited ? 1 : 0) - (a.unlimited ? 1 : 0) || b.balance - a.balance);
-    const { data: pend } = await supabase.from('withdraw_requests').select('amount').eq('status', 'pending');
-    return json({ rows, pending_withdrawals: (pend || []).reduce((s: number, r: any) => s + r.amount, 0) });
+    const { data: pend } = await supabase.from('withdraw_requests').select('amount, payout').eq('status', 'pending');
+    return json({ rows, pending_withdrawals: (pend || []).reduce((s: number, r: any) => s + (r.payout ?? r.amount), 0) });
   }
 
   if (p.action === 'award') {

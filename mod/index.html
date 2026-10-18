@@ -213,9 +213,11 @@ async function selectTournament(i){
       const wl=r.whatsapp?waLink(r.whatsapp):null;
       const wa=r.whatsapp?(wl?`<a class="wa" href="${wl}" target="_blank" rel="noopener">💬 ${esc(r.whatsapp)}</a>`:`<span class="nowa">${esc(r.whatsapp)}</span>`):'<span class="nowa">—</span>';
       const st=r.status==='approved'||r.status==='confirmed'?'confirmed':r.status;
-      return `<tr><td>${esc(r.squad_name||'(squad)')}<div class="hint">${esc(r.captain||'')}</div></td><td class="st">${esc(st)}</td><td>${wa}</td></tr>`;
+      const conf=r.checked_in?'<span style="color:var(--green,#5EDB95)">✅ Yes</span>':'<span style="color:var(--warn,#ffb020)">❌ No</span>';
+      return `<tr><td>${esc(r.squad_name||'(squad)')}<div class="hint">${esc(r.captain||'')}</div></td><td class="st">${esc(st)}</td><td>${conf}</td><td>${wa}</td></tr>`;
     }).join('');
-    $('reg-body').innerHTML=`<table><thead><tr><th>Squad</th><th>Status</th><th>WhatsApp</th></tr></thead><tbody>${body}</tbody></table>`;
+    const unconf=rows.filter(r=>!r.checked_in&&(r.status==='confirmed'||r.status==='approved')).length;
+    $('reg-body').innerHTML=`<table><thead><tr><th>Squad</th><th>Status</th><th>Confirmed</th><th>WhatsApp</th></tr></thead><tbody>${body}</tbody></table>`+(unconf?`<p class="hint" style="color:var(--warn,#ffb020);margin-top:8px">⚠️ ${unconf} squad(s) haven't confirmed — WhatsApp them to confirm before 24h to start, or they're removed.</p>`:'');
   }catch(e){ $('reg-body').innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; }
 }
 $('reg-refresh').onclick=()=>{ if(selected) selectTournament(tournaments.indexOf(selected)); };
