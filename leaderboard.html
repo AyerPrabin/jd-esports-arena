@@ -159,15 +159,21 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 
 <main class="wrap">
   <div class="lb-tabs" role="tablist" aria-label="Leaderboards">
-    <button type="button" role="tab" id="tab-season" aria-selected="true" aria-controls="lb-season" onclick="lbTab('season')">🏆 Season</button>
+    <button type="button" role="tab" id="tab-season" aria-selected="true" aria-controls="lb-alltime" onclick="lbTab('season')">🏆 Season</button>
+    <button type="button" role="tab" id="tab-latest" aria-selected="false" aria-controls="lb-season" onclick="lbTab('latest')">📺 Latest event</button>
     <button type="button" role="tab" id="tab-clash" aria-selected="false" aria-controls="lb-clash" onclick="lbTab('clash')">⚔️ Clash Squad</button>
   </div>
+  <section id="lb-alltime" role="tabpanel" aria-labelledby="tab-season">
+    <div class="sec-h"><h1>Season Standings</h1><span class="ln"></span></div>
+    <p class="sub">Combined points across every finished event — win more, top the season.</p>
+    <div id="alltime-body"><p class="sub">Loading…</p></div>
+  </section>
   <section id="lb-clash" role="tabpanel" aria-labelledby="tab-clash" hidden>
     <div class="sec-h"><h1>Clash Squad Ranks</h1><span class="ln"></span></div>
     <p class="sub">Players ranked by challenge wins (1v1 to 4v4), then win rate. Message or challenge anyone from here.</p>
     <div id="cs-body"><p class="sub">Loading…</p></div>
   </section>
-  <div id="lb-season" role="tabpanel" aria-labelledby="tab-season">
+  <div id="lb-season" role="tabpanel" aria-labelledby="tab-latest" hidden>
   <div class="sec-h"><h1 id="lb-ttl">Season Leaderboard</h1><span class="ln"></span></div>
   <p class="sub" id="lb-sub">Loading standings…</p>
   <div class="champ" id="champ" hidden><div class="champ-eye">🏆 Champions</div><div class="champ-name" id="champ-name"></div><div class="champ-sub" id="champ-sub"></div></div>
@@ -196,14 +202,28 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','
 /* ── ⚔️ Clash Squad tab: get_challenge_leaderboard() (schema.sql) — signed-in players only ── */
 let _cs=null,_csFilter='all';
 function lbTab(t){
-  const clash=t==='clash';
-  document.getElementById('tab-season').setAttribute('aria-selected',!clash);
-  document.getElementById('tab-clash').setAttribute('aria-selected',clash);
-  document.getElementById('lb-season').hidden=clash;
-  document.getElementById('lb-clash').hidden=!clash;
-  document.getElementById('lb-points-note').hidden=clash;
-  try{history.replaceState(null,'',clash?'#clash':location.pathname+location.search);}catch(e){}
-  if(clash)loadClash();
+  const map={season:['tab-season','lb-alltime'],latest:['tab-latest','lb-season'],clash:['tab-clash','lb-clash']};
+  if(!map[t])t='season';
+  for(const k in map){document.getElementById(map[k][0]).setAttribute('aria-selected',String(k===t));document.getElementById(map[k][1]).hidden=(k!==t);}
+  document.getElementById('lb-points-note').hidden=(t!=='latest');
+  try{history.replaceState(null,'',t==='season'?location.pathname+location.search:'#'+t);}catch(e){}
+  if(t==='clash')loadClash();
+  if(t==='season')loadSeason();
+}
+let _season=null;
+async function loadSeason(){
+  const box=document.getElementById('alltime-body');
+  if(_season){renderSeason();return;}
+  if(!sb){box.innerHTML='<p class="sub">Couldn\'t load standings.</p>';return;}
+  const {data,error}=await sb.rpc('get_season_standings');
+  if(error){box.innerHTML='<p class="sub">Couldn\'t load standings. Check your connection.</p>';return;}
+  _season=data||[];renderSeason();
+}
+function renderSeason(){
+  const box=document.getElementById('alltime-body'),rows=_season||[];
+  if(!rows.length){box.innerHTML='<div class="empty-state">No finished events yet — the season table fills in as results are published.</div>';return;}
+  const medal=n=>n===1?'🥇':n===2?'🥈':n===3?'🥉':n;
+  box.innerHTML=`<table class="pts-table"><thead><tr><th>#</th><th>Squad</th><th class="num">Events</th><th class="num">Kills</th><th class="num">🏆</th><th class="num">Points</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td class="rk">${medal(i+1)}</td><td class="team"><span class="team-name">${esc(r.squad_name)}</span></td><td class="num">${r.events}</td><td class="num">${r.kills}</td><td class="num">${r.wins}</td><td class="tot"><span class="num-val">${r.points}</span></td></tr>`).join('')}</tbody></table>`;
 }
 async function loadClash(){
   const box=document.getElementById('cs-body');
@@ -412,16 +432,20 @@ function updatePodium(rows){
 /* ═══════════════════════ standings table (reconciling render, not full replace) ═══════════════════════ */
 let _prevRows=null; // Map<team,row> from the last render, once revealed
 let _revealed=false;
+let _lastDoc=null, _noKills=false, _logoMap={}, _logoSlug=''; // kills-free boards hide kill columns; logos from get_squad_logos
 
 function tableSkeleton(){
-  return `<table class="pts-table"><thead><tr><th>#</th><th>Squad</th><th class="num">R1 Kills</th><th class="num">R2 Kills</th><th class="num">R3 Kills</th><th class="num">Total</th></tr></thead><tbody id="lb-tbody"></tbody></table>`;
+  const kc=_noKills?'':'<th class="num">R1 Kills</th><th class="num">R2 Kills</th><th class="num">R3 Kills</th>';
+  return `<table class="pts-table"><thead><tr><th>#</th><th>Squad</th>${kc}<th class="num">Total</th></tr></thead><tbody id="lb-tbody"></tbody></table>`;
 }
 function rowHTML(r){
-  return `<td class="rk" data-role="rk">${r.rank}</td>`+
-    `<td class="team" data-role="team">${r.logo?`<img src="${esc(r.logo)}" alt="">`:''}<span class="team-name">${fxText(r.fx,r.team,true)}</span></td>`+
+  const kc=_noKills?'':
     `<td class="num" data-role="r1"><span class="num-val">${r.r1k}</span></td>`+
     `<td class="num" data-role="r2"><span class="num-val">${r.r2k}</span><span class="arrow-slot">${mvArrow(r.moveR2)}</span></td>`+
-    `<td class="num" data-role="r3"><span class="num-val">${r.r3k}</span><span class="arrow-slot">${mvArrow(r.moveR3)}</span></td>`+
+    `<td class="num" data-role="r3"><span class="num-val">${r.r3k}</span><span class="arrow-slot">${mvArrow(r.moveR3)}</span></td>`;
+  return `<td class="rk" data-role="rk">${r.rank}</td>`+
+    `<td class="team" data-role="team">${r.logo?`<img src="${esc(r.logo)}" alt="">`:''}<span class="team-name">${fxText(r.fx,r.team,true)}</span></td>`+
+    kc+
     `<td class="tot" data-role="tot"><span class="num-val">${r.totalPts}</span></td>`;
 }
 function makeRow(r){
@@ -438,12 +462,12 @@ function updateRow(tr,r,prev){
     tr.querySelector('.team-name').innerHTML=fxText(r.fx,r.team,true);
   }
   tr.dataset.fx=r.fx||'';
-  animateCount(tr.querySelector('[data-role="r1"] .num-val'),r.r1k,{stiffness:170,damping:20});
-  animateCount(tr.querySelector('[data-role="r2"] .num-val'),r.r2k,{stiffness:170,damping:20});
-  animateCount(tr.querySelector('[data-role="r3"] .num-val'),r.r3k,{stiffness:170,damping:20});
+  const r1=tr.querySelector('[data-role="r1"] .num-val');if(r1)animateCount(r1,r.r1k,{stiffness:170,damping:20});
+  const r2=tr.querySelector('[data-role="r2"] .num-val');if(r2)animateCount(r2,r.r2k,{stiffness:170,damping:20});
+  const r3=tr.querySelector('[data-role="r3"] .num-val');if(r3)animateCount(r3,r.r3k,{stiffness:170,damping:20});
   animateCount(tr.querySelector('[data-role="tot"] .num-val'),r.totalPts,{stiffness:170,damping:20});
-  tr.querySelector('[data-role="r2"] .arrow-slot').innerHTML=mvArrow(r.moveR2);
-  tr.querySelector('[data-role="r3"] .arrow-slot').innerHTML=mvArrow(r.moveR3);
+  const a2=tr.querySelector('[data-role="r2"] .arrow-slot');if(a2)a2.innerHTML=mvArrow(r.moveR2);
+  const a3=tr.querySelector('[data-role="r3"] .arrow-slot');if(a3)a3.innerHTML=mvArrow(r.moveR3);
 }
 function staggerRows(tbody){
   [...tbody.children].forEach((tr,i)=>{
@@ -488,9 +512,18 @@ async function renderPredict(d){
   }catch(e){sec.hidden=true;}
 }
 function render(d){
+  _lastDoc=d;
   linkBo3(d);
   renderPredict(d);
   const B=d.bo3;
+  // fetch squad logos for this board once (registrations carry none; they live on the player)
+  if(B&&B.tournament&&_logoSlug!==B.tournament&&sb){
+    _logoSlug=B.tournament;
+    sb.rpc('get_squad_logos',{p_slug:B.tournament}).then(({data})=>{
+      _logoMap={};(data||[]).forEach(x=>{if(x.logo)_logoMap[fxKey(x.squad_name)]=x.logo;});
+      if(_lastDoc)render(_lastDoc);
+    }).catch(()=>{});
+  }
   const has=B&&B.published&&B.teams&&B.teams.length;
   const sub=document.getElementById('lb-sub');
   const podium=document.getElementById('podium');
@@ -504,7 +537,8 @@ function render(d){
   }
   sub.textContent=B.title||(B.tournament?B.tournament+' · Best-of-3 standings':'Best-of-3 standings');
   const rows=bo3Standings(B);
-  rows.forEach(r=>{r.fx=fxOf(B.tournament,r.team,d);if(!r.logo){const x=_roster.find(y=>y.tournament_slug===B.tournament&&fxKey(y.squad_name)===fxKey(r.team));if(x&&x.squad_logo)r.logo=x.squad_logo;}});
+  _noKills=rows.every(r=>((r.r1k||0)+(r.r2k||0)+(r.r3k||0))===0);
+  rows.forEach(r=>{r.fx=fxOf(B.tournament,r.team,d);if(!r.logo){const lg=_logoMap[fxKey(r.team)];if(lg)r.logo=lg;}});
   renderChamp(d,rows);
   const rowMap=new Map(rows.map(r=>[r.team,r]));
 
@@ -583,7 +617,7 @@ function load(){
   });
 }
 load();
-if(location.hash==="#clash")lbTab("clash");
+lbTab(location.hash==="#clash"?"clash":location.hash==="#latest"?"latest":"season");
 setInterval(()=>{if(!document.hidden)load();},15000);
 </script>
 <script src="/ui.js?v=16" defer></script>

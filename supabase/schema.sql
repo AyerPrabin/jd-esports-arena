@@ -5823,3 +5823,42 @@ grant execute on function public.admin_money_flow() to service_role;
 
 commit;
 
+
+-- ── leaderboard season standings + squad logos (2026-10-18) ──
+-- ── leaderboard: season standings + per-tournament squad logos (2026-10-18) ──
+begin;
+
+-- Combined season standings from archived results (public data only).
+create or replace function public.get_season_standings()
+returns table(squad_name text, events int, points bigint, kills bigint, wins int, best_place int, prize numeric)
+language sql stable security definer set search_path = public as $$
+  select max(tr.squad_name) as squad_name,
+         count(distinct tr.tournament_slug)::int as events,
+         sum(tr.points)::bigint as points,
+         sum(tr.kills)::bigint as kills,
+         sum(case when tr.placement = 1 then 1 else 0 end)::int as wins,
+         min(tr.placement)::int as best_place,
+         sum(tr.prize_won) as prize
+  from public.tournament_results tr
+  group by lower(trim(tr.squad_name))
+  order by sum(tr.points) desc, sum(tr.kills) desc, max(tr.squad_name) asc;
+$$;
+revoke all on function public.get_season_standings() from public;
+grant execute on function public.get_season_standings() to anon, authenticated;
+
+-- Logos for the squads registered in one tournament (reg logo, else the player's saved one).
+create or replace function public.get_squad_logos(p_slug text)
+returns table(squad_name text, logo text)
+language sql stable security definer set search_path = public as $$
+  select r.squad_name, coalesce(nullif(r.squad_logo, ''), p.squad_logo) as logo
+  from public.registrations r
+  join public.players p on p.id = r.player_id
+  where r.tournament_slug = p_slug
+    and r.status in ('confirmed','approved')
+    and coalesce(nullif(r.squad_logo, ''), p.squad_logo) is not null;
+$$;
+revoke all on function public.get_squad_logos(text) from public;
+grant execute on function public.get_squad_logos(text) to anon, authenticated;
+
+commit;
+
