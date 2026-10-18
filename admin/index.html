@@ -1745,7 +1745,8 @@ async function loadWithdrawals(){
     const rows=await waCall({action:'withdrawals'});
     box.innerHTML=rows.length?rows.map(w=>`<div class="card"><div class="grid">
       <div class="f"><label>Player</label><input value="${esc(w.players?('@'+(w.players.username||w.players.player_tag)):'')}" disabled></div>
-      <div class="f"><label>Send</label><input value="Rs ${w.amount}" disabled style="color:var(--gold-l);font-weight:700"></div>
+      <div class="f"><label>Send to eSewa (net)</label><input value="Rs ${w.payout!=null?w.payout:w.amount}" disabled style="color:var(--gold-l);font-weight:700"></div>
+      <div class="f"><label>Requested / fee kept</label><input value="Rs ${w.amount}${w.fee?(' · fee Rs '+w.fee):''}" disabled></div>
       <div class="f"><label>eSewa ID</label><input value="${esc(w.esewa_id)}" disabled></div>
       <div class="f"><label>Account name</label><input value="${esc(w.esewa_name)}" disabled></div>
       <div class="f"><label>Your eSewa transaction ID (optional)</label><input id="wp-${w.id}" placeholder="Shown to the player"></div>

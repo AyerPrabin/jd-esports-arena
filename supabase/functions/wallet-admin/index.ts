@@ -156,7 +156,7 @@ Deno.serve(async (req: Request) => {
 
   if (p.action === 'withdrawals') {
     const { data, error } = await supabase.from('withdraw_requests')
-      .select('id, amount, esewa_id, esewa_name, status, created_at, players(username, player_tag)')
+      .select('id, amount, fee, payout, esewa_id, esewa_name, status, created_at, players(username, player_tag)')
       .eq('status', 'pending').order('created_at', { ascending: true });
     if (error) return fail(error.message, 500);
     return json(data || []);

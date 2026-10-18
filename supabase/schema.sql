@@ -5335,3 +5335,82 @@ grant execute on function public.recent_announcements() to service_role;
 
 commit;
 
+
+-- ── 1% withdrawal platform fee, minimum 1 point (2026-10-18) ──
+-- Player is debited the full amount; platform keeps the fee; player receives `payout`.
+-- Old rows keep fee 0 / payout = amount (free), so past withdrawals are unaffected.
+begin;
+
+alter table public.withdraw_requests add column if not exists fee int not null default 0;
+alter table public.withdraw_requests add column if not exists payout int;
+update public.withdraw_requests set payout = amount where payout is null;
+
+create or replace function public.request_withdrawal(p_amount integer, p_esewa_id text, p_esewa_name text)
+returns jsonb language plpgsql security definer set search_path to 'public' as $function$
+declare
+  v_req public.withdraw_requests;
+  v_bal int;
+  v_fee int;
+  v_payout int;
+begin
+  if auth.uid() is null then raise exception 'Please sign in first.'; end if;
+  perform public._assert_open();
+  if exists(select 1 from public.wallets where player_id = auth.uid() and unlimited) then
+    raise exception 'The admin wallet has unlimited points, so it can''t be withdrawn.';
+  end if;
+  if (select count(*) from public.withdraw_requests where player_id = auth.uid() and created_at > now() - interval '1 hour') >= 3 then
+    raise exception 'Too many withdrawal requests — please wait an hour and try again.';
+  end if;
+  if p_amount is null or p_amount < 1 then raise exception 'Enter how many points to withdraw.'; end if;
+  -- 1% platform fee, at least 1 point. Net payout must be at least 1 point.
+  v_fee := greatest(1, ceil(p_amount::numeric / 100))::int;
+  v_payout := p_amount - v_fee;
+  if v_payout < 1 then
+    raise exception 'Withdraw at least 2 points (a 1%% platform fee, minimum 1 point, applies).';
+  end if;
+  p_esewa_id := trim(coalesce(p_esewa_id, ''));
+  p_esewa_name := trim(coalesce(p_esewa_name, ''));
+  if length(p_esewa_id) < 5 or length(p_esewa_id) > 40 then
+    raise exception 'Enter your eSewa ID (the phone number or email on your eSewa account).';
+  end if;
+  if length(p_esewa_name) < 2 or length(p_esewa_name) > 60 then
+    raise exception 'Enter the name on your eSewa account.';
+  end if;
+  insert into public.withdraw_requests (player_id, amount, esewa_id, esewa_name, fee, payout)
+  values (auth.uid(), p_amount, p_esewa_id, p_esewa_name, v_fee, v_payout) returning * into v_req;
+  v_bal := public._wallet_apply(auth.uid(), -p_amount, 'withdraw', v_req.id::text, null);
+  return jsonb_build_object('id', v_req.id, 'amount', p_amount, 'fee', v_fee, 'payout', v_payout, 'balance', v_bal);
+end; $function$;
+revoke all on function public.request_withdrawal(integer, text, text) from public, anon, authenticated;
+grant execute on function public.request_withdrawal(integer, text, text) to authenticated;
+
+-- resolver: tell the player the NET amount actually sent (payout), fall back to amount for old rows
+create or replace function public.admin_resolve_withdrawal(p_id uuid, p_paid boolean, p_payout_ref text)
+returns jsonb language plpgsql security definer set search_path to 'public' as $function$
+declare v_req public.withdraw_requests; v_net int;
+begin
+  update public.withdraw_requests
+    set status = case when p_paid then 'paid' else 'rejected' end, processed_at = now(),
+        payout_ref = nullif(trim(coalesce(p_payout_ref, '')), '')
+    where id = p_id and status = 'pending'
+    returning * into v_req;
+  if v_req.id is null then raise exception 'This withdrawal was already processed.'; end if;
+  if p_paid then
+    v_net := coalesce(v_req.payout, v_req.amount);
+    insert into public.notifications (player_id, title, body)
+    values (v_req.player_id, '💸 Withdrawal sent: Rs ' || v_net,
+            'Rs ' || v_net || ' was sent to your eSewa (' || v_req.esewa_id || ')' ||
+            coalesce(' · ref ' || v_req.payout_ref, '') ||
+            case when coalesce(v_req.fee,0) > 0 then ' · after a ' || v_req.fee || '-point platform fee' else '' end || '.');
+  else
+    perform public._wallet_apply(v_req.player_id, v_req.amount, 'withdraw_returned', v_req.id::text, null);
+    insert into public.notifications (player_id, title, body)
+    values (v_req.player_id, 'Withdrawal not processed',
+            'Your withdrawal of ' || v_req.amount || ' points could not be sent, so the points were returned to your wallet. Please check your eSewa details or contact us on WhatsApp.');
+  end if;
+  return jsonb_build_object('id', v_req.id, 'status', v_req.status, 'payout', coalesce(v_req.payout, v_req.amount));
+end; $function$;
+revoke all on function public.admin_resolve_withdrawal(uuid, boolean, text) from public, anon, authenticated;
+grant execute on function public.admin_resolve_withdrawal(uuid, boolean, text) to service_role;
+
+commit;

@@ -256,6 +256,7 @@ input:focus{border-color:var(--gold)}
         <div class="summary">
           <div><span>Points leaving your wallet</span><b id="sum-pts">0</b></div>
           <div><span>Balance after</span><b id="sum-after">0</b></div>
+          <div><span>Platform fee</span><b id="sum-fee">—</b></div>
           <div class="big"><span>You receive on eSewa</span><b id="sum-rs">Rs 0</b></div>
         </div>
         <div class="msg" id="wd-msg"></div>
@@ -401,10 +402,13 @@ function renderWithdrawForm(){
   const n=parseInt($('wd-amt').value,10)||0;
   $('wd-chips').innerHTML=[50,100,500].filter(a=>a<bal).map(a=>`<button type="button" class="chip" data-a="${a}">${a}</button>`).join('')+(bal>0?`<button type="button" class="chip" data-a="${bal}">All · ${bal}</button>`:'');
   $('wd-chips').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{$('wd-amt').value=c.dataset.a;renderWithdrawForm();});
+  const fee=n>=1?Math.max(1,Math.ceil(n/100)):0;
+  const receive=Math.max(0,n-fee);
   $('sum-pts').textContent=n.toLocaleString();
   $('sum-after').textContent=Math.max(0,bal-n).toLocaleString();
   $('sum-after').style.color=n>bal?'var(--red)':'';
-  $('sum-rs').textContent='Rs '+n.toLocaleString();
+  $('sum-rs').textContent='Rs '+receive.toLocaleString();
+  const fn=$('sum-fee'); if(fn) fn.textContent=fee?('− Rs '+fee+' (1% fee, min 1)'):'—';
 }
 $('wd-amt').oninput=renderWithdrawForm;
 try{const saved=JSON.parse(localStorage.getItem('jd_esewa')||'{}');if(saved.id)$('wd-id').value=saved.id;if(saved.name)$('wd-name').value=saved.name;}catch(e){}
@@ -415,7 +419,9 @@ $('wd-btn').onclick=async()=>{
   if(n>bal){msg.className='msg err';msg.textContent=`You only have ${bal} points.`;return;}
   if(id.length<5){msg.className='msg err';msg.textContent='Enter your eSewa ID (phone number or email).';return;}
   if(name.length<2){msg.className='msg err';msg.textContent='Enter the name on your eSewa account.';return;}
-  const ok=await confirmBox(`Withdraw ${n} points?`,`Rs ${n} will be sent to ${id} (${name}).\n\nThe points leave your wallet now. If we can't send it, they come back.`,'Request withdrawal');
+  const fee=Math.max(1,Math.ceil(n/100)),receive=n-fee;
+  if(receive<1){msg.className='msg err';msg.textContent='Withdraw at least 2 points (a 1% fee, min 1 point, applies).';return;}
+  const ok=await confirmBox(`Withdraw ${n} points?`,`Rs ${receive} will be sent to ${id} (${name}) after a ${fee}-point platform fee (1%, min 1).\n\nThe ${n} points leave your wallet now. If we can't send it, they come back in full.`,'Request withdrawal');
   if(!ok)return;
   $('wd-btn').disabled=true;msg.textContent='Sending request…';
   const {error}=await sb.rpc('request_withdrawal',{p_amount:n,p_esewa_id:id,p_esewa_name:name});
