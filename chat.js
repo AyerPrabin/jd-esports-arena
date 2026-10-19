@@ -985,23 +985,28 @@
   var acctCache = null, acctAt = 0;
   async function zuluAccount() {
     if (!me) return '';
-    if (acctCache != null && Date.now() - acctAt < 120000) return acctCache;
+    if (acctCache != null && Date.now() - acctAt < 30000) return acctCache;
     var lines = [];
     try {
       var r = await Promise.all([
         SB.from('wallets').select('balance, unlimited').eq('player_id', me).maybeSingle(),
         SB.from('registrations').select('tournament_slug, status, checked_in_at').eq('player_id', me).order('created_at', { ascending: false }).limit(5),
-        th ? Promise.resolve(null) : SB.rpc('chat_threads')
+        th ? Promise.resolve(null) : SB.rpc('chat_threads'),
+        SB.from('notifications').select('title, body, created_at').eq('player_id', me).order('created_at', { ascending: false }).limit(6)
       ]);
       if (myCard) lines.push('Me: ' + (myCard.username ? '@' + myCard.username : '') + ' ' + (myCard.player_tag || '') + (myCard.squad_name ? ', squad "' + myCard.squad_name + '"' : ''));
       var w = r[0].data; if (w) lines.push('Points balance: ' + (w.unlimited ? 'unlimited (admin)' : (w.balance || 0) + ' JD points'));
       var tours = (tourCache && tourCache.tournaments) || [];
       (r[1].data || []).forEach(function (g) {
         var t = tours.find(function (x) { return x.name === g.tournament_slug; }) || {};
-        lines.push('My ticket: ' + g.tournament_slug + ' (' + (g.status === 'no_show' ? 'released earlier' : g.status) + ', slot kept, no check-in needed)' + (t.date ? ', ' + t.date + ' ' + (t.time || '') : '') + (t.status ? ', event ' + t.status : ''));
+        lines.push('My ticket: ' + g.tournament_slug + ' (' + (g.status === 'no_show' ? 'no-show, did not play' : g.status) + ', slot kept, no check-in needed)' + (t.date ? ', ' + t.date + ' ' + (t.time || '') : '') + (t.status ? ', event ' + t.status : ''));
       });
       var mt = ((th || (r[2] && r[2].data) || {}).matches) || [];
       mt.forEach(function (m) { lines.push('My challenge: ' + m.mode + ' vs ' + nameOf(m.other) + ', ' + m.status + ', ' + m.stake + ' pts each' + (m.status !== 'completed' ? (m.room_id ? ', room posted' : ', no room posted yet') : '')); });
+      ((r[3] && r[3].data) || []).forEach(function (n) {
+        var b = String(n.body || ''); if (b.indexOf('TICKET::') === 0) b = '';
+        lines.push('My notification (' + String(n.created_at || '').slice(0, 16).replace('T', ' ') + ' UTC): ' + String(n.title || '').slice(0, 90) + (b ? ' — ' + b.slice(0, 220) : ''));
+      });
       if (ov) lines.push('Friends: ' + ov.friends.length + (ov.incoming.length ? ', ' + ov.incoming.length + ' friend request(s) waiting' : ''));
     } catch (e) {}
     acctCache = lines.join('\n'); acctAt = Date.now();
