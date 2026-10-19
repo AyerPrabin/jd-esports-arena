@@ -855,6 +855,7 @@ footer #about-link,footer a[href="/ban-list.html"]{display:inline-flex;align-ite
 .ban-ch figcaption b{display:block;color:var(--cream);font-size:.92rem}
 .ban-ch figcaption b::before{content:'🚫 '}
 .ban-ch figcaption i{display:block;font-style:normal;color:var(--gold-l);margin:1px 0 4px}
+.reg-rules-link{display:inline-block;margin:8px 0 0;color:var(--gold-l);text-decoration:underline;font-weight:600}
 .reg-ch{display:flex;gap:6px;margin:6px 0 0}
 .reg-ch img{width:38px;height:38px;border-radius:50%;object-fit:cover;object-position:top;border:1px solid rgba(227,107,107,.6);background:rgba(227,107,107,.12)}
 .reg-rules,.reg-noshow{margin:12px 0 0;padding:10px 12px;border-radius:10px;font-size:.82rem;line-height:1.45}
@@ -1253,6 +1254,7 @@ footer #about-link,footer a[href="/ban-list.html"]{display:inline-flex;align-ite
       <div class="step"><b>🚫 No duplicate active skills</b><span>Two players in the same squad can't use the same active skill.</span></div>
       <div class="step"><b>🚫 No zone pushing</b><span>Zone pusher is not allowed — play the zone normally.</span></div>
     </div>
+    <a class="btn-primary" href="/rules/" style="display:inline-flex;margin:18px 0 0">📜 Read the full tournament rules</a>
     <h3 class="ban-ch-h">🚫 Banned characters</h3>
     <div class="ban-ch">
       <figure><img src="characters/orion.webp" alt="Orion" loading="lazy" width="213" height="360"><figcaption><b>Orion</b><i>Crimson Crush · Active</i><span>Uses Crimson Energy to become immune to damage for 3s while draining HP from enemies within 5m.</span></figcaption></figure>
@@ -1282,7 +1284,7 @@ footer #about-link,footer a[href="/ban-list.html"]{display:inline-flex;align-ite
   </div>
   <div>JD Esports Arena · AyerFire</div>
   <div class="live-note" id="arena-foot"></div>
-  <div style="margin-top:10px"><a id="about-link" data-i18n="about" href="/about/">About</a> · <a href="/ban-list.html">🛡️ Ban List</a></div>
+  <div style="margin-top:10px"><a id="about-link" data-i18n="about" href="/about/">About</a> · <a href="/rules/">📜 Rules</a> · <a href="/ban-list.html">🛡️ Ban List</a></div>
 </footer>
 
 <div class="fab-nudge" id="fab-nudge" onclick="fbOpen()"><button class="fab-nudge-x" onclick="event.stopPropagation();dismissNudge()" aria-label="dismiss">×</button><span id="fab-nudge-text"></span></div>
@@ -1334,11 +1336,12 @@ footer #about-link,footer a[href="/ban-list.html"]{display:inline-flex;align-ite
       <b>📜 Tournament rules</b>
       <ol>
         <li>🚫 Entering the room without your squad is banned.</li>
-        <li>🚫 Character skills not allowed: Orion, Sonia, Dimitri, Ryden. <a href="#matchsettings" onclick="regClose()">See their skills</a>
+        <li>🚫 Character skills not allowed: Orion, Sonia, Dimitri, Ryden. <a href="/rules/#banned-characters" target="_blank" rel="noopener">See their skills</a>
           <div class="reg-ch"><img src="characters/orion.webp" alt="Orion" title="Orion" loading="lazy"><img src="characters/sonia.webp" alt="Sonia" title="Sonia" loading="lazy"><img src="characters/dimitri.webp" alt="Dimitri" title="Dimitri" loading="lazy"><img src="characters/ryden.webp" alt="Ryden" title="Ryden" loading="lazy"></div></li>
         <li>🚫 Two players in the same squad can't use the same active skill.</li>
         <li>🚫 Zone pusher is not allowed.</li>
       </ol>
+      <a class="reg-rules-link" href="/rules/" target="_blank" rel="noopener">📖 Read the full rules with pictures →</a>
       <label class="tc-check"><input type="checkbox" id="reg-rules-ok"><span>I have read these rules and my whole squad agrees to follow them. Breaking them can get us disqualified or banned.</span></label>
     </div>
     <div class="msg" id="reg-msg"></div>

@@ -1,0 +1,184 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#05080f">
+<link rel="icon" type="image/png" href="/favicon-64.png">
+<title>Tournament Rules — JD Esports Arena</title>
+<meta name="description" content="JD Esports Arena tournament rules: full squad only, banned characters (Orion, Sonia, Dimitri, Ryden), no duplicate active skills, no zone pusher.">
+<meta property="og:title" content="Tournament Rules — JD Esports Arena">
+<meta property="og:description" content="Read the rules every squad agrees to before getting a slot.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05080f;--bg-2:#0a0e1a;--panel:#0e1424;--line:#1c2840;
+  --gold:#c9a84c;--gold-l:#e2c97e;--gold-m:#7e6630;--cream:#f4efe6;--silver:#aab4cc;--body:#7e8eb0;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:var(--font-body);font-weight:300;line-height:1.65;overflow-x:hidden}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--gold-m)}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:720px;margin:0 auto;padding:0 22px}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(1100px 560px at 72% -12%,rgba(201,168,76,.10),transparent 60%),radial-gradient(820px 460px at 8% 112%,rgba(126,102,48,.10),transparent 60%);pointer-events:none;z-index:0}
+header,main,footer{position:relative;z-index:1}
+/* top bar */
+.bar{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+.brand{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none}
+.jdlogo{width:34px;height:34px;border-radius:8px;object-fit:cover;flex:none;display:block}
+.brand b{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.05rem;letter-spacing:.01em}
+.brand span{display:block;font-size:.64rem;letter-spacing:.01em;color:var(--gold-l)}
+.bar .back{font-size:.78rem;font-weight:600;padding:8px 15px;border:1px solid var(--gold-m);border-radius:30px;color:var(--gold-l);transition:.2s}
+.bar .back:hover{background:rgba(201,168,76,.12)}
+/* hero */
+.hero{padding:46px 0 14px}
+.hero .eye{font-size:.7rem;letter-spacing:.01em;color:var(--gold-l);margin-bottom:16px}
+.hero h1{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:clamp(2.3rem,8vw,3.6rem);line-height:1.04;margin:0 0 10px}
+.hero .role{color:var(--gold-l);font-size:.98rem;letter-spacing:.02em;margin-bottom:24px}
+.hero p{color:var(--body);font-size:1.04rem;max-width:620px;margin:0}
+.hero p strong{color:var(--cream);font-weight:500}
+/* facts */
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:38px 0 8px}
+@media(max-width:520px){.facts{grid-template-columns:1fr}}
+.fact{background:var(--panel);padding:18px 20px}
+.fact .k{font-size:.62rem;letter-spacing:.01em;color:var(--gold-l);margin-bottom:6px}
+.fact .v{color:var(--cream);font-size:.94rem;font-weight:400}
+/* contact */
+.sec-h{display:flex;align-items:baseline;gap:14px;margin:46px 0 22px}
+.sec-h h2{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.45rem;margin:0}
+.sec-h .ln{flex:1;height:1px;background:var(--line)}
+.contact{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.crow{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 17px;transition:transform .25s ease,border-color .25s ease}
+.crow:hover{transform:translateY(-3px);border-color:var(--gold)}
+.crow .ic{width:38px;height:38px;flex:none;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--gold-m));display:flex;align-items:center;justify-content:center;color:#0a0a12;font-weight:700;font-family:'Barlow Condensed',sans-serif;font-size:.95rem}
+.crow .lbl{font-size:.66rem;letter-spacing:.01em;color:var(--silver)}
+.crow .val{color:var(--cream);font-size:.92rem;font-weight:500;word-break:break-word}
+/* footer */
+footer{border-top:1px solid var(--line);margin-top:54px;padding:30px 0 40px;text-align:center;color:var(--silver);font-size:.82rem}
+footer a{color:var(--gold-l)}
+footer > div > a{display:inline-flex;align-items:center;min-height:36px}
+</style>
+<link rel="stylesheet" href="/ui.css?v=16">
+<link rel="stylesheet" href="/broadcast.css?v=5">
+<style>
+.rule{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 18px 20px;margin:0 0 16px;scroll-margin-top:16px}
+.rule h3{display:flex;align-items:center;gap:10px;margin:0 0 6px;font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:700}
+.rule h3 .n{flex:none;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(227,107,107,.16);border:1px solid rgba(227,107,107,.6);color:#E36B6B;font-size:.95rem}
+.rule>p{color:var(--body);margin:0 0 12px}
+.rule>p strong{color:var(--cream);font-weight:500}
+.chars{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.ch{margin:0;border:1px solid rgba(227,107,107,.45);border-radius:12px;overflow:hidden;background:linear-gradient(180deg,rgba(227,107,107,.14),rgba(255,255,255,.02));position:relative}
+.ch>img{display:block;width:100%;height:180px;object-fit:contain;object-position:center bottom;filter:grayscale(.35)}
+.ch .x{position:absolute;top:8px;right:8px;font-size:1.3rem}
+.ch figcaption{padding:8px 10px 12px;font-size:.8rem;line-height:1.45;color:var(--body)}
+.ch figcaption b{display:block;color:var(--cream);font-size:.98rem}
+.sk{display:flex;align-items:center;gap:6px;color:var(--gold-l);margin:2px 0 4px}
+.sk img{width:22px;height:22px;border-radius:5px}
+.dup{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:6px 0}
+.dup .p{width:118px;text-align:center;font-size:.78rem;color:var(--body)}
+.dup .p>img{display:block;width:118px;height:150px;object-fit:contain;object-position:bottom}
+.dup .p .sk{justify-content:center}
+.dup .vs{font-size:2rem}
+.ok-bad{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;font-size:.84rem;color:var(--body)}
+.ok-bad div{border-radius:10px;padding:10px 12px}
+.ok-bad b{color:var(--cream)}
+.ok-bad .bad{background:rgba(227,107,107,.1);border:1px solid rgba(227,107,107,.45)}
+.ok-bad .good{background:rgba(110,200,140,.08);border:1px solid rgba(110,200,140,.4)}
+.zone{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);max-width:420px;margin:0 auto}
+.zone img{display:block;width:100%;height:auto}
+.zone svg{position:absolute;inset:0;width:100%;height:100%}
+.squad{font-size:1.7rem;letter-spacing:2px;margin:4px 0 2px}
+.more{padding-left:20px}
+.more li{color:var(--body);margin:0 0 8px}
+.more li strong{color:var(--cream);font-weight:500}
+@media(max-width:420px){.ok-bad{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <div class="bar">
+    <a class="brand" href="/" aria-label="JD Esports Arena home"><img class="jdlogo" src="/logo.png" alt="JD Esports Arena" width="34" height="34"><div><b>JD Esports Arena</b><span>by AyerFire</span></div></a>
+    <a class="back" href="/">← JD Arena</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="eye">Tournament rules</div>
+    <h1>Play fair. Play together.</h1>
+    <div class="role">Every squad agrees to these rules before getting a slot</div>
+    <p>These rules apply to <strong>every JD Esports Arena tournament</strong>. Breaking one can get your squad <strong>disqualified</strong> from the match and <strong>banned</strong> from future tournaments.</p>
+  </section>
+
+  <div class="sec-h"><h2>The rules</h2><span class="ln"></span></div>
+
+  <article class="rule" id="full-squad">
+    <h3><span class="n">1</span>Full squad only</h3>
+    <p><strong>Entering the room without your squad is banned.</strong> Join the custom room together with your registered squad. A player who enters alone, without the squad, will be removed.</p>
+    <div class="ok-bad">
+      <div class="good">✅ <b>Allowed</b><div class="squad">🧑🧑🧑🧑</div>Your registered squad joins the room together.</div>
+      <div class="bad">🚫 <b>Not allowed</b><div class="squad">🧑</div>One player enters the room alone, without the squad.</div>
+    </div>
+  </article>
+
+  <article class="rule" id="banned-characters">
+    <h3><span class="n">2</span>Banned character skills</h3>
+    <p>You <strong>can't use these characters' skills</strong>: Orion, Sonia, Dimitri and Ryden. Don't equip them for tournament matches.</p>
+    <div class="chars">
+      <figure class="ch"><span class="x">🚫</span><img src="/characters/orion.webp" alt="Orion" loading="lazy" width="213" height="360"><figcaption><b>Orion</b><span class="sk"><img src="/characters/orion-skill.webp" alt="">Crimson Crush · Active</span>Uses Crimson Energy to become immune to damage for 3s while draining HP from enemies within 5m.</figcaption></figure>
+      <figure class="ch"><span class="x">🚫</span><img src="/characters/sonia.webp" alt="Sonia" loading="lazy" width="240" height="349"><figcaption><b>Sonia</b><span class="sk"><img src="/characters/sonia-skill.webp" alt="">Nano Lifeshield · Passive</span>After taking fatal damage, becomes invulnerable for a moment and gets a 1 HP shield for 2s.</figcaption></figure>
+      <figure class="ch"><span class="x">🚫</span><img src="/characters/dimitri.webp" alt="Dimitri" loading="lazy" width="240" height="349"><figcaption><b>Dimitri</b><span class="sk"><img src="/characters/dimitri-skill.webp" alt="">Healing Heartbeat · Active</span>Creates a 4m healing zone (10 HP/s) where downed players get back up on their own.</figcaption></figure>
+      <figure class="ch"><span class="x">🚫</span><img src="/characters/ryden.webp" alt="Ryden" loading="lazy" width="240" height="349"><figcaption><b>Ryden</b><span class="sk"><img src="/characters/ryden-skill.webp" alt="">Spider Trap · Active</span>Sends an explosive spider that catches an enemy within 5m, slows them by 80% and drains 10 HP/s.</figcaption></figure>
+    </div>
+  </article>
+
+  <article class="rule" id="same-active-skill">
+    <h3><span class="n">3</span>No duplicate active skills</h3>
+    <p><strong>Two players in the same squad can't use the same active skill.</strong> Every player in your squad needs a different active skill.</p>
+    <div class="dup">
+      <div class="p"><img src="/characters/alok.webp" alt="Alok" loading="lazy" width="240" height="349">Player 1<span class="sk"><img src="/characters/alok-skill.webp" alt="">Drop the Beat</span></div>
+      <div class="vs">🚫</div>
+      <div class="p"><img src="/characters/alok.webp" alt="Alok" loading="lazy" width="240" height="349">Player 2<span class="sk"><img src="/characters/alok-skill.webp" alt="">Drop the Beat</span></div>
+    </div>
+    <div class="ok-bad">
+      <div class="bad">🚫 Two squad-mates both using Alok's <b>Drop the Beat</b>.</div>
+      <div class="good">✅ Each squad-mate uses a <b>different</b> active skill.</div>
+    </div>
+  </article>
+
+  <article class="rule" id="zone-pusher">
+    <h3><span class="n">4</span>No zone pusher</h3>
+    <p><strong>Zone pusher is not allowed.</strong> Play the safe zone normally and move in with the circle like everyone else.</p>
+    <div class="zone">
+      <img src="/maps/ff-bermuda.jpg" alt="Bermuda map with the safe zone marked" loading="lazy" width="1000" height="1000">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="54" cy="48" r="40" fill="none" stroke="#5aa9ff" stroke-width=".8"/>
+        <circle cx="54" cy="48" r="24" fill="rgba(255,255,255,.1)" stroke="#fff" stroke-width=".8" stroke-dasharray="2 1.5"/>
+        <text x="54" y="49.5" text-anchor="middle" font-size="4.5" fill="#fff" font-family="sans-serif" font-weight="700">SAFE ZONE</text>
+        <rect x="22" y="88" width="64" height="8" rx="2" fill="rgba(0,0,0,.65)"/>
+        <text x="54" y="93.6" text-anchor="middle" font-size="4.2" fill="#ff8a8a" font-family="sans-serif" font-weight="700">NO ZONE PUSHER</text>
+      </svg>
+    </div>
+  </article>
+
+  <div class="sec-h"><h2>Also remember</h2><span class="ln"></span></div>
+  <ul class="more">
+    <li><strong>Show up.</strong> Registering means you'll play. A squad that registers and doesn't join gets a warning, and another no-show gets the squad banned.</li>
+    <li><strong>Room settings</strong> are the same every match: gun attributes off, character skills on (except the banned ones), full map with the normal zone.</li>
+    <li><strong>Points:</strong> each match your squad gets points from the official room result. All matches add up and the highest total wins.</li>
+    <li><strong>No cheating.</strong> Hacks, mod menus or aimbots mean a permanent ban, listed on the <a href="/ban-list.html" style="color:var(--gold-l)">Ban List</a>.</li>
+  </ul>
+</main>
+
+<footer class="wrap">
+  <div>JD Esports Arena · AyerFire</div>
+  <div style="margin-top:6px;font-size:.74rem">Character images: Garena Free Fire, via Liquipedia.</div>
+  <div style="margin-top:8px"><a href="/">← Back to JD Esports Arena</a></div>
+</footer>
+<script src="/ui.js?v=16" defer></script>
+</body>
+</html>
