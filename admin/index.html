@@ -287,7 +287,7 @@ h2[id]{scroll-margin-top:64px}
 
   <details>
   <summary class="dsum">Best-of-3 Results <span class="tag">round-by-round · rank arrows</span></summary>
-  <p class="hint">Kills + points per round (Best of 3) for one tournament's bracket — the live site shows one bracket at a time. Picking a different tournament here doesn't touch the others' data, it's just which one is currently on display.</p>
+  <p class="hint">Points per match (3 matches, kills aren't counted separately) for one tournament's bracket — the live site shows one bracket at a time. Picking a different tournament here doesn't touch the others' data, it's just which one is currently on display.</p>
   <div class="grid">
     <div class="f full"><label>Tournament</label><select id="bo3-tourney" onchange="onBo3TourneyChange()"></select></div>
     <div class="f full"><label>Bracket title (optional)</label><input id="bo3-title" placeholder="e.g. JD Free Fire Open #1 — Finals"></div>
@@ -1000,9 +1000,9 @@ function renderBo3(){
   const teams=data.bo3.teams=data.bo3.teams||[];
   const box=document.getElementById('bo3list');if(!box)return;
   if(!teams.length){box.innerHTML='<p class="hint">No squads yet — "Load squads from roster" or "+ Add squad".</p>';return;}
-  box.innerHTML=`<table class="bo3-tbl"><thead><tr><th>Squad</th><th>R1 Kills</th><th>R1 Pts</th><th>R2 Kills</th><th>R2 Pts</th><th>R3 Kills</th><th>R3 Pts</th><th>Total</th><th>Prize won (NPR)</th><th></th></tr></thead><tbody>${teams.map((tm,i)=>{
+  box.innerHTML=`<table class="bo3-tbl"><thead><tr><th>Squad</th><th>M1 Pts</th><th>M2 Pts</th><th>M3 Pts</th><th>Total</th><th>Prize won (NPR)</th><th></th></tr></thead><tbody>${teams.map((tm,i)=>{
     tm.r=tm.r||[bo3Round(),bo3Round(),bo3Round()];
-    const rounds=[0,1,2].map(ri=>`<td><input data-bi="${i}" data-bri="${ri}" data-brk="kills" type="number" value="${esc(tm.r[ri].kills??0)}"></td><td><input data-bi="${i}" data-bri="${ri}" data-brk="pts" type="number" value="${esc(tm.r[ri].pts??0)}"></td>`).join('');
+    const rounds=[0,1,2].map(ri=>`<td><input data-bi="${i}" data-bri="${ri}" data-brk="pts" type="number" value="${esc(tm.r[ri].pts??0)}"></td>`).join('');
     return `<tr><td><input data-bi="${i}" data-bk="team" value="${esc(tm.team)}" placeholder="Squad name"></td>${rounds}<td class="bo3-tot">${bo3Total(tm)}</td><td><input data-bi="${i}" data-bk="prize_won" type="number" placeholder="0" value="${esc(tm.prize_won??'')}" style="min-width:80px"></td><td><button class="del" style="position:static;padding:6px 9px" onclick="delBo3Team(${i})">✕</button></td></tr>`;
   }).join('')}</tbody></table>`;
 }

@@ -190,7 +190,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
   </section>
   <canvas id="confetti-canvas"></canvas>
   </div>
-  <div class="points-note" id="lb-points-note"><b>How points work:</b> 1 point per kill, plus placement points — 1st 12 · 2nd 9 · 3rd 6 · 4th 5 · 5th 4 · 6th 3 · 7th 2 · 8th 1. Both add up to a squad's round total.</div>
+  <div class="points-note" id="lb-points-note"><b>How points work:</b> each match, a squad gets points from the official room result (kills aren't counted separately). All matches add up — the highest total wins.</div>
 </main>
 
 <footer>JD Esports Arena · AyerFire</footer>
@@ -223,7 +223,7 @@ function renderSeason(){
   const box=document.getElementById('alltime-body'),rows=_season||[];
   if(!rows.length){box.innerHTML='<div class="empty-state">No finished events yet — the season table fills in as results are published.</div>';return;}
   const medal=n=>n===1?'🥇':n===2?'🥈':n===3?'🥉':n;
-  box.innerHTML=`<table class="pts-table"><thead><tr><th>#</th><th>Squad</th><th class="num">Events</th><th class="num">Kills</th><th class="num">🏆</th><th class="num">Points</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td class="rk">${medal(i+1)}</td><td class="team"><span class="team-name">${esc(r.squad_name)}</span></td><td class="num">${r.events}</td><td class="num">${r.kills}</td><td class="num">${r.wins}</td><td class="tot"><span class="num-val">${r.points}</span></td></tr>`).join('')}</tbody></table>`;
+  box.innerHTML=`<table class="pts-table"><thead><tr><th>#</th><th>Squad</th><th class="num">Events</th><th class="num">🏆</th><th class="num">Points</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td class="rk">${medal(i+1)}</td><td class="team"><span class="team-name">${esc(r.squad_name)}</span></td><td class="num">${r.events}</td><td class="num">${r.wins}</td><td class="tot"><span class="num-val">${r.points}</span></td></tr>`).join('')}</tbody></table>`;
 }
 async function loadClash(){
   const box=document.getElementById('cs-body');
@@ -537,7 +537,7 @@ function render(d){
   }
   sub.textContent=B.title||(B.tournament?B.tournament+' · Best-of-3 standings':'Best-of-3 standings');
   const rows=bo3Standings(B);
-  _noKills=rows.every(r=>((r.r1k||0)+(r.r2k||0)+(r.r3k||0))===0);
+  _noKills=true; // kills aren't part of scoring any more — points only
   rows.forEach(r=>{r.fx=fxOf(B.tournament,r.team,d);if(!r.logo){const lg=_logoMap[fxKey(r.team)];if(lg)r.logo=lg;}});
   renderChamp(d,rows);
   const rowMap=new Map(rows.map(r=>[r.team,r]));
