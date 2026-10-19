@@ -6,8 +6,10 @@ begin;
 create temp table rm on commit drop as
   select r.id, r.player_id, r.squad_name, r.tournament_slug, coalesce(r.paid_points,0) paid_points
   from public.registrations r
-  join public.jd_no_show_log l on l.player_id = r.player_id
-       and l.tournament_slug = 'JD Free Fire Open #6' and l.reason = 'did_not_show'
+  -- match the squad, not just the account: a teammate may have registered the same squad
+  join (select distinct squad_name from public.jd_no_show_log
+        where tournament_slug = 'JD Free Fire Open #6' and reason = 'did_not_show') l
+       on lower(trim(l.squad_name)) = lower(trim(r.squad_name))
   join public.site_content sc on sc.key = 'tournaments'
   join jsonb_array_elements(sc.content->'tournaments') t on t->>'name' = r.tournament_slug
   where r.tournament_slug <> 'JD Free Fire Open #6'
