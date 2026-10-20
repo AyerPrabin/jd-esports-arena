@@ -1869,7 +1869,7 @@ function applyLang(){
   var lb=document.getElementById('lang-btn');if(lb)lb.textContent=lang==='en'?'\u0928\u0947\u092a\u093e\u0932\u0940':'EN';
   var hc=document.getElementById('howto-cta');if(hc)hc.innerHTML=(typeof WHATSAPP_NUMBER==='string'&&WHATSAPP_NUMBER)?('<a class="btn-primary" href="'+esc(waLink(WA_DEFAULT_MSG))+'" target="_blank" rel="noopener">'+tr('wacta')+'</a>'):'';
   if(typeof zChrome==='function')zChrome();
-  render(_lastData||ARENA_SAMPLE);
+  renderCur();
 }
 function toggleLang(){lang=lang==='en'?'ne':'en';lsSet('jd_lang',lang);applyLang();}
 // ESC closes whichever modal overlay is currently open — checked in this order so
@@ -1895,9 +1895,28 @@ document.addEventListener('keydown',e=>{
 let _liveRoster=new Map();  // tournament name -> [{squad_name, squad_logo}]
 let _rosterLoaded=false;
 let _allTime=null,_arenaStats=null;
+/* First-ever visit: wait for real data instead of flashing the built-in sample (its numbers would jump);
+   the sample only appears if nothing real arrives within 7 s (offline / site down). */
+let _sampleOK=false;
+function renderCur(){if(_lastData)render(_lastData);else if(_sampleOK)render(ARENA_SAMPLE);}
+setTimeout(()=>{if(!_lastData){_sampleOK=true;renderCur();}},7000);
+/* Steady first paint: the last REAL data this browser saw (tournaments + all-time totals) is drawn at
+   once, so a visit no longer flips sample data -> GitHub copy -> totals with the numbers jumping each
+   time. ARENA_SAMPLE is only a fallback when nothing real has ever loaded. Refreshed after every render. */
+const SNAP_KEY='jd_snap_v1';
+let _snapBoot=false,_snapT=0;
+(function(){try{const sn=JSON.parse(lsGet(SNAP_KEY)||'null');
+  if(sn&&sn.doc&&Array.isArray(sn.doc.tournaments)){_lastData=sn.doc;_lastData._live=true;
+    _allTime=sn.allTime?new Map(sn.allTime):null;_arenaStats=sn.stats||null;_snapBoot=true;}}catch(e){}})();
+function saveSnap(){
+  if(!_lastData||!_lastData._live)return;
+  clearTimeout(_snapT);
+  _snapT=setTimeout(()=>{try{lsSet(SNAP_KEY,JSON.stringify({doc:_lastData,allTime:_allTime?[..._allTime]:null,stats:_arenaStats}));}catch(e){}},1500);
+}
 // counts a stat up from its current number (only when it changes, so the 5s refresh doesn't replay it)
 function setStat(id,n){
   const el=document.getElementById(id);if(!el)return;
+  if(el.dataset.v==null&&_snapBoot){el.dataset.v=n;el.textContent=n.toLocaleString();return;}  // cached visit: no count-up replay
   const from=+(el.dataset.v||0);if(from===n&&el.dataset.v!=null)return;
   el.dataset.v=n;const t0=performance.now(),dur=900;
   const step=t=>{const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=Math.round(from+(n-from)*e).toLocaleString();if(k<1)requestAnimationFrame(step);else{el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}};
@@ -1915,7 +1934,7 @@ async function loadPublicRoster(){
     m.get(r.tournament_slug).push({squad_name:r.squad_name,squad_logo:r.squad_logo,effect:r.effect||''});
   });
   _liveRoster=m;_rosterLoaded=true;
-  render(_lastData||ARENA_SAMPLE);
+  renderCur();
 }
 function teamsFor(t){
   if(sb&&_rosterLoaded){
@@ -2029,6 +2048,7 @@ setInterval(bcTick,1000);
 function render(d){
   linkBo3(d);
   _lastData=d;
+  saveSnap();
   try{bcRender(d);}catch(e){}
   const grid=document.getElementById('arena-grid');if(!grid)return;
   // The section is "Live + Upcoming", so show it that way: live, then upcoming soonest
@@ -2279,10 +2299,17 @@ function fetchPagesDoc(){
   const tryGet=u=>u?fetch(u,{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()):Promise.reject();
   return tryGet(same).catch(()=>tryGet(TOURNAMENTS_URL+'?'+bust)).then(d=>{_pagesDoc=d;});
 }
+/* The instant live copy (site_content) is checked every poll - one tiny updated_at read; the GitHub Pages
+   copy only once a minute (it lags publishes anyway). Re-render only when the winning copy changed. */
+let _pagesAt=0,_shownDoc=null;
 function refresh(){
-  Promise.all([fetchPagesDoc().catch(()=>{}),pollLiveContent().catch(()=>{})]).then(()=>{
+  const needPages=!_pagesDoc||Date.now()-_pagesAt>60000;
+  if(needPages)_pagesAt=Date.now();
+  Promise.all([needPages?fetchPagesDoc().catch(()=>{}):null,pollLiveContent().catch(()=>{})]).then(()=>{
     const d=(_liveDoc&&_pagesDoc)?(pubTime(_liveDoc)>=pubTime(_pagesDoc)?_liveDoc:_pagesDoc):(_liveDoc||_pagesDoc);
-    if(d){d._live=true;render(d);}
+    if(!d||d===_shownDoc)return;
+    if(_lastData&&_lastData!==d&&pubTime(d)&&pubTime(d)<pubTime(_lastData))return;   // never step back to an older copy
+    _shownDoc=d;d._live=true;render(d);
   });
 }
 
@@ -2610,7 +2637,7 @@ async function authLogout(){
   forgetPushDevice();
   _player=null;_myRegs=new Map();_roomCodes=new Map();_notifUnread=0;_discordLinkCode=null;
   trackPresence();
-  updateAcctBtn();updateNotifHistBtn();updateGate();render(_lastData||ARENA_SAMPLE);
+  updateAcctBtn();updateNotifHistBtn();updateGate();renderCur();
 }
 async function authAcceptTermsGate(){
   const cb=document.getElementById('au-tc-accept-gate');
@@ -2690,7 +2717,7 @@ async function authConfirmDeleteAccount(){
     // updateGate()/authRender() below would otherwise overwrite auth-body (login form) —
     // showMsg() uses its own dedicated overlay, so it's untouched by that.
     showMsg('Account deleted','Your account has been deleted.');
-    updateAcctBtn();updateNotifHistBtn();updateGate();render(_lastData||ARENA_SAMPLE);
+    updateAcctBtn();updateNotifHistBtn();updateGate();renderCur();
   }catch(e){authMsg('Could not delete your account: '+e.message);}
 }
 
@@ -2849,7 +2876,7 @@ async function loadMyRegs(){
   const passes=pr.data||[];
   _myPass=passes.find(x=>Date.parse(x.starts_at)<=Date.now())||null;
   _myPassEnd=passes.length?passes[passes.length-1].expires_at:null;
-  render(_lastData||ARENA_SAMPLE);
+  renderCur();
 }
 function registerInApp(name){
   if(!sb)return;
@@ -3015,7 +3042,7 @@ async function submitRegister(){
   regClose();
   regSuccessOpen(t,effectiveStatus,reg);
   if(codeErr){const n=document.getElementById('rs-note');if(n)n.innerHTML+=`<br><br><b>Payment not completed:</b> ${esc(codeErr)} Your place is held — you can pay from your ticket.`;}
-  render(_lastData||ARENA_SAMPLE);
+  renderCur();
   loadPublicRoster(); // pulls the new registration into the public count/roster right away instead of waiting for the 45s poll
 }
 // Ticket shown to the player is just their registration row's own id, short-formed — not a
@@ -3111,7 +3138,7 @@ async function checkInForTournament(name){
   if(error){showMsg('Check-in failed',error.message,true);return;}
   const r=_myRegs.get(name)||{};
   _myRegs.set(name,{...r,checked_in_at:(data&&data.checked_in_at)||new Date().toISOString()});
-  render(_lastData||ARENA_SAMPLE);
+  renderCur();
 }
 // Confirmation rule (2026-10): after registering, a squad must tap "Confirm you're playing".
 // Squads not confirmed by 24h before start are removed by jd_confirm_sweep() (schema.sql),
@@ -3128,7 +3155,7 @@ async function confirmAttendance(name){
   if(error){showMsg('Could not confirm',error.message,true);return;}
   const r=_myRegs.get(name)||{};
   _myRegs.set(name,{...r,checked_in_at:(data&&data.checked_in_at)||new Date().toISOString()});
-  render(_lastData||ARENA_SAMPLE);
+  renderCur();
 }
 /* Match ticket: everything a registered player needs on match day, on the card itself —
    squad + ticket code (tap to copy), a 3-step tracker (Registered → Checked in → Room
@@ -3184,7 +3211,7 @@ async function payEntryWithPoints(name){
   if(error){showMsg('Payment not completed',error.message,true);return;}
   const r=_myRegs.get(name);if(r){r.status='approved';r.paid_points=price;}
   showMsg('Entry confirmed',`${price} points paid. Your squad is confirmed for ${name}. Wallet balance: ${data&&data.balance!=null?data.balance:'—'} points.`);
-  await loadWallet();await loadPublicRoster();render(_lastData||ARENA_SAMPLE);
+  await loadWallet();await loadPublicRoster();renderCur();
 }
 function earlyAccess(t){
   if(String(t.early_access||'').toLowerCase()!=='yes')return '';
@@ -3548,7 +3575,7 @@ async function fxShopSubmit(){
       :`Your ${FX_PLANS[d.kind]?FX_PLANS[d.kind].name:'pass'} is active until ${fxDate(d.expires_at)}${Date.parse(d.starts_at)>Date.now()+60000?` (it starts ${fxDate(d.starts_at)}, when your current pass ends)`:''}. ${tag} shows on every tournament you join. You can change the effect any time from your ticket.`);
   }
   await loadPublicRoster();
-  render(_lastData||ARENA_SAMPLE);
+  renderCur();
 }
 /* Styled yes/no dialog (native confirm() looks out of place and blocks the page).
    Resolves true only when the player presses the confirm button. */
@@ -3614,7 +3641,7 @@ async function withdrawSquad(name){
   showMsg('Squad withdrawn',`${squad} has been removed from ${name} and the slot has been released.`+(got?`\n\n${got} points were refunded to your wallet.`:(isPaid&&r.paid_points===0&&(r.status==='approved'||r.status==='confirmed')?`\n\n${fee}`:'')));
   await loadWallet();
   await loadPublicRoster();
-  render(_lastData||ARENA_SAMPLE);
+  renderCur();
 }
 function showMsg(title,body,isErr){
   document.getElementById('msg-title').textContent=title;
@@ -3776,7 +3803,7 @@ async function loadNotifications(markSeenOnOpen){
   // at the exact moment they're racing to join the lobby.
   const rc=new Map();
   for(const r of rows)if(r.room_id&&r.tournament_slug&&!rc.has(r.tournament_slug))rc.set(r.tournament_slug,{room_id:r.room_id,room_pass:r.room_pass||''});
-  if(JSON.stringify([...rc])!==JSON.stringify([..._roomCodes])){_roomCodes=rc;render(_lastData||ARENA_SAMPLE);}
+  if(JSON.stringify([...rc])!==JSON.stringify([..._roomCodes])){_roomCodes=rc;renderCur();}
   _notifRows=rows;if(markSeenOnOpen)_notifFilter='all';renderNotifList();
   if(markSeenOnOpen&&rows.some(r=>!r.read_at)){
     const ids=rows.filter(r=>!r.read_at).map(r=>r.id);

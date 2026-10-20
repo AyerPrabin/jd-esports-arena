@@ -5,272 +5,428 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#05080f">
 <link rel="icon" type="image/png" href="/favicon-64.png">
-<title>JD-Optimiers — JD Esports Arena</title>
-<meta name="description" content="JD-Optimiers: Windows FPS booster, mouse tuner and panel scanner for Free Fire on MSI App Player / BlueStacks 5. By AyerFire.">
-<meta property="og:title" content="JD-Optimiers — Free Fire PC booster">
-<meta property="og:description" content="FPS booster for Free Fire and any PC game. Optimizer Pro 49 · Max 99 points / 30 days.">
+<title>JD-Optimiers — Free Fire PC booster · JD Esports Arena</title>
+<meta name="description" content="JD-Optimiers: one-tap FPS boost, steady-aim tools and a tournament panel scan for Free Fire on MSI App Player / BlueStacks 5 and any PC game. Windows 10/11. By AyerFire.">
+<meta property="og:title" content="JD-Optimiers — more FPS, steadier aim, one button">
+<meta property="og:description" content="Free Fire PC booster for MSI App Player / BlueStacks. Optimizer Pro 49 · Max 99 points / 30 days.">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://jdesport.co.uk/logo.png">
+<meta property="og:image" content="https://jdesport.co.uk/optimizer/img/app-main.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#05080f;--bg-2:#0a0e1a;--panel:#0e1424;--line:#1c2840;
-  --gold:#c9a84c;--gold-l:#e2c97e;--gold-m:#7e6630;--cream:#f4efe6;--silver:#aab4cc;--body:#7e8eb0;
-  --cta:#FFC83D;--cta-2:#FFAE00;
+  --bg:#05080f;--bg-2:#0a0e1a;--panel:#0d1322;--panel-2:#111a2d;--line:rgba(255,255,255,.07);--line-2:rgba(255,255,255,.12);
+  --gold:#c9a84c;--gold-l:#e9cf8a;--gold-m:#7e6630;--cream:#f5f1ea;--silver:#a9b3c7;--body:#8b97b0;
+  --cta:#FFC83D;--cta-2:#FFAE00;--ok:#5EDB95;--err:#ff7676;
+  --r-lg:28px;--r-md:18px;--r-sm:12px;
+  --ease:cubic-bezier(.2,.8,.2,1);
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--cream);font-family:var(--font-body,'Geist',system-ui,sans-serif);font-weight:300;line-height:1.65;overflow-x:hidden}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:'Geist',system-ui,sans-serif;font-weight:400;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
-.wrap{max-width:760px;margin:0 auto;padding:0 22px}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(1100px 560px at 72% -12%,rgba(201,168,76,.12),transparent 60%),radial-gradient(820px 460px at 8% 112%,rgba(126,102,48,.10),transparent 60%);pointer-events:none;z-index:0}
-header,main,footer{position:relative;z-index:1}
-.bar{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
-.brand{display:flex;align-items:center;gap:10px}
-.jdlogo{width:34px;height:34px;border-radius:8px;object-fit:cover;flex:none;display:block}
-.brand b{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.05rem}
-.brand span{display:block;font-size:.64rem;color:var(--gold-l)}
-.bar .back{font-size:.78rem;font-weight:600;padding:8px 15px;border:1px solid var(--gold-m);border-radius:30px;color:var(--gold-l);transition:.2s}
-.bar .back:hover{background:rgba(201,168,76,.12)}
-.hero{padding:34px 0 10px;display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center}
-@media(max-width:560px){.hero{grid-template-columns:1fr;text-align:center}.hero .logo{margin:0 auto}}
-.hero .logo{width:132px;height:132px;mix-blend-mode:lighten}
-.hero .eye{font-size:.7rem;color:var(--gold-l);margin-bottom:8px;letter-spacing:.06em;text-transform:uppercase}
-.hero h1{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:clamp(2.4rem,8vw,3.6rem);line-height:1.02;margin:0 0 8px}
-.hero p{color:var(--body);font-size:1.02rem;margin:0}
-.hero p strong{color:var(--cream);font-weight:500}
-.dl{margin:30px 0 8px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between}
-.btn{display:inline-flex;align-items:center;gap:12px;background:linear-gradient(90deg,#FFDD85,var(--cta) 55%,var(--cta-2));color:#07090F;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;padding:14px 26px;border-radius:14px;box-shadow:0 10px 30px rgba(255,190,60,.22);transition:transform .2s ease,box-shadow .2s ease}
-.btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(255,190,60,.32)}
-.btn svg{width:22px;height:22px}
-.meta{color:var(--silver);font-size:.86rem}
-.meta b{color:var(--cream);font-weight:500}
-.meta .alt{display:block;margin-top:4px}
-.meta .alt a{color:var(--gold-l);text-decoration:underline;text-underline-offset:3px}
-.notes{margin-top:10px;color:var(--body);font-size:.9rem}
-.sec-h{display:flex;align-items:baseline;gap:14px;margin:42px 0 18px}
-.sec-h h2{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.45rem;margin:0}
-.sec-h .ln{flex:1;height:1px;background:var(--line)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
-.card h3{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.1rem;margin:0 0 4px;color:var(--gold-l)}
-.card p{margin:0;color:var(--body);font-size:.9rem}
-ol.steps{margin:0;padding-left:1.2em;color:var(--body)}
-ol.steps li{margin:0 0 10px}
-ol.steps b{color:var(--cream);font-weight:500}
-.note{border-left:3px solid var(--gold);background:rgba(201,168,76,.06);padding:12px 16px;border-radius:0 12px 12px 0;color:var(--body);font-size:.9rem;margin-top:16px}
-.note b{color:var(--cream);font-weight:500}
+img{max-width:100%;display:block}
 [hidden]{display:none!important}
-.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:6px}
-.plan{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px}
-.plan.max{border-color:var(--gold-m);background:linear-gradient(180deg,rgba(255,200,61,.07),var(--panel) 55%)}
-.plan h3{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.35rem;margin:0}
-.plan .price{font-family:'Barlow Condensed',sans-serif;font-size:2.2rem;font-weight:700;color:var(--cta);line-height:1}
-.plan .price small{font-size:.9rem;color:var(--silver);font-family:inherit;font-weight:400}
-.plan ul{margin:0;padding-left:1.1em;color:var(--body);font-size:.9rem}
-.plan .buy{margin-top:auto;border:0;cursor:pointer;justify-content:center;font-size:1.1rem;padding:11px 18px}
-.plan .buy[disabled]{opacity:.55;cursor:not-allowed;transform:none}
+.skip{position:absolute;left:-999px;top:8px;background:var(--cta);color:#07090f;padding:8px 14px;border-radius:10px;z-index:50}
+.skip:focus{left:12px}
+:focus-visible{outline:2px solid var(--cta);outline-offset:3px;border-radius:8px}
+/* ambient light + grain: one warm source, top right */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(1200px 620px at 78% -14%,rgba(233,207,138,.13),transparent 62%),radial-gradient(900px 520px at -6% 108%,rgba(126,102,48,.12),transparent 60%)}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+header,main,footer{position:relative;z-index:1}
+.wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+.narrow{max-width:760px;margin:0 auto}
+
+/* top bar + section nav */
+.bar{display:flex;align-items:center;justify-content:space-between;padding:20px 0}
+.brand{display:flex;align-items:center;gap:10px}
+.jdlogo{width:34px;height:34px;border-radius:9px;object-fit:cover}
+.brand b{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.08rem;letter-spacing:.01em}
+.brand span{display:block;font-size:.66rem;color:var(--gold-l)}
+.back{font-size:.8rem;font-weight:600;padding:8px 15px;border:1px solid var(--line-2);border-radius:999px;color:var(--silver);transition:color .2s,border-color .2s,background .2s}
+.back:hover{color:var(--cream);border-color:var(--gold-m);background:rgba(233,207,138,.06)}
+.subnav{position:sticky;top:10px;z-index:20;display:flex;justify-content:center;margin:0 auto;pointer-events:none}
+.subnav nav{pointer-events:auto;display:flex;gap:2px;padding:5px;border-radius:999px;background:rgba(13,19,34,.72);
+  backdrop-filter:saturate(160%) blur(18px);-webkit-backdrop-filter:saturate(160%) blur(18px);border:1px solid var(--line-2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 10px 30px rgba(0,0,0,.35)}
+.subnav a{font-size:.82rem;font-weight:500;color:var(--silver);padding:7px 14px;border-radius:999px;transition:background .2s,color .2s;white-space:nowrap}
+.subnav a:hover,.subnav a.on{color:var(--cream);background:rgba(255,255,255,.07)}
+@media(max-width:520px){.subnav a{padding:7px 10px;font-size:.76rem}}
+
+/* type */
+.eyebrow{font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-l)}
+h1,h2,h3{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+h1{font-size:clamp(3rem,9vw,6rem);line-height:.95}
+h2{font-size:clamp(2.1rem,5.4vw,3.4rem);line-height:1}
+h3{font-size:1.45rem;line-height:1.1}
+.lede{font-size:clamp(1.05rem,2.2vw,1.28rem);color:var(--body);max-width:62ch;text-wrap:pretty}
+.lede b,.copy b{color:var(--cream);font-weight:500}
+.copy{color:var(--body);text-wrap:pretty}
+.gold{background:linear-gradient(92deg,#fff1c4,var(--cta) 45%,#f0a000);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(180deg,#FFDB7A,var(--cta) 48%,var(--cta-2));color:#07090F;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.22rem;letter-spacing:.01em;padding:13px 26px;border-radius:999px;border:0;cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 12px 32px rgba(255,180,40,.26);transition:transform .25s var(--ease),box-shadow .25s var(--ease),filter .2s}
+.btn:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 18px 40px rgba(255,180,40,.34)}
+.btn:active{transform:scale(.97);transition-duration:.1s}
+.btn[disabled],.btn[aria-disabled="true"]{opacity:.5;cursor:not-allowed;transform:none}
+.btn svg{width:20px;height:20px}
+.link{color:var(--gold-l);font-weight:500;display:inline-flex;align-items:center;gap:6px}
+.link:hover{text-decoration:underline;text-underline-offset:4px}
+.ghostbtn{border:1px solid var(--line-2);color:var(--silver);border-radius:999px;padding:7px 14px;font:inherit;font-size:.8rem;font-weight:600;background:none;cursor:pointer;transition:.2s}
+.ghostbtn:hover{color:var(--cream);border-color:var(--gold-m)}
+
+/* hero */
+.hero{text-align:center;padding:64px 0 0}
+.hero .eyebrow{margin-bottom:18px}
+.hero h1{margin:0 auto 18px;max-width:14ch}
+.hero .lede{margin:0 auto}
+.hero-cta{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;justify-content:center;margin:30px 0 16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+.chips span{font-size:.78rem;color:var(--silver);border:1px solid var(--line-2);border-radius:999px;padding:5px 12px;background:rgba(255,255,255,.02)}
+.shot{position:relative;margin:56px auto 0;max-width:980px}
+.shot::before{content:'';position:absolute;inset:8% 6% -6%;background:radial-gradient(closest-side,rgba(255,190,60,.30),transparent);filter:blur(40px);z-index:-1}
+.frame{border-radius:var(--r-md);overflow:hidden;border:1px solid var(--line-2);background:#0b1020;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 40px 90px rgba(0,0,0,.55),0 8px 22px rgba(0,0,0,.35)}
+.frame img{width:100%;height:auto}
+.caption{font-size:.8rem;color:var(--body);text-align:center;margin-top:12px}
+
+/* account / download strip */
+.acct{margin:56px auto 0;max-width:820px;border-radius:var(--r-lg);padding:22px 24px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01));
+  border:1px solid var(--line-2);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);display:flex;flex-wrap:wrap;gap:16px 24px;align-items:center;justify-content:space-between}
+.acct .who{color:var(--silver);font-size:.88rem}.acct .who b{color:var(--cream);font-weight:500}
+.status{font-family:'Barlow Condensed',sans-serif;font-size:1.45rem;font-weight:700;line-height:1.1;margin-top:2px}
+.status.on{color:var(--cta)}.status.off{color:var(--silver)}
+.dlbox{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
+.meta{color:var(--silver);font-size:.84rem}.meta b{color:var(--cream);font-weight:500}
+.meta .alt{display:block;margin-top:2px}.meta .alt a{color:var(--gold-l);text-decoration:underline;text-underline-offset:3px}
+.gate{text-align:center;justify-content:center}.gate p{color:var(--body);margin:6px 0 16px}
+.notes{color:var(--body);font-size:.88rem;text-align:center;margin:12px auto 0;max-width:820px}
+
+/* sections */
+section{padding:110px 0 0}
+.sec-head{text-align:center;margin-bottom:48px}
+.sec-head .eyebrow{margin-bottom:12px}
+.sec-head .lede{margin:14px auto 0}
+
+/* how to use: alternating rows */
+.steps{display:grid;gap:26px}
+.step{display:grid;grid-template-columns:1fr 1.15fr;gap:36px;align-items:center;padding:30px;border-radius:var(--r-lg);
+  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.005));border:1px solid var(--line)}
+.step:nth-child(even){grid-template-columns:1.15fr 1fr}
+.step:nth-child(even) .step-txt{order:2}
+.num{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.95rem;color:#07090f;background:var(--cta);width:32px;height:32px;border-radius:10px;display:grid;place-items:center;margin-bottom:14px}
+.step h3{margin-bottom:8px}
+.step .copy{margin:0}
+.step .frame{border-radius:14px}
+.step .art{display:flex;justify-content:center}
+.step .art .frame{max-width:100%;width:auto}
+.step .art .frame img{width:auto;max-width:100%;height:auto}
+.dl-art{display:grid;place-items:center;min-height:180px;border-radius:14px;border:1px dashed var(--line-2);color:var(--silver);font-size:.9rem;text-align:center;padding:20px}
+.dl-art code{font-family:ui-monospace,Consolas,monospace;font-size:1.3rem;color:var(--cream);letter-spacing:.12em;background:rgba(255,255,255,.05);padding:6px 12px;border-radius:8px;display:inline-block;margin:8px 0}
+@media(max-width:820px){.step,.step:nth-child(even){grid-template-columns:1fr;gap:20px;padding:22px}.step:nth-child(even) .step-txt{order:0}}
+
+/* feature bento */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+.tile{border-radius:var(--r-lg);padding:26px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.008));border:1px solid var(--line);
+  position:relative;overflow:hidden;transition:border-color .3s var(--ease),transform .3s var(--ease)}
+.tile:hover{border-color:var(--line-2);transform:translateY(-2px)}
+.tile h3{margin:6px 0 8px}
+.tile .copy{margin:0;font-size:.95rem}
+.t-wide{grid-column:span 4}.t-half{grid-column:span 3}.t-third{grid-column:span 2}
+.tile .frame{margin-top:20px;border-radius:12px}
+.tag{display:inline-block;font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:6px;background:rgba(255,200,61,.12);color:var(--cta);border:1px solid rgba(255,200,61,.25)}
+.tile .big{font-family:'Barlow Condensed',sans-serif;font-size:3.2rem;line-height:1;color:var(--cream);font-variant-numeric:tabular-nums}
+@media(max-width:900px){.t-wide,.t-half{grid-column:span 6}.t-third{grid-column:span 3}}
+@media(max-width:560px){.t-third{grid-column:span 6}}
+
+.safe{margin-top:16px;border-radius:var(--r-md);padding:18px 22px;background:rgba(94,219,149,.05);border:1px solid rgba(94,219,149,.18);color:var(--body);font-size:.92rem}
+.safe b{color:var(--cream);font-weight:500}
+
+/* plans */
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:900px;margin:0 auto}
+@media(max-width:720px){.plans{grid-template-columns:1fr}}
+.plan{border-radius:var(--r-lg);padding:28px;display:flex;flex-direction:column;gap:14px;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.008));border:1px solid var(--line)}
+.plan.max{border-color:rgba(255,200,61,.35);background:linear-gradient(180deg,rgba(255,200,61,.09),rgba(13,19,34,.4) 60%);box-shadow:0 30px 70px rgba(255,170,30,.08)}
+.plan .price{font-family:'Barlow Condensed',sans-serif;font-size:3rem;font-weight:700;line-height:1;color:var(--cream);font-variant-numeric:tabular-nums}
+.plan .price small{font-family:'Geist',sans-serif;font-size:.9rem;color:var(--silver);font-weight:400;margin-left:6px}
+.plan ul{margin:0;padding:0;list-style:none;display:grid;gap:9px;color:var(--body);font-size:.93rem}
+.plan li{display:flex;gap:10px}
+.plan li::before{content:'';flex:none;width:16px;height:16px;margin-top:4px;border-radius:50%;background:rgba(255,200,61,.14) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.2l2.2 2.2 4.8-4.8' fill='none' stroke='%23FFC83D' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
+.plan li b{color:var(--cream);font-weight:500}
+.plan .buy{margin-top:auto;width:100%}
 .fxpick{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--silver);font-size:.86rem}
-.fxpick select{background:#0a0f1c;color:var(--cream);border:1px solid var(--line);border-radius:10px;padding:7px 10px;font:inherit}
-.badge{display:inline-block;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:#07090F;background:var(--cta);border-radius:20px;padding:2px 9px;font-weight:700;vertical-align:middle;margin-left:6px}
-.acct{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px 20px;margin:26px 0 0;display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center}
-.acct .who{color:var(--silver);font-size:.86rem}.acct .who b{color:var(--cream);font-weight:500}
-.acct .status{font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:700}
-.acct .status.on{color:var(--cta)}.acct .status.off{color:var(--silver)}
-.ghostbtn{display:inline-block;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:30px;padding:7px 14px;font-size:.8rem;font-weight:600;background:none;cursor:pointer}
-.ghostbtn:hover{background:rgba(201,168,76,.12)}
-.devs{width:100%;border-collapse:collapse;font-size:.86rem;margin-top:4px}
-.devs td{padding:8px 4px;border-bottom:1px solid var(--line);color:var(--body)}.devs td:first-child{color:var(--cream)}
-.msg{min-height:1.2em;font-size:.88rem;margin-top:8px;color:var(--silver)}.msg.err{color:#ff7676}.msg.ok{color:#5EDB95}
-.gate{text-align:center}.gate p{color:var(--body);margin:6px 0 16px}
-.trust{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0}
-.trust span{display:inline-flex;align-items:center;gap:6px;font-size:.76rem;color:var(--gold-l);border:1px solid var(--gold-m);border-radius:30px;padding:5px 12px;background:rgba(201,168,76,.06)}
-.cmp{width:100%;border-collapse:collapse;font-size:.92rem;margin-top:4px}
-.cmp th,.cmp td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line)}
-.cmp thead th{font-family:'Barlow Condensed',sans-serif;font-size:1.15rem;color:var(--cream);border-bottom:1px solid var(--gold-m)}
+.fxpick select{background:#0a0f1c;color:var(--cream);border:1px solid var(--line-2);border-radius:10px;padding:8px 10px;font:inherit}
+.msg{min-height:1.3em;font-size:.9rem;margin:14px auto 0;text-align:center;color:var(--silver);max-width:820px}.msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
+
+/* compare */
+.cmp-wrap{max-width:900px;margin:22px auto 0;border-radius:var(--r-lg);border:1px solid var(--line);overflow:hidden}
+.cmp{width:100%;border-collapse:collapse;font-size:.93rem}
+.cmp th,.cmp td{text-align:left;padding:14px 18px;border-bottom:1px solid var(--line)}
+.cmp tr:last-child td{border-bottom:0}
+.cmp thead th{font-family:'Barlow Condensed',sans-serif;font-size:1.15rem;color:var(--cream);background:rgba(255,255,255,.025)}
 .cmp thead th:last-child{color:var(--cta)}
-.cmp td:first-child{color:var(--body)}
-.cmp td.c{text-align:center;width:120px}
-.cmp .yes{color:#5EDB95;font-weight:600}.cmp .no{color:#5a6577}
-.cmp tr:hover td{background:rgba(255,200,61,.03)}
-.faq{display:grid;gap:10px}
-.faq details{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:4px 16px}
-.faq summary{cursor:pointer;padding:12px 0;font-weight:500;color:var(--cream);list-style:none}
+.cmp td:first-child{color:var(--body)}.cmp td b{color:var(--cream);font-weight:500}
+.cmp td.c{text-align:center;width:130px;font-variant-numeric:tabular-nums}
+.cmp .yes{color:var(--ok);font-weight:600}.cmp .no{color:#566177}
+@media(max-width:560px){.cmp td.c{width:76px}.cmp th,.cmp td{padding:11px 10px;font-size:.84rem}}
+
+/* PCs */
+.devs{width:100%;max-width:820px;margin:0 auto;border-collapse:collapse;font-size:.88rem}
+.devs td{padding:10px 6px;border-bottom:1px solid var(--line);color:var(--body)}.devs td:first-child{color:var(--cream)}
+
+/* FAQ: two-column list, progressive disclosure */
+.faq{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;max-width:1000px;margin:0 auto}
+@media(max-width:760px){.faq{grid-template-columns:1fr}}
+.faq details{border-radius:var(--r-md);padding:2px 20px;background:rgba(255,255,255,.02);border:1px solid var(--line);transition:border-color .2s}
+.faq details[open]{border-color:var(--line-2)}
+.faq summary{cursor:pointer;padding:15px 0;font-weight:500;color:var(--cream);list-style:none;display:flex;justify-content:space-between;gap:12px}
 .faq summary::-webkit-details-marker{display:none}
-.faq summary::before{content:'+ ';color:var(--cta);font-weight:700}
-.faq details[open] summary::before{content:'\2013 '}
-.faq p{margin:0 0 14px;color:var(--body);font-size:.9rem}
-.soon{background:linear-gradient(180deg,rgba(255,200,61,.06),var(--panel) 60%);border:1px solid var(--gold-m);border-radius:18px;padding:20px 22px;margin-top:8px}
-.soon h3{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;margin:0 0 8px}
-.soon ul{margin:0;padding-left:1.1em;color:var(--body);font-size:.9rem;columns:2;column-gap:28px}
-@media(max-width:560px){.soon ul{columns:1}.cmp td.c{width:70px}.cmp th,.cmp td{padding:9px 7px;font-size:.84rem}}
-footer{border-top:1px solid var(--line);margin-top:54px;padding:30px 0 40px;text-align:center;color:var(--silver);font-size:.82rem}
+.faq summary::after{content:'+';color:var(--cta);font-weight:600;transition:transform .25s var(--ease)}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq p{margin:0 0 16px;color:var(--body);font-size:.92rem}
+.faq a{color:var(--gold-l);text-decoration:underline;text-underline-offset:3px}
+
+.soon{max-width:820px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.soon span{font-size:.86rem;color:var(--silver);border:1px solid var(--line-2);border-radius:999px;padding:8px 14px}
+
+footer.wrap{margin-top:130px;border-top:1px solid var(--line);padding:30px 0 44px;text-align:center;color:var(--body);font-size:.82rem}
 footer a{color:var(--gold-l)}
+footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+
+/* entrance motion (transform/opacity only) */
+.rise{opacity:0;transform:translateY(18px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.rise.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.rise{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
 </style>
 <link rel="stylesheet" href="/ui.css?v=16">
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 <header class="wrap">
   <div class="bar">
-    <a class="brand" href="/" aria-label="JD Esports Arena home"><img class="jdlogo" src="/logo.png" alt="JD Esports Arena" width="34" height="34"><div><b>JD Esports Arena</b><span>by AyerFire</span></div></a>
-    <a class="back" href="/">← JD Arena</a>
+    <a class="brand" href="/" aria-label="JD Esports Arena home"><img class="jdlogo" src="/logo.png" alt="" width="34" height="34"><div><b>JD Esports Arena</b><span>by AyerFire</span></div></a>
+    <a class="back" href="/">← Back to Arena</a>
   </div>
 </header>
-<main class="wrap">
-  <section class="hero">
-    <img class="logo" src="/logo.png" alt="JD" width="132" height="132">
-    <div>
-      <div class="eye">Optimizer Pro &amp; Max · Windows 10 / 11</div>
-      <h1>JD-Optimiers</h1>
-      <p><strong>Game feeling laggy?</strong> One button for <strong>more FPS and smoother, lower-lag gaming</strong> — <strong>Free Fire</strong> on MSI App Player / BlueStacks <em>and any other PC game</em>. It optimizes Windows, opens the game and boosts until you close it. Works on <strong>any PC or laptop</strong>, strong or weak. From <strong>49 points / month</strong> (Rs 49).</p>
-      <div class="trust">
-        <span>✓ Account-safe · no ban risk</span>
-        <span>✓ Any PC game</span>
-        <span>✓ Weak PCs too (Potato mode)</span>
-        <span>✓ Every change reversible</span>
-        <span>✓ Auto-updates</span>
+<div class="subnav"><nav aria-label="On this page"><a href="#overview">Overview</a><a href="#how">How to use</a><a href="#features">Features</a><a href="#plans">Plans</a><a href="#faq">FAQ</a></nav></div>
+
+<main id="main" class="wrap">
+  <section class="hero" id="overview" style="padding-top:64px">
+    <div class="eyebrow">JD-Optimiers · Windows 10 &amp; 11</div>
+    <h1>More FPS. <span class="gold">Steadier aim.</span> One button.</h1>
+    <p class="lede">Press <b>Play Free Fire</b>: it tunes Windows and MSI App Player / BlueStacks, opens the game and keeps boosting until you close it. Works for <b>any PC game</b>, on strong and weak PCs.</p>
+    <div class="hero-cta">
+      <a class="btn" href="#get" id="hero-get">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
+        Get JD-Optimiers
+      </a>
+      <a class="link" href="#how">See how it works →</a>
+    </div>
+    <div class="chips"><span>Pro from 49 points / 30 days</span><span>Windows PC &amp; laptop only</span><span>Every change can be undone</span><span>Auto-updates</span></div>
+    <div class="shot rise">
+      <div class="frame"><img src="img/app-main.webp" alt="The JD-Optimiers window: Play Free Fire button, live CPU and GPU tiles, mouse sensitivity and gaming boost switches" width="926" height="470" fetchpriority="high"></div>
+      <div class="caption">The real app on a Ryzen 7 / RTX 3050 laptop.</div>
+    </div>
+  </section>
+
+  <div id="get">
+    <div class="acct gate" id="gate" hidden>
+      <div>
+        <div class="status">Sign in to download</div>
+        <p>JD-Optimiers uses your JD Esports Arena account — the same login as tournaments and your points wallet (email or Google).</p>
+        <a class="btn" id="gate-btn" href="/?signin=1&amp;next=%2Foptimizer%2F">Sign in</a>
       </div>
-      <p style="margin:12px 0 0;font-size:.92rem;color:var(--cream)">💻 <b>Windows PC &amp; laptop only</b> (for emulators like MSI&nbsp;/&nbsp;BlueStacks) — not for phones.</p>
-      <div style="margin-top:14px">
-        <a class="btn" href="#dl-box" onclick="(document.getElementById('acct').hidden?document.getElementById('gate'):document.getElementById('acct')).scrollIntoView({behavior:'smooth'});return false;" style="display:inline-flex;align-items:center;gap:8px;font-size:1.05rem">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
-          Get JD-Optimiers
+    </div>
+    <div class="acct" id="acct" hidden>
+      <div><div class="who">Signed in as <b id="me">…</b> · <span id="bal">…</span> points · <a href="/wallet/" class="link">load points</a></div>
+        <div class="status off" id="plan-status">…</div></div>
+      <div class="dlbox" id="dl-box">
+        <a class="btn" id="dl-btn" href="#" aria-disabled="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
+          <span id="dl-label">Download</span>
         </a>
+        <div class="meta" id="dl-meta">Loading the latest version…</div>
+      </div>
+    </div>
+    <div class="notes" id="dl-notes"></div>
+  </div>
+
+  <section id="how">
+    <div class="sec-head">
+      <div class="eyebrow">How to use</div>
+      <h2>Ready in five minutes.</h2>
+      <p class="lede">Install once. After that it's one button before every match.</p>
+    </div>
+    <div class="steps">
+      <div class="step rise">
+        <div class="step-txt">
+          <div class="num">1</div>
+          <h3>Download and link your PC</h3>
+          <p class="copy">Download the zip above, extract it and open <b>JD-Optimiers.exe</b>. If SmartScreen says “Windows protected your PC”, click <b>More info → Run anyway</b> (the app is new, not code-signed). Accept the Administrator prompt. The app shows a code and opens this site — check it matches and press <b>Link this PC</b>.</p>
+        </div>
+        <div class="art"><div class="dl-art">Your code appears in the app<br><code>ABCD-2345</code><br>Same code on this site → Link this PC</div></div>
+      </div>
+      <div class="step rise">
+        <div class="step-txt">
+          <div class="num">2</div>
+          <h3>Apply the best profile</h3>
+          <p class="copy">Close MSI App Player, pick your FPS and press <b>Apply best profile</b>. JD reads your hardware and sets the emulator's RAM, high-FPS mode and VSync off — with a backup, so <b>Restore</b> puts everything back.</p>
+        </div>
+        <div class="art"><div class="frame"><img src="img/app-profile.webp" alt="Laptop profile panel with FPS choices 60, 90, 120, 240 and the Apply best profile button" width="334" height="190" loading="lazy"></div></div>
+      </div>
+      <div class="step rise">
+        <div class="step-txt">
+          <div class="num">3</div>
+          <h3>Press Play Free Fire</h3>
+          <p class="copy">One button: it optimizes Windows, starts MSI App Player straight into Free Fire and boosts until you close the game. Background apps are slowed down (not frozen) while you play, so Discord and music keep working.</p>
+        </div>
+        <div class="art"><div class="frame"><img src="img/app-play.webp" alt="The large Play Free Fire button" width="530" height="90" loading="lazy"></div></div>
+      </div>
+      <div class="step rise">
+        <div class="step-txt">
+          <div class="num">4</div>
+          <h3>Tune your aim in Aim Studio</h3>
+          <p class="copy">Press <b>Aim…</b> to set your sensitivity (X) and up/down (Y), see your acceleration curve and save up to three setups as profiles. <b>Recommended</b> sets proven values in one tap.</p>
+        </div>
+        <div class="art"><div class="frame" style="max-width:380px"><img src="img/app-aim.webp" alt="Aim Studio: acceleration curve, Aim X 2.04, Aim Y 97 percent and profile slots" width="466" height="519" loading="lazy"></div></div>
       </div>
     </div>
   </section>
 
-  <div class="acct gate" id="gate" hidden>
-    <div style="width:100%">
-      <div class="status">Sign in to download</div>
-      <p>JD-Optimiers uses your JD Esports Arena account — the same login as tournaments and your points wallet (email or Google).</p>
-      <a class="btn" id="gate-btn" href="/?signin=1&amp;next=%2Foptimizer%2F">Sign in</a>
+  <section id="features">
+    <div class="sec-head">
+      <div class="eyebrow">Features</div>
+      <h2>Everything a match needs.</h2>
     </div>
-  </div>
+    <div class="bento">
+      <div class="tile t-wide rise">
+        <span class="tag">Max</span>
+        <h3>Tournament panel scan</h3>
+        <p class="copy">Checks the PC for known Free Fire cheat panels and overlays — read-only, it never deletes anything. The report is <b>signed by the JD server</b>, so organizers can prove it wasn't edited.</p>
+        <div class="frame"><img src="img/app-scan.webp" alt="Panel scan results: checks passed and the final verdict line" width="520" height="100" loading="lazy"></div>
+      </div>
+      <div class="tile t-third rise">
+        <h3>Any PC game</h3>
+        <p class="copy">Free Fire is detected automatically, so is any full-screen game — Steam, Epic, Riot. Same boost for all of them.</p>
+      </div>
+      <div class="tile t-half rise">
+        <span class="tag">Max</span>
+        <h3>Max engine</h3>
+        <p class="copy">Change the emulator DPI in one tap, then run the <b>360° aim test</b> (F8, turn once, F8): it measures your real turn distance and tells you the exact Aim X that keeps your aim the same.</p>
+        <div class="frame" style="max-width:360px"><img src="img/app-engine.webp" alt="Max engine window with the DPI and aim test buttons" width="486" height="449" loading="lazy"></div>
+      </div>
+      <div class="tile t-half rise">
+        <h3>Performance modes</h3>
+        <p class="copy"><b>Balanced</b> for every day, <b>Extreme</b> for a whole-Windows boost while you play (services paused, CPU turbo, USB power saving off — all put back after), <b>Potato</b> for weak PCs.</p>
+        <div style="display:flex;gap:28px;margin-top:22px;flex-wrap:wrap">
+          <div><div class="big">1</div><div class="copy" style="font-size:.85rem">button to play</div></div>
+          <div><div class="big">240</div><div class="copy" style="font-size:.85rem">FPS option (Max)</div></div>
+          <div><div class="big">0</div><div class="copy" style="font-size:.85rem">changes you can't undo</div></div>
+        </div>
+      </div>
+      <div class="tile t-third rise">
+        <h3>Deep clean</h3>
+        <p class="copy">Clears temp and shader junk, frees standby RAM and turns off telemetry tasks — with a System Restore point first.</p>
+      </div>
+      <div class="tile t-third rise">
+        <h3>Live stats</h3>
+        <p class="copy">CPU, GPU, temperature, ping and FPS while you play, plus a short report after every session.</p>
+      </div>
+      <div class="tile t-third rise">
+        <h3>Steady aim</h3>
+        <p class="copy">Mouse presets, pointer acceleration off and a macro check that warns you before a ban risk.</p>
+      </div>
+    </div>
+    <div class="safe"><b>Account-safe by design.</b> JD-Optimiers changes Windows settings and the emulator's own settings files, always with a backup. It never reads or edits the game's memory, never injects anything and adds no macros or aim assist.</div>
+  </section>
 
-  <div class="acct" id="acct" hidden>
-    <div><div class="who">Signed in as <b id="me">…</b> · <span id="bal">…</span> points · <a href="/wallet/" style="color:var(--gold-l)">load points</a></div>
-      <div class="status off" id="plan-status">…</div></div>
-    <div class="dl" style="margin:0;padding:0;border:0;background:none" id="dl-box">
-      <a class="btn" id="dl-btn" href="#" aria-disabled="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
-        <span id="dl-label">Download</span>
-      </a>
-      <div class="meta" id="dl-meta">Loading the latest version…</div>
+  <section id="plans">
+    <div class="sec-head">
+      <div class="eyebrow">Plans</div>
+      <h2>Pick your plan.</h2>
+      <p class="lede">Paid with JD points (1 point = Rs 1). Plans last 30 days and never renew by themselves.</p>
     </div>
-  </div>
-  <div class="notes" id="dl-notes"></div>
-
-  <section>
-    <div class="sec-h"><h2>Plans</h2><span class="ln"></span></div>
-    <div style="border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:12px;font-size:.9rem">
-      <div style="display:grid;grid-template-columns:1fr 64px 64px"><div style="padding:9px 12px;color:var(--silver)">What you get</div><div style="padding:9px 12px;text-align:center;color:var(--gold-l);font-weight:700">Pro</div><div style="padding:9px 12px;text-align:center;color:var(--gold-l);font-weight:700">Max</div></div>
-      <div style="display:grid;grid-template-columns:1fr 64px 64px;border-top:1px solid var(--line)"><div style="padding:9px 12px">One-tap FPS boost · all PC games, modes &amp; graphics</div><div style="padding:9px 12px;text-align:center">✓</div><div style="padding:9px 12px;text-align:center">✓</div></div>
-      <div style="display:grid;grid-template-columns:1fr 64px 64px;border-top:1px solid var(--line)"><div style="padding:9px 12px">Cheat-panel scan + Verified ✔ tag</div><div style="padding:9px 12px;text-align:center;color:var(--silver)">—</div><div style="padding:9px 12px;text-align:center">✓</div></div>
-      <div style="display:grid;grid-template-columns:1fr 64px 64px;border-top:1px solid var(--line)"><div style="padding:9px 12px">24h early tournament entry + 30-day squad effect</div><div style="padding:9px 12px;text-align:center;color:var(--silver)">—</div><div style="padding:9px 12px;text-align:center">✓</div></div>
-    </div>
-    <p class="notes" style="margin:0 0 14px">💻 Windows PC &amp; laptop only — not for phones. Paid with JD points (1 point = Rs 1).</p>
     <div class="plans">
-      <div class="plan">
+      <div class="plan rise">
         <h3>Optimizer Pro</h3>
-        <div class="price">49 <small>points / 30 days</small></div>
-        <ul><li>One-tap boost for Free Fire <b style="color:var(--cream);font-weight:500">and any PC game</b> (auto-detected, or add its .exe)</li><li>Performance modes: Balanced, <b style="color:var(--cream);font-weight:500">Extreme</b> (whole-Windows boost while you play) and <b style="color:var(--cream);font-weight:500">Potato</b> (lowest emulator graphics for weak PCs)</li><li>Graphics: High FPS, VSync off, GPU scheduling, 1080p on high-end PCs</li><li>Mouse presets, aim check, live FPS and session reports</li><li>2 PCs</li></ul>
+        <div class="price">49<small>points / 30 days</small></div>
+        <ul>
+          <li><span>One-tap boost for Free Fire <b>and any PC game</b></span></li>
+          <li><span>Performance modes: Balanced, <b>Extreme</b>, <b>Potato</b></span></li>
+          <li><span>High FPS (up to 120), VSync off, GPU scheduling</span></li>
+          <li><span>Aim Studio, mouse presets, live FPS and session reports</span></li>
+          <li><span>Deep clean · 2 PCs</span></li>
+        </ul>
         <button class="btn buy" data-tier="pro" type="button">Get Pro · 49 pts</button>
       </div>
-      <div class="plan max">
-        <h3>Optimizer Max <span class="badge">Best value</span></h3>
-        <div class="price">99 <small>points / 30 days</small></div>
-        <ul><li>Everything in Pro</li><li><b style="color:var(--cream);font-weight:500">Panel scan</b> + Deep scan: checks a PC for known Free Fire cheat panels and saves a sealed report</li><li><b style="color:var(--cream);font-weight:500">30-day Pro squad effect</b> with every Max purchase (pick it below)</li><li><b style="color:var(--cream);font-weight:500">Early entry</b>: join early-access custom rooms and tournaments 24 h before everyone else</li><li><b style="color:var(--cream);font-weight:500">Verified ✔ tag</b> next to your name in lobbies and rooms</li><li>2 PCs</li></ul>
+      <div class="plan max rise">
+        <h3>Optimizer Max <span class="tag" style="vertical-align:middle">Best value</span></h3>
+        <div class="price">99<small>points / 30 days</small></div>
+        <ul>
+          <li><span>Everything in Pro, plus <b>240 FPS</b></span></li>
+          <li><span><b>Tournament panel scan</b> with server-signed reports</span></li>
+          <li><span><b>Max engine</b>: DPI changer, 360° aim test, engine cache</span></li>
+          <li><span><b>30-day squad effect</b>, <b>24 h early entry</b> and a <b>Verified ✔ tag</b></span></li>
+          <li><span>2 PCs</span></li>
+        </ul>
         <label class="fxpick">Squad effect <select id="fx-pick"><option value="gold">Gold</option><option value="fire">Fire</option><option value="ice">Ice</option><option value="neon">Neon</option><option value="rainbow">Rainbow</option><option value="galaxy">Galaxy</option><option value="thunder">Thunder</option><option value="legend">Legend</option><option value="blade">Blade</option><option value="bullets">Bullets</option><option value="liquid">Liquid Glass</option><option value="spatial">Spatial 3D</option></select></label>
         <button class="btn buy" data-tier="max" type="button">Get Max · 99 pts</button>
       </div>
     </div>
     <div class="msg" id="buy-msg"></div>
-    <p class="notes">Paid with JD points (1 point = Rs 1 — load them on your <a href="/wallet/" style="color:var(--gold-l)">wallet</a> with eSewa). Buying again adds 30 days. Upgrading Pro → Max turns the Pro days you have left into Max days (×49/99) and adds 30. Plans don't renew by themselves and points are not refunded — see the <a href="/terms.html#s19" style="color:var(--gold-l)">JD-Optimiers terms</a>.</p>
+    <p class="notes">Buying again adds 30 days. Upgrading Pro → Max turns the Pro days you have left into Max days (×49/99) and adds 30. Points are not refunded — see the <a href="/terms.html#s19" class="link">JD-Optimiers terms</a>. Load points on your <a href="/wallet/" class="link">wallet</a> with eSewa.</p>
+
+    <div class="cmp-wrap rise">
+      <table class="cmp">
+        <thead><tr><th>Feature</th><th class="c">Pro · 49</th><th class="c">Max · 99</th></tr></thead>
+        <tbody>
+          <tr><td>One-tap boost — Free Fire &amp; any PC game</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+          <tr><td>Performance modes: Balanced · Extreme · Potato</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+          <tr><td>Emulator FPS</td><td class="c">up to 120*</td><td class="c yes">up to 240</td></tr>
+          <tr><td>Aim Studio, mouse presets, live FPS, Deep clean</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+          <tr><td><b>Tournament panel scan</b> + signed report</td><td class="c no">—</td><td class="c yes">✓</td></tr>
+          <tr><td><b>Max engine</b> — DPI changer + 360° aim test</td><td class="c no">—</td><td class="c yes">✓</td></tr>
+          <tr><td><b>Squad effect</b>, <b>early entry</b>, <b>Verified ✔</b></td><td class="c no">—</td><td class="c yes">✓</td></tr>
+          <tr><td>PCs</td><td class="c">2</td><td class="c">2</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="notes">* Pro plans bought before 20 Oct 2026 keep 240 FPS until they renew.</p>
   </section>
 
   <section id="pcs-sec" hidden>
-    <div class="sec-h"><h2>Your PCs</h2><span class="ln"></span></div>
+    <div class="sec-head"><div class="eyebrow">Your PCs</div><h2>Linked PCs.</h2></div>
     <table class="devs" id="devs"></table>
     <p class="notes">Up to 2 PCs at a time and 4 new links per 30 days. Linking a third unlinks the oldest. Unlink a PC you no longer use, or if you didn't link it.</p>
   </section>
 
-  <section>
-    <div class="sec-h"><h2>Install</h2><span class="ln"></span></div>
-    <ol class="steps">
-      <li><b>Download</b> the zip above and <b>extract</b> it (right-click → Extract all). Keep the folder anywhere, e.g. Documents.</li>
-      <li>Open <b>JD-Optimiers.exe</b>. Windows SmartScreen may say “Windows protected your PC” because the app is new and not code-signed — click <b>More info → Run anyway</b>.</li>
-      <li>Accept the <b>Administrator</b> prompt (needed for power plan, GPU settings and live FPS).</li>
-      <li>The app shows a code like <b>ABCD-2345</b> and opens this site. Check the code matches, then press <b>Link this PC</b>. The app opens by itself.</li>
-      <li>Close MSI App Player, press <b>Apply best profile</b>, then <b>Play Free Fire</b>.</li>
-    </ol>
-    <div class="note"><b>Updates are automatic and required.</b> When a new version is posted here, the app shows a pop-up at start and updates itself in a few seconds (the download is checked with SHA-256 before it replaces anything). It only checks when the app starts.</div>
-  </section>
-
-  <section>
-    <div class="sec-h"><h2>What it does</h2><span class="ln"></span></div>
-    <div class="grid">
-      <div class="card"><h3>Boost</h3><p>Ultimate power plan, Game Mode, background apps paused while you play, emulator on the graphics card at high priority.</p></div>
-      <div class="card"><h3>Graphics</h3><p>High FPS on, VSync off, dedicated GPU, GPU scheduling — and 1080p on high-end PCs. Every change can be undone with Restore all.</p></div>
-      <div class="card"><h3>Mouse</h3><p>Sensitivity presets, pointer acceleration off for steady aim, aim key position check.</p></div>
-      <div class="card"><h3>Any game</h3><p>Free Fire on MSI App Player / BlueStacks is detected automatically, so is any full-screen PC game — or add a game's .exe in the app. Same boost for all of them.</p></div>
-      <div class="card"><h3>Panel scan <span class="badge">Max</span></h3><p>Looks for known cheat panels on the PC and reports them. Detect-only — it never deletes anything.</p></div>
-    </div>
-    <div class="note"><b>Account-safe by design:</b> JD-Optimiers changes Windows settings, the emulator's settings file and — only when you press Aim fix or remove macros — its key-mapping file, always with a backup. It never reads or edits the game's memory, never injects anything, and adds no macros or aim assist.</div>
-  </section>
-
-  <section>
-    <div class="sec-h"><h2>Pro vs Max</h2><span class="ln"></span></div>
-    <table class="cmp">
-      <thead><tr><th>Feature</th><th class="c">Pro · 49</th><th class="c">Max · 99</th></tr></thead>
-      <tbody>
-        <tr><td>One-tap boost — Free Fire &amp; any PC game</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
-        <tr><td>Performance modes: Balanced · Extreme · Potato (weak PCs)</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
-        <tr><td>Graphics: High FPS, VSync off, GPU scheduling, 1080p</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
-        <tr><td>Mouse presets, aim check, live FPS &amp; session reports</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
-        <tr><td>Use on 2 PCs</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
-        <tr><td><b>Panel scan</b> + Deep scan (cheat-panel check)</td><td class="c no">—</td><td class="c yes">✓</td></tr>
-        <tr><td><b>30-day Pro squad effect</b> every month</td><td class="c no">—</td><td class="c yes">✓</td></tr>
-        <tr><td><b>Early entry</b> to custom rooms &amp; tournaments (24h)</td><td class="c no">—</td><td class="c yes">✓</td></tr>
-        <tr><td><b>Verified ✔ tag</b> by your name in lobbies</td><td class="c no">—</td><td class="c yes">✓</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <div class="sec-h"><h2>Coming soon</h2><span class="ln"></span></div>
-    <div class="soon">
-      <h3>Even more, included — no price change</h3>
-      <p style="margin:0 0 10px;color:var(--body);font-size:.9rem">Your plan keeps getting better. Already in the works for Pro &amp; Max:</p>
-      <ul>
-        <li>Deep Clean &amp; Security pack — safe debloat, telemetry off, standby-RAM flush, cache cleanup, startup auditor</li>
-        <li>Ransomware canary &amp; exploit-chain alerts (alert-only, never freezes your game)</li>
-        <li>One-click NVIDIA / AMD best-settings profile</li>
-        <li>Per-game profiles you can save and switch</li>
-        <li>FPS overlay while you play</li>
-        <li>Discord "boost on" status</li>
-      </ul>
-    </div>
-  </section>
-
-  <section>
-    <div class="sec-h"><h2>Questions</h2><span class="ln"></span></div>
+  <section id="faq">
+    <div class="sec-head"><div class="eyebrow">Questions</div><h2>Good to know.</h2></div>
     <div class="faq">
-      <details><summary>Will it get my game account banned?</summary><p>No. JD-Optimiers only changes Windows and the emulator's own settings — the same things you could change by hand. It never touches the game's memory, never injects anything, and adds no macros or aim assist. Everything it changes can be undone with "Restore all".</p></details>
-      <details><summary>Does it work on a weak PC or laptop?</summary><p>Yes. It detects your hardware and tunes itself — strong PCs get the full treatment (1080p, GPU scheduling), weak PCs get Potato mode (lowest graphics, highest FPS). It works on any Windows 10/11 PC or laptop.</p></details>
-      <details><summary>Can I use it for games other than Free Fire?</summary><p>Yes. Add any game's .exe, or leave auto-detect on and any full-screen PC game is boosted automatically — Steam, Epic, Riot, anything.</p></details>
-      <details><summary>How do I pay?</summary><p>With JD points (1 point = Rs 1). Load points on your <a href="/wallet/">wallet</a> with eSewa, then buy a plan here. Pro is 49 points, Max is 99 points for 30 days.</p></details>
-      <details><summary>How many PCs can I use it on?</summary><p>Two at a time per account (up to 4 new links in 30 days). You sign in once per PC with a code — no password is typed into the app.</p></details>
-      <details><summary>Do plans renew automatically?</summary><p>No. A plan lasts 30 days and simply ends — you buy again when you want. Buying again adds 30 days; upgrading Pro → Max keeps the days you already paid for.</p></details>
+      <details><summary>Will it get my game account banned?</summary><p>JD-Optimiers only changes Windows and the emulator's own settings — the same things you could change by hand, always with a backup. It never touches the game's memory, never injects anything and adds no macros or aim assist. Everything can be undone with “Restore all”.</p></details>
+      <details><summary>Does it work on a weak PC or laptop?</summary><p>Yes. It reads your hardware and tunes itself — strong PCs get the full treatment, weak PCs get Potato mode (lowest graphics, highest FPS). Any Windows 10/11 PC or laptop.</p></details>
+      <details><summary>Can I use it for games other than Free Fire?</summary><p>Yes. Add any game's .exe, or leave auto-detect on and any full-screen PC game is boosted automatically.</p></details>
+      <details><summary>Is it for phones?</summary><p>No — it's a Windows app for PCs and laptops running MSI App Player / BlueStacks (or PC games). Mobile players don't need it.</p></details>
+      <details><summary>How do I pay?</summary><p>With JD points (1 point = Rs 1). Load points on your <a href="/wallet/">wallet</a> with eSewa, then buy a plan here.</p></details>
+      <details><summary>How many PCs can I use?</summary><p>Two at a time per account (up to 4 new links in 30 days). You link each PC once with a code — no password is typed into the app.</p></details>
+      <details><summary>How do updates work?</summary><p>Automatically. When a new version is posted, the app updates itself at start in a few seconds — the download is checked with SHA-256 before anything is replaced. It never updates mid-match.</p></details>
       <details><summary>Can I get a refund?</summary><p>Points aren't refunded once a plan starts, except where the law requires it or the app never worked for you because of a fault on our side — see the <a href="/terms.html#s19">JD-Optimiers terms</a>.</p></details>
     </div>
+  </section>
+
+  <section style="padding-top:90px">
+    <div class="sec-head" style="margin-bottom:22px"><div class="eyebrow">Coming next</div><h2 style="font-size:clamp(1.7rem,4vw,2.4rem)">Included in your plan, no price change.</h2></div>
+    <div class="soon"><span>FPS overlay while you play</span><span>Per-game profiles</span><span>One-click NVIDIA / AMD settings</span><span>Discord “boost on” status</span></div>
   </section>
 </main>
 <footer class="wrap">
   <div>JD-Optimiers · JD Esports Arena · AyerFire</div>
-  <div style="margin-top:8px"><a href="/">← Back to JD Esports Arena</a></div>
+  <div class="links"><a href="/">Arena</a><a href="/rules/">Rules</a><a href="/privacy/">Privacy</a><a href="/terms.html">Terms</a></div>
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
 <script>
@@ -350,6 +506,16 @@ async function buy(tier){
 }
 
 document.querySelectorAll('.buy').forEach(b=>b.onclick=()=>buy(b.dataset.tier));
+$('hero-get').onclick=e=>{e.preventDefault();($('acct').hidden?$('gate'):$('acct')).scrollIntoView({behavior:'smooth',block:'center'});};
+
+/* entrance motion + current-section highlight in the floating nav */
+(function(){
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{rootMargin:'0px 0px -8% 0px'});
+  document.querySelectorAll('.rise').forEach(el=>io.observe(el));
+  const links=[...document.querySelectorAll('.subnav a')];
+  const so=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id));}),{rootMargin:'-45% 0px -50% 0px'});
+  ['overview','how','features','plans','faq'].forEach(id=>{const el=$(id);if(el)so.observe(el);});
+})();
 
 (async function init(){
   const {data:{session}}=await sb.auth.getSession();
