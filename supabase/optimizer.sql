@@ -1,3 +1,4 @@
+-- NOTE: schema.sql holds the newest versions of these functions too; keep both in sync (prices 49 / 99).
 -- ── JD-Optimiers plans: Optimizer Pro / Optimizer Max (2026-10-16) ─────────────────────────────
 -- The Windows app (JD-Optimiers.exe) only opens with an active plan. Plans are bought with JD points
 -- (1 point = Rs 1): Optimizer Pro 100 points / 30 days, Optimizer Max 170 points / 30 days (Max adds the
@@ -70,7 +71,7 @@ $$;
 
 create or replace function public._optimizer_price(p_tier text)
 returns int language sql immutable set search_path = public as $$
-  select case p_tier when 'pro' then 100 when 'max' then 170 end;
+  select case p_tier when 'pro' then 49 when 'max' then 99 end;
 $$;
 
 -- Adds p_days of p_tier (see the header for the Pro -> Max rule). Internal: buy + admin grant.
@@ -88,7 +89,7 @@ begin
     if v_cur.tier = p_tier then
       v_exp := v_cur.expires_at + make_interval(days => p_days);
     elsif v_cur.tier = 'pro' and p_tier = 'max' then
-      v_exp := now() + (v_cur.expires_at - now()) * (100.0 / 170.0)::float8 + make_interval(days => p_days);
+      v_exp := now() + (v_cur.expires_at - now()) * (49.0 / 99.0)::float8 + make_interval(days => p_days);
     else
       raise exception 'You have Optimizer Max until % - renew Max instead.', to_char(v_cur.expires_at, 'DD Mon YYYY');
     end if;

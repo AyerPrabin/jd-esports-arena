@@ -15,7 +15,7 @@ begin
     if v_cur.tier = p_tier then
       v_exp := v_cur.expires_at + make_interval(days => p_days);
     elsif v_cur.tier = 'pro' and p_tier = 'max' then
-      v_exp := now() + (v_cur.expires_at - now()) * (100.0 / 170.0)::float8 + make_interval(days => p_days);
+      v_exp := now() + (v_cur.expires_at - now()) * (49.0 / 99.0)::float8 + make_interval(days => p_days);
     else
       raise exception 'You have Optimizer Max until % - renew Max instead.', to_char(v_cur.expires_at, 'DD Mon YYYY');
     end if;
