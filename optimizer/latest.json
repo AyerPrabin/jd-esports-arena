@@ -1,9 +1,9 @@
 {
-  "version": "4.6",
-  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.6.exe",
-  "sha256": "d955006dbe76e6d32d3485bc78ba423bcec391b5eb1e1bdb017c9267491c3ab9",
-  "size": 1075334,
-  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.6.zip",
-  "notes": "v4.6: Aim Studio Adaptive mode - shape your OWN acceleration curve by dragging the points, like pro mouse software (opt-in, reversible). Plus everything from before.",
-  "date": "2026-10-17"
+  "version": "4.7",
+  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.7.exe",
+  "sha256": "55a482d98b70e6a61c89cd2ab160a46301be5457c5816d2de02b26d33e001c40",
+  "size": 1180430,
+  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.7.zip",
+  "notes": "v4.7: App Sleep slows apps instead of freezing them, Extreme turbo + USB + core isolation, native Deep clean, signed panel-scan receipts, Optimizer Max engine (DPI, 360 aim test, engine cache)",
+  "date": "2026-10-20"
 }
