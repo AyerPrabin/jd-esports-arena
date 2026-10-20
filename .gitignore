@@ -52,3 +52,7 @@ zulu_parts_catalog.json
 
 # Assessment script's saved session data — generated at runtime, not source
 15710802_502IT_data.xlsx
+
+# ZULU Discord bot log (run_discord_bot_hidden.pyw)
+zulu_discord.log
+zulu_discord.log.1
