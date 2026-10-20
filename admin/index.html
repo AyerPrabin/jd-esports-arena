@@ -177,6 +177,33 @@ h2[id]{scroll-margin-top:64px}
 .qa-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:15px 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--cream);text-decoration:none;font-weight:600;font-size:.85rem;cursor:pointer;text-align:center;font-family:inherit}
 .qa-tile:hover{border-color:var(--gold);background:rgba(201,168,76,.1)}
 .qa-ic{font-size:1.5rem;line-height:1}
+/* ── New Event sheet + compact event cards ── */
+.qa-tile.qa-new{background:linear-gradient(160deg,rgba(201,168,76,.28),var(--panel) 75%);border-color:var(--gold)}
+.ev-mini .ev-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.ev-mini .ev-top b{font-size:1.05rem}
+.ev-facts{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--silver);font-size:.84rem;margin-bottom:12px}
+.ev-facts b{color:var(--cream);font-weight:600}
+.ev-warn{color:var(--warm-l)}
+.ev-acts{display:flex;flex-wrap:wrap;gap:8px}
+.ev-acts .btn{padding:9px 16px;font-size:.8rem}
+.ev-close{margin:0 0 12px}
+.nev-ov{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:999;display:none;align-items:flex-end;justify-content:center}
+.nev-ov.open{display:flex}
+.nev{background:var(--panel);border:1px solid var(--gold-m);border-radius:20px 20px 0 0;width:min(560px,100%);max-height:92vh;overflow:auto;padding:20px 18px 24px}
+@media(min-width:641px){.nev-ov{align-items:center}.nev{border-radius:20px}}
+.nev h3{margin:0 0 4px;font-size:1.2rem}
+.nev .row-l{display:block;font-size:.72rem;color:var(--gold-l);margin:14px 0 6px;letter-spacing:.02em}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--panel-2);color:var(--cream);border-radius:999px;padding:8px 14px;font:inherit;font-size:.84rem;font-weight:600;cursor:pointer}
+.chip.on{background:var(--gold);color:#0a0a12;border-color:var(--gold)}
+.nev input{margin-top:8px}
+.nev-name{display:flex;gap:8px;align-items:center}
+.nev-name input{margin:0;font-weight:700;font-size:1rem}
+.nev-sum{margin:16px 0 0;padding:12px;border-radius:12px;background:var(--panel-2);font-size:.84rem;color:var(--silver);line-height:1.5}
+.nev-sum b{color:var(--cream)}
+.nev-acts{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.nev-acts .btn{flex:1;min-width:150px}
+.nev-msg{min-height:1.2em;font-size:.82rem;margin-top:8px;color:var(--red)}
 @media(max-width:640px){.qa{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr!important}.btn,.qa-tile{min-height:46px}table{display:block;overflow-x:auto}input,select,textarea{font-size:16px}}
 </style>
 </head>
@@ -252,6 +279,7 @@ h2[id]{scroll-margin-top:64px}
 
   <div class="dash-head"><span>⚡ Quick actions</span></div>
   <div class="qa">
+    <button class="qa-tile qa-new" onclick="newEventOpen()"><span class="qa-ic">➕</span>New event</button>
     <button class="qa-tile" onclick="publishNow()"><span class="qa-ic">🚀</span>Publish changes</button>
     <a class="qa-tile" href="#room-codes"><span class="qa-ic">🔑</span>Send room code</a>
     <button class="qa-tile" onclick="payPrizesNow()"><span class="qa-ic">🏆</span>Pay prizes</button>
@@ -280,7 +308,38 @@ h2[id]{scroll-margin-top:64px}
   <h2 id="tournaments">Tournaments</h2>
   <p class="hint" style="margin-top:-4px">Upcoming and live events. Once an event is finished or cancelled it moves to History below.</p>
   <div id="tlist"></div>
-  <button class="btn ghost" onclick="addT()">+ Add Event</button>
+  <button class="btn" onclick="newEventOpen()">➕ New Event</button>
+
+  <div class="nev-ov" id="nev-ov" onclick="if(event.target===this)newEventClose()">
+    <div class="nev" role="dialog" aria-label="New event">
+      <h3>➕ New event</h3>
+      <p class="hint" style="margin:0">Name is numbered for you. Everything else is copied from your last event, so you usually only pick the date.</p>
+      <span class="row-l">NAME <span class="tag">auto-numbered</span></span>
+      <div class="nev-name"><input id="nev-name"></div>
+      <span class="row-l">DAY</span>
+      <div class="chips" id="nev-days"></div>
+      <span class="row-l">TIME (NEPAL)</span>
+      <div class="chips" id="nev-times"></div>
+      <input type="datetime-local" id="nev-start" aria-label="Exact start (Nepal time)">
+      <span class="row-l">PRIZE (RS)</span>
+      <div class="chips" id="nev-prizes"></div>
+      <span class="row-l">ENTRY</span>
+      <div class="chips" id="nev-entries"></div>
+      <span class="row-l">SQUADS · MATCHES</span>
+      <div class="chips" id="nev-slots"></div>
+      <div class="chips" id="nev-matches" style="margin-top:8px"></div>
+      <span class="row-l">DEVICE · MAP</span>
+      <div class="chips" id="nev-devices"></div>
+      <div class="chips" id="nev-maps" style="margin-top:8px"></div>
+      <div class="nev-sum" id="nev-sum"></div>
+      <div class="nev-msg" id="nev-msg"></div>
+      <div class="nev-acts">
+        <button class="btn" onclick="newEventCreate(true)">🚀 Create &amp; publish</button>
+        <button class="btn ghost" onclick="newEventCreate(false)">Save as draft</button>
+        <button class="btn ghost" onclick="newEventClose()">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <h2 id="history">History <span class="tag">finished &amp; cancelled · what happened</span></h2>
   <div id="thist"></div>
@@ -859,14 +918,17 @@ function renderT(){
   data.tournaments.forEach((t,i)=>{(tIsHistory(t)&&!_histEdit.has(t)?hist:act).push(i);});
   act.sort((a,b)=>(tStartMs(data.tournaments[a])??9e15)-(tStartMs(data.tournaments[b])??9e15)); // soonest first
   document.getElementById('tlist').innerHTML=act.map(i=>{
-    const t=data.tournaments[i];let h=tEditorHtml(t,i);
+    const t=data.tournaments[i];
+    const editing=_openEdit.has(t)||_histEdit.has(t);
+    let h=editing?tEditorHtml(t,i):evMiniHtml(t,i);
+    if(editing&&!_histEdit.has(t))h=h.replace('<div class="card">','<div class="card"><button class="btn ghost ev-close" onclick="evClose('+i+')">▲ Close editor</button>');
     // a title line so each editor says which event it is and where it stands
     const ms=tStartMs(t),when=ms===null?'no start time yet':(ms>Date.now()?'starts in '+inText(ms):'started '+agoText(ms)+' ago');
     h=h.replace('<div class="card">','<div class="card"><div class="t-head"><b>'+esc(t.name||'Untitled event')+'</b><span class="pill">'+esc(tStatus(t))+' · '+when+'</span></div>');
     if(_histEdit.has(t))h=h.replace('<div class="card">','<div class="card"><div class="t-overdue">✏️ Editing a past event. <button class="btn ghost" onclick="histDone('+i+')">✓ Done, back to History</button></div>');
     else if(tOverdue(t))h=h.replace('<div class="card">','<div class="card"><div class="t-overdue">⚠️ Started '+agoText(tStartMs(t))+' ago but still marked <b>'+esc(tStatus(t))+'</b>. <button class="btn" onclick="markFinished('+i+')">✓ Mark finished</button><button class="btn ghost" onclick="markCancelled('+i+')">Cancelled</button></div>');
     return h;
-  }).join('')||'<p class="hint">No upcoming events. Click "+ Add Event" to make one.</p>';
+  }).join('')||'<p class="hint">No upcoming events. Tap "➕ New Event" to make one.</p>';
   hist.sort((a,b)=>(tStartMs(data.tournaments[b])||0)-(tStartMs(data.tournaments[a])||0));
   const hb=document.getElementById('thist');
   if(hb){hb.innerHTML=hist.map(i=>histCardHtml(data.tournaments[i],i)).join('')||'<p class="hint">Nothing here yet. Finished and cancelled events show up here.</p>';staggerReveal(hb);}
@@ -944,6 +1006,109 @@ document.addEventListener('input',e=>{
   else if(t.dataset.bi!==undefined&&t.dataset.bk!==undefined){const i=+t.dataset.bi,k=t.dataset.bk;data.bo3.teams[i][k]=t.value;}
 });
 
+/* ── compact event cards: summary + 3 buttons; the full editor opens on ✏️ Edit ── */
+let _openEdit=new WeakSet();
+function evEdit(i){_openEdit.add(data.tournaments[i]);renderT();evScrollTo(i);}
+function evClose(i){_openEdit.delete(data.tournaments[i]);renderT();evScrollTo(i);}
+function evScrollTo(i){const el=[...document.querySelectorAll('#tlist .card')].find(x=>x.dataset.ev===String(i)||x.querySelector('[data-i="'+i+'"]'));if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+function rsText(v){const s=String(v??'').trim();return /^\d[\d,]*$/.test(s)?'Rs '+s:(s||'—');}
+function evMiniHtml(t,i){
+  const ms=tStartMs(t);
+  const when=ms===null?'<span class="ev-warn">⚠️ no start time — tap Edit</span>':`<b>${esc(t.date||'')}</b> ${esc(t.time||'')}`;
+  const live=_liveCounts.get(t.name)||0;
+  const pill=ms===null?tStatus(t):(ms>Date.now()?tStatus(t)+' · in '+inText(ms):tStatus(t)+' · started '+agoText(ms)+' ago');
+  return `<div class="card ev-mini" data-ev="${i}"><div class="ev-top"><b>${esc(t.name||'Untitled event')}</b><span class="pill">${esc(pill)}</span></div>`+
+    `<div class="ev-facts"><span>📅 ${when}</span><span>🏆 <b>${esc(rsText(t.prize))}</b></span><span>🎟 <b>${esc(t.entry||'Free')}</b></span>`+
+    `<span>👥 <b>${live}${t.slots?'/'+esc(t.slots):''}</b> squads</span><span>📱 ${esc(t.platform||'Any device')}</span><span>🗺 ${esc(t.format||'')}</span></div>`+
+    `<div class="ev-acts"><button class="btn ghost" onclick="evEdit(${i})">✏️ Edit</button>`+
+    `<button class="btn ghost" onclick="jumpToRoomCode(${i})">🔑 Room code</button>`+
+    `<button class="btn ghost" onclick="markFinished(${i})">✓ Finish</button></div></div>`;
+}
+
+/* ── New Event: auto-numbered name, settings copied from the latest event, tap-chips ── */
+const NEV={};
+function evNumber(name){const m=String(name||'').match(/^(.*?#)\s*(\d+)\s*$/);return m?{prefix:m[1],n:+m[2]}:null;}
+function latestEvent(){
+  const numbered=data.tournaments.map(t=>({t,num:evNumber(t.name)})).filter(x=>x.num).sort((a,b)=>b.num.n-a.num.n);
+  if(numbered.length)return numbered[0].t;
+  return data.tournaments[data.tournaments.length-1]||null;
+}
+function nextEventName(){
+  const nums=data.tournaments.map(t=>evNumber(t.name)).filter(Boolean);
+  if(!nums.length)return 'JD Free Fire Open #1';
+  const top=nums.sort((a,b)=>b.n-a.n)[0];
+  return top.prefix+(top.n+1);
+}
+function nptToday(){const d=new Date(Date.now()+(5*60+45)*60000);return d.toISOString().slice(0,10);}
+function addDays(ymd,k){const d=new Date(ymd+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+k);return d.toISOString().slice(0,10);}
+function dayLabel(ymd,k){if(k===1)return 'Tomorrow';return new Date(ymd+'T00:00:00Z').toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});}
+function chipRow(id,options,cur,onPick){
+  const box=document.getElementById(id);
+  box.innerHTML=options.map(([v,l])=>`<button type="button" class="chip${String(v)===String(cur)?' on':''}" data-v="${esc(v)}">${esc(l)}</button>`).join('');
+  box.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{onPick(c.dataset.v);newEventRender();});
+}
+function newEventOpen(){
+  const base=latestEvent()||{};
+  const hm=(isoToLocalInputValue(base.start).slice(11,16))||'22:00';
+  const m=String(base.format||'').match(/(\d+)\s*match/i);
+  Object.assign(NEV,{
+    name:nextEventName(),day:addDays(nptToday(),1),time:hm,
+    prize:String(base.prize||'300').replace(/[^\d]/g,'')||'300',
+    entry:/^\s*free\s*$/i.test(base.entry||'Free')?'0':String(base.entry).replace(/[^\d]/g,'')||'0',
+    slots:String(base.slots||12),matches:m?m[1]:'3',
+    device:base.platform_mode||'mobile',map:base.map||'bermuda',base
+  });
+  document.getElementById('nev-name').value=NEV.name;
+  document.getElementById('nev-msg').textContent='';
+  newEventRender();
+  document.getElementById('nev-ov').classList.add('open');
+}
+function newEventClose(){document.getElementById('nev-ov').classList.remove('open');}
+function newEventRender(){
+  const today=nptToday();
+  const days=[1,2,3,4,5,6,7].map(k=>[addDays(today,k),dayLabel(addDays(today,k),k)]);
+  chipRow('nev-days',days,NEV.day,v=>{NEV.day=v;});
+  chipRow('nev-times',[['20:00','8 PM'],['21:00','9 PM'],['21:30','9:30 PM'],['22:00','10 PM'],['22:30','10:30 PM']],NEV.time,v=>{NEV.time=v;});
+  document.getElementById('nev-start').value=NEV.day&&NEV.time?NEV.day+'T'+NEV.time:'';
+  chipRow('nev-prizes',[['200','200'],['300','300'],['400','400'],['500','500'],['1000','1000']],NEV.prize,v=>{NEV.prize=v;});
+  chipRow('nev-entries',[['0','Free'],['20','20 pts'],['50','50 pts'],['100','100 pts']],NEV.entry,v=>{NEV.entry=v;});
+  chipRow('nev-slots',[['12','12 squads'],['24','24 squads'],['48','48 squads']],NEV.slots,v=>{NEV.slots=v;});
+  chipRow('nev-matches',[['1','1 match'],['3','3 matches'],['4','4 matches'],['6','6 matches']],NEV.matches,v=>{NEV.matches=v;});
+  chipRow('nev-devices',PLATFORM_MODES.map(([v,l])=>[v,l.replace(' (any device)','')]),NEV.device,v=>{NEV.device=v;});
+  chipRow('nev-maps',MAPS,NEV.map,v=>{NEV.map=v;});
+  const f=startFieldsFromLocal(document.getElementById('nev-start').value);
+  const entry=+NEV.entry?NEV.entry+' points':'Free';
+  document.getElementById('nev-sum').innerHTML=`<b>${esc(document.getElementById('nev-name').value)}</b><br>`+
+    `📅 ${f?esc(f.date+' · '+f.time):'<span class="ev-warn">pick a day and time</span>'}<br>`+
+    `🏆 Prize <b>Rs ${esc(NEV.prize)}</b> · 🎟 Entry <b>${esc(entry)}</b> · 👥 <b>${esc(NEV.slots)}</b> squads · <b>${esc(NEV.matches)}</b> matches`;
+}
+document.addEventListener('input',e=>{
+  if(e.target.id==='nev-name')newEventRender();
+  if(e.target.id==='nev-start'){const v=e.target.value;NEV.day=v.slice(0,10);NEV.time=v.slice(11,16);newEventRender();}
+});
+const DEVICE_TEXT={mobile:'Mobile only',mixed:'Mix Device',emulator:'Emulator only'};
+async function newEventCreate(publish){
+  const out=document.getElementById('nev-msg');
+  const name=document.getElementById('nev-name').value.trim();
+  const f=startFieldsFromLocal(document.getElementById('nev-start').value);
+  if(!name){out.textContent='Give the event a name.';return;}
+  if(data.tournaments.some(t=>String(t.name).trim().toLowerCase()===name.toLowerCase())){out.textContent='An event called "'+name+'" already exists — change the number.';return;}
+  if(!f){out.textContent='Pick a day and a time.';return;}
+  if(Date.parse(f.start)<=Date.now()){out.textContent='That time is in the past.';return;}
+  const b=NEV.base||{};
+  const t={name,game:b.game||'Free Fire BR · Squad',date:f.date,time:f.time,start:f.start,status:'upcoming',
+    map:NEV.map,prize:NEV.prize,entry:+NEV.entry?NEV.entry+' points':'Free',
+    platform:DEVICE_TEXT[NEV.device]||b.platform||'Mobile only',platform_mode:NEV.device,
+    slots:+NEV.slots||12,format:'BR · '+NEV.matches+(NEV.matches==='1'?' match':' matches'),
+    register_type:b.register_type||'whatsapp',register_url:b.register_url||'',winner:'',teams:[]};
+  if(b.early_access)t.early_access=b.early_access;
+  data.tournaments.push(t);
+  newEventClose();
+  renderAll();
+  evScrollTo(data.tournaments.length-1);
+  if(publish){msg('Creating "'+esc(name)+'" and publishing…','');await publishNow();}
+  else msg('"'+esc(name)+'" saved as a draft here. Hit 🚀 Publish changes to make it live.','ok');
+}
 function addT(){data.tournaments.push({name:'New Tournament',game:'Free Fire BR · Squad',date:'TBA',time:'TBA',start:'',status:'upcoming',map:'bermuda',prize:'Bragging rights + shoutout',entry:'Free',platform:'Mobile only',platform_mode:'mixed',slots:12,format:'BR · 4 matches',register_type:'whatsapp',register_url:'',winner:'',teams:[]});renderT();window.scrollBy(0,200);}
 // no confirm: nothing is saved until Publish, and the toast offers Undo
 function delT(i){const t=data.tournaments.splice(i,1)[0];renderT();undoToast('Deleted "'+(t&&t.name||'tournament')+'"',()=>{data.tournaments.splice(i,0,t);renderT();});}
