@@ -204,6 +204,33 @@ h2[id]{scroll-margin-top:64px}
 .nev-acts{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
 .nev-acts .btn{flex:1;min-width:150px}
 .nev-msg{min-height:1.2em;font-size:.82rem;margin-top:8px;color:var(--red)}
+/* ── ZULU admin chat ── */
+.zc-fab{position:fixed;right:16px;bottom:18px;z-index:900;background:linear-gradient(135deg,#ffd43b,#c9a84c);color:#0a0a12;border:none;border-radius:999px;padding:13px 20px;font:inherit;font-weight:800;font-size:.95rem;cursor:pointer;box-shadow:0 10px 30px rgba(201,168,76,.45)}
+.zc{position:fixed;right:16px;bottom:16px;z-index:950;width:min(430px,calc(100vw - 32px));height:min(680px,calc(100vh - 32px));background:var(--bg-2);border:1px solid var(--gold-m);border-radius:20px;display:none;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.zc.open{display:flex}
+@media(max-width:640px){.zc{right:0;bottom:0;width:100vw;height:100dvh;border-radius:0;border:none}}
+.zc-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+.zc-head b{font-size:1.02rem}.zc-head small{display:block;color:var(--silver);font-size:.72rem}
+.zc-head button{margin-left:auto;background:none;border:none;color:var(--cream);font-size:1.4rem;cursor:pointer}
+.zc-log{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.zc-msg{max-width:88%;padding:10px 13px;border-radius:14px;font-size:.88rem;line-height:1.45;white-space:pre-wrap}
+.zc-msg.me{align-self:flex-end;background:var(--gold);color:#0a0a12;border-bottom-right-radius:4px}
+.zc-msg.ai{align-self:flex-start;background:var(--panel);border:1px solid var(--line);border-bottom-left-radius:4px}
+.zc-msg.ai.wait{color:var(--silver)}
+.zc-act{align-self:stretch;background:var(--panel-2);border:1px solid var(--gold-m);border-radius:14px;padding:12px 14px}
+.zc-act h4{margin:0 0 6px;font-size:.92rem}
+.zc-act ul{margin:0 0 10px;padding-left:18px;font-size:.82rem;color:var(--silver)}
+.zc-act ul b{color:var(--cream)}
+.zc-act .zc-btns{display:flex;gap:8px}
+.zc-act .btn{padding:8px 16px;font-size:.8rem}
+.zc-act .zc-res{font-size:.8rem;margin-top:8px}
+.zc-act .zc-res.ok{color:#7ee2a8}.zc-act .zc-res.err{color:var(--red)}
+.zc-act.done{opacity:.75}
+.zc-sugg{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 8px}
+.zc-sugg button{border:1px solid var(--line);background:var(--panel);color:var(--cream);border-radius:999px;padding:6px 11px;font:inherit;font-size:.75rem;cursor:pointer}
+.zc-in{display:flex;gap:8px;padding:10px 12px 14px;border-top:1px solid var(--line);background:var(--panel)}
+.zc-in textarea{flex:1;resize:none;min-height:44px;max-height:120px;margin:0}
+.zc-in .btn{align-self:flex-end}
 @media(max-width:640px){.qa{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr!important}.btn,.qa-tile{min-height:46px}table{display:block;overflow-x:auto}input,select,textarea{font-size:16px}}
 </style>
 </head>
@@ -604,6 +631,7 @@ function unlock(){
   document.getElementById('gate').style.display='none';
   document.getElementById('app').style.display='';
   loadLive();loadSecurity();loadLoads();
+  document.getElementById('zc-fab').hidden=false;
 }
 function changePasscode(){
   localStorage.removeItem('jd_admin_secret');
@@ -1027,6 +1055,7 @@ function evMiniHtml(t,i){
 
 /* ── New Event: auto-numbered name, settings copied from the latest event, tap-chips ── */
 const NEV={};
+function deviceOf(t){t=t||{};if(t.platform_mode)return t.platform_mode;const p=String(t.platform||'');return /mix|any/i.test(p)?'mixed':/emul/i.test(p)?'emulator':'mobile';}
 function evNumber(name){const m=String(name||'').match(/^(.*?#)\s*(\d+)\s*$/);return m?{prefix:m[1],n:+m[2]}:null;}
 function latestEvent(){
   const numbered=data.tournaments.map(t=>({t,num:evNumber(t.name)})).filter(x=>x.num).sort((a,b)=>b.num.n-a.num.n);
@@ -1056,7 +1085,7 @@ function newEventOpen(){
     prize:String(base.prize||'300').replace(/[^\d]/g,'')||'300',
     entry:/^\s*free\s*$/i.test(base.entry||'Free')?'0':String(base.entry).replace(/[^\d]/g,'')||'0',
     slots:String(base.slots||12),matches:m?m[1]:'3',
-    device:base.platform_mode||'mobile',map:base.map||'bermuda',base
+    device:deviceOf(base),map:base.map||'bermuda',base
   });
   document.getElementById('nev-name').value=NEV.name;
   document.getElementById('nev-msg').textContent='';
@@ -1108,6 +1137,145 @@ async function newEventCreate(publish){
   evScrollTo(data.tournaments.length-1);
   if(publish){msg('Creating "'+esc(name)+'" and publishing…','');await publishNow();}
   else msg('"'+esc(name)+'" saved as a draft here. Hit 🚀 Publish changes to make it live.','ok');
+}
+/* ── ZULU admin chat: plain-language commands -> preview cards -> Confirm -> existing admin functions ── */
+const ZC_SUGG=['➕ New event this Friday 10pm, prize 500','🔑 Room code for the next event','📣 Remind players to confirm','📊 What\'s pending?','✓ Finish the last event'];
+let _zcHist=[],_zcBusy=false,_zcSeq=0;
+const _zcActs=new Map();
+function zcOpen(){document.getElementById('zc').classList.add('open');document.getElementById('zc-fab').hidden=true;
+  if(!document.getElementById('zc-log').children.length)zcBubble('ai','Hi Prabin 👋 I can create and edit events, send room codes, post announcements, finish events and publish. Tell me in your own words — I\'ll show you exactly what I\'ll do before anything happens.');
+  document.getElementById('zc-sugg').innerHTML=ZC_SUGG.map(t=>`<button type="button">${esc(t)}</button>`).join('');
+  document.querySelectorAll('#zc-sugg button').forEach(b=>b.onclick=()=>{document.getElementById('zc-input').value=b.textContent.replace(/^\S+\s/,'');zcSend();});
+  setTimeout(()=>document.getElementById('zc-input').focus(),50);}
+// the button shows whenever the unlocked admin app is on screen (there are several unlock paths)
+setInterval(()=>{const f=document.getElementById('zc-fab'),app=document.getElementById('app');if(f&&app&&!document.getElementById('zc').classList.contains('open'))f.hidden=app.style.display==='none';},700);
+function zcClose(){document.getElementById('zc').classList.remove('open');document.getElementById('zc-fab').hidden=false;}
+function zcBubble(who,text){const d=document.createElement('div');d.className='zc-msg '+who;d.textContent=text;const log=document.getElementById('zc-log');log.appendChild(d);log.scrollTop=log.scrollHeight;return d;}
+function nptNowText(){return new Date().toLocaleString('en-GB',{timeZone:'Asia/Kathmandu',weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});}
+function zcContext(){
+  const ymd=nptToday();
+  const lines=data.tournaments.map(t=>`- ${t.name} | status ${tIsHistory(t)?tStatus(t):tStatus(t)} | ${t.date||'TBA'} ${t.time||''} | start ${t.start||'none'} | prize ${t.prize||'-'} | entry ${t.entry||'Free'} | ${_liveCounts.get(t.name)||0}/${t.slots||'?'} squads | ${t.platform||''} | ${t.format||''}${t.winner?' | winner '+t.winner:''}`);
+  return `Now in Nepal: ${nptNowText()} (date ${ymd}).\nNext auto-numbered event name: ${nextEventName()}.\nEvents:\n${lines.join('\n')}`;
+}
+document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='zc-input'&&e.key==='Enter'&&!e.shiftKey){e.preventDefault();zcSend();}});
+async function zcSend(){
+  const box=document.getElementById('zc-input'),text=box.value.trim();
+  if(!text||_zcBusy)return;
+  const secret=adminSecret();
+  if(!secret){zcBubble('ai','Unlock the admin page with your passcode first.');return;}
+  box.value='';zcBubble('me',text);_zcBusy=true;
+  const wait=zcBubble('ai wait','Thinking…');
+  try{
+    const r=await fetch(EDGE_FN_BASE+'/zulu-admin-command',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},
+      body:JSON.stringify({message:text,context:zcContext(),history:_zcHist.slice(-6)})});
+    if(!r.ok)throw new Error(r.status===401?'Admin passcode not accepted.':await r.text());
+    const d=await r.json();
+    wait.remove();zcBubble('ai',d.reply||'Done thinking.');
+    _zcHist.push({role:'user',content:text},{role:'assistant',content:d.reply||''});
+    (d.actions||[]).forEach(zcCard);
+  }catch(e){wait.classList.remove('wait');wait.textContent='Sorry — '+(e.message||e);}
+  finally{_zcBusy=false;}
+}
+/* event lookup: exact name, then "#8"/"8", then a name that contains the words */
+function zcFindEvent(ref){
+  const r=String(ref||'').trim().toLowerCase();if(!r)return -1;
+  let i=data.tournaments.findIndex(t=>String(t.name).trim().toLowerCase()===r);if(i>=0)return i;
+  const m=r.match(/#?\s*(\d+)\s*$/);
+  if(m){const hits=data.tournaments.map((t,k)=>({k,num:evNumber(t.name)})).filter(x=>x.num&&x.num.n===+m[1]);
+    if(hits.length)return (hits.find(x=>!tIsHistory(data.tournaments[x.k]))||hits[0]).k;}
+  if(/next|upcoming/.test(r)){const up=data.tournaments.map((t,k)=>({k,ms:tStartMs(t)})).filter(x=>!tIsHistory(data.tournaments[x.k])&&x.ms&&x.ms>Date.now()).sort((a,b)=>a.ms-b.ms);if(up.length)return up[0].k;}
+  if(/last|latest|current|today/.test(r)){const past=data.tournaments.map((t,k)=>({k,ms:tStartMs(t)})).filter(x=>!tIsHistory(data.tournaments[x.k])&&x.ms&&x.ms<=Date.now()).sort((a,b)=>b.ms-a.ms);if(past.length)return past[0].k;}
+  return data.tournaments.findIndex(t=>String(t.name).toLowerCase().includes(r));
+}
+const DEVICE_LABEL={mobile:'Mobile only',mixed:'Mix Device',emulator:'Emulator only'};
+function zcApplyFields(t,f){
+  if(f.date||f.time){
+    const cur=isoToLocalInputValue(t.start);
+    const day=f.date||cur.slice(0,10),hm=f.time||cur.slice(11,16)||'22:00';
+    const st=startFieldsFromLocal(day+'T'+hm);if(st)Object.assign(t,st);
+  }
+  if(f.prize!==undefined)t.prize=String(f.prize);
+  if(f.entry_points!==undefined)t.entry=+f.entry_points?f.entry_points+' points':'Free';
+  if(f.slots!==undefined)t.slots=+f.slots;
+  if(f.matches!==undefined)t.format='BR · '+f.matches+(+f.matches===1?' match':' matches');
+  if(f.device){t.platform_mode=f.device;t.platform=DEVICE_LABEL[f.device];}
+  if(f.map)t.map=f.map;
+  return t;
+}
+function zcBuildEvent(a){
+  const b=latestEvent()||{};
+  const t={name:(a.name||nextEventName()).trim(),game:b.game||'Free Fire BR · Squad',status:'upcoming',map:b.map||'bermuda',
+    prize:String(b.prize||'300'),entry:b.entry||'Free',platform:DEVICE_LABEL[deviceOf(b)],platform_mode:deviceOf(b),
+    slots:b.slots||12,format:b.format||'BR · 3 matches',register_type:b.register_type||'whatsapp',register_url:b.register_url||'',winner:'',teams:[]};
+  if(b.early_access)t.early_access=b.early_access;
+  zcApplyFields(t,a);
+  let err='';
+  if(!t.start)err='No valid date/time.';
+  else if(Date.parse(t.start)<=Date.now())err='That time is in the past.';
+  else if(data.tournaments.some(x=>String(x.name).trim().toLowerCase()===t.name.toLowerCase()))err='"'+t.name+'" already exists.';
+  return {t,err};
+}
+function zcDescribe(a){
+  const li=(k,v)=>`<li>${k}: <b>${esc(v)}</b></li>`;
+  const pub=a.publish?'<li>…then <b>publish</b> so it goes live</li>':'';
+  switch(a.type){
+    case 'create_event':{const {t,err}=zcBuildEvent(a);return {title:'➕ Create event',html:li('Name',t.name)+li('When',(t.date||'?')+' · '+(t.time||'?'))+li('Prize','Rs '+t.prize)+li('Entry',t.entry)+li('Squads',t.slots)+li('Format',t.format)+li('Device',t.platform)+li('Map',t.map)+pub,err};}
+    case 'edit_event':{const i=zcFindEvent(a.event);if(i<0)return {title:'✏️ Edit event',html:'',err:'No event matches "'+a.event+'".'};
+      const t=data.tournaments[i],n=zcApplyFields(JSON.parse(JSON.stringify(t)),a.set);
+      const ch=['date','time','prize','entry','slots','format','platform','map'].filter(k=>String(t[k]??'')!==String(n[k]??'')).map(k=>`<li>${k}: ${esc(t[k]??'—')} → <b>${esc(n[k])}</b></li>`).join('');
+      return {title:'✏️ Edit '+t.name,html:(ch||'<li>No change</li>')+pub,err:ch?'':'Nothing would change.'};}
+    case 'finish_event':{const i=zcFindEvent(a.event);if(i<0)return {title:'✓ Finish event',html:'',err:'No event matches "'+a.event+'".'};
+      const t=data.tournaments[i],w=a.winner||bo3TopTeam(t.name)||'';return {title:'✓ Finish '+t.name,html:li('Winner',w||'(not set)')+'<li>Moves it to History · prize is paid when you tap Pay prizes</li>'+pub,err:''};}
+    case 'cancel_event':{const i=zcFindEvent(a.event);if(i<0)return {title:'✕ Cancel event',html:'',err:'No event matches "'+a.event+'".'};
+      return {title:'✕ Cancel '+data.tournaments[i].name,html:'<li>Marks it cancelled and moves it to History</li>'+pub,err:''};}
+    case 'room_code':{const i=zcFindEvent(a.event);if(i<0)return {title:'🔑 Room code',html:'',err:'No event matches "'+a.event+'".'};
+      return {title:'🔑 Room code · '+data.tournaments[i].name,html:li('Room ID',a.room_id)+li('Password',a.room_pass||'(none)')+li('When',a.when==='stage'?'automatically ~5 min before start':'right now, to every registered player'),err:''};}
+    case 'announce':{let aud='Everyone on the site';if(a.audience&&a.audience!=='everyone'){const i=zcFindEvent(a.audience);aud=i>=0?'Teams in '+data.tournaments[i].name:'Everyone on the site';}
+      return {title:'📣 Announcement',html:li('To',aud)+li('Title',a.title)+`<li>Message: <b>${esc(a.message)}</b></li>`,err:''};}
+    case 'publish':return {title:'🚀 Publish changes',html:'<li>Pushes your edits to the live site</li>',err:''};
+    case 'pay_prizes':return {title:'🏆 Pay prizes',html:'<li>Pays any unpaid announced prizes into winners\' wallets (never pays twice)</li>',err:''};
+    case 'open':return {title:'🔎 Open '+a.section,html:'',err:''};
+  }
+  return {title:a.type,html:'',err:'Unknown action'};
+}
+function zcCard(a){
+  const id=++_zcSeq;_zcActs.set(id,a);
+  const d=zcDescribe(a);
+  const el=document.createElement('div');el.className='zc-act';el.id='zc-act-'+id;
+  el.innerHTML=`<h4>${esc(d.title)}</h4><ul>${d.html}</ul>`+(d.err?`<div class="zc-res err">⚠️ ${esc(d.err)}</div>`:
+    `<div class="zc-btns"><button class="btn" onclick="zcRun(${id})">✅ Confirm</button><button class="btn ghost" onclick="zcSkip(${id})">Cancel</button></div><div class="zc-res"></div>`);
+  const log=document.getElementById('zc-log');log.appendChild(el);log.scrollTop=log.scrollHeight;
+  if(a.type==='open')zcRun(id);
+}
+function zcSkip(id){const el=document.getElementById('zc-act-'+id);el.classList.add('done');el.querySelector('.zc-btns').remove();el.querySelector('.zc-res').textContent='Cancelled — nothing changed.';}
+const zcText=id=>{const e=document.getElementById(id);return e?e.textContent.trim():'';};
+async function zcPublishIf(a){if(!a.publish)return ' Saved here — hit Publish to make it live.';await publishNow();return ' '+(zcText('publish-top-msg')||'Published.');}
+async function zcRun(id){
+  const a=_zcActs.get(id),el=document.getElementById('zc-act-'+id),res=el.querySelector('.zc-res');
+  const btns=el.querySelector('.zc-btns');if(btns)btns.remove();
+  if(res){res.className='zc-res';res.textContent='Working…';}
+  const ok=t=>{if(res){res.className='zc-res ok';res.textContent='✓ '+t;}el.classList.add('done');};
+  const bad=t=>{if(res){res.className='zc-res err';res.textContent='✗ '+t;}};
+  try{
+    switch(a.type){
+      case 'create_event':{const {t,err}=zcBuildEvent(a);if(err)return bad(err);data.tournaments.push(t);renderAll();ok('Created '+t.name+'.'+await zcPublishIf(a));break;}
+      case 'edit_event':{const i=zcFindEvent(a.event);if(i<0)return bad('Event not found.');zcApplyFields(data.tournaments[i],a.set);renderAll();ok('Updated '+data.tournaments[i].name+'.'+await zcPublishIf(a));break;}
+      case 'finish_event':{const i=zcFindEvent(a.event);if(i<0)return bad('Event not found.');if(a.winner)data.tournaments[i].winner=a.winner;markFinished(i);ok(zcText('msg').replace('Hit Publish to save.','')+await zcPublishIf(a));break;}
+      case 'cancel_event':{const i=zcFindEvent(a.event);if(i<0)return bad('Event not found.');markCancelled(i);ok('Cancelled.'+await zcPublishIf(a));break;}
+      case 'room_code':{const i=zcFindEvent(a.event);if(i<0)return bad('Event not found.');renderRcTourney();
+        document.getElementById('rc-tourney').value=data.tournaments[i].name;document.getElementById('rc-room-id').value=a.room_id;document.getElementById('rc-room-pass').value=a.room_pass||'';
+        await (a.when==='stage'?stageRoomCode():sendRoomCode());const m=zcText('rc-msg');(/fail|enter|pick/i.test(m)?bad:ok)(m);break;}
+      case 'announce':{renderAnAudience();document.getElementById('an-title').value=a.title;document.getElementById('an-body').value=a.message;
+        let aud='';if(a.audience&&a.audience!=='everyone'){const i=zcFindEvent(a.audience);if(i>=0)aud='t:'+data.tournaments[i].name;}
+        document.getElementById('an-audience').value=aud;anAudienceChanged();
+        const c=window.confirm;window.confirm=()=>true;try{await sendAnnouncement();}finally{window.confirm=c;}
+        const m=zcText('an-msg');(/fail|could not|nobody|write/i.test(m)?bad:ok)(m);break;}
+      case 'publish':{await publishNow();const m=zcText('publish-top-msg');(/fail/i.test(m)?bad:ok)(m||'Published.');break;}
+      case 'pay_prizes':{await payPrizesNow();ok(zcText('wa-msg')||'Done.');break;}
+      case 'open':{const sec=document.getElementById(a.section);if(sec){if(innerWidth<641)zcClose();sec.scrollIntoView({behavior:'smooth',block:'start'});}ok('Opened.');break;}
+      default:bad('Unknown action.');
+    }
+  }catch(e){bad(e.message||String(e));}
 }
 function addT(){data.tournaments.push({name:'New Tournament',game:'Free Fire BR · Squad',date:'TBA',time:'TBA',start:'',status:'upcoming',map:'bermuda',prize:'Bragging rights + shoutout',entry:'Free',platform:'Mobile only',platform_mode:'mixed',slots:12,format:'BR · 4 matches',register_type:'whatsapp',register_url:'',winner:'',teams:[]});renderT();window.scrollBy(0,200);}
 // no confirm: nothing is saved until Publish, and the toast offers Undo
@@ -2563,5 +2731,13 @@ updateAdminPushBtn(); // show blocked/iOS/unconfigured state right away, not onl
 sendRoomCode=guard(sendRoomCode);approvePayment=guard(approvePayment);actionReport=guard(actionReport);unbanAdmin=guard(unbanAdmin);
 dismissAiRecommendation=guard(dismissAiRecommendation);confirmAiRecommendation=guard(confirmAiRecommendation);notifyBo3Results=guard(notifyBo3Results);
 </script>
+
+<button class="zc-fab" id="zc-fab" onclick="zcOpen()" hidden>🤖 ZULU</button>
+<div class="zc" id="zc" role="dialog" aria-label="ZULU admin assistant">
+  <div class="zc-head"><span style="font-size:1.6rem">🤖</span><div><b>ZULU</b><small>Tell me what to do — I show it first, you confirm</small></div><button onclick="zcClose()" aria-label="Close">×</button></div>
+  <div class="zc-log" id="zc-log"></div>
+  <div class="zc-sugg" id="zc-sugg"></div>
+  <div class="zc-in"><textarea id="zc-input" rows="1" placeholder="e.g. new event Friday 10pm prize 500"></textarea><button class="btn" onclick="zcSend()">Send</button></div>
+</div>
 </body>
 </html>
