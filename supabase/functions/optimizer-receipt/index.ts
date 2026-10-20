@@ -5,7 +5,10 @@
 //
 // What a receipt proves: this exact report text existed at server time t and has not been edited since.
 // It does not prove the scan itself was honest (no check running on a player's own PC can).
+// Optimizer Max only (v4.7): the app also sends this PC's plan token; the server checks it with
+// optimizer_check and signs only for an active Max plan - a check a patched exe cannot skip.
 // No personal data is sent or stored.
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -29,7 +32,7 @@ const b64url = (bytes: Uint8Array) =>
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: CORS_HEADERS });
-  let body: { h?: unknown; v?: unknown };
+  let body: { h?: unknown; v?: unknown; t?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -39,6 +42,16 @@ Deno.serve(async (req: Request) => {
   const v = typeof body.v === 'string' ? body.v : '';
   if (!/^[0-9a-f]{64}$/.test(h) || !/^[0-9.]{1,12}$/.test(v)) {
     return new Response('h must be a 64-char hex SHA-256 and v a version', { status: 400, headers: CORS_HEADERS });
+  }
+  const token = typeof body.t === 'string' ? body.t : '';
+  if (!/^[0-9a-f]{64}$/.test(token)) {
+    return new Response('Signed receipts are part of Optimizer Max - sign in to the app first.', { status: 403, headers: CORS_HEADERS });
+  }
+  const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+  const { data: plan, error: planErr } = await sb.rpc('optimizer_check', { p_token: token });
+  if (planErr) return new Response('Plan check failed - try again.', { status: 503, headers: CORS_HEADERS });
+  if (!plan || plan.status !== 'ok' || plan.tier !== 'max') {
+    return new Response('Signed receipts are part of Optimizer Max.', { status: 403, headers: CORS_HEADERS });
   }
   try {
     const payload = JSON.stringify({ h, t: Math.floor(Date.now() / 1000), v, k: 1 });

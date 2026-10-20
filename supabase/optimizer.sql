@@ -26,6 +26,8 @@ create table if not exists public.optimizer_plans (
   updated_at timestamptz not null default now(),
   note text
 );
+-- v4.7: app FPS cap from the plan (null = uncapped). See _optimizer_grant.
+alter table public.optimizer_plans add column if not exists fps_cap int check (fps_cap is null or fps_cap between 30 and 1000);
 alter table public.optimizer_plans enable row level security;
 drop policy if exists "players read own optimizer plan" on public.optimizer_plans;
 create policy "players read own optimizer plan" on public.optimizer_plans for select using (auth.uid() = player_id);
@@ -93,10 +95,12 @@ begin
   else
     v_exp := now() + make_interval(days => p_days);
   end if;
-  insert into public.optimizer_plans (player_id, tier, expires_at, updated_at, note)
-  values (p_player, p_tier, v_exp, now(), p_note)
+  -- v4.7: Pro bought or renewed from now on is capped at 120 FPS in the app; Max is uncapped. Plans bought
+  -- before this change keep fps_cap null (no cap) until they are renewed.
+  insert into public.optimizer_plans (player_id, tier, expires_at, updated_at, note, fps_cap)
+  values (p_player, p_tier, v_exp, now(), p_note, case when p_tier = 'pro' then 120 end)
   on conflict (player_id) do update set tier = excluded.tier, expires_at = excluded.expires_at,
-                                        updated_at = now(), note = excluded.note
+                                        updated_at = now(), note = excluded.note, fps_cap = excluded.fps_cap
   returning * into v_row;
   return v_row;
 end;
@@ -246,7 +250,7 @@ begin
   select * into p from public.optimizer_plans where player_id = d.player_id and expires_at > now();
   if not found then return jsonb_build_object('status', 'no_plan', 'username', v_user); end if;
   return jsonb_build_object('status', 'ok', 'tier', p.tier, 'expires_at', p.expires_at, 'username', v_user,
-                            'server_time', now());
+                            'server_time', now(), 'fps_cap', p.fps_cap);
 end;
 $$;
 
