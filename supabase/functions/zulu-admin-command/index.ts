@@ -156,10 +156,20 @@ ${stats}`;
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: CORS_HEADERS });
+  // Either the admin passcode, OR a Google sign-in as the admin email (same server-side check as
+  // admin-google-login) - so one Google sign-in is enough, no second passcode step.
   const ADMIN_SECRET = Deno.env.get('ADMIN_SECRET');
-  if (!ADMIN_SECRET || req.headers.get('x-admin-secret') !== ADMIN_SECRET) {
-    return new Response('Unauthorized', { status: 401, headers: CORS_HEADERS });
+  let authorized = !!ADMIN_SECRET && req.headers.get('x-admin-secret') === ADMIN_SECRET;
+  if (!authorized) {
+    const bearer = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
+    if (bearer && bearer.split('.').length === 3) {
+      const anon = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!);
+      const { data: { user } } = await anon.auth.getUser(bearer);
+      const allowed = (Deno.env.get('ADMIN_EMAIL') || 'ayerprabin95@gmail.com').toLowerCase();
+      authorized = !!user?.email && user.email.toLowerCase() === allowed;
+    }
   }
+  if (!authorized) return new Response('Unauthorized', { status: 401, headers: CORS_HEADERS });
   let payload: Json;
   try {
     payload = await req.json();

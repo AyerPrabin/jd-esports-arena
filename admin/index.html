@@ -1147,6 +1147,9 @@ function zcOpen(){document.getElementById('zc').classList.add('open');document.g
   document.getElementById('zc-sugg').innerHTML=ZC_SUGG.map(t=>`<button type="button">${esc(t)}</button>`).join('');
   document.querySelectorAll('#zc-sugg button').forEach(b=>b.onclick=()=>{document.getElementById('zc-input').value=b.textContent.replace(/^\S+\s/,'');zcSend();});
   setTimeout(()=>document.getElementById('zc-input').focus(),50);}
+// /admin/#zulu (the ZULU button on the main site): open the chat as soon as the admin app is unlocked
+let _zcAutoOpen=location.hash==='#zulu';
+setInterval(()=>{if(_zcAutoOpen&&document.getElementById('app').style.display!=='none'){_zcAutoOpen=false;zcOpen();}},400);
 // the button shows whenever the unlocked admin app is on screen (there are several unlock paths)
 setInterval(()=>{const f=document.getElementById('zc-fab'),app=document.getElementById('app');if(f&&app&&!document.getElementById('zc').classList.contains('open'))f.hidden=app.style.display==='none';},700);
 function zcClose(){document.getElementById('zc').classList.remove('open');document.getElementById('zc-fab').hidden=false;}
@@ -1162,13 +1165,18 @@ async function zcSend(){
   const box=document.getElementById('zc-input'),text=box.value.trim();
   if(!text||_zcBusy)return;
   const secret=adminSecret();
-  if(!secret){zcBubble('ai','Unlock the admin page with your passcode first.');return;}
+  // Google admin session works on its own (the server checks the email) - no passcode needed.
+  const sess=sb?(await sb.auth.getSession()).data.session:null;
+  if(!secret&&!sess){zcBubble('ai','Sign in with Google (your admin account) first.');return;}
   box.value='';zcBubble('me',text);_zcBusy=true;
   const wait=zcBubble('ai wait','Thinking…');
   try{
-    const r=await fetch(EDGE_FN_BASE+'/zulu-admin-command',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},
+    const hdr={'Content-Type':'application/json'};
+    if(secret)hdr['x-admin-secret']=secret;
+    if(sess)hdr['Authorization']='Bearer '+sess.access_token;
+    const r=await fetch(EDGE_FN_BASE+'/zulu-admin-command',{method:'POST',headers:hdr,
       body:JSON.stringify({message:text,context:zcContext(),history:_zcHist.slice(-6)})});
-    if(!r.ok)throw new Error(r.status===401?'Admin passcode not accepted.':await r.text());
+    if(!r.ok)throw new Error(r.status===401?'Not signed in as the admin - use Sign in with Google.':await r.text());
     const d=await r.json();
     wait.remove();zcBubble('ai',d.reply||'Done thinking.');
     _zcHist.push({role:'user',content:text},{role:'assistant',content:d.reply||''});
