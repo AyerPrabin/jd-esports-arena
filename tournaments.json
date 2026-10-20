@@ -225,6 +225,22 @@
       "status": "upcoming",
       "teams": [],
       "registered": 0
+    },
+    {
+      "name": "JD Free Fire Open #10",
+      "game": "Free Fire BR · Squad",
+      "date": "Mon, Oct 26",
+      "time": "9:30 PM NPT",
+      "start": "2026-10-26T21:30:00+05:45",
+      "prize": "1000",
+      "entry": "20 points",
+      "platform": "Mobile only",
+      "slots": 24,
+      "format": "BR · 3 matches",
+      "status": "upcoming",
+      "platform_mode": "mobile",
+      "teams": [],
+      "registered": 0
     }
   ],
   "bo3": {
@@ -288,5 +304,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-20T11:27:52.773Z"
+  "_published_at": "2026-10-20T11:29:13.172Z"
 }
