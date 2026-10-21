@@ -1,80 +1,101 @@
-// ZULU's system prompt (JD Arena facts + the live schedule from tournaments.json), shared by
+// ZULU's system prompt (JD Arena facts + live schedule, seats and announcements), shared by
 // zulu-ai-reply (public Ask ZULU / the ZULU chat in Messages) and chat-push (@zulu in squad
 // and match chats) so every ZULU answer uses the same facts.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
-export async function zuluSystemPrompt(lang: 'en' | 'ne'): Promise<string> {
-  // Real-time context: the broadcast announcements JD Arena recently pushed to players,
-  // so ZULU knows what's going on right now (new events, open seats, results posted).
-  // Privacy-filtered server-side (recent_announcements RPC): broadcasts only, never room
-  // codes, tickets, or wallet/prize/withdraw messages. Best-effort; never blocks the reply.
-  let announceContext = '';
+// Live context is cached per warm isolate for CONTEXT_TTL_MS: a chat burst (or several
+// players asking at once) shares one database round trip instead of paying for it on
+// every message, and seat counts are still at most ~45 s old.
+const CONTEXT_TTL_MS = 45000;
+let ctxCache: { at: number; data: any } | null = null;
+
+// Everything live, in one call: zulu_live_context() (supabase/zulu_live_context.sql) reads
+// the tournaments straight from the database with seat counts, the latest standings and
+// the privacy-filtered announcements. Falls back to the public tournaments.json if the
+// RPC is unavailable, so ZULU still knows the schedule.
+async function liveContext(): Promise<any> {
+  if (ctxCache && Date.now() - ctxCache.at < CONTEXT_TTL_MS) return ctxCache.data;
+  let data: any = null;
   try {
     const url = Deno.env.get('SUPABASE_URL');
     const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (url && key) {
-      const sb = createClient(url, key);
-      const { data } = await sb.rpc('recent_announcements');
-      const seen = new Set<string>();
-      const items = (Array.isArray(data) ? data : [])
-        .map((a: any) => ({ title: String(a?.title || '').trim(), body: String(a?.body || '').trim().slice(0, 300) }))
-        .filter((a: any) => a.title && !seen.has(a.title + a.body) && seen.add(a.title + a.body));
-      if (items.length) {
-        announceContext = '\n\nLatest announcements JD Arena pushed to players, newest first (use them so you know what is happening right now — new events, open seats, rules, results posted, warnings — and answer from them when asked):\n' +
-          items.map((a: any) => `- "${a.title}"${a.body ? ': ' + a.body : ''}`).join('\n');
-      }
+      const { data: d, error } = await createClient(url, key).rpc('zulu_live_context');
+      if (!error && d) data = d;
     }
-  } catch {
-    // announcement fetch failing shouldn't block the reply
+  } catch { /* fall back below */ }
+  if (!data) {
+    try {
+      const r = await fetch('https://jdesport.co.uk/tournaments.json', { cache: 'no-store', signal: AbortSignal.timeout(4000) });
+      if (r.ok) { const d = await r.json(); data = { tournaments: d.tournaments || [], bo3: d.bo3, announcements: [] }; }
+    } catch { /* answer without live data */ }
+  }
+  if (data) ctxCache = { at: Date.now(), data };
+  return data;
+}
+
+export async function zuluSystemPrompt(lang: 'en' | 'ne'): Promise<string> {
+  const live = await liveContext();
+  // Real-time context: the broadcast announcements JD Arena recently pushed to players,
+  // so ZULU knows what's going on right now (new events, open seats, results posted).
+  // Privacy-filtered server-side (recent_announcements): broadcasts only, never room
+  // codes, tickets, or wallet/prize/withdraw messages.
+  let announceContext = '';
+  const seen = new Set<string>();
+  const items = (Array.isArray(live?.announcements) ? live.announcements : [])
+    .map((a: any) => ({ title: String(a?.title || '').trim(), body: String(a?.body || '').trim().slice(0, 300) }))
+    .filter((a: any) => a.title && !seen.has(a.title + a.body) && seen.add(a.title + a.body));
+  if (items.length) {
+    announceContext = '\n\nLatest announcements JD Arena pushed to players, newest first (use them so you know what is happening right now — new events, open seats, rules, results posted, warnings — and answer from them when asked):\n' +
+      items.map((a: any) => `- "${a.title}"${a.body ? ': ' + a.body : ''}`).join('\n');
   }
 
-  // Grounds the fallback in the real, current schedule instead of making it guess or
-  // deflect every scheduling/prize/entry question — tournaments.json is the same public
-  // file the site itself renders from (see TOURNAMENTS_URL in tournament-reminders),
-  // so this is data the visitor could already see on the page, not anything private.
-  // Best-effort: if the fetch fails, ZULU just answers without it (same as before).
-  let scheduleContext = '';
-  try {
-    const r = await fetch('https://jdesport.co.uk/tournaments.json', { cache: 'no-store' });
-    if (r.ok) {
-      const d = await r.json();
-      // Same rule as index.html's effectiveStatus(): a declared winner means it's over even
-      // if the admin left status "upcoming", and a passed start time means it's live/started.
-      const eff = (t: any) => {
-        const s = (t.status || 'upcoming').toLowerCase();
-        if (s !== 'cancelled' && String(t.winner || '').trim()) return 'completed';
-        const ms = Date.parse(t.start);
-        if (s === 'upcoming' && Number.isFinite(ms) && Date.now() >= ms) return Date.now() - ms > 12 * 3600e3 ? 'completed' : 'live';
-        return s;
-      };
-      const startMs = (t: any) => Date.parse(t.start) || Number.MAX_SAFE_INTEGER; // TBA dates last
-      const list = (d.tournaments || [])
-        .map((t: any) => ({ ...t, status: eff(t) }))
-        .filter((t: any) => !['completed', 'cancelled'].includes(t.status))
-        .sort((a: any, b: any) => startMs(a) - startMs(b));
-      if (list.length) {
-        scheduleContext = '\n\nNow: ' + new Date().toLocaleString('en-GB', { timeZone: 'Asia/Kathmandu', dateStyle: 'full', timeStyle: 'short' }) + ' Nepal time.' +
-          '\nLive and upcoming tournaments, soonest first (use this to answer schedule/prize/entry/slots/format questions accurately — do not contradict it):\n' +
-          list.slice(0, 8).map((t: any) =>
-            `- ${t.name || 'Tournament'}: status=${t.status || 'upcoming'}, date=${t.date || 'TBA'}, time=${t.time || 'TBA'}, prize=${t.prize || '—'}, entry=${t.entry || 'Free'}, slots=${t.slots ?? '—'}, format=${t.format || 'BR'}`
-          ).join('\n');
-      }
-      // Latest results, so "who won last time?" gets a real answer.
-      const done = (d.tournaments || []).filter((t: any) => eff(t) === 'completed').sort((a: any, b: any) => (Date.parse(b.start) || 0) - (Date.parse(a.start) || 0)).slice(0, 3);
-      if (done.length) scheduleContext += '\nRecently completed: ' + done.map((t: any) => `${t.name} (${t.date || 'date n/a'})`).join('; ');
-      const b = d.bo3;
-      if (b && b.published && Array.isArray(b.teams) && b.teams.length) {
-        const rows = b.teams
-          // same totals as index.html's bo3Standings(): sum of each round's pts
-          .map((t: any) => ({ name: t.team, total: (Array.isArray(t.r) ? t.r : []).reduce((a: number, x: any) => a + (+x?.pts || 0), 0) }))
-          .filter((x: any) => x.name && x.total > 0)
-          .sort((a: any, z: any) => z.total - a.total)
-          .slice(0, 3);
-        if (rows.length) scheduleContext += `\nLatest published standings (${b.title || b.tournament || 'last event'}): ` + rows.map((x: any, i: number) => `${i + 1}. ${x.name} ${x.total} pts`).join(', ');
-      }
-    }
-  } catch {
-    // tournaments.json fetch failing shouldn't block the reply — just answer without schedule grounding
+  // The live schedule with real seat counts, so "is there space?" / "when is the next
+  // one?" get exact answers instead of "check the site".
+  let scheduleContext = '\n\nNow: ' + new Date().toLocaleString('en-GB', { timeZone: 'Asia/Kathmandu', dateStyle: 'full', timeStyle: 'short' }) + ' Nepal time.';
+  const tours: any[] = Array.isArray(live?.tournaments) ? live.tournaments : [];
+  // Same rule as index.html's effectiveStatus(): a declared winner means it's over even
+  // if the admin left status "upcoming", and a passed start time means it's live/started.
+  const eff = (t: any) => {
+    const st = (t.status || 'upcoming').toLowerCase();
+    if (st !== 'cancelled' && String(t.winner || '').trim()) return 'completed';
+    const ms = Date.parse(t.start);
+    if (st === 'upcoming' && Number.isFinite(ms) && Date.now() >= ms) return Date.now() - ms > 12 * 3600e3 ? 'completed' : 'live';
+    return st;
+  };
+  const startMs = (t: any) => Date.parse(t.start) || Number.MAX_SAFE_INTEGER; // TBA dates last
+  const seats = (t: any) => {
+    const slots = parseInt(t.slots, 10);
+    if (!Number.isFinite(slots) || t.confirmed == null) return `slots=${t.slots ?? '—'}`;
+    const left = Math.max(0, slots - t.confirmed);
+    return `seats: ${t.confirmed}/${slots} taken, ${left ? left + ' left' : 'FULL (new squads go on the waitlist)'}${t.waitlisted ? `, ${t.waitlisted} waitlisted` : ''}`;
+  };
+  const list = tours.map((t) => ({ ...t, status: eff(t) }))
+    .filter((t) => !['completed', 'cancelled'].includes(t.status))
+    .sort((a, b) => startMs(a) - startMs(b));
+  if (list.length) {
+    scheduleContext += '\nLive and upcoming tournaments, soonest first (live data, use it to answer schedule/prize/entry/seats/format questions exactly — do not contradict it):\n' +
+      list.slice(0, 8).map((t) =>
+        `- ${t.name || 'Tournament'}: status=${t.status}, date=${t.date || 'TBA'}, time=${t.time || 'TBA'}, prize=${t.prize || '—'}, entry=${t.entry || 'Free'}, format=${t.format || 'BR'}, ${seats(t)}` +
+        (t.platform && t.platform !== 'mixed' ? `, ${t.platform} only` : '') +
+        (t.pass_needed ? ', Weekly Pass needed to join' : '') +
+        (String(t.early_access || '').toLowerCase().match(/^(yes|true)$/) && t.reg_opens ? `, registration opens ${t.reg_opens} (app users, Weekly Pro and Optimizer Max 24h earlier)` : '')
+      ).join('\n');
+  } else if (tours.length) {
+    scheduleContext += '\nNo tournament is scheduled right now; new ones are announced in notifications and on Discord.';
+  }
+  // Latest results, so "who won last time?" gets a real answer.
+  const done = tours.filter((t) => eff(t) === 'completed').sort((a, b) => (Date.parse(b.start) || 0) - (Date.parse(a.start) || 0)).slice(0, 3);
+  if (done.length) scheduleContext += '\nRecently completed: ' + done.map((t) => `${t.name} (${t.date || 'date n/a'}${t.winner ? ', winner ' + t.winner : ''})`).join('; ');
+  const b = live?.bo3;
+  if (b && b.published && Array.isArray(b.teams) && b.teams.length) {
+    const rows = b.teams
+      // same totals as index.html's bo3Standings(): sum of each round's pts
+      .map((t: any) => ({ name: t.team, total: (Array.isArray(t.r) ? t.r : []).reduce((a: number, x: any) => a + (+x?.pts || 0), 0) }))
+      .filter((x: any) => x.name && x.total > 0)
+      .sort((a: any, z: any) => z.total - a.total)
+      .slice(0, 5);
+    if (rows.length) scheduleContext += `\nLatest published standings (${b.title || b.tournament || 'last event'}): ` + rows.map((x: any, i: number) => `${i + 1}. ${x.name} ${x.total} pts`).join(', ');
   }
 
   const systemPrompt = `You are ZULU, the friendly assistant for JD Esports Arena — a Free Fire Battle Royale tournament platform in Nepal run solo by Prabin Ayer (AyerFire). Answer briefly (2-4 sentences), in a warm, casual tone. Give the exact steps when someone asks how to do something, and never invent prices, dates or rules that aren't listed here or in the tournaments list.

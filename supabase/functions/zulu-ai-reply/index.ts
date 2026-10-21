@@ -35,6 +35,15 @@ const DAILY_CAP = Number(Deno.env.get('ZULU_AI_REPLY_DAILY_CAP') || '300');     
 // ~1,000+/day, Groq ~1,000/day), leaving headroom for generate-match-recap and
 // zulu_server.py's admin-review council calls that share the same keys. It was 15 when
 // Gemini 2.5 Flash (~20/day) was the only provider.
+const MODEL_TIMEOUT_MS = Number(Deno.env.get('ZULU_CHAT_MODEL_TIMEOUT_MS') || '9000');
+
+// Answer cache for first questions (no history, no account): the same FAQ asked by many
+// players ("next tournament?", "what is weekly pass?") is answered instantly and costs no
+// quota. Short TTL because answers quote live seat counts. Per warm isolate, bounded.
+const ANSWER_TTL_MS = 90000;
+const answers = new Map<string, { at: number; reply: string; provider: string }>();
+const answerKey = (lang: string, q: string) => lang + '|' + q.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -64,16 +73,22 @@ Deno.serve(async (req: Request) => {
   // match chats (chat-push) must never see one player's account.
   const account = typeof payload.account === 'string' ? payload.account.replace(/[^\S\n]+/g, ' ').trim().slice(0, 2400) : '';
 
+  const cacheKey = !history.length && !account ? answerKey(lang, message) : '';
+  const hit = cacheKey ? answers.get(cacheKey) : undefined;
+  if (hit && Date.now() - hit.at < ANSWER_TTL_MS) return json({ reply: hit.reply, provider: hit.provider + ':cached' });
+  // Built while the rate-limit checks run, not after them.
+  const promptP = zuluSystemPrompt(lang);
+
   const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 
   try {
     const sinceBurst = new Date(Date.now() - BURST_WINDOW_SEC * 1000).toISOString();
-    const { count: burstCount, error: burstErr } = await supabase
-      .from('zulu_ai_reply_log')
-      .select('id', { count: 'exact', head: true })
-      .eq('ip', ip)
-      .gte('created_at', sinceBurst);
+    const sinceDay = new Date(); sinceDay.setUTCHours(0, 0, 0, 0);
+    const [{ count: burstCount, error: burstErr }, { count: dailyCount, error: dailyErr }] = await Promise.all([
+      supabase.from('zulu_ai_reply_log').select('id', { count: 'exact', head: true }).eq('ip', ip).gte('created_at', sinceBurst),
+      supabase.from('zulu_ai_reply_log').select('id', { count: 'exact', head: true }).gte('created_at', sinceDay.toISOString()),
+    ]);
     if (!burstErr && (burstCount ?? 0) >= BURST_CAP) {
       return new Response(JSON.stringify({ reply: null, note: 'Rate limited -- slow down a moment.' }), {
         status: 200,
@@ -81,11 +96,6 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const sinceDay = new Date(); sinceDay.setUTCHours(0, 0, 0, 0);
-    const { count: dailyCount, error: dailyErr } = await supabase
-      .from('zulu_ai_reply_log')
-      .select('id', { count: 'exact', head: true })
-      .gte('created_at', sinceDay.toISOString());
     if (!dailyErr && (dailyCount ?? 0) >= DAILY_CAP) {
       return new Response(JSON.stringify({ reply: null, note: 'Daily AI quota reached -- try again tomorrow.' }), {
         status: 200,
@@ -95,13 +105,13 @@ Deno.serve(async (req: Request) => {
 
     // Logged as an attempt (before calling the AI, not after) so the cap bounds total
     // calls regardless of whether this particular one succeeds.
-    await supabase.from('zulu_ai_reply_log').insert({ ip });
+    supabase.from('zulu_ai_reply_log').insert({ ip }).then(() => {}, () => {}); // not awaited: lands long before the AI answers
   } catch {
     // Best-effort rate limiting: a Supabase hiccup here shouldn't take public chat down,
     // it just means this one request isn't counted/capped.
   }
 
-  const systemPrompt = await zuluSystemPrompt(lang);
+  const systemPrompt = await promptP;
 
   const messages: AIMessage[] = [
     { role: 'system', content: systemPrompt + (account ? `
@@ -116,17 +126,18 @@ This player is signed in, and the conversation starts with a MY ACCOUNT note the
   ];
 
   try {
-    const result = await askAI(messages, undefined, { geminiModels: CHAT_GEMINI_MODELS });
+    const result = await askAI(messages, undefined, { geminiModels: CHAT_GEMINI_MODELS, timeoutMs: MODEL_TIMEOUT_MS });
     if (!result) {
       return new Response(JSON.stringify({ reply: null, note: 'No AI provider configured or all failed -- set at least one of GEMINI_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY, CEREBRAS_API_KEY, OPENROUTER_API_KEY in Edge Function secrets.' }), {
         status: 200,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
     }
-    return new Response(JSON.stringify({ reply: result.text, provider: result.provider }), {
-      status: 200,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-    });
+    if (cacheKey) {
+      if (answers.size > 200) answers.delete(answers.keys().next().value!);
+      answers.set(cacheKey, { at: Date.now(), reply: result.text, provider: result.provider });
+    }
+    return json({ reply: result.text, provider: result.provider });
   } catch (e) {
     return new Response(JSON.stringify({ reply: null, note: e instanceof Error ? e.message : String(e) }), {
       status: 200,

@@ -233,7 +233,10 @@ export async function describeMedia(instruction: string, media: { mime: string; 
  * a working chain. Returns null only when every configured provider failed or none are
  * configured at all.
  */
-export async function askAI(messages: AIMessage[], order?: string[], opts: { geminiModels?: string[] } = {}): Promise<AIResult | null> {
+// opts.timeoutMs: per-model limit; chat passes a short one so a stalled model falls through
+// to the next in seconds instead of holding the player for the default 20 s.
+export async function askAI(messages: AIMessage[], order?: string[], opts: { geminiModels?: string[]; timeoutMs?: number } = {}): Promise<AIResult | null> {
+  const ms = opts.timeoutMs || TIMEOUT_MS;
   const tryOrder = order || (Deno.env.get('AI_PROVIDER_ORDER') || 'groq,gemini,cerebras,mistral,openrouter,together,deepseek')
     .split(',').map((s) => s.trim()).filter(Boolean);
   for (const name of tryOrder) {
@@ -241,7 +244,7 @@ export async function askAI(messages: AIMessage[], order?: string[], opts: { gem
       const key = Deno.env.get('GEMINI_API_KEY');
       if (!key) continue;
       const models = opts.geminiModels?.length ? opts.geminiModels : modelsFor('gemini', GEMINI_MODELS);
-      const hit = await tryModels(models, (model) => callGemini(model, key, messages));
+      const hit = await tryModels(models, (model) => callGemini(model, key, messages, false, ms));
       if (hit) return { text: hit.text, provider: `gemini:${hit.model}` };
       continue;
     }
@@ -249,7 +252,7 @@ export async function askAI(messages: AIMessage[], order?: string[], opts: { gem
     if (!cfg) continue;
     const key = Deno.env.get(cfg.keyEnv);
     if (!key) continue;
-    const hit = await tryModels(modelsFor(cfg.name, cfg.models), (model) => callOpenAICompatible(cfg.base, model, key, messages));
+    const hit = await tryModels(modelsFor(cfg.name, cfg.models), (model) => callOpenAICompatible(cfg.base, model, key, messages, ms));
     if (hit) return { text: hit.text, provider: `${cfg.name}:${hit.model}` };
   }
   return null;
