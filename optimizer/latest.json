@@ -1,9 +1,9 @@
 {
-  "version": "4.8",
-  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.8.exe",
-  "sha256": "9f3a3dfa3234c7ac3060823cbb19237d82a76eb2bc84e2421bebddf7ec080460",
-  "size": 1191162,
-  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.8.zip",
-  "notes": "v4.8: Max DPI now keeps your aim (Aim X rescaled), optional Android boost (Max, off by default), correct plan prices, fixes",
+  "version": "4.9",
+  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.9.exe",
+  "sha256": "ebaa98aee8abd1a5ad598eb38bc3cfe4481ce1a88fa06764ecdf021326b7dec9",
+  "size": 1214928,
+  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.9.zip",
+  "notes": "Play coach (Max): learns a week of your matches (drag, flicks, overshoot, FPS while turning) and suggests renderer / FPS cap / cores / Extreme / Aim X, asking before each change. Emulator gets HIGH GPU priority while boosting.",
   "date": "2026-10-21"
 }
