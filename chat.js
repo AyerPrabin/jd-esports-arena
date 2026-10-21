@@ -29,7 +29,7 @@
   var PAGE = document.getElementById('chat-page');
 
   var css = document.createElement('link');
-  css.rel = 'stylesheet'; css.href = '/chat.css?v=8';
+  css.rel = 'stylesheet'; css.href = '/chat.css?v=9';
   document.head.appendChild(css);
 
   var NE = false;
@@ -931,7 +931,10 @@
         ? '<div class="dm-b dm-room"><span class="dm-room-h">🎮 ' + esc(room.label || 'Custom room') + '</span>' +
           '<span class="dm-room-r"><button type="button" class="dm-copy" data-copy="' + esc(room.id) + '"><small>Room ID</small><b>' + esc(room.id) + '</b></button>' +
           '<button type="button" class="dm-copy" data-copy="' + esc(room.pass) + '"><small>Password</small><b>' + esc(room.pass || '—') + '</b></button></span></div>'
-        : '<div class="dm-b">' + ((p.kind === 'zulu' || isAi) && !m.mine ? linkify(m.body) : esc(m.body)) + '</div>';
+        : (p.kind === 'zulu' || isAi) && !m.mine
+          ? '<div class="dm-b"' + (m.streaming ? ' id="dm-zs"' : '') + '><span class="dm-zt">' + linkify(m.body) + '</span>' +
+            (m.streaming ? '' : '<button type="button" class="dm-say" data-say="1" aria-label="Read aloud" title="Read aloud">🔊</button>') + '</div>'
+          : '<div class="dm-b">' + esc(m.body) + '</div>';
       h += '<div class="' + cls + '" title="' + esc(stamp(m.created_at)) + '">' + av + bubble + '</div>';
       if (m.failed) h += '<div class="dm-err">' + esc(m.failed) + ' · <button type="button" class="dm-more" style="margin:0;padding:2px 8px" data-retry="' + esc(m.id) + '">Retry</button></div>';
       else if (i === lastMine && i === msgs.length - 1 && p.kind !== 'zulu') h += '<div class="dm-seen">' + seenLine(m) + '</div>';
@@ -959,16 +962,66 @@
     }
     return 'Sent';
   }
-  var PATHS = { '/challenges/': '⚔️ Challenges', '/wallet/': '🪙 Wallet', '/events/': '📅 Events', '/leaderboard.html': '🏆 Leaderboard',
-    '/profile/': '👤 Profile', '/chat/': '💬 Chat', '/privacy/': 'Privacy', '/ban-list.html': '🚫 Ban list' };
+  // ZULU ends replies with site paths for the next step; each becomes a tap button.
+  var PATHS = { '/challenges/': '⚔️ Challenges', '/wallet/': '🪙 Wallet', '/wallet/#load': '💰 Load points', '/events/': '📅 Join a tournament',
+    '/leaderboard.html': '🏆 Leaderboard', '/profile/': '👤 Profile', '/chat/': '💬 Chat', '/privacy/': 'Privacy', '/ban-list.html': '🚫 Ban list',
+    '/pass/': '🎟 Weekly Pass', '/rules/': '📜 Rules', '/optimizer/': '🚀 PC Optimizer' };
   function linkify(s) {
     return esc(s).replace(/\*\*([^*\n]{1,80})\*\*/g, '<b>$1</b>')
-      .replace(/(?:https?:\/\/)?(?:www\.)?jdesport\.co\.uk(\/[a-z-]*\/?(?:[a-z-]+\.html)?)/g, function (m, path) { return path; })
+      .replace(/(?:https?:\/\/)?(?:www\.)?jdesport\.co\.uk(\/[a-z-]*\/?(?:[a-z-]+\.html)?(?:#[a-z]+)?)/g, function (m, path) { return path; })
       .replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)'"])/g, '<a href="$1" target="_blank" rel="noopener">$1</a>')
-      .replace(/(^|[\s(])(\/(?:[a-z-]+\/|[a-z-]+\.html))(?=[\s.,;:!?)]|$)/g, function (m, pre, path) {
+      .replace(/(^|[\s(])(\/(?:[a-z-]+\/(?:#[a-z]+)?|[a-z-]+\.html))(?=[\s.,;:!?)]|$)/g, function (m, pre, path) {
         return pre + '<a class="dm-pathbtn" href="' + path + '">' + (PATHS[path] || path) + ' →</a>';
       });
   }
+  window.zuluRender = linkify;
+
+  // 🔊 Read a ZULU reply aloud with the device's own voices (speechSynthesis, on tap only).
+  // Devanagari needs a Nepali (ne) or Hindi (hi) voice - phones usually have one, many PCs don't.
+  var sayBtn = null;
+  function zuluSpeak(text, btn) {
+    var ss = window.speechSynthesis;
+    if (!ss || typeof SpeechSynthesisUtterance === 'undefined') return 'This browser can\'t read aloud.';
+    if (ss.speaking) { ss.cancel(); var was = sayBtn; if (sayBtn) sayBtn.classList.remove('on'); sayBtn = null; if (was === btn) return ''; }
+    var clean = String(text || '').replace(/(^|\s)\/[a-z-]+\/?(?:[a-z-]+\.html)?(?:#[a-z]+)?(?=\s|$)/g, ' ')
+      .replace(/https?:\/\/\S+/g, ' ').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '').replace(/\s+/g, ' ').trim();
+    if (!clean) return '';
+    var deva = /[ऀ-ॿ]/.test(clean), voices = ss.getVoices() || [];
+    var pick = function (re) { return voices.find(function (v) { return re.test(v.lang); }); };
+    var v = deva ? (pick(/^ne/i) || pick(/^hi/i)) : (pick(/^en-IN/i) || pick(/^en/i));
+    if (deva && !v) return 'No Nepali voice on this device - try ZULU on your phone.';
+    var u = new SpeechSynthesisUtterance(clean);
+    if (v) { u.voice = v; u.lang = v.lang; }
+    u.rate = 1;
+    u.onend = u.onerror = function () { if (btn) btn.classList.remove('on'); if (sayBtn === btn) sayBtn = null; };
+    if (btn) btn.classList.add('on');
+    sayBtn = btn;
+    ss.speak(u);
+    return '';
+  }
+  window.zuluSpeak = zuluSpeak;
+  if (window.speechSynthesis) try { speechSynthesis.getVoices(); } catch (e) {}
+
+  // ZULU reply as it streams in (stream:true): calls onText(textSoFar) for each piece and resolves
+  // with the full reply. JSON answers (limits, caps, errors) resolve with their reply or null.
+  async function zuluFetch(body, onText) {
+    var base = (SB.supabaseUrl || 'https://cnoxvqvpmgowdiyrrusv.supabase.co') + '/functions/v1/zulu-ai-reply';
+    body.stream = true;
+    var res = await fetch(base, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (!res.ok) return null;
+    if ((res.headers.get('content-type') || '').indexOf('application/json') >= 0) { var d = await res.json(); return d && d.reply; }
+    if (!res.body || !window.TextDecoder) { var t = await res.text(); if (onText && t) onText(t); return t || null; }
+    var reader = res.body.getReader(), dec = new TextDecoder(), full = '';
+    for (;;) {
+      var r = await reader.read();
+      if (r.done) break;
+      full += dec.decode(r.value, { stream: true });
+      if (onText && full) onText(full);
+    }
+    full += dec.decode();
+    return full.trim() || null;
+  }
+  window.zuluFetch = zuluFetch;
   // follow-up questions after a ZULU answer (local, no AI quota)
   function zuluFollowups(q, a) {
     var t = (q + ' ' + a).toLowerCase(), out = [];
@@ -992,8 +1045,9 @@
         SB.from('wallets').select('balance, unlimited').eq('player_id', me).maybeSingle(),
         SB.from('registrations').select('tournament_slug, status, checked_in_at').eq('player_id', me).order('created_at', { ascending: false }).limit(5),
         th ? Promise.resolve(null) : SB.rpc('chat_threads'),
-        SB.from('notifications').select('title, body, created_at').eq('player_id', me).order('created_at', { ascending: false }).limit(6),
-        SB.rpc('my_weekly_pass')
+        SB.from('notifications').select('title, body, created_at, tournament_slug, room_id, room_pass').eq('player_id', me).order('created_at', { ascending: false }).limit(8),
+        SB.rpc('my_weekly_pass'),
+        SB.rpc('my_contact')
       ]);
       if (myCard) lines.push('Me: ' + (myCard.username ? '@' + myCard.username : '') + ' ' + (myCard.player_tag || '') + (myCard.squad_name ? ', squad "' + myCard.squad_name + '"' : ''));
       var wp = r[4] && r[4].data;
@@ -1003,11 +1057,19 @@
       var tours = (tourCache && tourCache.tournaments) || [];
       (r[1].data || []).forEach(function (g) {
         var t = tours.find(function (x) { return x.name === g.tournament_slug; }) || {};
-        lines.push('My ticket: ' + g.tournament_slug + ' (' + (g.status === 'no_show' ? 'no-show, did not play' : g.status) + ', slot kept, no check-in needed)' + (t.date ? ', ' + t.date + ' ' + (t.time || '') : '') + (t.status ? ', event ' + t.status : ''));
+        var ms = Date.parse(t.start), left = ms - Date.now(), when = '';
+        if (ms && left > 0) when = ', starts in ' + (left > 864e5 ? Math.round(left / 864e5) + ' day(s)' : left > 36e5 ? Math.round(left / 36e5) + ' h' : Math.round(left / 6e4) + ' min');
+        var conf = g.status === 'no_show' ? '' : g.checked_in_at ? ', confirmed playing' : (ms && left > 0 ? ', NOT confirmed yet ("Confirm you\'re playing" opens 48 h and closes 24 h before start)' : '');
+        lines.push('My ticket: ' + g.tournament_slug + ' (' + (g.status === 'no_show' ? 'no-show, did not play' : g.status) + ')' + (t.date ? ', ' + t.date + ' ' + (t.time || '') : '') + when + conf + (t.status ? ', event ' + t.status : ''));
       });
+      var ct = r[5] && r[5].data;
+      lines.push(ct && ct.whatsapp && myCard && myCard.squad_name ? 'One-tap join: ready (squad, device and WhatsApp saved - just tick the rules and Confirm & join)'
+        : 'One-tap join: not set up yet (the first registration saves squad, device and WhatsApp)');
       var mt = ((th || (r[2] && r[2].data) || {}).matches) || [];
       mt.forEach(function (m) { lines.push('My challenge: ' + m.mode + ' vs ' + nameOf(m.other) + ', ' + m.status + ', ' + m.stake + ' pts each' + (m.status !== 'completed' ? (m.room_id ? ', room posted' : ', no room posted yet') : '')); });
       ((r[3] && r[3].data) || []).forEach(function (n) {
+        if (n.room_id && Date.now() - Date.parse(n.created_at) < 864e5)      // own room details, last 24 h
+          lines.push('My room for ' + (n.tournament_slug || 'my match') + ': Room ID ' + n.room_id + (n.room_pass ? ', password ' + n.room_pass : ''));
         var b = String(n.body || ''); if (b.indexOf('TICKET::') === 0) b = '';
         lines.push('My notification (' + String(n.created_at || '').slice(0, 16).replace('T', ' ') + ' UTC): ' + String(n.title || '').slice(0, 90) + (b ? ' — ' + b.slice(0, 220) : ''));
       });
@@ -1024,6 +1086,15 @@
       if (rr.error) { a.disabled = false; return; }
       if (yes) { p.friend = true; p.req = 'friend'; renderMsgs(false); } else { showHome(); }
       loadOverview(); poll();
+      return;
+    }
+    var say = e.target.closest('[data-say]');
+    if (say) {
+      var tx = say.parentNode.querySelector('.dm-zt'), err = zuluSpeak(tx ? tx.textContent : '', say);
+      if (err && !say.nextElementSibling) {
+        say.insertAdjacentHTML('afterend', '<span class="dm-sayerr">' + esc(err) + '</span>');
+        setTimeout(function () { var n = say.nextElementSibling; if (n && n.className === 'dm-sayerr') n.remove(); }, 4000);
+      }
       return;
     }
     var b = e.target.closest('[data-retry]'); if (!b) return;
@@ -1088,8 +1159,13 @@
     var alerts = zn.slice(0, 25).map(function (n) { return { id: 'n' + n.id, mine: false, kind: 'zn', n: n, body: n.title, created_at: n.created_at }; });
     return alerts.concat(chat).sort(function (a, b) { return new Date(a.created_at) - new Date(b.created_at); });
   }
+  var zuluAsking = false;                              // whole question, incl. while the reply streams in
   async function askZulu(q) {
-    if (zuluBusy) return;
+    if (zuluBusy || zuluAsking) return;
+    zuluAsking = true;
+    try { await askZulu1(q); } finally { zuluAsking = false; }
+  }
+  async function askZulu1(q) {
     var hist = store.get('jd_zulu_dm') || [];
     hist.push({ role: 'user', content: q.slice(0, 500), at: new Date().toISOString() });
     store.set('jd_zulu_dm', hist.slice(-40));
@@ -1098,11 +1174,19 @@
     if (typeof window.zuluLocalAnswer === 'function') { try { local = await window.zuluLocalAnswer(q); } catch (e) {} }
     if (local && local.text) reply = local.text;
     else try {
-      var base = (SB.supabaseUrl || 'https://cnoxvqvpmgowdiyrrusv.supabase.co') + '/functions/v1/zulu-ai-reply';
-      var account = await zuluAccount();
-      var res = await fetch(base, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: q, lang: NE ? 'ne' : 'en', account: account, history: hist.slice(-9, -1).map(function (h) { return { role: h.role, content: h.content }; }) }) });
-      if (res.ok) { var d = await res.json(); reply = d && d.reply; }
+      var account = await zuluAccount(), live = null;
+      reply = await zuluFetch({ message: q, lang: NE ? 'ne' : 'en', account: account,
+        history: hist.slice(-9, -1).map(function (h) { return { role: h.role, content: h.content }; }) }, function (text) {
+        if (!cur || cur.kind !== 'zulu') return;
+        if (!live) {                                     // first words: swap the typing dots for the reply
+          zuluBusy = false;
+          live = { id: 'zs', mine: false, kind: 'text', body: text, created_at: new Date().toISOString(), fresh: true, streaming: true };
+          msgs = zuluLoad(); msgs.push(live); renderMsgs(true);
+        } else {
+          var el = $('dm-zs'), box = $('dm-msgs');
+          if (el) { el.firstChild.innerHTML = linkify(text); box.scrollTop = box.scrollHeight; }
+        }
+      });
     } catch (e) {}
     if (!reply && local && local.fallback) reply = local.fallback;
     if (!reply) reply = NE

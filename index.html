@@ -620,6 +620,8 @@ footer #about-link,footer a[href="/ban-list.html"]{display:inline-flex;align-ite
 .fb-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
 .fb-msg{max-width:86%;padding:10px 13px;border-radius:13px;font-size:.88rem;line-height:1.5;white-space:pre-line}
 .fb-msg.bot{background:var(--panel);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:4px}
+.fb-msg a.dm-pathbtn{display:inline-flex;align-items:center;margin:6px 4px 0 0;padding:5px 11px;border-radius:8px;border:1px solid rgba(255,200,61,.35);background:rgba(255,200,61,.08);color:var(--gold-l);font-size:.8rem;font-weight:700;text-decoration:none;white-space:nowrap}
+.fb-msg a.dm-pathbtn:hover{background:rgba(255,200,61,.16)}
 .fb-msg.me{background:var(--gold);color:#0a0a12;align-self:flex-end;border-bottom-right-radius:4px;font-weight:500}
 .fb-chips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 4px}
 .fb-chip{background:transparent;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:30px;padding:7px 12px;font-size:.76rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
@@ -4117,6 +4119,14 @@ function fbChips(){
 function fbClose(){document.getElementById('fb-panel').classList.remove('open');document.getElementById('fab').style.display='';}
 function fbScroll(){var b=document.getElementById('fb-msgs');b.scrollTop=b.scrollHeight;}
 function fbBot(t){var m=document.createElement('div');m.className='fb-msg bot';m.textContent=t;document.getElementById('fb-msgs').appendChild(m);fbScroll();}
+// An AI reply: site paths become tap buttons, plus 🔊 read-aloud once it has finished (chat.js helpers).
+function zuluShow(el,text,streaming){
+  el.innerHTML='<span class="dm-zt">'+(typeof window.zuluRender==='function'?window.zuluRender(text):esc(text))+'</span>'+
+    (!streaming&&typeof window.zuluSpeak==='function'?'<button type="button" class="dm-say" aria-label="Read aloud" title="Read aloud">🔊</button>':'');
+  var b=el.querySelector('.dm-say');
+  if(b)b.onclick=function(){var err=window.zuluSpeak(el.querySelector('.dm-zt').textContent,b);if(err&&!b.nextElementSibling){b.insertAdjacentHTML('afterend','<span class="dm-sayerr">'+esc(err)+'</span>');setTimeout(function(){var n=b.nextElementSibling;if(n)n.remove();},4000);}};
+  fbScroll();
+}
 function fbMe(t){var m=document.createElement('div');m.className='fb-msg me';m.textContent=t;document.getElementById('fb-msgs').appendChild(m);fbScroll();}
 function fbSend(){var inp=document.getElementById('fb-input');var t=inp.value.trim();if(!t)return;inp.value='';fbMe(t);
   if(ZMODE==='fb'){fbData.msg=t;ZMODE='fbc';setTimeout(function(){fbBot(zL('askc'));},300);return;}
@@ -4144,8 +4154,8 @@ function zuluRespond(q){
   // If the AI call fails (no key, quota, outage) the built-in answer is shown instead, and
   // an unanswerable question still gets logged as a ticket, so nothing just vanishes.
   var th=document.createElement('div');th.className='fb-msg bot';th.textContent='…';document.getElementById('fb-msgs').appendChild(th);fbScroll();
-  zuluAiReply(q).then(function(reply){
-    if(reply){th.textContent=reply;zuluRemember(q,reply);}
+  zuluAiReply(q,function(t){zuluShow(th,t,true);}).then(function(reply){
+    if(reply){zuluShow(th,reply,false);zuluRemember(q,reply);}
     else{th.textContent=a.text;if(a.learn)logLearn('question',q,a.ticket);zuluRemember(q,a.text);}
     fbScroll();
   });
@@ -4174,8 +4184,9 @@ function zuluRemember(q,reply){zuluHist.push({role:'user',content:String(q).slic
 // and zuluPublic()'s keyword table both come up empty, so this never competes with the
 // free, instant, deterministic answers for anything already known. Returns null (not a
 // thrown error) on any failure so the caller can fall back to the ticket-log behavior.
-async function zuluAiReply(q){
+async function zuluAiReply(q,onText){
   try{
+    if(typeof window.zuluFetch==='function')return await window.zuluFetch({message:q,lang:lang,history:zuluHist},onText);   // word by word (chat.js)
     const res=await fetch(EDGE_FN_BASE+'/zulu-ai-reply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q,lang:lang,history:zuluHist})});
     if(!res.ok)return null;
     const d=await res.json();
@@ -4350,7 +4361,7 @@ zChrome();
 setTimeout(showNudge,13000);
 </script>
 <script src="/ui.js?v=16" defer></script>
-<script src="/chat.js?v=10" defer></script>
+<script src="/chat.js?v=11" defer></script>
 <script src="/fx-engine.js?v=4" defer></script>
 </body>
 </html>

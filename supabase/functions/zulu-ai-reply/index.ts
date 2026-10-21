@@ -15,7 +15,7 @@
 // below -- index.html's zuluAsk() already treats a null reply as "fall back to the local
 // canned answer", so a maxed-out quota degrades gracefully instead of erroring visibly.
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { askAI, type AIMessage } from '../_shared/ai.ts';
+import { askAI, streamGemini, type AIMessage } from '../_shared/ai.ts';
 import { zuluSystemPrompt } from '../_shared/zulu.ts';
 
 const CORS_HEADERS: Record<string, string> = {
@@ -24,7 +24,7 @@ const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-const BURST_CAP = Number(Deno.env.get('ZULU_AI_REPLY_BURST_CAP') || '5');       // per IP
+const BURST_CAP = Number(Deno.env.get('ZULU_AI_REPLY_BURST_CAP') || '8');       // per IP
 const BURST_WINDOW_SEC = Number(Deno.env.get('ZULU_AI_REPLY_BURST_WINDOW_SEC') || '60');
 // Chat: Flash-Lite first (answers in ~2s; full Flash "thinks" and took ~19s in testing),
 // with Flash as the fallback when Lite's quota runs out (per-model fallback in _shared/ai.ts).
@@ -44,6 +44,7 @@ const ANSWER_TTL_MS = 90000;
 const answers = new Map<string, { at: number; reply: string; provider: string }>();
 const answerKey = (lang: string, q: string) => lang + '|' + q.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
+const text = (body: string) => new Response(body, { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'text/plain; charset=utf-8' } });
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -73,9 +74,16 @@ Deno.serve(async (req: Request) => {
   // match chats (chat-push) must never see one player's account.
   const account = typeof payload.account === 'string' ? payload.account.replace(/[^\S\n]+/g, ' ').trim().slice(0, 2400) : '';
 
+  // stream:true (new chat clients): the reply comes back as plain text written piece by piece,
+  // so it appears word by word. Everyone else (Discord bot, @zulu in chats, old cached pages)
+  // keeps getting the JSON {reply} as before. Limits and caps answer JSON in both modes.
+  const stream = payload.stream === true;
   const cacheKey = !history.length && !account ? answerKey(lang, message) : '';
   const hit = cacheKey ? answers.get(cacheKey) : undefined;
-  if (hit && Date.now() - hit.at < ANSWER_TTL_MS) return json({ reply: hit.reply, provider: hit.provider + ':cached' });
+  if (hit && Date.now() - hit.at < ANSWER_TTL_MS) {
+    if (stream) return text(hit.reply);
+    return json({ reply: hit.reply, provider: hit.provider + ':cached' });
+  }
   // Built while the rate-limit checks run, not after them.
   const promptP = zuluSystemPrompt(lang);
 
@@ -124,6 +132,29 @@ This player is signed in, and the conversation starts with a MY ACCOUNT note the
     ...history,
     { role: 'user', content: message },
   ];
+
+  if (stream) {
+    const enc = new TextEncoder();
+    const body = new ReadableStream({
+      async start(ctrl) {
+        let full = '', provider = '';
+        try {
+          const s = await streamGemini(messages, CHAT_GEMINI_MODELS, (t) => { full += t; ctrl.enqueue(enc.encode(t)); });
+          if (s) provider = 'gemini:' + s.model + ':stream';
+          else if (!full) {                         // no model started: the normal chain, sent in one piece
+            const r = await askAI(messages, undefined, { geminiModels: CHAT_GEMINI_MODELS, timeoutMs: MODEL_TIMEOUT_MS });
+            if (r) { full = r.text; provider = r.provider; ctrl.enqueue(enc.encode(r.text)); }
+          }
+        } catch { /* whatever was sent stays; the page falls back if nothing came */ }
+        if (cacheKey && full.trim() && provider) {
+          if (answers.size > 200) answers.delete(answers.keys().next().value!);
+          answers.set(cacheKey, { at: Date.now(), reply: full.trim(), provider });
+        }
+        ctrl.close();
+      },
+    });
+    return new Response(body, { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff' } });
+  }
 
   try {
     const result = await askAI(messages, undefined, { geminiModels: CHAT_GEMINI_MODELS, timeoutMs: MODEL_TIMEOUT_MS });

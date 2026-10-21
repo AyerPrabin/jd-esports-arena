@@ -93,12 +93,10 @@ async function callOpenAICompatible(base: string, model: string, key: string, me
   }
 }
 
-// Gemini's own native generateContent call (not its OpenAI-compat endpoint) -- this
-// request shape is the one already proven live in production.
-async function callGemini(model: string, key: string, messages: AIMessage[], inlineSystem = false, timeoutMs = TIMEOUT_MS): Promise<Outcome> {
+// Gemini request body (systemInstruction + alternating user/model turns), shared by the
+// one-shot and the streaming call.
+function geminiBody(messages: AIMessage[], inlineSystem = false): string {
   let systemMsg = messages.find((m) => m.role === 'system');
-  // Real multi-turn contents (assistant -> "model"), so chat history keeps who said what.
-  // Gemini wants user-first, alternating turns: drop leading model turns, merge repeats.
   const turns: { role: string; parts: { text: string }[] }[] = [];
   for (const m of messages) {
     if (m.role === 'system') continue;
@@ -113,13 +111,66 @@ async function callGemini(model: string, key: string, messages: AIMessage[], inl
     else turns.unshift({ role: 'user', parts: [{ text: systemMsg.content }] });
     systemMsg = undefined;
   }
+  return JSON.stringify({ ...(systemMsg ? { systemInstruction: { parts: [{ text: systemMsg.content }] } } : {}), contents: turns });
+}
+
+/**
+ * Streams a Gemini answer (streamGenerateContent, SSE): onText gets each new piece as it is
+ * written, so chat can show the reply word by word. Tries the models in order until one starts
+ * answering; a model that fails after it already sent text returns what it sent. Returns the
+ * full text, or null if no model answered (the caller then falls back to askAI).
+ */
+export async function streamGemini(messages: AIMessage[], models: string[], onText: (t: string) => void, timeoutMs = 25000): Promise<{ text: string; model: string } | null> {
+  const key = Deno.env.get('GEMINI_API_KEY');
+  if (!key) return null;
+  const body = geminiBody(messages);
+  for (const model of models) {
+    const res = await post(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      body,
+    }, timeoutMs);
+    if (!res || !res.ok || !res.body) {
+      if (res && !res.ok) lastAIError[model] = `${res.status}: ${(await res.text()).slice(0, 300)}`;
+      continue;
+    }
+    let full = '';
+    try {
+      const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+      let buf = '';
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += value;
+        let nl: number;
+        while ((nl = buf.indexOf('\n')) >= 0) {
+          const line = buf.slice(0, nl).trim();
+          buf = buf.slice(nl + 1);
+          if (!line.startsWith('data:')) continue;
+          const data = JSON.parse(line.slice(5));
+          const t = (data?.candidates?.[0]?.content?.parts || [])
+            .filter((p: { thought?: boolean }) => !p.thought).map((p: { text?: string }) => p.text || '').join('');
+          if (t) { full += t; onText(t); }
+        }
+      }
+    } catch {
+      if (full.trim()) return { text: full.trim(), model };
+      continue;
+    }
+    if (full.trim()) return { text: full.trim(), model };
+  }
+  return null;
+}
+
+// Gemini's own native generateContent call (not its OpenAI-compat endpoint) -- this
+// request shape is the one already proven live in production.
+async function callGemini(model: string, key: string, messages: AIMessage[], inlineSystem = false, timeoutMs = TIMEOUT_MS): Promise<Outcome> {
+  // Real multi-turn contents (assistant -> "model"), so chat history keeps who said what.
+  // Gemini wants user-first, alternating turns: drop leading model turns, merge repeats.
   const res = await post(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-    body: JSON.stringify({
-      ...(systemMsg ? { systemInstruction: { parts: [{ text: systemMsg.content }] } } : {}),
-      contents: turns,
-    }),
+    body: geminiBody(messages, inlineSystem),
   }, timeoutMs);
   // A timeout on one Gemini model (Flash can think for a long time) shouldn't skip Flash-Lite.
   if (!res) return 'next-model';

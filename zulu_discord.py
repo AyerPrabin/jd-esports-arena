@@ -311,6 +311,9 @@ JD_TOPIC = re.compile(r"(tournament|pass|weekly|slot|seat|join|regist|entry|pr
                       r"effect|optimi[sz]er|room|squad|jd|arena|next|when|kahile|kati|winner|won|result|leaderboard|waitlist|refund)", re.I)
 
 
+SITE_PATH = re.compile(r"(^|\s)(/(?:[a-z-]+/(?:#[a-z]+)?|[a-z-]+\.html))(?=[\s.,;:!?)]|$)")
+
+
 def jd_answer(q):
     """Synchronous (network I/O) -- run via asyncio.to_thread like ai_answer()."""
     if not requests:
@@ -319,7 +322,9 @@ def jd_answer(q):
         r = requests.post(ZULU_WEB_URL, json={"message": q[:500], "lang": "en"},
                           headers={"apikey": ZULU_WEB_KEY, "Content-Type": "application/json"}, timeout=12)
         if r.ok:
-            return (r.json() or {}).get("reply") or None
+            reply = (r.json() or {}).get("reply") or None
+            # the site turns paths like /pass/ into tap buttons; on Discord they become full links
+            return SITE_PATH.sub(lambda m: m.group(1) + "https://jdesport.co.uk" + m.group(2), reply) if reply else None
     except Exception:
         pass
     return None

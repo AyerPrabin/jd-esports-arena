@@ -355,6 +355,13 @@ html.app-gated .dm-fab,html.app-gated .dm-panel,html.app-gated .dm-banner{displa
 /* ZULU: site links in answers become buttons */
 .dm-b a.dm-pathbtn{display:inline-flex;align-items:center;margin:4px 2px 0;padding:4px 10px;border-radius:6px;border:1px solid rgba(255,200,61,.35);background:rgba(255,200,61,.08);color:var(--dm-gold)!important;font-size:.8rem;font-weight:700;text-decoration:none;white-space:nowrap}
 .dm-b a.dm-pathbtn:hover{background:rgba(255,200,61,.16)}
+.dm-zt{white-space:pre-wrap}
+.dm-say{display:inline-flex;align-items:center;justify-content:center;margin:4px 0 0 4px;width:26px;height:26px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);font-size:.8rem;cursor:pointer;vertical-align:middle;opacity:.7;transition:opacity .2s,background .2s}
+.dm-say:hover,.dm-say.on{opacity:1;background:rgba(255,200,61,.16);border-color:rgba(255,200,61,.4)}
+.dm-say.on{animation:dmSay 1s ease-in-out infinite}
+@keyframes dmSay{50%{transform:scale(1.12)}}
+.dm-sayerr{display:block;margin-top:4px;font-size:.74rem;color:#ffb4b4}
+@media(prefers-reduced-motion:reduce){.dm-say.on{animation:none}}
 
 /* broadcast touches (match /broadcast.css): gold→red rule under the headers, slash title,
    squarer tabs. Uppercase only (no letter-spacing) so Nepali labels stay intact. */
