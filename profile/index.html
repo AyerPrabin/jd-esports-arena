@@ -196,6 +196,22 @@ input[type=text]:focus{border-color:var(--gold)}
         <div class="msg" id="sq-msg"></div>
       </section>
 
+      <section class="card" id="invite">
+        <h2>Invite friends</h2>
+        <p style="margin:0 0 10px;font-size:.84rem;color:var(--silver)">Share your code. When a friend you invited wins their first prize, you <b style="color:var(--gold-l)">both get +40 points</b>.</p>
+        <div class="squad"><span style="font-size:1.6rem">🤝</span><div><b id="ref-code">…</b><small id="ref-stats">Loading…</small></div></div>
+        <div class="row">
+          <button class="btn" id="ref-share" type="button">Share invite link</button>
+          <button class="btn ghost" id="ref-copy" type="button">Copy code</button>
+        </div>
+        <div id="ref-enter" hidden>
+          <label class="lbl" for="ref-input">Got a friend's code? (first 14 days only)</label>
+          <input type="text" id="ref-input" maxlength="30" placeholder="JD-XXXXX or username">
+          <div class="row"><button class="btn ghost" id="ref-save" type="button">Use code</button></div>
+        </div>
+        <div class="msg" id="ref-msg"></div>
+      </section>
+
       <section class="card">
         <h2>My tournaments <a href="/#tournaments">Find tournaments →</a></h2>
         <div class="tlist" id="tlist"><div class="empty">Loading…</div></div>
@@ -363,17 +379,44 @@ $('un-save').onclick=async()=>{
 };
 $('logout').onclick=async()=>{await sb.auth.signOut();location.href='/';};
 
+/* invite friends: my_referrals() / set_referrer() (supabase/pass_prize_referral.sql) */
+let refCode='';
+async function loadInvite(){
+  const {data}=await sb.rpc('my_referrals');
+  if(!data)return;
+  refCode=data.code||'';
+  $('ref-code').textContent=refCode||'-';
+  $('ref-stats').textContent=`${data.invited||0} invited · ${data.won||0} won · +${data.earned||0} points earned`+
+    (data.inviter?` · you joined with ${data.inviter}'s code${data.inviter_bonus_paid?' (bonus paid)':''}`:'');
+  $('ref-enter').hidden=!data.can_enter;
+}
+const refLink=()=>'https://jdesport.co.uk/?ref='+encodeURIComponent(refCode);
+$('ref-copy').onclick=async()=>{try{await navigator.clipboard.writeText(refCode);toast('Code copied');}catch(e){}};
+$('ref-share').onclick=async()=>{
+  const text=`Join me on JD Esports Arena - Free Fire tournaments with real prizes. Use my invite code ${refCode}: when you win your first prize we both get +40 points.`;
+  if(navigator.share){try{await navigator.share({title:'JD Esports Arena',text,url:refLink()});return;}catch(e){}}
+  try{await navigator.clipboard.writeText(text+' '+refLink());toast('Invite link copied');}catch(e){}
+};
+$('ref-save').onclick=async()=>{
+  const msg=$('ref-msg'),v=$('ref-input').value.trim();
+  if(!v){msg.className='msg err';msg.textContent='Enter your friend\'s JD tag or username.';return;}
+  const {data,error}=await sb.rpc('set_referrer',{p_code:v});
+  if(error){msg.className='msg err';msg.textContent=error.message;return;}
+  msg.className='msg ok';msg.textContent=`Linked to ${data.inviter}. Win your first prize and you both get +40 points.`;
+  loadInvite();
+};
+
 (async function init(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session){$('gate').hidden=false;return;}
   me={id:session.user.id,email:session.user.email,verified:!!session.user.email_confirmed_at};
   $('app').hidden=false;
   await loadProfile();
-  await Promise.all([loadWallet(),loadStats(),loadTournaments(),loadFx()]);
+  await Promise.all([loadWallet(),loadStats(),loadTournaments(),loadFx(),loadInvite()]);
   setInterval(()=>{if(!document.hidden)loadWallet();},20000);
 })();
 </script>
 <script src="/ui.js?v=16" defer></script>
-<script src="/chat.js?v=11" defer></script>
+<script src="/chat.js?v=12" defer></script>
 </body>
 </html>

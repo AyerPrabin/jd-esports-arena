@@ -1052,7 +1052,7 @@
       if (myCard) lines.push('Me: ' + (myCard.username ? '@' + myCard.username : '') + ' ' + (myCard.player_tag || '') + (myCard.squad_name ? ', squad "' + myCard.squad_name + '"' : ''));
       var wp = r[4] && r[4].data;
       lines.push(wp && wp.tier ? 'My Weekly Pass: ' + (wp.tier === 'pro' ? 'Weekly Pro' : 'Weekly Pass') + (wp.active_now ? ' active' : ' bought, starts ' + String(wp.starts_at || '').slice(0, 10)) + ' until ' + String(wp.expires_at || '').slice(0, 16).replace('T', ' ') + ' UTC'
-        : 'My Weekly Pass: none (needed to join free tournaments from 27 Oct; jdesport.co.uk/pass)');
+        : 'My Weekly Pass: none (free tournaments are still free to join; from 27 Oct a prize won without a pass pays 50 points for one; jdesport.co.uk/pass)');
       var w = r[0].data; if (w) lines.push('Points balance: ' + (w.unlimited ? 'unlimited (admin)' : (w.balance || 0) + ' JD points'));
       var tours = (tourCache && tourCache.tournaments) || [];
       (r[1].data || []).forEach(function (g) {

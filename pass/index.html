@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#07090F">
 <link rel="icon" type="image/png" href="/favicon-64.png">
 <title>Weekly Pass — JD Esports Arena</title>
-<meta name="description" content="From 27 Oct, free JD tournaments need a Weekly Pass. Rs 50 / week to join every free tournament, or Weekly Pro Rs 80 with Pro effects, early registration and waitlist priority.">
-<meta property="og:title" content="JD Weekly Pass — join every free tournament">
+<meta name="description" content="Free JD tournaments stay free to join. With a Weekly Pass (Rs 50) you keep your full prize when you win; Weekly Pro Rs 80 adds Pro effects, early registration and waitlist priority.">
+<meta property="og:title" content="JD Weekly Pass — keep your full prize">
 <meta property="og:description" content="Rs 50 / week. Weekly Pro Rs 80: Pro effects, 24 h early registration, waitlist priority, PRO badge.">
 <meta property="og:image" content="https://jdesport.co.uk/og-image.png">
 <link rel="manifest" href="/manifest.json">
@@ -106,8 +106,8 @@ select{width:100%;padding:11px 12px;border-radius:12px;background:#0a0e17;color:
   </div>
 
   <span class="kicker">From Tue 27 Oct</span>
-  <h1>Weekly Pass: <em>every free tournament</em>, one price</h1>
-  <p class="lede">From 27 Oct, joining free JD tournaments needs a Weekly Pass. Buy it early and your 7 days still start on 27 Oct, so you lose nothing. Paid-entry tournaments work the same as before.</p>
+  <h1>Weekly Pass: <em>keep your full prize</em></h1>
+  <p class="lede">Free JD tournaments stay free to join. From Tue 27 Oct, if your squad wins a prize without a Weekly Pass, 50 points of the prize pay for one (7 days). With a pass you keep the whole prize - and get squad effects. Buy early and your 7 days still start on 27 Oct.</p>
   <div class="count" id="count" aria-label="Time until the Weekly Pass starts"></div>
 
   <div class="status" id="status" hidden></div>
@@ -118,7 +118,7 @@ select{width:100%;padding:11px 12px;border-radius:12px;background:#0a0e17;color:
       <div class="price"><b>50</b><span>points / 7 days</span></div>
       <p class="sub">Rs 50 · 1 point = Rs 1</p>
       <ul class="grow">
-        <li>Join every free JD tournament for the week</li>
+        <li>Keep your full prize when you win a free tournament</li>
         <li>Lite squad effect on the roster (Glow or Steel)</li>
         <li>Stack weeks: a new pass starts when the old one ends</li>
       </ul>
@@ -152,11 +152,11 @@ select{width:100%;padding:11px 12px;border-radius:12px;background:#0a0e17;color:
   <section class="how">
     <h3>Good to know</h3>
     <div class="qa">
-      <div><b>Why a pass?</b><p>It pays for the room, the prizes and the moderators that keep free tournaments running every week.</p></div>
-      <div><b>I bought before 27 Oct</b><p>Your 7 days start on Tue 27 Oct, 12:00 AM NPT. Free tournaments before then don't need a pass.</p></div>
+      <div><b>No pass and we win?</b><p>You still get your prize: 50 points of it pay for a Weekly Pass (7 days), so the next wins that week are yours in full.</p></div>
+      <div><b>I bought before 27 Oct</b><p>Your 7 days start on Tue 27 Oct, 12:00 AM NPT. Prizes from tournaments before then are paid in full anyway.</p></div>
       <div><b>Upgrading to Pro</b><p>Before 27 Oct you pay only the 30-point difference. After that, the days left on your pass turn into Pro days (50/80 of the time).</p></div>
-      <div><b>Already registered?</b><p>Registrations you made before need nothing more. The pass is checked when you join a new free tournament.</p></div>
-      <div><b>Paid tournaments</b><p>No pass needed. Entry is paid with points as before.</p></div>
+      <div><b>Invite friends</b><p>Share your JD tag from your <a href="/profile/#invite" style="color:var(--gold-l)">profile</a>. When a friend you invited wins their first prize, you both get +40 points.</p></div>
+      <div><b>Paid tournaments</b><p>Nothing changes: entry is paid with points and prizes are paid in full.</p></div>
       <div><b>Rules still apply</b><p>A pass doesn't skip the <a href="/rules/" style="color:var(--gold-l)">rules</a>. No-shows and banned skills can still lose you your slot.</p></div>
     </div>
   </section>
@@ -185,7 +185,7 @@ for(const t of ['basic','pro'])$('fx-'+t).innerHTML=FX[t].map(e=>`<option value=
 
 function tick(){
   const ms=LAUNCH-Date.now();
-  if(ms<=0){$('count').innerHTML='<div><b>Live</b><span>pass needed now</span></div>';return;}
+  if(ms<=0){$('count').innerHTML='<div><b>Live</b><span>new rule is live</span></div>';return;}
   const d=Math.floor(ms/864e5),h=Math.floor(ms/36e5)%24,m=Math.floor(ms/6e4)%60;
   $('count').innerHTML=[[d,'days'],[h,'hours'],[m,'min']].map(([v,l])=>`<div><b>${v}</b><span>${l}</span></div>`).join('');
 }

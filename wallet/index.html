@@ -245,9 +245,9 @@ input:focus{border-color:var(--gold)}
     <section class="pane" id="p-withdraw">
       <div class="card">
         <h2>Withdraw to eSewa</h2>
-        <p class="sub">Points leave your wallet when you request. We send the money by hand, usually within a day. If it can't be sent, the points come back.</p>
+        <p class="sub">Minimum 100 points. Points leave your wallet when you request. We send the money by hand, usually within a day. If it can't be sent, the points come back.</p>
         <label for="wd-amt">Points to withdraw</label>
-        <input id="wd-amt" type="number" min="1" inputmode="numeric" placeholder="0">
+        <input id="wd-amt" type="number" min="100" inputmode="numeric" placeholder="100 or more">
         <div class="chips" id="wd-chips" style="margin-top:8px"></div>
         <label for="wd-id">eSewa ID (phone number or email)</label>
         <input id="wd-id" autocomplete="off" maxlength="40" placeholder="98XXXXXXXX">
@@ -400,7 +400,7 @@ async function loadLoadRequests(){
 /* ── withdraw ── */
 function renderWithdrawForm(){
   const n=parseInt($('wd-amt').value,10)||0;
-  $('wd-chips').innerHTML=[50,100,500].filter(a=>a<bal).map(a=>`<button type="button" class="chip" data-a="${a}">${a}</button>`).join('')+(bal>0?`<button type="button" class="chip" data-a="${bal}">All · ${bal}</button>`:'');
+  $('wd-chips').innerHTML=[100,200,500].filter(a=>a<bal).map(a=>`<button type="button" class="chip" data-a="${a}">${a}</button>`).join('')+(bal>0?`<button type="button" class="chip" data-a="${bal}">All · ${bal}</button>`:'');
   $('wd-chips').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{$('wd-amt').value=c.dataset.a;renderWithdrawForm();});
   const fee=n>=1?Math.max(1,Math.ceil(n/100)):0;
   const receive=Math.max(0,n-fee);
@@ -416,6 +416,7 @@ $('wd-btn').onclick=async()=>{
   const msg=$('wd-msg'),n=parseInt($('wd-amt').value,10)||0,id=$('wd-id').value.trim(),name=$('wd-name').value.trim();
   msg.className='msg';msg.textContent='';
   if(n<1){msg.className='msg err';msg.textContent='Enter how many points to withdraw.';return;}
+  if(n<100){msg.className='msg err';msg.textContent='The minimum withdrawal is 100 points.';return;}
   if(n>bal){msg.className='msg err';msg.textContent=`You only have ${bal} points.`;return;}
   if(id.length<5){msg.className='msg err';msg.textContent='Enter your eSewa ID (phone number or email).';return;}
   if(name.length<2){msg.className='msg err';msg.textContent='Enter the name on your eSewa account.';return;}
@@ -439,7 +440,7 @@ async function loadWithdrawals(){
 }
 
 /* ── history ── */
-const R={pass:['🎟','Weekly Pass','out'],optimizer:['🚀','JD-Optimiers plan','out'],challenge_win:['⚔️','Challenge won','in'],challenge_refund:['↩️','Challenge refund','in'],challenge_stake:['⚔️','Challenge stake','out'],prize:['🏆','Tournament prize','in'],load:['💰','Points loaded','in'],refund:['↩️','Entry refund','in'],withdraw_returned:['↩️','Withdrawal returned','in'],adjust:['🛠️','Adjustment','in'],entry:['🎮','Tournament entry','out'],effect:['✨','Squad effect','out'],withdraw:['💸','Withdrawal to eSewa','wd']};
+const R={referral:['🤝','Invite bonus','in'],pass:['🎟','Weekly Pass','out'],optimizer:['🚀','JD-Optimiers plan','out'],challenge_win:['⚔️','Challenge won','in'],challenge_refund:['↩️','Challenge refund','in'],challenge_stake:['⚔️','Challenge stake','out'],prize:['🏆','Tournament prize','in'],load:['💰','Points loaded','in'],refund:['↩️','Entry refund','in'],withdraw_returned:['↩️','Withdrawal returned','in'],adjust:['🛠️','Adjustment','in'],entry:['🎮','Tournament entry','out'],effect:['✨','Squad effect','out'],withdraw:['💸','Withdrawal to eSewa','wd']};
 const FX={fx_game:'Single match',fx_lite_week:'Lite week',fx_week:'Pro week',fx_month:'Pro month'};
 function histSub(x){
   if(x.reason==='effect'&&x.note){const [k,e]=x.note.split(':');return (FX[k]||k)+(e?' · '+e:'');}
@@ -465,7 +466,7 @@ async function refresh(){
   if(unl){$('bal').textContent='100B';$('bal-sub').textContent='Admin wallet · 100 billion points for testing';$('tab-withdraw').hidden=true;}
   else countTo($('bal'),bal);
   const sum=f=>ledger.filter(f).reduce((a,x)=>a+Math.abs(x.delta),0);
-  countTo($('st-in'),sum(x=>x.reason==='load'||x.reason==='prize'||x.reason==='challenge_win'));
+  countTo($('st-in'),sum(x=>x.reason==='load'||x.reason==='prize'||x.reason==='referral'||x.reason==='challenge_win'));
   countTo($('st-out'),sum(x=>x.reason==='entry'||x.reason==='effect'||x.reason==='optimizer'||x.reason==='pass'||x.reason==='challenge_stake')-sum(x=>x.reason==='refund'||x.reason==='challenge_refund'));
   countTo($('st-wd'),sum(x=>x.reason==='withdraw')-sum(x=>x.reason==='withdraw_returned'));
   const pend=(p.data||[]).reduce((a,x)=>a+x.amount,0);
@@ -490,6 +491,6 @@ async function refresh(){
 })();
 </script>
 <script src="/ui.js?v=16" defer></script>
-<script src="/chat.js?v=11" defer></script>
+<script src="/chat.js?v=12" defer></script>
 </body>
 </html>
