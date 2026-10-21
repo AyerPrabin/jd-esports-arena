@@ -89,6 +89,7 @@ import os
 import sys
 import json
 import random
+import re
 import asyncio
 import time
 import uuid
@@ -301,10 +302,37 @@ def _looks_like_deflection(reply):
     return "private" in low and ("jd arena" in low or "jd esports" in low)
 
 
+# The website's ZULU (Supabase edge function zulu-ai-reply): same facts as the site, plus the
+# live schedule, seats left, Weekly Pass rules, results and announcements straight from the
+# database. JD questions go there first so Discord and the website always give the same answer.
+ZULU_WEB_URL = SUPABASE_URL.rstrip("/") + "/functions/v1/zulu-ai-reply"
+ZULU_WEB_KEY = "sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil"   # public publishable key, same as the website
+JD_TOPIC = re.compile(r"(tournament|pass|weekly|slot|seat|join|regist|entry|prize|point|wallet|esewa|challenge|rule|ban|"
+                      r"effect|optimi[sz]er|room|squad|jd|arena|next|when|kahile|kati|winner|won|result|leaderboard|waitlist|refund)", re.I)
+
+
+def jd_answer(q):
+    """Synchronous (network I/O) -- run via asyncio.to_thread like ai_answer()."""
+    if not requests:
+        return None
+    try:
+        r = requests.post(ZULU_WEB_URL, json={"message": q[:500], "lang": "en"},
+                          headers={"apikey": ZULU_WEB_KEY, "Content-Type": "application/json"}, timeout=12)
+        if r.ok:
+            return (r.json() or {}).get("reply") or None
+    except Exception:
+        pass
+    return None
+
+
 def ai_answer_grounded(q):
     """Synchronous (network I/O) -- same to_thread requirement as ai_answer(). A deflection
     from /public (see _looks_like_deflection) is NOT treated as a real answer -- it falls
     through to the bot's own unrestricted ai_answer(q), same as a network failure would."""
+    if JD_TOPIC.search(q):
+        a = jd_answer(q)
+        if a:
+            return a
     if requests and ZULU_SERVER_URL:
         try:
             # 8s, not /public's own generous budget -- this blocks a Discord reply with the
@@ -1368,8 +1396,8 @@ async def ask_cmd(ctx, *, q: str = None):
     if not q:
         await ctx.send("Ask me something — e.g. `!ask what is the capital of Nepal`")
         return
-    a = knowledge_answer(q)
-    if not a and (ZULU_SERVER_URL or _ai_members()):
+    a = None if JD_TOPIC.search(q) else knowledge_answer(q)   # JD questions: live answer, not the offline notes
+    if not a:
         async with ctx.typing():
             a = await asyncio.to_thread(ai_answer_grounded, q)
     await ctx.send(a[:1900] if a else
@@ -1554,8 +1582,8 @@ async def on_message(msg):
             await msg.channel.send(f"Slow down a bit, {msg.author.mention} — try again in a few seconds.")
             return
         try:
-            a = knowledge_answer(q)
-            if not a and (ZULU_SERVER_URL or _ai_members()):
+            a = None if JD_TOPIC.search(q) else knowledge_answer(q)
+            if not a:
                 async with msg.channel.typing():
                     a = await asyncio.to_thread(ai_answer_grounded, q)
             await msg.channel.send((a[:1900] if a else
