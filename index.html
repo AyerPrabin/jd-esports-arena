@@ -316,6 +316,7 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .sqitem-nologo{background:rgba(255,200,61,.1);border:1px solid var(--gold-m);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;color:var(--gold-l)}
 .sqitem-body{position:relative;z-index:1;min-width:0;flex:1}
 .sqitem-name{font-weight:700;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sq-pro{display:inline-block;margin-left:7px;padding:1px 6px;border-radius:5px;background:linear-gradient(180deg,#FFD25C,#FFAE00);color:#2b1d00;font-size:.62rem;font-weight:800;letter-spacing:.04em;vertical-align:2px}
 .sqitem-members{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
 .sqitem-members span{font-size:.68rem;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--silver)}
 .sqitem.empty{opacity:.5;border-style:dashed;animation:none}
@@ -1158,7 +1159,7 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
       <a id="pts-pill" class="pts-pill" href="/wallet/" aria-label="Points wallet" hidden><span class="jd-coin" aria-hidden="true">JD</span><b id="pts-bal">0</b><span class="pts-unit">pts</span></a>
       <button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History">🔔<span class="badge" id="notif-badge" hidden>0</span></button>
       <button class="nav-toggle" id="nav-toggle-btn" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="acct-nav"><span class="nt-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
-      <script>(function(){var u=navigator.userAgent||"",mob=/Android|iPhone|iPad|iPod|Mobile/i.test(u);if(!mob&&(/Windows NT/i.test(u)||(matchMedia("(pointer:fine)").matches&&innerWidth>=900)))document.documentElement.classList.add("is-pc");})();</script><nav class="bar-nav" id="acct-nav"><a class="lang-btn nav-m" id="nav-pts" href="/wallet/" hidden><span>🪙 Points wallet</span><b id="nav-pts-bal">0</b></a><button type="button" class="lang-btn nav-m" id="nav-notif" onclick="notifHistOpen()"><span>🔔 Notifications</span><b id="nav-notif-count" hidden>0</b></button><a class="lang-btn nav-link" href="/challenges/">⚔️ Challenges</a><a class="lang-btn nav-link" href="/events/" data-i18n="evnav">📅 Events</a><a class="lang-btn nav-link" href="/leaderboard.html">🏆 Leaderboard</a><a class="lang-btn nav-link pc-only pc-opt" href="/optimizer/">🚀 PC Optimizer</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="mod-btn" class="lang-btn nav-link" href="/mod/" style="display:none">🛡 Mod</a><a id="admin-btn" class="lang-btn nav-link" href="/admin/" style="display:none">🛠 Admin</a><a id="zulu-admin-btn" class="lang-btn nav-link" href="/admin/#zulu" style="display:none">🤖 ZULU</a><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none" aria-label="Settings" title="Settings"><span class="sb-ic" aria-hidden="true">⚙️</span><span class="sb-lbl"> Settings</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button><a class="pc-only" href="/optimizer/" onclick="closeDlMenu()">💻 Windows PC</a></div></div></nav>
+      <script>(function(){var u=navigator.userAgent||"",mob=/Android|iPhone|iPad|iPod|Mobile/i.test(u);if(!mob&&(/Windows NT/i.test(u)||(matchMedia("(pointer:fine)").matches&&innerWidth>=900)))document.documentElement.classList.add("is-pc");})();</script><nav class="bar-nav" id="acct-nav"><a class="lang-btn nav-m" id="nav-pts" href="/wallet/" hidden><span>🪙 Points wallet</span><b id="nav-pts-bal">0</b></a><button type="button" class="lang-btn nav-m" id="nav-notif" onclick="notifHistOpen()"><span>🔔 Notifications</span><b id="nav-notif-count" hidden>0</b></button><a class="lang-btn nav-link" href="/challenges/">⚔️ Challenges</a><a class="lang-btn nav-link" href="/events/" data-i18n="evnav">📅 Events</a><a class="lang-btn nav-link" href="/pass/">🎟 Weekly Pass</a><a class="lang-btn nav-link" href="/leaderboard.html">🏆 Leaderboard</a><a class="lang-btn nav-link pc-only pc-opt" href="/optimizer/">🚀 PC Optimizer</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="mod-btn" class="lang-btn nav-link" href="/mod/" style="display:none">🛡 Mod</a><a id="admin-btn" class="lang-btn nav-link" href="/admin/" style="display:none">🛠 Admin</a><a id="zulu-admin-btn" class="lang-btn nav-link" href="/admin/#zulu" style="display:none">🤖 ZULU</a><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none" aria-label="Settings" title="Settings"><span class="sb-ic" aria-hidden="true">⚙️</span><span class="sb-lbl"> Settings</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button><a class="pc-only" href="/optimizer/" onclick="closeDlMenu()">💻 Windows PC</a></div></div></nav>
     </div>
   </div>
   <div class="nav-scrim" id="nav-scrim" onclick="closeMobileNav()"></div>
@@ -1931,7 +1932,7 @@ async function loadPublicRoster(){
   const m=new Map();
   (data||[]).forEach(r=>{
     if(!m.has(r.tournament_slug))m.set(r.tournament_slug,[]);
-    m.get(r.tournament_slug).push({squad_name:r.squad_name,squad_logo:r.squad_logo,effect:r.effect||''});
+    m.get(r.tournament_slug).push({squad_name:r.squad_name,squad_logo:r.squad_logo,effect:r.effect||'',pass:r.pass_tier||''});
   });
   _liveRoster=m;_rosterLoaded=true;
   renderCur();
@@ -1949,7 +1950,7 @@ function teamsFor(t){
     // roster finishes loading) and then vanish the moment it does.
     if(live&&live.length){
       const fxByName=new Map((Array.isArray(t.teams)?t.teams:[]).map(x=>[String(x.name||'').trim().toLowerCase(),x.effect||'']));
-      return live.map(x=>({name:x.squad_name||'Squad',logo:x.squad_logo||'',members:[],effect:x.effect||fxByName.get(String(x.squad_name||'').trim().toLowerCase())||''}));
+      return live.map(x=>({name:x.squad_name||'Squad',logo:x.squad_logo||'',members:[],pass:x.pass||'',effect:x.effect||fxByName.get(String(x.squad_name||'').trim().toLowerCase())||''}));
     }
   }
   return Array.isArray(t.teams)?t.teams.map(x=>typeof x==='string'?{name:x,logo:'',members:[],effect:''}:{name:x.name,logo:x.logo||'',members:x.members||[],effect:x.effect||''}).filter(x=>x&&x.name):[];
@@ -3023,6 +3024,7 @@ async function submitRegister(){
   if(error){
     if(/duplicate/i.test(error.message))msg.textContent="You're already registered for this one.";
     else if(/tournament full/i.test(error.message))msg.textContent='This tournament just filled up — all squad slots are taken.';
+    else if(/weekly pass/i.test(error.message)){msg.innerHTML=esc(error.message.replace(/\s*Get it at jdesport\.co\.uk\/pass\.?$/,''))+' <a href="/pass/" style="color:var(--gold-l);font-weight:700;text-decoration:underline">Get a Weekly Pass →</a>';}
     else msg.textContent=error.message; // covers the ban / mobile-only / emulator-only messages raised server-side, already human-readable
     msg.className='msg err';return;
   }
@@ -3415,7 +3417,7 @@ function sqCardHtml(tm,i){
   const name=fx?`<span class="fx-name">${esc(tm.name)}</span>`:esc(tm.name);
   const mem=members.length?`<div class="sqitem-members" title="${esc(tr('sqmembers'))}">${members.map(m=>`<span>${esc(m)}</span>`).join('')}</div>`:'';
   const deco=fx?`<span class="sqfx-shine"></span>${sqfxParticles()}`:'';
-  return `<div class="sqitem${fx?' sqfx sqfx-'+fx.key:''}">${deco}<span class="sq-no">${sqNum(i)}</span>${logo}<div class="sqitem-body">${fx?`<span class="sqfx-tag">${fx.tag}</span>`:''}<div class="sqitem-name">${name}</div>${mem}</div></div>`;
+  return `<div class="sqitem${fx?' sqfx sqfx-'+fx.key:''}">${deco}<span class="sq-no">${sqNum(i)}</span>${logo}<div class="sqitem-body">${fx?`<span class="sqfx-tag">${fx.tag}</span>`:''}<div class="sqitem-name">${name}${tm.pass==='pro'?'<span class="sq-pro" title="Weekly Pro">PRO</span>':''}</div>${mem}</div></div>`;
 }
 function openRoster(name){
   const t=((_lastData||ARENA_SAMPLE).tournaments||[]).find(x=>x.name===name);
