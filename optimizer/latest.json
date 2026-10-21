@@ -1,9 +1,9 @@
 {
-  "version": "4.9",
-  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.9.exe",
-  "sha256": "ebaa98aee8abd1a5ad598eb38bc3cfe4481ce1a88fa06764ecdf021326b7dec9",
-  "size": 1214928,
-  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.9.zip",
-  "notes": "Play coach (Max): learns a week of your matches (drag, flicks, overshoot, FPS while turning) and suggests renderer / FPS cap / cores / Extreme / Aim X, asking before each change. Emulator gets HIGH GPU priority while boosting.",
+  "version": "5.0",
+  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.0.exe",
+  "sha256": "ba955a9628964548c4dd5ee5209b07cc6291eb62956abbb434b09e6e9053d7c8",
+  "size": 1230870,
+  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.0.zip",
+  "notes": "v5.0: live FPS on the banner (FPS, turning FPS, hitches); pre-match check on Play (fixes mouse accel + emulator profile, points out charger, macros, heavy apps, weak Wi-Fi); smarter Apply best profile (CPU cores + the play coach's proven renderer); Extreme pauses Windows Update downloads and Wi-Fi power saving; optional anonymous FPS stats.",
   "date": "2026-10-21"
 }
