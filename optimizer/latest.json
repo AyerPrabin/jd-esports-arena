@@ -1,9 +1,9 @@
 {
-  "version": "4.7",
-  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.7.exe",
-  "sha256": "55a482d98b70e6a61c89cd2ab160a46301be5457c5816d2de02b26d33e001c40",
-  "size": 1180430,
-  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.7.zip",
-  "notes": "v4.7: App Sleep slows apps instead of freezing them, Extreme turbo + USB + core isolation, native Deep clean, signed panel-scan receipts, Optimizer Max engine (DPI, 360 aim test, engine cache)",
-  "date": "2026-10-20"
+  "version": "4.8",
+  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.8.exe",
+  "sha256": "9f3a3dfa3234c7ac3060823cbb19237d82a76eb2bc84e2421bebddf7ec080460",
+  "size": 1191162,
+  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-4.8.zip",
+  "notes": "v4.8: Max DPI now keeps your aim (Aim X rescaled), optional Android boost (Max, off by default), correct plan prices, fixes",
+  "date": "2026-10-21"
 }
