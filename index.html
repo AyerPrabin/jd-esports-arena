@@ -834,6 +834,16 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 .reg-hero{margin:-28px -28px 16px;padding:52px 22px 14px;border-radius:26px 26px 0 0;background:linear-gradient(180deg,rgba(10,15,28,.15),rgba(10,15,28,.96) 92%),url('ff-gloo.jpg') center 45%/cover;border-bottom:1px solid var(--pm-border)}
 .reg-hero-eye{font-size:.64rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-l)}
 .reg-hero h3{margin:4px 0 0;font-size:1.45rem;line-height:1.15;overflow-wrap:anywhere}
+.reg-quick{display:flex;align-items:center;gap:12px;margin:4px 0 6px;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,200,80,.32);background:linear-gradient(120deg,rgba(255,200,61,.09),transparent 70%)}
+.rq-av{flex:none;width:48px;height:48px;border-radius:12px;overflow:hidden;display:grid;place-items:center;background:rgba(255,255,255,.06);font-weight:800;font-size:1.2rem;color:var(--gold-l)}
+.rq-av img{width:100%;height:100%;object-fit:cover}
+.rq-info{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}
+.rq-eye{font-size:.68rem;font-weight:700;color:var(--gold-l)}
+.rq-info b{font-size:1rem;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rq-info span:last-child{font-size:.78rem;color:var(--pm-muted,#9CA8BE)}
+.rq-edit{flex:none;padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:var(--cream);font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
+.rq-edit:hover{background:rgba(255,255,255,.1)}
+.rq-forget{padding:0;border:0;background:none;color:var(--gold-l);font:inherit;font-size:inherit;text-decoration:underline;cursor:pointer}
 .reg-wa{margin-top:16px;padding:12px 14px;border-radius:14px;border:1px solid rgba(94,219,149,.28);background:linear-gradient(120deg,rgba(37,211,102,.08),transparent 70%)}
 .zmodal .reg-wa-opt{margin:0;color:var(--cream)}
 .reg-wa-opt small{color:var(--pm-muted,#9CA8BE);font-weight:500}
@@ -1308,6 +1318,12 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 <div class="zoverlay" id="reg-overlay" onclick="if(event.target===this)regClose()">
   <div class="zmodal"><button class="fb-x" style="position:absolute;top:12px;right:14px" onclick="regClose()" aria-label="close">×</button>
     <div class="reg-hero"><span class="reg-hero-eye">🎮 Register in-app</span><h3 id="reg-tname"></h3></div>
+    <div class="reg-quick" id="reg-quick" hidden>
+      <div class="rq-av" id="rq-av"></div>
+      <div class="rq-info"><span class="rq-eye">Your saved squad</span><b id="rq-name"></b><span id="rq-meta"></span></div>
+      <button type="button" class="rq-edit" onclick="regQuickEdit()">✏️ Change</button>
+    </div>
+    <div id="reg-edit-a">
     <label>Squad / team name <span style="color:var(--gold-l)">*</span></label>
     <input id="reg-squad" placeholder="e.g. Ayer Legends" maxlength="40" required>
     <label>Device</label>
@@ -1317,6 +1333,7 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
     <p class="sub" id="reg-logo-note" style="margin:0 0 6px"></p>
     <input id="reg-logo-file" type="file" accept="image/*">
     <img id="reg-logo-preview" style="display:none;width:64px;height:64px;border-radius:10px;object-fit:cover;margin-top:10px;border:1px solid var(--line)" alt="">
+    </div>
     <div id="reg-pay-wrap" style="display:none">
       <div class="fx-pay" style="margin-top:14px">
         <div class="fx-price"><b id="reg-pay-price"></b><span>Paid tournament</span></div>
@@ -1324,7 +1341,7 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
         <p class="sub" id="reg-pay-note" style="margin:6px 0 0"></p>
       </div>
     </div>
-    <div class="reg-wa">
+    <div class="reg-wa" id="reg-edit-b">
       <input type="checkbox" id="reg-wa-on" checked hidden>
       <label style="display:block;margin:0 0 4px;color:var(--cream);font-size:.9rem;text-transform:none;letter-spacing:0"><b>💬 WhatsApp number</b> <span style="color:var(--gold-l)">*</span> <small style="color:var(--pm-muted,#9CA8BE);font-weight:500">required — your Room ID &amp; reminders are sent here</small></label>
       <div id="reg-wa-box">
@@ -1333,7 +1350,7 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
           <input id="reg-wa" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="98XXXXXXXX" maxlength="20" oninput="regWaPreview()" aria-label="WhatsApp number">
         </div>
         <p class="wa-preview" id="reg-wa-preview" aria-live="polite"></p>
-        <p class="sub" style="margin:6px 0 0">Pick your country (Nepal is set already), then type your number. Used to send your <b>Room ID and reminders</b> for this tournament — never shown publicly, and deleted 2 days after it starts. <a href="/privacy/" target="_blank" rel="noopener">Privacy</a></p>
+        <p class="sub" style="margin:6px 0 0">Pick your country (Nepal is set already), then type your number. Used to send your <b>Room ID and reminders</b> — never shown publicly. It's saved to your account so next time you just confirm. <button type="button" class="rq-forget" id="reg-wa-forget" hidden onclick="regWaForget()">Remove saved number</button> <a href="/privacy/" target="_blank" rel="noopener">Privacy</a></p>
       </div>
     </div>
     <p class="sub" style="color:var(--warm-l);margin:12px 0 0"><b>⚠️ Please show up.</b> Registering means you're committing to play. Squads that register and then don't join can be removed and <b>banned from future JD tournaments</b>.</p>
@@ -1351,7 +1368,7 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
       <label class="tc-check"><input type="checkbox" id="reg-rules-ok"><span>I have read these rules and my whole squad agrees to follow them. Breaking them can get us disqualified or banned.</span></label>
     </div>
     <div class="msg" id="reg-msg"></div>
-    <div class="row2"><button class="btn-primary" style="flex:1" onclick="submitRegister()">Register</button></div>
+    <div class="row2"><button class="btn-primary" style="flex:1" id="reg-submit" onclick="submitRegister()">Register</button></div>
   </div>
 </div>
 <div class="zoverlay" id="notif-overlay" onclick="if(event.target===this)notifHistClose()">
@@ -2901,6 +2918,8 @@ function registerInApp(name){
   if(ln)ln.textContent=_player.squad_logo?'Using your saved logo. Choose a new image only if you want to change it — it replaces the old one everywhere.':'Upload once — it is saved to your profile for every future tournament.';
   const payWrap=document.getElementById('reg-pay-wrap');if(payWrap)payWrap.style.display=paid?'':'none';
     const wo=document.getElementById('reg-wa-on'),wi=document.getElementById('reg-wa');if(wo)wo.checked=true;if(wi)wi.value='';const _wb=document.getElementById('reg-wa-box');if(_wb)_wb.hidden=false;regWaFill();regWaPreview();
+  regQuickSetup(false);
+  myContact().then(()=>{if(_regTarget===name)regQuickSetup(true);});
   const pp=document.getElementById('reg-pay-price');if(pp)pp.textContent='Entry '+(t.entry||'');
   const ps=document.getElementById('reg-pay-steps');if(ps){const pr=entryAmount(t);ps.innerHTML=paid?`<div class="pts-line" style="font-size:.8rem;color:var(--body)">Entry <b style="color:var(--gold-l)">${pr} points</b> · You have <b style="color:var(--gold-l)">${walletLabel()}</b>${canAfford(pr)?' — paid automatically when you register.':''}</div>`+(!canAfford(pr)?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="goWallet('load')">➕ Load points (need ${pr-_wallet} more)</button>`:''):'';}
   const payNote=document.getElementById('reg-pay-note');if(payNote)payNote.textContent='Not enough points yet? Register now to hold your place, then pay from your ticket once your points are loaded. A held place does not reserve a slot.';
@@ -2966,6 +2985,54 @@ function regWaPreview(){
   el.innerHTML=n?(err?esc(err):'We\'ll text <b>'+esc(n)+'</b> on WhatsApp'):'';
 }
 function regWaValue(){if(!(document.getElementById('reg-wa-on')||{}).checked)return '';return regWaNumber();}
+/* Saved squad contact (player_contacts, saved_contact.sql): the WhatsApp number + device of the last
+   registration live on the account, so a returning squad just confirms - the rules box stays required. */
+let _myContact=null;
+async function myContact(){
+  if(!sb||!_player)return null;
+  if(_myContact&&_myContact._id===_player.id)return _myContact;
+  try{const {data}=await sb.rpc('my_contact');_myContact=Object.assign({},data||{},{_id:_player.id});}catch(e){_myContact={_id:_player.id};}
+  return _myContact;
+}
+// "+97798…" -> country select + national number in the form
+function regWaSet(num){
+  const wi=document.getElementById('reg-wa'),sel=document.getElementById('reg-wa-cc');if(!wi||!num)return;
+  const d=String(num).replace(/^\+/,''),all=waParse(WA_COMMON+','+WA_ALL);
+  let c=null;for(const x of all)if(d.startsWith(x.code)&&(!c||x.code.length>c.code.length))c=x;
+  if(c&&c.iso!=='NP'&&d.startsWith('977'))c=all.find(x=>x.iso==='NP');
+  if(c&&sel){sel.value=c.iso;regWaCountry(true);wi.value=d.slice(c.code.length);}
+  else wi.value='+'+d;
+  regWaPreview();
+}
+function regWaMask(n){const s=String(n||'');if(s.length<8)return s;return (s.startsWith('+977')?'+977 '+s.slice(4,6):s.slice(0,4))+'•••••'+s.slice(-3);}
+// quick=true when the saved contact has loaded: a saved squad name + number = one-tap card
+function regQuickSetup(loaded){
+  const c=_myContact||{},q=document.getElementById('reg-quick'),a=document.getElementById('reg-edit-a'),b=document.getElementById('reg-edit-b');
+  const name=(_player&&_player.squad_name)||'',quick=loaded&&!!c.whatsapp&&name.length>=2;
+  if(loaded&&c.whatsapp){regWaSet(c.whatsapp);const fg=document.getElementById('reg-wa-forget');if(fg)fg.hidden=false;}
+  if(loaded&&c.device_type){const dv=document.getElementById('reg-device');if(dv)dv.value=c.device_type;}
+  if(q)q.hidden=!quick;if(a)a.hidden=quick;if(b)b.hidden=quick;
+  const sbt=document.getElementById('reg-submit');if(sbt)sbt.textContent=quick?'✅ Confirm & join':'Register';
+  if(!quick)return;
+  const av=document.getElementById('rq-av');
+  if(av)av.innerHTML=_player.squad_logo?`<img src="${esc(_player.squad_logo)}" alt="">`:esc(name.trim()[0].toUpperCase());
+  document.getElementById('rq-name').textContent=name;
+  const dv=(document.getElementById('reg-device')||{}).value==='emulator'?'🖥️ Emulator':'📱 Mobile';
+  document.getElementById('rq-meta').textContent=dv+' · 💬 '+regWaMask(c.whatsapp);
+}
+function regQuickEdit(){
+  document.getElementById('reg-quick').hidden=true;
+  document.getElementById('reg-edit-a').hidden=false;document.getElementById('reg-edit-b').hidden=false;
+  document.getElementById('reg-submit').textContent='Register';
+  document.getElementById('reg-squad').focus();
+}
+async function regWaForget(){
+  try{await sb.rpc('forget_my_whatsapp');}catch(e){}
+  _myContact=Object.assign({},_myContact||{},{whatsapp:null});
+  const wi=document.getElementById('reg-wa');if(wi)wi.value='';regWaPreview();
+  const fg=document.getElementById('reg-wa-forget');if(fg)fg.hidden=true;
+  const m=document.getElementById('reg-msg');if(m){m.textContent='Saved number removed from your account. Type a number to register.';m.className='msg';}
+}
 function regClose(){document.getElementById('reg-overlay').classList.remove('open');_regTarget=null;}
 function resizeToDataUri(file,maxPx,quality,cb){
   const img=new Image(),reader=new FileReader();
@@ -3033,7 +3100,7 @@ async function submitRegister(){
   let effectiveStatus=(reg&&reg.status)||status;
   _player.squad_name=squad;if(_regLogoData)_player.squad_logo=_regLogoData;
   // optional WhatsApp reminder number — a failure here never undoes the registration
-  if(wa&&reg&&reg.id){try{await sb.rpc('set_registration_whatsapp',{p_reg_id:reg.id,p_whatsapp:wa});}catch(e){}}
+  if(wa&&reg&&reg.id){try{await sb.rpc('set_registration_whatsapp',{p_reg_id:reg.id,p_whatsapp:wa});_myContact=Object.assign({},_myContact||{},{whatsapp:wa,device_type:deviceType});}catch(e){}}
   // Paid: entry is paid in points only — taken straight away when the wallet covers it.
   let codeErr='';
   if(paid&&effectiveStatus==='pending'&&canAfford(entryAmount(t))){
