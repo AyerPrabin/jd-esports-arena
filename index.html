@@ -2938,6 +2938,13 @@ function registerInApp(name){
   // register_for_tournament() in schema.sql). Free ones let the modal open; the RPC
   // waitlists automatically and auto-promotes the moment a confirmed slot frees up.
   if(full&&paid){showMsg('Tournament full',"All "+slots+" squad slots are taken.",true);return;}
+  /* no points, no registration: straight to Load points (the server refuses it too - register_for_tournament) */
+  if(paid&&!canAfford(entryAmount(t))){
+    const need=entryAmount(t)-(+_wallet||0);
+    confirmBox('🪙 Load points to join',`${name} costs ${entryAmount(t)} points to join. You have ${walletLabel()} - load ${need} more points, then come back and join in one tap.`,'Load points','Later')
+      .then(ok=>{if(ok)goWallet('load');});
+    return;
+  }
   _regTarget=name;_regLogoData=null;_regPayData=null;
   document.getElementById('reg-tname').textContent=name;
   // saved squad: name pre-filled, logo reused — they only upload again to change it
@@ -2953,7 +2960,7 @@ function registerInApp(name){
   myContact().then(()=>{if(_regTarget===name)regQuickSetup(true);});
   const pp=document.getElementById('reg-pay-price');if(pp)pp.textContent='Entry '+(t.entry||'');
   const ps=document.getElementById('reg-pay-steps');if(ps){const pr=entryAmount(t);ps.innerHTML=paid?`<div class="pts-line" style="font-size:.8rem;color:var(--body)">Entry <b style="color:var(--gold-l)">${pr} points</b> · You have <b style="color:var(--gold-l)">${walletLabel()}</b>${canAfford(pr)?' — paid automatically when you register.':''}</div>`+(!canAfford(pr)?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="goWallet('load')">➕ Load points (need ${pr-_wallet} more)</button>`:''):'';}
-  const payNote=document.getElementById('reg-pay-note');if(payNote)payNote.textContent='Not enough points yet? Register now to hold your place, then pay from your ticket once your points are loaded. A held place does not reserve a slot.';
+  const payNote=document.getElementById('reg-pay-note');if(payNote)payNote.textContent='The entry is paid from your points when you register.';
   const rok=document.getElementById('reg-rules-ok');if(rok)rok.checked=false;
   // squads that registered and didn't show up before get a final warning (they can still join)
   const ns=document.getElementById('reg-noshow');if(ns){ns.hidden=true;sb.rpc('my_no_show_count').then(({data})=>{if(+data>0)ns.hidden=false;},()=>{});}

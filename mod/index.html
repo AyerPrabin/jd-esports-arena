@@ -33,6 +33,8 @@ h2 .ln{flex:1;height:1px;background:var(--line)}
 .btn[disabled]{opacity:.55;cursor:not-allowed}
 .btn.sm{font-size:.86rem;padding:8px 14px}
 .ghost{background:none;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:30px;padding:7px 13px;font-size:.82rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}
+.act{padding:4px 10px;margin-right:4px;font-size:.8rem}
+#reg-body{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .ghost:hover{background:rgba(201,168,76,.12)}
 label{display:block;font-size:.72rem;color:var(--gold-l);margin:10px 0 4px;letter-spacing:.02em}
 input,textarea,select{width:100%;background:#0a0f1c;color:var(--cream);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit}
@@ -151,7 +153,15 @@ async function call(body){
   if(!r.ok) throw new Error(await r.text());
   return r.json();
 }
-function waLink(num){ const n=String(num).replace(/[^\d]/g,''); return n.length>=9?'https://wa.me/'+(n.length<=10?'977'+n:n):null; }
+function waLink(num,text){ const n=String(num).replace(/[^\d]/g,''); return n.length>=9?'https://wa.me/'+(n.length<=10?'977'+n:n)+(text?'?text='+encodeURIComponent(text):''):null; }
+/* WhatsApp opens with this message ready - the mod only taps Send. */
+function waTemplate(squad, ev){
+  const mod=($('who').textContent||'').split('@')[0].replace(/[._-]+/g,' ').trim()||'a JD moderator';
+  return `Hey ${squad}! \u{1F44B} This is ${mod} from JD Esports Arena.\n\n`+
+    `Is your squad ready for *${ev.name}* (${fmtWhen(ev)})? Please reply *YES* to confirm your slot `+
+    `- or tap "Confirm you're playing" on jdesport.co.uk.\n\n`+
+    `Squads that don't confirm before the match can lose their slot to the waitlist. GG \u{1F3AE}`;
+}
 
 function isUpcoming(t){
   const s=(t.status||'').toLowerCase();
@@ -210,16 +220,39 @@ async function selectTournament(i){
     const rows=await call({action:'registrations',slug:selected.name});
     if(!rows.length){ $('reg-body').innerHTML='<p class="hint">No squads registered yet.</p>'; return; }
     const body=rows.map(r=>{
-      const wl=r.whatsapp?waLink(r.whatsapp):null;
-      const wa=r.whatsapp?(wl?`<a class="wa" href="${wl}" target="_blank" rel="noopener">💬 ${esc(r.whatsapp)}</a>`:`<span class="nowa">${esc(r.whatsapp)}</span>`):'<span class="nowa">—</span>';
+      const wl=r.whatsapp?waLink(r.whatsapp,waTemplate(r.squad_name||'squad',selected)):null;
+      const wa=r.whatsapp?(wl?`<a class="wa" href="${wl}" target="_blank" rel="noopener" title="Opens WhatsApp with a ready message">💬 ${esc(r.whatsapp)}</a>`:`<span class="nowa">${esc(r.whatsapp)}</span>`):'<span class="nowa">—</span>';
       const st=r.status==='approved'||r.status==='confirmed'?'confirmed':r.status;
-      const conf=r.checked_in?'<span style="color:var(--green,#5EDB95)">✅ Yes</span>':'<span style="color:var(--warn,#ffb020)">❌ No</span>';
-      return `<tr><td>${esc(r.squad_name||'(squad)')}<div class="hint">${esc(r.captain||'')}</div></td><td class="st">${esc(st)}</td><td>${conf}</td><td>${wa}</td></tr>`;
+      const active=r.status==='approved'||r.status==='confirmed';
+      const conf=`<button type="button" class="ghost act" data-act="conf" data-id="${esc(r.id)}" data-on="${r.checked_in?0:1}" title="Tap to change">${r.checked_in?'<span style="color:var(--green,#5EDB95)">✅ Yes</span>':'<span style="color:var(--warn,#ffb020)">❌ No</span>'}</button>`;
+      const acts=`<button type="button" class="ghost act" data-act="note" data-id="${esc(r.id)}" data-sq="${esc(r.squad_name||'')}" title="Message this squad only">🔔</button>`+
+                 `<button type="button" class="ghost act" data-act="rm" data-id="${esc(r.id)}" data-sq="${esc(r.squad_name||'')}" title="Remove this squad">🗑</button>`;
+      return `<tr><td>${esc(r.squad_name||'(squad)')}<div class="hint">${esc(r.captain||'')}</div></td><td class="st">${esc(st)}</td><td>${active?conf:'—'}</td><td>${wa}</td><td style="white-space:nowrap">${acts}</td></tr>`;
     }).join('');
     const unconf=rows.filter(r=>!r.checked_in&&(r.status==='confirmed'||r.status==='approved')).length;
-    $('reg-body').innerHTML=`<table><thead><tr><th>Squad</th><th>Status</th><th>Confirmed</th><th>WhatsApp</th></tr></thead><tbody>${body}</tbody></table>`+(unconf?`<p class="hint" style="color:var(--warn,#ffb020);margin-top:8px">⚠️ ${unconf} squad(s) haven't confirmed — WhatsApp them to confirm before 24h to start, or they're removed.</p>`:'');
+    $('reg-body').innerHTML=`<table><thead><tr><th>Squad</th><th>Status</th><th>Confirmed</th><th>WhatsApp</th><th></th></tr></thead><tbody>${body}</tbody></table>`+(unconf?`<p class="hint" style="color:var(--warn,#ffb020);margin-top:8px">⚠️ ${unconf} squad(s) haven't confirmed — WhatsApp them to confirm before 24h to start, or they're removed.</p>`:'');
   }catch(e){ $('reg-body').innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; }
 }
+/* per-squad actions (mod-panel: set_confirmed / remove_team / notify_player) */
+$('reg-body').addEventListener('click',async e=>{
+  const b=e.target.closest('button.act'); if(!b) return;
+  const id=b.dataset.id, sq=b.dataset.sq||'this squad';
+  try{
+    if(b.dataset.act==='conf'){
+      b.disabled=true; await call({action:'set_confirmed',id,on:b.dataset.on==='1'});
+    } else if(b.dataset.act==='rm'){
+      const reason=prompt('Remove "'+sq+'" from '+selected.name+'?\n\nReason (sent to the player):','did not confirm / no full team');
+      if(reason===null) return;
+      b.disabled=true; await call({action:'remove_team',id,reason});
+    } else if(b.dataset.act==='note'){
+      const body=prompt('Message to "'+sq+'" only (push + in-app):','Please confirm your squad for '+selected.name+' - reply on WhatsApp or tap Confirm on jdesport.co.uk.');
+      if(!body) return;
+      b.disabled=true; await call({action:'notify_player',id,title:selected.name,body});
+      b.disabled=false; b.textContent='✓'; setTimeout(()=>{b.textContent='🔔';},2000); return;
+    }
+    selectTournament(tournaments.indexOf(selected));
+  }catch(err){ alert(err.message); b.disabled=false; }
+});
 $('reg-refresh').onclick=()=>{ if(selected) selectTournament(tournaments.indexOf(selected)); };
 
 $('n-send').onclick=async()=>{

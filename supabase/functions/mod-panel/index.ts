@@ -4,6 +4,10 @@
 //      { action: 'registrations', slug }       -> squads + WhatsApp + status for one tournament (for reminders)
 //      { action: 'notify', title, body, slug? }-> send a push/announcement (everyone, or that tournament's players)
 //      { action: 'room_code', slug, room_id, room_pass? } -> send Room ID/password to that tournament's registered squads
+//      { action: 'set_confirmed', id, on }    -> mark a squad confirmed / not confirmed (mod override of the 48h window)
+//      { action: 'remove_team', id, reason? } -> remove a squad (player notified; the waitlist trigger promotes the next)
+//      { action: 'notify_player', id, title, body } -> push + in-app message to that squad's captain only
+//      Every change is written to mod_actions (who, what, when) so the admin can see it.
 //  * The ADMIN (x-admin-secret) manages the moderator list:
 //      { action: 'mod_list' } | { action: 'mod_add', email, note? } | { action: 'mod_remove', email }
 // Moderators can NOT touch money, bans, tournaments, plans or anything else.
@@ -73,11 +77,11 @@ Deno.serve(async (req: Request) => {
     const slug = String(p.slug || '');
     if (!slug) return fail('slug required');
     const { data, error } = await admin.from('registrations')
-      .select('squad_name, status, whatsapp, checked_in_at, verified_at, created_at, players(username, player_tag)')
+      .select('id, squad_name, status, whatsapp, checked_in_at, verified_at, created_at, players(username, player_tag)')
       .eq('tournament_slug', slug).order('created_at', { ascending: true });
     if (error) return fail(error.message, 500);
     return json((data || []).map((r: any) => ({
-      squad_name: r.squad_name, status: r.status, whatsapp: r.whatsapp || null,
+      id: r.id, squad_name: r.squad_name, status: r.status, whatsapp: r.whatsapp || null,
       checked_in: !!r.checked_in_at, verified: !!r.verified_at,
       captain: r.players?.username ? '@' + r.players.username : (r.players?.player_tag || null),
     })));
@@ -101,6 +105,55 @@ Deno.serve(async (req: Request) => {
     if (!r.ok) return fail('Could not send room code: ' + text, 502);
     let out: any; try { out = JSON.parse(text); } catch { out = {}; }
     return json({ ok: true, sent_to: out.sent ?? 0, unresolved: out.unresolved || [] });
+  }
+
+  const log = (what: string, detail: string) =>
+    admin.from('mod_actions').insert({ mod_email: email, action: what, detail: detail.slice(0, 500) }).then(() => {}, () => {});
+  const regById = async (id: string) => {
+    if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
+    const { data } = await admin.from('registrations')
+      .select('id, squad_name, tournament_slug, player_id, status, checked_in_at, players(player_tag)').eq('id', id).maybeSingle();
+    return data as any;
+  };
+
+  if (action === 'set_confirmed') {
+    const r = await regById(String(p.id || ''));
+    if (!r) return fail('Squad not found');
+    const on = !!p.on;
+    const { error } = await admin.from('registrations').update({ checked_in_at: on ? new Date().toISOString() : null }).eq('id', r.id);
+    if (error) return fail(error.message, 500);
+    await log(on ? 'confirm' : 'unconfirm', `${r.squad_name} · ${r.tournament_slug}`);
+    return json({ ok: true, confirmed: on });
+  }
+
+  if (action === 'remove_team') {
+    const r = await regById(String(p.id || ''));
+    if (!r) return fail('Squad not found');
+    const reason = String(p.reason || '').trim().slice(0, 200);
+    await admin.from('notifications').insert({
+      player_id: r.player_id, push: true, tournament_slug: r.tournament_slug,
+      title: `Removed from ${r.tournament_slug}`.slice(0, 120),
+      body: `Your squad "${r.squad_name}" was removed from ${r.tournament_slug} by a JD moderator.` +
+            (reason ? ` Reason: ${reason}.` : '') + ' You can join the next event from the Events page.',
+    });
+    const { error } = await admin.from('registrations').delete().eq('id', r.id);   // trg_promote_from_waitlist moves the next squad up
+    if (error) return fail(error.message, 500);
+    await log('remove', `${r.squad_name} · ${r.tournament_slug}${reason ? ' · ' + reason : ''}`);
+    return json({ ok: true });
+  }
+
+  if (action === 'notify_player') {
+    const r = await regById(String(p.id || ''));
+    if (!r) return fail('Squad not found');
+    const title = String(p.title || '').trim(), body = String(p.body || '').trim();
+    if (!title || !body) return fail('Title and message are required');
+    const { error } = await admin.from('notifications').insert({
+      player_id: r.player_id, push: true, tournament_slug: r.tournament_slug,
+      title: `[JD] ${title}`.slice(0, 120), body: body.slice(0, 1000),
+    });
+    if (error) return fail(error.message, 500);
+    await log('notify_player', `${r.squad_name} · ${title}`);
+    return json({ ok: true });
   }
 
   if (action === 'notify') {
