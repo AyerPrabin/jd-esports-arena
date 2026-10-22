@@ -231,7 +231,39 @@ h2[id]{scroll-margin-top:64px}
 .zc-in{display:flex;gap:8px;padding:10px 12px 14px;border-top:1px solid var(--line);background:var(--panel)}
 .zc-in textarea{flex:1;resize:none;min-height:44px;max-height:120px;margin:0}
 .zc-in .btn{align-self:flex-end}
+.zc-mic.on{background:var(--red);color:#fff}
+.zc-all{align-self:stretch;margin:2px 0}
 @media(max-width:640px){.qa{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr!important}.btn,.qa-tile{min-height:46px}table{display:block;overflow-x:auto}input,select,textarea{font-size:16px}}
+/* Inbox: every point load, withdrawal and dispute waiting on the admin, actionable right here */
+.inbox{display:grid;gap:10px;margin-bottom:14px}
+.ib{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:12px;border-radius:14px;background:var(--panel);border:1px solid var(--line);align-items:start}
+.ib.load{border-left:3px solid #5edb95}.ib.wd{border-left:3px solid var(--gold)}.ib.dispute{border-left:3px solid var(--red)}
+.ib-ic{font-size:1.4rem;line-height:1}
+.ib-shot{width:64px;height:84px;object-fit:cover;border-radius:8px;border:1px solid var(--line);background:#000;cursor:zoom-in}
+.ib h4{margin:0;font-size:.95rem;color:var(--cream)}
+.ib .sub{font-size:.76rem;color:var(--body);margin:2px 0 8px}
+.ib .big{font-size:1.15rem;font-weight:800;color:var(--gold-l)}
+.ib-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ib-row input{flex:1;min-width:110px;margin:0;padding:9px 10px}
+.ib-row .btn{padding:9px 14px}
+.ib-copy{border:1px dashed var(--gold-m);background:none;color:var(--gold-l);border-radius:8px;padding:4px 8px;font:inherit;font-size:.8rem;cursor:pointer}
+.ib-done{font-size:.82rem;color:#5edb95}
+.ib-err{font-size:.82rem;color:var(--red)}
+.btn.arm{background:var(--red);color:#fff}
+.ib-zoom{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.92);display:grid;place-items:center;padding:16px}
+.ib-zoom img{max-width:100%;max-height:100%;border-radius:10px}
+.ib-clear{padding:14px;border-radius:14px;background:var(--panel);border:1px solid var(--line);color:var(--body);font-size:.86rem}
+/* Match day: next/live event, step by step */
+.md{padding:14px;border-radius:16px;background:linear-gradient(150deg,var(--panel-2),var(--panel));border:1px solid var(--gold-m);margin-bottom:14px}
+.md h3{margin:0 0 2px;font-size:1.05rem}
+.md .sub{font-size:.78rem;color:var(--body);margin:0 0 12px}
+.md-step{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.md-n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:.78rem;font-weight:800;background:var(--line);color:var(--silver)}
+.md-step.ok .md-n{background:#5edb95;color:#06210f}.md-step.now .md-n{background:var(--gold);color:#241a00}
+.md-step b{font-size:.88rem}.md-step p{margin:2px 0 8px;font-size:.78rem;color:var(--body)}
+.md-pick{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.md-pick button{border:1px solid var(--line);background:none;color:var(--silver);border-radius:999px;padding:5px 10px;font:inherit;font-size:.74rem;cursor:pointer}
+.md-pick button.on{border-color:var(--gold);color:var(--gold-l)}
 </style>
 </head>
 <body>
@@ -316,6 +348,12 @@ h2[id]{scroll-margin-top:64px}
     <a class="qa-tile" href="#tournaments"><span class="qa-ic">🏆</span>Events</a>
     <a class="qa-tile" href="#teams"><span class="qa-ic">👥</span>Players</a>
   </div>
+
+  <div class="dash-head"><span>📥 Inbox</span><button class="dash-refresh" onclick="inboxLoad(true);loadDashboard()" title="Refresh">↻</button></div>
+  <div id="inbox" class="inbox"><p class="hint">Loading point loads, withdrawals and disputes…</p></div>
+
+  <div class="dash-head"><span>🎮 Match day</span></div>
+  <div id="md-box"></div>
 
   <div class="dash-head"><span>What's going on</span></div>
   <div id="now-box" class="now-box"></div>
@@ -1144,14 +1182,40 @@ let _zcHist=[],_zcBusy=false,_zcSeq=0;
 const _zcActs=new Map();
 function zcOpen(){document.getElementById('zc').classList.add('open');document.getElementById('zc-fab').hidden=true;
   if(!document.getElementById('zc-log').children.length)zcBubble('ai','Hi Prabin 👋 I can create and edit events, send room codes, post announcements, finish events and publish. Tell me in your own words — I\'ll show you exactly what I\'ll do before anything happens.');
-  document.getElementById('zc-sugg').innerHTML=ZC_SUGG.map(t=>`<button type="button">${esc(t)}</button>`).join('');
-  document.querySelectorAll('#zc-sugg button').forEach(b=>b.onclick=()=>{document.getElementById('zc-input').value=b.textContent.replace(/^\S+\s/,'');zcSend();});
+  zcSuggest();
   setTimeout(()=>document.getElementById('zc-input').focus(),50);}
 // /admin/#zulu (the ZULU button on the main site): open the chat as soon as the admin app is unlocked
 let _zcAutoOpen=location.hash==='#zulu';
 setInterval(()=>{if(_zcAutoOpen&&document.getElementById('app').style.display!=='none'){_zcAutoOpen=false;zcOpen();}},400);
 // the button shows whenever the unlocked admin app is on screen (there are several unlock paths)
 setInterval(()=>{const f=document.getElementById('zc-fab'),app=document.getElementById('app');if(f&&app&&!document.getElementById('zc').classList.contains('open'))f.hidden=app.style.display==='none';},700);
+/* Chips follow what's actually waiting: the inbox counts and the next event come first. */
+function zcSuggest(){
+  const {loads,wds,disputes}=_ibRows,nx=mdEvents()[0],chips=[];
+  if(loads.length)chips.push(loads.length>1?`✅ Approve all ${loads.length} point loads`:'✅ Approve the point load');
+  if(wds.length)chips.push(`💸 Show the ${wds.length} withdrawal${wds.length>1?'s':''} to pay`);
+  if(disputes.length)chips.push(`⚖️ Explain the ${disputes.length} challenge dispute${disputes.length>1?'s':''}`);
+  if(nx)chips.push(`🔑 Room code for ${nx.t.name}`);
+  chips.push('📊 Summary of today','📣 Tell everyone to play challenges: 20 points, win up to 38');
+  ZC_SUGG.forEach(t=>{if(chips.length<8&&!chips.includes(t)&&!(nx&&/next event/.test(t)))chips.push(t);});
+  document.getElementById('zc-sugg').innerHTML=chips.slice(0,8).map(t=>`<button type="button">${esc(t)}</button>`).join('');
+  document.querySelectorAll('#zc-sugg button').forEach(b=>b.onclick=()=>{document.getElementById('zc-input').value=b.textContent.replace(/^\S+\s/,'');zcSend();});
+}
+/* Voice: Chrome's speech recognition (English, or Nepali when the page is held in Nepali). */
+let _zcRec=null;
+function zcMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition,btn=document.getElementById('zc-mic');
+  if(!SR)return;
+  if(_zcRec){_zcRec.stop();return;}
+  const rec=new SR();rec.lang=/^ne/.test(navigator.language)?'ne-NP':'en-US';rec.interimResults=true;
+  const box=document.getElementById('zc-input'),base=box.value?box.value+' ':'';
+  rec.onresult=e=>{box.value=base+[...e.results].map(r=>r[0].transcript).join(' ');};
+  rec.onend=()=>{_zcRec=null;btn.classList.remove('on');if(box.value.trim())zcSend();};
+  rec.onerror=()=>{_zcRec=null;btn.classList.remove('on');};
+  _zcRec=rec;btn.classList.add('on');rec.start();
+}
+if(window.SpeechRecognition||window.webkitSpeechRecognition)document.addEventListener('DOMContentLoaded',()=>{const m=document.getElementById('zc-mic');if(m)m.hidden=false;});
+function zcConfirmAll(btn){btn.remove();document.querySelectorAll('.zc-act:not(.done) .zc-btns .btn:not(.ghost)').forEach(b=>b.click());}
 function zcClose(){document.getElementById('zc').classList.remove('open');document.getElementById('zc-fab').hidden=false;}
 function zcBubble(who,text){const d=document.createElement('div');d.className='zc-msg '+who;d.textContent=text;const log=document.getElementById('zc-log');log.appendChild(d);log.scrollTop=log.scrollHeight;return d;}
 function nptNowText(){return new Date().toLocaleString('en-GB',{timeZone:'Asia/Kathmandu',weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});}
@@ -1182,8 +1246,10 @@ async function zcSend(){
     _zcHist.push({role:'user',content:text},{role:'assistant',content:d.reply||''});
     if((d.actions||[]).some(a=>/_load$|_withdrawal$/.test(a.type)))await zcLoadMoney();
     (d.actions||[]).forEach(zcCard);
+    const open=(d.actions||[]).filter(a=>a.type!=='open').length;
+    if(open>1){const b=document.createElement('button');b.className='btn zc-all';b.textContent=`✅ Confirm all ${open}`;b.onclick=()=>zcConfirmAll(b);const log=document.getElementById('zc-log');log.appendChild(b);log.scrollTop=log.scrollHeight;}
   }catch(e){wait.classList.remove('wait');wait.textContent='Sorry — '+(e.message||e);}
-  finally{_zcBusy=false;}
+  finally{_zcBusy=false;zcSuggest();}
 }
 /* event lookup: exact name, then "#8"/"8", then a name that contains the words */
 function zcFindEvent(ref){
@@ -1308,6 +1374,8 @@ async function zcRun(id){
       default:bad('Unknown action.');
     }
   }catch(e){bad(e.message||String(e));}
+  if(/_load$|_withdrawal$|credit_points/.test(a.type)){inboxLoad(true);loadDashboard();}
+  if(/event|finish|room/.test(a.type))renderMatchDay();
 }
 function addT(){data.tournaments.push({name:'New Tournament',game:'Free Fire BR · Squad',date:'TBA',time:'TBA',start:'',status:'upcoming',map:'bermuda',prize:'Bragging rights + shoutout',entry:'Free',platform:'Mobile only',platform_mode:'mixed',slots:12,format:'BR · 4 matches',register_type:'whatsapp',register_url:'',winner:'',teams:[]});renderT();window.scrollBy(0,200);}
 // no confirm: nothing is saved until Publish, and the toast offers Undo
@@ -1621,8 +1689,156 @@ function dashGo(sectionId,selectId,value,loader){
   document.getElementById(sectionId).scrollIntoView({behavior:'smooth',block:'start'});
   if(loader)loader();
 }
+/* ── Inbox: point loads, withdrawals and challenge disputes, each with its action right on the card.
+   Loads every 45 s while the page is open; new items chime and show in the tab title. Money buttons
+   use tap-twice (the first tap arms the button for 4 s) instead of confirm() popups, which are clumsy
+   on a phone and easy to wave through. ── */
+let _ibSeen=null,_ibBusy=false,_ibRows={loads:[],wds:[],disputes:[]};
+function ibArm(btn,label,fn){
+  if(btn.classList.contains('arm')){btn.classList.remove('arm');clearTimeout(btn._t);fn();return;}
+  btn._orig=btn._orig||btn.textContent;btn.textContent=label;btn.classList.add('arm');
+  btn._t=setTimeout(()=>{btn.classList.remove('arm');btn.textContent=btn._orig;},4000);
+}
+function ibName(p){return p?('@'+(p.username||p.player_tag||'player')):'player';}
+function ibZoom(src){const z=document.createElement('div');z.className='ib-zoom';z.innerHTML=`<img src="${esc(src)}" alt="Payment screenshot">`;z.onclick=()=>z.remove();document.body.appendChild(z);}
+async function inboxLoad(force){
+  const box=document.getElementById('inbox');
+  if(!box||!adminSecret()||_ibBusy)return;
+  if(!force&&(document.hidden||document.getElementById('app').style.display==='none'))return;
+  _ibBusy=true;
+  try{
+    const [loads,wds,ch]=await Promise.all([waCall({action:'loads'}),waCall({action:'withdrawals'}),waCall({action:'challenges'}).catch(()=>({disputed:[]}))]);
+    _ibRows={loads:loads||[],wds:wds||[],disputes:(ch&&ch.disputed)||[]};
+    inboxRender();
+  }catch(e){box.innerHTML=`<p class="ib-err">Couldn't load the inbox: ${esc(e.message||e)}</p>`;}
+  _ibBusy=false;
+}
+function inboxRender(){
+  const box=document.getElementById('inbox'),{loads,wds,disputes}=_ibRows;
+  const ids=[...loads,...wds,...disputes].map(x=>x.id);
+  const n=ids.length;
+  if(_ibSeen&&ids.some(id=>!_ibSeen.has(id))){try{new Audio('/notify.mp3').play().catch(()=>{});}catch(e){}}
+  _ibSeen=new Set(ids);
+  document.title=(n?`(${n}) `:'')+document.title.replace(/^\(\d+\)\s*/,'');
+  if(!n){box.innerHTML='<div class="ib-clear">✅ All clear: no point loads, withdrawals or disputes waiting.</div>';return;}
+  box.innerHTML=
+    loads.map(r=>`<div class="ib load" data-id="${esc(r.id)}">
+      ${r.screenshot?`<img class="ib-shot" src="${esc(r.screenshot)}" alt="Payment screenshot" data-zoom="${esc(r.screenshot)}">`:'<span class="ib-ic">💰</span>'}
+      <div><h4>💰 Load · ${esc(ibName(r.players))} <span class="big">Rs ${esc(r.amount)}</span></h4>
+        <div class="sub">${esc(r.players&&r.players.player_tag||'')} · ${esc(agoText(Date.parse(r.created_at)))} ago · check your eSewa for Rs ${esc(r.amount)}, then approve</div>
+        <div class="ib-row"><input type="number" min="1" value="${esc(r.amount)}" data-amt aria-label="Points to add"><button class="btn" data-ok>✓ Add points</button><button class="btn ghost" data-no>✕ Reject</button></div>
+        <div class="ib-row" style="margin-top:6px"><input data-note placeholder="Note to player (optional, e.g. why rejected)"></div>
+        <div class="ib-res"></div></div></div>`).join('')+
+    wds.map(w=>`<div class="ib wd" data-id="${esc(w.id)}"><span class="ib-ic">💸</span>
+      <div><h4>💸 Withdrawal · ${esc(ibName(w.players))} <span class="big">send Rs ${esc(w.payout!=null?w.payout:w.amount)}</span></h4>
+        <div class="sub">eSewa <b style="color:var(--cream)">${esc(w.esewa_id)}</b> <button type="button" class="ib-copy" data-copy="${esc(w.esewa_id)}">Copy</button> · ${esc(w.esewa_name||'')} · asked Rs ${esc(w.amount)}${w.fee?' (fee Rs '+esc(w.fee)+')':''} · ${esc(agoText(Date.parse(w.created_at)))} ago</div>
+        <div class="ib-row"><input data-ref placeholder="eSewa transaction ID"><button class="btn" data-paid>✓ Paid</button><button class="btn ghost" data-rej>✕ Reject</button></div>
+        <div class="ib-res"></div></div></div>`).join('')+
+    disputes.map(c=>`<div class="ib dispute" data-id="${esc(c.id)}"><span class="ib-ic">⚖️</span>
+      <div><h4>⚖️ Dispute · ${esc(c.mode)} · ${esc(c.stake*2)} pts pot</h4>
+        <div class="sub">${esc(ibName(c.creator))} says <b>${esc(c.creator_claim||'-')}</b> · ${esc(ibName(c.opponent))} says <b>${esc(c.opponent_claim||'-')}</b>${(c.chat||[]).length?' · '+c.chat.length+' chat messages':''}</div>
+        <div class="ib-row"><button class="btn" data-o="creator">🏆 ${esc(ibName(c.creator))}</button><button class="btn" data-o="opponent">🏆 ${esc(ibName(c.opponent))}</button><button class="btn ghost" data-o="refund">↩ Refund</button><a class="btn ghost" href="#challenges" onclick="setTimeout(loadChallenges,60)">💬 Chat</a></div>
+        <div class="ib-res"></div></div></div>`).join('');
+  box.querySelectorAll('[data-zoom]').forEach(i=>i.onclick=()=>ibZoom(i.dataset.zoom));
+  box.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(b.dataset.copy);b.textContent='Copied ✓';});
+  const done=(card,t,err)=>{const r=card.querySelector('.ib-res');r.className='ib-res '+(err?'ib-err':'ib-done');r.textContent=t;card.querySelectorAll('.arm').forEach(x=>{x.classList.remove('arm');if(x._orig)x.textContent=x._orig;});if(!err){card.querySelectorAll('button,input').forEach(x=>x.disabled=true);setTimeout(()=>inboxLoad(true),1500);loadDashboard();}};
+  box.querySelectorAll('.ib.load').forEach(card=>{
+    const id=card.dataset.id,amt=()=>parseInt(card.querySelector('[data-amt]').value,10),note=()=>card.querySelector('[data-note]').value.trim();
+    card.querySelector('[data-ok]').onclick=e=>{const a=amt();if(!(a>0))return done(card,'Enter the points to add.',true);
+      ibArm(e.target,`Tap again: add ${a} pts`,async()=>{try{const d=await waCall({action:'resolve_load',id,approve:true,amount:a,note:note()});done(card,`✓ Added ${d.amount} points (balance ${d.balance}). Player notified.`);}catch(x){done(card,x.message,true);}});};
+    card.querySelector('[data-no]').onclick=e=>ibArm(e.target,'Tap again: reject',async()=>{try{await waCall({action:'resolve_load',id,approve:false,amount:0,note:note()});done(card,'Rejected. Player notified.');}catch(x){done(card,x.message,true);}});
+  });
+  box.querySelectorAll('.ib.wd').forEach(card=>{
+    const id=card.dataset.id,ref=()=>card.querySelector('[data-ref]').value.trim();
+    card.querySelector('[data-paid]').onclick=e=>ibArm(e.target,'Tap again: sent on eSewa',async()=>{try{await waCall({action:'resolve',id,paid:true,payout_ref:ref()});done(card,'✓ Marked paid. Player notified.');}catch(x){done(card,x.message,true);}});
+    card.querySelector('[data-rej]').onclick=e=>ibArm(e.target,'Tap again: return points',async()=>{try{await waCall({action:'resolve',id,paid:false,payout_ref:''});done(card,'Rejected, points returned.');}catch(x){done(card,x.message,true);}});
+  });
+  box.querySelectorAll('.ib.dispute').forEach(card=>{
+    card.querySelectorAll('[data-o]').forEach(b=>b.onclick=e=>ibArm(e.target,b.dataset.o==='refund'?'Tap again: refund both':'Tap again: pay the pot',async()=>{try{await waCall({action:'resolve_challenge',id:card.dataset.id,outcome:b.dataset.o});done(card,'✓ Settled. Both players notified.');}catch(x){done(card,x.message,true);}}));
+  });
+  staggerReveal(box);
+}
+setInterval(()=>inboxLoad(false),45000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)inboxLoad(false);});
+
+/* ── Match day: the next (or live) event as four steps - squads, room code, finish + winner, prizes -
+   with each action on the card, so match night never needs the long page below. ── */
+let _mdPick=null;
+function mdEvents(){
+  return data.tournaments.map((t,i)=>({t,i,ms:tStartMs(t)})).filter(x=>!tIsHistory(x.t))
+    .sort((a,b)=>(a.ms??9e15)-(b.ms??9e15)).slice(0,4);
+}
+function mdMsg(t,c){setMsg(document.getElementById('md-msg'),esc(t),c);}
+async function renderMatchDay(){
+  const box=document.getElementById('md-box');if(!box)return;
+  const evs=mdEvents();
+  if(!evs.length){box.innerHTML='<div class="md"><h3>No upcoming event</h3><p class="sub">Create one and it shows up here.</p><button class="btn" onclick="newEventOpen()">➕ New event</button></div>';return;}
+  let cur=evs.find(x=>x.t.name===_mdPick)||evs.find(x=>x.ms!==null&&x.ms<=Date.now())||evs[0];
+  const {t,i,ms}=cur,started=ms!==null&&ms<=Date.now(),squads=_liveCounts.get(t.name)||0;
+  const step=(n,state,title,desc,body)=>`<div class="md-step ${state}"><span class="md-n">${state==='ok'?'✓':n}</span><div><b>${title}</b><p>${desc}</p>${body||''}</div></div>`;
+  const when=ms===null?'time not set':started?`started ${agoText(ms)} ago`:`starts in ${inText(ms)}`;
+  box.innerHTML=`<div class="md">
+    ${evs.length>1?`<div class="md-pick">${evs.map(x=>`<button type="button" class="${x===cur?'on':''}" data-md="${esc(x.t.name)}">${esc(x.t.name)}</button>`).join('')}</div>`:''}
+    <h3>${started?'🔴 ':''}${esc(t.name)}</h3>
+    <p class="sub">${esc(t.date||'')} ${esc(t.time||'')} · ${when} · prize ${esc(t.prize||'-')} · ${esc(t.entry||'Free')}</p>
+    ${step(1,squads?'ok':'now','Squads',`${squads}${t.slots?' of '+esc(t.slots):''} squads confirmed.`,`<button class="btn ghost" onclick="mdTeams()">👥 See squads</button>`)}
+    ${step(2,'','Room code',started?'Send it now if players are still waiting.':'Send it now, or stage it to go out by itself about 5 minutes before kickoff.',
+      `<div class="ib-row"><input id="md-rid" inputmode="numeric" placeholder="Room ID"><input id="md-rpw" placeholder="Password"></div>
+       <div class="ib-row" style="margin-top:6px"><button class="btn" onclick="mdRoom(false,this)">📨 Send now</button>${started?'':'<button class="btn ghost" onclick="mdRoom(true,this)">⏱ Auto-send at kickoff</button>'}</div>
+       <p id="md-rc-status" style="margin:6px 0 0"></p>`)}
+    ${step(3,'','Finish',`Type the winning squad, then Finish: it moves to History and goes live.`,
+      `<div class="ib-row"><input id="md-win" placeholder="Winning squad" value="${esc(t.winner||bo3TopTeam(t.name)||'')}"><button class="btn" onclick="mdFinish(${i},this)">✓ Finish &amp; publish</button></div>`)}
+    ${step(4,'','Prizes','After results are published, pays every unpaid prize to the winners\' wallets (the Rs 50 pass rule and referral bonus apply automatically).',
+      `<button class="btn ghost" onclick="mdPrizes(this)">🏆 Pay prizes now</button><div id="md-prizes"></div>`)}
+    <div id="md-msg" class="hint"></div></div>`;
+  box.querySelectorAll('[data-md]').forEach(b=>b.onclick=()=>{_mdPick=b.dataset.md;renderMatchDay();});
+  mdRoomStatus(t.name);
+}
+function mdCur(){const evs=mdEvents();return (evs.find(x=>x.t.name===_mdPick)||evs.find(x=>x.ms!==null&&x.ms<=Date.now())||evs[0]||{}).t;}
+function mdTeams(){const t=mdCur();if(t)dashGo('teams','tm-tourney',t.name,loadTeamsAdmin);}
+async function mdRoomStatus(name){
+  const el=document.getElementById('md-rc-status'),secret=adminSecret();if(!el||!secret)return;
+  try{const r=await fetch(EDGE_FN_BASE+'/stage-room-code?tournament_slug='+encodeURIComponent(name),{headers:{'x-admin-secret':secret}});
+    const d=r.ok?await r.json():null;
+    el.className='hint';el.textContent=!d?'Not sent yet.':d.sent_at?'✓ Sent at '+new Date(d.sent_at).toLocaleTimeString()+'.':'⏱ Staged: goes out by itself about 5 minutes before kickoff.';
+  }catch(e){}
+}
+async function mdRoom(stage,btn){
+  const t=mdCur(),room_id=document.getElementById('md-rid').value.trim(),room_pass=document.getElementById('md-rpw').value.trim();
+  if(!t)return;if(!room_id){mdMsg('Type the Room ID first.','err');return;}
+  ibArm(btn,stage?'Tap again: stage it':`Tap again: send to all squads`,async()=>{
+    mdMsg(stage?'Staging…':'Sending…','');
+    try{
+      const r=await fetch(EDGE_FN_BASE+(stage?'/stage-room-code':'/send-room-code'),{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':adminSecret()},body:JSON.stringify({tournament_slug:t.name,room_id,room_pass})});
+      if(!r.ok)throw new Error(await r.text());
+      const d=await r.json();
+      mdMsg(stage?'Staged: it goes out by itself about 5 minutes before kickoff.':`Sent to ${d.sent} player(s)${d.pushed!=null?' · '+d.pushed+' push alerts':''}.`,'ok');
+      mdRoomStatus(t.name);
+    }catch(e){mdMsg('Failed: '+e.message,'err');}
+  });
+}
+function mdFinish(i,btn){
+  const t=data.tournaments[i],w=document.getElementById('md-win').value.trim();
+  if(!t)return;if(!w){mdMsg('Type the winning squad first.','err');return;}
+  ibArm(btn,`Tap again: ${w} won`,async()=>{
+    t.winner=w;markFinished(i);mdMsg('Publishing…','');
+    await publishNow();
+    mdMsg((zcText('publish-top-msg')||'Published.')+' Next: Pay prizes.','ok');
+    _mdPick=null;renderNow();renderMatchDay();
+  });
+}
+async function mdPrizes(btn){
+  btn.disabled=true;mdMsg('Checking for unpaid prizes…','');
+  try{
+    const list=await waCall({action:'award'}),shown=list.filter(x=>x.status==='paid'||x.status==='unmatched');
+    document.getElementById('md-prizes').innerHTML=shown.length?`<div class="hint" style="margin-top:8px">${prizeReportHtml(shown)}</div>`:'';
+    mdMsg(shown.length?'Done.':'No unpaid prizes: everything announced so far is already paid.','ok');
+  }catch(e){mdMsg(e.message,'err');}
+  btn.disabled=false;
+}
+setInterval(()=>{if(document.getElementById('app').style.display!=='none'&&!(document.activeElement||document.body).closest('#md-box'))renderMatchDay();},60000);
 function loadLive(){
-  fetchLatestDoc().then(d=>{data={tagline:d.tagline||'JD Esports Arena · AyerFire',tournaments:d.tournaments||[],bo3:d.bo3||bo3Default()};_loadedSnapshot=d;renderAll();loadDashboard();msg('Loaded current tournaments.json.','ok');}).catch(()=>{if(!data.tournaments.length){addT();}_loadedSnapshot=null;renderAll();msg('No tournaments.json found — starting fresh.','');});
+  fetchLatestDoc().then(d=>{data={tagline:d.tagline||'JD Esports Arena · AyerFire',tournaments:d.tournaments||[],bo3:d.bo3||bo3Default()};_loadedSnapshot=d;renderAll();loadDashboard();inboxLoad(true);renderMatchDay();setTimeout(renderMatchDay,2500);msg('Loaded current tournaments.json.','ok');}).catch(()=>{if(!data.tournaments.length){addT();}_loadedSnapshot=null;renderAll();msg('No tournaments.json found — starting fresh.','');});
 }
 function loadFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);data={tagline:d.tagline||'JD Esports Arena · AyerFire',tournaments:d.tournaments||[],bo3:d.bo3||bo3Default()};_loadedSnapshot=null;renderAll();msg('Loaded from file.','ok');}catch(x){msg('That file is not valid JSON.','err');}};r.readAsText(f);}
 function msg(t,c){document.getElementById('msg').innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
@@ -2769,7 +2985,7 @@ dismissAiRecommendation=guard(dismissAiRecommendation);confirmAiRecommendation=g
   <div class="zc-head"><span style="font-size:1.6rem">🤖</span><div><b>ZULU</b><small>Tell me what to do — I show it first, you confirm</small></div><button onclick="zcClose()" aria-label="Close">×</button></div>
   <div class="zc-log" id="zc-log"></div>
   <div class="zc-sugg" id="zc-sugg"></div>
-  <div class="zc-in"><textarea id="zc-input" rows="1" placeholder="e.g. new event Friday 10pm prize 500"></textarea><button class="btn" onclick="zcSend()">Send</button></div>
+  <div class="zc-in"><button class="btn ghost zc-mic" id="zc-mic" type="button" onclick="zcMic()" aria-label="Speak" title="Speak (English or Nepali)" hidden>🎤</button><textarea id="zc-input" rows="1" placeholder="e.g. approve all loads · room code 1234567 pass jd22"></textarea><button class="btn" onclick="zcSend()">Send</button></div>
 </div>
 </body>
 </html>

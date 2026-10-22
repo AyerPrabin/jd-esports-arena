@@ -965,7 +965,7 @@
   // ZULU ends replies with site paths for the next step; each becomes a tap button.
   var PATHS = { '/challenges/': '⚔️ Challenges', '/wallet/': '🪙 Wallet', '/wallet/#load': '💰 Load points', '/events/': '📅 Join a tournament',
     '/leaderboard.html': '🏆 Leaderboard', '/profile/': '👤 Profile', '/chat/': '💬 Chat', '/privacy/': 'Privacy', '/ban-list.html': '🚫 Ban list',
-    '/pass/': '🎟 Weekly Pass', '/rules/': '📜 Rules', '/optimizer/': '🚀 PC Optimizer' };
+    '/download/': '📲 Get the app', '/pass/': '🎟 Weekly Pass', '/rules/': '📜 Rules', '/optimizer/': '🚀 PC Optimizer' };
   function linkify(s) {
     return esc(s).replace(/\*\*([^*\n]{1,80})\*\*/g, '<b>$1</b>')
       .replace(/(?:https?:\/\/)?(?:www\.)?jdesport\.co\.uk(\/[a-z-]*\/?(?:[a-z-]+\.html)?(?:#[a-z]+)?)/g, function (m, path) { return path; })
@@ -1066,6 +1066,12 @@
       lines.push(ct && ct.whatsapp && myCard && myCard.squad_name ? 'One-tap join: ready (squad, device and WhatsApp saved - just tick the rules and Confirm & join)'
         : 'One-tap join: not set up yet (the first registration saves squad, device and WhatsApp)');
       var mt = ((th || (r[2] && r[2].data) || {}).matches) || [];
+      if (!mt.length) lines.push('My challenges: none open right now (a 1v1 Clash Squad challenge with 20 points pays up to 38 to the winner)');
+      var ua = navigator.userAgent || '', inApp = false;
+      try { inApp = !!sessionStorage.getItem('jd_twa') || /^android-app:\/\/uk\.co\.jdesport\.arena/.test(document.referrer); } catch (e) {}
+      lines.push('My device: ' + (inApp ? 'Android, using the JD Arena app (notifications on the app)'
+        : /Android/i.test(ua) ? 'Android phone in the browser or old web version - the JD Arena Android app is NOT in use (suggest /download/ for real app notifications)'
+        : /iPhone|iPad|iPod/.test(ua) ? 'iPhone/iPad (no Android app; the home-screen web app gets alerts)' : 'computer'));
       mt.forEach(function (m) { lines.push('My challenge: ' + m.mode + ' vs ' + nameOf(m.other) + ', ' + m.status + ', ' + m.stake + ' pts each' + (m.status !== 'completed' ? (m.room_id ? ', room posted' : ', no room posted yet') : '')); });
       ((r[3] && r[3].data) || []).forEach(function (n) {
         if (n.room_id && Date.now() - Date.parse(n.created_at) < 864e5)      // own room details, last 24 h
