@@ -260,6 +260,94 @@ Deno.serve(async (req: Request) => {
     return json({ ok: true, id: data.id, created_at: data.created_at, player: card(pl) });
   }
 
+  // ── results: standings, winner, finish, prizes ──
+  // Same pipeline as the admin's BO3 board: publish-tournaments (GitHub + live site_content + award_prizes)
+  // and, when final, archive-results (all-time leaderboard + career stats + prize payout). Guard rails for
+  // moderators: total prizes can never exceed the event's prize pool, only registered squads are paid, and
+  // a squad can't be paid twice (award_prizes' ledger ref). Everything is logged in mod_actions.
+  if (action === 'results_get' || action === 'results_publish') {
+    const slug = String(p.slug || '').trim();
+    if (!slug) return fail('Pick the event first.');
+    const { data: sc } = await admin.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
+    const doc: any = sc?.content;
+    const t = doc?.tournaments?.find((x: any) => x.name === slug);
+    if (!t) return fail('That event is not on the site.', 404);
+    const pool = Number(String(t.prize || '').replace(/,/g, '').match(/\d+/)?.[0] || 0);
+    const matches = Math.min(6, Math.max(1, Number(String(t.format || '').match(/(\d+)\s*match/i)?.[1] || 3)));
+    const { data: regs } = await admin.from('registrations').select('squad_name, status, created_at')
+      .eq('tournament_slug', slug).in('status', ['confirmed', 'approved']).order('created_at');
+    const squads = [...new Set((regs || []).map((r: any) => String(r.squad_name || '').trim()).filter(Boolean))];
+    const board = doc?.bo3?.tournament === slug ? doc.bo3 : null;
+    const { data: paid } = await admin.from('wallet_ledger').select('ref, delta').eq('reason', 'prize').like('ref', `prize:${slug}:%`);
+    if (action === 'results_get') {
+      return json({ event: slug, pool, prize: t.prize || null, matches, winner: t.winner || null, status: t.status || 'upcoming',
+        squads, board: board ? { published: !!board.published, teams: board.teams || [] } : null,
+        paid: (paid || []).map((x: any) => ({ squad: String(x.ref).split(':').slice(2).join(':'), amount: x.delta })) });
+    }
+
+    // results_publish { slug, teams: [{ team, pts: number[] }], final?: boolean, prizes?: { [team]: amount } }
+    const final = !!p.final;
+    const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+    const regSet = new Set(squads.map(norm));
+    const inTeams: any[] = Array.isArray(p.teams) ? p.teams.slice(0, 40) : [];
+    const teams = inTeams.map((x: any) => ({
+      team: String(x.team || '').trim().slice(0, 60),
+      pts: (Array.isArray(x.pts) ? x.pts : []).slice(0, matches).map((v: any) => Math.max(0, Math.min(300, Math.round(Number(v) || 0)))),
+    })).filter((x) => x.team);
+    if (!teams.length) return fail('Add at least one squad with points.');
+    if (new Set(teams.map((x) => norm(x.team))).size !== teams.length) return fail('A squad is listed twice.');
+    for (const x of teams) while (x.pts.length < matches) x.pts.push(0);
+    const total = (x: any) => x.pts.reduce((a: number, b: number) => a + b, 0);
+    const ranked = [...teams].sort((a, b) => total(b) - total(a));
+    const prizes: Record<string, number> = {};
+    if (final) {
+      for (const [k, v] of Object.entries(p.prizes || {})) {
+        const amt = Math.round(Number(v) || 0);
+        if (amt <= 0) continue;
+        const tm = teams.find((x) => norm(x.team) === norm(k));
+        if (!tm) return fail(`${k} isn't in the standings.`);
+        if (!regSet.has(norm(tm.team))) return fail(`${tm.team} isn't a registered squad in ${slug}, so it can't be paid.`);
+        prizes[tm.team] = amt;
+      }
+      // a squad that was already paid is never paid again, so only new payouts count against the pool
+      const paidSet = new Set((paid || []).map((x: any) => norm(String(x.ref).split(':').slice(2).join(':'))));
+      const sum = Object.entries(prizes).filter(([k]) => !paidSet.has(norm(k))).reduce((a, [, v]) => a + v, 0);
+      const already = (paid || []).reduce((a: number, x: any) => a + (x.delta || 0), 0);
+      if (!pool && sum > 0) return fail(`${slug} has no prize amount on the site, so moderators can't pay prizes. Ask the admin.`);
+      if (sum + already > pool) return fail(`Prizes add up to ${sum + already} points (${already} already paid), more than the ${pool}-point prize pool.`);
+    }
+
+    const prevLogos = new Map(((board?.teams || []) as any[]).concat(t.teams || []).map((x: any) => [norm(String(x.team || x.name || '')), x.logo || '']));
+    doc.bo3 = {
+      tournament: slug, title: `${slug} – ${final ? 'Final Standings' : 'Standings'}`, published: true,
+      teams: ranked.map((x) => ({ team: x.team, logo: prevLogos.get(norm(x.team)) || '',
+        r: x.pts.map((v: number) => ({ kills: 0, pts: v })), ...(final && prizes[x.team] ? { prize_won: prizes[x.team] } : {}) })),
+    };
+    if (final) { t.winner = ranked[0].team; t.status = 'completed'; }
+    doc._published_at = new Date().toISOString();
+
+    const H = { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET, 'Authorization': `Bearer ${SERVICE}`, 'apikey': SERVICE };
+    const pub = await fetch(`${URL_}/functions/v1/publish-tournaments`, { method: 'POST', headers: H, body: JSON.stringify({ content: JSON.stringify(doc, null, 2) }) });
+    if (!pub.ok) return fail('Could not publish: ' + (await pub.text()), 502);
+    let paidOut: any[] = [];
+    if (final) {
+      const ar = await fetch(`${URL_}/functions/v1/archive-results`, { method: 'POST', headers: H, body: JSON.stringify({
+        tournament_slug: slug,
+        results: ranked.map((x, i) => ({ squad_name: x.team, placement: i + 1, kills: 0, points: total(x), prize_won: prizes[x.team] || 0 })),
+      }) });
+      if (!ar.ok) return fail('Standings are live, but saving to the leaderboard failed: ' + (await ar.text()), 502);
+      // what's really in the wallets now (publish + archive both pay once per squad)
+      const { data: nowPaid } = await admin.from('wallet_ledger').select('ref, delta').eq('reason', 'prize').like('ref', `prize:${slug}:%`);
+      const got = new Map((nowPaid || []).map((x: any) => [norm(String(x.ref).split(':').slice(2).join(':')), x.delta]));
+      paidOut = Object.entries(prizes).map(([k, v]) => ({ squad: k, amount: got.get(norm(k)) ?? v, status: got.has(norm(k)) ? 'paid' : 'unmatched' }));
+    }
+    await log(final ? 'results_final' : 'results', `${slug} · #1 ${ranked[0].team} (${total(ranked[0])})` +
+      (final ? ' · prizes ' + (Object.entries(prizes).map(([k, v]) => `${k} ${v}`).join(', ') || 'none') : ''));
+    return json({ ok: true, final, winner: ranked[0].team,
+      standings: ranked.map((x, i) => ({ place: i + 1, team: x.team, total: total(x) })),
+      prizes: paidOut.map((x: any) => ({ squad: x.squad, status: x.status, amount: x.amount })) });
+  }
+
   if (action === 'notify') {
     const title = String(p.title || '').trim();
     const body = String(p.body || '').trim();

@@ -56,14 +56,14 @@ main{position:relative;max-width:1280px;margin:0 auto;padding:16px 16px calc(var
 
 #tab-events{display:none}
 /* tabs: bottom bar on phones, top strip on tablets, gone on desktop (everything is visible there) */
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(5,1fr);background:rgba(10,14,26,.97);border-top:1px solid var(--line);padding:0 0 env(safe-area-inset-bottom);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.tabs button{height:var(--tabh);border:0;background:none;color:var(--body);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font-size:.74rem;font-weight:500}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(6,1fr);background:rgba(10,14,26,.97);border-top:1px solid var(--line);padding:0 0 env(safe-area-inset-bottom);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.tabs button{min-width:0;height:var(--tabh);border:0;background:none;color:var(--body);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font-size:.74rem;font-weight:500}
 .tabs svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .tabs button[aria-selected=true]{color:var(--cta)}
 .tabs .badge{position:absolute;margin:-18px 0 0 22px;min-width:18px;height:18px;border-radius:9px;background:var(--warn);color:#1a0d00;font-size:.68rem;font-weight:700;display:grid;place-items:center;padding:0 4px}
 .tabs .tb{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px}
 @media (min-width:700px) and (max-width:1079px){
-  .tabs{position:sticky;top:var(--top-h,112px);bottom:auto;grid-template-columns:repeat(5,auto);justify-content:start;gap:6px;background:var(--bg);border:0;padding:12px max(16px,calc((100% - 1280px)/2 + 16px));backdrop-filter:none;z-index:25}
+  .tabs{position:sticky;top:var(--top-h,112px);bottom:auto;grid-template-columns:repeat(6,auto);justify-content:start;gap:6px;background:var(--bg);border:0;padding:12px max(16px,calc((100% - 1280px)/2 + 16px));backdrop-filter:none;z-index:25}
   .tabs button{height:auto;flex-direction:row;gap:7px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);font-size:.86rem}
   .tabs button[aria-selected=true]{background:rgba(255,200,61,.1);border-color:var(--gold-m)}
   .tabs svg{width:18px;height:18px}
@@ -79,6 +79,7 @@ main{position:relative;max-width:1280px;margin:0 auto;padding:16px 16px calc(var
   .col-right{position:sticky;top:var(--top-h,72px);max-height:calc(100vh - var(--top-h,72px) - 16px);overflow:auto;overscroll-behavior:contain}
   .evbar{display:none}
   #tab-help{grid-column:1}
+  #tab-results{grid-column:2}
 }
 /* events list (desktop column) */
 .evlist{display:grid;gap:8px}
@@ -244,6 +245,48 @@ textarea{min-height:96px;resize:vertical}
 .cprow{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
 @media (max-width:640px){.cmsgs{height:calc(100dvh - var(--top-h,120px) - var(--tabh) - 250px - env(safe-area-inset-bottom));min-height:240px}}
 
+/* results */
+.rs-meta{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 12px}
+.rs-meta span{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.78rem;color:var(--silver);background:var(--panel-2)}
+.rs-meta span.done{color:var(--ok);border-color:rgba(94,219,149,.35)}
+.rs{display:grid;gap:6px}
+.rsr{display:grid;grid-template-columns:34px minmax(0,1fr) repeat(var(--n,3),58px) 44px 30px;gap:6px;align-items:center}
+.rsr.h{font-size:.72rem;font-weight:500;color:var(--gold-l);text-align:center}
+.rsr.h span:nth-child(2){text-align:left}
+.rsr .m{display:contents}
+.rs .pl{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.05rem;background:#141c30;color:var(--silver);font-variant-numeric:tabular-nums}
+.rsr.p1 .pl{background:var(--gold);color:#07090F}
+.rsr.p2 .pl{background:#c8d1e6;color:#07090F}
+.rsr.p3 .pl{background:#c98b4c;color:#07090F}
+.rs input{padding:8px 8px;font-size:15px;border-radius:9px;min-width:0}
+.rs input.pt{text-align:center;font-variant-numeric:tabular-nums;padding:8px 2px}
+.rs .tot{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.2rem;text-align:center;font-variant-numeric:tabular-nums}
+.rs .x{border:0;background:none;color:var(--body);cursor:pointer;padding:6px;border-radius:8px;display:grid;place-items:center;order:2}
+.rsr .tot{order:1}
+.rs .x:hover{color:#ff8a8a;background:rgba(255,107,107,.08)}
+.rs .x svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+@media (max-width:640px){
+  .rsr.h{display:none}
+  .rsr{grid-template-columns:34px minmax(0,1fr) 44px;grid-template-areas:"pl tm tot" "m m m";padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--panel-2)}
+  .rsr .pl{grid-area:pl}.rsr .tm{grid-area:tm}.rsr .tot{grid-area:tot}
+  .rsr .m{display:grid;grid-area:m;grid-template-columns:repeat(var(--n,3),minmax(0,1fr)) 34px;gap:6px}
+  .rsr .m label{display:grid;gap:2px;font-size:.66rem;color:var(--gold-l);text-align:center}
+}
+@media (min-width:641px){.rsr .m label{display:contents}.rsr .m label span{display:none}}
+.rs-add{margin-top:4px}
+.prz{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+.prz h3{font-size:.95rem;margin:0 0 4px;font-weight:600}
+.prz-row{display:grid;grid-template-columns:34px minmax(0,1fr) 110px;gap:8px;align-items:center;margin-top:8px}
+.prz-row b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.prz-row input{text-align:right;font-variant-numeric:tabular-nums}
+.prz-row .paid{font-size:.8rem;color:var(--ok);text-align:right}
+.prz-sum{font-size:.82rem;color:var(--silver);margin-top:8px;text-align:right}
+.prz-sum.bad{color:#ff8a8a}
+.rs-acts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.rs-acts .btn{margin:0}
+.btn.alt{background:none;border:1px solid var(--gold-m);color:var(--gold-l)}
+@media (max-width:480px){.rs-acts{grid-template-columns:1fr}}
+
 /* help */
 .help h3{font-size:.98rem;margin:14px 0 4px;color:var(--cream);font-weight:600}
 .help h3:first-child{margin-top:0}
@@ -283,6 +326,7 @@ textarea{min-height:96px;resize:vertical}
   <symbol id="i-wa" viewBox="0 0 24 24"><path d="M4 20l1.2-3.6A8 8 0 1 1 8 19z"/><path d="M9.2 9.3c.3 2 2.4 4.2 4.6 4.7l1.1-1.1 1.8.8"/></symbol>
   <symbol id="i-msg" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
   <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H11l-5 4v-4H4z"/><path d="M8 10h8M8 13h5"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M10 17h4"/></symbol>
   <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
   <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 20v-4h-4"/></symbol>
@@ -305,7 +349,8 @@ textarea{min-height:96px;resize:vertical}
 
 <div class="tabs" id="tabs" role="tablist" aria-label="Moderator tools" hidden>
   <button type="button" role="tab" aria-selected="true" data-tab="squads"><span class="tb"><svg aria-hidden="true"><use href="#i-squads"/></svg><span class="badge" id="badge-unconf" hidden></span>Squads</span></button>
-  <button type="button" role="tab" aria-selected="false" data-tab="room"><span class="tb"><svg aria-hidden="true"><use href="#i-key"/></svg>Room code</span></button>
+  <button type="button" role="tab" aria-selected="false" data-tab="room"><span class="tb"><svg aria-hidden="true"><use href="#i-key"/></svg>Room</span></button>
+  <button type="button" role="tab" aria-selected="false" data-tab="results"><span class="tb"><svg aria-hidden="true"><use href="#i-trophy"/></svg>Results</span></button>
   <button type="button" role="tab" aria-selected="false" data-tab="chats"><span class="tb"><svg aria-hidden="true"><use href="#i-chat"/></svg><span class="badge" id="badge-chat" hidden></span>Chats</span></button>
   <button type="button" role="tab" aria-selected="false" data-tab="notify"><span class="tb"><svg aria-hidden="true"><use href="#i-bell"/></svg>Notify</span></button>
   <button type="button" role="tab" aria-selected="false" data-tab="help"><span class="tb"><svg aria-hidden="true"><use href="#i-help"/></svg>Help</span></button>
@@ -329,6 +374,16 @@ textarea{min-height:96px;resize:vertical}
       <div class="sum" id="sum"></div>
       <div id="reg-body"><p class="note">Pick an event to see its squads.</p></div>
       <p class="note">Playing Yes / No saves straight away. WhatsApp opens a ready message – you only tap Send. Numbers are shown only to moderators.</p>
+    </div>
+  </section>
+
+  <!-- results: standings, winner, finish, prizes -->
+  <section class="tab" id="tab-results" aria-labelledby="h-results">
+    <div class="panel">
+      <div class="sec-h"><h2 id="h-results">Results</h2><span class="sp"></span><button type="button" class="ghost" id="rs-reload" aria-label="Reload results"><svg aria-hidden="true"><use href="#i-refresh"/></svg>Reload</button></div>
+      <div class="rs-meta" id="rs-meta"></div>
+      <div id="rs-body"><p class="note">Pick an event to enter its points.</p></div>
+      <div class="msg" id="rs-msg" role="status" aria-live="polite"></div>
     </div>
   </section>
 
@@ -400,8 +455,10 @@ textarea{min-height:96px;resize:vertical}
       <p>Tap Message on a squad, or type a player's @username, to chat with them. They see it in Messages as JD Esports with a verified tick – never your name or email – and get a phone push. Their replies show up here with a count on the Chats tab. This chat is people only: ZULU's automatic messages go to the player's ZULU chat.</p>
       <h3>Notifications</h3>
       <p>Templates fill the title and message. "Squads in this event" reaches only that event's players; "All players" reaches everyone on JD Arena – use it to promote an event.</p>
+      <h3>Results and prizes</h3>
+      <p>In Results, type each squad's points per match. Publish standings after each match so the leaderboard updates. After the last match, Finish &amp; pay prizes: it sets the winner, marks the event finished, saves the all-time leaderboard and pays the prizes into the winners' wallets. You can only pay registered squads, never more than the prize pool, and each squad once. Every payment is logged for the admin.</p>
       <h3>Points</h3>
-      <p>1 point = Rs 1. Players load points on their Wallet with the eSewa QR and a screenshot; the admin adds them. Paid events need enough points to join. Only the admin changes balances, bans or events.</p>
+      <p>1 point = Rs 1. Players load points on their Wallet with the eSewa QR and a screenshot; the admin adds them. Paid events need enough points to join. Apart from prizes, only the admin changes balances, bans or events.</p>
     </div>
   </section>
 </main>
@@ -470,17 +527,20 @@ async function call(body){
 }
 
 /* ── events ── */
+const isDone=t=>{ const s=(t.status||'').toLowerCase(); return s==='finished'||s==='completed'||!!String(t.winner||'').trim(); };
 function isUpcoming(t){
   const s=(t.status||'').toLowerCase();
-  if(s==='finished'||s==='cancelled'||s==='completed') return false;
-  if(t.start){ const d=new Date(t.start); if(!isNaN(d)) return d.getTime() > Date.now()-6*3600*1000; }
-  return true;
+  if(s==='cancelled') return false;
+  const d=t.start?new Date(t.start):null, ok=d&&!isNaN(d);
+  // finished events stay for 2 days so results can still be corrected
+  if(isDone(t)) return ok?d.getTime()>Date.now()-48*3600*1000:false;
+  return ok?d.getTime()>Date.now()-12*3600*1000:true;
 }
 function fmtWhen(t){ return [t.date,t.time].filter(Boolean).join(' · ') || (t.start?new Date(t.start).toLocaleString():''); }
 function isLive(t){ return t.start && Math.abs(new Date(t.start)-Date.now())<3*3600*1000; }
 function evPill(t,i){
   return `<button type="button" class="evpill" data-ev="${i}" aria-pressed="${selected===t}"><span><b>${esc(t.name)}</b>`+
-    `<small>${isLive(t)?'<span class="live">Tonight · </span>':''}${esc(fmtWhen(t))}${t.entry?' · '+esc(t.entry):''}</small></span></button>`;
+    `<small>${isDone(t)?'<span style="color:var(--ok)">Finished · </span>':isLive(t)?'<span class="live">Tonight · </span>':''}${esc(fmtWhen(t))}${t.entry?' · '+esc(t.entry):''}</small></span></button>`;
 }
 function renderEvents(){
   const html=tournaments.map(evPill).join('')||'<p class="note">No upcoming events right now.</p>';
@@ -501,6 +561,7 @@ function selectEvent(t,scroll){
   $('rc-ev').textContent=t?t.name:'this event';
   $('ev-line').textContent=t?`${t.name} · ${fmtWhen(t)}${t.entry?' · '+t.entry:''}`:'';
   renderTemplates();
+  rs=null; loadResults();
   rows=[]; filter='all';
   loadSquads(false);
   if(scroll){const p=document.querySelector('.evbar [aria-pressed=true]');if(p)p.scrollIntoView({inline:'center',block:'nearest'});}
@@ -790,10 +851,105 @@ function startLive(){
 setInterval(()=>{ if(!document.hidden&&!chatWith&&$('main')&&!$('main').hidden) loadInbox(); },liveOn?45000:15000);
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&$('main')&&!$('main').hidden){ if(chatWith) refreshChat(); inboxSoon(); } });
 
+/* ── results: points per match, live positions, publish, finish + prizes ── */
+let rs=null, rsRows=[], rsPrize=null;   // prize points per place: [1st, 2nd, 3rd]
+const rsTotal=r=>r.pts.reduce((a,b)=>a+(+b||0),0);
+function rsRanked(){ return rsRows.filter(r=>r.team.trim()).map((r,i)=>({r,i,t:rsTotal(r)})).sort((a,b)=>b.t-a.t||a.i-b.i); }
+async function loadResults(keepMsg){
+  if(!selected){ $('rs-body').innerHTML='<p class="note">Pick an event to enter its points.</p>'; $('rs-meta').innerHTML=''; return; }
+  const ev=selected; if(!keepMsg){ $('rs-body').innerHTML='<p class="note">Loading…</p>'; $('rs-msg').textContent=''; }
+  try{
+    const d=await call({action:'results_get',slug:ev.name}); if(ev!==selected) return;
+    rs=d;
+    const fromBoard=(d.board&&d.board.teams||[]).map(t=>({team:t.team,pts:Array.from({length:d.matches},(_,k)=>(t.r&&t.r[k]&&t.r[k].pts)||0)}));
+    const have=new Set(fromBoard.map(r=>r.team.trim().toLowerCase()));
+    rsRows=fromBoard.concat(d.squads.filter(q=>!have.has(q.toLowerCase())).map(q=>({team:q,pts:Array(d.matches).fill(0)})));
+    if(!rsRows.length) rsRows=[{team:'',pts:Array(d.matches).fill(0)}];
+    const left=Math.max(0,d.pool-(d.paid||[]).reduce((a,p)=>a+p.amount,0)); rsPrize=[left,0,0]; renderResults();
+  }catch(e){ $('rs-body').innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; }
+}
+function rsMeta(){
+  const d=rs, done=(d.status||'').toLowerCase()==='completed'||!!d.winner;
+  $('rs-meta').innerHTML=`<span>${esc(d.event)}</span><span>Prize pool: ${d.pool?d.pool+' points':'none set'}</span><span>${d.matches} match${d.matches>1?'es':''}</span>`+
+    (done?`<span class="done">Finished · winner ${esc(d.winner||'')}</span>`:'<span>Not finished</span>')+(d.board&&d.board.published?'<span>Standings live</span>':'');
+}
+function renderResults(){
+  const d=rs; if(!d) return; rsMeta();
+  const rank=rsRanked(), place=new Map(rank.map((x,k)=>[x.i,k+1]));
+  const head=`<div class="rsr h" style="--n:${d.matches}"><span>#</span><span>Squad</span>${Array.from({length:d.matches},(_,k)=>`<span>M${k+1}</span>`).join('')}<span>Total</span><span></span></div>`;
+  const body=rsRows.map((r,i)=>{ const pl=place.get(i)||'–';
+    return `<div class="rsr ${pl<=3?'p'+pl:''}" data-i="${i}" style="--n:${d.matches}"><span class="pl">${pl}</span>`+
+      `<input class="tm" value="${esc(r.team)}" maxlength="60" placeholder="Squad name" aria-label="Squad name" translate="no">`+
+      `<span class="m">`+r.pts.map((v,k)=>`<label><span>Match ${k+1}</span><input class="pt" data-k="${k}" type="number" inputmode="numeric" min="0" max="300" value="${v||v===0?v:''}" aria-label="Match ${k+1} points for ${esc(r.team)}"></label>`).join('')+
+      `<button type="button" class="x" data-del="${i}" aria-label="Remove ${esc(r.team)}"><svg viewBox="0 0 24 24"><use href="#i-x"/></svg></button></span>`+
+      `<span class="tot">${rsTotal(r)}</span></div>`; }).join('');
+  $('rs-body').innerHTML=`<div class="rs">${head}${body}</div>`+
+    `<button type="button" class="ghost rs-add" id="rs-add">+ Add squad</button>`+
+    `<div class="prz"><h3>Prizes (paid when you finish)</h3><p class="note" style="margin:0">Points go straight into the winners' JD wallets. Only registered squads can be paid, never more than the prize pool, and each squad only once.</p><div id="rs-prz"></div><div class="prz-sum" id="prz-sum"></div></div>`+
+    `<div class="rs-acts"><button type="button" class="btn alt" id="rs-pub">Publish standings</button><button type="button" class="btn" id="rs-fin">Finish &amp; pay prizes</button></div>`+
+    `<p class="note">Publish standings after each match: the leaderboard on the site updates for everyone. Finish when the last match is done: it sets the winner, marks the event finished, saves the all-time leaderboard and pays the prizes.</p>`;
+  renderPrizes();
+}
+function renderPrizes(){
+  const d=rs, rank=rsRanked(), box=$('rs-prz'); if(!d||!box) return;
+  const paid=new Map((d.paid||[]).map(p=>[p.squad.toLowerCase(),p.amount]));
+  const top=rank.slice(0,3);
+  const prz=top.map((x,k)=>{ const pd=paid.get(x.r.team.toLowerCase());
+    return `<div class="prz-row"><span class="pl" style="width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-weight:700;background:${['var(--gold)','#c8d1e6','#c98b4c'][k]};color:#07090F">${k+1}</span><b translate="no">${esc(x.r.team)}</b>`+
+      (pd?`<span class="paid">Paid ${pd} ✓</span>`:`<input type="number" inputmode="numeric" min="0" data-prize="${k}" value="${rsPrize[k]||''}" placeholder="0" aria-label="Prize points for place ${k+1}">`)+`</div>`; }).join('');
+  box.innerHTML=prz||'<p class="note">Enter points first.</p>';
+  rsSum();
+}
+// positions + medal colours, without rebuilding the inputs you're typing in
+function rsPlaces(){
+  const place=new Map(rsRanked().map((x,k)=>[x.i,k+1]));
+  $('rs-body').querySelectorAll('.rsr[data-i]').forEach(tr=>{ const pl=place.get(+tr.dataset.i)||'–'; tr.className='rsr'+(pl<=3?' p'+pl:''); tr.querySelector('.pl').textContent=pl; });
+}
+function rsSum(){
+  if(!rs) return; const paid=(rs.paid||[]).reduce((a,p)=>a+p.amount,0), now=rsRanked().slice(0,3).reduce((a,x,k)=>a+((rs.paid||[]).some(p=>p.squad.toLowerCase()===x.r.team.toLowerCase())?0:(+rsPrize[k]||0)),0), el=$('prz-sum'); if(!el) return;
+  el.textContent=`Assigned ${now+paid} of ${rs.pool} points${paid?` (${paid} already paid)`:''}`; el.className='prz-sum'+(now+paid>rs.pool?' bad':'');
+}
+$('rs-body').addEventListener('input',e=>{
+  const tr=e.target.closest('.rsr[data-i]');
+  if(e.target.dataset.prize!==undefined){ rsPrize[+e.target.dataset.prize]=Math.max(0,+e.target.value||0); rsSum(); return; }
+  if(!tr) return; const r=rsRows[+tr.dataset.i];
+  if(e.target.classList.contains('tm')) r.team=e.target.value;
+  else if(e.target.classList.contains('pt')) r.pts[+e.target.dataset.k]=Math.max(0,Math.min(300,+e.target.value||0));
+  tr.querySelector('.tot').textContent=rsTotal(r);
+  rsPlaces(); renderPrizes();
+});
+$('rs-body').addEventListener('click',async e=>{
+  const del=e.target.closest('[data-del]');
+  if(del){ rsRows.splice(+del.dataset.del,1); renderResults(); return; }
+  if(e.target.closest('#rs-add')){ rsRows.push({team:'',pts:Array(rs.matches).fill(0)}); renderResults(); const ins=$('rs-body').querySelectorAll('input.tm'); ins[ins.length-1].focus(); return; }
+  const pub=e.target.closest('#rs-pub'), fin=e.target.closest('#rs-fin'); if(!pub&&!fin) return;
+  const rank=rsRanked(), msg=$('rs-msg');
+  if(!rank.length){ msg.textContent='Add squads and points first.'; msg.className='msg err'; return; }
+  const teams=rsRows.filter(r=>r.team.trim()).map(r=>({team:r.team.trim(),pts:r.pts}));
+  const prizes={}; if(fin) rank.slice(0,3).forEach((x,k)=>{ if(+rsPrize[k]>0&&!(rs.paid||[]).some(p=>p.squad.toLowerCase()===x.r.team.toLowerCase())) prizes[x.r.team.trim()]=+rsPrize[k]; });
+  const sum=Object.values(prizes).reduce((a,b)=>a+b,0);
+  const ok=await sheet(fin?{title:`Finish ${rs.event}?`,text:`Winner: ${rank[0].r.team} (${rank[0].t} points). `+(sum?`Pays ${Object.entries(prizes).map(([k,v])=>k+' '+v).join(', ')} points into their wallets. `:'No prizes will be paid. ')+`The event is marked finished and the leaderboard is saved. Payments can't be undone here.`,ok:'Finish & pay',danger:sum>0}
+                          :{title:'Publish standings?',text:`#1 ${rank[0].r.team} (${rank[0].t}). The leaderboard on the site updates for everyone now.`,ok:'Publish'});
+  if(!ok) return;
+  const btn=fin||pub, label=btn.textContent; btn.disabled=true; btn.textContent=fin?'Finishing…':'Publishing…'; msg.textContent=''; msg.className='msg';
+  try{
+    const r=await call({action:'results_publish',slug:rs.event,teams,final:!!fin,prizes});
+    if(fin){
+      const pd=r.prizes.filter(x=>x.status==='paid'), un=r.prizes.filter(x=>x.status!=='paid');
+      msg.textContent=`Finished. Winner: ${r.winner}.`+(pd.length?' Paid: '+pd.map(x=>`${x.squad} ${x.amount}`).join(', ')+'.':'')+(un.length?' Not paid (no matching registered squad): '+un.map(x=>x.squad).join(', ')+'.':'');
+      toast(`${rs.event} finished – ${r.winner} wins`);
+    } else { msg.textContent=`Standings are live. #1 ${r.winner}.`; toast('Standings published'); }
+    msg.className='msg ok';
+    await loadResults(true);
+  }catch(err){ msg.textContent=err.message; msg.className='msg err'; }
+  btn.disabled=false; btn.textContent=label;
+});
+$('rs-reload').onclick=()=>loadResults();
+
 /* ── tabs (phone / tablet) ── */
 function showTab(name){
   document.querySelectorAll('#tabs [role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===name?'true':'false'));
-  ['squads','chats','room','notify','help'].forEach(n=>$('tab-'+n).classList.toggle('on',n===name));
+  ['squads','results','chats','room','notify','help'].forEach(n=>$('tab-'+n).classList.toggle('on',n===name));
   try{history.replaceState(null,'','#'+name);}catch(e){}
   window.scrollTo({top:0});
 }
@@ -816,7 +972,7 @@ $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
     const me=await call({action:'whoami'});
     $('who').textContent=me.email; $('who-wrap').hidden=false;
     $('main').hidden=false; $('tabs').hidden=false;
-    const h=(location.hash||'').slice(1); if(['chats','room','notify','help'].includes(h)) showTab(h);
+    const h=(location.hash||'').slice(1); if(['results','chats','room','notify','help'].includes(h)) showTab(h);
     setTopH();
     loadTournaments();
     loadInbox();
