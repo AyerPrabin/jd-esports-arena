@@ -1272,6 +1272,10 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
       <div class="step"><b>🚫 Banned character skills</b><span>Orion, Sonia, Dimitri and Ryden are not allowed. Using a banned skill can get your squad disqualified.</span></div>
       <div class="step"><b>🚫 No duplicate active skills</b><span>Two players in the same squad can't use the same active skill.</span></div>
       <div class="step"><b>🚫 No zone pushing</b><span>Zone pusher is not allowed — play the zone normally.</span></div>
+      <div class="step"><b>⏱️ Enter in 10 minutes</b><span>Be in the room within 10 minutes of the Room ID being shared.</span></div>
+      <div class="step"><b>💺 Sit in your app slot</b><span>Enter as a squad and take the seat that matches your slot position in the app.</span></div>
+      <div class="step"><b>🚫 3 no-shows = 1 month ban</b><span>Join and don't come for 3 matches and your squad is banned for 1 month.</span></div>
+      <div class="step"><b>📲 Be online in the app</b><span>Register only if you'll attend the custom room and stay online in the JD Arena app — room details arrive there. <a href="/download/" style="color:var(--gold-l)">Download the APK</a></span></div>
     </div>
     <a class="btn-primary" href="/rules/" style="display:inline-flex;margin:18px 0 0">📜 Read the full tournament rules</a>
     <h3 class="ban-ch-h">🚫 Banned characters</h3>
@@ -1356,8 +1360,10 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
         <p class="sub" style="margin:6px 0 0">Pick your country (Nepal is set already), then type your number. Used to send your <b>Room ID and reminders</b> — never shown publicly. It's saved to your account so next time you just confirm. <button type="button" class="rq-forget" id="reg-wa-forget" hidden onclick="regWaForget()">Remove saved number</button> <a href="/privacy/" target="_blank" rel="noopener">Privacy</a></p>
       </div>
     </div>
-    <p class="sub" style="color:var(--warm-l);margin:12px 0 0"><b>⚠️ Please show up.</b> Registering means you're committing to play. Squads that register and then don't join can be removed and <b>banned from future JD tournaments</b>.</p>
-    <div class="reg-noshow" id="reg-noshow" hidden><b>⚠️ Final warning</b> Your squad registered for a tournament before and didn't show up. You can join again, but if you miss another match your squad will be <b>banned from JD tournaments</b>.</div>
+    <p class="sub" style="color:var(--warm-l);margin:12px 0 0"><b>⚠️ Please show up.</b> Registering means you're committing to play. Squads that register and then don't join get a warning — <b>3 no-shows = banned for 1 month</b>.</p>
+    <p class="sub" style="margin:8px 0 0"><b>📲 Register only if you'll attend the custom room and stay online in the JD Arena app.</b> Room ID, password and your slot are sent there as app notifications.</p>
+    <a class="btn-primary" id="reg-getapp" href="/download/?get=1" style="display:none;margin:10px 0 0">📲 Download the JD Arena app (APK)</a>
+    <div class="reg-noshow" id="reg-noshow" hidden><b>⚠️ Warning</b> Your squad has <b id="reg-noshow-n">1</b> of 3 no-shows. You can join again, but at 3 no-shows your squad is <b>banned from JD tournaments for 1 month</b>.</div>
     <div class="reg-rules">
       <b>📜 Tournament rules</b>
       <ol>
@@ -1366,6 +1372,10 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
           <div class="reg-ch"><img src="characters/orion.webp" alt="Orion" title="Orion" loading="lazy"><img src="characters/sonia.webp" alt="Sonia" title="Sonia" loading="lazy"><img src="characters/dimitri.webp" alt="Dimitri" title="Dimitri" loading="lazy"><img src="characters/ryden.webp" alt="Ryden" title="Ryden" loading="lazy"></div></li>
         <li>🚫 Two players in the same squad can't use the same active skill.</li>
         <li>🚫 Zone pusher is not allowed.</li>
+        <li>⏱️ Enter the room within 10 minutes of the Room ID being shared.</li>
+        <li>💺 Enter as a squad and sit in the seat matching your slot position in the app.</li>
+        <li>🚫 Join and don't come for 3 matches = squad banned for 1 month.</li>
+        <li>📲 Register only if you'll attend the custom room and stay online in the JD Arena app.</li>
       </ol>
       <a class="reg-rules-link" href="/rules/" target="_blank" rel="noopener">📖 Read the full rules with pictures →</a>
       <label class="tc-check"><input type="checkbox" id="reg-rules-ok"><span>I have read these rules and my whole squad agrees to follow them. Breaking them can get us disqualified or banned.</span></label>
@@ -2963,7 +2973,9 @@ function registerInApp(name){
   const payNote=document.getElementById('reg-pay-note');if(payNote)payNote.textContent='The entry is paid from your points when you register.';
   const rok=document.getElementById('reg-rules-ok');if(rok)rok.checked=false;
   // squads that registered and didn't show up before get a final warning (they can still join)
-  const ns=document.getElementById('reg-noshow');if(ns){ns.hidden=true;sb.rpc('my_no_show_count').then(({data})=>{if(+data>0)ns.hidden=false;},()=>{});}
+  // Android players not yet in the APK get a download button on the join form
+  const ga=document.getElementById('reg-getapp');if(ga)ga.style.display=JD_TWA||!isAndroidDevice()?"none":"inline-flex";
+  const ns=document.getElementById('reg-noshow');if(ns){ns.hidden=true;sb.rpc('my_no_show_count').then(({data})=>{if(+data>0){const n=document.getElementById('reg-noshow-n');if(n)n.textContent=Math.min(+data,3);ns.hidden=false;}},()=>{});}
   const pf=document.getElementById('reg-pay-file');if(pf)pf.value='';
   const ppv=document.getElementById('reg-pay-preview');if(ppv){ppv.style.display='none';ppv.src='';}
   const msg=document.getElementById('reg-msg');
