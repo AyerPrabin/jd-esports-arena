@@ -172,8 +172,21 @@ Deno.serve(async (req: Request) => {
   // team = squad name (big in the chat list), name = @username (small); logo only when small enough to inline
   const card = (p: any, regSquad?: string | null) => p && ({ id: p.id, name: p.username ? '@' + p.username : (p.player_tag || 'Player'),
     tag: p.player_tag || null, squad: p.squad_name || regSquad || null,
-    logo: typeof p.squad_logo === 'string' && p.squad_logo.length < 40000 && /^(https:|data:image\/)/.test(p.squad_logo) ? p.squad_logo : null });
-  const PCOLS = 'id, username, player_tag, squad_name, squad_logo';
+    logo: typeof p.squad_logo === 'string' && p.squad_logo.length < 40000 && /^(https:|data:image\/)/.test(p.squad_logo) ? p.squad_logo : null,
+    online: !!p.last_seen_at && Date.now() - new Date(p.last_seen_at).getTime() < 120000, seen: p.last_seen_at || null,
+    app: !!p.app_installed_at, joined: p.created_at || null, avatar: null as string | null });
+  const PCOLS = 'id, username, player_tag, squad_name, squad_logo, last_seen_at, app_installed_at, created_at';
+  // profile photos live in the private avatars bucket: short-lived signed links, one call for the whole list
+  const withAvatars = async (cards: any[]) => {
+    const ids = cards.filter(Boolean).map((c) => c.id);
+    if (!ids.length) return cards;
+    try {
+      const { data } = await admin.storage.from('avatars').createSignedUrls(ids.map((i) => i + '/avatar.jpg'), 3600);
+      const ok = new Map((data || []).filter((x: any) => x.signedUrl && !x.error).map((x: any) => [String(x.path).split('/')[0], x.signedUrl]));
+      for (const c of cards) if (c && ok.has(c.id)) c.avatar = ok.get(c.id);
+    } catch { /* no photos: initials */ }
+    return cards;
+  };
   if (action === 'chat_inbox') {
     // newest conversations first; unread = player replies nobody on the team has opened yet
     const { data, error } = await admin.from('jd_messages')
@@ -196,7 +209,8 @@ Deno.serve(async (req: Request) => {
       const { data: rs } = await admin.from('registrations').select('player_id, squad_name').in('player_id', noSquad).order('created_at', { ascending: false });
       for (const r of rs || []) if (r.squad_name && !regSq.has(r.player_id)) regSq.set(r.player_id, r.squad_name);
     }
-    const by = new Map((ps || []).map((x: any) => [x.id, card(x, regSq.get(x.id))]));
+    const cards = await withAvatars((ps || []).map((x: any) => card(x, regSq.get(x.id))));
+    const by = new Map(cards.map((c: any) => [c.id, c]));
     return json(list.map((t) => ({ ...t, player: by.get(t.player_id) || { id: t.player_id, name: 'Player' } })));
   }
   // resolve who to chat with: a squad row (registration id), a player id, or @username / JD tag
@@ -217,12 +231,19 @@ Deno.serve(async (req: Request) => {
   if (action === 'chat_thread') {
     const pl = await chatTarget();
     if (!pl) return fail('Player not found. Check the @username or JD tag.', 404);
-    const { data, error } = await admin.from('jd_messages')
-      .select('id, from_staff, staff_email, body, created_at, read_at').eq('player_id', pl.id).eq('channel', 'jd').order('id', { ascending: false }).limit(100);
+    const [{ data, error }, { data: regs }] = await Promise.all([
+      admin.from('jd_messages').select('id, from_staff, staff_email, body, created_at, read_at')
+        .eq('player_id', pl.id).eq('channel', 'jd').order('id', { ascending: false }).limit(100),
+      admin.from('registrations').select('tournament_slug, squad_name, status, checked_in_at, whatsapp, created_at')
+        .eq('player_id', pl.id).order('created_at', { ascending: false }).limit(6),
+    ]);
     if (error) return fail(error.message, 500);
+    const pc = card(pl, (regs || []).find((r: any) => r.squad_name)?.squad_name);
+    await withAvatars([pc]);
     admin.from('jd_messages').update({ read_at: new Date().toISOString() })      // not awaited: the chat opens faster
       .eq('player_id', pl.id).eq('channel', 'jd').eq('from_staff', false).is('read_at', null).then(() => {}, () => {});
-    return json({ player: card(pl), messages: (data || []).reverse().map((m: any) => ({
+    return json({ player: pc, tickets: (regs || []).map((r: any) => ({ event: r.tournament_slug, squad: r.squad_name, status: r.status,
+      confirmed: !!r.checked_in_at, whatsapp: r.whatsapp || null, at: r.created_at })), messages: (data || []).reverse().map((m: any) => ({
       id: m.id, staff: m.from_staff, by: m.from_staff ? (String(m.staff_email || '').startsWith('zulu') ? 'ZULU (auto)' : m.staff_email === email ? 'You' : m.staff_email === 'admin' ? 'Admin' : String(m.staff_email || 'JD team').split('@')[0]) : null,
       body: m.body, created_at: m.created_at, read_at: m.read_at })) });
   }

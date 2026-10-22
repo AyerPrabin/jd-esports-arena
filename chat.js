@@ -268,10 +268,26 @@
     if (PAGE) { var si = $('cp-signin'); if (si) si.hidden = !!me; panel.hidden = !me; }
     document.body.classList.toggle('has-dm', !!me);
     syncZuluFab(); recs = null; recAt = 0;
+    liveJd();
     if (!me) { close(true); return; }
     poll(); loadMyTag();
     if (PAGE && !pendingDeepLink) open();
     if (pendingDeepLink) { var w = pendingDeepLink; pendingDeepLink = null; w(); }
+  }
+
+  // JD Esports + ZULU messages in real time: the database sends a content-free ping on 'jd-p-<your id>'
+  // (jd_chat_live.sql); the chat then reloads through the normal permission-checked calls
+  var liveCh = null;
+  function liveJd() {
+    try { if (liveCh) { SB.removeChannel(liveCh); liveCh = null; } } catch (e) {}
+    if (!me || !SB.channel) return;
+    try {
+      liveCh = SB.channel('jd-p-' + me).on('broadcast', { event: 'new' }, function (m) {
+        var c = m && m.payload && m.payload.c;
+        if (c === 'zulu') loadZn(true).then(function () { setBadges(); if (isOpen && (!cur || wide())) renderOverview(); });
+        else { poll(); if (cur && cur.kind === 'jd') refreshThread(); }
+      }).subscribe();
+    } catch (e) {}
   }
 
   // your own JD tag, so friends can add you (and your squad name, the default squad chat name)

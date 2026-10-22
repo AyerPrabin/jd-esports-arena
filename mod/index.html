@@ -191,8 +191,8 @@ textarea{min-height:96px;resize:vertical}
 .cday{align-self:center;font-size:.72rem;color:var(--body);margin:10px 0 6px}
 .crowm{display:flex;align-items:flex-end;gap:6px;max-width:100%}
 .crowm.me{justify-content:flex-end}
-.crowm .cav.xs{visibility:hidden}
-.crowm.last .cav.xs{visibility:visible}
+.crowm .cavw{visibility:hidden}
+.crowm.last .cavw{visibility:visible}
 .cm{max-width:78%;padding:8px 12px;border-radius:18px;font-size:.92rem;line-height:1.38;white-space:pre-wrap;overflow-wrap:anywhere}
 .crowm.pl .cm{background:#1d2540;color:var(--cream)}
 .crowm.me .cm{background:linear-gradient(135deg,#ffd76a,var(--cta));color:#1a1305}
@@ -215,6 +215,33 @@ textarea{min-height:96px;resize:vertical}
 .csend:disabled{opacity:.45;cursor:default}
 .csend svg{width:20px;height:20px;fill:currentColor}
 .ver{width:15px;height:15px;color:#3EA6FF;vertical-align:-2px}
+.cavw{position:relative;display:inline-block;flex:none;line-height:0}
+.cavw.on::after{content:'';position:absolute;right:1px;bottom:1px;width:14px;height:14px;border-radius:50%;background:#31d158;border:3px solid var(--panel)}
+.cavw.sm.on::after{width:11px;height:11px;border-width:2px}
+.crow.on .cavw.on::after{border-color:#1a2033}
+.chead{display:flex;align-items:center;gap:10px;min-width:0;flex:1;border:0;background:none;color:inherit;text-align:left;padding:4px 6px;border-radius:10px;cursor:pointer}
+.chead:hover{background:rgba(255,255,255,.05)}
+.chead small.on{color:#31d158}
+.live{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;color:var(--body)}
+.live i{width:7px;height:7px;border-radius:50%;background:#556}
+.live.on{color:#31d158}.live.on i{background:#31d158;box-shadow:0 0 0 3px rgba(49,209,88,.18)}
+.cprof{text-align:center;padding:6px 4px 2px}
+.cprof .cav{width:96px;height:96px;font-size:2.6rem;margin:0 auto}
+.cprof .cavw{margin:0 auto 10px}
+.cprof .cavw.on::after{width:20px;height:20px;right:4px;bottom:4px}
+.cprof h3{font-family:'Barlow Condensed',sans-serif;font-size:1.7rem;margin:0;line-height:1.1}
+.cprof .un{color:var(--silver);font-size:.92rem;margin:2px 0 0}
+.cprof .st{font-size:.8rem;color:var(--body);margin:4px 0 0}
+.cprof .st.on{color:#31d158}
+.cpchips{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:12px 0}
+.cpchips span,.cpchips button{border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:.78rem;color:var(--silver);background:var(--panel-2)}
+.cpchips button{cursor:pointer;color:var(--gold-l)}
+.cptk{display:grid;gap:6px;margin-top:6px;text-align:left}
+.cptk div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:9px 12px;background:var(--panel-2)}
+.cptk b{display:block;font-weight:600;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cptk small{display:block;font-size:.76rem;color:var(--body)}
+.cptk .ok{color:var(--ok)}.cptk .no{color:var(--warn)}
+.cprow{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
 @media (max-width:640px){.cmsgs{height:calc(100dvh - var(--top-h,120px) - var(--tabh) - 250px - env(safe-area-inset-bottom));min-height:240px}}
 
 /* help */
@@ -310,14 +337,15 @@ textarea{min-height:96px;resize:vertical}
     <section class="tab" id="tab-chats" aria-labelledby="h-chats">
       <div class="panel">
         <div id="cinbox">
-          <div class="sec-h"><h2 id="h-chats">Chats</h2><span class="sp"></span><span class="updated" id="c-upd"></span></div>
+          <div class="sec-h"><h2 id="h-chats">Chats</h2><span class="sp"></span><span class="live" id="c-live" title="New messages arrive instantly"><i></i>Connecting…</span></div>
           <form class="chat-new" id="c-new"><input id="c-who" name="who" autocomplete="off" spellcheck="false" placeholder="Message a player: @username or JD tag…" aria-label="Player's @username or JD tag"><button class="btn" type="submit">Open</button></form>
           <div class="clist" id="c-list"><div class="cskel"><i></i><span><b></b><b></b></span></div><div class="cskel"><i></i><span><b></b><b></b></span></div><div class="cskel"><i></i><span><b></b><b></b></span></div></div>
           <p class="note">Players see you as <b>JD Esports</b> <svg class="ver" viewBox="0 0 24 24" aria-label="verified"><path fill="currentColor" d="M12 1.6l2.6 1.9 3.2-.1 1 3 2.6 1.9-1 3.1 1 3.1-2.6 1.9-1 3-3.2-.1L12 22.4l-2.6-1.9-3.2.1-1-3L2.6 15.7l1-3.1-1-3.1 2.6-1.9 1-3 3.2.1z"/></svg>, never your name. ZULU's automatic messages go to their ZULU chat, not here.</p>
         </div>
         <div id="cview" hidden>
           <div class="cview-h"><button type="button" class="ghost" id="c-back" aria-label="Back to chats"><svg aria-hidden="true"><use href="#i-back"/></svg></button>
-            <span id="c-av"></span><div class="tx"><b id="c-name" translate="no"></b><small id="c-sub" translate="no"></small></div></div>
+            <button type="button" class="chead" id="c-head" aria-label="View profile"><span id="c-av"></span><span class="tx"><b id="c-name" translate="no"></b><small id="c-sub" translate="no"></small></span></button></div>
+          <div id="cprof-wrap" hidden></div>
           <div class="cmsgs" id="c-msgs" aria-live="polite"></div>
           <form class="ccomp" id="c-form"><textarea id="c-in" rows="1" maxlength="1000" placeholder="Aa" aria-label="Message as JD Esports"></textarea>
             <button class="csend" type="submit" id="c-send" aria-label="Send"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.99.99 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/></svg></button></form>
@@ -616,11 +644,13 @@ let chatWith=null, chatPid=null, chatTimer=null, inbox=[], chatBusy=false;
 const threads=new Map();                       // player_id -> {player, messages}
 const ago=t=>{const d=(Date.now()-new Date(t))/60000;return d<1?'now':d<60?Math.floor(d)+'m':d<1440?Math.floor(d/60)+'h':d<10080?Math.floor(d/1440)+'d':Math.floor(d/10080)+'w';};
 const hue=s=>{let h=0;for(const c of String(s||''))h=(h*31+c.charCodeAt(0))%360;return h;};
-function cav(pl,size){
-  const p=pl||{}, label=(p.squad||p.name||'?').replace(/^@/,'').trim(), h=hue(p.id||label);
-  if(p.logo) return `<span class="cav ${size||''}"><img src="${esc(p.logo)}" alt="" loading="lazy"></span>`;
-  return `<span class="cav ${size||''}" style="background:linear-gradient(140deg,hsl(${h} 55% 42%),hsl(${(h+40)%360} 60% 28%))" aria-hidden="true">${esc([...label][0]||'?')}</span>`;
+function cav(pl,size,noDot){
+  const p=pl||{}, label=(p.squad||p.name||'?').replace(/^@/,'').trim(), h=hue(p.id||label), pic=p.avatar||p.logo;
+  const inner=pic?`<span class="cav ${size||''}"><img src="${esc(pic)}" alt="" loading="lazy" onerror="this.remove()"></span>`
+    :`<span class="cav ${size||''}" style="background:linear-gradient(140deg,hsl(${h} 55% 42%),hsl(${(h+40)%360} 60% 28%))" aria-hidden="true">${esc([...label][0]||'?')}</span>`;
+  return `<span class="cavw ${size||''}${p.online&&!noDot?' on':''}">${inner}</span>`;
 }
+const status=p=>p.online?'Active now':p.seen?'Active '+ago(p.seen)+' ago':'';
 const team=p=>p&&(p.squad||p.name)||'Player';
 function renderInbox(){
   const unread=inbox.reduce((n,t)=>n+(t.unread||0),0), bd=$('badge-chat');
@@ -636,16 +666,16 @@ try{ const c=JSON.parse(localStorage.getItem('jd_mod_inbox')||'null'); if(Array.
 async function loadInbox(){
   try{
     inbox=await call({action:'chat_inbox'});
-    try{ localStorage.setItem('jd_mod_inbox',JSON.stringify(inbox.slice(0,40).map(t=>({...t,player:{...t.player,logo:null}})))); }catch(e){}
+    try{ localStorage.setItem('jd_mod_inbox',JSON.stringify(inbox.slice(0,40).map(t=>({...t,player:{...t.player,logo:null,avatar:null}})))); }catch(e){}
     renderInbox();
-    $('c-upd').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-  }catch(e){ if(!inbox.length) $('c-list').innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; }
+      }catch(e){ if(!inbox.length) $('c-list').innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; }
 }
 function dayOf(t){ const d=new Date(t), n=new Date(); return d.toDateString()===n.toDateString()?d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString([], {weekday:'short',day:'numeric',month:'short'})+', '+d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); }
 function renderChat(d){
   const box=$('c-msgs'), atEnd=box.scrollTop+box.clientHeight>=box.scrollHeight-80, p=d.player||{};
   $('c-av').innerHTML=cav(p,'sm'); $('c-name').textContent=team(p);
-  $('c-sub').textContent=[p.squad?p.name:'',p.tag].filter(Boolean).join(' · ');
+  const sub=$('c-sub'); sub.textContent=status(p)||[p.squad?p.name:'',p.tag].filter(Boolean).join(' · '); sub.className=p.online?'on':'';
+  if(!$('cprof-wrap').hidden) renderProfile(d);
   const ms=d.messages||[];
   if(!ms.length){ box.innerHTML='<p class="cempty">No messages yet. Say hi – it arrives as JD Esports with a phone push.</p>'; return; }
   let h='', lastMine=-1; ms.forEach((m,i)=>{ if(m.staff) lastMine=i; });
@@ -656,7 +686,7 @@ function renderChat(d){
     const a=same(prev)&&!(t-new Date(prev.created_at).getTime()>20*60000), b=same(next);
     const pos=a&&b?'mid':a?'last':b?'first':'only';
     h+=`<div class="crowm ${m.staff?'me':'pl'} ${pos}${m.pending?' pending':''}${m.failed?' failed':''}${pos==='last'||pos==='only'?' last':''}">`+
-       (m.staff?'':cav(p,'xs'))+`<div class="cm">${esc(m.body)}</div></div>`;
+       (m.staff?'':cav(p,'xs',true))+`<div class="cm">${esc(m.body)}</div></div>`;
     if(m.staff&&(pos==='last'||pos==='only')&&(i===lastMine||m.by!=='You')) h+=`<div class="cby">${m.failed?'Not sent · tap Send to retry':m.pending?'Sending…':esc(m.by||'JD team')+(i===lastMine&&m.read_at?' · Seen':'')}</div>`;
   });
   box.innerHTML=h;
@@ -672,12 +702,13 @@ async function refreshChat(){
     const old=threads.get(chatPid), pend=old?old.messages.filter(m=>m.pending||m.failed):[];
     d.messages=d.messages.concat(pend.filter(m=>!d.messages.some(x=>x.staff&&x.body===m.body&&!m.failed)));
     threads.set(chatPid,d);
-    const sig=JSON.stringify(d.messages.map(m=>[m.id,m.read_at,m.pending,m.failed]));
+    const sig=JSON.stringify([d.player.online,d.player.avatar?1:0,d.messages.map(m=>[m.id,m.read_at,m.pending,m.failed])]);
     if(sig!==$('c-msgs').dataset.sig){ $('c-msgs').dataset.sig=sig; renderChat(d); }
     const t=inbox.find(x=>x.player_id===chatPid); if(t&&t.unread){ t.unread=0; renderInbox(); }
   }catch(e){ if(who===chatWith&&!threads.get(chatPid)) $('c-msgs').innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; }
 }
 function openChat(who,draft){
+  if(!$('cprof-wrap').hidden) toggleProfile();
   chatWith=who; chatPid=who.player_id||null;
   $('cinbox').hidden=true; $('cview').hidden=false;
   const box=$('c-msgs'); box.dataset.first='1'; box.dataset.sig='';
@@ -686,17 +717,37 @@ function openChat(who,draft){
   else {
     const p=row?row.player:{name:who.who||'Loading…'};
     $('c-av').innerHTML=cav(p,'sm'); $('c-name').textContent=row?team(p):(who.who||'Loading…');
-    $('c-sub').textContent=row?[p.squad?p.name:'',p.tag].filter(Boolean).join(' · '):'';
+    $('c-sub').textContent=row?(status(p)||[p.squad?p.name:'',p.tag].filter(Boolean).join(' · ')):'';
     box.innerHTML='<div class="cskel"><i style="width:28px;height:28px"></i><span><b></b></span></div>';
   }
   if(draft!=null) $('c-in').value=draft;
   autoGrow();
   if(matchMedia('(max-width:1079px)').matches) showTab('chats'); else $('tab-chats').scrollIntoView({block:'nearest'});
   refreshChat();
-  clearInterval(chatTimer); chatTimer=setInterval(()=>{ if(!document.hidden) refreshChat(); },3000);
+  clearInterval(chatTimer); chatTimer=setInterval(()=>{ if(!document.hidden) refreshChat(); },liveOn?10000:3000);
   setTimeout(()=>$('c-in').focus(),30);
 }
-function closeChat(){ chatWith=null; chatPid=null; clearInterval(chatTimer); $('cview').hidden=true; $('cinbox').hidden=false; renderInbox(); loadInbox(); }
+const ST={confirmed:'In a slot',approved:'In a slot',pending:'Waiting for approval',waitlisted:'Waitlist',rejected:'Rejected',no_show:'No-show'};
+function renderProfile(d){
+  const p=d.player||{}, tk=d.tickets||[], wa=(tk.find(t=>t.whatsapp)||{}).whatsapp;
+  const wl=wa?waLink(wa,`Hi ${team(p)}! This is the JD Esports team.`):null;
+  $('cprof-wrap').innerHTML=`<div class="cprof">${cav(p,'')}<h3 translate="no">${esc(team(p))}</h3>`+
+    `<p class="un" translate="no">${esc(p.name||'')}</p><p class="st${p.online?' on':''}">${esc(status(p)||'Not seen recently')}</p>`+
+    `<div class="cpchips">${p.tag?`<button type="button" data-copy="${esc(p.tag)}">${esc(p.tag)} · Copy</button>`:''}${p.app?'<span>📱 Uses the app</span>':''}${p.joined?`<span>Joined ${esc(new Date(p.joined).toLocaleDateString([], {month:'short',year:'numeric'}))}</span>`:''}</div>`+
+    (tk.length?`<div class="cptk">${tk.map(t=>`<div><span style="min-width:0"><b>${esc(t.event)}</b><small>${esc(t.squad||'')} · ${esc(ST[t.status]||t.status)}</small></span>`+
+      `<small class="${t.status==='confirmed'||t.status==='approved'?(t.confirmed?'ok':'no'):''}">${t.status==='confirmed'||t.status==='approved'?(t.confirmed?'Playing ✓':'Not confirmed'):''}</small></div>`).join('')}</div>`
+      :'<p class="note">No tickets yet.</p>')+
+    `<div class="cprow">${wl?`<a class="abtn wa" href="${wl}" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-wa"/></svg>WhatsApp</a>`:''}<button type="button" class="ghost" id="cprof-close">Back to chat</button></div></div>`;
+  $('cprof-close').onclick=toggleProfile;
+}
+function toggleProfile(){
+  const w=$('cprof-wrap'), d=chatPid&&threads.get(chatPid);
+  if(w.hidden){ if(!d) return; renderProfile(d); w.hidden=false; $('c-msgs').hidden=true; $('c-form').hidden=true; }
+  else { w.hidden=true; $('c-msgs').hidden=false; $('c-form').hidden=false; $('c-msgs').scrollTop=$('c-msgs').scrollHeight; }
+}
+$('c-head').onclick=toggleProfile;
+$('cprof-wrap').addEventListener('click',e=>{const b=e.target.closest('[data-copy]');if(b){navigator.clipboard&&navigator.clipboard.writeText(b.dataset.copy);toast('Copied '+b.dataset.copy);}});
+function closeChat(){ if(!$('cprof-wrap').hidden) toggleProfile(); chatWith=null; chatPid=null; clearInterval(chatTimer); $('cview').hidden=true; $('cinbox').hidden=false; renderInbox(); loadInbox(); }
 function autoGrow(){ const t=$('c-in'); t.style.height='auto'; t.style.height=Math.min(t.scrollHeight,160)+'px'; $('c-send').disabled=!t.value.trim(); }
 $('c-in').addEventListener('input',autoGrow);
 $('c-back').onclick=closeChat;
@@ -722,7 +773,22 @@ $('c-form').onsubmit=async e=>{
   }catch(err){ m.pending=false; m.failed=true; $('c-in').value=body; autoGrow(); toast(err.message,null,true); }
   chatBusy=false; renderChat(d); $('c-msgs').dataset.sig='';
 };
-setInterval(()=>{ if(!document.hidden&&!chatWith&&$('main')&&!$('main').hidden) loadInbox(); },15000);
+let liveOn=false, inboxT=null;
+const inboxSoon=()=>{ clearTimeout(inboxT); inboxT=setTimeout(loadInbox,250); };
+function startLive(){
+  try{
+    sb.channel('jd-staff')
+      .on('broadcast',{event:'new'},()=>{ if(chatWith) refreshChat(); inboxSoon(); })
+      .on('broadcast',{event:'seen'},()=>{ if(chatWith) refreshChat(); })
+      .subscribe(st=>{
+        liveOn=st==='SUBSCRIBED';
+        const l=$('c-live'); l.className='live'+(liveOn?' on':''); l.lastChild.textContent=liveOn?'Live':'Reconnecting…';
+        if(liveOn){ if(chatWith) refreshChat(); inboxSoon(); }
+      });
+  }catch(e){}
+}
+setInterval(()=>{ if(!document.hidden&&!chatWith&&$('main')&&!$('main').hidden) loadInbox(); },liveOn?45000:15000);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&$('main')&&!$('main').hidden){ if(chatWith) refreshChat(); inboxSoon(); } });
 
 /* ── tabs (phone / tablet) ── */
 function showTab(name){
@@ -754,6 +820,7 @@ $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
     setTopH();
     loadTournaments();
     loadInbox();
+    startLive();
   }catch(e){
     $('gate').hidden=false;
     $('gate-note').textContent=/not a moderator/i.test(e.message)?'Signed in as '+(session.user.email||'')+', but that account is not a moderator yet. Ask the JD admin to add you.':e.message;
