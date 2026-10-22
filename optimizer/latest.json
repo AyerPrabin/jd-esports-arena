@@ -1,9 +1,9 @@
 {
-  "version": "5.1",
-  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.1.exe",
-  "sha256": "4624f6053b061566760fa4fe0200f8889009712aed2d34265129cee1de3a1cf2",
-  "size": 1232414,
-  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.1.zip",
-  "notes": "v5.1: adaptive aim curve fixed - uses Windows' real mouse-speed points (was ~3x too fast), handles are 0.25x-2.5x of Windows speed, always-rising curve, never resets a curve JD didn't write, curve remembered.",
+  "version": "5.2",
+  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.2.exe",
+  "sha256": "a01d006f7b1c742c6561eb7fd0eed3c3aaa808301cca3b4c594e47827137bf0c",
+  "size": 1236479,
+  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.2.zip",
+  "notes": "v5.2: Apply works with the game open - if MSI App Player is open, JD asks once, closes it, applies and reopens it into Free Fire (live-only changes apply at once)",
   "date": "2026-10-22"
 }
