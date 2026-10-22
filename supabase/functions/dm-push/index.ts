@@ -30,14 +30,16 @@ Deno.serve(async (req: Request) => {
     const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     if (kind === 'jd') {
       // the JD Esports chat (jd_chat.sql): staff messages always show as "JD Esports", never the moderator
-      const { data: jr } = await db.from('jd_messages').select('id, player_id, body, read_at').in('id', ids).eq('from_staff', true).order('id');
+      // channel 'zulu' (zulu_channel.sql): ZULU's automatic messages, shown in the ZULU chat
+      const { data: jr } = await db.from('jd_messages').select('id, player_id, body, read_at, channel').in('id', ids).eq('from_staff', true).order('id');
       for (const m of jr || []) {
         if (m.read_at) continue;
+        const z = m.channel === 'zulu';
         sent += await sendPush(db, [m.player_id], {
-          title: 'JD Esports ✓',
+          title: z ? 'ZULU · JD Esports' : 'JD Esports ✓',
           body: String(m.body || '').slice(0, 200),
-          url: `${SITE}/chat/?jd=1`,
-          tag: 'jd-staff-chat',
+          url: z ? `${SITE}/chat/?zulu=1` : `${SITE}/chat/?jd=1`,
+          tag: z ? 'jd-zulu-auto' : 'jd-staff-chat',
           category: 'dm',
         });
       }

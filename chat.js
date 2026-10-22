@@ -1,7 +1,9 @@
 // JD Arena Messages: one inbox for friends (1:1), squad chats (groups of up to 8 friends —
 // your Clash Squad team), match chats (the captain-vs-captain chat of an accepted challenge)
 // ZULU, the AI assistant, and the official JD Esports chat (jd_chat.sql: the JD team writes as
-// "JD Esports" with a verified tick from /mod/; the player can reply). Loaded (deferred) on every page that creates a Supabase client
+// "JD Esports" with a verified tick from /mod/; the player can reply). JD Esports is people only:
+// ZULU's automatic messages (zulu_auto.sql: welcome, tickets, reminders, points, results) come
+// through zulu_feed() and show in the ZULU chat (zulu_channel.sql). Loaded (deferred) on every page that creates a Supabase client
 // named `sb`; styles in /chat.css. Everything goes through the SECURITY DEFINER RPCs in
 // schema.sql ("friends + direct messages" and "Messages v2"):
 //   friends:  send_friend_request / respond_friend_request / remove_friend / block_player /
@@ -261,7 +263,7 @@
     var id = u ? u.id : null;
     if (id === me) return;
     me = id; polled = false; lastAt = 0; ov = null; th = null; cur = null; msgs = []; myCard = null;
-    badge = { dm: 0, g: 0, m: 0, requests: 0, z: 0, jd: 0 }; jdLast = null; zn = []; znTop = null; setBadges();
+    badge = { dm: 0, g: 0, m: 0, requests: 0, z: 0, jd: 0 }; jdLast = null; zn = []; znTop = null; zf = []; zfTop = null; setBadges();
     fab.hidden = !me || !!PAGE; if (navRow) navRow.hidden = !me;
     if (PAGE) { var si = $('cp-signin'); if (si) si.hidden = !!me; panel.hidden = !me; }
     document.body.classList.toggle('has-dm', !!me);
@@ -318,21 +320,28 @@
     if (isOpen && changed && (!cur || wide())) loadOverview();
   }
   // ── ZULU alerts: your notifications (room ID + password, reminders, results) as ZULU messages ──
-  var zn = [], znTop = null, pollN = 0;
+  var zn = [], znTop = null, pollN = 0, zf = [], zfTop = null;
   async function loadZn(fromPoll) {
     if (!me) return zn;
     var id = me, r = await SB.from('notifications').select('id, title, body, room_id, room_pass, tournament_slug, created_at, read_at')
       .eq('player_id', me).order('created_at', { ascending: false }).limit(40);
+    var f = await SB.rpc('zulu_feed');
     if (r.error || id !== me) return zn;
     zn = r.data || [];
+    if (!f.error && Array.isArray(f.data)) zf = f.data;
     var newest = zn[0] ? zn[0].id : null, isNew = znTop !== null && newest && newest !== znTop && !zn[0].read_at;
     znTop = newest || znTop || '';
+    var fTop = zf[0] ? zf[0].id : null, fNew = zfTop !== null && fTop && fTop !== zfTop && !zf[0].read_at;
+    zfTop = fTop || zfTop || '';
     var watchingZ = isOpen && cur && cur.kind === 'zulu' && $('dm-thread').classList.contains('on') && !document.hidden;
-    if (watchingZ) { if (zn.some(function (n) { return !n.read_at; })) markZnRead(); if (isNew) { msgs = zuluLoad(); msgs[msgs.length - 1].fresh = true; renderMsgs(true); } }
-    else {
-      badge.z = zn.filter(function (n) { return !n.read_at; }).length;
+    if (watchingZ) {
+      if (zn.some(function (n) { return !n.read_at; }) || zf.some(function (m) { return !m.read_at; })) markZnRead();
+      if (isNew || fNew) { msgs = zuluLoad(); msgs[msgs.length - 1].fresh = true; renderMsgs(true); }
+    } else {
+      badge.z = zn.filter(function (n) { return !n.read_at; }).length + zf.filter(function (m) { return !m.read_at; }).length;
       // the homepage shows its own alert banner for these, so only other pages get one here
       if (isNew && fromPoll && typeof window.notifBanner !== 'function') notifyZulu(zn[0]);
+      else if (fNew && fromPoll) notifyZulu({ title: String(zf[0].body).split('\n')[0].slice(0, 90) });
     }
     if (!fromPoll) setBadges();
     return zn;
@@ -340,8 +349,9 @@
   async function markZnRead() {
     var ids = zn.filter(function (n) { return !n.read_at; }).map(function (n) { return n.id; });
     badge.z = 0; setBadges();
-    if (!ids.length) return;
     var at = new Date().toISOString();
+    if (zf.some(function (m) { return !m.read_at; })) { zf.forEach(function (m) { if (!m.read_at) m.read_at = at; }); SB.rpc('zulu_feed_read'); }
+    if (!ids.length) return;
     zn.forEach(function (n) { if (!n.read_at) n.read_at = at; });
     await SB.from('notifications').update({ read_at: at }).in('id', ids);
   }
@@ -527,6 +537,7 @@
   }
   function zuluRow() {
     var z = store.get('jd_zulu_dm') || [], last = z[z.length - 1], n = zn[0];
+    if (zf[0] && (!n || new Date(zf[0].created_at) > new Date(n.created_at))) n = { title: String(zf[0].body).split('\n')[0], created_at: zf[0].created_at };
     var active = cur && cur.kind === 'zulu' ? ' active' : '';
     var useN = n && (!last || new Date(n.created_at) > new Date(last.at || 0));
     var prev = useN ? '🔔 ' + n.title + (n.room_id ? ' · Room ' + n.room_id : '') : last ? (last.role === 'user' ? T('you') + ': ' : '') + last.content : T('zuluSub');
@@ -822,7 +833,7 @@
     }
     if (p.kind === 'jd') {
       var j = await SB.rpc('jd_thread', before ? { p_before: before } : {});
-      return j.error ? j : { data: (j.data || []).map(function (m) { return Object.assign({ sender: m.mine ? me : 'jd' }, m, { kind: m.ai ? 'ai' : 'text' }); }) };
+      return j.error ? j : { data: (j.data || []).map(function (m) { return Object.assign({ sender: m.mine ? me : 'jd' }, m, { kind: 'text' }); }) };
     }
     if (p.kind === 'group') {
       var g = await SB.rpc('group_thread', before ? { p_group: p.id, p_before: before } : { p_group: p.id });
@@ -936,7 +947,7 @@
         : 'Not friends yet. ' + (p.req === 'out' ? 'Your request is waiting. ' : 'Sending a message also sends a friend request. ') + 'You can send 3 messages until they accept.') + '</div>';
     else if (p.kind === 'group') h += '<div class="dm-hello">' + groupAv(p) + '<b>' + esc(p.name) + '</b>Squad chat · plan matches, share room IDs<br><span class="dm-hint">Type <b>@zulu</b> + a question and ZULU (AI) answers here. It reads the last few messages.</span></div>';
     else if (p.kind === 'match') h += '<div class="dm-hello">' + matchAv() + '<b>' + esc((p.mode || '') + ' Clash Squad') + '</b>Only you and the other captain can see this chat.<br>Agree the room, play, then report the result on the challenge.<br><span class="dm-hint">Type <b>@zulu</b> to ask ZULU (AI) about the rules. It reads the last few messages.</span></div>';
-    else if (p.kind === 'jd') h += '<div class="dm-hello">' + jdAv() + '<b>JD Esports ' + VERIFIED + '</b>The official JD Esports Arena team.<br>Messages here come from our moderators and admin. Ask about events, slots, points or room IDs and we reply here.<br><span class="dm-hint">The JD team never asks for your password or eSewa PIN.</span></div>';
+    else if (p.kind === 'jd') h += '<div class="dm-hello">' + jdAv() + '<b>JD Esports ' + VERIFIED + '</b>The official JD Esports Arena team.<br>Real people from the JD team (moderators and admin) write here. Ask about events, slots, points or room IDs and we reply. For instant answers, ask ZULU.<br><span class="dm-hint">The JD team never asks for your password or eSewa PIN.</span></div>';
     else h += '<div class="dm-hello">' + zuluAv() + '<b>ZULU</b>Your JD Arena buddy. Chat about anything gaming, get Free Fire tips, or ask about tournaments and your own points, tickets and challenges. It never sees your private chats.</div>';
     var lastMine = -1;
     msgs.forEach(function (m, i) { if (m.mine) lastMine = i; });
@@ -1202,7 +1213,8 @@
   function zuluLoad() {
     var chat = (store.get('jd_zulu_dm') || []).map(function (z, i) { return { id: 'z' + i, mine: z.role === 'user', kind: 'text', body: z.content, created_at: z.at || new Date().toISOString() }; });
     var alerts = zn.slice(0, 25).map(function (n) { return { id: 'n' + n.id, mine: false, kind: 'zn', n: n, body: n.title, created_at: n.created_at }; });
-    return alerts.concat(chat).sort(function (a, b) { return new Date(a.created_at) - new Date(b.created_at); });
+    var feed = zf.map(function (m) { return { id: 'f' + m.id, mine: false, kind: 'text', body: m.body, created_at: m.created_at }; });
+    return alerts.concat(feed, chat).sort(function (a, b) { return new Date(a.created_at) - new Date(b.created_at); });
   }
   var zuluAsking = false;                              // whole question, incl. while the reply streams in
   async function askZulu(q) {
@@ -1460,11 +1472,12 @@
 
   // deep links: /?dm=<JD tag> (message push), /?g=<squad chat> (squad push), /?chat=1 (friend/squad notifications)
   try {
-    var q = new URLSearchParams(location.search), dm = q.get('dm'), g = q.get('g'), ch = q.get('chat'), jdq = q.get('jd');
-    if (dm || g || ch || jdq) {
-      q.delete('dm'); q.delete('g'); q.delete('chat'); q.delete('jd');
+    var q = new URLSearchParams(location.search), dm = q.get('dm'), g = q.get('g'), ch = q.get('chat'), jdq = q.get('jd'), zq = q.get('zulu');
+    if (dm || g || ch || jdq || zq) {
+      q.delete('dm'); q.delete('g'); q.delete('chat'); q.delete('jd'); q.delete('zulu');
       history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
       if (jdq) pendingDeepLink = openJd;
+      else if (zq) pendingDeepLink = function () { openZulu(); };
       else if (dm) pendingDeepLink = function () { openWith(dm); };
       else if (g && /^[0-9a-f-]{36}$/i.test(g)) pendingDeepLink = function () { openGroup(g); };
       else setTimeout(function () { if (me) open(); }, 800);

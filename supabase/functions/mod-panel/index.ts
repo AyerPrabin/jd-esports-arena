@@ -169,12 +169,15 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── JD Esports chat (jd_chat.sql): players see every staff message as "JD Esports" ✓ ──
-  const card = (p: any) => p && ({ id: p.id, name: p.username ? '@' + p.username : (p.player_tag || 'Player'),
-    tag: p.player_tag || null, squad: p.squad_name || null });
+  // team = squad name (big in the chat list), name = @username (small); logo only when small enough to inline
+  const card = (p: any, regSquad?: string | null) => p && ({ id: p.id, name: p.username ? '@' + p.username : (p.player_tag || 'Player'),
+    tag: p.player_tag || null, squad: p.squad_name || regSquad || null,
+    logo: typeof p.squad_logo === 'string' && p.squad_logo.length < 40000 && /^(https:|data:image\/)/.test(p.squad_logo) ? p.squad_logo : null });
+  const PCOLS = 'id, username, player_tag, squad_name, squad_logo';
   if (action === 'chat_inbox') {
     // newest conversations first; unread = player replies nobody on the team has opened yet
     const { data, error } = await admin.from('jd_messages')
-      .select('id, player_id, from_staff, body, created_at, read_at').order('id', { ascending: false }).limit(600);
+      .select('id, player_id, from_staff, body, created_at, read_at').eq('channel', 'jd').order('id', { ascending: false }).limit(600);
     if (error) return fail(error.message, 500);
     const threads = new Map<string, any>();
     for (const m of data || []) {
@@ -184,23 +187,30 @@ Deno.serve(async (req: Request) => {
     }
     const list = [...threads.values()].slice(0, 60);
     const { data: ps } = list.length
-      ? await admin.from('players').select('id, username, player_tag, squad_name').in('id', list.map((t) => t.player_id))
+      ? await admin.from('players').select(PCOLS).in('id', list.map((t) => t.player_id))
       : { data: [] as any[] };
-    const by = new Map((ps || []).map((x: any) => [x.id, card(x)]));
+    // players with no saved squad: their latest registration's squad name
+    const noSquad = (ps || []).filter((x: any) => !x.squad_name).map((x: any) => x.id);
+    const regSq = new Map<string, string>();
+    if (noSquad.length) {
+      const { data: rs } = await admin.from('registrations').select('player_id, squad_name').in('player_id', noSquad).order('created_at', { ascending: false });
+      for (const r of rs || []) if (r.squad_name && !regSq.has(r.player_id)) regSq.set(r.player_id, r.squad_name);
+    }
+    const by = new Map((ps || []).map((x: any) => [x.id, card(x, regSq.get(x.id))]));
     return json(list.map((t) => ({ ...t, player: by.get(t.player_id) || { id: t.player_id, name: 'Player' } })));
   }
   // resolve who to chat with: a squad row (registration id), a player id, or @username / JD tag
   const chatTarget = async (): Promise<any> => {
     if (p.id) { const r = await regById(String(p.id)); if (!r) return null; p.player_id = r.player_id; }
     if (p.player_id && /^[0-9a-f-]{36}$/i.test(String(p.player_id))) {
-      const { data } = await admin.from('players').select('id, username, player_tag, squad_name').eq('id', String(p.player_id)).maybeSingle();
+      const { data } = await admin.from('players').select(PCOLS).eq('id', String(p.player_id)).maybeSingle();
       return data;
     }
     const q = String(p.who || '').trim().replace(/^@/, '');
     if (!q) return null;
     const lit = q.replace(/[,()%*"\\]/g, '').replace(/_/g, '\\_');   // exact, case-insensitive match (no wildcards)
     if (!lit) return null;
-    const { data } = await admin.from('players').select('id, username, player_tag, squad_name')
+    const { data } = await admin.from('players').select(PCOLS)
       .or(`username.ilike.${lit},player_tag.ilike.${lit}`).limit(1).maybeSingle();
     return data;
   };
@@ -208,10 +218,10 @@ Deno.serve(async (req: Request) => {
     const pl = await chatTarget();
     if (!pl) return fail('Player not found. Check the @username or JD tag.', 404);
     const { data, error } = await admin.from('jd_messages')
-      .select('id, from_staff, staff_email, body, created_at, read_at').eq('player_id', pl.id).order('id', { ascending: false }).limit(100);
+      .select('id, from_staff, staff_email, body, created_at, read_at').eq('player_id', pl.id).eq('channel', 'jd').order('id', { ascending: false }).limit(100);
     if (error) return fail(error.message, 500);
-    await admin.from('jd_messages').update({ read_at: new Date().toISOString() })
-      .eq('player_id', pl.id).eq('from_staff', false).is('read_at', null);
+    admin.from('jd_messages').update({ read_at: new Date().toISOString() })      // not awaited: the chat opens faster
+      .eq('player_id', pl.id).eq('channel', 'jd').eq('from_staff', false).is('read_at', null).then(() => {}, () => {});
     return json({ player: card(pl), messages: (data || []).reverse().map((m: any) => ({
       id: m.id, staff: m.from_staff, by: m.from_staff ? (String(m.staff_email || '').startsWith('zulu') ? 'ZULU (auto)' : m.staff_email === email ? 'You' : m.staff_email === 'admin' ? 'Admin' : String(m.staff_email || 'JD team').split('@')[0]) : null,
       body: m.body, created_at: m.created_at, read_at: m.read_at })) });
