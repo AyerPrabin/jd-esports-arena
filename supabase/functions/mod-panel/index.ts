@@ -213,7 +213,7 @@ Deno.serve(async (req: Request) => {
     await admin.from('jd_messages').update({ read_at: new Date().toISOString() })
       .eq('player_id', pl.id).eq('from_staff', false).is('read_at', null);
     return json({ player: card(pl), messages: (data || []).reverse().map((m: any) => ({
-      id: m.id, staff: m.from_staff, by: m.from_staff ? (m.staff_email === email ? 'You' : m.staff_email === 'admin' ? 'Admin' : String(m.staff_email || 'JD team').split('@')[0]) : null,
+      id: m.id, staff: m.from_staff, by: m.from_staff ? (String(m.staff_email || '').startsWith('zulu') ? 'ZULU (auto)' : m.staff_email === email ? 'You' : m.staff_email === 'admin' ? 'Admin' : String(m.staff_email || 'JD team').split('@')[0]) : null,
       body: m.body, created_at: m.created_at, read_at: m.read_at })) });
   }
   if (action === 'chat_send') {

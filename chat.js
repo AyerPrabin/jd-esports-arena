@@ -822,7 +822,7 @@
     }
     if (p.kind === 'jd') {
       var j = await SB.rpc('jd_thread', before ? { p_before: before } : {});
-      return j.error ? j : { data: (j.data || []).map(function (m) { return Object.assign({ sender: m.mine ? me : 'jd', kind: 'text' }, m); }) };
+      return j.error ? j : { data: (j.data || []).map(function (m) { return Object.assign({ sender: m.mine ? me : 'jd' }, m, { kind: m.ai ? 'ai' : 'text' }); }) };
     }
     if (p.kind === 'group') {
       var g = await SB.rpc('group_thread', before ? { p_group: p.id, p_before: before } : { p_group: p.id });
