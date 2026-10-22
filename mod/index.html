@@ -243,7 +243,8 @@ $('reg-body').addEventListener('click',async e=>{
     } else if(b.dataset.act==='rm'){
       const reason=prompt('Remove "'+sq+'" from '+selected.name+'?\n\nReason (sent to the player):','did not confirm / no full team');
       if(reason===null) return;
-      b.disabled=true; await call({action:'remove_team',id,reason});
+      b.disabled=true; const rr=await call({action:'remove_team',id,reason});
+      if(rr&&rr.room_code_was_sent) alert('Removed. The Room ID was already sent - they may still remember it.\n\nChange the room password in Free Fire and send the new one (Room code box above).');
     } else if(b.dataset.act==='note'){
       const body=prompt('Message to "'+sq+'" only (push + in-app):','Please confirm your squad for '+selected.name+' - reply on WhatsApp or tap Confirm on jdesport.co.uk.');
       if(!body) return;

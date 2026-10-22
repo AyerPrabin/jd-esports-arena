@@ -2523,11 +2523,12 @@ async function removeTeamAdmin(id){
   try{
     const res=await fetch(EDGE_FN_BASE+'/admin-remove-registration',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({registration_id:id,reason})});
     if(!res.ok)throw new Error(await res.text());
+    const out=await res.json().catch(()=>({}));
     tmMsg('Removed '+who+'.','ok');
     loadLiveCounts();
     await loadTeamsAdmin(); // re-fetch: the waitlist trigger may have promoted someone
     loadDashboard();
-    tmMsg('Removed '+who+' — list refreshed.','ok');
+    tmMsg('Removed '+who+' — list refreshed.'+(out.room_code_was_sent?' ⚠️ The Room ID was already sent: change the room password and send the new one.':''),out.room_code_was_sent?'err':'ok');
   }catch(e){tmMsg('Failed: '+e.message,'err');}
 }
 

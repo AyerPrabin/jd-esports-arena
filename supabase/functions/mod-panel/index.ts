@@ -139,7 +139,11 @@ Deno.serve(async (req: Request) => {
     const { error } = await admin.from('registrations').delete().eq('id', r.id);   // trg_promote_from_waitlist moves the next squad up
     if (error) return fail(error.message, 500);
     await log('remove', `${r.squad_name} · ${r.tournament_slug}${reason ? ' · ' + reason : ''}`);
-    return json({ ok: true });
+    // the removed squad must not keep the room details
+    await admin.from('notifications').delete()
+      .eq('player_id', r.player_id).eq('tournament_slug', r.tournament_slug).not('room_id', 'is', null);
+    const { data: rc } = await admin.from('tournament_room_codes').select('sent_at').eq('tournament_slug', r.tournament_slug).maybeSingle();
+    return json({ ok: true, room_code_was_sent: !!rc?.sent_at });
   }
 
   if (action === 'notify_player') {

@@ -60,7 +60,15 @@ Deno.serve(async (req: Request) => {
       '\nThink this is a mistake? Message us on WhatsApp or Discord.',
   });
 
-  return new Response(JSON.stringify({ ok: true }), {
+  // A removed squad must not keep the room details: drop its room notifications, and tell the admin when the
+  // code already went out (they can still remember it - change the room password and resend).
+  await supabase.from('notifications').delete()
+    .eq('player_id', removed.player_id).eq('tournament_slug', removed.tournament_slug).not('room_id', 'is', null);
+  const { data: rc } = await supabase.from('tournament_room_codes').select('sent_at')
+    .eq('tournament_slug', removed.tournament_slug).maybeSingle();
+  const room_code_was_sent = !!rc?.sent_at;
+
+  return new Response(JSON.stringify({ ok: true, room_code_was_sent }), {
     status: 200,
     headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
   });
