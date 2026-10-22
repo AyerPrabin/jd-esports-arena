@@ -1,9 +1,9 @@
 {
-  "version": "5.2",
-  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.2.exe",
-  "sha256": "a01d006f7b1c742c6561eb7fd0eed3c3aaa808301cca3b4c594e47827137bf0c",
-  "size": 1236479,
-  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.2.zip",
-  "notes": "v5.2: Apply works with the game open - if MSI App Player is open, JD asks once, closes it, applies and reopens it into Free Fire (live-only changes apply at once)",
+  "version": "5.3",
+  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.3.exe",
+  "sha256": "1442494460522c5cb774f9804a08e8a3c310d212607e13193405360aac44f393",
+  "size": 1245910,
+  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.3.zip",
+  "notes": "v5.3: profile built from your PC (GPU-first: Vulkan on NVIDIA/AMD, FPS from your screen, lighter resolution on built-in graphics), apps hogging the GPU flagged before play, update notice while the app is open",
   "date": "2026-10-22"
 }
