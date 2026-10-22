@@ -48,6 +48,7 @@
 // real room codes, it must not be publicly triggerable.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { sendPush as webPush } from '../_shared/push.ts';
+import { slotMap, slotLine } from '../_shared/slots.ts';
 import { optionalEmailExtras } from '../_shared/email.ts';
 
 async function sendDiscordDM(token: string, discordUserId: string, content: string): Promise<boolean> {
@@ -294,8 +295,10 @@ Deno.serve(async (req: Request) => {
     roomCodesReleased.push(t.name);
     const title = `Room code: ${t.name}`;
     const body = "Your match is about to start. Don't share this with anyone outside your squad.";
+    const slots = await slotMap(supabase, t.name);
+    const bodyFor = (id: string) => `${slotLine(slots.get(id))} ${body}`;
     await supabase.from('notifications').insert(
-      targets.map((tg) => ({ player_id: tg.id, tournament_slug: t.name, title, body, room_id: staged.room_id, room_pass: staged.room_pass || null, push: false })),
+      targets.map((tg) => ({ player_id: tg.id, tournament_slug: t.name, title, body: bodyFor(tg.id), room_id: staged.room_id, room_pass: staged.room_pass || null, push: false })),
     );
     roomCodesSent += targets.length;
 
@@ -310,7 +313,7 @@ Deno.serve(async (req: Request) => {
               from: resendFrom,
               to: tg.email,
               subject: title,
-              html: `<p>${body}</p><p><b>Room ID:</b> ${staged.room_id}${staged.room_pass ? `<br><b>Password:</b> ${staged.room_pass}` : ''}</p>`,
+              html: `<p>${bodyFor(tg.id)}</p><p><b>Room ID:</b> ${staged.room_id}${staged.room_pass ? `<br><b>Password:</b> ${staged.room_pass}` : ''}</p>`,
             }),
           });
         } catch {
@@ -319,17 +322,18 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    await sendPush(
-      oneSignalAppId, oneSignalApiKey, targets.map((tg) => tg.id),
-      title, `Room ID: ${staged.room_id}${staged.room_pass ? ' · Pass: ' + staged.room_pass : ''}`,
-    );
+    // one push per squad so each gets its own slot number; tag jd-room = the 🔑 room-code style in sw.js
+    const codeLine = `Room ID: ${staged.room_id}${staged.room_pass ? ' · Pass: ' + staged.room_pass : ''}`;
+    for (const tg of targets) {
+      try { await webPush(supabase, [tg.id], { title, body: `${codeLine}\n${slotLine(slots.get(tg.id))}`, url: 'https://jdesport.co.uk/#tournaments', tag: 'jd-room' }); } catch { /* best-effort */ }
+    }
 
     if (discordBotToken) {
-      const dmText = `**Room code: ${t.name}**\nRoom ID: ${staged.room_id}${staged.room_pass ? `\nPassword: ${staged.room_pass}` : ''}\nDon't share this with anyone outside your squad.`;
+      const dmText = (id: string) => `**Room code: ${t.name}**\nRoom ID: ${staged.room_id}${staged.room_pass ? `\nPassword: ${staged.room_pass}` : ''}\n${slotLine(slots.get(id))}\nDon't share this with anyone outside your squad.`;
       for (const tg of targets) {
         if (!tg.discord_user_id) continue;
         try {
-          await sendDiscordDM(discordBotToken, tg.discord_user_id, dmText);
+          await sendDiscordDM(discordBotToken, tg.discord_user_id, dmText(tg.id));
         } catch {
           // one player's DM failing shouldn't block the rest
         }

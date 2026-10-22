@@ -8,6 +8,7 @@
 // account (zulu_discord.py's !link) and DISCORD_BOT_TOKEN is set.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { sendPush } from '../_shared/push.ts';
+import { slotMap, slotLine } from '../_shared/slots.ts';
 
 // Browser calls this cross-origin with a custom x-admin-secret header, which makes the
 // browser send a CORS preflight OPTIONS request first — without these headers that
@@ -106,11 +107,15 @@ Deno.serve(async (req: Request) => {
   const title = `Room code: ${tournament_slug}`;
   const body = "Your match is about to start. Don't share this with anyone outside your squad.";
 
+  // each squad's own slot goes into its alert (rule: sit in the seat matching your app slot)
+  const slots = await slotMap(supabase, tournament_slug);
+  const bodyFor = (id: string) => `${slotLine(slots.get(id))} ${body}`;
+
   const rows = targets.map((t) => ({
     player_id: t.id,
     tournament_slug,
     title,
-    body,
+    body: bodyFor(t.id),
     room_id,
     room_pass: room_pass || null,
     push: false,
@@ -133,7 +138,7 @@ Deno.serve(async (req: Request) => {
             from,
             to: t.email,
             subject: title,
-            html: `<p>${body}</p><p><b>Room ID:</b> ${room_id}${room_pass ? `<br><b>Password:</b> ${room_pass}` : ''}</p><p style="color:#888;font-size:12px">Player ID: ${t.player_tag || ''}</p>`,
+            html: `<p>${bodyFor(t.id)}</p><p><b>Room ID:</b> ${room_id}${room_pass ? `<br><b>Password:</b> ${room_pass}` : ''}</p><p style="color:#888;font-size:12px">Player ID: ${t.player_tag || ''}</p>`,
           }),
         });
         if (res.ok) emailed++;
@@ -145,7 +150,10 @@ Deno.serve(async (req: Request) => {
 
   // ── push (Web Push to the players' saved devices) ──
   let pushed = 0;
-  pushed = await sendPush(supabase, targets.map((t) => t.id), { title, body, url: 'https://jdesport.co.uk/#tournaments', tag: 'jd-room' });
+  // one push per squad so each gets its own slot number
+  for (const t of targets) {
+    pushed += await sendPush(supabase, [t.id], { title, body: bodyFor(t.id), url: 'https://jdesport.co.uk/#tournaments', tag: 'jd-room' });
+  }
 
   // ── Discord DM — a direct call to Discord's bot REST API using the same bot token as
   // zulu_discord.py; the Python bot process doesn't need to be running for this to work.
@@ -153,11 +161,11 @@ Deno.serve(async (req: Request) => {
   let discorded = 0;
   const discordBotToken = Deno.env.get('DISCORD_BOT_TOKEN');
   if (discordBotToken) {
-    const dmText = `**Room code: ${tournament_slug}**\nRoom ID: ${room_id}${room_pass ? `\nPassword: ${room_pass}` : ''}\nDon't share this with anyone outside your squad.`;
+    const dmText = (id: string) => `**Room code: ${tournament_slug}**\nRoom ID: ${room_id}${room_pass ? `\nPassword: ${room_pass}` : ''}\n${slotLine(slots.get(id))}\nDon't share this with anyone outside your squad.`;
     for (const t of targets) {
       if (!t.discord_user_id) continue;
       try {
-        if (await sendDiscordDM(discordBotToken, t.discord_user_id, dmText)) discorded++;
+        if (await sendDiscordDM(discordBotToken, t.discord_user_id, dmText(t.id))) discorded++;
       } catch {
         // one player's DM failing (blocked DMs, left the server, etc.) shouldn't block the rest
       }
