@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "uk.co.jdesport.arena",
+      "sha256_cert_fingerprints": [
+        "83:56:14:0B:CF:F2:EC:05:C1:EB:DB:CD:59:4E:E9:FE:73:CB:36:0F:CC:DB:09:6F:B9:68:EE:BC:FB:91:2F:45"
+      ]
+    }
+  }
+]

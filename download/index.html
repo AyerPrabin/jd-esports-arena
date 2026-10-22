@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#07090F">
+<link rel="icon" type="image/png" href="/favicon-64.png">
+<title>Get the App — JD Esports Arena</title>
+<meta name="description" content="JD Arena for Android: tournaments, tickets, room IDs and alerts as a real app with notifications that arrive. iPhone: add the site to your home screen.">
+<meta property="og:title" content="JD Arena app for Android">
+<meta property="og:description" content="Real app notifications for room IDs, results and challenges.">
+<meta property="og:image" content="https://jdesport.co.uk/og-image.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07090F;--line:rgba(255,200,80,.14);--line-2:rgba(255,255,255,.07);--gold:#FFC83D;--gold-l:#FFDD85;--gold-m:rgba(255,200,80,.42);--cream:#FFFFFF;--silver:#A6AFC2;--body:#8A94A8;--green:#5EDB95}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--cream);font-family:'Geist',system-ui,sans-serif;line-height:1.55;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(900px 480px at 80% -10%,rgba(255,200,61,.13),transparent 60%),radial-gradient(700px 420px at 0% 110%,rgba(255,174,0,.08),transparent 60%)}
+a{color:inherit;text-decoration:none}
+a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:8px}
+.wrap{position:relative;max-width:720px;margin:0 auto;padding:0 16px 70px}
+.top{display:flex;align-items:center;gap:10px;padding:18px 0 10px}
+.back{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:.86rem;color:var(--silver)}
+.back img{width:34px;height:34px;border-radius:10px}
+.back:hover{color:var(--cream)}
+.hero{display:flex;gap:20px;align-items:center;margin:20px 0 24px}
+.hero img{flex:none;width:92px;height:92px;border-radius:22px;box-shadow:0 18px 50px -18px rgba(255,190,50,.5)}
+h1{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.02em;font-size:clamp(2.2rem,8vw,3.2rem);margin:0;line-height:.95;text-wrap:balance}
+h1 em{font-style:normal;color:var(--gold)}
+.lede{color:var(--silver);margin:8px 0 0;max-width:52ch;text-wrap:pretty}
+.card{border-radius:22px;padding:20px 18px;background:linear-gradient(160deg,#121826,#0b0f19);border:1px solid var(--line-2);margin-bottom:14px}
+.card.gold{background:radial-gradient(120% 120% at 100% 0%,rgba(255,200,61,.18),transparent 55%),linear-gradient(150deg,#1a1a12,#0f1320 60%);border-color:var(--gold-m)}
+.card h2{margin:0 0 4px;font-size:1.1rem}
+.meta{font-size:.8rem;color:var(--body);margin:0 0 14px}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:15px 16px;border:0;border-radius:14px;font-weight:800;font-size:1rem;cursor:pointer;background:linear-gradient(180deg,#FFD25C,#FFAE00);color:#2b1d00;transition:transform .15s,filter .2s}
+.btn:hover{filter:brightness(1.06)}
+.btn:active{transform:scale(.98)}
+ol{margin:14px 0 0;padding-left:20px;color:#dfe4ee;font-size:.9rem;display:grid;gap:6px}
+.note{font-size:.82rem;color:var(--silver);margin:12px 0 0}
+.ok{display:inline-block;margin-top:10px;padding:6px 10px;border-radius:8px;background:rgba(94,219,149,.1);border:1px solid rgba(94,219,149,.35);color:var(--green);font-size:.82rem;font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a class="back" href="/"><img src="/logo.png" alt="">← Back to Arena</a></div>
+  <div class="hero">
+    <img src="/icon-192.png" alt="JD Arena app icon">
+    <div>
+      <h1>JD Arena <em>app</em></h1>
+      <p class="lede">Tournaments, tickets, room IDs, results and challenges - with real app notifications that arrive like WhatsApp's.</p>
+    </div>
+  </div>
+
+  <section class="card gold" id="android">
+    <h2>🤖 Android</h2>
+    <p class="meta" id="apk-meta">Version 1.0.0 · 2 MB · Android 7 or newer</p>
+    <a class="btn" id="apk-btn" href="/download/jd-arena-1.0.0.apk" download>⬇ Download for Android</a>
+    <span class="ok" id="in-app" hidden>✓ You're using the app</span>
+    <ol>
+      <li>Tap <b>Download</b>, then open the file when it finishes.</li>
+      <li>If Android asks, allow your browser to <b>install unknown apps</b> (only this once).</li>
+      <li>Tap <b>Install</b>, open <b>JD Arena</b> and sign in.</li>
+      <li>Allow <b>notifications</b> so room IDs and results reach you.</li>
+    </ol>
+    <p class="note">It's the same JD Arena as the website, so it's always up to date. When a new app version comes out, the app shows an update button. Needs Google Chrome on the phone (it's on almost every Android).</p>
+  </section>
+
+  <section class="card">
+    <h2>🍎 iPhone / iPad</h2>
+    <p class="meta">No download needed</p>
+    <ol>
+      <li>Open <b>jdesport.co.uk</b> in Safari.</li>
+      <li>Tap the <b>Share</b> icon (square with an arrow).</li>
+      <li>Tap <b>Add to Home Screen</b>, then open JD Arena from your home screen and allow notifications.</li>
+    </ol>
+  </section>
+
+  <section class="card">
+    <h2>💻 Windows PC</h2>
+    <p class="meta">Playing on MSI App Player / BlueStacks?</p>
+    <a class="btn" href="/optimizer/" style="background:rgba(255,255,255,.08);color:var(--cream)">🚀 JD-Optimiers (FPS booster)</a>
+  </section>
+</div>
+<script>
+fetch('/download/android.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{
+  document.getElementById('apk-btn').href=d.url;
+  document.getElementById('apk-meta').textContent=`Version ${d.versionName} · ${(d.size/1048576).toFixed(1)} MB · Android 7 or newer`;
+}).catch(()=>{});
+let inApp=false;try{inApp=!!sessionStorage.getItem('jd_twa')||/android-app:\/\/uk\.co\.jdesport\.arena/.test(document.referrer);}catch(e){}
+if(inApp)document.getElementById('in-app').hidden=false;
+</script>
+</body>
+</html>

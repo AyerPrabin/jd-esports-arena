@@ -3963,15 +3963,22 @@ function handleDlClick(e){
   if(isIOSDevice())return downloadIOS();
   toggleDlMenu(e);
 }
+/* Android app (TWA, /download/): it opens /?source=twa&av=<versionCode>. Inside it, the download button says
+   "already using the app" and a newer /download/android.json shows an update prompt (once a day). */
+const JD_TWA=(()=>{try{const m=/[?&]source=twa&av=(\d+)/.exec(location.search);if(m)sessionStorage.setItem('jd_twa',m[1]);return +(sessionStorage.getItem('jd_twa')||0);}catch(e){return 0;}})();
+if(JD_TWA)window.addEventListener('load',()=>setTimeout(async()=>{
+  try{
+    const d=await (await fetch('/download/android.json',{cache:'no-store'})).json();
+    const day=new Date().toISOString().slice(0,10);
+    if(d.versionCode>JD_TWA&&localStorage.getItem('jd_apk_upd')!==day){
+      localStorage.setItem('jd_apk_upd',day);
+      showMsg('App update ⬇',`JD Arena ${d.versionName} is ready. Open jdesport.co.uk/download to install the update (your account and settings stay).`);
+    }
+  }catch(e){}
+},4000));
 function downloadAndroid(){
-  if(_deferredInstall){
-    _deferredInstall.prompt();
-    _deferredInstall.userChoice.then(choice=>{if(choice&&choice.outcome==='accepted')markInstalled();}).finally(()=>{_deferredInstall=null;});
-  }else if(navigator.standalone||window.matchMedia('(display-mode: standalone)').matches){
-    showMsg('Already installed',"You're already using the installed app. 🎮");
-  }else{
-    showMsg('Install on Android',"One-tap install isn't available right here — open jdesport.co.uk in Chrome on Android, tap the ⋮ menu, then 'Add to Home screen' / 'Install app'.");
-  }
+  if(JD_TWA){showMsg('Already installed',"You're using the JD Arena app. 🎮");return;}
+  location.href='/download/';
 }
 function downloadIOS(){
   showMsg('Install on iPhone/iPad',"Tap the Share icon (square with an arrow), scroll down and tap 'Add to Home Screen'. JD Arena then opens full-screen from your home screen like an app.");
