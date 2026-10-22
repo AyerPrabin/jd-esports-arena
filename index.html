@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="/favicon-64.png">
 <title>JD Esports Arena — Free Fire Tournaments · Nepal</title>
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="JD Arena">
@@ -4008,10 +4008,11 @@ if(!JD_TWA&&isAndroidDevice()&&isStandaloneApp()&&navigator.getInstalledRelatedA
 },3000));
 function downloadAndroid(){
   if(JD_TWA){showMsg('Already installed',"You're using the JD Arena app. 🎮");return;}
-  location.href='/download/';
+  location.href='/download/?get=1'; // the download page starts the APK download and shows the install steps
 }
 function downloadIOS(){
-  showMsg('Install on iPhone/iPad',"Tap the Share icon (square with an arrow), scroll down and tap 'Add to Home Screen'. JD Arena then opens full-screen from your home screen like an app.");
+  if(isStandaloneApp()){showMsg('Already installed',"You're using the JD Arena home-screen app. 🎮");return;}
+  showMsg('Install on iPhone/iPad',"1. In Safari, tap the Share icon (square with an arrow ↑). On newer iPhones tap ••• first, then Share.\n2. Scroll down and tap 'Add to Home Screen', then Add.\n3. Open JD Arena from the new gold JD icon on your home screen and allow notifications.\n\nNo App Store needed - it opens full-screen like an app.");
 }
 if(DISCORD_INVITE){document.querySelectorAll('.discord-cta').forEach(a=>a.href=DISCORD_INVITE);}else{document.querySelectorAll('.discord-cta').forEach(a=>a.style.display='none');}
 applyLang();refresh();loadPublicRoster();tick();updateAcctBtn();updateNotifHistBtn();updatePushBtn();

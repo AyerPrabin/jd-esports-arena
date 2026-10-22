@@ -1,9 +1,9 @@
 {
-  "versionCode": 2,
-  "versionName": "1.1.0",
-  "url": "https://jdesport.co.uk/download/jd-arena-1.1.0.apk",
-  "sha256": "9d8a1de9861691dfae4f379ba8b02dc79626981ebbb628b157df709e92a89572",
-  "size": 1382444,
+  "versionCode": 3,
+  "versionName": "1.2.0",
+  "url": "https://jdesport.co.uk/download/jd-arena-1.2.0.apk",
+  "sha256": "2f3ba91df95a122bae7df5ed5c05cdc74de1ddbe1c2e061dc2342aa5cc1849e0",
+  "size": 1386540,
   "date": "2026-10-22",
-  "notes": "the JD logo now shows properly on notifications and the home screen, a 'no internet' screen, and one-tap updates."
+  "notes": "a sharper JD logo on notifications (ring + JD, like the app icon)."
 }
