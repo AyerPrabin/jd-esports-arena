@@ -33,8 +33,53 @@ h2 .ln{flex:1;height:1px;background:var(--line)}
 .btn[disabled]{opacity:.55;cursor:not-allowed}
 .btn.sm{font-size:.86rem;padding:8px 14px}
 .ghost{background:none;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:30px;padding:7px 13px;font-size:.82rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}
-.act{padding:4px 10px;margin-right:4px;font-size:.8rem}
-#reg-body{overflow-x:auto;-webkit-overflow-scrolling:touch}
+/* squad slots: one line on PC, a stacked card on phones */
+.slots{display:grid;gap:8px}
+.slot{display:grid;grid-template-columns:40px minmax(0,1fr) auto auto;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:#0a0f1c;border:1px solid var(--line)}
+.slot.off{opacity:.62}
+.slot .no{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.15rem;color:#07090F;background:var(--gold)}
+.slot.wait .no{background:none;color:var(--gold-l);border:1px dashed var(--gold-m)}
+.slot .nm{min-width:0}
+.slot .nm b{display:block;font-weight:600;color:var(--cream);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot .nm small{color:var(--body);font-size:.78rem}
+.play{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:#070b15}
+.play button{border:0;background:none;color:var(--body);font:600 .82rem 'Geist',sans-serif;padding:7px 12px;border-radius:999px;cursor:pointer;min-width:44px}
+.play button[aria-pressed=true].y{background:rgba(94,219,149,.16);color:var(--ok)}
+.play button[aria-pressed=true].n{background:rgba(255,159,28,.14);color:var(--warn)}
+.play button:disabled{cursor:progress}
+.acts{display:flex;gap:6px;align-items:center}
+.abtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:none;color:var(--silver);font:500 .82rem 'Geist',sans-serif;padding:7px 12px;border-radius:10px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.abtn:hover{border-color:var(--gold-m);color:var(--cream)}
+.abtn.wa2{color:var(--ok);border-color:rgba(94,219,149,.35)}
+.abtn.rm{color:#ff8a8a;border-color:transparent}
+.abtn.rm:hover{border-color:rgba(255,107,107,.45);background:rgba(255,107,107,.08)}
+.abtn:focus-visible,.play button:focus-visible,.btn:focus-visible,.ghost:focus-visible{outline:2px solid var(--cta);outline-offset:2px}
+.slots-sum{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--body);margin:0 0 10px}
+.slots-sum b{color:var(--cream);font-weight:600}
+@media (max-width:640px){
+  .slot{grid-template-columns:40px minmax(0,1fr) auto;grid-template-areas:"no nm play" "acts acts acts"}
+  .slot .no{grid-area:no}.slot .nm{grid-area:nm}.slot .play{grid-area:play}
+  .slot .acts{grid-area:acts;justify-content:flex-start;flex-wrap:wrap;padding-top:4px;border-top:1px solid var(--line)}
+  .abtn{padding:9px 12px}
+  .abtn.rm{margin-left:auto}
+}
+/* in-page sheet (replaces the browser's confirm / prompt / alert) */
+.sheet-bg{position:fixed;inset:0;z-index:60;background:rgba(3,5,10,.66);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .18s}
+.sheet-bg.open{opacity:1}
+.sheet{width:100%;max-width:520px;background:var(--panel);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));transform:translateY(24px);transition:transform .2s}
+.sheet-bg.open .sheet{transform:none}
+.sheet h3{margin:0 0 4px;font-family:'Barlow Condensed',sans-serif;font-size:1.35rem;font-weight:700}
+.sheet p{margin:0 0 12px;color:var(--silver);font-size:.9rem}
+.sheet .chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}
+.sheet .chips button{border:1px solid var(--line);background:#0a0f1c;color:var(--silver);border-radius:999px;padding:6px 11px;font:inherit;font-size:.8rem;cursor:pointer}
+.sheet .chips button:hover{border-color:var(--gold-m);color:var(--cream)}
+.sheet .row2{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+.sheet .btn.danger{background:#ff6b6b;color:#1a0505}
+@media (min-width:641px){.sheet-bg{align-items:center}.sheet{border-radius:18px;border-bottom:1px solid var(--line)}}
+@media (prefers-reduced-motion:reduce){.sheet-bg,.sheet{transition:none}}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:70;background:#141c30;border:1px solid var(--gold-m);color:var(--cream);border-radius:12px;padding:10px 14px;font-size:.88rem;display:flex;gap:14px;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:calc(100% - 32px)}
+.toast button{background:none;border:0;color:var(--cta);font:600 .88rem 'Geist',sans-serif;cursor:pointer}
+.toast.err{border-color:#ff6b6b}
 .ghost:hover{background:rgba(201,168,76,.12)}
 label{display:block;font-size:.72rem;color:var(--gold-l);margin:10px 0 4px;letter-spacing:.02em}
 input,textarea,select{width:100%;background:#0a0f1c;color:var(--cream);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit}
@@ -130,7 +175,7 @@ footer{text-align:center;color:var(--silver);font-size:.78rem;margin:26px 0 10px
       <div class="card">
         <div id="reg-head" class="row" style="justify-content:space-between;margin-bottom:8px"></div>
         <div id="reg-body"></div>
-        <p class="hint">Tap a WhatsApp number to message that squad a reminder. Numbers are shown only to moderators.</p>
+        <p class="hint">Playing Yes / No saves straight away. WhatsApp opens a ready message - you only tap Send. Numbers are shown only to moderators.</p>
       </div>
     </div>
   </div>
@@ -147,6 +192,41 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let token=null, tournaments=[], selected=null;
+
+/* sheet({title, text, input:'text'|'textarea'|null, value, chips:[...], ok, danger}) -> Promise<string|true|null> */
+function sheet(o){
+  return new Promise(res=>{
+    const bg=document.createElement('div');bg.className='sheet-bg';
+    const field=o.input==='textarea'?`<textarea id="sh-in" maxlength="500">${esc(o.value||'')}</textarea>`
+      :o.input==='text'?`<input id="sh-in" maxlength="200" value="${esc(o.value||'')}">`:'';
+    bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t"><h3 id="sh-t">${esc(o.title)}</h3>`+
+      (o.text?`<p>${esc(o.text)}</p>`:'')+
+      (o.chips&&o.chips.length?`<div class="chips">${o.chips.map(c=>`<button type="button">${esc(c)}</button>`).join('')}</div>`:'')+field+
+      `<div class="row2">${o.cancel===false?'':'<button type="button" class="ghost" data-x>Cancel</button>'}<button type="button" class="btn sm${o.danger?' danger':''}" data-ok>${esc(o.ok||'OK')}</button></div></div>`;
+    document.body.appendChild(bg);
+    requestAnimationFrame(()=>bg.classList.add('open'));
+    const inp=bg.querySelector('#sh-in');
+    const done=v=>{bg.classList.remove('open');setTimeout(()=>bg.remove(),200);document.removeEventListener('keydown',key);res(v);};
+    const key=e=>{if(e.key==='Escape')done(null);};
+    document.addEventListener('keydown',key);
+    bg.addEventListener('click',e=>{if(e.target===bg)done(null);});
+    bg.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>{if(inp){inp.value=b.textContent;inp.focus();}});
+    const x=bg.querySelector('[data-x]');if(x)x.onclick=()=>done(null);
+    bg.querySelector('[data-ok]').onclick=()=>{
+      if(inp){const v=inp.value.trim();if(o.required&&!v){inp.focus();return;}done(v);}else done(true);
+    };
+    setTimeout(()=>(inp||bg.querySelector('[data-ok]')).focus(),60);
+  });
+}
+let _toastT=null;
+function toast(text,undo,err){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const t=document.createElement('div');t.className='toast'+(err?' err':'');t.setAttribute('role','status');
+  t.innerHTML=`<span>${esc(text)}</span>`+(undo?'<button type="button">Undo</button>':'');
+  document.body.appendChild(t);
+  if(undo)t.querySelector('button').onclick=()=>{t.remove();undo();};
+  clearTimeout(_toastT);_toastT=setTimeout(()=>t.remove(),undo?6000:3500);
+}
 
 async function call(body){
   const r=await fetch(FN,{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+token},body:JSON.stringify(body)});
@@ -219,40 +299,64 @@ async function selectTournament(i){
   try{
     const rows=await call({action:'registrations',slug:selected.name});
     if(!rows.length){ $('reg-body').innerHTML='<p class="hint">No squads registered yet.</p>'; return; }
-    const body=rows.map(r=>{
+    let slotNo=0;
+    const active=r=>r.status==='approved'||r.status==='confirmed';
+    const list=rows.map(r=>{
+      const on=active(r), wait=r.status==='waitlisted';
+      const no=on?String(++slotNo):wait?'W':'–';
       const wl=r.whatsapp?waLink(r.whatsapp,waTemplate(r.squad_name||'squad',selected)):null;
-      const wa=r.whatsapp?(wl?`<a class="wa" href="${wl}" target="_blank" rel="noopener" title="Opens WhatsApp with a ready message">💬 ${esc(r.whatsapp)}</a>`:`<span class="nowa">${esc(r.whatsapp)}</span>`):'<span class="nowa">—</span>';
-      const st=r.status==='approved'||r.status==='confirmed'?'confirmed':r.status;
-      const active=r.status==='approved'||r.status==='confirmed';
-      const conf=`<button type="button" class="ghost act" data-act="conf" data-id="${esc(r.id)}" data-on="${r.checked_in?0:1}" title="Tap to change">${r.checked_in?'<span style="color:var(--green,#5EDB95)">✅ Yes</span>':'<span style="color:var(--warn,#ffb020)">❌ No</span>'}</button>`;
-      const acts=`<button type="button" class="ghost act" data-act="note" data-id="${esc(r.id)}" data-sq="${esc(r.squad_name||'')}" title="Message this squad only">🔔</button>`+
-                 `<button type="button" class="ghost act" data-act="rm" data-id="${esc(r.id)}" data-sq="${esc(r.squad_name||'')}" title="Remove this squad">🗑</button>`;
-      return `<tr><td>${esc(r.squad_name||'(squad)')}<div class="hint">${esc(r.captain||'')}</div></td><td class="st">${esc(st)}</td><td>${active?conf:'—'}</td><td>${wa}</td><td style="white-space:nowrap">${acts}</td></tr>`;
+      const play=on?`<div class="play" role="group" aria-label="Playing?">`+
+        `<button type="button" class="y" data-act="conf" data-id="${esc(r.id)}" data-on="1" aria-pressed="${r.checked_in?'true':'false'}">Yes</button>`+
+        `<button type="button" class="n" data-act="conf" data-id="${esc(r.id)}" data-on="0" aria-pressed="${r.checked_in?'false':'true'}">No</button></div>`
+        :`<span class="hint" style="margin:0">${esc(wait?'waitlist':r.status||'')}</span>`;
+      const acts=(wl?`<a class="abtn wa2" href="${wl}" target="_blank" rel="noopener">WhatsApp</a>`:`<span class="abtn" aria-disabled="true" style="opacity:.5">No WhatsApp</span>`)+
+        `<button type="button" class="abtn" data-act="note" data-id="${esc(r.id)}" data-sq="${esc(r.squad_name||'')}">Message</button>`+
+        `<button type="button" class="abtn rm" data-act="rm" data-id="${esc(r.id)}" data-sq="${esc(r.squad_name||'')}">Remove</button>`;
+      return `<div class="slot${on?'':' off'}${wait?' wait':''}"><span class="no">${no}</span>`+
+        `<div class="nm"><b>${esc(r.squad_name||'(squad)')}</b><small>${esc(r.captain||'')}${r.whatsapp?' · '+esc(r.whatsapp):''}</small></div>`+
+        play+`<div class="acts">${acts}</div></div>`;
     }).join('');
-    const unconf=rows.filter(r=>!r.checked_in&&(r.status==='confirmed'||r.status==='approved')).length;
-    $('reg-body').innerHTML=`<table><thead><tr><th>Squad</th><th>Status</th><th>Confirmed</th><th>WhatsApp</th><th></th></tr></thead><tbody>${body}</tbody></table>`+(unconf?`<p class="hint" style="color:var(--warn,#ffb020);margin-top:8px">⚠️ ${unconf} squad(s) haven't confirmed — WhatsApp them to confirm before 24h to start, or they're removed.</p>`:'');
+    const act=rows.filter(active), yes=act.filter(r=>r.checked_in).length;
+    $('reg-body').innerHTML=`<div class="slots-sum"><span><b>${act.length}</b> in slots</span><span><b>${yes}</b> playing</span>`+
+      `<span style="color:${act.length-yes?'var(--warn)':'var(--ok)'}"><b>${act.length-yes}</b> not confirmed</span>`+
+      `<span><b>${rows.filter(r=>r.status==='waitlisted').length}</b> on the waitlist</span></div><div class="slots">${list}</div>`;
   }catch(e){ $('reg-body').innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; }
 }
 /* per-squad actions (mod-panel: set_confirmed / remove_team / notify_player) */
+const reload=()=>selectTournament(tournaments.indexOf(selected));
+async function setPlaying(id,on,sq,quiet){
+  await call({action:'set_confirmed',id,on});
+  if(!quiet) toast(`${sq} marked ${on?'playing':'not confirmed'}.`,()=>setPlaying(id,!on,sq,true).then(reload));
+}
 $('reg-body').addEventListener('click',async e=>{
-  const b=e.target.closest('button.act'); if(!b) return;
-  const id=b.dataset.id, sq=b.dataset.sq||'this squad';
+  const b=e.target.closest('button[data-act]'); if(!b) return;
+  const id=b.dataset.id;
+  const slot=b.closest('.slot'), sq=b.dataset.sq||(slot&&slot.querySelector('.nm b').textContent)||'this squad';
   try{
     if(b.dataset.act==='conf'){
-      b.disabled=true; await call({action:'set_confirmed',id,on:b.dataset.on==='1'});
+      if(b.getAttribute('aria-pressed')==='true') return;
+      b.parentElement.querySelectorAll('button').forEach(x=>x.disabled=true);
+      await setPlaying(id,b.dataset.on==='1',sq);
+      reload();
     } else if(b.dataset.act==='rm'){
-      const reason=prompt('Remove "'+sq+'" from '+selected.name+'?\n\nReason (sent to the player):','did not confirm / no full team');
+      const reason=await sheet({title:`Remove ${sq}?`,text:`They lose their slot in ${selected.name} and get a notification with the reason. The next squad on the waitlist moves up.`,
+        input:'text',value:'',chips:['Did not confirm','No full team','WhatsApp not reachable','Broke the rules'],ok:'Remove squad',danger:true,required:true});
       if(reason===null) return;
-      b.disabled=true; const rr=await call({action:'remove_team',id,reason});
-      if(rr&&rr.room_code_was_sent) alert('Removed. The Room ID was already sent - they may still remember it.\n\nChange the room password in Free Fire and send the new one (Room code box above).');
+      b.disabled=true;
+      const rr=await call({action:'remove_team',id,reason});
+      reload();
+      if(rr&&rr.room_code_was_sent) await sheet({title:'Change the room password',text:`${sq} already got the Room ID. Change the password in Free Fire and send the new one to the squads (Send Room ID above).`,ok:'Got it',cancel:false});
+      else toast(`${sq} removed.`);
     } else if(b.dataset.act==='note'){
-      const body=prompt('Message to "'+sq+'" only (push + in-app):','Please confirm your squad for '+selected.name+' - reply on WhatsApp or tap Confirm on jdesport.co.uk.');
+      const body=await sheet({title:`Message ${sq}`,text:'Only this squad gets it - as a phone push and in their notifications.',input:'textarea',
+        value:`Please confirm your squad for ${selected.name} - reply on WhatsApp or tap "Confirm you're playing" on jdesport.co.uk.`,ok:'Send message',required:true});
       if(!body) return;
-      b.disabled=true; await call({action:'notify_player',id,title:selected.name,body});
-      b.disabled=false; b.textContent='✓'; setTimeout(()=>{b.textContent='🔔';},2000); return;
+      b.disabled=true;
+      await call({action:'notify_player',id,title:selected.name,body});
+      b.disabled=false;
+      toast(`Message sent to ${sq}.`);
     }
-    selectTournament(tournaments.indexOf(selected));
-  }catch(err){ alert(err.message); b.disabled=false; }
+  }catch(err){ toast(err.message||'Something went wrong - try again.',null,true); b.disabled=false; reload(); }
 });
 $('reg-refresh').onclick=()=>{ if(selected) selectTournament(tournaments.indexOf(selected)); };
 
@@ -263,7 +367,7 @@ $('n-send').onclick=async()=>{
   const slug=(onlyReg && ev)?ev.name:null;
   if(!title||!body){ $('n-msg').textContent='Enter a title and a message.'; $('n-msg').className='msg err'; return; }
   const who=slug?('registered squads in '+slug):'ALL players on JD Arena';
-  if(!confirm('Send this notification to '+who+'?')) return;
+  if(!await sheet({title:'Send this notification?',text:'"'+title+'" goes to '+who+' as a phone push and in their notifications.',ok:'Send notification'})) return;
   const btn=$('n-send'); btn.disabled=true; $('n-msg').textContent='Sending…'; $('n-msg').className='msg';
   try{
     const r=await call({action:'notify',title,body,slug});
@@ -278,7 +382,7 @@ $('rc-send').onclick=async()=>{
   const room_id=$('rc-id').value.trim(), room_pass=$('rc-pass').value.trim();
   if(!ev){ $('rc-msg').textContent='No event selected.'; $('rc-msg').className='msg err'; return; }
   if(!room_id){ $('rc-msg').textContent='Enter the Room ID.'; $('rc-msg').className='msg err'; return; }
-  if(!confirm('Send Room ID '+room_id+(room_pass?(' / pass '+room_pass):'')+' to all squads registered for '+ev.name+'?')) return;
+  if(!await sheet({title:'Send the room code?',text:'Room ID '+room_id+(room_pass?(' · password '+room_pass):'')+' goes to every squad in a slot for '+ev.name+'.',ok:'Send room code'})) return;
   const btn=$('rc-send'); btn.disabled=true; $('rc-msg').textContent='Sending…'; $('rc-msg').className='msg';
   try{
     const r=await call({action:'room_code',slug:ev.name,room_id,room_pass});
