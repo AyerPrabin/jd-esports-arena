@@ -387,3 +387,10 @@ html.app-gated .dm-fab,html.app-gated .dm-panel,html.app-gated .dm-banner{displa
 .dm-zn .dm-room-r{margin-top:6px}
 /* message request: accept / decline inside the chat */
 .dm-req{display:flex;gap:8px;justify-content:center;margin-top:10px}
+
+/* JD Esports (official team chat): logo avatar + verified tick */
+.dm-av.jd{background:#0B1020;box-shadow:inset 0 0 0 1.5px var(--dm-gold)}
+.dm-av.jd img{width:72%;height:72%;object-fit:contain;border-radius:0}
+.dm-ver{flex:none;width:15px;height:15px;color:#3EA6FF;vertical-align:-2px}
+.dm-hello .dm-ver{width:17px;height:17px}
+.dm-row.jd .dm-name{color:var(--dm-text)}

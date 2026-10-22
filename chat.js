@@ -1,6 +1,7 @@
 // JD Arena Messages: one inbox for friends (1:1), squad chats (groups of up to 8 friends —
 // your Clash Squad team), match chats (the captain-vs-captain chat of an accepted challenge)
-// and ZULU, the AI assistant. Loaded (deferred) on every page that creates a Supabase client
+// ZULU, the AI assistant, and the official JD Esports chat (jd_chat.sql: the JD team writes as
+// "JD Esports" with a verified tick from /mod/; the player can reply). Loaded (deferred) on every page that creates a Supabase client
 // named `sb`; styles in /chat.css. Everything goes through the SECURITY DEFINER RPCs in
 // schema.sql ("friends + direct messages" and "Messages v2"):
 //   friends:  send_friend_request / respond_friend_request / remove_friend / block_player /
@@ -29,7 +30,7 @@
   var PAGE = document.getElementById('chat-page');
 
   var css = document.createElement('link');
-  css.rel = 'stylesheet'; css.href = '/chat.css?v=9';
+  css.rel = 'stylesheet'; css.href = '/chat.css?v=10';
   document.head.appendChild(css);
 
   var NE = false;
@@ -131,6 +132,8 @@
     return '<span class="dm-av' + (size ? ' ' + size : '') + ' sq" style="background:linear-gradient(145deg,hsl(' + h + ' 60% 46%),hsl(' + ((h + 50) % 360) + ' 70% 30%))" aria-hidden="true">' + ICON.users + '</span>';
   }
   function matchAv(size) { return '<span class="dm-av' + (size ? ' ' + size : '') + ' mt" aria-hidden="true">' + ICON.swords + '</span>'; }
+  function jdAv(size) { return '<span class="dm-av' + (size ? ' ' + size : '') + ' jd" aria-hidden="true"><img src="/logo.png" alt=""></span>'; }
+  var VERIFIED = '<svg class="dm-ver" viewBox="0 0 24 24" role="img" aria-label="Verified"><path fill="currentColor" d="M12 1.6l2.6 1.9 3.2-.1 1 3 2.6 1.9-1 3.1 1 3.1-2.6 1.9-1 3-3.2-.1L12 22.4l-2.6-1.9-3.2.1-1-3L2.6 15.7l1-3.1-1-3.1 2.6-1.9 1-3 3.2.1z"/><path fill="none" stroke="#0B1020" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.6 12.3l3 3 5.8-6"/></svg>';
   function zuluAv(size) { return '<span class="dm-av' + (size ? ' ' + size : '') + ' zu" aria-hidden="true">' + ICON.spark + '</span>'; }
   var nameOf = function (p) { return p ? (p.username ? '@' + p.username : p.tag) : ''; };
   var emojiOnly = function (s) { return s.length <= 12 && /^(\p{Extended_Pictographic}|\p{Emoji_Component}|‍|️|\s)+$/u.test(s) && !/^[\d#*\s]+$/.test(s); };
@@ -232,13 +235,13 @@
   // cur = the open conversation: { kind: 'dm'|'group'|'match'|'zulu', id, ... }
   var me = null, myCard = null, isOpen = false, tab = 'all', ov = null, th = null, cur = null, filter = '';
   var msgs = [], hasOlder = false, threadTimer = null, polled = false, lastAt = 0;
-  var badge = { dm: 0, g: 0, m: 0, requests: 0, z: 0 }, sending = false, tmp = 0, bannerTimer = null, pendingDeepLink = null;
+  var badge = { dm: 0, g: 0, m: 0, requests: 0, z: 0, jd: 0 }, jdLast = null, sending = false, tmp = 0, bannerTimer = null, pendingDeepLink = null;
   var ginfo = null, readMark = 0;
   var recs = null, recAt = 0, tourCache = null, zuluWait = null, chipFor = null;
   var MENTION = /(^|[^a-z0-9_])@zulu\b/i;
 
   function setBadges() {
-    var chats = badge.dm + badge.g + badge.m + badge.z, n = chats + badge.requests;
+    var chats = badge.dm + badge.g + badge.m + badge.z + badge.jd, n = chats + badge.requests;
     var c = fab.querySelector('.dm-count');
     c.textContent = n > 99 ? '99+' : n; c.hidden = !n;
     fab.classList.toggle('has-unread', n > 0);
@@ -258,7 +261,7 @@
     var id = u ? u.id : null;
     if (id === me) return;
     me = id; polled = false; lastAt = 0; ov = null; th = null; cur = null; msgs = []; myCard = null;
-    badge = { dm: 0, g: 0, m: 0, requests: 0, z: 0 }; zn = []; znTop = null; setBadges();
+    badge = { dm: 0, g: 0, m: 0, requests: 0, z: 0, jd: 0 }; jdLast = null; zn = []; znTop = null; setBadges();
     fab.hidden = !me || !!PAGE; if (navRow) navRow.hidden = !me;
     if (PAGE) { var si = $('cp-signin'); if (si) si.hidden = !!me; panel.hidden = !me; }
     document.body.classList.toggle('has-dm', !!me);
@@ -296,7 +299,9 @@
     if (r.error || !r.data) return;
     var d = r.data;
     if (pollN++ % 3 === 0) await loadZn(true);
-    var next = { dm: d.unread || 0, g: d.g_unread || 0, m: d.m_unread || 0, requests: d.requests || 0, z: badge.z };
+    var jr = await SB.rpc('jd_poll'), jd = (jr && jr.data) || {};
+    jdLast = jd.last || null;
+    var next = { dm: d.unread || 0, g: d.g_unread || 0, m: d.m_unread || 0, requests: d.requests || 0, z: badge.z, jd: jd.unread || 0 };
     var changed = JSON.stringify(next) !== JSON.stringify(badge);
     var grewReq = polled && next.requests > badge.requests;
     badge = next; setBadges();
@@ -512,6 +517,14 @@
     });
     return out;
   }
+  function jdRow() {
+    var l = jdLast, active = cur && cur.kind === 'jd' ? ' active' : '';
+    var prev = l ? (l.mine ? T('you') + ': ' : '') + l.body : 'Official JD Esports team · ask us anything';
+    var dot = badge.jd ? '<span class="dm-dot">' + (badge.jd > 9 ? '9+' : badge.jd) + '</span>' : '';
+    return '<button type="button" class="dm-row jd' + (badge.jd ? ' unread' : '') + active + '" data-k="jd" data-open="jd">' + jdAv() +
+      '<span class="dm-mid"><span class="dm-name">JD Esports ' + VERIFIED + '</span>' +
+      '<span class="dm-prev"><span>' + esc(prev) + '</span>' + (l && l.at ? '<span>· ' + short(l.at) + '</span>' : '') + '</span></span>' + dot + '</button>';
+  }
   function zuluRow() {
     var z = store.get('jd_zulu_dm') || [], last = z[z.length - 1], n = zn[0];
     var active = cur && cur.kind === 'zulu' ? ' active' : '';
@@ -558,6 +571,7 @@
       }).join('') + '</div>';
     }
     if (tab === 'all' && !q) h += recsHtml();
+    if (tab === 'all' && (!q || 'jd esports team'.indexOf(q) >= 0)) h += jdRow();
     if (tab === 'all' && (!q || 'zulu ai'.indexOf(q) >= 0)) h += zuluRow();
     if (tab === 'squads' || (tab === 'all' && !th.groups.length && ov.friends.length && !q)) {
       h += '<button type="button" class="dm-row dm-cta" data-new="1"><span class="dm-av sq plus">' + ICON.plus + '</span><span class="dm-mid"><span class="dm-name">' + T('newSquad') + '</span><span class="dm-prev"><span>Group chat with your Clash Squad team</span></span></span></button>';
@@ -591,6 +605,7 @@
   });
   function openKind(k, id) {
     if (k === 'zulu') return openZulu();
+    if (k === 'jd') return openJd();
     if (k === 'group') return openGroup(id);
     if (k === 'match') return openMatch(id);
     var f = ov && ov.friends.find(function (x) { return x.id === id; });
@@ -658,6 +673,10 @@
     openThread({ kind: 'match', id: id, mode: '', other: null });
   }
   function openZulu() { if (!isOpen) open(); openThread({ kind: 'zulu', id: 'zulu' }); }
+  function openJd() {
+    if (!me) { pendingDeepLink = openJd; return; }
+    if (!isOpen) open(); openThread({ kind: 'jd', id: 'jd' });
+  }
 
   function composer(ph, max) {
     return '<form class="dm-compose" id="dm-form"><textarea id="dm-in" rows="1" maxlength="' + max + '" placeholder="' + esc(ph) + '" aria-label="' + esc(ph) + '" enterkeyhint="send"></textarea>' +
@@ -675,6 +694,7 @@
     var foot = '';
     if (p.kind === 'dm' && p.friend === false) foot = composer(p.req === 'in' ? 'Reply…' : 'Message request…', 500);
     else if (p.kind === 'zulu') foot = composer(T('askZulu'), 500);
+    else if (p.kind === 'jd') foot = composer('Message the JD team…', 1000);
     else if (p.kind === 'match') foot = composer('Message… · @zulu asks AI', 300);
     else if (p.kind === 'group') foot = composer('Message… · @zulu asks AI', 500);
     else foot = composer(T('typePh'), 500);
@@ -732,6 +752,7 @@
   }
   function smartChips(force) {
     var p = cur; if (!p || p.kind === 'zulu') return;
+    if (p.kind === 'jd') { if (msgs.length) $('dm-chips').innerHTML = ''; else chips(['Hi JD team 👋', 'Our squad is ready ✅', 'I need help with points 🪙', 'Room ID problem 🎮']); return; }
     if (p.kind === 'match' && p.status === 'completed') { $('dm-chips').innerHTML = ''; return; }
     if ((p.kind === 'dm' && p.friend === false) || !$('dm-in')) { $('dm-chips').innerHTML = ''; return; }
     var last = null;
@@ -785,9 +806,11 @@
     } else if (p.kind === 'match') {
       av = matchAv('sm'); name = (p.mode || 'Match') + (p.other ? ' vs ' + nameOf(p.other) : '');
       st = p.status === 'completed' ? 'Finished · chat is read-only' : p.status === 'disputed' ? 'Disputed · post your screenshots' : 'Captains’ match chat';
-    } else { av = zuluAv('sm'); name = 'ZULU'; st = 'AI assistant · replies in seconds'; on = true; }
+    } else if (p.kind === 'jd') { av = jdAv('sm'); name = 'JD Esports'; st = 'Official JD team · we reply here'; }
+    else { av = zuluAv('sm'); name = 'ZULU'; st = 'AI assistant · replies in seconds'; on = true; }
     $('dm-th-av').innerHTML = av;
     $('dm-th-name').textContent = name;
+    if (p.kind === 'jd') $('dm-th-name').insertAdjacentHTML('beforeend', ' ' + VERIFIED);
     var s = $('dm-th-st'); s.textContent = st; s.className = on ? 'on' : '';
   }
 
@@ -796,6 +819,10 @@
     if (p.kind === 'dm') {
       var r = await SB.rpc('dm_thread', before ? { p_with: p.id, p_before: before } : { p_with: p.id });
       return r.error ? r : { data: (r.data || []).map(function (m) { return Object.assign({ sender: m.mine ? me : p.id, kind: 'text' }, m); }) };
+    }
+    if (p.kind === 'jd') {
+      var j = await SB.rpc('jd_thread', before ? { p_before: before } : {});
+      return j.error ? j : { data: (j.data || []).map(function (m) { return Object.assign({ sender: m.mine ? me : 'jd', kind: 'text' }, m); }) };
     }
     if (p.kind === 'group') {
       var g = await SB.rpc('group_thread', before ? { p_group: p.id, p_before: before } : { p_group: p.id });
@@ -838,6 +865,7 @@
       readMark = top;
       if (p.kind === 'dm') { if (rows.some(function (m) { return !m.mine && !m.read_at; })) { await SB.rpc('dm_mark_read', { p_with: p.id }); poll(); } }
       else if (p.kind === 'group') { await SB.rpc('group_mark_read', { p_group: p.id }); poll(); }
+      else if (p.kind === 'jd') { if (rows.some(function (m) { return !m.mine && !m.read_at; })) { await SB.rpc('jd_mark_read'); poll(); } }
       else { await SB.rpc('challenge_mark_read', { p_id: p.id }); poll(); }
     }
   }
@@ -894,6 +922,7 @@
   function senderCard(id) {
     if (cur.kind === 'group' && ginfo) { var m = ginfo.members.find(function (x) { return x.id === id; }); if (m) return m; return { id: id, username: 'former member' }; }
     if (cur.kind === 'match') return cur.other && cur.other.id === id ? cur.other : { id: id, username: 'opponent' };
+    if (cur.kind === 'jd') return { id: 'jd', username: 'JD Esports' };
     return cur;
   }
   function renderMsgs(jump) {
@@ -907,6 +936,7 @@
         : 'Not friends yet. ' + (p.req === 'out' ? 'Your request is waiting. ' : 'Sending a message also sends a friend request. ') + 'You can send 3 messages until they accept.') + '</div>';
     else if (p.kind === 'group') h += '<div class="dm-hello">' + groupAv(p) + '<b>' + esc(p.name) + '</b>Squad chat · plan matches, share room IDs<br><span class="dm-hint">Type <b>@zulu</b> + a question and ZULU (AI) answers here. It reads the last few messages.</span></div>';
     else if (p.kind === 'match') h += '<div class="dm-hello">' + matchAv() + '<b>' + esc((p.mode || '') + ' Clash Squad') + '</b>Only you and the other captain can see this chat.<br>Agree the room, play, then report the result on the challenge.<br><span class="dm-hint">Type <b>@zulu</b> to ask ZULU (AI) about the rules. It reads the last few messages.</span></div>';
+    else if (p.kind === 'jd') h += '<div class="dm-hello">' + jdAv() + '<b>JD Esports ' + VERIFIED + '</b>The official JD Esports Arena team.<br>Messages here come from our moderators and admin. Ask about events, slots, points or room IDs and we reply here.<br><span class="dm-hint">The JD team never asks for your password or eSewa PIN.</span></div>';
     else h += '<div class="dm-hello">' + zuluAv() + '<b>ZULU</b>Your JD Arena buddy. Chat about anything gaming, get Free Fire tips, or ask about tournaments and your own points, tickets and challenges. It never sees your private chats.</div>';
     var lastMine = -1;
     msgs.forEach(function (m, i) { if (m.mine) lastMine = i; });
@@ -926,7 +956,7 @@
       var cls = 'dm-line ' + (m.mine ? 'me' : 'them') + (head ? ' head' : '') + (tail ? ' tail' : '') + (!room && emojiOnly(m.body) ? ' emoji' : '') +
         (room ? ' roomcard' : '') + (isAi ? ' ai' : '') + (m.pending ? ' pending' : '') + (m.failed ? ' failed' : '') + (m.fresh && !reduced() ? ' new' : '');
       if (head && !m.mine && (p.kind === 'group' || isAi)) h += '<div class="dm-from' + (isAi ? ' ai' : '') + '">' + (isAi ? 'ZULU · AI' : esc(nameOf(who))) + '</div>';
-      var av = m.mine ? '' : (p.kind === 'zulu' || isAi ? zuluAv('xs') : avatar(who, 'xs'));
+      var av = m.mine ? '' : (p.kind === 'zulu' || isAi ? zuluAv('xs') : p.kind === 'jd' ? jdAv('xs') : avatar(who, 'xs'));
       var bubble = room
         ? '<div class="dm-b dm-room"><span class="dm-room-h">🎮 ' + esc(room.label || 'Custom room') + '</span>' +
           '<span class="dm-room-r"><button type="button" class="dm-copy" data-copy="' + esc(room.id) + '"><small>Room ID</small><b>' + esc(room.id) + '</b></button>' +
@@ -955,7 +985,7 @@
   }
   function seenLine(m) {
     if (m.pending) return 'Sending…';
-    if (cur.kind === 'dm') return m.read_at ? 'Seen ' + short(m.read_at).replace('now', 'just now') : 'Sent';
+    if (cur.kind === 'dm' || cur.kind === 'jd') return m.read_at ? 'Seen ' + short(m.read_at).replace('now', 'just now') : 'Sent';
     if (cur.kind === 'group' && ginfo && typeof m.id === 'number') {
       var seen = ginfo.members.filter(function (x) { return !x.me && Number(x.read) >= m.id; });
       if (seen.length) return '<span class="dm-seenby" title="' + esc(T('seenBy') + ' ' + seen.map(nameOf).join(', ')) + '">' + seen.slice(0, 5).map(function (x) { return avatar(x, 'xxs'); }).join('') + '</span>';
@@ -1146,6 +1176,7 @@
     }
     if (p.kind === 'dm') r = await SB.rpc('send_dm', { p_to: p.id, p_body: body });
     else if (p.kind === 'group') r = await SB.rpc('send_group_message', { p_group: p.id, p_body: body, p_kind: kind || 'text' });
+    else if (p.kind === 'jd') r = await SB.rpc('jd_send', { p_body: body });
     else r = await SB.rpc('send_challenge_message', { p_id: p.id, p_body: body });
     sending = false;
     if (cur !== p) return;
@@ -1155,7 +1186,7 @@
       if (/only message your friends/i.test(m.failed)) { p.friend = false; $('dm-foot').innerHTML = '<div class="dm-locked">You can\'t message this player.</div>'; }
       renderMsgs(true); return;
     }
-    if (p.kind !== 'dm' && MENTION.test(body)) {
+    if (p.kind !== 'dm' && p.kind !== 'jd' && MENTION.test(body)) {
       zuluWait = { key: p.kind + p.id, until: Date.now() + 30000 };
       setTimeout(function () { if (cur === p && zuluWait) { sig += '~'; refreshThread(); } }, 30500);
     }
@@ -1254,6 +1285,12 @@
         '<button type="button" class="dm-opt" data-a="remove">👋 Remove friend</button>' +
         '<button type="button" class="dm-opt red" data-a="block">⛔ Block ' + n + '</button>' +
         '<button type="button" class="dm-opt red" data-a="report">🚩 Report ' + n + '</button>' +
+        '<button type="button" class="dm-opt" data-a="close">' + T('cancel') + '</button>');
+    } else if (p.kind === 'jd') {
+      sheet('<h3>JD Esports ' + VERIFIED + '</h3>' +
+        '<a class="dm-opt" href="/events/">🏆 Events and your tickets</a>' +
+        '<a class="dm-opt" href="/wallet/">🪙 Wallet · load points</a>' +
+        '<a class="dm-opt" href="/rules/">📜 Tournament rules</a>' +
         '<button type="button" class="dm-opt" data-a="close">' + T('cancel') + '</button>');
     } else if (p.kind === 'group') {
       sheet('<h3>' + esc(p.name) + '</h3>' +
@@ -1423,11 +1460,12 @@
 
   // deep links: /?dm=<JD tag> (message push), /?g=<squad chat> (squad push), /?chat=1 (friend/squad notifications)
   try {
-    var q = new URLSearchParams(location.search), dm = q.get('dm'), g = q.get('g'), ch = q.get('chat');
-    if (dm || g || ch) {
-      q.delete('dm'); q.delete('g'); q.delete('chat');
+    var q = new URLSearchParams(location.search), dm = q.get('dm'), g = q.get('g'), ch = q.get('chat'), jdq = q.get('jd');
+    if (dm || g || ch || jdq) {
+      q.delete('dm'); q.delete('g'); q.delete('chat'); q.delete('jd');
       history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
-      if (dm) pendingDeepLink = function () { openWith(dm); };
+      if (jdq) pendingDeepLink = openJd;
+      else if (dm) pendingDeepLink = function () { openWith(dm); };
       else if (g && /^[0-9a-f-]{36}$/i.test(g)) pendingDeepLink = function () { openGroup(g); };
       else setTimeout(function () { if (me) open(); }, 800);
     }

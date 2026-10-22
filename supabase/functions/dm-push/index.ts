@@ -4,7 +4,8 @@
 // replaces the previous alert instead of stacking. Tapping it opens the chat (chat.js reads
 // ?dm=<player tag>). DMs never go into notifications, so they don't flood Notification History.
 // Must be deployed with --no-verify-jwt (the pg_net caller has no JWT, only x-cron-secret).
-//   body: { ids: number[] }   header: x-cron-secret
+//   body: { ids: number[], kind?: 'jd' }   header: x-cron-secret
+// kind 'jd': ids are jd_messages rows (the JD Esports chat, jd_chat.sql), pushed as "JD Esports ✓" -> /chat/?jd=1.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { sendPush } from '../_shared/push.ts';
 
@@ -13,8 +14,12 @@ const SITE = 'https://jdesport.co.uk';
 Deno.serve(async (req: Request) => {
   const CRON_SECRET = Deno.env.get('CRON_SECRET');
   if (!CRON_SECRET || req.headers.get('x-cron-secret') !== CRON_SECRET) return new Response('Unauthorized', { status: 401 });
-  let ids: number[] = [];
-  try { ids = ((await req.json()).ids || []).map(Number).filter((x: number) => Number.isFinite(x)).slice(0, 200); } catch { /* empty */ }
+  let ids: number[] = [], kind = 'dm';
+  try {
+    const j = await req.json();
+    ids = (j.ids || []).map(Number).filter((x: number) => Number.isFinite(x)).slice(0, 200);
+    kind = j.kind === 'jd' ? 'jd' : 'dm';
+  } catch { /* empty */ }
   if (!ids.length) return Response.json({ sent: 0 });
   // Give an open chat a moment to mark the message read (chat.js refreshes every 2.5s), so a
   // live back-and-forth doesn't also buzz the phone for every single message. pg_net times
@@ -23,6 +28,22 @@ Deno.serve(async (req: Request) => {
     await new Promise((r) => setTimeout(r, 4000));
     let sent = 0;
     const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    if (kind === 'jd') {
+      // the JD Esports chat (jd_chat.sql): staff messages always show as "JD Esports", never the moderator
+      const { data: jr } = await db.from('jd_messages').select('id, player_id, body, read_at').in('id', ids).eq('from_staff', true).order('id');
+      for (const m of jr || []) {
+        if (m.read_at) continue;
+        sent += await sendPush(db, [m.player_id], {
+          title: 'JD Esports ✓',
+          body: String(m.body || '').slice(0, 200),
+          url: `${SITE}/chat/?jd=1`,
+          tag: 'jd-staff-chat',
+          category: 'dm',
+        });
+      }
+      console.log('dm-push jd sent', sent);
+      return;
+    }
     const { data: rows } = await db.from('dm_messages').select('id, sender, recipient, body, read_at').in('id', ids).order('id');
     const senders = [...new Set((rows || []).map((r: any) => r.sender))];
     const { data: ps } = senders.length

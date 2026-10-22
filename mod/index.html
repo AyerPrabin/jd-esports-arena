@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#05080f">
+<meta name="color-scheme" content="dark">
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" href="/favicon-64.png">
 <title>Moderator — JD Esports Arena</title>
@@ -11,177 +12,339 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#05080f;--panel:#0e1424;--line:#1c2840;--gold:#c9a84c;--gold-l:#e2c97e;--gold-m:#7e6630;--cream:#f4efe6;--silver:#aab4cc;--body:#7e8eb0;--cta:#FFC83D;--cta-2:#FFAE00;--ok:#5EDB95;--warn:#ff9f1c}
+:root{--bg:#05080f;--panel:#0e1424;--panel-2:#0a0f1c;--line:#1c2840;--gold:#c9a84c;--gold-l:#e2c97e;--gold-m:#7e6630;--cream:#f4efe6;--silver:#aab4cc;--body:#7e8eb0;--cta:#FFC83D;--cta-2:#FFAE00;--ok:#5EDB95;--warn:#ff9f1c;--bad:#ff6b6b;--tabh:64px}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--cream);font-family:'Geist',system-ui,sans-serif;font-weight:300;line-height:1.55;min-height:100vh}
+html{-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:'Geist',system-ui,sans-serif;font-weight:300;line-height:1.55;min-height:100vh;touch-action:manipulation}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(900px 480px at 70% -10%,rgba(201,168,76,.10),transparent 60%);pointer-events:none}
+[hidden]{display:none!important}
 a{color:var(--gold-l)}
-.wrap{position:relative;max-width:720px;margin:0 auto;padding:18px}
-.bar{display:flex;align-items:center;justify-content:space-between;padding:8px 0 16px}
-.brand{display:flex;align-items:center;gap:10px}
-.brand img{width:34px;height:34px;border-radius:8px}
-.brand b{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.05rem}
-.brand span{display:block;font-size:.64rem;color:var(--gold-l)}
-.who{font-size:.82rem;color:var(--silver)}
-h2{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;margin:22px 0 10px;display:flex;align-items:center;gap:10px}
-h2 .ln{flex:1;height:1px;background:var(--line)}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
-.gate{text-align:center;padding:40px 16px}
-.gate h1{font-family:'Barlow Condensed',sans-serif;font-size:2rem;margin:0 0 6px}
-.gate p{color:var(--body);margin:6px 0 18px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;background:linear-gradient(90deg,#FFDD85,var(--cta) 55%,var(--cta-2));color:#07090F;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.05rem;padding:11px 20px;border-radius:12px;text-decoration:none}
-.btn[disabled]{opacity:.55;cursor:not-allowed}
-.btn.sm{font-size:.86rem;padding:8px 14px}
-.ghost{background:none;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:30px;padding:7px 13px;font-size:.82rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}
-/* squad slots: one line on PC, a stacked card on phones */
+button{font:inherit}
+.skip{position:absolute;left:-9999px}.skip:focus{left:12px;top:12px;z-index:100;background:var(--cta);color:#07090F;padding:8px 12px;border-radius:8px}
+:focus-visible{outline:2px solid var(--cta);outline-offset:2px}
+
+/* ── top bar ── */
+.top{position:sticky;top:0;z-index:30;background:rgba(5,8,15,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:calc(8px + env(safe-area-inset-top)) 16px 8px}
+.top-in{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;min-width:0}
+.brand img{width:32px;height:32px;border-radius:8px;flex:none}
+.brand b{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.05rem;display:block;line-height:1.1}
+.brand span{font-size:.7rem;color:var(--gold-l)}
+.who{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:.8rem;color:var(--silver);min-width:0}
+.who .ghost{white-space:nowrap}
+.who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:32vw}
+/* event picker: one choice drives squads, room code and notifications */
+.evbar{max-width:1280px;margin:8px auto 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;overscroll-behavior-x:contain}
+.evbar::-webkit-scrollbar{display:none}
+.evpill{flex:none;display:flex;flex-direction:column;align-items:flex-start;gap:1px;border:1px solid var(--line);background:var(--panel-2);color:var(--cream);border-radius:12px;padding:7px 12px;cursor:pointer;text-align:left;transition:border-color .15s,background-color .15s}
+.evpill>span{display:flex;flex-direction:column;align-items:flex-start;gap:1px}
+.evpill b{font-weight:600;font-size:.86rem;white-space:nowrap}
+.evpill small{font-size:.72rem;color:var(--body);white-space:nowrap}
+.evpill .live{color:var(--cta);font-weight:600}
+.evpill[aria-pressed=true]{border-color:var(--gold);background:rgba(255,200,61,.08)}
+.evpill:hover{border-color:var(--gold-m)}
+
+/* ── layout ── */
+main{position:relative;max-width:1280px;margin:0 auto;padding:16px 16px calc(var(--tabh) + 24px + env(safe-area-inset-bottom))}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.sec-h{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+.sec-h h2{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;margin:0;text-wrap:balance}
+.sec-h .sp{flex:1}
+.lead{color:var(--silver);font-size:.86rem;margin:-6px 0 12px;max-width:60ch}
+.tab{display:none}
+.tab.on{display:block}
+
+#tab-events{display:none}
+/* tabs: bottom bar on phones, top strip on tablets, gone on desktop (everything is visible there) */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(5,1fr);background:rgba(10,14,26,.97);border-top:1px solid var(--line);padding:0 0 env(safe-area-inset-bottom);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.tabs button{height:var(--tabh);border:0;background:none;color:var(--body);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font-size:.74rem;font-weight:500}
+.tabs svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tabs button[aria-selected=true]{color:var(--cta)}
+.tabs .badge{position:absolute;margin:-18px 0 0 22px;min-width:18px;height:18px;border-radius:9px;background:var(--warn);color:#1a0d00;font-size:.68rem;font-weight:700;display:grid;place-items:center;padding:0 4px}
+.tabs .tb{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px}
+@media (min-width:700px) and (max-width:1079px){
+  .tabs{position:sticky;top:var(--top-h,112px);bottom:auto;grid-template-columns:repeat(5,auto);justify-content:start;gap:6px;background:var(--bg);border:0;padding:12px max(16px,calc((100% - 1280px)/2 + 16px));backdrop-filter:none;z-index:25}
+  .tabs button{height:auto;flex-direction:row;gap:7px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);font-size:.86rem}
+  .tabs button[aria-selected=true]{background:rgba(255,200,61,.1);border-color:var(--gold-m)}
+  .tabs svg{width:18px;height:18px}
+  .tabs .tb{flex-direction:row;gap:7px}
+  .tabs .badge{position:static;margin:0}
+  main{padding-bottom:32px}
+}
+@media (min-width:1080px){
+  .tabs{display:none}
+  main{display:grid;grid-template-columns:240px minmax(0,1fr) 360px;gap:18px;align-items:start;padding-bottom:32px}
+  .tab{display:block}
+  #tab-events{display:block;position:sticky;top:var(--top-h,72px)}
+  .col-right{position:sticky;top:var(--top-h,72px);max-height:calc(100vh - var(--top-h,72px) - 16px);overflow:auto;overscroll-behavior:contain}
+  .evbar{display:none}
+  #tab-help{grid-column:1}
+}
+/* events list (desktop column) */
+.evlist{display:grid;gap:8px}
+.evlist .evpill{width:100%;flex-direction:row;align-items:center;justify-content:space-between;padding:10px 12px}
+.evlist .evpill span{display:flex;flex-direction:column;min-width:0}
+.evlist .evpill b{overflow:hidden;text-overflow:ellipsis}
+
+/* ── squads ── */
+.sum{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.fil{border:1px solid var(--line);background:var(--panel-2);color:var(--silver);border-radius:999px;padding:6px 12px;font-size:.8rem;cursor:pointer;font-variant-numeric:tabular-nums;transition:border-color .15s,color .15s}
+.fil b{color:var(--cream);font-weight:600}
+.fil[aria-pressed=true]{border-color:var(--gold);color:var(--cream)}
+.fil.warn b{color:var(--warn)}
 .slots{display:grid;gap:8px}
-.slot{display:grid;grid-template-columns:40px minmax(0,1fr) auto auto;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:#0a0f1c;border:1px solid var(--line)}
-.slot.off{opacity:.62}
-.slot .no{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.15rem;color:#07090F;background:var(--gold)}
+.slot{display:grid;grid-template-columns:40px minmax(0,1fr) auto auto;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:var(--panel-2);border:1px solid var(--line)}
+.slot.off{opacity:.65}
+.slot .no{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.15rem;color:#07090F;background:var(--gold);font-variant-numeric:tabular-nums}
 .slot.wait .no{background:none;color:var(--gold-l);border:1px dashed var(--gold-m)}
 .slot .nm{min-width:0}
 .slot .nm b{display:block;font-weight:600;color:var(--cream);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.slot .nm small{color:var(--body);font-size:.78rem}
+.slot .nm small{display:block;color:var(--body);font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .play{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:#070b15}
-.play button{border:0;background:none;color:var(--body);font:600 .82rem 'Geist',sans-serif;padding:7px 12px;border-radius:999px;cursor:pointer;min-width:44px}
+.play button{border:0;background:none;color:var(--body);font-weight:600;font-size:.82rem;padding:8px 13px;border-radius:999px;cursor:pointer;min-width:48px;transition:background-color .15s,color .15s}
 .play button[aria-pressed=true].y{background:rgba(94,219,149,.16);color:var(--ok)}
 .play button[aria-pressed=true].n{background:rgba(255,159,28,.14);color:var(--warn)}
-.play button:disabled{cursor:progress}
+.play button:disabled{cursor:progress;opacity:.6}
+.state{font-size:.78rem;color:var(--body);padding:0 6px}
 .acts{display:flex;gap:6px;align-items:center}
-.abtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:none;color:var(--silver);font:500 .82rem 'Geist',sans-serif;padding:7px 12px;border-radius:10px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.abtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:none;color:var(--silver);font-weight:500;font-size:.82rem;padding:8px 12px;border-radius:10px;cursor:pointer;text-decoration:none;white-space:nowrap;min-height:38px;transition:border-color .15s,color .15s,background-color .15s}
+.abtn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .abtn:hover{border-color:var(--gold-m);color:var(--cream)}
-.abtn.wa2{color:var(--ok);border-color:rgba(94,219,149,.35)}
+.abtn.wa{color:var(--ok);border-color:rgba(94,219,149,.35)}
+.abtn.wa:hover{background:rgba(94,219,149,.08)}
 .abtn.rm{color:#ff8a8a;border-color:transparent}
 .abtn.rm:hover{border-color:rgba(255,107,107,.45);background:rgba(255,107,107,.08)}
-.abtn:focus-visible,.play button:focus-visible,.btn:focus-visible,.ghost:focus-visible{outline:2px solid var(--cta);outline-offset:2px}
-.slots-sum{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--body);margin:0 0 10px}
-.slots-sum b{color:var(--cream);font-weight:600}
+.abtn[aria-disabled=true]{opacity:.45;pointer-events:none}
+.empty{border:1px dashed var(--line);border-radius:12px;padding:22px;text-align:center;color:var(--silver);font-size:.9rem}
+.updated{font-size:.74rem;color:var(--body)}
 @media (max-width:640px){
   .slot{grid-template-columns:40px minmax(0,1fr) auto;grid-template-areas:"no nm play" "acts acts acts"}
-  .slot .no{grid-area:no}.slot .nm{grid-area:nm}.slot .play{grid-area:play}
-  .slot .acts{grid-area:acts;justify-content:flex-start;flex-wrap:wrap;padding-top:4px;border-top:1px solid var(--line)}
-  .abtn{padding:9px 12px}
-  .abtn.rm{margin-left:auto}
+  .slot .no{grid-area:no}.slot .nm{grid-area:nm}.slot .play,.slot .state{grid-area:play}
+  .slot .acts{grid-area:acts;flex-wrap:wrap;padding-top:8px;border-top:1px solid var(--line)}
+  .abtn{flex:1;justify-content:center}
+  .abtn.rm{flex:0 0 auto}
 }
-/* in-page sheet (replaces the browser's confirm / prompt / alert) */
-.sheet-bg{position:fixed;inset:0;z-index:60;background:rgba(3,5,10,.66);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .18s}
-.sheet-bg.open{opacity:1}
-.sheet{width:100%;max-width:520px;background:var(--panel);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));transform:translateY(24px);transition:transform .2s}
-.sheet-bg.open .sheet{transform:none}
-.sheet h3{margin:0 0 4px;font-family:'Barlow Condensed',sans-serif;font-size:1.35rem;font-weight:700}
-.sheet p{margin:0 0 12px;color:var(--silver);font-size:.9rem}
-.sheet .chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}
-.sheet .chips button{border:1px solid var(--line);background:#0a0f1c;color:var(--silver);border-radius:999px;padding:6px 11px;font:inherit;font-size:.8rem;cursor:pointer}
-.sheet .chips button:hover{border-color:var(--gold-m);color:var(--cream)}
-.sheet .row2{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
-.sheet .btn.danger{background:#ff6b6b;color:#1a0505}
-@media (min-width:641px){.sheet-bg{align-items:center}.sheet{border-radius:18px;border-bottom:1px solid var(--line)}}
-@media (prefers-reduced-motion:reduce){.sheet-bg,.sheet{transition:none}}
-.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:70;background:#141c30;border:1px solid var(--gold-m);color:var(--cream);border-radius:12px;padding:10px 14px;font-size:.88rem;display:flex;gap:14px;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:calc(100% - 32px)}
-.toast button{background:none;border:0;color:var(--cta);font:600 .88rem 'Geist',sans-serif;cursor:pointer}
-.toast.err{border-color:#ff6b6b}
+@media (min-width:1080px) and (max-width:1279px){
+  .slot{grid-template-columns:40px minmax(0,1fr) auto;grid-template-areas:"no nm play" "acts acts acts"}
+  .slot .no{grid-area:no}.slot .nm{grid-area:nm}.slot .play,.slot .state{grid-area:play}
+  .slot .acts{grid-area:acts;justify-content:flex-end}
+}
+
+/* ── forms ── */
+label.f{display:block;font-size:.78rem;color:var(--gold-l);margin:12px 0 5px;font-weight:500}
+label.f:first-child{margin-top:0}
+input,textarea,select{width:100%;background:var(--panel-2);color:var(--cream);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;font-size:16px;transition:border-color .15s}
+input:focus,textarea:focus,select:focus{border-color:var(--gold-m);outline:none;box-shadow:0 0 0 3px rgba(255,200,61,.15)}
+textarea{min-height:96px;resize:vertical}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tmpl{display:flex;gap:6px;flex-wrap:wrap}
+.tmpl button{border:1px solid var(--line);background:var(--panel-2);color:var(--silver);border-radius:999px;padding:7px 12px;font-size:.8rem;cursor:pointer;transition:border-color .15s,color .15s}
+.tmpl button:hover{border-color:var(--gold-m);color:var(--cream)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.seg label{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font-size:.88rem;color:var(--silver)}
+.seg input{width:auto;accent-color:var(--cta)}
+.seg label:has(input:checked){border-color:var(--gold);color:var(--cream);background:rgba(255,200,61,.06)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;background:linear-gradient(90deg,#FFDD85,var(--cta) 55%,var(--cta-2));color:#07090F;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.08rem;padding:12px 20px;border-radius:12px;text-decoration:none;transition:filter .15s,transform .1s}
+.btn:hover{filter:brightness(1.06)}
+.btn:active{transform:scale(.98)}
+.btn[disabled]{opacity:.55;cursor:progress}
+.btn.full{width:100%;margin-top:14px}
+.btn.sm{font-size:.92rem;padding:9px 16px}
+.btn.danger{background:var(--bad);color:#1a0505}
+.ghost{background:none;border:1px solid var(--gold-m);color:var(--gold-l);border-radius:999px;padding:7px 14px;font-size:.82rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:background-color .15s}
 .ghost:hover{background:rgba(201,168,76,.12)}
-label{display:block;font-size:.72rem;color:var(--gold-l);margin:10px 0 4px;letter-spacing:.02em}
-input,textarea,select{width:100%;background:#0a0f1c;color:var(--cream);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit}
-textarea{min-height:78px;resize:vertical}
-.tlist{display:grid;gap:10px}
-.trow{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#0a0f1c;border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer}
-.trow:hover{border-color:var(--gold-m)}
-.trow.sel{border-color:var(--gold);background:rgba(255,200,61,.06)}
-.trow .t{font-weight:500;color:var(--cream)}
-.trow .d{font-size:.8rem;color:var(--body)}
-.tag{font-size:.64rem;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:20px;border:1px solid var(--gold-m);color:var(--gold-l)}
-.tag.live{color:#07090F;background:var(--cta);border-color:var(--cta)}
-table{width:100%;border-collapse:collapse;font-size:.88rem}
-td,th{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line)}
-th{font-size:.7rem;color:var(--gold-l);text-transform:uppercase;letter-spacing:.03em}
-td.st{color:var(--body)}
-.wa{display:inline-flex;align-items:center;gap:5px;color:var(--ok);text-decoration:none;font-weight:500;border:1px solid rgba(94,219,149,.3);border-radius:20px;padding:4px 10px;font-size:.82rem}
-.wa:hover{background:rgba(94,219,149,.1)}
-.nowa{color:var(--body);font-size:.82rem}
-.msg{min-height:1.2em;font-size:.88rem;margin-top:8px;color:var(--silver)}.msg.err{color:#ff7676}.msg.ok{color:var(--ok)}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.hint{color:var(--body);font-size:.82rem;margin:4px 0 0}
-footer{text-align:center;color:var(--silver);font-size:.78rem;margin:26px 0 10px}
+.ghost svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.note{font-size:.82rem;color:var(--body);margin:10px 0 0}
+.msg{min-height:1.2em;font-size:.86rem;margin-top:10px;color:var(--silver)}.msg.err{color:#ff8a8a}.msg.ok{color:var(--ok)}
+
+/* JD Esports chat */
+.chat-new{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:12px}
+.chat-new .btn{font-size:.95rem;padding:10px 16px}
+.clist{display:grid;gap:6px}
+.crow{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;text-align:left;border:1px solid var(--line);background:var(--panel-2);color:var(--cream);border-radius:12px;padding:9px 11px;cursor:pointer;transition:border-color .15s}
+.crow:hover{border-color:var(--gold-m)}
+.crow .av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#1a2440;color:var(--gold-l);font-weight:700;font-family:'Barlow Condensed',sans-serif;font-size:1.1rem}
+.crow b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.crow small{display:block;color:var(--body);font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.crow .rt{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:.72rem;color:var(--body);font-variant-numeric:tabular-nums}
+.crow .dot{min-width:20px;height:20px;border-radius:10px;background:var(--cta);color:#07090F;font-size:.72rem;font-weight:700;display:grid;place-items:center;padding:0 5px}
+.crow.unread b{color:var(--cta)}
+.cview-h{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.cview-h .ghost{padding:6px 10px}
+.cview-h b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cview-h small{display:block;color:var(--body);font-size:.76rem}
+.cmsgs{display:flex;flex-direction:column;gap:6px;max-height:min(52vh,460px);min-height:160px;overflow:auto;overscroll-behavior:contain;padding:10px;border:1px solid var(--line);border-radius:12px;background:#070b15}
+.cm{max-width:84%;padding:8px 11px;border-radius:14px;font-size:.9rem;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
+.cm.pl{align-self:flex-start;background:#18213a;border-bottom-left-radius:4px}
+.cm.st{align-self:flex-end;background:rgba(255,200,61,.14);border:1px solid rgba(255,200,61,.25);border-bottom-right-radius:4px}
+.cm small{display:block;font-size:.68rem;color:var(--body);margin-top:3px}
+.cm.st small{text-align:right}
+.cempty{color:var(--body);font-size:.86rem;text-align:center;margin:auto}
+.ccomp{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px;align-items:end}
+.ccomp textarea{min-height:84px;max-height:180px}
+.ccomp .btn{padding:11px 16px;font-size:1rem}
+.ver{width:15px;height:15px;color:#3EA6FF;vertical-align:-2px}
+
+/* help */
+.help h3{font-size:.98rem;margin:14px 0 4px;color:var(--cream);font-weight:600}
+.help h3:first-child{margin-top:0}
+.help p{margin:0;color:var(--silver);font-size:.88rem;max-width:62ch}
+
+/* gate */
+.gate{max-width:440px;margin:40px auto;text-align:center}
+.gate h1{font-family:'Barlow Condensed',sans-serif;font-size:2rem;margin:0 0 6px}
+.gate p{color:var(--silver);margin:6px 0 18px}
+
+/* sheet + toast */
+.sheet-bg{position:fixed;inset:0;z-index:60;background:rgba(3,5,10,.66);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .18s;overscroll-behavior:contain}
+.sheet-bg.open{opacity:1}
+.sheet{width:100%;max-width:520px;background:var(--panel);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom));transform:translateY(24px);transition:transform .2s;max-height:90vh;overflow:auto}
+.sheet-bg.open .sheet{transform:none}
+.sheet h3{margin:0 0 4px;font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:700;text-wrap:balance}
+.sheet p{margin:0 0 12px;color:var(--silver);font-size:.9rem}
+.sheet .chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.sheet .chips button{border:1px solid var(--line);background:var(--panel-2);color:var(--silver);border-radius:999px;padding:7px 12px;font-size:.82rem;cursor:pointer}
+.sheet .chips button:hover{border-color:var(--gold-m);color:var(--cream)}
+.sheet .row2{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+@media (min-width:641px){.sheet-bg{align-items:center}.sheet{border-radius:18px;border-bottom:1px solid var(--line)}}
+.toast{position:fixed;left:50%;bottom:calc(var(--tabh) + 14px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:70;background:#141c30;border:1px solid var(--gold-m);color:var(--cream);border-radius:12px;padding:11px 14px;font-size:.88rem;display:flex;gap:14px;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:calc(100% - 32px)}
+.toast button{background:none;border:0;color:var(--cta);font-weight:600;cursor:pointer;padding:4px}
+.toast.err{border-color:var(--bad)}
+@media (min-width:700px){.toast{bottom:24px}}
+@media (prefers-reduced-motion:reduce){*,.sheet-bg,.sheet{transition:none!important}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="bar">
-    <a class="brand" href="/" style="text-decoration:none;color:inherit"><img src="/logo.png" alt="JD"><div><b>JD Esports Arena</b><span>Moderator</span></div></a>
-    <span class="who" id="who"></span>
+<a class="skip" href="#main">Skip to the panel</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-squads" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c.6-3.2 3-5 6-5s5.4 1.8 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c2.6.2 4.7 1.8 5.5 4.8"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l2.5 2.5M14 9l2 2"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.8c0 1.7-2.4 2.1-2.4 3.6"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-wa" viewBox="0 0 24 24"><path d="M4 20l1.2-3.6A8 8 0 1 1 8 19z"/><path d="M9.2 9.3c.3 2 2.4 4.2 4.6 4.7l1.1-1.1 1.8.8"/></symbol>
+  <symbol id="i-msg" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H11l-5 4v-4H4z"/><path d="M8 10h8M8 13h5"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 20v-4h-4"/></symbol>
+</svg>
+
+<header class="top" id="top">
+  <div class="top-in">
+    <a class="brand" href="/"><img src="/logo.png" alt="" width="32" height="32"><span><b>JD Esports Arena</b><span>Moderator panel</span></span></a>
+    <div class="who" id="who-wrap" hidden><span id="who" translate="no"></span><button type="button" class="ghost" id="signout">Sign out</button></div>
   </div>
+  <nav class="evbar" id="evbar" aria-label="Events"></nav>
+</header>
 
-  <div id="gate" class="card gate" hidden>
-    <h1>Moderator sign-in</h1>
-    <p>Sign in with your JD Esports Arena account (the one the admin added as a moderator).</p>
-    <a class="btn" id="gate-btn" href="/?signin=1&amp;next=%2Fmod%2F">Sign in</a>
-    <p class="hint" id="gate-note"></p>
-  </div>
-
-  <div id="app" hidden>
-    <details class="card" id="howto">
-      <summary style="cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.15rem;color:var(--gold-l)">📖 How to use this panel (tap to open)</summary>
-      <div style="margin-top:12px;color:var(--body);font-size:.9rem;line-height:1.6">
-        <p style="margin:0 0 6px"><b style="color:var(--cream)">1 · Send an event notification</b><br>
-        Pick the event (the nearest one is already chosen). Tap a quick template, or type your own title and message. Choose who gets it — <b style="color:var(--cream)">All players</b> (to promote the event) or <b style="color:var(--cream)">only registered squads</b> (for room IDs / reminders). Press <b style="color:var(--cream)">Send</b>. Players get a push alert on their phone, plus an in-app notification.</p>
-        <p style="margin:10px 0 6px"><b style="color:var(--cream)">2 · Send the Room ID &amp; password</b><br>
-        In <b style="color:var(--cream)">🔑 Send Room ID &amp; password</b>, pick the event, type the Room ID (and password if any), and press <b style="color:var(--cream)">Send room code</b>. It goes <b style="color:var(--cream)">only to the squads registered</b> for that event, as a phone push, in-app alert, email and Discord DM. Send it about 5 minutes before the match starts.</p>
-        <p style="margin:10px 0 6px"><b style="color:var(--cream)">3 · Contact a player</b><br>
-        Tap an event under “Today &amp; upcoming”, then scroll to <b style="color:var(--cream)">Squads &amp; reminders</b>. Each squad’s WhatsApp number is a green button — tap it to open WhatsApp and message them directly (great for room-ID reminders).</p>
-        <p style="margin:10px 0 6px"><b style="color:var(--cream)">4 · How the point system works</b> (so you can answer players)<br>
-        1 point = Rs 1. Players load points on their <a href="/wallet/">Wallet</a> by paying the eSewa QR and uploading the screenshot — the admin checks it and adds the points. Points pay for paid-event entries, squad effects and the JD-Optimiers app. <b style="color:var(--warn)">Only the admin adds or removes points</b> — moderators can’t change balances.</p>
-        <p style="margin:10px 0 0;color:var(--silver)"><b style="color:var(--cream)">What you can do:</b> send event notifications, view events, message squads. <b style="color:var(--cream)">What you can’t:</b> money/points, bans, editing events or plans — those stay with the admin.</p>
-      </div>
-    </details>
-
-    <h2>📣 Event notification <span class="ln"></span></h2>
-    <div class="card">
-      <label>Event</label>
-      <select id="n-event"></select>
-      <label>Quick templates</label>
-      <div class="row" id="n-templates" style="gap:8px"></div>
-      <label>Title</label>
-      <input id="n-title" maxlength="80" placeholder="e.g. Room ID coming soon">
-      <label>Message</label>
-      <textarea id="n-body" maxlength="500" placeholder="Type the message players will get as a push alert…"></textarea>
-      <label>Send to</label>
-      <div class="row" style="gap:16px;margin-top:2px">
-        <label style="display:inline-flex;align-items:center;gap:6px;margin:0;color:var(--cream);font-size:.9rem;text-transform:none;letter-spacing:0;cursor:pointer"><input type="radio" name="aud" value="all" checked style="width:auto"> All players</label>
-        <label style="display:inline-flex;align-items:center;gap:6px;margin:0;color:var(--cream);font-size:.9rem;text-transform:none;letter-spacing:0;cursor:pointer"><input type="radio" name="aud" value="event" style="width:auto"> Only registered squads</label>
-      </div>
-      <div class="row" style="margin-top:12px"><button class="btn" id="n-send">Send notification</button></div>
-      <div class="msg" id="n-msg"></div>
-    </div>
-
-    <h2>🔑 Send Room ID &amp; password <span class="ln"></span></h2>
-    <div class="card">
-      <label>Event</label>
-      <select id="rc-event"></select>
-      <label>Room ID</label>
-      <input id="rc-id" maxlength="40" placeholder="e.g. 123456789" autocomplete="off">
-      <label>Password <span class="hint" style="text-transform:none;letter-spacing:0">(leave blank if none)</span></label>
-      <input id="rc-pass" maxlength="40" placeholder="e.g. jd2026" autocomplete="off">
-      <div class="row" style="margin-top:12px"><button class="btn" id="rc-send">Send room code</button></div>
-      <p class="hint">Goes only to the squads registered for this event — as a phone push, in-app alert, email and Discord DM. Send it ~5 minutes before the match starts.</p>
-      <div class="msg" id="rc-msg"></div>
-    </div>
-
-    <h2>🏆 Today &amp; upcoming <span class="ln"></span></h2>
-    <div id="t-list" class="tlist"><p class="hint">Loading tournaments…</p></div>
-
-    <div id="reg-wrap" hidden>
-      <h2>👥 Squads &amp; reminders <span class="ln"></span><button class="ghost" id="reg-refresh" style="margin-left:auto">↻ Refresh</button></h2>
-      <div class="card">
-        <div id="reg-head" class="row" style="justify-content:space-between;margin-bottom:8px"></div>
-        <div id="reg-body"></div>
-        <p class="hint">Playing Yes / No saves straight away. WhatsApp opens a ready message - you only tap Send. Numbers are shown only to moderators.</p>
-      </div>
-    </div>
-  </div>
-
-  <footer>JD Esports Arena · Moderator panel</footer>
+<div id="gate" class="panel gate" hidden>
+  <h1>Moderator sign-in</h1>
+  <p>Sign in with the JD Esports Arena account the admin added as a moderator.</p>
+  <a class="btn" id="gate-btn" href="/?signin=1&amp;next=%2Fmod%2F">Sign in</a>
+  <p class="note" id="gate-note" role="status"></p>
 </div>
+
+<div class="tabs" id="tabs" role="tablist" aria-label="Moderator tools" hidden>
+  <button type="button" role="tab" aria-selected="true" data-tab="squads"><span class="tb"><svg aria-hidden="true"><use href="#i-squads"/></svg><span class="badge" id="badge-unconf" hidden></span>Squads</span></button>
+  <button type="button" role="tab" aria-selected="false" data-tab="room"><span class="tb"><svg aria-hidden="true"><use href="#i-key"/></svg>Room code</span></button>
+  <button type="button" role="tab" aria-selected="false" data-tab="chats"><span class="tb"><svg aria-hidden="true"><use href="#i-chat"/></svg><span class="badge" id="badge-chat" hidden></span>Chats</span></button>
+  <button type="button" role="tab" aria-selected="false" data-tab="notify"><span class="tb"><svg aria-hidden="true"><use href="#i-bell"/></svg>Notify</span></button>
+  <button type="button" role="tab" aria-selected="false" data-tab="help"><span class="tb"><svg aria-hidden="true"><use href="#i-help"/></svg>Help</span></button>
+</div>
+
+<main id="main" hidden>
+  <!-- desktop: events column -->
+  <aside id="tab-events">
+    <div class="panel">
+      <div class="sec-h"><h2>Events</h2></div>
+      <div class="evlist" id="evlist"></div>
+    </div>
+  </aside>
+
+  <!-- squads -->
+  <section class="tab on" id="tab-squads" aria-labelledby="h-squads">
+    <div class="panel">
+      <div class="sec-h"><h2 id="h-squads">Squads</h2><span class="sp"></span><span class="updated" id="updated" aria-live="polite"></span>
+        <button type="button" class="ghost" id="reg-refresh" aria-label="Refresh squads"><svg aria-hidden="true"><use href="#i-refresh"/></svg>Refresh</button></div>
+      <p class="lead" id="ev-line"></p>
+      <div class="sum" id="sum"></div>
+      <div id="reg-body"><p class="note">Pick an event to see its squads.</p></div>
+      <p class="note">Playing Yes / No saves straight away. WhatsApp opens a ready message – you only tap Send. Numbers are shown only to moderators.</p>
+    </div>
+  </section>
+
+  <div class="col-right">
+    <!-- JD Esports chat -->
+    <section class="tab" id="tab-chats" aria-labelledby="h-chats">
+      <div class="panel">
+        <div id="cinbox">
+          <div class="sec-h"><h2 id="h-chats">Chats</h2><span class="sp"></span><span class="updated" id="c-upd"></span></div>
+          <p class="lead">Players see your messages in their Messages as <b>JD Esports</b> <svg class="ver" viewBox="0 0 24 24" aria-label="verified"><path fill="currentColor" d="M12 1.6l2.6 1.9 3.2-.1 1 3 2.6 1.9-1 3.1 1 3.1-2.6 1.9-1 3-3.2-.1L12 22.4l-2.6-1.9-3.2.1-1-3L2.6 15.7l1-3.1-1-3.1 2.6-1.9 1-3 3.2.1z"/></svg> – never your name. They can reply here.</p>
+          <form class="chat-new" id="c-new"><input id="c-who" name="who" autocomplete="off" spellcheck="false" placeholder="@username or JD tag…" aria-label="Player's @username or JD tag"><button class="btn" type="submit">Open chat</button></form>
+          <div class="clist" id="c-list"><p class="note">Loading chats…</p></div>
+        </div>
+        <div id="cview" hidden>
+          <div class="cview-h"><button type="button" class="ghost" id="c-back" aria-label="Back to chats"><svg aria-hidden="true"><use href="#i-back"/></svg></button>
+            <div style="min-width:0"><b id="c-name" translate="no"></b><small id="c-sub"></small></div></div>
+          <div class="cmsgs" id="c-msgs" aria-live="polite"></div>
+          <form class="ccomp" id="c-form"><textarea id="c-in" maxlength="1000" placeholder="Message as JD Esports…" aria-label="Message as JD Esports"></textarea><button class="btn" type="submit" id="c-send">Send</button></form>
+          <p class="note">Sends as JD Esports with a phone push. Your moderator email is never shown to the player.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- room code -->
+    <section class="tab" id="tab-room" aria-labelledby="h-room">
+      <div class="panel">
+        <div class="sec-h"><h2 id="h-room">Room code</h2></div>
+        <p class="lead">Goes only to the squads in a slot for <b id="rc-ev">this event</b> – phone push, in-app alert, email and Discord DM. Send it about 5 minutes before the match.</p>
+        <div class="pair">
+          <div><label class="f" for="rc-id">Room ID</label><input id="rc-id" name="room_id" maxlength="40" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="e.g. 123456789…"></div>
+          <div><label class="f" for="rc-pass">Password</label><input id="rc-pass" name="room_pass" maxlength="40" autocomplete="off" spellcheck="false" placeholder="Blank if none"></div>
+        </div>
+        <button class="btn full" id="rc-send" type="button">Send room code</button>
+        <div class="msg" id="rc-msg" role="status" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- notify -->
+    <section class="tab" id="tab-notify" aria-labelledby="h-notify">
+      <div class="panel">
+        <div class="sec-h"><h2 id="h-notify">Notification</h2></div>
+        <label class="f">Quick templates</label>
+        <div class="tmpl" id="n-templates"></div>
+        <label class="f" for="n-title">Title</label>
+        <input id="n-title" name="title" maxlength="80" autocomplete="off" placeholder="e.g. Room ID coming soon…">
+        <label class="f" for="n-body">Message</label>
+        <textarea id="n-body" name="message" maxlength="500" placeholder="What players see in the push alert…"></textarea>
+        <label class="f">Send to</label>
+        <div class="seg" role="radiogroup">
+          <label><input type="radio" name="aud" value="event" checked> Squads in this event</label>
+          <label><input type="radio" name="aud" value="all"> All players</label>
+        </div>
+        <button class="btn full" id="n-send" type="button">Send notification</button>
+        <div class="msg" id="n-msg" role="status" aria-live="polite"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- help -->
+  <section class="tab help" id="tab-help" aria-labelledby="h-help">
+    <div class="panel">
+      <div class="sec-h"><h2 id="h-help">How it works</h2></div>
+      <h3>Match night</h3>
+      <p>Pick tonight's event. In Squads, set Playing to Yes for squads that confirmed. Tap WhatsApp to send a ready reminder to the ones that haven't. Remove squads that never confirm – the waitlist moves up by itself.</p>
+      <h3>Room code</h3>
+      <p>Type the Room ID and password and send it about 5 minutes before the start. Only squads in a slot get it. If you remove a squad after sending, change the room password and send the new one.</p>
+      <h3>Chats</h3>
+      <p>Tap Message on a squad, or type a player's @username, to chat with them. They see it in Messages as JD Esports with a verified tick – never your name or email – and get a phone push. Their replies show up here with a count on the Chats tab.</p>
+      <h3>Notifications</h3>
+      <p>Templates fill the title and message. "Squads in this event" reaches only that event's players; "All players" reaches everyone on JD Arena – use it to promote an event.</p>
+      <h3>Points</h3>
+      <p>1 point = Rs 1. Players load points on their Wallet with the eSewa QR and a screenshot; the admin adds them. Paid events need enough points to join. Only the admin changes balances, bans or events.</p>
+    </div>
+  </section>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
 <script>
@@ -191,58 +354,62 @@ const FN=SUPABASE_URL+'/functions/v1/mod-panel';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let token=null, tournaments=[], selected=null;
+let tournaments=[], selected=null, rows=[], filter='all', loadingSquads=false;
 
-/* sheet({title, text, input:'text'|'textarea'|null, value, chips:[...], ok, danger}) -> Promise<string|true|null> */
+/* ── sheet (replaces confirm / prompt / alert) and toast ── */
 function sheet(o){
   return new Promise(res=>{
+    const prev=document.activeElement;
     const bg=document.createElement('div');bg.className='sheet-bg';
-    const field=o.input==='textarea'?`<textarea id="sh-in" maxlength="500">${esc(o.value||'')}</textarea>`
-      :o.input==='text'?`<input id="sh-in" maxlength="200" value="${esc(o.value||'')}">`:'';
+    const field=o.input==='textarea'?`<textarea id="sh-in" maxlength="500" aria-label="${esc(o.title)}">${esc(o.value||'')}</textarea>`
+      :o.input==='text'?`<input id="sh-in" maxlength="200" autocomplete="off" aria-label="${esc(o.title)}" placeholder="${esc(o.placeholder||'')}" value="${esc(o.value||'')}">`:'';
     bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t"><h3 id="sh-t">${esc(o.title)}</h3>`+
       (o.text?`<p>${esc(o.text)}</p>`:'')+
       (o.chips&&o.chips.length?`<div class="chips">${o.chips.map(c=>`<button type="button">${esc(c)}</button>`).join('')}</div>`:'')+field+
       `<div class="row2">${o.cancel===false?'':'<button type="button" class="ghost" data-x>Cancel</button>'}<button type="button" class="btn sm${o.danger?' danger':''}" data-ok>${esc(o.ok||'OK')}</button></div></div>`;
-    document.body.appendChild(bg);
+    document.body.appendChild(bg);document.body.style.overflow='hidden';
     requestAnimationFrame(()=>bg.classList.add('open'));
-    const inp=bg.querySelector('#sh-in');
-    const done=v=>{bg.classList.remove('open');setTimeout(()=>bg.remove(),200);document.removeEventListener('keydown',key);res(v);};
-    const key=e=>{if(e.key==='Escape')done(null);};
+    const inp=bg.querySelector('#sh-in'), okb=bg.querySelector('[data-ok]');
+    const done=v=>{bg.classList.remove('open');document.body.style.overflow='';setTimeout(()=>bg.remove(),200);document.removeEventListener('keydown',key);if(prev&&prev.focus)prev.focus();res(v);};
+    const key=e=>{
+      if(e.key==='Escape')done(null);
+      if(e.key==='Tab'){const f=[...bg.querySelectorAll('button,input,textarea')];const i=f.indexOf(document.activeElement);
+        if(e.shiftKey&&i<=0){e.preventDefault();f[f.length-1].focus();}else if(!e.shiftKey&&i===f.length-1){e.preventDefault();f[0].focus();}}
+      if(e.key==='Enter'&&inp&&inp.tagName==='INPUT'&&document.activeElement===inp){e.preventDefault();okb.click();}
+    };
     document.addEventListener('keydown',key);
     bg.addEventListener('click',e=>{if(e.target===bg)done(null);});
     bg.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>{if(inp){inp.value=b.textContent;inp.focus();}});
     const x=bg.querySelector('[data-x]');if(x)x.onclick=()=>done(null);
-    bg.querySelector('[data-ok]').onclick=()=>{
-      if(inp){const v=inp.value.trim();if(o.required&&!v){inp.focus();return;}done(v);}else done(true);
-    };
-    setTimeout(()=>(inp||bg.querySelector('[data-ok]')).focus(),60);
+    okb.onclick=()=>{ if(inp){const v=inp.value.trim();if(o.required&&!v){inp.focus();inp.style.borderColor='var(--bad)';return;}done(v);}else done(true); };
+    setTimeout(()=>(inp||okb).focus(),60);
   });
 }
 let _toastT=null;
 function toast(text,undo,err){
   document.querySelectorAll('.toast').forEach(t=>t.remove());
-  const t=document.createElement('div');t.className='toast'+(err?' err':'');t.setAttribute('role','status');
+  const t=document.createElement('div');t.className='toast'+(err?' err':'');t.setAttribute('role','status');t.setAttribute('aria-live','polite');
   t.innerHTML=`<span>${esc(text)}</span>`+(undo?'<button type="button">Undo</button>':'');
   document.body.appendChild(t);
   if(undo)t.querySelector('button').onclick=()=>{t.remove();undo();};
   clearTimeout(_toastT);_toastT=setTimeout(()=>t.remove(),undo?6000:3500);
 }
 
+/* ── server: a fresh sign-in token on every call (they expire after an hour), readable errors ── */
 async function call(body){
-  const r=await fetch(FN,{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+token},body:JSON.stringify(body)});
-  if(!r.ok) throw new Error(await r.text());
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session) throw new Error('You were signed out. Sign in again to keep moderating.');
+  const r=await fetch(FN,{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+session.access_token},body:JSON.stringify(body)});
+  if(!r.ok){
+    let t=await r.text();
+    try{const j=JSON.parse(t);t=j.error||j.message||j.msg||t;}catch(e){}
+    if(r.status===401) t='Your sign-in ran out. Reload the page and sign in again.';
+    throw new Error(t||('Server error '+r.status+' – try again.'));
+  }
   return r.json();
 }
-function waLink(num,text){ const n=String(num).replace(/[^\d]/g,''); return n.length>=9?'https://wa.me/'+(n.length<=10?'977'+n:n)+(text?'?text='+encodeURIComponent(text):''):null; }
-/* WhatsApp opens with this message ready - the mod only taps Send. */
-function waTemplate(squad, ev){
-  const mod=($('who').textContent||'').split('@')[0].replace(/[._-]+/g,' ').trim()||'a JD moderator';
-  return `Hey ${squad}! \u{1F44B} This is ${mod} from JD Esports Arena.\n\n`+
-    `Is your squad ready for *${ev.name}* (${fmtWhen(ev)})? Please reply *YES* to confirm your slot `+
-    `- or tap "Confirm you're playing" on jdesport.co.uk.\n\n`+
-    `Squads that don't confirm before the match can lose their slot to the waitlist. GG \u{1F3AE}`;
-}
 
+/* ── events ── */
 function isUpcoming(t){
   const s=(t.status||'').toLowerCase();
   if(s==='finished'||s==='cancelled'||s==='completed') return false;
@@ -250,157 +417,251 @@ function isUpcoming(t){
   return true;
 }
 function fmtWhen(t){ return [t.date,t.time].filter(Boolean).join(' · ') || (t.start?new Date(t.start).toLocaleString():''); }
-
-const TEMPLATES=[
-  ['📢 Registration open', e=>['Registration open: '+e.name, e.name+' is open for registration! Join now on JD Esports Arena before slots fill up. '+fmtWhen(e)+'.']],
-  ['🔑 Room ID soon', e=>['Room details coming', 'Get ready! Room ID & password for '+e.name+' will be sent here about 5 minutes before the match. Be online.']],
-  ['⏰ Starting soon', e=>['Starting soon: '+e.name, e.name+' starts soon ('+fmtWhen(e)+'). Open the game and get ready!']],
-  ['🏆 Results posted', e=>['Results are up', 'Results for '+e.name+' are posted on JD Esports Arena. Check the leaderboard to see how your squad did. GG!']],
-];
-function renderTemplates(){
-  const box=$('n-templates'); box.innerHTML='';
-  const e=tournaments[+($('n-event').value||0)]; if(!e) return;
-  TEMPLATES.forEach(([label,fn])=>{ const b=document.createElement('button'); b.type='button'; b.className='ghost'; b.textContent=label;
-    b.onclick=()=>{ const [t,m]=fn(e); $('n-title').value=t; $('n-body').value=m; }; box.appendChild(b); });
+function isLive(t){ return t.start && Math.abs(new Date(t.start)-Date.now())<3*3600*1000; }
+function evPill(t,i){
+  return `<button type="button" class="evpill" data-ev="${i}" aria-pressed="${selected===t}"><span><b>${esc(t.name)}</b>`+
+    `<small>${isLive(t)?'<span class="live">Tonight · </span>':''}${esc(fmtWhen(t))}${t.entry?' · '+esc(t.entry):''}</small></span></button>`;
+}
+function renderEvents(){
+  const html=tournaments.map(evPill).join('')||'<p class="note">No upcoming events right now.</p>';
+  $('evbar').innerHTML=html; $('evlist').innerHTML=html;
 }
 async function loadTournaments(){
   try{
     const r=await fetch('/tournaments.json?t='+Date.now(),{cache:'no-store'});
     const j=await r.json();
     tournaments=(j.tournaments||[]).filter(isUpcoming).sort((a,b)=>new Date(a.start||0)-new Date(b.start||0));
-    const list=$('t-list'), ev=$('n-event');
-    ev.innerHTML=''; $('rc-event').innerHTML='';
-    if(!tournaments.length){ list.innerHTML='<p class="hint">No upcoming tournaments right now.</p>'; ev.innerHTML='<option>No upcoming event</option>'; $('rc-event').innerHTML='<option>No upcoming event</option>'; return; }
-    list.innerHTML='';
-    tournaments.forEach((t,i)=>{
-      const live=t.start && Math.abs(new Date(t.start)-Date.now())<3*3600*1000;
-      const row=document.createElement('div'); row.className='trow'; row.dataset.i=i;
-      row.innerHTML=`<div><div class="t">${esc(t.name)}</div><div class="d">${esc(fmtWhen(t))} · ${esc(t.entry||'')}</div></div><span class="tag${live?' live':''}">${live?'LIVE SOON':esc((t.status||'upcoming'))}</span>`;
-      row.onclick=()=>selectTournament(i);
-      list.appendChild(row);
-      const o=document.createElement('option'); o.value=i; o.textContent=t.name+'  ('+fmtWhen(t)+')'; ev.appendChild(o);
-      const o2=document.createElement('option'); o2.value=i; o2.textContent=t.name+'  ('+fmtWhen(t)+')'; $('rc-event').appendChild(o2);
-    });
-    ev.value='0';                 /* nearest upcoming event selected by default */
-    $('rc-event').value='0';
-    ev.onchange=renderTemplates;
-    renderTemplates();
-  }catch(e){ $('t-list').innerHTML='<p class="msg err">Could not load tournaments.</p>'; }
+    const keep=selected&&tournaments.find(t=>t.name===selected.name);
+    selectEvent(keep||tournaments[0]||null,false);
+  }catch(e){ $('reg-body').innerHTML='<p class="msg err">Could not load the events – check your connection and tap Refresh.</p>'; }
 }
+function selectEvent(t,scroll){
+  selected=t;
+  renderEvents();
+  $('rc-ev').textContent=t?t.name:'this event';
+  $('ev-line').textContent=t?`${t.name} · ${fmtWhen(t)}${t.entry?' · '+t.entry:''}`:'';
+  renderTemplates();
+  rows=[]; filter='all';
+  loadSquads(false);
+  if(scroll){const p=document.querySelector('.evbar [aria-pressed=true]');if(p)p.scrollIntoView({inline:'center',block:'nearest'});}
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-ev]');if(b)selectEvent(tournaments[+b.dataset.ev],true);});
 
-async function selectTournament(i){
-  selected=tournaments[i];
-  document.querySelectorAll('.trow').forEach(r=>r.classList.toggle('sel',+r.dataset.i===i));
-  $('n-event').value=i; renderTemplates();
-  $('reg-wrap').hidden=false;
-  $('reg-head').innerHTML=`<b>${esc(selected.name)}</b><span class="hint">${esc(fmtWhen(selected))}</span>`;
-  $('reg-body').innerHTML='<p class="hint">Loading squads…</p>';
-  $('reg-wrap').scrollIntoView({behavior:'smooth'});
-  try{
-    const rows=await call({action:'registrations',slug:selected.name});
-    if(!rows.length){ $('reg-body').innerHTML='<p class="hint">No squads registered yet.</p>'; return; }
-    let slotNo=0;
-    const active=r=>r.status==='approved'||r.status==='confirmed';
-    const list=rows.map(r=>{
-      const on=active(r), wait=r.status==='waitlisted';
-      const no=on?String(++slotNo):wait?'W':'–';
-      const wl=r.whatsapp?waLink(r.whatsapp,waTemplate(r.squad_name||'squad',selected)):null;
-      const play=on?`<div class="play" role="group" aria-label="Playing?">`+
-        `<button type="button" class="y" data-act="conf" data-id="${esc(r.id)}" data-on="1" aria-pressed="${r.checked_in?'true':'false'}">Yes</button>`+
-        `<button type="button" class="n" data-act="conf" data-id="${esc(r.id)}" data-on="0" aria-pressed="${r.checked_in?'false':'true'}">No</button></div>`
-        :`<span class="hint" style="margin:0">${esc(wait?'waitlist':r.status||'')}</span>`;
-      const acts=(wl?`<a class="abtn wa2" href="${wl}" target="_blank" rel="noopener">WhatsApp</a>`:`<span class="abtn" aria-disabled="true" style="opacity:.5">No WhatsApp</span>`)+
-        `<button type="button" class="abtn" data-act="note" data-id="${esc(r.id)}" data-sq="${esc(r.squad_name||'')}">Message</button>`+
-        `<button type="button" class="abtn rm" data-act="rm" data-id="${esc(r.id)}" data-sq="${esc(r.squad_name||'')}">Remove</button>`;
-      return `<div class="slot${on?'':' off'}${wait?' wait':''}"><span class="no">${no}</span>`+
-        `<div class="nm"><b>${esc(r.squad_name||'(squad)')}</b><small>${esc(r.captain||'')}${r.whatsapp?' · '+esc(r.whatsapp):''}</small></div>`+
-        play+`<div class="acts">${acts}</div></div>`;
-    }).join('');
-    const act=rows.filter(active), yes=act.filter(r=>r.checked_in).length;
-    $('reg-body').innerHTML=`<div class="slots-sum"><span><b>${act.length}</b> in slots</span><span><b>${yes}</b> playing</span>`+
-      `<span style="color:${act.length-yes?'var(--warn)':'var(--ok)'}"><b>${act.length-yes}</b> not confirmed</span>`+
-      `<span><b>${rows.filter(r=>r.status==='waitlisted').length}</b> on the waitlist</span></div><div class="slots">${list}</div>`;
-  }catch(e){ $('reg-body').innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; }
+/* ── squads ── */
+const active=r=>r.status==='approved'||r.status==='confirmed';
+function waLink(num,text){ const n=String(num).replace(/[^\d]/g,''); return n.length>=9?'https://wa.me/'+(n.length<=10?'977'+n:n)+(text?'?text='+encodeURIComponent(text):''):null; }
+function waTemplate(squad, ev){
+  const mod=($('who').textContent||'').split('@')[0].replace(/[._-]+/g,' ').replace(/\d+/g,'').trim()||'a JD moderator';
+  return `Hey ${squad}! \u{1F44B} This is ${mod} from JD Esports Arena.\n\n`+
+    `Is your squad ready for *${ev.name}* (${fmtWhen(ev)})? Please reply *YES* to confirm your slot `+
+    `– or tap "Confirm you're playing" on jdesport.co.uk.\n\n`+
+    `Squads that don't confirm before the match can lose their slot to the waitlist. GG \u{1F3AE}`;
 }
-/* per-squad actions (mod-panel: set_confirmed / remove_team / notify_player) */
-const reload=()=>selectTournament(tournaments.indexOf(selected));
+async function loadSquads(quiet){
+  if(!selected){ $('reg-body').innerHTML='<div class="empty">No upcoming event. New events show up here as soon as the admin publishes them.</div>'; $('sum').innerHTML=''; return; }
+  if(loadingSquads) return;
+  loadingSquads=true;
+  if(!quiet) $('reg-body').innerHTML='<p class="note">Loading squads…</p>';
+  const ev=selected;
+  try{
+    const data=await call({action:'registrations',slug:ev.name});
+    if(ev!==selected) return;
+    rows=data;
+    renderSquads();
+    $('updated').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  }catch(e){ if(!quiet) $('reg-body').innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; }
+  finally{ loadingSquads=false; }
+}
+function renderSquads(){
+  const act=rows.filter(active), yes=act.filter(r=>r.checked_in).length, wait=rows.filter(r=>r.status==='waitlisted').length, no=act.length-yes;
+  const badge=$('badge-unconf'); badge.hidden=!no; badge.textContent=no;
+  const fil=(k,label,n,cls)=>`<button type="button" class="fil${cls?' '+cls:''}" data-fil="${k}" aria-pressed="${filter===k}"><b>${n}</b> ${label}</button>`;
+  $('sum').innerHTML=fil('all','in slots',act.length)+fil('yes','playing',yes)+fil('no','not confirmed',no,no?'warn':'')+fil('wait','waitlist',wait);
+  if(!rows.length){ $('reg-body').innerHTML='<div class="empty">No squads have registered yet.</div>'; return; }
+  let slotNo=0;
+  const shown=rows.map(r=>{const on=active(r);return {r,on,no:on?++slotNo:null};}).filter(({r,on})=>
+    filter==='all'?true:filter==='yes'?on&&r.checked_in:filter==='no'?on&&!r.checked_in:r.status==='waitlisted');
+  if(!shown.length){ $('reg-body').innerHTML='<div class="empty">Nothing here – every squad in this list is done.</div>'; return; }
+  $('reg-body').innerHTML='<div class="slots">'+shown.map(({r,on,no})=>{
+    const wait=r.status==='waitlisted', name=r.squad_name||'(squad)';
+    const wl=r.whatsapp?waLink(r.whatsapp,waTemplate(name,selected)):null;
+    const play=on?`<div class="play" role="group" aria-label="Is ${esc(name)} playing?">`+
+      `<button type="button" class="y" data-act="conf" data-id="${esc(r.id)}" data-on="1" aria-pressed="${r.checked_in?'true':'false'}">Yes</button>`+
+      `<button type="button" class="n" data-act="conf" data-id="${esc(r.id)}" data-on="0" aria-pressed="${r.checked_in?'false':'true'}">No</button></div>`
+      :`<span class="state">${esc(wait?'Waitlist':r.status||'')}</span>`;
+    const acts=(wl?`<a class="abtn wa" href="${wl}" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-wa"/></svg>WhatsApp</a>`
+                  :`<span class="abtn" aria-disabled="true">No WhatsApp</span>`)+
+      `<button type="button" class="abtn" data-act="note" data-id="${esc(r.id)}" data-sq="${esc(name)}"><svg aria-hidden="true"><use href="#i-msg"/></svg>Message</button>`+
+      `<button type="button" class="abtn rm" data-act="rm" data-id="${esc(r.id)}" data-sq="${esc(name)}"><svg aria-hidden="true"><use href="#i-x"/></svg>Remove</button>`;
+    return `<div class="slot${on?'':' off'}${wait?' wait':''}"><span class="no" aria-label="${on?'Slot '+no:wait?'Waitlist':''}">${on?no:wait?'W':'–'}</span>`+
+      `<div class="nm"><b translate="no">${esc(name)}</b><small>${esc(r.captain||'')}${r.whatsapp?' · '+esc(r.whatsapp):''}</small></div>`+
+      play+`<div class="acts">${acts}</div></div>`;
+  }).join('')+'</div>';
+}
+$('sum').addEventListener('click',e=>{const b=e.target.closest('[data-fil]');if(!b)return;filter=b.dataset.fil;renderSquads();});
 async function setPlaying(id,on,sq,quiet){
   await call({action:'set_confirmed',id,on});
-  if(!quiet) toast(`${sq} marked ${on?'playing':'not confirmed'}.`,()=>setPlaying(id,!on,sq,true).then(reload));
+  const r=rows.find(x=>x.id===id); if(r) r.checked_in=on;            /* show it at once, no reload jump */
+  renderSquads();
+  if(!quiet) toast(`${sq} marked ${on?'playing':'not confirmed'}.`,()=>setPlaying(id,!on,sq,true).catch(err=>toast(err.message,null,true)));
 }
 $('reg-body').addEventListener('click',async e=>{
   const b=e.target.closest('button[data-act]'); if(!b) return;
-  const id=b.dataset.id;
-  const slot=b.closest('.slot'), sq=b.dataset.sq||(slot&&slot.querySelector('.nm b').textContent)||'this squad';
+  const id=b.dataset.id, slot=b.closest('.slot'), sq=b.dataset.sq||(slot&&slot.querySelector('.nm b').textContent)||'this squad';
   try{
     if(b.dataset.act==='conf'){
       if(b.getAttribute('aria-pressed')==='true') return;
       b.parentElement.querySelectorAll('button').forEach(x=>x.disabled=true);
       await setPlaying(id,b.dataset.on==='1',sq);
-      reload();
     } else if(b.dataset.act==='rm'){
       const reason=await sheet({title:`Remove ${sq}?`,text:`They lose their slot in ${selected.name} and get a notification with the reason. The next squad on the waitlist moves up.`,
-        input:'text',value:'',chips:['Did not confirm','No full team','WhatsApp not reachable','Broke the rules'],ok:'Remove squad',danger:true,required:true});
+        input:'text',placeholder:'Reason (sent to the squad)…',chips:['Did not confirm','No full team','WhatsApp not reachable','Broke the rules'],ok:'Remove squad',danger:true,required:true});
       if(reason===null) return;
       b.disabled=true;
       const rr=await call({action:'remove_team',id,reason});
-      reload();
-      if(rr&&rr.room_code_was_sent) await sheet({title:'Change the room password',text:`${sq} already got the Room ID. Change the password in Free Fire and send the new one to the squads (Send Room ID above).`,ok:'Got it',cancel:false});
+      await loadSquads(true);
+      if(rr&&rr.room_code_was_sent) await sheet({title:'Change the room password',text:`${sq} already got the Room ID. Change the password in Free Fire and send the new one from Room code.`,ok:'Got it',cancel:false});
       else toast(`${sq} removed.`);
     } else if(b.dataset.act==='note'){
-      const body=await sheet({title:`Message ${sq}`,text:'Only this squad gets it - as a phone push and in their notifications.',input:'textarea',
-        value:`Please confirm your squad for ${selected.name} - reply on WhatsApp or tap "Confirm you're playing" on jdesport.co.uk.`,ok:'Send message',required:true});
-      if(!body) return;
-      b.disabled=true;
-      await call({action:'notify_player',id,title:selected.name,body});
-      b.disabled=false;
-      toast(`Message sent to ${sq}.`);
+      openChat({id},`Hi ${sq}! This is the JD Esports team. Is your squad ready for ${selected.name} (${fmtWhen(selected)})? Reply here to confirm your slot.`);
     }
-  }catch(err){ toast(err.message||'Something went wrong - try again.',null,true); b.disabled=false; reload(); }
+  }catch(err){ toast(err.message||'Something went wrong – try again.',null,true); b.disabled=false; loadSquads(true); }
 });
-$('reg-refresh').onclick=()=>{ if(selected) selectTournament(tournaments.indexOf(selected)); };
+$('reg-refresh').onclick=()=>loadSquads(false);
+/* squads confirm themselves on the site: refresh quietly every 30 s while the panel is open */
+setInterval(()=>{ if(!document.hidden&&selected&&!document.querySelector('.sheet-bg')) loadSquads(true); },30000);
 
+/* ── notifications ── */
+const TEMPLATES=[
+  ['Registration open', e=>['Registration open: '+e.name, e.name+' is open for registration! Join now on JD Esports Arena before slots fill up. '+fmtWhen(e)+'.']],
+  ['Room ID soon', e=>['Room details coming', 'Get ready! Room ID & password for '+e.name+' arrive here about 5 minutes before the match. Be online.']],
+  ['Starting soon', e=>['Starting soon: '+e.name, e.name+' starts soon ('+fmtWhen(e)+'). Open the game and get ready!']],
+  ['Confirm your slot', e=>['Confirm your slot: '+e.name, 'Tap "Confirm you\'re playing" on your ticket for '+e.name+' – unconfirmed squads lose their slot to the waitlist.']],
+  ['Results posted', e=>['Results are up', 'Results for '+e.name+' are posted on JD Esports Arena. Check the leaderboard to see how your squad did. GG!']],
+];
+function renderTemplates(){
+  const box=$('n-templates'); box.innerHTML='';
+  const e=selected; if(!e) return;
+  TEMPLATES.forEach(([label,fn])=>{ const b=document.createElement('button'); b.type='button'; b.textContent=label;
+    b.onclick=()=>{ const [t,m]=fn(e); $('n-title').value=t; $('n-body').value=m; }; box.appendChild(b); });
+}
 $('n-send').onclick=async()=>{
   const title=$('n-title').value.trim(), body=$('n-body').value.trim();
-  const ev=tournaments[+($('n-event').value||0)];
-  const onlyReg=document.querySelector('input[name=aud]:checked').value==='event';
-  const slug=(onlyReg && ev)?ev.name:null;
-  if(!title||!body){ $('n-msg').textContent='Enter a title and a message.'; $('n-msg').className='msg err'; return; }
-  const who=slug?('registered squads in '+slug):'ALL players on JD Arena';
-  if(!await sheet({title:'Send this notification?',text:'"'+title+'" goes to '+who+' as a phone push and in their notifications.',ok:'Send notification'})) return;
-  const btn=$('n-send'); btn.disabled=true; $('n-msg').textContent='Sending…'; $('n-msg').className='msg';
+  const onlyEv=document.querySelector('input[name=aud]:checked').value==='event';
+  const msg=$('n-msg');
+  if(!title||!body){ msg.textContent='Add a title and a message first.'; msg.className='msg err'; (title?$('n-body'):$('n-title')).focus(); return; }
+  if(onlyEv&&!selected){ msg.textContent='Pick an event first.'; msg.className='msg err'; return; }
+  const who=onlyEv?('the squads in '+selected.name):'ALL players on JD Arena';
+  if(!await sheet({title:'Send this notification?',text:`"${title}" goes to ${who} as a phone push and in their notifications.`,ok:'Send notification'})) return;
+  const btn=$('n-send'); btn.disabled=true; btn.textContent='Sending…'; msg.textContent=''; msg.className='msg';
   try{
-    const r=await call({action:'notify',title,body,slug});
-    $('n-msg').textContent='Sent to '+(r.sent_to==='everyone'?'everyone':r.sent_to+' player(s)')+'. ✓';
-    $('n-msg').className='msg ok'; $('n-title').value=''; $('n-body').value='';
-  }catch(e){ $('n-msg').textContent=e.message; $('n-msg').className='msg err'; }
-  btn.disabled=false;
+    const r=await call({action:'notify',title,body,slug:onlyEv?selected.name:null});
+    msg.textContent='Sent to '+(r.sent_to==='everyone'?'everyone':r.sent_to+' player'+(r.sent_to===1?'':'s'))+'.';
+    msg.className='msg ok'; $('n-title').value=''; $('n-body').value='';
+  }catch(e){ msg.textContent=e.message; msg.className='msg err'; }
+  btn.disabled=false; btn.textContent='Send notification';
 };
 
+/* ── room code ── */
 $('rc-send').onclick=async()=>{
-  const ev=tournaments[+($('rc-event').value||0)];
-  const room_id=$('rc-id').value.trim(), room_pass=$('rc-pass').value.trim();
-  if(!ev){ $('rc-msg').textContent='No event selected.'; $('rc-msg').className='msg err'; return; }
-  if(!room_id){ $('rc-msg').textContent='Enter the Room ID.'; $('rc-msg').className='msg err'; return; }
-  if(!await sheet({title:'Send the room code?',text:'Room ID '+room_id+(room_pass?(' · password '+room_pass):'')+' goes to every squad in a slot for '+ev.name+'.',ok:'Send room code'})) return;
-  const btn=$('rc-send'); btn.disabled=true; $('rc-msg').textContent='Sending…'; $('rc-msg').className='msg';
+  const room_id=$('rc-id').value.trim(), room_pass=$('rc-pass').value.trim(), msg=$('rc-msg');
+  if(!selected){ msg.textContent='Pick an event first.'; msg.className='msg err'; return; }
+  if(!room_id){ msg.textContent='Type the Room ID first.'; msg.className='msg err'; $('rc-id').focus(); return; }
+  if(!await sheet({title:'Send the room code?',text:`Room ID ${room_id}${room_pass?' · password '+room_pass:''} goes to every squad in a slot for ${selected.name}.`,ok:'Send room code'})) return;
+  const btn=$('rc-send'); btn.disabled=true; btn.textContent='Sending…'; msg.textContent=''; msg.className='msg';
   try{
-    const r=await call({action:'room_code',slug:ev.name,room_id,room_pass});
-    $('rc-msg').textContent='Sent to '+(r.sent_to||0)+' squad(s). ✓'+((r.unresolved&&r.unresolved.length)?' (unmatched: '+r.unresolved.join(', ')+')':'');
-    $('rc-msg').className='msg ok'; $('rc-id').value=''; $('rc-pass').value='';
-  }catch(e){ $('rc-msg').textContent=e.message; $('rc-msg').className='msg err'; }
-  btn.disabled=false;
+    const r=await call({action:'room_code',slug:selected.name,room_id,room_pass});
+    msg.textContent='Sent to '+(r.sent_to||0)+' squad'+(r.sent_to===1?'':'s')+'.'+((r.unresolved&&r.unresolved.length)?' Not found: '+r.unresolved.join(', ')+'.':'');
+    msg.className='msg ok'; $('rc-id').value=''; $('rc-pass').value='';
+  }catch(e){ msg.textContent=e.message; msg.className='msg err'; }
+  btn.disabled=false; btn.textContent='Send room code';
 };
+
+/* ── JD Esports chat: one official conversation per player (jd_chat.sql) ── */
+let chatWith=null, chatTimer=null, inbox=[];
+const ago=t=>{const d=(Date.now()-new Date(t))/60000;return d<1?'now':d<60?Math.floor(d)+'m':d<1440?Math.floor(d/60)+'h':new Date(t).toLocaleDateString([], {day:'numeric',month:'short'});};
+async function loadInbox(){
+  try{
+    inbox=await call({action:'chat_inbox'});
+    const unread=inbox.reduce((n,t)=>n+(t.unread||0),0), bd=$('badge-chat');
+    bd.hidden=!unread; bd.textContent=unread>9?'9+':unread;
+    $('c-upd').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    $('c-list').innerHTML=inbox.length?inbox.map(t=>`<button type="button" class="crow${t.unread?' unread':''}" data-pid="${esc(t.player_id)}">`+
+      `<span class="av" aria-hidden="true">${esc((t.player.name||'P').replace('@','').charAt(0).toUpperCase())}</span>`+
+      `<span style="min-width:0"><b translate="no">${esc(t.player.name)}${t.player.squad?' · '+esc(t.player.squad):''}</b><small>${t.last_staff?'JD: ':''}${esc(t.last)}</small></span>`+
+      `<span class="rt">${esc(ago(t.last_at))}${t.unread?`<span class="dot">${t.unread}</span>`:''}</span></button>`).join('')
+      :'<div class="empty">No chats yet. Tap Message on a squad, or type a player\'s @username above.</div>';
+  }catch(e){ $('c-list').innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; }
+}
+function renderChat(d){
+  const box=$('c-msgs'), atEnd=box.scrollTop+box.clientHeight>=box.scrollHeight-60;
+  $('c-name').textContent=d.player.name; $('c-sub').textContent=[d.player.tag,d.player.squad].filter(Boolean).join(' · ');
+  box.innerHTML=d.messages.length?d.messages.map(m=>`<div class="cm ${m.staff?'st':'pl'}">${esc(m.body)}<small>${m.staff?esc(m.by)+' · ':''}${esc(ago(m.created_at))}${m.staff&&m.read_at?' · Seen':''}</small></div>`).join('')
+    :'<p class="cempty">No messages yet. Say hi – it arrives as JD Esports.</p>';
+  if(atEnd||box.dataset.first!=='0'){box.scrollTop=box.scrollHeight;box.dataset.first='0';}
+}
+async function refreshChat(){
+  if(!chatWith) return;
+  const who=chatWith;
+  try{ const d=await call({action:'chat_thread',...who}); if(who!==chatWith) return; chatWith={player_id:d.player.id}; renderChat(d); }
+  catch(e){ if(who===chatWith) $('c-msgs').innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; }
+}
+async function openChat(who,draft){
+  chatWith=who;
+  $('cinbox').hidden=true; $('cview').hidden=false;
+  $('c-name').textContent='Loading…'; $('c-sub').textContent=''; $('c-msgs').innerHTML=''; $('c-msgs').dataset.first='1';
+  $('c-in').value=draft||'';
+  if(matchMedia('(max-width:1079px)').matches) showTab('chats'); else $('tab-chats').scrollIntoView({block:'nearest'});
+  await refreshChat();
+  loadInbox();
+  clearInterval(chatTimer); chatTimer=setInterval(()=>{ if(!document.hidden) refreshChat(); },8000);
+  $('c-in').focus();
+}
+function closeChat(){ chatWith=null; clearInterval(chatTimer); $('cview').hidden=true; $('cinbox').hidden=false; loadInbox(); }
+$('c-back').onclick=closeChat;
+$('c-list').addEventListener('click',e=>{const b=e.target.closest('[data-pid]');if(b)openChat({player_id:b.dataset.pid});});
+$('c-new').onsubmit=e=>{e.preventDefault();const w=$('c-who').value.trim();if(!w){$('c-who').focus();return;}$('c-who').value='';openChat({who:w});};
+$('c-in').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&matchMedia('(pointer:fine)').matches){e.preventDefault();$('c-form').requestSubmit();} });
+$('c-form').onsubmit=async e=>{
+  e.preventDefault();
+  const body=$('c-in').value.trim(); if(!body||!chatWith) return;
+  const btn=$('c-send'); btn.disabled=true; btn.textContent='Sending…';
+  try{ await call({action:'chat_send',...chatWith,body}); $('c-in').value=''; $('c-msgs').dataset.first='1'; await refreshChat(); }
+  catch(err){ toast(err.message,null,true); }
+  btn.disabled=false; btn.textContent='Send';
+};
+setInterval(()=>{ if(!document.hidden&&!chatWith&&$('main')&&!$('main').hidden) loadInbox(); },20000);
+
+/* ── tabs (phone / tablet) ── */
+function showTab(name){
+  document.querySelectorAll('#tabs [role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===name?'true':'false'));
+  ['squads','chats','room','notify','help'].forEach(n=>$('tab-'+n).classList.toggle('on',n===name));
+  try{history.replaceState(null,'','#'+name);}catch(e){}
+  window.scrollTo({top:0});
+}
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)showTab(b.dataset.tab);});
+$('tabs').addEventListener('keydown',e=>{
+  if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
+  const t=[...document.querySelectorAll('#tabs [role=tab]')],i=t.indexOf(document.activeElement);if(i<0)return;
+  const n=t[(i+(e.key==='ArrowRight'?1:t.length-1))%t.length];n.focus();showTab(n.dataset.tab);
+});
+function setTopH(){document.documentElement.style.setProperty('--top-h',$('top').offsetHeight+'px');}
+addEventListener('resize',setTopH);
+
+$('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
 
 (async function init(){
+  setTopH();
   const {data:{session}}=await sb.auth.getSession();
   if(!session){ $('gate').hidden=false; return; }
-  token=session.access_token;
   try{
     const me=await call({action:'whoami'});
-    $('who').textContent=me.email;
-    $('app').hidden=false;
+    $('who').textContent=me.email; $('who-wrap').hidden=false;
+    $('main').hidden=false; $('tabs').hidden=false;
+    const h=(location.hash||'').slice(1); if(['chats','room','notify','help'].includes(h)) showTab(h);
+    setTopH();
     loadTournaments();
+    loadInbox();
   }catch(e){
     $('gate').hidden=false;
     $('gate-note').textContent=/not a moderator/i.test(e.message)?'Signed in as '+(session.user.email||'')+', but that account is not a moderator yet. Ask the JD admin to add you.':e.message;
