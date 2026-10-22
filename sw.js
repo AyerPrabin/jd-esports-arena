@@ -37,29 +37,42 @@ self.addEventListener("push", e => {
   try { d = e.data ? e.data.json() : {}; } catch (x) { d = { body: e.data ? e.data.text() : "" }; }
   const tag = d.tag || "jd-arena";
   const url = d.url || "/";
-  const chat = /[?&](dm|g|chat)=|\/chat\//.test(url);
+  const chat = /[?&](dm|g|chat)=|\/chat\//.test(url) || /^jd-(g-|c-|dm-|chat|staff-chat|zulu)/.test(tag);
   const room = /\/challenges\/\?c=/.test(url);
+  // Each alert type looks and buzzes differently so players know what it is before opening:
+  // messages = blue 💬, short buzz, bundled; Room ID/password = green 🔑, long urgent buzz,
+  // stays until tapped; results = gold 🏆, celebration buzz.
+  const kind = tag === "jd-room" || /^room code/i.test(d.title || "") ? "roomcode"
+    : tag === "jd-results" || /^results are in/i.test(d.title || "") ? "result"
+    : chat ? "msg" : "";
+  const STYLE = {
+    msg: { icon: "/notif-msg.png", pre: "💬 ", vibrate: [90, 60, 90] },
+    roomcode: { icon: "/notif-room.png", pre: "🔑 ", vibrate: [600, 200, 600, 200, 600], sticky: true, action: "🔑 Show Room ID" },
+    result: { icon: "/notif-result.png", pre: "🏆 ", vibrate: [120, 60, 120, 60, 120, 60, 500], action: "🏆 See results" },
+  }[kind] || { icon: "/icon-192.png", pre: "", vibrate: [200, 100, 200, 100, 200] };
   e.waitUntil((async () => {
     let old = null;
     try { old = (await self.registration.getNotifications({ tag }))[0] || null; } catch (x) {}
     const od = (old && old.data) || {};
     const count = old ? (od.count || 1) + 1 : 1;
     const now = Date.now();
-    const loud = !old || now - (od.buzzAt || 0) > 30000;
-    const title = (d.title || "JD Arena") + (count > 1 && (chat || room) ? ` · ${count} new` : "");
-    const actions = chat ? [{ action: "open", title: "💬 Reply" }] : room ? [{ action: "open", title: "⚔️ Open room" }] : [];
+    const loud = STYLE.sticky || !old || now - (od.buzzAt || 0) > 30000;
+    const t0 = d.title || "JD Arena";
+    const title = (STYLE.pre && !t0.startsWith(STYLE.pre.trim()) ? STYLE.pre : "") + t0 + (count > 1 && (chat || room) ? ` · ${count} new` : "");
+    const actions = chat ? [{ action: "open", title: "💬 Reply" }] : room ? [{ action: "open", title: "⚔️ Open room" }] : STYLE.action ? [{ action: "open", title: STYLE.action }] : [];
     // if a browser rejects any of the extras, still show a plain alert (a push without a
     // visible notification can get the subscription cancelled)
     const plain = () => self.registration.showNotification(d.title || "JD Arena", {
       body: d.body || "You have a new notification.", icon: "/icon-192.png", badge: "/badge-96.png", tag, data: { url } });
     try { await self.registration.showNotification(title, {
       body: d.body || "You have a new notification.",
-      icon: "/icon-192.png",
+      icon: STYLE.icon,
       badge: "/badge-96.png",
       tag,
       renotify: loud,
       silent: !loud,
-      vibrate: loud ? [200, 100, 200, 100, 200] : undefined,
+      requireInteraction: !!STYLE.sticky,
+      vibrate: loud ? STYLE.vibrate : undefined,
       actions,
       timestamp: now,
       data: { url, count, buzzAt: loud ? now : od.buzzAt },
