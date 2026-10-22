@@ -1,9 +1,9 @@
 {
-  "version": "5.4",
-  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.4.exe",
-  "sha256": "f09bdeb34a397a4433fe514394e9857f0c42382854b45e01d7d0c05b0d3ca6e9",
-  "size": 1256754,
-  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.4.zip",
-  "notes": "v5.4: PC score (CPU+graphics+RAM) for smarter profiles, Stable-FPS report with the reason when it dips, headshot drag coach, laptop back to normal when you stop, better cleanup (keeps shader caches)",
+  "version": "5.5",
+  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.5.exe",
+  "sha256": "b262eaee511a02842ebbc2be3c243fd14e43eaac08d01444eb189acd6ed65bcf",
+  "size": 1259633,
+  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.5.zip",
+  "notes": "v5.5: optional private PC report to your own JD account (only you + the JD admin see it; ZULU uses it to answer FPS questions)",
   "date": "2026-10-22"
 }
