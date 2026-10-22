@@ -1817,6 +1817,7 @@ async function enablePush(){
   if(!pushSupported()){showMsg('Push alerts not supported',"This browser can't receive push alerts. Use Chrome, Edge, Firefox, Brave or Samsung Internet.",true);return;}
   if(!_player){authOpen('login');return;}
   if(Notification.permission==='denied'){
+    if(JD_TWA){showMsg('Notifications are turned off',"Notifications for the JD Arena app are switched off on this phone.\n\nTo turn them on: long-press the JD Arena icon on your home screen → App info → Notifications → Allow. Then open JD Arena again.",true);return;}
     showMsg("Notifications are turned off","Notifications for jdesport.co.uk were previously blocked on this device.\n\nTo turn them back on: open your browser's site settings (the icon next to the address bar), set Notifications to Allow, reload the page and tap Enable push alerts again.",true);
     return;
   }
@@ -1858,8 +1859,15 @@ function updatePushBtn(){
   const strip=document.getElementById('notif-push');
   if(strip){
     if(!_player||!ui.strip){strip.hidden=true;strip.innerHTML='';}
-    else{strip.hidden=false;strip.className='notif-push '+s;strip.innerHTML=`<span class="notif-push-ic">${s==='ask'?'🔔':s==='ios'?'📲':'🚫'}</span><span class="notif-push-txt">${esc(ui.strip)}</span><button type="button" onclick="enablePush()">${esc(ui.cta)}</button>`;}
+    else{strip.hidden=false;strip.className='notif-push '+s;strip.innerHTML=`<span class="notif-push-ic">${s==='ask'?'🔔':s==='ios'?'📲':'🚫'}</span><span class="notif-push-txt">${esc(s==='blocked'&&JD_TWA?'Notifications are turned off for the JD Arena app.':ui.strip)}</span><button type="button" onclick="enablePush()">${esc(ui.cta)}</button>`;}
   }
+}
+/* Inside the Android app notifications are the whole point, and the player is often already signed in
+   (the app shares Chrome's login) while Android 13+ starts the app with them off: ask once per app session. */
+async function appAskPush(){
+  if(!JD_TWA||!_player||!_player.termsAccepted||!pushSupported()||Notification.permission==='granted')return;
+  try{if(sessionStorage.getItem('jd_app_push'))return;sessionStorage.setItem('jd_app_push','1');}catch(e){return;}
+  if(await confirmBox('🔔 Turn on notifications','Room IDs, check-in alerts, results and challenges arrive as JD Arena app notifications - even when the app is closed.','Turn on','Later'))enablePush();
 }
 /* Called right when an account becomes active: ask once if the player hasn't answered yet. */
 async function maybeAskPush(){
@@ -2779,6 +2787,7 @@ async function authRefreshPlayer(){
   updateGate();
   trackPresence();
   ensurePushSubscribed();
+  if(_player.app)appAskPush(); // a first app open asks inside claimAppPerks' welcome instead
   claimAppPerks();
   claimInvite();
   await loadMyAvatarUrl();
