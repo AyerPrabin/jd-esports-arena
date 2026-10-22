@@ -1047,7 +1047,8 @@
         th ? Promise.resolve(null) : SB.rpc('chat_threads'),
         SB.from('notifications').select('title, body, created_at, tournament_slug, room_id, room_pass').eq('player_id', me).order('created_at', { ascending: false }).limit(8),
         SB.rpc('my_weekly_pass'),
-        SB.rpc('my_contact')
+        SB.rpc('my_contact'),
+        SB.rpc('my_pc_reports')
       ]);
       if (myCard) lines.push('Me: ' + (myCard.username ? '@' + myCard.username : '') + ' ' + (myCard.player_tag || '') + (myCard.squad_name ? ', squad "' + myCard.squad_name + '"' : ''));
       var wp = r[4] && r[4].data;
@@ -1078,6 +1079,13 @@
           lines.push('My room for ' + (n.tournament_slug || 'my match') + ': Room ID ' + n.room_id + (n.room_pass ? ', password ' + n.room_pass : ''));
         var b = String(n.body || ''); if (b.indexOf('TICKET::') === 0) b = '';
         lines.push('My notification (' + String(n.created_at || '').slice(0, 16).replace('T', ' ') + ' UTC): ' + String(n.title || '').slice(0, 90) + (b ? ' — ' + b.slice(0, 220) : ''));
+      });
+      ((r[6] && r[6].data) || []).slice(0, 2).forEach(function (x) {
+        var pc = x.pc || {}, l = x.last || {};
+        lines.push('My PC (JD-Optimiers, private to me + admin): ' + (pc.cpu || '?') + ', ' + (pc.gpu || '?') + ', ' + (pc.ram_gb || '?') + ' GB RAM, PC score ' +
+          (pc.score != null ? pc.score : '?') + '/100 (' + (pc.tier || '?') + '). Last session: FPS ' + (l.fps != null ? l.fps : '?') + ', 1% low ' +
+          (l.low1 != null ? l.low1 : '?') + ', cap ' + (l.cap || '?') + (l.stable != null && l.stable >= 0 ? ', Stable ' + l.target + ' ' + l.stable + '%' : '') +
+          ', renderer ' + (l.renderer || '?') + ', ' + (l.res || '') + (l.hint ? '. Likely reason for drops: ' + l.hint : ''));
       });
       if (ov) lines.push('Friends: ' + ov.friends.length + (ov.incoming.length ? ', ' + ov.incoming.length + ' friend request(s) waiting' : ''));
     } catch (e) {}

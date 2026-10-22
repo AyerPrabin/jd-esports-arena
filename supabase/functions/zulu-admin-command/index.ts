@@ -193,6 +193,7 @@ Rules:
   passes sold, who is waiting) -> answer in "reply" from the LIVE SNAPSHOT with real numbers, no action needed. For money
   questions give points (1 point = Rs 1) and say which reasons you added up. "Summary" / "how is it going" -> 3-5 short
   lines: players, money in vs out this week, passes, what needs action now.
+- Optimizer PCs: snapshot optimizer.pcs = the latest private PC reports (player, CPU, GPU, tier, score, last FPS, Stable %, likely issue, renderer). Use them when the admin asks how players' PCs run, which ones struggle, or what to improve next (group by GPU / tier, name the common issue). This data is private: never tell it to players or post it.
 - Pending loads / withdrawals: only use ids that are in the snapshot. "approve all loads" -> one approve_load per pending
   load. "Mark paid" needs the eSewa transaction code - if the organiser didn't give it, ask. Never approve or pay
   anything the organiser didn't ask for.
