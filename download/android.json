@@ -1,9 +1,9 @@
 {
-  "versionCode": 1,
-  "versionName": "1.0.0",
-  "url": "https://jdesport.co.uk/download/jd-arena-1.0.0.apk",
-  "sha256": "cca677de42fc09569e003841d648eb6f6669b74d1ae558a20534acdeb787dfb5",
-  "size": 2041900,
+  "versionCode": 2,
+  "versionName": "1.1.0",
+  "url": "https://jdesport.co.uk/download/jd-arena-1.1.0.apk",
+  "sha256": "9d8a1de9861691dfae4f379ba8b02dc79626981ebbb628b157df709e92a89572",
+  "size": 1382444,
   "date": "2026-10-22",
-  "notes": "First JD Arena Android app: opens the site full-screen with real app notifications."
+  "notes": "the JD logo now shows properly on notifications and the home screen, a 'no internet' screen, and one-tap updates."
 }

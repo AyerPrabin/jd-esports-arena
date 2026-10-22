@@ -1,7 +1,11 @@
 // JD Arena service worker: keeps the installed app fresh and shows push alerts
 // (native Web Push — sent by supabase/functions/_shared/push.ts) even when the site is closed.
 
-self.addEventListener("install", e => self.skipWaiting());
+// The app's "no internet" screen (instead of Chrome's dinosaur) is cached on install.
+self.addEventListener("install", e => {
+  self.skipWaiting();
+  e.waitUntil(caches.open("jd-offline").then(c => c.add("/offline.html")).catch(() => {}));
+});
 self.addEventListener("activate", e => self.clients.claim());
 // Pages (navigations) are always revalidated with GitHub Pages: it serves HTML with
 // max-age=600, so without this a returning player could run a 10-minute-old copy of
@@ -14,6 +18,7 @@ self.addEventListener("fetch", e => {
     e.respondWith(
       fetch(r.url, { cache: "no-cache", credentials: "include", redirect: "manual" })
         .catch(() => fetch(r))
+        .catch(async () => (await caches.match("/offline.html")) || Response.error())
     );
     return;
   }
@@ -46,11 +51,11 @@ self.addEventListener("push", e => {
     // if a browser rejects any of the extras, still show a plain alert (a push without a
     // visible notification can get the subscription cancelled)
     const plain = () => self.registration.showNotification(d.title || "JD Arena", {
-      body: d.body || "You have a new notification.", icon: "/icon-192.png", badge: "/favicon-64.png", tag, data: { url } });
+      body: d.body || "You have a new notification.", icon: "/icon-192.png", badge: "/badge-96.png", tag, data: { url } });
     try { await self.registration.showNotification(title, {
       body: d.body || "You have a new notification.",
       icon: "/icon-192.png",
-      badge: "/favicon-64.png",
+      badge: "/badge-96.png",
       tag,
       renotify: loud,
       silent: !loud,

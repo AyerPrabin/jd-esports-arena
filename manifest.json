@@ -22,7 +22,7 @@
       "purpose": "any"
     },
     {
-      "src": "icon-512.png",
+      "src": "icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -30,8 +30,14 @@
   ],
   "related_applications": [
     {
+      "platform": "play",
+      "id": "uk.co.jdesport.arena",
+      "url": "https://jdesport.co.uk/download/"
+    },
+    {
       "platform": "webapp",
       "url": "https://jdesport.co.uk/manifest.json"
     }
-  ]
+  ],
+  "prefer_related_applications": false
 }

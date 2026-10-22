@@ -1776,7 +1776,15 @@ function pushSupported(){return 'serviceWorker' in navigator&&'PushManager' in w
 /* iPhone/iPad only support push for a home-screen-installed app (Apple's own
    restriction) — detect it and explain instead of the button silently doing nothing. */
 function isIosDevice(){return /iP(hone|od|ad)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
-function isStandaloneApp(){return window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}
+/* Android app (TWA, /download/): the launcher opens /?source=twa&av=<versionCode>. A tap on a notification
+   opens a plain URL in a new tab, so Android's android-app:// referrer counts too (version unknown: -1).
+   Kept in sessionStorage, never localStorage: the app shares Chrome's storage, so ordinary Chrome tabs
+   would think they're the app. */
+const JD_TWA=(()=>{try{const m=/[?&]source=twa&av=(\d+)/.exec(location.search);
+  if(m)sessionStorage.setItem('jd_twa',m[1]);
+  else if(/^android-app:\/\/uk\.co\.jdesport\.arena/.test(document.referrer)&&!sessionStorage.getItem('jd_twa'))sessionStorage.setItem('jd_twa','-1');
+  return +(sessionStorage.getItem('jd_twa')||0);}catch(e){return 0;}})();
+function isStandaloneApp(){return !!JD_TWA||window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}
 // Subscribe this device (only if notifications are already allowed) and save it to the
 // signed-in player. Safe to call on every load: it re-saves, which also covers endpoints
 // the browser rotated and a device that signed in as a different player.
@@ -1790,7 +1798,7 @@ async function ensurePushSubscribed(){
       if(!k||!new Uint8Array(k).every((b,i)=>b===want[i])||k.byteLength!==want.length){try{await sub.unsubscribe();}catch(e){}sub=null;}}
     if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(VAPID_PUBLIC_KEY)});
     const j=sub.toJSON();
-    const {error}=await sb.rpc('save_push_subscription',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_ua:navigator.userAgent});
+    const {error}=await sb.rpc('save_push_subscription',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth,p_ua:navigator.userAgent+(JD_TWA?' JDApp/'+JD_TWA:isStandaloneApp()?' JDWebApp':'')});
     if(error)throw error;
     _pushSub=sub;_pushErr='';updatePushBtn();return true;
   }catch(e){_pushErr=String((e&&e.message)||e);_pushSub=null;updatePushBtn();return false;}
@@ -3963,19 +3971,32 @@ function handleDlClick(e){
   if(isIOSDevice())return downloadIOS();
   toggleDlMenu(e);
 }
-/* Android app (TWA, /download/): it opens /?source=twa&av=<versionCode>. Inside it, the download button says
-   "already using the app" and a newer /download/android.json shows an update prompt (once a day). */
-const JD_TWA=(()=>{try{const m=/[?&]source=twa&av=(\d+)/.exec(location.search);if(m)sessionStorage.setItem('jd_twa',m[1]);return +(sessionStorage.getItem('jd_twa')||0);}catch(e){return 0;}})();
-if(JD_TWA)window.addEventListener('load',()=>setTimeout(async()=>{
+/* Inside the app (JD_TWA, see isStandaloneApp) the download button says "already using the app", and a newer
+   /download/android.json offers a one-tap update (once a day). */
+if(JD_TWA>0)window.addEventListener('load',()=>setTimeout(async()=>{
   try{
     const d=await (await fetch('/download/android.json',{cache:'no-store'})).json();
     const day=new Date().toISOString().slice(0,10);
     if(d.versionCode>JD_TWA&&localStorage.getItem('jd_apk_upd')!==day){
       localStorage.setItem('jd_apk_upd',day);
-      showMsg('App update ⬇',`JD Arena ${d.versionName} is ready. Open jdesport.co.uk/download to install the update (your account and settings stay).`);
+      if(await confirmBox('⬇ App update ready',`JD Arena ${d.versionName}: ${d.notes||'a better app.'}\n\nTap Update, open the downloaded file and tap Install (Update). Your account and settings stay.`,'Update now','Later'))location.href=d.url;
     }
   }catch(e){}
 },4000));
+/* Old home-screen web app on Android (not the APK): ask once a day to install the real app and delete
+   the web version, so alerts come through the app and don't arrive twice. Shown only when Chrome can
+   confirm the APK isn't installed (manifest related_applications) - inside the app itself that check
+   always finds the app, so this can never pop up there. */
+if(!JD_TWA&&isAndroidDevice()&&isStandaloneApp()&&navigator.getInstalledRelatedApps)window.addEventListener('load',()=>setTimeout(async()=>{
+  try{
+    const day=new Date().toISOString().slice(0,10);
+    if(localStorage.getItem('jd_webapp_nag')===day)return;
+    const apps=await navigator.getInstalledRelatedApps();
+    if(apps.some(a=>a.id==='uk.co.jdesport.arena'))return;
+    localStorage.setItem('jd_webapp_nag',day);
+    if(await confirmBox('📲 Get the real JD Arena app','This is the old web version. The new Android app gets room IDs, results and challenge alerts as real app notifications that never get blocked - and your account stays the same.\n\n1. Tap Download app and install it.\n2. Then delete this web version: long-press this JD Arena icon on your home screen → Uninstall (or Remove).','Download app','Later'))location.href='/download/';
+  }catch(e){}
+},3000));
 function downloadAndroid(){
   if(JD_TWA){showMsg('Already installed',"You're using the JD Arena app. 🎮");return;}
   location.href='/download/';
