@@ -1,9 +1,9 @@
 {
-  "version": "5.0",
-  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.0.exe",
-  "sha256": "ba955a9628964548c4dd5ee5209b07cc6291eb62956abbb434b09e6e9053d7c8",
-  "size": 1230870,
-  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.0.zip",
-  "notes": "v5.0: live FPS on the banner (FPS, turning FPS, hitches); pre-match check on Play (fixes mouse accel + emulator profile, points out charger, macros, heavy apps, weak Wi-Fi); smarter Apply best profile (CPU cores + the play coach's proven renderer); Extreme pauses Windows Update downloads and Wi-Fi power saving; optional anonymous FPS stats.",
-  "date": "2026-10-21"
+  "version": "5.1",
+  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.1.exe",
+  "sha256": "4624f6053b061566760fa4fe0200f8889009712aed2d34265129cee1de3a1cf2",
+  "size": 1232414,
+  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.1.zip",
+  "notes": "v5.1: adaptive aim curve fixed - uses Windows' real mouse-speed points (was ~3x too fast), handles are 0.25x-2.5x of Windows speed, always-rising curve, never resets a curve JD didn't write, curve remembered.",
+  "date": "2026-10-22"
 }
