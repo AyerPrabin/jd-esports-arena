@@ -23,6 +23,7 @@ const MAPS = ['bermuda', 'purgatory', 'kalahari', 'alpine', 'nexterra'];
 const SECTIONS = ['tournaments', 'history', 'teams', 'pending-payments', 'wallets', 'reports', 'ban-list', 'room-codes',
   'announce', 'challenges', 'reviews', 'optimizer', 'moderators'];
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const str = (v: unknown, max = 300) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const num = (v: unknown, lo: number, hi: number) => {
   const n = typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN;
@@ -85,6 +86,29 @@ function cleanAction(a: Json): Json | null {
     case 'publish':
     case 'pay_prizes':
       return { type };
+    // money actions (v2): ids come from the pending lists in the snapshot; the admin page re-checks them
+    case 'approve_load': {
+      const id = str(a.id, 40);
+      if (!UUID.test(id)) return null;
+      const amount = num(a.amount, 1, 100_000);
+      return { type, id, ...(amount !== undefined ? { amount } : {}) };
+    }
+    case 'reject_load': {
+      const id = str(a.id, 40);
+      return UUID.test(id) ? { type, id, note: str(a.note, 200) } : null;
+    }
+    case 'pay_withdrawal': {
+      const id = str(a.id, 40), payout_ref = str(a.payout_ref, 60);
+      return UUID.test(id) ? { type, id, payout_ref } : null;
+    }
+    case 'reject_withdrawal': {
+      const id = str(a.id, 40);
+      return UUID.test(id) ? { type, id } : null;
+    }
+    case 'credit_points': {
+      const player = str(a.player, 40).replace(/^@/, ''), amount = num(a.amount, 1, 100_000), note = str(a.note, 120);
+      return player && amount !== undefined ? { type, player, amount, note } : null;
+    }
     case 'open': {
       const section = pick(a.section, SECTIONS);
       return section ? { type, section } : null;
@@ -104,7 +128,21 @@ function extractJson(text: string): Json | null {
   }
 }
 
+// Everything live in one call (supabase/zulu_admin_context.sql): money today / 7 days, pending loads and
+// withdrawals with ids, upcoming events' seats, Weekly Pass, referrals, Optimizer, ZULU usage. Falls back to
+// the old counts if the RPC is missing.
 async function liveStats(): Promise<string> {
+  try {
+    const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data, error } = await sb.rpc('zulu_admin_context');
+    if (!error && data) {
+      return 'LIVE SNAPSHOT (JSON, from the database right now). money_today / money_7d are wallet ledger totals per reason: ' +
+        'load = points bought by players (Rs in), withdraw = points cashed out (Rs out, the 1% fee stays), entry = paid ' +
+        'tournament entries, pass = Weekly Pass sales (negative = spent by players), prize = prizes paid, referral = invite ' +
+        'bonuses, optimizer = JD-Optimiers plans, effect = squad effects, challenge_* = Clash Squad stakes:\n' +
+        JSON.stringify(data).slice(0, 9000);
+    }
+  } catch { /* old counts below */ }
   try {
     const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const count = async (table: string, filter: (q: any) => any) => {
@@ -141,12 +179,24 @@ Allowed actions (use exactly these fields; omit fields the organiser didn't give
 - {"type":"publish"}
 - {"type":"pay_prizes"}   (pays any unpaid announced prizes into winners' wallets)
 - {"type":"open","section":"${SECTIONS.join('|')}"}
+- {"type":"approve_load","id":"<id from pending_loads>","amount":optional number if the screenshot showed a different amount}
+- {"type":"reject_load","id":"<id from pending_loads>","note":"short reason the player will see"}
+- {"type":"pay_withdrawal","id":"<id from pending_withdrawals>","payout_ref":"eSewa transaction code the organiser gives"}
+- {"type":"reject_withdrawal","id":"<id from pending_withdrawals>"}   (points go back to the player)
+- {"type":"credit_points","player":"exact username or JD tag","amount":50,"note":"why"}   (adds points; never negative)
 
 Rules:
 - Resolve relative dates ("tomorrow", "Friday", "this Sat") against the current Nepal date below. "10pm" -> "22:00".
 - Entry "free" -> entry_points 0. A number of points/rupees for entry -> entry_points.
 - If something essential is missing (e.g. a room code without a Room ID, an event without any day), ask in "reply" and return no action for it.
-- Questions (how many registered, what's pending, what's next) -> answer in "reply" from the data below, no action needed.
+- Questions (how many registered, what's pending, what's next, how much money came in today / this week, how many
+  passes sold, who is waiting) -> answer in "reply" from the LIVE SNAPSHOT with real numbers, no action needed. For money
+  questions give points (1 point = Rs 1) and say which reasons you added up. "Summary" / "how is it going" -> 3-5 short
+  lines: players, money in vs out this week, passes, what needs action now.
+- Pending loads / withdrawals: only use ids that are in the snapshot. "approve all loads" -> one approve_load per pending
+  load. "Mark paid" needs the eSewa transaction code - if the organiser didn't give it, ask. Never approve or pay
+  anything the organiser didn't ask for.
+- If the organiser asks for something no action can do, say so plainly and point to the admin section (open action).
 - Never invent squads, numbers or results that are not in the data. Never promise anything happened - say "tap Confirm to ...".
 - Announcements: write them in clear, friendly English (or Nepali if the organiser writes Nepali), short enough for a phone notification.
 
@@ -189,10 +239,11 @@ Deno.serve(async (req: Request) => {
     ...history,
     { role: 'user', content: message },
   ];
-  const result = await askAI(messages);
+  // admin replies need reasoning over numbers: full Flash first, Flash-Lite as the fallback
+  const result = await askAI(messages, undefined, { geminiModels: ['gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-2.5-flash-lite'], timeoutMs: 25000 });
   const json = result ? extractJson(result.text) : null;
   const rawActions = json && Array.isArray(json.actions) ? (json.actions as Json[]) : [];
-  const actions = rawActions.slice(0, 6).map(cleanAction).filter(Boolean);
+  const actions = rawActions.slice(0, 12).map(cleanAction).filter(Boolean);
   const reply = (json && str(json.reply, 900)) ||
     (result ? 'I could not turn that into an action - try saying it a bit differently.' : 'No AI provider answered right now - try again in a minute.');
   return new Response(JSON.stringify({ reply, actions, provider: result?.provider ?? null }), {

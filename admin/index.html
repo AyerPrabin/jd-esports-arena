@@ -1180,6 +1180,7 @@ async function zcSend(){
     const d=await r.json();
     wait.remove();zcBubble('ai',d.reply||'Done thinking.');
     _zcHist.push({role:'user',content:text},{role:'assistant',content:d.reply||''});
+    if((d.actions||[]).some(a=>/_load$|_withdrawal$/.test(a.type)))await zcLoadMoney();
     (d.actions||[]).forEach(zcCard);
   }catch(e){wait.classList.remove('wait');wait.textContent='Sorry — '+(e.message||e);}
   finally{_zcBusy=false;}
@@ -1243,8 +1244,23 @@ function zcDescribe(a){
     case 'publish':return {title:'🚀 Publish changes',html:'<li>Pushes your edits to the live site</li>',err:''};
     case 'pay_prizes':return {title:'🏆 Pay prizes',html:'<li>Pays any unpaid announced prizes into winners\' wallets (never pays twice)</li>',err:''};
     case 'open':return {title:'🔎 Open '+a.section,html:'',err:''};
+    case 'approve_load':case 'reject_load':{const l=_zcLoads.get(a.id);if(!l)return {title:'💰 Point load',html:'',err:'That load is no longer waiting (already handled?).'};
+      const who=(l.players&&(l.players.username||l.players.player_tag))||'player';
+      return a.type==='approve_load'?{title:'💰 Approve load · '+who,html:li('Points',a.amount||l.amount)+(a.amount&&a.amount!==l.amount?li('They asked for',l.amount):'')+'<li>Check the screenshot in Wallets if unsure</li>',err:''}
+        :{title:'✕ Reject load · '+who,html:li('Points asked',l.amount)+li('Reason shown',a.note||'(none)'),err:''};}
+    case 'pay_withdrawal':case 'reject_withdrawal':{const w=_zcWds.get(a.id);if(!w)return {title:'💸 Withdrawal',html:'',err:'That withdrawal is no longer waiting (already handled?).'};
+      const who=(w.players&&(w.players.username||w.players.player_tag))||'player';
+      if(a.type==='pay_withdrawal')return {title:'💸 Mark paid · '+who,html:li('Send','Rs '+w.payout)+li('eSewa',w.esewa_id+' · '+w.esewa_name)+li('eSewa ref',a.payout_ref||'(none)')+'<li>Only confirm after you sent the money</li>',err:''};
+      return {title:'↩️ Reject withdrawal · '+who,html:li('Points back to wallet',w.amount),err:''};}
+    case 'credit_points':return {title:'➕ Add points · '+a.player,html:li('Points',a.amount)+li('Note',a.note||'(none)')+'<li>Exact username / JD tag only</li>',err:''};
   }
   return {title:a.type,html:'',err:'Unknown action'};
+}
+/* pending loads / withdrawals for the money cards (wallet-admin), keyed by id */
+let _zcLoads=new Map(),_zcWds=new Map();
+async function zcLoadMoney(){
+  try{const [l,w]=await Promise.all([waCall({action:'loads'}),waCall({action:'withdrawals'})]);
+    _zcLoads=new Map((l||[]).map(x=>[x.id,x]));_zcWds=new Map((w||[]).map(x=>[x.id,x]));}catch(e){}
 }
 function zcCard(a){
   const id=++_zcSeq;_zcActs.set(id,a);
@@ -1281,6 +1297,14 @@ async function zcRun(id){
       case 'publish':{await publishNow();const m=zcText('publish-top-msg');(/fail/i.test(m)?bad:ok)(m||'Published.');break;}
       case 'pay_prizes':{await payPrizesNow();ok(zcText('wa-msg')||'Done.');break;}
       case 'open':{const sec=document.getElementById(a.section);if(sec){if(innerWidth<641)zcClose();sec.scrollIntoView({behavior:'smooth',block:'start'});}ok('Opened.');break;}
+      case 'approve_load':{await waCall({action:'resolve_load',id:a.id,approve:true,amount:a.amount||null,note:null});_zcLoads.delete(a.id);ok('Approved - points added and the player notified.');break;}
+      case 'reject_load':{await waCall({action:'resolve_load',id:a.id,approve:false,note:a.note||null});_zcLoads.delete(a.id);ok('Rejected - the player was told.');break;}
+      case 'pay_withdrawal':{await waCall({action:'resolve',id:a.id,paid:true,payout_ref:a.payout_ref||null});_zcWds.delete(a.id);ok('Marked paid - the player was notified.');break;}
+      case 'reject_withdrawal':{await waCall({action:'resolve',id:a.id,paid:false});_zcWds.delete(a.id);ok('Rejected - points returned to the player.');break;}
+      case 'credit_points':{const found=await waCall({action:'search',q:a.player});const q=a.player.toLowerCase();
+        const p=(found||[]).find(x=>String(x.username||'').toLowerCase()===q||String(x.player_tag||'').toLowerCase()===q);
+        if(!p)return bad('No player with exactly that username / JD tag.');
+        const r=await waCall({action:'credit',player_id:p.id,amount:a.amount,ref:'',note:a.note||'Admin gift (ZULU)'});ok('Added '+a.amount+' points to '+(p.username||p.player_tag)+'. New balance '+r.balance+'.');break;}
       default:bad('Unknown action.');
     }
   }catch(e){bad(e.message||String(e));}
