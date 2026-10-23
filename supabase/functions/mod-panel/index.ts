@@ -418,7 +418,7 @@ Deno.serve(async (req: Request) => {
     const fields = {
       date: new Date(Date.UTC(+y, +mo - 1, +d)).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }),
       time: `${hh}:${mi} ${+h < 12 ? 'AM' : 'PM'} NPT`, start, status,
-      prize: String(p.prize || '').trim().slice(0, 40) || 'Hosted by @' + handle,
+      prize: String(p.prize || '').trim().slice(0, 40),
       entry: 'Free', platform: DEV[device], platform_mode: device,
       slots: Math.min(48, Math.max(2, Math.round(Number(p.slots) || 12))),
       format: 'BR · ' + matches + (matches === 1 ? ' match' : ' matches'),

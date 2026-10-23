@@ -126,7 +126,7 @@ async function load(){
     return `<div class="pe-card" role="button" tabindex="0" aria-expanded="false">
       <div class="pe-img" style="background-image:url('${esc(img)}')"></div>
       <div class="pe-main">
-        <div class="pe-name">${esc(t.name)}</div>
+        <div class="pe-name">${esc(t.name)}${t.host?` <small style="font-size:.72em;color:#CFE0FF;font-weight:600">· hosted by @${esc(String(t.host).replace(/^@+/,''))}</small>`:''}</div>
         <div class="pe-meta">${fmtDate(t)?`<span>📅 <b>${esc(fmtDate(t))}</b></span>`:''}${n?`<span>👥 <b>${n}</b> squad${n===1?'':'s'}</span>`:''}${t.prize?`<span>🏆 <b>${esc(t.prize)}</b></span>`:''}<span>${/^free$/i.test(entry)?'Free entry':'Entry '+esc(entry)}</span></div>
         ${st==='completed'&&String(t.winner||'').trim()?`<div class="pe-win">👑 ${esc(t.winner)}</div>`:''}
       </div>
@@ -188,6 +188,6 @@ function rateForm(el,name){
 load().catch(()=>{document.getElementById('pe-list').innerHTML='<div class="pe-empty">Could not load events right now. Please try again.</div>';});
 </script>
 <script src="/ui.js?v=16" defer></script>
-<script src="/chat.js?v=17" defer></script>
+<script src="/chat.js?v=18" defer></script>
 </body>
 </html>

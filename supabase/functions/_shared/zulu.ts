@@ -3,18 +3,30 @@
 // and match chats) so every ZULU answer uses the same facts.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
-// Live context is cached per warm isolate for CONTEXT_TTL_MS: a chat burst (or several
-// players asking at once) shares one database round trip instead of paying for it on
-// every message, and seat counts are still at most ~45 s old.
-const CONTEXT_TTL_MS = 45000;
-let ctxCache: { at: number; data: any } | null = null;
+// Live context is cached per warm isolate, keyed by zulu_ctx_version() (zulu_live_v2.sql): a tiny query
+// that changes the moment an event is edited, a squad joins or confirms, a room code goes out or an alert
+// is sent. Every message checks it (a few ms) and only reloads the full context when it moved, so ZULU
+// is never behind the site and a quiet chat still costs one small query. CONTEXT_MAX_MS is a safety net.
+const CONTEXT_MAX_MS = 10 * 60000;
+let ctxCache: { at: number; ver: string; data: any } | null = null;
+
+// the current fingerprint, also used by zulu-ai-reply to key its answer cache
+export async function contextVersion(): Promise<string> {
+  try {
+    const url = Deno.env.get('SUPABASE_URL'), key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!url || !key) return '';
+    const { data, error } = await createClient(url, key).rpc('zulu_ctx_version');
+    return error ? '' : String(data || '');
+  } catch { return ''; }
+}
 
 // Everything live, in one call: zulu_live_context() (supabase/zulu_live_context.sql) reads
 // the tournaments straight from the database with seat counts, the latest standings and
 // the privacy-filtered announcements. Falls back to the public tournaments.json if the
 // RPC is unavailable, so ZULU still knows the schedule.
 async function liveContext(): Promise<any> {
-  if (ctxCache && Date.now() - ctxCache.at < CONTEXT_TTL_MS) return ctxCache.data;
+  const ver = await contextVersion();
+  if (ctxCache && ver && ctxCache.ver === ver && Date.now() - ctxCache.at < CONTEXT_MAX_MS) return ctxCache.data;
   let data: any = null;
   try {
     const url = Deno.env.get('SUPABASE_URL');
@@ -30,9 +42,14 @@ async function liveContext(): Promise<any> {
       if (r.ok) { const d = await r.json(); data = { tournaments: d.tournaments || [], bo3: d.bo3, announcements: [] }; }
     } catch { /* answer without live data */ }
   }
-  if (data) ctxCache = { at: Date.now(), data };
+  if (data) ctxCache = { at: Date.now(), ver: data.version || ver, data };
   return data;
 }
+
+const ago = (at: string) => {
+  const m = Math.round((Date.now() - Date.parse(at)) / 60000);
+  return !Number.isFinite(m) ? 'recently' : m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : Math.round(m / 1440) + ' d ago';
+};
 
 export async function zuluSystemPrompt(lang: 'en' | 'ne'): Promise<string> {
   const live = await liveContext();
@@ -76,7 +93,10 @@ export async function zuluSystemPrompt(lang: 'en' | 'ne'): Promise<string> {
   if (list.length) {
     scheduleContext += '\nLive and upcoming tournaments, soonest first (live data, use it to answer schedule/prize/entry/seats/format questions exactly — do not contradict it):\n' +
       list.slice(0, 8).map((t) =>
-        `- ${t.name || 'Tournament'}: status=${t.status}, date=${t.date || 'TBA'}, time=${t.time || 'TBA'}, prize=${t.prize || '—'}, entry=${t.entry || 'Free'}, format=${t.format || 'BR'}, ${seats(t)}` +
+        `- ${t.name || 'Tournament'}: status=${t.status}, date=${t.date || 'TBA'}, time=${t.time || 'TBA'}, prize=${t.prize || '—'}, entry=${t.entry || 'Free'}, format=${t.format || 'BR'}${t.map ? ', map=' + t.map : ''}, ${seats(t)}` +
+        (t.playing != null && t.confirmed ? `, ${t.playing} of them confirmed playing` : '') +
+        (t.host ? `, hosted by @${t.host} (a partner host, not JD: that host runs it and pays its prize, JD doesn't)` : '') +
+        (t.room_sent_at ? `, room details SENT ${ago(t.room_sent_at)} (players find them in Alerts and on their ticket; never repeat or guess a code)` : '') +
         (t.platform && t.platform !== 'mixed' ? `, ${t.platform} only` : '') +
         (t.pass_needed ? ', free to join (winners without a Weekly Pass pay 50 of the prize for one)' : '') +
         (String(t.early_access || '').toLowerCase().match(/^(yes|true)$/) && t.reg_opens ? `, registration opens ${t.reg_opens} (app users, Weekly Pro and Optimizer Max 24h earlier)` : '')
@@ -84,6 +104,11 @@ export async function zuluSystemPrompt(lang: 'en' | 'ne'): Promise<string> {
   } else if (tours.length) {
     scheduleContext += '\nNo tournament is scheduled right now; new ones are announced in notifications and on Discord.';
   }
+  // What changed recently (publish-tournaments' event_changes), so ZULU can say "the time moved" instead of
+  // trusting what a player remembers.
+  const ch: any[] = Array.isArray(live?.changes) ? live.changes : [];
+  if (ch.length) scheduleContext += '\nRecent event changes, newest first (mention them when relevant, e.g. a new time, prize or a cancellation; the list above already has the current values):\n' +
+    ch.slice(0, 12).map((c: any) => `- ${ago(c.at)}: ${c.tournament}: ${c.what}`).join('\n');
   // Latest results, so "who won last time?" gets a real answer.
   const done = tours.filter((t) => eff(t) === 'completed').sort((a, b) => (Date.parse(b.start) || 0) - (Date.parse(a.start) || 0)).slice(0, 3);
   if (done.length) scheduleContext += '\nRecently completed: ' + done.map((t) => `${t.name} (${t.date || 'date n/a'}${t.winner ? ', winner ' + t.winner : ''})`).join('; ');
@@ -120,7 +145,7 @@ Rules:
   * JD-Optimiers (jdesport.co.uk/optimizer): an optional Windows PC/laptop app that boosts FPS and cuts lag for Free Fire on emulators (MSI App Player / BlueStacks) and any PC game — suggest it when someone says their game feels laggy ON PC. It is Windows only, not for phones, so mobile-only players don't need it. Optimizer Pro is 49 points / 30 days, Max is 99 (adds a cheat-panel scan, a 30-day squad effect, 24h early entry to tournaments, and a Verified tag). It also needs an active Weekly Pass (jdesport.co.uk/pass) to download and run. If the plan or pass runs out the app warns at start; not renewed within 3 days, it puts the PC back to normal (Restore all) and deletes its own files. It sends an anonymous FPS summary and a private PC report after each session (agreed in the terms, switchable off in the tray). It's account-safe: it only changes Windows and emulator settings with backups, and never reads or edits the game, injects anything, or adds macros/aim assist.
   * The profile page (tap your name) shows rank, stats, points, tournaments and saved squad. Discord: https://discord.gg/dgvQTbNvVu
 - Use the current tournaments list below (if provided) to answer schedule/prize/entry/slots/format questions with real numbers — don't say "check the site" for something already listed here.
-- You still do NOT have access to per-player account data (room IDs, a specific player's points, their registration status). NEVER invent those. If asked something that needs THAT kind of live account-specific data, tell them to check their account panel / Notification History on the site instead of guessing.
+- You still do NOT have access to per-player account data (room IDs, a specific player's points, their registration status). NEVER invent those. If asked something that needs THAT kind of live account-specific data, tell them to check their ticket or the Alerts chat in Messages (room IDs, reminders and results land there) instead of guessing.
 - Language: reply in the same language AND script the player used in their last message. Romanized Nepali in ("kasari join garne", "kati baje ho", "bro aaja match cha?") gets Romanized Nepali back, never Devanagari. Devanagari in gets Devanagari back (never Hindi, Gujarati or other scripts). English in gets English. If unclear, use ${lang === 'ne' ? 'Nepali (Devanagari)' : 'English'}.
 - Nepali style: talk like a friendly Nepali gamer, not a textbook. Keep ONE form per reply: match the player ("bro/dai/timi" style -> "garnu/gara/cha", polite "tapai" -> "garnuhos/hunuhuncha"); if unclear use the friendly-polite form ("garnus", "huncha"). Keep game and app words in English as players say them: tournament, squad, room ID, password, slot, entry, points, wallet, Weekly Pass, rules, match, kill, rank, Confirm & join. Use Nepal time words naturally (aaja, bholi, rati 10 baje). Examples:
   * "dai tournament ma kasari join garne?" -> "Ekdam sajilo cha bro: jdesport.co.uk ma sign in gara, tournament ma Join thich, squad name ra WhatsApp number hal, rules tick garera Confirm & join. /events/"

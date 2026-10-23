@@ -60,10 +60,12 @@ Deno.serve(async (req: Request) => {
   }
   // Host mods publish their own events from /mod/ (mod-panel event_save). An admin page that was opened
   // before that would otherwise drop them, so live events with a "host" that are missing here are kept.
+  let before: any = null;   // the live copy before this publish, for the event_changes log (ZULU reads it)
   try {
     const doc = JSON.parse(content);
     const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const { data: live } = await sb.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
+    before = live?.content || null;
     const have = new Set((doc.tournaments || []).map((t: any) => String(t?.name || '').toLowerCase()));
     const keep = ((live?.content as any)?.tournaments || []).filter((t: any) => t?.host && !have.has(String(t.name || '').toLowerCase()));
     if (keep.length && Array.isArray(doc.tournaments)) { doc.tournaments.push(...keep); content = JSON.stringify(doc, null, 2); }
@@ -122,6 +124,26 @@ Deno.serve(async (req: Request) => {
   } catch (e) {
     warning = `Published to GitHub, but the instant-update copy failed: ${e instanceof Error ? e.message : String(e)}`;
   }
+
+  // What changed on each event, in words ZULU can repeat ("time 8:30 PM NPT -> 9:30 PM NPT").
+  try {
+    const old = new Map(((before?.tournaments || []) as any[]).map((t) => [String(t?.name || ''), t]));
+    const FIELDS: [string, string][] = [['date', 'date'], ['time', 'time'], ['prize', 'prize'], ['entry', 'entry'], ['slots', 'slots'],
+      ['format', 'format'], ['map', 'map'], ['platform', 'device'], ['status', 'status'], ['winner', 'winner']];
+    const rows: { tournament: string; what: string }[] = [];
+    for (const t of (JSON.parse(content).tournaments || []) as any[]) {
+      if (!t?.name) continue;
+      const o = old.get(t.name);
+      if (!o) { if (before) rows.push({ tournament: t.name, what: `new event${t.host ? ' hosted by @' + t.host : ''}: ${t.date || 'TBA'} ${t.time || ''}, prize ${t.prize || '-'}, entry ${t.entry || 'Free'}, ${t.slots || '?'} squads` }); continue; }
+      const diffs = FIELDS.filter(([k]) => String(o[k] ?? '').trim() !== String(t[k] ?? '').trim())
+        .map(([k, label]) => `${label} ${String(o[k] ?? '').trim() || '(none)'} -> ${String(t[k] ?? '').trim() || '(none)'}`);
+      if (diffs.length) rows.push({ tournament: t.name, what: diffs.join('; ').slice(0, 400) });
+    }
+    if (rows.length) {
+      const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+      await sb.from('event_changes').insert(rows.slice(0, 30));
+    }
+  } catch { /* the publish itself already worked */ }
 
   try {
     const parsed = JSON.parse(content);

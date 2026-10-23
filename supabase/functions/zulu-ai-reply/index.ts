@@ -16,7 +16,7 @@
 // canned answer", so a maxed-out quota degrades gracefully instead of erroring visibly.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { askAI, streamGemini, type AIMessage } from '../_shared/ai.ts';
-import { zuluSystemPrompt } from '../_shared/zulu.ts';
+import { contextVersion, zuluSystemPrompt } from '../_shared/zulu.ts';
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -78,7 +78,8 @@ Deno.serve(async (req: Request) => {
   // so it appears word by word. Everyone else (Discord bot, @zulu in chats, old cached pages)
   // keeps getting the JSON {reply} as before. Limits and caps answer JSON in both modes.
   const stream = payload.stream === true;
-  const cacheKey = !history.length && !account ? answerKey(lang, message) : '';
+  // keyed by the live-context fingerprint too: an event edit or a new squad makes old answers miss at once
+  const cacheKey = !history.length && !account ? (await contextVersion()) + '|' + answerKey(lang, message) : '';
   const hit = cacheKey ? answers.get(cacheKey) : undefined;
   if (hit && Date.now() - hit.at < ANSWER_TTL_MS) {
     if (stream) return text(hit.reply);

@@ -15,9 +15,10 @@
 //   badge:    dm_poll (every 5s on a visible tab: unread counts, newest unread for the banner)
 // No realtime: the open conversation refreshes every 2.5s. New messages also arrive as Web
 // Push (dm-push / chat-push Edge Functions) that open /?dm=<tag>, /?g=<group> or the challenge.
-// ZULU talks to the zulu-ai-reply Edge Function; its chat is kept on this device only. The
-// ZULU thread also shows your alerts (the notifications table: room ID + password, event
-// reminders, results) as ZULU messages with copy buttons, and counts unread ones.
+// ZULU talks to the zulu-ai-reply Edge Function; its chat is kept on this device only, plus ZULU's own
+// automatic messages (zulu_feed). Your alerts (the notifications table: room ID + password, reminders,
+// results, messages from the JD team or an event's host mod) have their own pinned "Alerts" thread with
+// copy buttons, separate from ZULU, and count their own unread.
 // Profile pictures come from the private avatars bucket as signed URLs (schema.sql
 // "Messages v4": readable by the people you chat with). Non-friends: a friend request plus up
 // to 3 messages (message request) until they accept.
@@ -32,7 +33,7 @@
   var PAGE = document.getElementById('chat-page');
 
   var css = document.createElement('link');
-  css.rel = 'stylesheet'; css.href = '/chat.css?v=10';
+  css.rel = 'stylesheet'; css.href = '/chat.css?v=11';
   document.head.appendChild(css);
 
   var NE = false;
@@ -136,6 +137,9 @@
   function matchAv(size) { return '<span class="dm-av' + (size ? ' ' + size : '') + ' mt" aria-hidden="true">' + ICON.swords + '</span>'; }
   function jdAv(size) { return '<span class="dm-av' + (size ? ' ' + size : '') + ' jd" aria-hidden="true"><img src="/logo.png" alt=""></span>'; }
   var VERIFIED = '<svg class="dm-ver" viewBox="0 0 24 24" role="img" aria-label="Verified"><path fill="currentColor" d="M12 1.6l2.6 1.9 3.2-.1 1 3 2.6 1.9-1 3.1 1 3.1-2.6 1.9-1 3-3.2-.1L12 22.4l-2.6-1.9-3.2.1-1-3L2.6 15.7l1-3.1-1-3.1 2.6-1.9 1-3 3.2.1z"/><path fill="none" stroke="#0B1020" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.6 12.3l3 3 5.8-6"/></svg>';
+  function alAv(size) { return '<span class="dm-av' + (size ? ' ' + size : '') + ' al" aria-hidden="true">🔔</span>'; }
+  // "[@goats.esp] Title" = from that event's host mod, "[JD] Title" = from the JD team
+  function alFrom(t) { var m = /^\[(@[\w.]+|JD)\]\s*/.exec(String(t || '')); return m ? { from: m[1] === 'JD' ? 'JD Esports' : m[1], title: String(t).slice(m[0].length) } : { from: '', title: String(t || '') }; }
   function zuluAv(size) { return '<span class="dm-av' + (size ? ' ' + size : '') + ' zu" aria-hidden="true">' + ICON.spark + '</span>'; }
   var nameOf = function (p) { return p ? (p.username ? '@' + p.username : p.tag) : ''; };
   var emojiOnly = function (s) { return s.length <= 12 && /^(\p{Extended_Pictographic}|\p{Emoji_Component}|‍|️|\s)+$/u.test(s) && !/^[\d#*\s]+$/.test(s); };
@@ -237,13 +241,13 @@
   // cur = the open conversation: { kind: 'dm'|'group'|'match'|'zulu', id, ... }
   var me = null, myCard = null, isOpen = false, tab = 'all', ov = null, th = null, cur = null, filter = '';
   var msgs = [], hasOlder = false, threadTimer = null, polled = false, lastAt = 0;
-  var badge = { dm: 0, g: 0, m: 0, requests: 0, z: 0, jd: 0 }, jdLast = null, sending = false, tmp = 0, bannerTimer = null, pendingDeepLink = null;
+  var badge = { dm: 0, g: 0, m: 0, requests: 0, z: 0, jd: 0, al: 0 }, jdLast = null, sending = false, tmp = 0, bannerTimer = null, pendingDeepLink = null;
   var ginfo = null, readMark = 0;
   var recs = null, recAt = 0, tourCache = null, zuluWait = null, chipFor = null;
   var MENTION = /(^|[^a-z0-9_])@zulu\b/i;
 
   function setBadges() {
-    var chats = badge.dm + badge.g + badge.m + badge.z + badge.jd, n = chats + badge.requests;
+    var chats = badge.dm + badge.g + badge.m + badge.z + badge.jd + badge.al, n = chats + badge.requests;
     var c = fab.querySelector('.dm-count');
     c.textContent = n > 99 ? '99+' : n; c.hidden = !n;
     fab.classList.toggle('has-unread', n > 0);
@@ -263,7 +267,7 @@
     var id = u ? u.id : null;
     if (id === me) return;
     me = id; polled = false; lastAt = 0; ov = null; th = null; cur = null; msgs = []; myCard = null;
-    badge = { dm: 0, g: 0, m: 0, requests: 0, z: 0, jd: 0 }; jdLast = null; zn = []; znTop = null; zf = []; zfTop = null; setBadges();
+    badge = { dm: 0, g: 0, m: 0, requests: 0, z: 0, jd: 0, al: 0 }; jdLast = null; zn = []; znTop = null; zf = []; zfTop = null; setBadges();
     fab.hidden = !me || !!PAGE; if (navRow) navRow.hidden = !me;
     if (PAGE) { var si = $('cp-signin'); if (si) si.hidden = !!me; panel.hidden = !me; }
     document.body.classList.toggle('has-dm', !!me);
@@ -319,7 +323,7 @@
     if (pollN++ % 3 === 0) await loadZn(true);
     var jr = await SB.rpc('jd_poll'), jd = (jr && jr.data) || {};
     jdLast = jd.last || null;
-    var next = { dm: d.unread || 0, g: d.g_unread || 0, m: d.m_unread || 0, requests: d.requests || 0, z: badge.z, jd: jd.unread || 0 };
+    var next = { dm: d.unread || 0, g: d.g_unread || 0, m: d.m_unread || 0, requests: d.requests || 0, z: badge.z, jd: jd.unread || 0, al: badge.al };
     var changed = JSON.stringify(next) !== JSON.stringify(badge);
     var grewReq = polled && next.requests > badge.requests;
     badge = next; setBadges();
@@ -349,27 +353,47 @@
     znTop = newest || znTop || '';
     var fTop = zf[0] ? zf[0].id : null, fNew = zfTop !== null && fTop && fTop !== zfTop && !zf[0].read_at;
     zfTop = fTop || zfTop || '';
-    var watchingZ = isOpen && cur && cur.kind === 'zulu' && $('dm-thread').classList.contains('on') && !document.hidden;
+    var onThread = isOpen && cur && $('dm-thread').classList.contains('on') && !document.hidden;
+    var watchingZ = onThread && cur.kind === 'zulu', watchingA = onThread && cur.kind === 'alerts';
     if (watchingZ) {
-      if (zn.some(function (n) { return !n.read_at; }) || zf.some(function (m) { return !m.read_at; })) markZnRead();
-      if (isNew || fNew) { msgs = zuluLoad(); msgs[msgs.length - 1].fresh = true; renderMsgs(true); }
+      if (zf.some(function (m) { return !m.read_at; })) markZfRead();
+      if (fNew) { msgs = zuluLoad(); msgs[msgs.length - 1].fresh = true; renderMsgs(true); }
     } else {
-      badge.z = zn.filter(function (n) { return !n.read_at; }).length + zf.filter(function (m) { return !m.read_at; }).length;
+      badge.z = zf.filter(function (m) { return !m.read_at; }).length;
+      if (fNew && fromPoll) notifyZulu({ title: String(zf[0].body).split('\n')[0].slice(0, 90) });
+    }
+    if (watchingA) {
+      if (zn.some(function (n) { return !n.read_at; })) markAlRead();
+      if (isNew) { msgs = alertsLoad(); msgs[msgs.length - 1].fresh = true; renderMsgs(true); }
+    } else {
+      badge.al = zn.filter(function (n) { return !n.read_at; }).length;
       // the homepage shows its own alert banner for these, so only other pages get one here
-      if (isNew && fromPoll && typeof window.notifBanner !== 'function') notifyZulu(zn[0]);
-      else if (fNew && fromPoll) notifyZulu({ title: String(zf[0].body).split('\n')[0].slice(0, 90) });
+      if (isNew && fromPoll && typeof window.notifBanner !== 'function') notifyAlert(zn[0]);
     }
     if (!fromPoll) setBadges();
     return zn;
   }
-  async function markZnRead() {
-    var ids = zn.filter(function (n) { return !n.read_at; }).map(function (n) { return n.id; });
+  function markZfRead() {
     badge.z = 0; setBadges();
     var at = new Date().toISOString();
     if (zf.some(function (m) { return !m.read_at; })) { zf.forEach(function (m) { if (!m.read_at) m.read_at = at; }); SB.rpc('zulu_feed_read'); }
+  }
+  async function markAlRead() {
+    var ids = zn.filter(function (n) { return !n.read_at; }).map(function (n) { return n.id; });
+    badge.al = 0; setBadges();
     if (!ids.length) return;
+    var at = new Date().toISOString();
     zn.forEach(function (n) { if (!n.read_at) n.read_at = at; });
     await SB.from('notifications').update({ read_at: at }).in('id', ids);
+  }
+  function notifyAlert(n) {
+    var f = alFrom(n.title);
+    pop(); buzz(); bump();
+    banner.innerHTML = alAv('sm') + '<span class="dm-bt"><b>' + esc(f.from || 'Alert') + '</b><small>' + esc(f.title + (n.room_id ? ' · Room ' + n.room_id : '')) + '</small></span><span class="dm-bk">Open</span>';
+    banner.onclick = function () { banner.classList.remove('show'); openAlerts(); };
+    banner.classList.add('show');
+    clearTimeout(bannerTimer);
+    bannerTimer = setTimeout(function () { banner.classList.remove('show'); }, 5500);
   }
   function notifyZulu(n) {
     pop(); buzz(); bump();
@@ -551,12 +575,20 @@
       '<span class="dm-mid"><span class="dm-name">JD Esports ' + VERIFIED + '</span>' +
       '<span class="dm-prev"><span>' + esc(prev) + '</span>' + (l && l.at ? '<span>· ' + short(l.at) + '</span>' : '') + '</span></span>' + dot + '</button>';
   }
+  function alertsRow() {
+    var n = zn[0], active = cur && cur.kind === 'alerts' ? ' active' : '', f = n ? alFrom(n.title) : null;
+    var prev = n ? (f.from ? f.from + ': ' : '') + f.title + (n.room_id ? ' · Room ' + n.room_id : '') : 'Room IDs, reminders and results land here';
+    var dot = badge.al ? '<span class="dm-dot">' + (badge.al > 9 ? '9+' : badge.al) + '</span>' : '';
+    return '<button type="button" class="dm-row al' + (badge.al ? ' unread' : '') + active + '" data-k="alerts" data-open="alerts">' + alAv() +
+      '<span class="dm-mid"><span class="dm-name">Alerts</span>' +
+      '<span class="dm-prev"><span>' + esc(prev) + '</span>' + (n ? '<span>· ' + short(n.created_at) + '</span>' : '') + '</span></span>' + dot + '</button>';
+  }
   function zuluRow() {
-    var z = store.get('jd_zulu_dm') || [], last = z[z.length - 1], n = zn[0];
-    if (zf[0] && (!n || new Date(zf[0].created_at) > new Date(n.created_at))) n = { title: String(zf[0].body).split('\n')[0], created_at: zf[0].created_at };
+    var z = store.get('jd_zulu_dm') || [], last = z[z.length - 1], n = null;
+    if (zf[0]) n = { title: String(zf[0].body).split('\n')[0], created_at: zf[0].created_at };
     var active = cur && cur.kind === 'zulu' ? ' active' : '';
     var useN = n && (!last || new Date(n.created_at) > new Date(last.at || 0));
-    var prev = useN ? '🔔 ' + n.title + (n.room_id ? ' · Room ' + n.room_id : '') : last ? (last.role === 'user' ? T('you') + ': ' : '') + last.content : T('zuluSub');
+    var prev = useN ? n.title : last ? (last.role === 'user' ? T('you') + ': ' : '') + last.content : T('zuluSub');
     var at = useN ? n.created_at : last && last.at;
     var dot = badge.z ? '<span class="dm-dot">' + (badge.z > 9 ? '9+' : badge.z) + '</span>' : '';
     return '<button type="button" class="dm-row zulu' + (badge.z ? ' unread' : '') + active + '" data-k="zulu" data-open="zulu">' + zuluAv() +
@@ -599,6 +631,7 @@
     }
     if (tab === 'all' && !q) h += recsHtml();
     if (tab === 'all' && (!q || 'jd esports team'.indexOf(q) >= 0)) h += jdRow();
+    if (tab === 'all' && (!q || 'alerts notifications room'.indexOf(q) >= 0)) h += alertsRow();
     if (tab === 'all' && (!q || 'zulu ai'.indexOf(q) >= 0)) h += zuluRow();
     if (tab === 'squads' || (tab === 'all' && !th.groups.length && ov.friends.length && !q)) {
       h += '<button type="button" class="dm-row dm-cta" data-new="1"><span class="dm-av sq plus">' + ICON.plus + '</span><span class="dm-mid"><span class="dm-name">' + T('newSquad') + '</span><span class="dm-prev"><span>Group chat with your Clash Squad team</span></span></span></button>';
@@ -632,6 +665,7 @@
   });
   function openKind(k, id) {
     if (k === 'zulu') return openZulu();
+    if (k === 'alerts') return openAlerts();
     if (k === 'jd') return openJd();
     if (k === 'group') return openGroup(id);
     if (k === 'match') return openMatch(id);
@@ -700,6 +734,10 @@
     openThread({ kind: 'match', id: id, mode: '', other: null });
   }
   function openZulu() { if (!isOpen) open(); openThread({ kind: 'zulu', id: 'zulu' }); }
+  function openAlerts() {
+    if (!me) { pendingDeepLink = openAlerts; return; }
+    if (!isOpen) open(); openThread({ kind: 'alerts', id: 'alerts' });
+  }
   function openJd() {
     if (!me) { pendingDeepLink = openJd; return; }
     if (!isOpen) open(); openThread({ kind: 'jd', id: 'jd' });
@@ -722,6 +760,7 @@
     if (p.kind === 'dm' && p.friend === false) foot = composer(p.req === 'in' ? 'Reply…' : 'Message request…', 500);
     else if (p.kind === 'zulu') foot = composer(T('askZulu'), 500);
     else if (p.kind === 'jd') foot = composer('Message the JD team…', 1000);
+    else if (p.kind === 'alerts') foot = '<div class="dm-locked">Alerts can\'t be answered. Questions? Message JD Esports or ask ZULU.</div>';
     else if (p.kind === 'match') foot = composer('Message… · @zulu asks AI', 300);
     else if (p.kind === 'group') foot = composer('Message… · @zulu asks AI', 500);
     else foot = composer(T('typePh'), 500);
@@ -744,7 +783,12 @@
     stopThread();
     if (p.kind === 'zulu') {
       msgs = zuluLoad(); renderMsgs(true);
-      loadZn().then(function () { if (cur !== p) return; msgs = zuluLoad(); renderMsgs(true); markZnRead(); });
+      loadZn().then(function () { if (cur !== p) return; msgs = zuluLoad(); renderMsgs(true); markZfRead(); });
+      return;
+    }
+    if (p.kind === 'alerts') {
+      msgs = alertsLoad(); renderMsgs(true);
+      loadZn().then(function () { if (cur !== p) return; msgs = alertsLoad(); renderMsgs(true); markAlRead(); });
       return;
     }
     refreshThread(true);
@@ -834,6 +878,7 @@
       av = matchAv('sm'); name = (p.mode || 'Match') + (p.other ? ' vs ' + nameOf(p.other) : '');
       st = p.status === 'completed' ? 'Finished · chat is read-only' : p.status === 'disputed' ? 'Disputed · post your screenshots' : 'Captains’ match chat';
     } else if (p.kind === 'jd') { av = jdAv('sm'); name = 'JD Esports'; st = 'Official JD team · we reply here'; }
+    else if (p.kind === 'alerts') { av = alAv('sm'); name = 'Alerts'; st = 'Room IDs, reminders and results'; }
     else { av = zuluAv('sm'); name = 'ZULU'; st = 'AI assistant · replies in seconds'; on = true; }
     $('dm-th-av').innerHTML = av;
     $('dm-th-name').textContent = name;
@@ -964,6 +1009,7 @@
     else if (p.kind === 'group') h += '<div class="dm-hello">' + groupAv(p) + '<b>' + esc(p.name) + '</b>Squad chat · plan matches, share room IDs<br><span class="dm-hint">Type <b>@zulu</b> + a question and ZULU (AI) answers here. It reads the last few messages.</span></div>';
     else if (p.kind === 'match') h += '<div class="dm-hello">' + matchAv() + '<b>' + esc((p.mode || '') + ' Clash Squad') + '</b>Only you and the other captain can see this chat.<br>Agree the room, play, then report the result on the challenge.<br><span class="dm-hint">Type <b>@zulu</b> to ask ZULU (AI) about the rules. It reads the last few messages.</span></div>';
     else if (p.kind === 'jd') h += '<div class="dm-hello">' + jdAv() + '<b>JD Esports ' + VERIFIED + '</b>The official JD Esports Arena team.<br>Real people from the JD team (moderators and admin) write here. Ask about events, slots, points or room IDs and we reply. For instant answers, ask ZULU.<br><span class="dm-hint">The JD team never asks for your password or eSewa PIN.</span></div>';
+    else if (p.kind === 'alerts') h += '<div class="dm-hello">' + alAv() + '<b>Alerts</b>Room IDs and passwords, slot reminders, results and messages from the JD team or an event\'s host. Tap a Room ID or password to copy it.</div>';
     else h += '<div class="dm-hello">' + zuluAv() + '<b>ZULU</b>Your JD Arena buddy. Chat about anything gaming, get Free Fire tips, or ask about tournaments and your own points, tickets and challenges. It never sees your private chats.</div>';
     var lastMine = -1;
     msgs.forEach(function (m, i) { if (m.mine) lastMine = i; });
@@ -1004,10 +1050,10 @@
   }
   // one alert from the notifications table, as a ZULU message (room ID + password copy buttons)
   function znHtml(m) {
-    var n = m.n, room = n.room_id ? '<span class="dm-room-r"><button type="button" class="dm-copy" data-copy="' + esc(n.room_id) + '"><small>Room ID</small><b>' + esc(n.room_id) + '</b></button>' +
+    var n = m.n, af = alFrom(n.title), room = n.room_id ? '<span class="dm-room-r"><button type="button" class="dm-copy" data-copy="' + esc(n.room_id) + '"><small>Room ID</small><b>' + esc(n.room_id) + '</b></button>' +
       '<button type="button" class="dm-copy" data-copy="' + esc(n.room_pass || '') + '"><small>Password</small><b>' + esc(n.room_pass || '—') + '</b></button></span>' : '';
-    return '<div class="dm-line them head tail' + (m.fresh && !reduced() ? ' new' : '') + '" title="' + esc(stamp(m.created_at)) + '">' + zuluAv('xs') +
-      '<div class="dm-b dm-zn' + (room ? ' dm-room' : '') + '"><span class="dm-zn-k">🔔 Alert' + (n.tournament_slug ? ' · ' + esc(n.tournament_slug) : '') + '</span><b>' + esc(n.title) + '</b>' +
+    return '<div class="dm-line them head tail' + (m.fresh && !reduced() ? ' new' : '') + '" title="' + esc(stamp(m.created_at)) + '">' + alAv('xs') +
+      '<div class="dm-b dm-zn' + (room ? ' dm-room' : '') + '"><span class="dm-zn-k">' + (af.from ? esc(af.from) : '🔔 Alert') + (n.tournament_slug ? ' · ' + esc(n.tournament_slug) : '') + '</span><b>' + esc(af.title) + '</b>' +
       (n.body ? '<span class="dm-zn-t">' + linkify(n.body) + '</span>' : '') + room + '</div></div>';
   }
   function seenLine(m) {
@@ -1228,9 +1274,12 @@
   var zuluBusy = false;
   function zuluLoad() {
     var chat = (store.get('jd_zulu_dm') || []).map(function (z, i) { return { id: 'z' + i, mine: z.role === 'user', kind: 'text', body: z.content, created_at: z.at || new Date().toISOString() }; });
-    var alerts = zn.slice(0, 25).map(function (n) { return { id: 'n' + n.id, mine: false, kind: 'zn', n: n, body: n.title, created_at: n.created_at }; });
     var feed = zf.map(function (m) { return { id: 'f' + m.id, mine: false, kind: 'text', body: m.body, created_at: m.created_at }; });
-    return alerts.concat(feed, chat).sort(function (a, b) { return new Date(a.created_at) - new Date(b.created_at); });
+    return feed.concat(chat).sort(function (a, b) { return new Date(a.created_at) - new Date(b.created_at); });
+  }
+  function alertsLoad() {
+    return zn.slice(0, 40).map(function (n) { return { id: 'n' + n.id, mine: false, kind: 'zn', n: n, body: n.title, created_at: n.created_at }; })
+      .sort(function (a, b) { return new Date(a.created_at) - new Date(b.created_at); });
   }
   var zuluAsking = false;                              // whole question, incl. while the reply streams in
   async function askZulu(q) {
@@ -1516,5 +1565,5 @@
     tab = 'requests'; loadOverview();
   }
 
-  window.jdChat = { settings: settingsSheet, open: open, close: close, openWith: openWith, openGroup: openGroup, openMatch: openMatch, openZulu: openZulu, connect: connect, shareRoom: shareRoom };
+  window.jdChat = { settings: settingsSheet, open: open, close: close, openWith: openWith, openGroup: openGroup, openMatch: openMatch, openZulu: openZulu, openAlerts: openAlerts, connect: connect, shareRoom: shareRoom };
 })();
