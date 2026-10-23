@@ -376,7 +376,7 @@
   function markZfRead() {
     badge.z = 0; setBadges();
     var at = new Date().toISOString();
-    if (zf.some(function (m) { return !m.read_at; })) { zf.forEach(function (m) { if (!m.read_at) m.read_at = at; }); SB.rpc('zulu_feed_read'); }
+    if (zf.some(function (m) { return !m.read_at; })) { zf.forEach(function (m) { if (!m.read_at) m.read_at = at; }); SB.rpc('zulu_feed_read').then(function () {}, function () {}); }   // supabase-js only sends a query once it's awaited or then'd
   }
   async function markAlRead() {
     var ids = zn.filter(function (n) { return !n.read_at; }).map(function (n) { return n.id; });
