@@ -334,7 +334,9 @@ async function loadOptHistory(){
   const pts=ss.slice().reverse().map(x=>x.s||{}), max=Math.max(60,...pts.map(p=>n(p.fps)||0))*1.1;
   const line=key=>pts.map((p,i)=>{const v=n(p[key]);return v==null?null:`${(pts.length<2?150:i*300/(pts.length-1)).toFixed(1)},${(120-v/max*112).toFixed(1)}`;}).filter(Boolean).join(' ');
   $('oh-chart').innerHTML=`<polyline points="${line('fps')}" fill="none" stroke="#FFC83D" stroke-width="2.5" vector-effect="non-scaling-stroke"/>`+
-    `<polyline points="${line('low1')}" fill="none" stroke="#FF8A8A" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
+    `<polyline points="${line('low1')}" fill="none" stroke="#FF8A8A" stroke-width="2" vector-effect="non-scaling-stroke"/>`+
+    // a dot per session, so even one or two sessions show (lines need two points)
+    ['fps','low1'].map((key,j)=>line(key).split(' ').filter(Boolean).map(xy=>{const [x,y]=xy.split(',');return `<ellipse cx="${x}" cy="${y}" rx="${pts.length<2?3:2}" ry="3.5" fill="${j?'#FF8A8A':'#FFC83D'}"/>`;}).join('')).join('');
   $('oh-rows').innerHTML=ss.slice(0,6).map(x=>{const v=x.s||{};return `<div><span>${esc(fmtDate(x.at))}<br><small>${esc([v.renderer,v.cap?'cap '+v.cap:'',v.dip_cause?'drops: '+v.dip_cause:(v.hint||'')].filter(Boolean).join(' · '))}</small></span>`+
     `<b>${n(v.fps)!=null?Math.round(v.fps):'–'} <small>/ ${n(v.low1)!=null?Math.round(v.low1):'–'} low</small></b></div>`;}).join('');
   $('opt-hist').hidden=false;
