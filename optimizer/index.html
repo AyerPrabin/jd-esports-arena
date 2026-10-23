@@ -516,10 +516,10 @@ document.addEventListener('click',e=>{ const a=e.target.closest('#dl-btn,#dl-exe
   if(!$('dl-ok').checked){ e.preventDefault(); $('dl-terms').scrollIntoView({block:'center',behavior:'smooth'}); $('dl-ok').focus(); } });
 function renderPass(tier){
   passOk=!!tier;
-  $('pass-line').innerHTML=passOk?`Weekly Pass: <b class="ok">${tier==='pro'?'Weekly Pro':'Weekly Pass'} ✓</b>`
+  $('pass-line').innerHTML=passOk?(tier==='staff'?'Weekly Pass: <b class="ok">not needed (JD staff) ✓</b>':`Weekly Pass: <b class="ok">${tier==='pro'?'Weekly Pro':'Weekly Pass'} ✓</b>`)
     :'Weekly Pass: <b class="no">needed</b> · <a href="/pass/">get one (50 points / 7 days)</a> to download and run the app';
   $('need-pass').classList.toggle('done',passOk);
-  $('need-pass-btn').textContent=passOk?'Active ✓':'Get a pass';
+  $('need-pass-btn').textContent=tier==='staff'?'Staff ✓':passOk?'Active ✓':'Get a pass';
   dlGate();
 }
 
