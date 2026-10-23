@@ -83,6 +83,10 @@ main{position:relative;max-width:1280px;margin:0 auto;padding:16px 16px calc(var
 }
 /* events list (desktop column) */
 .evlist{display:grid;gap:8px}
+.evpast-tog{border-style:dashed;color:var(--silver)}
+.evpast-tog b{color:var(--silver)}
+.evpast-h{margin:10px 2px 0;font-size:.74rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--silver)}
+.evpast-h span{text-transform:none;letter-spacing:0;font-weight:400;color:var(--body)}
 .evlist .evpill{width:100%;flex-direction:row;align-items:center;justify-content:space-between;padding:10px 12px}
 .evlist .evpill span{display:flex;flex-direction:column;min-width:0}
 .evlist .evpill b{overflow:hidden;text-overflow:ellipsis}
@@ -368,8 +372,7 @@ textarea{min-height:96px;resize:vertical}
   <!-- squads -->
   <section class="tab on" id="tab-squads" aria-labelledby="h-squads">
     <div class="panel">
-      <div class="sec-h"><h2 id="h-squads">Squads</h2><span class="sp"></span><span class="updated" id="updated" aria-live="polite"></span>
-        <button type="button" class="ghost" id="reg-refresh" aria-label="Refresh squads"><svg aria-hidden="true"><use href="#i-refresh"/></svg>Refresh</button></div>
+      <div class="sec-h"><h2 id="h-squads">Squads</h2><span class="sp"></span><span class="updated" id="updated" aria-live="polite"></span></div>
       <p class="lead" id="ev-line"></p>
       <div class="sum" id="sum"></div>
       <div id="reg-body"><p class="note">Pick an event to see its squads.</p></div>
@@ -380,7 +383,7 @@ textarea{min-height:96px;resize:vertical}
   <!-- results: standings, winner, finish, prizes -->
   <section class="tab" id="tab-results" aria-labelledby="h-results">
     <div class="panel">
-      <div class="sec-h"><h2 id="h-results">Results</h2><span class="sp"></span><button type="button" class="ghost" id="rs-reload" aria-label="Reload results"><svg aria-hidden="true"><use href="#i-refresh"/></svg>Reload</button></div>
+      <div class="sec-h"><h2 id="h-results">Results</h2><span class="sp"></span></div>
       <div class="rs-meta" id="rs-meta"></div>
       <div id="rs-body"><p class="note">Pick an event to enter its points.</p></div>
       <div class="msg" id="rs-msg" role="status" aria-live="polite"></div>
@@ -530,12 +533,17 @@ async function call(body){
 const isDone=t=>{ const s=(t.status||'').toLowerCase(); return s==='finished'||s==='completed'||!!String(t.winner||'').trim(); };
 function isUpcoming(t){
   const s=(t.status||'').toLowerCase();
-  if(s==='cancelled') return false;
+  if(s==='cancelled'||isDone(t)) return false;
   const d=t.start?new Date(t.start):null, ok=d&&!isNaN(d);
-  // finished events stay for 2 days so results can still be corrected
-  if(isDone(t)) return ok?d.getTime()>Date.now()-48*3600*1000:false;
   return ok?d.getTime()>Date.now()-12*3600*1000:true;
 }
+// finished events: kept for 14 days under Past, so results and prizes can still be checked or corrected
+function isRecentPast(t){
+  if(!isDone(t)||(t.status||'').toLowerCase()==='cancelled') return false;
+  const d=t.start?new Date(t.start):null;
+  return !d||isNaN(d)||d.getTime()>Date.now()-14*864e5;
+}
+let showPast=false;
 function fmtWhen(t){ return [t.date,t.time].filter(Boolean).join(' · ') || (t.start?new Date(t.start).toLocaleString():''); }
 function isLive(t){ return t.start && Math.abs(new Date(t.start)-Date.now())<3*3600*1000; }
 function evPill(t,i){
@@ -543,16 +551,22 @@ function evPill(t,i){
     `<small>${isDone(t)?'<span style="color:var(--ok)">Finished · </span>':isLive(t)?'<span class="live">Tonight · </span>':''}${esc(fmtWhen(t))}${t.entry?' · '+esc(t.entry):''}</small></span></button>`;
 }
 function renderEvents(){
-  const html=tournaments.map(evPill).join('')||'<p class="note">No upcoming events right now.</p>';
-  $('evbar').innerHTML=html; $('evlist').innerHTML=html;
+  const up=[], past=[];
+  tournaments.forEach((t,i)=>(isDone(t)?past:up).push(evPill(t,i)));
+  if(selected&&isDone(selected)) showPast=true;
+  const none='<p class="note">No upcoming events right now.</p>';
+  const tog=past.length?`<button type="button" class="evpill evpast-tog" data-past aria-expanded="${showPast}"><span><b>Past</b><small>${past.length} finished ${showPast?'▴':'▾'}</small></span></button>`:'';
+  $('evbar').innerHTML=(up.join('')||'')+tog+(showPast?past.join(''):'');
+  $('evlist').innerHTML=(up.join('')||none)+(past.length?`<div class="evpast-h">Past events <span>· last 14 days</span></div>`+tog.replace('evpill evpast-tog','evpill evpast-tog sm')+(showPast?past.join(''):''):'');
 }
 async function loadTournaments(){
   try{
     const r=await fetch('/tournaments.json?t='+Date.now(),{cache:'no-store'});
     const j=await r.json();
-    tournaments=(j.tournaments||[]).filter(isUpcoming).sort((a,b)=>new Date(a.start||0)-new Date(b.start||0));
+    const all=j.tournaments||[], ts=t=>new Date(t.start||0).getTime();
+    tournaments=all.filter(isUpcoming).sort((a,b)=>ts(a)-ts(b)).concat(all.filter(isRecentPast).sort((a,b)=>ts(b)-ts(a)));
     const keep=selected&&tournaments.find(t=>t.name===selected.name);
-    selectEvent(keep||tournaments[0]||null,false);
+    selectEvent(keep||tournaments.find(t=>!isDone(t))||tournaments[0]||null,false);
   }catch(e){ $('reg-body').innerHTML='<p class="msg err">Could not load the events – check your connection and tap Refresh.</p>'; }
 }
 function selectEvent(t,scroll){
@@ -566,7 +580,15 @@ function selectEvent(t,scroll){
   loadSquads(false);
   if(scroll){const p=document.querySelector('.evbar [aria-pressed=true]');if(p)p.scrollIntoView({inline:'center',block:'nearest'});}
 }
-document.addEventListener('click',e=>{const b=e.target.closest('[data-ev]');if(b)selectEvent(tournaments[+b.dataset.ev],true);});
+document.addEventListener('click',e=>{
+  if(e.target.closest('[data-past]')){
+    showPast=!showPast;
+    // closing Past while a finished event is open: go back to the next upcoming one
+    if(!showPast&&selected&&isDone(selected)){ const up=tournaments.find(t=>!isDone(t)); if(up){ selectEvent(up,false); return; } }
+    renderEvents(); return;
+  }
+  const b=e.target.closest('[data-ev]');if(b)selectEvent(tournaments[+b.dataset.ev],true);
+});
 
 /* ── squads ── */
 const active=r=>r.status==='approved'||r.status==='confirmed';
@@ -611,7 +633,7 @@ function renderSquads(){
       `<button type="button" class="n" data-act="conf" data-id="${esc(r.id)}" data-on="0" aria-pressed="${r.checked_in?'false':'true'}">No</button></div>`
       :`<span class="state">${esc(wait?'Waitlist':r.status||'')}</span>`;
     const acts=(wl?`<a class="abtn wa" href="${wl}" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-wa"/></svg>WhatsApp</a>`
-                  :`<span class="abtn" aria-disabled="true">No WhatsApp</span>`)+
+                  :'')+
       `<button type="button" class="abtn" data-act="note" data-id="${esc(r.id)}" data-sq="${esc(name)}"><svg aria-hidden="true"><use href="#i-msg"/></svg>Message</button>`+
       `<button type="button" class="abtn rm" data-act="rm" data-id="${esc(r.id)}" data-sq="${esc(name)}"><svg aria-hidden="true"><use href="#i-x"/></svg>Remove</button>`;
     return `<div class="slot${on?'':' off'}${wait?' wait':''}"><span class="no" aria-label="${on?'Slot '+no:wait?'Waitlist':''}">${on?no:wait?'W':'–'}</span>`+
@@ -648,7 +670,6 @@ $('reg-body').addEventListener('click',async e=>{
     }
   }catch(err){ toast(err.message||'Something went wrong – try again.',null,true); b.disabled=false; loadSquads(true); }
 });
-$('reg-refresh').onclick=()=>loadSquads(false);
 /* squads confirm themselves on the site: refresh quietly every 30 s while the panel is open */
 setInterval(()=>{ if(!document.hidden&&selected&&!document.querySelector('.sheet-bg')) loadSquads(true); },30000);
 
@@ -852,7 +873,7 @@ setInterval(()=>{ if(!document.hidden&&!chatWith&&$('main')&&!$('main').hidden) 
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&$('main')&&!$('main').hidden){ if(chatWith) refreshChat(); inboxSoon(); } });
 
 /* ── results: points per match, live positions, publish, finish + prizes ── */
-let rs=null, rsRows=[], rsPrize=null;   // prize points per place: [1st, 2nd, 3rd]
+let rs=null, rsRows=[], rsPrize=null, rsDirty=false;   // prize points per place: [1st, 2nd, 3rd]
 const rsTotal=r=>r.pts.reduce((a,b)=>a+(+b||0),0);
 function rsRanked(){ return rsRows.filter(r=>r.team.trim()).map((r,i)=>({r,i,t:rsTotal(r)})).sort((a,b)=>b.t-a.t||a.i-b.i); }
 async function loadResults(keepMsg){
@@ -860,7 +881,7 @@ async function loadResults(keepMsg){
   const ev=selected; if(!keepMsg){ $('rs-body').innerHTML='<p class="note">Loading…</p>'; $('rs-msg').textContent=''; }
   try{
     const d=await call({action:'results_get',slug:ev.name}); if(ev!==selected) return;
-    rs=d;
+    rs=d; rsDirty=false;
     const fromBoard=(d.board&&d.board.teams||[]).map(t=>({team:t.team,pts:Array.from({length:d.matches},(_,k)=>(t.r&&t.r[k]&&t.r[k].pts)||0)}));
     const have=new Set(fromBoard.map(r=>r.team.trim().toLowerCase()));
     rsRows=fromBoard.concat(d.squads.filter(q=>!have.has(q.toLowerCase())).map(q=>({team:q,pts:Array(d.matches).fill(0)})));
@@ -912,7 +933,7 @@ function rsSum(){
 $('rs-body').addEventListener('input',e=>{
   const tr=e.target.closest('.rsr[data-i]');
   if(e.target.dataset.prize!==undefined){ rsPrize[+e.target.dataset.prize]=Math.max(0,+e.target.value||0); rsSum(); return; }
-  if(!tr) return; const r=rsRows[+tr.dataset.i];
+  if(!tr) return; const r=rsRows[+tr.dataset.i]; rsDirty=true;
   if(e.target.classList.contains('tm')) r.team=e.target.value;
   else if(e.target.classList.contains('pt')) r.pts[+e.target.dataset.k]=Math.max(0,Math.min(300,+e.target.value||0));
   tr.querySelector('.tot').textContent=rsTotal(r);
@@ -920,8 +941,8 @@ $('rs-body').addEventListener('input',e=>{
 });
 $('rs-body').addEventListener('click',async e=>{
   const del=e.target.closest('[data-del]');
-  if(del){ rsRows.splice(+del.dataset.del,1); renderResults(); return; }
-  if(e.target.closest('#rs-add')){ rsRows.push({team:'',pts:Array(rs.matches).fill(0)}); renderResults(); const ins=$('rs-body').querySelectorAll('input.tm'); ins[ins.length-1].focus(); return; }
+  if(del){ rsRows.splice(+del.dataset.del,1); rsDirty=true; renderResults(); return; }
+  if(e.target.closest('#rs-add')){ rsDirty=true; rsRows.push({team:'',pts:Array(rs.matches).fill(0)}); renderResults(); const ins=$('rs-body').querySelectorAll('input.tm'); ins[ins.length-1].focus(); return; }
   const pub=e.target.closest('#rs-pub'), fin=e.target.closest('#rs-fin'); if(!pub&&!fin) return;
   const rank=rsRanked(), msg=$('rs-msg');
   if(!rank.length){ msg.textContent='Add squads and points first.'; msg.className='msg err'; return; }
@@ -938,13 +959,16 @@ $('rs-body').addEventListener('click',async e=>{
       const pd=r.prizes.filter(x=>x.status==='paid'), un=r.prizes.filter(x=>x.status!=='paid');
       msg.textContent=`Finished. Winner: ${r.winner}.`+(pd.length?' Paid: '+pd.map(x=>`${x.squad} ${x.amount}`).join(', ')+'.':'')+(un.length?' Not paid (no matching registered squad): '+un.map(x=>x.squad).join(', ')+'.':'');
       toast(`${rs.event} finished – ${r.winner} wins`);
+      if(selected&&selected.name===rs.event){ selected.status='completed'; selected.winner=r.winner; renderEvents(); }   // moves to Past, stays open
     } else { msg.textContent=`Standings are live. #1 ${r.winner}.`; toast('Standings published'); }
     msg.className='msg ok';
     await loadResults(true);
   }catch(err){ msg.textContent=err.message; msg.className='msg err'; }
   btn.disabled=false; btn.textContent=label;
 });
-$('rs-reload').onclick=()=>loadResults();
+// no Reload button: results refresh when you open the tab or come back to the page, unless you have unsaved typing
+function rsAutoReload(){ if(selected&&!rsDirty&&!document.querySelector('.sheet-bg')) loadResults(true); }
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&$('tab-results').classList.contains('on')) rsAutoReload(); });
 
 /* ── tabs (phone / tablet) ── */
 function showTab(name){
@@ -952,6 +976,7 @@ function showTab(name){
   ['squads','results','chats','room','notify','help'].forEach(n=>$('tab-'+n).classList.toggle('on',n===name));
   try{history.replaceState(null,'','#'+name);}catch(e){}
   window.scrollTo({top:0});
+  if(name==='results') rsAutoReload();
 }
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)showTab(b.dataset.tab);});
 $('tabs').addEventListener('keydown',e=>{

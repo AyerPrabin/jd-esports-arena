@@ -13,5 +13,5 @@ export async function slotMap(db: any, slug: string): Promise<Map<string, number
 
 /** The line added to a room-code alert. */
 export function slotLine(slot?: number): string {
-  return slot ? `💺 Your slot: #${slot} — sit in seat ${slot}. Enter the room within 10 minutes.` : 'Enter the room within 10 minutes.';
+  return slot ? `Your slot: #${slot} — sit in seat ${slot}. Enter the room within 10 minutes.` : 'Enter the room within 10 minutes.';
 }

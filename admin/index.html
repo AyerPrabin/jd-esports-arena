@@ -323,18 +323,12 @@ h2[id]{scroll-margin-top:64px}
 
   <div class="row">
     <a class="btn ghost" href="/">← Back to site</a>
-    <button class="btn" onclick="loadLive()">↻ Load current</button>
-    <label class="btn ghost" style="cursor:pointer">⤴ Upload file<input type="file" accept=".json" onchange="loadFile(event)" hidden></label>
     <button class="btn ghost" onclick="changePasscode()">🔑 Change passcode</button>
     <button class="btn ghost" onclick="openUsersPopup()">👥 Users</button>
     <div id="msg"></div>
   </div>
 
-  <div class="row">
-    <button class="btn" onclick="publishNow()">🚀 Publish changes</button>
-    <div id="publish-top-msg" class="hint"></div>
-  </div>
-  <p class="hint" style="margin-top:-8px">Edit any event's Name, Date, Time, etc. below, then hit this button — that's the only step needed to make it live.</p>
+  <p class="hint" style="margin:0 0 6px">Edit any event below, then tap <b>Publish changes</b> in Quick actions — that's the only step needed to make it live.</p>
 
   <div class="dash-head"><span>⚡ Quick actions</span></div>
   <div class="qa">
@@ -348,6 +342,7 @@ h2[id]{scroll-margin-top:64px}
     <a class="qa-tile" href="#tournaments"><span class="qa-ic">🏆</span>Events</a>
     <a class="qa-tile" href="#teams"><span class="qa-ic">👥</span>Players</a>
   </div>
+  <div id="publish-top-msg" class="hint" style="margin:6px 0 0"></div>
 
   <div class="dash-head"><span>📥 Inbox</span><button class="dash-refresh" onclick="inboxLoad(true);loadDashboard()" title="Refresh">↻</button></div>
   <div id="inbox" class="inbox"><p class="hint">Loading point loads, withdrawals and disputes…</p></div>
@@ -1591,8 +1586,8 @@ async function publishToGitHub(){
       const live=await fetchLatestDoc().catch(()=>null);
       if(live){
         if(JSON.stringify(live)!==JSON.stringify(_loadedSnapshot)){
-          if(!confirm("The live tournaments.json has changed since you loaded it in this editor (e.g. published from another tab, or a team was added elsewhere).\n\nPublishing now will overwrite that with what you see here, erasing those changes.\n\nClick Cancel, then “↻ Load current” to pick up the latest data first — you'll need to redo your edit on top of it. Publish anyway?")){
-            publishMsg('Publish cancelled — click "↻ Load current" to pick up the latest data first.','');
+          if(!confirm("The live tournaments.json has changed since you loaded it in this editor (e.g. published from another tab, or a team was added elsewhere).\n\nPublishing now will overwrite that with what you see here, erasing those changes.\n\nClick Cancel, then reload this page to pick up the latest data first — you'll need to redo your edit on top of it. Publish anyway?")){
+            publishMsg('Publish cancelled — reload this page to pick up the latest data first.','');
             return;
           }
         }
@@ -2865,7 +2860,7 @@ async function confirmAiRecommendation(id){
   if(rec.kind==='cancel_tournament'){
     if(rec.recommended_action!=='cancel'){aiMsg('This recommendation was to KEEP the tournament — nothing to confirm here, just dismiss it.','err');return;}
     const t=data.tournaments.find(x=>x.name===rec.target_slug);
-    if(!t){aiMsg('Could not find "'+rec.target_slug+'" in the currently loaded tournaments — click "↻ Load current" in Tournaments first.','err');return;}
+    if(!t){aiMsg('Could not find "'+rec.target_slug+'" in the currently loaded tournaments — reload this page first.','err');return;}
     if(!confirm('Set "'+rec.target_slug+'" to CANCELLED and publish immediately? Anyone already paid/registered will need a manual refund/follow-up — this does not handle that.'))return;
     t.status='cancelled';
     gen();

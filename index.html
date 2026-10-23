@@ -1025,9 +1025,13 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 .mt-next.warn{color:var(--warm-l);margin-top:6px;font-size:.74rem;text-align:center}
 .mt-checkin{margin-top:0;animation:mtPulse 1.6s ease-in-out infinite}
 @keyframes mtPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,200,61,.5)}50%{box-shadow:0 0 0 8px rgba(255,200,61,0)}}
-.mt-slot{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;margin:0 0 10px;padding:8px 12px;border-radius:12px;background:rgba(255,200,61,.1);border:1px solid var(--gold-m);color:var(--cream);font-size:.9rem}
-.mt-slot b{color:var(--gold-l);font-size:1.15rem}
-.mt-slot small{color:var(--body);font-size:.76rem;flex-basis:100%}
+.mt-slot{display:flex;align-items:center;gap:12px;margin:0 0 10px;padding:10px 14px 10px 10px;border-radius:14px;background:linear-gradient(90deg,rgba(255,200,61,.14),rgba(255,200,61,.03));border:1px solid var(--gold-m);color:var(--cream)}
+.mt-slot-no{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;width:54px;height:54px;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--gold-2));color:#07090F;line-height:1}
+.mt-slot-no i{font-style:normal;font-size:.58rem;font-weight:700;letter-spacing:.12em;opacity:.75}
+.mt-slot-no b{font-family:'Barlow Condensed',sans-serif;font-size:1.75rem;font-weight:700;margin-top:2px}
+.mt-slot-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.mt-slot-tx b{color:var(--gold-l);font-size:.98rem;font-weight:600}
+.mt-slot-tx small{color:var(--body);font-size:.8rem;line-height:1.35}
 .mt-room{border-radius:12px;background:rgba(94,219,149,.08);border:1px solid rgba(94,219,149,.4);padding:10px}
 .mt-room-h{display:flex;align-items:center;gap:8px;font-size:.78rem;font-weight:700;color:var(--green,#5EDB95);margin-bottom:8px;letter-spacing:.05em}
 .mt-live-dot{width:8px;height:8px;border-radius:50%;background:var(--green,#5EDB95);box-shadow:0 0 0 0 rgba(94,219,149,.6);animation:mtDot 1.4s ease-out infinite}
@@ -3319,7 +3323,7 @@ function matchTicketHtml(t,r){
   const steps=CONFIRM_REQUIRED?[['Registered',true],['Confirmed',checked],['Room code',!!rc]]:(CHECKIN_REQUIRED?[['Registered',true],['Checked in',checked],['Room code',!!rc]]:[['Registered',true],['Slot kept',true],['Room code',!!rc]]);
   const cur=steps.findIndex(x=>!x[1]);
   const stepHtml=steps.map(([l,done],i)=>`<li class="${done?'done':(i===cur?'now':'')}"><i>${done?'✓':i+1}</i><span>${l}</span></li>`).join('');
-  const slot=r.slot?`<div class="mt-slot">💺 Your slot: <b>#${r.slot}</b> <small>Sit in seat ${r.slot} when you enter the room</small></div>`:'';
+  const slot=r.slot?`<div class="mt-slot" role="note" aria-label="Your slot: number ${r.slot}"><span class="mt-slot-no" aria-hidden="true"><i>SLOT</i><b>${r.slot}</b></span><span class="mt-slot-tx"><b>Your slot: #${r.slot}</b><small>Sit in seat ${r.slot} when you enter the room</small></span></div>`:'';
   let next;
   if(rc){
     next=`<div class="mt-room"><div class="mt-room-h"><span class="mt-live-dot"></span>Room is open — join now</div><div class="mt-room-row"><button type="button" class="mt-copy" data-copy="${esc(rc.room_id)}"><span>Room ID</span><b>${esc(rc.room_id)}</b><em>Tap to copy</em></button>${rc.room_pass?`<button type="button" class="mt-copy" data-copy="${esc(rc.room_pass)}"><span>Password</span><b>${esc(rc.room_pass)}</b><em>Tap to copy</em></button>`:''}</div></div>`;
