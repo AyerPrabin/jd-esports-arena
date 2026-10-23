@@ -51,7 +51,7 @@ main{flex:1;min-height:0;width:100%;max-width:1120px;margin:0 auto;padding:16px 
 <body class="chat-page">
 <header>
   <div class="bar">
-    <a class="brand" href="/"><img class="jdlogo" src="/logo.png" alt="JD Esports Arena" width="34" height="34"><span>JD Esports Arena</span></a>
+    <a class="brand" href="/"><img class="jdlogo" src="/logo.webp" alt="JD Esports Arena" width="34" height="34"><span>JD Esports Arena</span></a>
     <nav class="links" aria-label="Site"><a href="/">Home</a><a href="/challenges/">⚔️ Challenges</a><a href="/leaderboard.html">🏆 Leaderboard</a></nav>
   </div>
 </header>
@@ -71,7 +71,7 @@ if(sb)sb.auth.getSession().then(r=>{if(!(r&&r.data&&r.data.session))document.get
 else document.getElementById('cp-signin').hidden=false;
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'}).catch(()=>{});
 </script>
-<script src="/ui.js?v=16" defer></script>
-<script src="/chat.js?v=19" defer></script>
+<script src="/ui.js?v=17" defer></script>
+<script src="/chat.js?v=20" defer></script>
 </body>
 </html>

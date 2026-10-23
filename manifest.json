@@ -39,5 +39,55 @@
       "url": "https://jdesport.co.uk/manifest.json"
     }
   ],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Tournaments",
+      "short_name": "Events",
+      "description": "See and join tournaments",
+      "url": "/events/?source=shortcut",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Alerts",
+      "short_name": "Alerts",
+      "description": "Room IDs, reminders and results",
+      "url": "/chat/?alerts=1",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Wallet",
+      "short_name": "Wallet",
+      "description": "Points, load and withdraw",
+      "url": "/wallet/?source=shortcut",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Challenges",
+      "short_name": "Challenges",
+      "description": "Clash Squad challenges",
+      "url": "/challenges/?source=shortcut",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
 }

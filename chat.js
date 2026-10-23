@@ -135,7 +135,7 @@
     return '<span class="dm-av' + (size ? ' ' + size : '') + ' sq" style="background:linear-gradient(145deg,hsl(' + h + ' 60% 46%),hsl(' + ((h + 50) % 360) + ' 70% 30%))" aria-hidden="true">' + ICON.users + '</span>';
   }
   function matchAv(size) { return '<span class="dm-av' + (size ? ' ' + size : '') + ' mt" aria-hidden="true">' + ICON.swords + '</span>'; }
-  function jdAv(size) { return '<span class="dm-av' + (size ? ' ' + size : '') + ' jd" aria-hidden="true"><img src="/logo.png" alt=""></span>'; }
+  function jdAv(size) { return '<span class="dm-av' + (size ? ' ' + size : '') + ' jd" aria-hidden="true"><img src="/logo.webp" alt=""></span>'; }
   var VERIFIED = '<svg class="dm-ver" viewBox="0 0 24 24" role="img" aria-label="Verified"><path fill="currentColor" d="M12 1.6l2.6 1.9 3.2-.1 1 3 2.6 1.9-1 3.1 1 3.1-2.6 1.9-1 3-3.2-.1L12 22.4l-2.6-1.9-3.2.1-1-3L2.6 15.7l1-3.1-1-3.1 2.6-1.9 1-3 3.2.1z"/><path fill="none" stroke="#0B1020" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.6 12.3l3 3 5.8-6"/></svg>';
   function alAv(size) { return '<span class="dm-av' + (size ? ' ' + size : '') + ' al" aria-hidden="true">🔔</span>'; }
   // "[@goats.esp] Title" = from that event's host mod, "[JD] Title" = from the JD team
@@ -1535,13 +1535,15 @@
   SB.auth.getSession().then(function (r) { setUser(r && r.data && r.data.session ? r.data.session.user : null); });
   SB.auth.onAuthStateChange(function (_ev, session) { setUser(session ? session.user : null); });
 
-  // deep links: /?dm=<JD tag> (message push), /?g=<squad chat> (squad push), /?chat=1 (friend/squad notifications)
+  // deep links: /?dm=<JD tag> (message push), /?g=<squad chat> (squad push), /?chat=1 (friend/squad notifications),
+  // /?alerts=1 (the app's "Alerts" shortcut)
   try {
-    var q = new URLSearchParams(location.search), dm = q.get('dm'), g = q.get('g'), ch = q.get('chat'), jdq = q.get('jd'), zq = q.get('zulu');
-    if (dm || g || ch || jdq || zq) {
-      q.delete('dm'); q.delete('g'); q.delete('chat'); q.delete('jd'); q.delete('zulu');
+    var q = new URLSearchParams(location.search), dm = q.get('dm'), g = q.get('g'), ch = q.get('chat'), jdq = q.get('jd'), zq = q.get('zulu'), aq = q.get('alerts');
+    if (dm || g || ch || jdq || zq || aq) {
+      q.delete('dm'); q.delete('g'); q.delete('chat'); q.delete('jd'); q.delete('zulu'); q.delete('alerts');
       history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
       if (jdq) pendingDeepLink = openJd;
+      else if (aq) pendingDeepLink = openAlerts;
       else if (zq) pendingDeepLink = function () { openZulu(); };
       else if (dm) pendingDeepLink = function () { openWith(dm); };
       else if (g && /^[0-9a-f-]{36}$/i.test(g)) pendingDeepLink = function () { openGroup(g); };

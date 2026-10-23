@@ -169,7 +169,7 @@
   g.setAttribute('role', 'dialog');
   g.setAttribute('aria-modal', 'true');
   g.setAttribute('aria-labelledby', 'ag-t');
-  g.innerHTML = '<div class="ag-card"><img src="/logo.png" alt="" width="64" height="64"><h1 id="ag-t">Get the JD Arena app</h1>' +
+  g.innerHTML = '<div class="ag-card"><img src="/logo.webp" alt="" width="64" height="64"><h1 id="ag-t">Get the JD Arena app</h1>' +
     '<p class="ag-lead">On phones, JD Arena runs as an app. It takes 10 seconds, it is free, and there is no app store.</p>' + steps +
     '<ul class="ag-perks"><li>🔔 Room IDs and check-in alerts straight to your phone</li><li>✨ A free 7-day squad effect</li>' +
     '<li>📱 App badge on your username</li><li>⚡ Join selected events 24 hours early</li></ul>' +

@@ -85,7 +85,7 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 }
 /* hero */
 .hero{position:relative;min-height:clamp(520px,78vh,900px);display:flex;align-items:center;padding:120px 0 70px;overflow:hidden;background:#000}
-.hero-bg{position:absolute;inset:0;background-image:url('hero.jpg');background-size:cover;background-position:78% 28%;z-index:0}
+.hero-bg{position:absolute;inset:0;background-image:url('hero.webp');background-size:cover;background-position:78% 28%;z-index:0}
 .hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,rgba(7,9,15,.94) 0%,rgba(7,9,15,.78) 38%,rgba(7,9,15,.35) 70%,rgba(7,9,15,.15) 100%),linear-gradient(0deg,rgba(7,9,15,.9),transparent 30%)}
 .hero-content{position:relative;z-index:1;width:100%;padding-left:clamp(24px,7vw,120px);padding-right:28px}
 .hero-inner{max-width:660px;animation:heroUp .8s cubic-bezier(.16,1,.3,1) both}
@@ -158,7 +158,7 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .arena-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;margin-bottom:20px}
 .tcard{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-card);overflow:hidden;transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .35s,box-shadow .35s,background .35s;cursor:pointer}
 .tcard:hover{transform:translateY(-6px) scale(1.02);border-color:var(--gold);background:var(--panel-2);box-shadow:0 20px 60px rgba(0,0,0,.45),0 0 0 1px var(--glow)}
-.tcard-media{height:200px;background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%),url('event-card.jpg');background-size:cover;background-position:center 30%}
+.tcard-media{height:200px;background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%),url('event-card.webp');background-size:cover;background-position:center 30%}
 .tcard-body{padding:22px 24px 24px}
 .tcard-media{position:relative}
 .tm-over{position:absolute;left:14px;right:14px;bottom:12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
@@ -531,7 +531,7 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
    gameplay (ff-*.jpg: frames of gameplay/1.mp4 cropped and painted clear of HUD and names) ── */
 #winner-spot{margin-top:clamp(28px,5vw,48px)}
 .ws{position:relative;overflow:hidden;border-radius:var(--radius-card,22px);border:1px solid rgba(255,200,61,.42);background:#07090F;isolation:isolate;box-shadow:0 40px 90px -40px rgba(255,180,40,.55),inset 0 1px 0 rgba(255,230,160,.18)}
-.ws-bg{position:absolute;inset:0;z-index:-3;background:url('ff-victory.jpg') center 22%/cover;opacity:.38;filter:saturate(1.2);transform:scale(1.04);animation:wsPan 22s ease-in-out infinite alternate}
+.ws-bg{position:absolute;inset:0;z-index:-3;background:url('ff-victory.webp') center 22%/cover;opacity:.38;filter:saturate(1.2);transform:scale(1.04);animation:wsPan 22s ease-in-out infinite alternate}
 .ws::before{content:'';position:absolute;inset:0;z-index:-1;background:radial-gradient(55% 60% at 50% 38%,rgba(255,190,50,.22),transparent 70%),radial-gradient(80% 90% at 50% 40%,rgba(7,9,15,.15),rgba(7,9,15,.92) 78%),linear-gradient(180deg,rgba(7,9,15,0) 40%,rgba(7,9,15,.95))}
 .ws::after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:30%;z-index:-1;background:linear-gradient(100deg,transparent,rgba(255,220,120,.10),transparent);transform:skewX(-18deg);animation:wsSweep 7s ease-in-out infinite}
 /* gold light rays fanning out behind the champion */
@@ -843,7 +843,7 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 .zmodal .sub{color:var(--body);font-size:.82rem;margin-bottom:16px}
 .zmodal label{display:block;font-size:.7rem;letter-spacing:.01em;color:var(--silver);margin:12px 0 5px}
 .zmodal label.tc-check{display:flex;align-items:flex-start;gap:8px;font-size:.8rem;text-transform:none;letter-spacing:normal;color:var(--pm-muted,#9CA8BE);margin:10px 0 4px;cursor:pointer}
-.reg-hero{margin:-28px -28px 16px;padding:52px 22px 14px;border-radius:26px 26px 0 0;background:linear-gradient(180deg,rgba(10,15,28,.15),rgba(10,15,28,.96) 92%),url('ff-gloo.jpg') center 45%/cover;border-bottom:1px solid var(--pm-border)}
+.reg-hero{margin:-28px -28px 16px;padding:52px 22px 14px;border-radius:26px 26px 0 0;background:linear-gradient(180deg,rgba(10,15,28,.15),rgba(10,15,28,.96) 92%),url('ff-gloo.webp') center 45%/cover;border-bottom:1px solid var(--pm-border)}
 .reg-hero-eye{font-size:.64rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-l)}
 .reg-hero h3{margin:4px 0 0;font-size:1.45rem;line-height:1.15;overflow-wrap:anywhere}
 .reg-quick{display:flex;align-items:center;gap:12px;margin:4px 0 6px;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,200,80,.32);background:linear-gradient(120deg,rgba(255,200,61,.09),transparent 70%)}
@@ -1181,15 +1181,15 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 </head>
 <body>
 <div id="preloader" aria-hidden="true">
-  <img class="preloader-logo" src="/logo.png" alt="JD Esports Arena" width="132" height="132">
+  <img class="preloader-logo" src="/logo.webp" alt="JD Esports Arena" width="132" height="132">
   <div class="preloader-text">JD Esports Arena</div>
   <div class="preloader-sub">Made in Nepal</div>
 </div>
-<div class="made-in-np" aria-hidden="true"><img src="/logo.png" alt="" width="20" height="20"><span>Made in Nepal</span></div>
+<div class="made-in-np" aria-hidden="true"><img src="/logo.webp" alt="" width="20" height="20"><span>Made in Nepal</span></div>
 <header>
   <div class="bar">
     <a class="brand" href="/" aria-label="JD Esports Arena home">
-      <img class="jdlogo" src="/logo.png" alt="JD Esports Arena" width="40" height="40">
+      <img class="jdlogo" src="/logo.webp" alt="JD Esports Arena" width="40" height="40">
       <span><b>JD Esports Arena</b><span>by AyerFire</span></span>
     </a>
     <div class="bar-right">
@@ -1222,7 +1222,7 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
       <div class="stat"><b id="stat-squads">0</b><span>Squads Registered</span></div>
       <div class="stat"><b id="stat-players">0</b><span>Players</span></div>
       <a class="stat" id="stat-ch-wrap" href="/challenges/" hidden><b id="stat-challenges">0</b><span>Challenges Played</span></a>
-      <div class="stat" id="stat-logo-wrap"><b class="stat-logo"><img src="/logo.png" alt=""></b><span>Made in Nepal</span></div>
+      <div class="stat" id="stat-logo-wrap"><b class="stat-logo"><img src="/logo.webp" alt=""></b><span>Made in Nepal</span></div>
     </div>
     <div class="bc-ticker" id="bc-ticker" role="region" aria-label="Arena news" hidden><span class="bc-tk-label" id="bc-tk-label">Arena</span><div class="bc-tk-view"><div class="bc-tk-track" id="bc-tk-track"></div></div></div>
   </section>
@@ -1267,13 +1267,13 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
   <section class="sec wrap reveal" id="arena-shots">
     <div class="sec-h"><h2>From the Arena</h2><span class="ln"></span><span class="tag">Mobile gameplay</span></div>
     <div class="shots">
-      <figure class="shot big"><img src="ff-victory.jpg" alt="Free Fire mobile gameplay — the round won" loading="lazy" width="1200" height="964"><figcaption>🏆 Round won</figcaption></figure>
-      <figure class="shot"><img src="ff-fight.jpg" alt="Free Fire mobile gameplay — firefight behind a gloo wall" loading="lazy" width="1200" height="818"><figcaption>🔫 Gloo wall fight</figcaption></figure>
-      <figure class="shot"><img src="ff-gloo.jpg" alt="Free Fire mobile gameplay — pushing through gloo walls" loading="lazy" width="1200" height="776"><figcaption>🧊 The push</figcaption></figure>
-      <figure class="shot"><img src="ff-gameplay.jpg" alt="Free Fire mobile gameplay — holding cover" loading="lazy" width="1400" height="690"><figcaption>🛡️ Holding cover</figcaption></figure>
+      <figure class="shot big"><img src="ff-victory.webp" alt="Free Fire mobile gameplay — the round won" loading="lazy" width="1200" height="964"><figcaption>🏆 Round won</figcaption></figure>
+      <figure class="shot"><img src="ff-fight.webp" alt="Free Fire mobile gameplay — firefight behind a gloo wall" loading="lazy" width="1200" height="818"><figcaption>🔫 Gloo wall fight</figcaption></figure>
+      <figure class="shot"><img src="ff-gloo.webp" alt="Free Fire mobile gameplay — pushing through gloo walls" loading="lazy" width="1200" height="776"><figcaption>🧊 The push</figcaption></figure>
+      <figure class="shot"><img src="ff-gameplay.webp" alt="Free Fire mobile gameplay — holding cover" loading="lazy" width="1400" height="690"><figcaption>🛡️ Holding cover</figcaption></figure>
     </div>
     <h3 class="maps-h">Battle maps</h3>
-    <div class="maps-row" tabindex="0" role="region" aria-label="Battle maps"><figure class="mapt"><img src="maps/ff-bermuda.jpg" alt="Bermuda map" loading="lazy" width="1000" height="1000"><figcaption>🌴 Bermuda</figcaption></figure><figure class="mapt"><img src="maps/ff-purgatory.jpg" alt="Purgatory map" loading="lazy" width="1000" height="1000"><figcaption>🌲 Purgatory</figcaption></figure><figure class="mapt"><img src="maps/ff-kalahari.jpg" alt="Kalahari map" loading="lazy" width="1000" height="1000"><figcaption>🏜️ Kalahari</figcaption></figure><figure class="mapt"><img src="maps/ff-alpine.jpg" alt="Alpine map" loading="lazy" width="1000" height="1000"><figcaption>🏔️ Alpine</figcaption></figure><figure class="mapt"><img src="maps/ff-nexterra.jpg" alt="NeXTerra map" loading="lazy" width="1000" height="1000"><figcaption>🌌 NeXTerra</figcaption></figure></div>
+    <div class="maps-row" tabindex="0" role="region" aria-label="Battle maps"><figure class="mapt"><img src="maps/ff-bermuda.webp" alt="Bermuda map" loading="lazy" width="1000" height="1000"><figcaption>🌴 Bermuda</figcaption></figure><figure class="mapt"><img src="maps/ff-purgatory.webp" alt="Purgatory map" loading="lazy" width="1000" height="1000"><figcaption>🌲 Purgatory</figcaption></figure><figure class="mapt"><img src="maps/ff-kalahari.webp" alt="Kalahari map" loading="lazy" width="1000" height="1000"><figcaption>🏜️ Kalahari</figcaption></figure><figure class="mapt"><img src="maps/ff-alpine.webp" alt="Alpine map" loading="lazy" width="1000" height="1000"><figcaption>🏔️ Alpine</figcaption></figure><figure class="mapt"><img src="maps/ff-nexterra.webp" alt="NeXTerra map" loading="lazy" width="1000" height="1000"><figcaption>🌌 NeXTerra</figcaption></figure></div>
   </section>
 
   <section class="sec wrap reveal" id="scoring">
@@ -2010,9 +2010,19 @@ function setStat(id,n){
   const step=t=>{const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=Math.round(from+(n-from)*e).toLocaleString();if(k<1)requestAnimationFrame(step);else{el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}};
   requestAnimationFrame(step);
 }  // tournament slug -> squads ever registered (get_arena_totals, includes past events)
-async function loadPublicRoster(){
+// The roster carries every squad logo (~370 KB), so the 5 s poll only reads its fingerprint
+// (public_roster_version, roster_version.sql) and downloads the roster when something changed.
+// Called without arguments (after joining, withdrawing...) it always reloads.
+let _rosterVer=null;
+async function loadPublicRoster(poll){
   if(!sb)return;
-  const [{data,error},tot,st]=await Promise.all([sb.rpc('get_public_roster'),sb.rpc('get_arena_totals'),sb.rpc('get_arena_stats')]);
+  if(poll&&_rosterLoaded){
+    const v=await sb.rpc('public_roster_version');
+    if(!v.error&&v.data===_rosterVer)return;
+    if(!v.error)_rosterVer=v.data;
+  }
+  const [{data,error},tot,st,ver]=await Promise.all([sb.rpc('get_public_roster'),sb.rpc('get_arena_totals'),sb.rpc('get_arena_stats'),poll?null:sb.rpc('public_roster_version')]);
+  if(ver&&!ver.error)_rosterVer=ver.data;
   if(!st.error&&st.data&&st.data[0])_arenaStats=st.data[0];
   if(!tot.error&&tot.data)_allTime=new Map(tot.data.map(r=>[r.tournament_slug,r.squads||0]));
   if(error)return;
@@ -2175,8 +2185,8 @@ function render(d){
     const prizeTxt=fmtPrize(t.prize),entryTxt=String(t.entry||'Free');
     const host=String(t.host||'').replace(/^@+/,'').trim();
     const org=host?`<span class="tm-org host" title="Run by partner host @${esc(host)}"><i>${esc(host.charAt(0).toUpperCase())}</i>Hosted by @${esc(host)}</span>`
-                  :`<span class="tm-org" title="Official JD Esports event"><img src="/logo.png" alt="">JD Official</span>`;
-    const media=`<div class="tcard-media" style="background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%),url('${esc(t.image||('maps/ff-'+mapOf(t)+'.jpg'))}')">${org}<div class="tm-over">${prizeTxt!=='—'?`<span class="tm-prize">🏆 ${esc(prizeTxt)}</span>`:''}<span class="tm-entry${/^free$/i.test(entryTxt.trim())?' free':''}">${/^free$/i.test(entryTxt.trim())?'Free entry':'Entry '+esc(entryTxt)}</span></div>${urgency}</div>`;
+                  :`<span class="tm-org" title="Official JD Esports event"><img src="/logo.webp" alt="">JD Official</span>`;
+    const media=`<div class="tcard-media" style="background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%),url('${esc(t.image||('maps/ff-'+mapOf(t)+'.webp'))}')">${org}<div class="tm-over">${prizeTxt!=='—'?`<span class="tm-prize">🏆 ${esc(prizeTxt)}</span>`:''}<span class="tm-entry${/^free$/i.test(entryTxt.trim())?' free':''}">${/^free$/i.test(entryTxt.trim())?'Free entry':'Entry '+esc(entryTxt)}</span></div>${urgency}</div>`;
     const isPast=st==='completed'||st==='cancelled';
     return `<div class="tcard${isPast?' past':''}" data-tname="${esc(t.name)}" onclick="cardTap(event,this)">${media}<div class="tcard-body"><span class="tbadge ${st}">${st==='live'?'● Live':(st==='cancelled'?'✕ Cancelled':(st.charAt(0).toUpperCase()+st.slice(1)))}</span><div class="tname">${esc(t.name)}</div><div class="tgame">${esc(t.game||'Free Fire')}</div>${(st==='upcoming'&&t.start)?`<div class="tcount" data-start="${esc(t.start)}"></div><div class="tcount-bar"><span></span></div>`:''}<div class="tmeta"><div class="row"><span>Date</span><b>${esc(t.date||'TBA')}${t.time&&t.time!=='—'?' · '+esc(t.time):''}</b></div><div class="row"><span>Format</span><b>${esc(t.format||'BR')}</b></div><div class="row"><span>Map</span><b>🗺️ ${MAP_ART[mapOf(t)]}</b></div>${t.platform?`<div class="row"><span>Platform</span><b>📱 ${esc(t.platform)}</b></div>`:''}${host?`<div class="row"><span>Host</span><b>@${esc(host)}</b></div>`:''}</div>${host?`<p class="thost-note">Run by partner host <b>@${esc(host)}</b>: they send the room ID and pay the prize. JD Arena handles sign-up, slots and alerts.</p>`:''}${slots?`<div class="tslots"><span style="width:${pct}%"></span></div><button class="tslots-label" data-roster="${esc(t.name)}">${reg}/${slots} ${tr('sqview')}</button>`:''}${teams.length?`<div class="troster">${teams.slice(0,CHIP_MAX).map(tm=>{const fx=squadFx(tm);const cls=fx?' '+fx.cls:'';const badge=(fx&&fx.badge)?`<span class="fx-badge">${fx.badge}</span> `:'';const particles=fxParticlesHtml(fx);const nameHtml=fxNameHtml(fx,tm.name);return tm.logo?`<span class="${(fx?fx.cls:'')}"><img src="${esc(tm.logo)}" alt="">${badge}${nameHtml}${particles}</span>`:`<span class="nologo${cls}">${badge}${nameHtml}${particles}</span>`;}).join('')}${teams.length>CHIP_MAX?`<button type="button" class="chip-more" data-roster="${esc(t.name)}">+${teams.length-CHIP_MAX} more</button>`:''}</div>`:''}${btn}${inAppRegBtn(t,st,full)}</div></div>`;
   }).join(''):(lang==='ne'?'<p class="ev-empty">अहिले कुनै आगामी प्रतियोगिता छैन — अर्को प्रतियोगिता पहिले Discord मा घोषणा हुन्छ। त्यतिन्जेल <a href="/events/">पुराना प्रतियोगिता</a> हेर्नुहोस्।</p>':'<p class="ev-empty">No upcoming tournaments right now — the next one is announced on Discord first. Meanwhile, see <a href="/events/">past events</a>.</p>');
@@ -2394,7 +2404,9 @@ function fetchPagesDoc(){
    copy only once a minute (it lags publishes anyway). Re-render only when the winning copy changed. */
 let _pagesAt=0,_shownDoc=null;
 function refresh(){
-  const needPages=!_pagesDoc||Date.now()-_pagesAt>60000;
+  // the Pages file is ~140 KB (squad logos): read it once, then only while the instant live copy is unavailable
+  // (it was re-downloaded every minute, ~8 MB an hour on mobile data for no newer content)
+  const needPages=!_pagesDoc||(!_liveDoc&&Date.now()-_pagesAt>60000);
   if(needPages)_pagesAt=Date.now();
   Promise.all([needPages?fetchPagesDoc().catch(()=>{}):null,pollLiveContent().catch(()=>{})]).then(()=>{
     const d=(_liveDoc&&_pagesDoc)?(pubTime(_liveDoc)>=pubTime(_pagesDoc)?_liveDoc:_pagesDoc):(_liveDoc||_pagesDoc);
@@ -2538,7 +2550,7 @@ function authRender(){
   }
   if(_player){
     const verifiedBadge=_player.verified?'<span class="pm-verified">✓ Verified</span>':'';
-    const avatarBlock=`<div class="pm-avatar-wrap"><img class="pm-avatar" id="pm-avatar-img" src="${esc(_player.avatar||'/logo.png')}" alt=""><button class="pm-avatar-edit" onclick="document.getElementById('pm-avatar-file').click()" aria-label="Change profile picture">📷</button><input type="file" id="pm-avatar-file" accept="image/*" style="display:none" onchange="authUploadAvatar(this)"></div>`;
+    const avatarBlock=`<div class="pm-avatar-wrap"><img class="pm-avatar" id="pm-avatar-img" src="${esc(_player.avatar||'/logo.webp')}" alt=""><button class="pm-avatar-edit" onclick="document.getElementById('pm-avatar-file').click()" aria-label="Change profile picture">📷</button><input type="file" id="pm-avatar-file" accept="image/*" style="display:none" onchange="authUploadAvatar(this)"></div>`;
     const regRows=[..._myRegs.entries()];
     // Upcoming/live first, then the rest; each row is a tap target that jumps to the card.
     const tByName=new Map(((_lastData||{}).tournaments||[]).map(t=>[t.name,t]));
@@ -2665,7 +2677,7 @@ function authUploadAvatar(input){
     const {error}=await sb.storage.from('avatars').upload(`${_player.id}/avatar.jpg`,blob,{upsert:true,contentType:'image/jpeg'});
     if(error){authMsg(error.message);return;}
     await loadMyAvatarUrl();
-    const img=document.getElementById('pm-avatar-img');if(img)img.src=_player.avatar||'/logo.png';
+    const img=document.getElementById('pm-avatar-img');if(img)img.src=_player.avatar||'/logo.webp';
     updateAcctBtn();
     authMsg('Profile picture updated!',true);
   });
@@ -2872,7 +2884,7 @@ function updateAcctBtn(){
   if(_player){
     if(su)su.style.display='none';
     ac.classList.add('acct-btn-signed');
-    ac.innerHTML=`<img class="acct-avatar-mini" src="${esc(_player.avatar||'/logo.png')}" alt="">${esc(_player.username||_player.tag||'Account')}${_player.app?' <span class="app-badge" title="JD Arena app user">📱</span>':''}`;
+    ac.innerHTML=`<img class="acct-avatar-mini" src="${esc(_player.avatar||'/logo.webp')}" alt="">${esc(_player.username||_player.tag||'Account')}${_player.app?' <span class="app-badge" title="JD Arena app user">📱</span>':''}`;
     ac.onclick=()=>{location.href='/profile/';}; // profile has its own page; account settings stay reachable via /?account=1
     if(ad)ad.style.display=((_player.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase())?'':'none';
     {const zb=document.getElementById('zulu-admin-btn');if(zb&&ad)zb.style.display=ad.style.display;}
@@ -3957,14 +3969,27 @@ function playSynthChime(kind){
     });
   }catch(e){}
 }
-async function loadNotifications(markSeenOnOpen){
+// poll=true (the 5 s timer): first a tiny check (newest alert + unread count); the full list (~70 KB for an
+// active player) only downloads when that changed. The list keeps the newest 80.
+let _notifStamp=null;
+async function loadNotifications(markSeenOnOpen,poll){
   const list=document.getElementById('notif-list');if(!list)return;
   if(!sb||!_player){list.innerHTML='<p class="sub">Log in to see your notifications.</p>';_notifUnread=0;updateNotifHistBtn();return;}
-  const {data,error}=await sb.from('notifications').select('*').eq('player_id',_player.id).order('created_at',{ascending:false});
+  if(poll&&_notifHasLoadedOnce){
+    const [top,un]=await Promise.all([sb.from('notifications').select('id,created_at').eq('player_id',_player.id).order('created_at',{ascending:false}).limit(1),
+      sb.from('notifications').select('id',{count:'exact',head:true}).eq('player_id',_player.id).is('read_at',null)]);
+    if(!top.error&&!un.error){
+      const stamp=((top.data&&top.data[0]&&top.data[0].id)||'')+'|'+(un.count||0);
+      if(stamp===_notifStamp)return;
+      _notifStamp=stamp;
+    }
+  }
+  const {data,error}=await sb.from('notifications').select('*').eq('player_id',_player.id).order('created_at',{ascending:false}).limit(80);
   if(error){list.innerHTML='<p class="sub">Couldn\'t load notifications.</p>';return;}
   const rows=data||[];
   const prevUnread=_notifUnread;
   _notifUnread=rows.filter(r=>!r.read_at).length;
+  _notifStamp=((rows[0]&&rows[0].id)||'')+'|'+_notifUnread;
   if(_notifUnread>prevUnread&&_notifHasLoadedOnce){const fresh=rows.find(r=>!r.read_at),ak=alertKind(fresh);playChime(ak||'notify');ringBell();buzz(ak);if(fresh)notifBanner(fresh);}
   _notifHasLoadedOnce=true;
   updateNotifHistBtn();
@@ -4092,10 +4117,10 @@ applyLang();refresh();loadPublicRoster();tick();updateAcctBtn();updateNotifHistB
 /* 5s so slot counts/roster changes show up close to instantly without a manual reload —
    safe now that render() no-ops when nothing actually changed (see _lastGridHTML above),
    so most of these ticks touch zero DOM. Still skipped entirely on a backgrounded tab. */
-setInterval(()=>{if(!document.hidden){refresh();loadPublicRoster();if(_player){loadMyRegs();loadNotifications(false);}}},5000);
+setInterval(()=>{if(!document.hidden){refresh();loadPublicRoster(true);if(_player){loadMyRegs();loadNotifications(false,true);}}},5000);
 setInterval(()=>{if(!document.hidden)checkLock();},30000);checkLock();
 // coming back to the tab/app catches up immediately instead of on the next 5s tick
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){refresh();loadPublicRoster();if(_player){loadMyRegs();loadNotifications(false);}}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){refresh();loadPublicRoster(true);if(_player){loadMyRegs();loadNotifications(false,true);}}});
 setInterval(tick,1000);
 
 /* ── scroll-reveal: fade+lift `.reveal` sections into view once, skipped entirely under
@@ -4479,8 +4504,8 @@ document.getElementById('fb-input').addEventListener('keydown',function(e){if(e.
 zChrome();
 setTimeout(showNudge,13000);
 </script>
-<script src="/ui.js?v=16" defer></script>
-<script src="/chat.js?v=19" defer></script>
+<script src="/ui.js?v=17" defer></script>
+<script src="/chat.js?v=20" defer></script>
 <script src="/fx-engine.js?v=4" defer></script>
 </body>
 </html>

@@ -6,7 +6,10 @@ self.addEventListener("install", e => {
   self.skipWaiting();
   e.waitUntil(caches.open("jd-offline").then(c => c.add("/offline.html")).catch(() => {}));
 });
-self.addEventListener("activate", e => self.clients.claim());
+self.addEventListener("activate", e => e.waitUntil((async () => {
+  for (const k of await caches.keys()) if (k.startsWith("jd-static-") && k !== STATIC_CACHE) await caches.delete(k);
+  await self.clients.claim();
+})()));
 // Pages (navigations) are always revalidated with GitHub Pages: it serves HTML with
 // max-age=600, so without this a returning player could run a 10-minute-old copy of
 // the site after an update. `no-cache` still sends If-None-Match, so an unchanged page
@@ -22,8 +25,28 @@ self.addEventListener("fetch", e => {
     );
     return;
   }
-  e.respondWith(fetch(r));
+  // Static files (images, styles, scripts, fonts) come from the phone's cache at once and are refreshed in
+  // the background (stale-while-revalidate), so the app opens without waiting on the network. Data (JSON,
+  // Supabase), the APK and anything else go straight to the network, untouched.
+  const u = new URL(r.url);
+  const font = u.hostname === "fonts.gstatic.com" || u.hostname === "fonts.googleapis.com";
+  if (r.method === "GET" && (font || (u.origin === self.location.origin && STATIC.test(u.pathname) && !/\/sw\.js$/.test(u.pathname)))) {
+    e.respondWith(swr(e, r));
+    return;
+  }
 });
+const STATIC = /\.(?:png|jpe?g|webp|gif|svg|ico|css|js|woff2?)$/i;   // not audio: players ask for byte ranges
+const STATIC_CACHE = "jd-static-v1";
+async function swr(e, r) {
+  const cache = await caches.open(STATIC_CACHE);
+  const hit = await cache.match(r);
+  const net = fetch(r).then(res => {
+    if (res && (res.status === 200 || res.type === "opaque")) cache.put(r, res.clone()).catch(() => {});
+    return res;
+  }).catch(() => hit || Response.error());
+  if (hit) { e.waitUntil(net.catch(() => {})); return hit; }
+  return net;
+}
 
 // A push always shows a notification — even if the payload can't be read — because a
 // silent push makes Chrome show its own "site updated in the background" message and can
