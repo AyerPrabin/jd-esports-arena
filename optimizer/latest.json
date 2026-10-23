@@ -1,9 +1,9 @@
 {
-  "version": "5.5",
-  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.5.exe",
-  "sha256": "b262eaee511a02842ebbc2be3c243fd14e43eaac08d01444eb189acd6ed65bcf",
-  "size": 1259633,
-  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.5.zip",
-  "notes": "v5.5: optional private PC report to your own JD account (only you + the JD admin see it; ZULU uses it to answer FPS questions)",
-  "date": "2026-10-22"
+  "version": "5.6",
+  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.6.exe",
+  "sha256": "55f8e51e5ab75a90c84e4c362c9970db51fb6a81b7a7cf8b5ac057fbe32539d6",
+  "size": 1265959,
+  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.6.zip",
+  "notes": "v5.6: needs a Weekly Pass too; terms once at start, no data questions (session data sends by itself, switchable in the tray); 3-day warning, then it restores your PC and removes itself if not renewed",
+  "date": "2026-10-23"
 }

@@ -108,6 +108,28 @@ h3{font-size:1.45rem;line-height:1.1}
 .dlbox{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
 .meta{color:var(--silver);font-size:.84rem}.meta b{color:var(--cream);font-weight:500}
 .meta .alt{display:block;margin-top:2px}.meta .alt a{color:var(--gold-l);text-decoration:underline;text-underline-offset:3px}
+.pass-line{margin-top:4px;font-size:.84rem;color:var(--silver)}
+.pass-line b.ok{color:var(--cta)}.pass-line b.no{color:#ff9b7a}
+.pass-line a{color:var(--gold-l);text-decoration:underline;text-underline-offset:3px}
+.need{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;max-width:820px;margin:0 auto 28px}
+.need-step{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--r-lg);border:1px solid var(--line-2);
+  background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01))}
+.need-step>div{flex:1;min-width:0}
+.need-step b{display:block;color:var(--cream);font-weight:600}
+.need-step small{display:block;color:var(--body);font-size:.82rem;line-height:1.4;margin-top:2px}
+.need-n{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;color:#07090F;
+  background:linear-gradient(135deg,#FFC83D,#FFAE00)}
+.need-step.done{border-color:rgba(80,220,140,.45)}
+.need-step.done .need-n{background:var(--cta)}
+.need-step .btn.sm{padding:8px 14px;font-size:.84rem;white-space:nowrap}
+.dl-terms{flex-basis:100%;border-top:1px solid var(--line);padding-top:16px;color:var(--body);font-size:.84rem;line-height:1.55}
+.dl-terms h3{margin:0 0 6px;color:var(--cream);font-size:.95rem;font-weight:600}
+.dl-terms ul{margin:0 0 12px;padding-left:18px}
+.dl-terms li{margin:3px 0}
+.dl-terms a{color:var(--gold-l);text-decoration:underline;text-underline-offset:3px}
+.dl-agree{display:flex;gap:10px;align-items:flex-start;color:var(--cream);font-size:.9rem;cursor:pointer}
+.dl-agree input{width:18px;height:18px;margin:2px 0 0;flex:none;accent-color:var(--gold,#FFC83D)}
+.meta .alt a[aria-disabled="true"]{opacity:.5;pointer-events:none}
 .gate{text-align:center;justify-content:center}.gate p{color:var(--body);margin:6px 0 16px}
 .notes{color:var(--body);font-size:.88rem;text-align:center;margin:12px auto 0;max-width:820px}
 
@@ -217,7 +239,7 @@ footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin
     <a class="back" href="/">← Back to Arena</a>
   </div>
 </header>
-<div class="subnav"><nav aria-label="On this page"><a href="#overview">Overview</a><a href="#how">How to use</a><a href="#features">Features</a><a href="#plans">Plans</a><a href="#faq">FAQ</a></nav></div>
+<div class="subnav"><nav aria-label="On this page"><a href="#overview">Overview</a><a href="#plans">Plans</a><a href="#how">How to use</a><a href="#features">Features</a><a href="#faq">FAQ</a></nav></div>
 
 <main id="main" class="wrap">
   <section class="hero" id="overview" style="padding-top:64px">
@@ -231,7 +253,7 @@ footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin
       </a>
       <a class="link" href="#how">See how it works →</a>
     </div>
-    <div class="chips"><span>Pro from 49 points / 30 days</span><span>Windows PC &amp; laptop only</span><span>Every change can be undone</span><span>Auto-updates</span></div>
+    <div class="chips"><span>Weekly Pass + Pro from 49 points</span><span>Windows PC &amp; laptop only</span><span>Every change can be undone</span><span>Auto-updates</span></div>
     <div class="shot rise">
       <div class="frame"><img src="img/app-main.webp" alt="The JD-Optimiers window: Play Free Fire button, live CPU and GPU tiles, mouse sensitivity and gaming boost switches" width="926" height="470" fetchpriority="high"></div>
       <div class="caption">The real app on a Ryzen 7 / RTX 3050 laptop.</div>
@@ -248,7 +270,8 @@ footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin
     </div>
     <div class="acct" id="acct" hidden>
       <div><div class="who">Signed in as <b id="me">…</b> · <span id="bal">…</span> points · <a href="/wallet/" class="link">load points</a></div>
-        <div class="status off" id="plan-status">…</div></div>
+        <div class="status off" id="plan-status">…</div>
+        <div class="pass-line" id="pass-line"></div></div>
       <div class="dlbox" id="dl-box">
         <a class="btn" id="dl-btn" href="#" aria-disabled="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
@@ -256,9 +279,80 @@ footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin
         </a>
         <div class="meta" id="dl-meta">Loading the latest version…</div>
       </div>
+      <div class="dl-terms" id="dl-terms">
+        <h3>Before you download</h3>
+        <ul>
+          <li>JD-Optimiers changes Windows settings (power plan, Game Mode, background apps, visual effects, GPU preference) and, when you choose, MSI App Player's own settings. <b>Restore all</b> puts everything back. It never touches game files or memory and adds no macros or aim assist.</li>
+          <li>You use it <b>at your own risk</b>. We can't promise any FPS, or how Garena / BlueStacks treat third-party apps.</li>
+          <li><b>Data it sends by itself after each session</b> and when you close it: an <b>anonymous FPS summary</b> (FPS, 1% low, stutters, emulator settings, CPU / GPU / RAM model, a random ID made on your PC) and a <b>private PC report</b> to your own JD account (PC specs and score, emulator settings, how the session ran — only you and the JD admin can see it). Also needed to work: your PC's name, your plan and when the PC was last seen.</li>
+          <li>It <b>never</b> sends files, passwords, game data, your screen, or mouse / aim numbers. You can switch both data sends off any time in the app's tray menu.</li>
+          <li>You need an active <b>Weekly Pass</b> and an <b>Optimizer plan</b>. If either runs out, the app warns you at start; if you don't renew within <b>3 days</b>, it puts your PC back to normal (Restore all) and deletes its own files — nothing else in the folder.</li>
+          <li>Updates are required and install themselves at start. Plans and passes are paid in JD points and aren't refunded once started.</li>
+        </ul>
+        <label class="dl-agree"><input type="checkbox" id="dl-ok"> <span>I have read and agree to the <a href="/terms.html#s19" target="_blank" rel="noopener">JD-Optimiers terms</a> and the <a href="/privacy/" target="_blank" rel="noopener">privacy policy</a>, including the automatic session data above.</span></label>
+      </div>
     </div>
     <div class="notes" id="dl-notes"></div>
   </div>
+
+  <section id="plans">
+    <div class="sec-head">
+      <div class="eyebrow">Plans</div>
+      <h2>Pick your plan.</h2>
+      <p class="lede">Paid with JD points (1 point = Rs 1). Plans last 30 days and never renew by themselves.</p>
+    </div>
+    <div class="need rise" id="need">
+      <div class="need-step" id="need-pass"><span class="need-n">1</span><div><b>Weekly Pass</b><small>50 points / 7 days (Weekly Pro 80). Needed to download and to run the app.</small></div><a class="btn ghost sm" href="/pass/" id="need-pass-btn">Get a pass</a></div>
+      <div class="need-step" id="need-plan"><span class="need-n">2</span><div><b>Optimizer Pro or Max</b><small>Pick one below. Needed every time the app starts.</small></div><a class="btn ghost sm" href="#plan-cards">Choose</a></div>
+    </div>
+    <div class="plans" id="plan-cards">
+      <div class="plan rise">
+        <h3>Optimizer Pro</h3>
+        <div class="price">49<small>points / 30 days</small></div>
+        <ul>
+          <li><span>One-tap boost for Free Fire <b>and any PC game</b></span></li>
+          <li><span>Performance modes: Balanced, <b>Extreme</b>, <b>Potato</b></span></li>
+          <li><span>High FPS (up to 120), VSync off, GPU scheduling</span></li>
+          <li><span>Aim Studio, mouse presets, live FPS and session reports</span></li>
+          <li><span>Deep clean · 2 PCs</span></li>
+        </ul>
+        <button class="btn buy" data-tier="pro" type="button">Get Pro · 49 pts</button>
+      </div>
+      <div class="plan max rise">
+        <h3>Optimizer Max <span class="tag" style="vertical-align:middle">Best value</span></h3>
+        <div class="price">99<small>points / 30 days</small></div>
+        <ul>
+          <li><span>Everything in Pro, plus <b>240 FPS</b></span></li>
+          <li><span><b>Tournament panel scan</b> with server-signed reports</span></li>
+          <li><span><b>Max engine</b>: DPI changer, 360° aim test, engine cache</span></li>
+          <li><span><b>30-day squad effect</b>, <b>24 h early entry</b> and a <b>Verified ✔ tag</b></span></li>
+          <li><span>2 PCs</span></li>
+        </ul>
+        <label class="fxpick">Squad effect <select id="fx-pick"><option value="gold">Gold</option><option value="fire">Fire</option><option value="ice">Ice</option><option value="neon">Neon</option><option value="rainbow">Rainbow</option><option value="galaxy">Galaxy</option><option value="thunder">Thunder</option><option value="legend">Legend</option><option value="blade">Blade</option><option value="bullets">Bullets</option><option value="liquid">Liquid Glass</option><option value="spatial">Spatial 3D</option></select></label>
+        <button class="btn buy" data-tier="max" type="button">Get Max · 99 pts</button>
+      </div>
+    </div>
+    <div class="msg" id="buy-msg"></div>
+    <p class="notes">If your plan or pass runs out, the app stops at start and warns you. Renew within 3 days, or it puts your PC back to normal (Restore all) and removes itself — download it again any time.</p>
+    <p class="notes">Buying again adds 30 days. Upgrading Pro → Max turns the Pro days you have left into Max days (×49/99) and adds 30. Points are not refunded — see the <a href="/terms.html#s19" class="link">JD-Optimiers terms</a>. Load points on your <a href="/wallet/" class="link">wallet</a> with eSewa.</p>
+
+    <div class="cmp-wrap rise">
+      <table class="cmp">
+        <thead><tr><th>Feature</th><th class="c">Pro · 49</th><th class="c">Max · 99</th></tr></thead>
+        <tbody>
+          <tr><td>One-tap boost — Free Fire &amp; any PC game</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+          <tr><td>Performance modes: Balanced · Extreme · Potato</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+          <tr><td>Emulator FPS</td><td class="c">up to 120*</td><td class="c yes">up to 240</td></tr>
+          <tr><td>Aim Studio, mouse presets, live FPS, Deep clean</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
+          <tr><td><b>Tournament panel scan</b> + signed report</td><td class="c no">—</td><td class="c yes">✓</td></tr>
+          <tr><td><b>Max engine</b> — DPI changer + 360° aim test</td><td class="c no">—</td><td class="c yes">✓</td></tr>
+          <tr><td><b>Squad effect</b>, <b>early entry</b>, <b>Verified ✔</b></td><td class="c no">—</td><td class="c yes">✓</td></tr>
+          <tr><td>PCs</td><td class="c">2</td><td class="c">2</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="notes">* Pro plans bought before 20 Oct 2026 keep 240 FPS until they renew.</p>
+  </section>
 
   <section id="how">
     <div class="sec-head">
@@ -349,59 +443,6 @@ footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin
     <div class="safe"><b>Account-safe by design.</b> JD-Optimiers changes Windows settings and the emulator's own settings files, always with a backup. It never reads or edits the game's memory, never injects anything and adds no macros or aim assist.</div>
   </section>
 
-  <section id="plans">
-    <div class="sec-head">
-      <div class="eyebrow">Plans</div>
-      <h2>Pick your plan.</h2>
-      <p class="lede">Paid with JD points (1 point = Rs 1). Plans last 30 days and never renew by themselves.</p>
-    </div>
-    <div class="plans">
-      <div class="plan rise">
-        <h3>Optimizer Pro</h3>
-        <div class="price">49<small>points / 30 days</small></div>
-        <ul>
-          <li><span>One-tap boost for Free Fire <b>and any PC game</b></span></li>
-          <li><span>Performance modes: Balanced, <b>Extreme</b>, <b>Potato</b></span></li>
-          <li><span>High FPS (up to 120), VSync off, GPU scheduling</span></li>
-          <li><span>Aim Studio, mouse presets, live FPS and session reports</span></li>
-          <li><span>Deep clean · 2 PCs</span></li>
-        </ul>
-        <button class="btn buy" data-tier="pro" type="button">Get Pro · 49 pts</button>
-      </div>
-      <div class="plan max rise">
-        <h3>Optimizer Max <span class="tag" style="vertical-align:middle">Best value</span></h3>
-        <div class="price">99<small>points / 30 days</small></div>
-        <ul>
-          <li><span>Everything in Pro, plus <b>240 FPS</b></span></li>
-          <li><span><b>Tournament panel scan</b> with server-signed reports</span></li>
-          <li><span><b>Max engine</b>: DPI changer, 360° aim test, engine cache</span></li>
-          <li><span><b>30-day squad effect</b>, <b>24 h early entry</b> and a <b>Verified ✔ tag</b></span></li>
-          <li><span>2 PCs</span></li>
-        </ul>
-        <label class="fxpick">Squad effect <select id="fx-pick"><option value="gold">Gold</option><option value="fire">Fire</option><option value="ice">Ice</option><option value="neon">Neon</option><option value="rainbow">Rainbow</option><option value="galaxy">Galaxy</option><option value="thunder">Thunder</option><option value="legend">Legend</option><option value="blade">Blade</option><option value="bullets">Bullets</option><option value="liquid">Liquid Glass</option><option value="spatial">Spatial 3D</option></select></label>
-        <button class="btn buy" data-tier="max" type="button">Get Max · 99 pts</button>
-      </div>
-    </div>
-    <div class="msg" id="buy-msg"></div>
-    <p class="notes">Buying again adds 30 days. Upgrading Pro → Max turns the Pro days you have left into Max days (×49/99) and adds 30. Points are not refunded — see the <a href="/terms.html#s19" class="link">JD-Optimiers terms</a>. Load points on your <a href="/wallet/" class="link">wallet</a> with eSewa.</p>
-
-    <div class="cmp-wrap rise">
-      <table class="cmp">
-        <thead><tr><th>Feature</th><th class="c">Pro · 49</th><th class="c">Max · 99</th></tr></thead>
-        <tbody>
-          <tr><td>One-tap boost — Free Fire &amp; any PC game</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
-          <tr><td>Performance modes: Balanced · Extreme · Potato</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
-          <tr><td>Emulator FPS</td><td class="c">up to 120*</td><td class="c yes">up to 240</td></tr>
-          <tr><td>Aim Studio, mouse presets, live FPS, Deep clean</td><td class="c yes">✓</td><td class="c yes">✓</td></tr>
-          <tr><td><b>Tournament panel scan</b> + signed report</td><td class="c no">—</td><td class="c yes">✓</td></tr>
-          <tr><td><b>Max engine</b> — DPI changer + 360° aim test</td><td class="c no">—</td><td class="c yes">✓</td></tr>
-          <tr><td><b>Squad effect</b>, <b>early entry</b>, <b>Verified ✔</b></td><td class="c no">—</td><td class="c yes">✓</td></tr>
-          <tr><td>PCs</td><td class="c">2</td><td class="c">2</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="notes">* Pro plans bought before 20 Oct 2026 keep 240 FPS until they renew.</p>
-  </section>
 
   <section id="pcs-sec" hidden>
     <div class="sec-head"><div class="eyebrow">Your PCs</div><h2>Linked PCs.</h2></div>
@@ -448,17 +489,38 @@ function loadLatest(){
   fetch('latest.json?t='+Date.now(),{cache:'no-store'})
     .then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
     .then(j=>{
-      const btn=$('dl-btn');btn.href=j.zip||j.url;btn.removeAttribute('aria-disabled');
+      const btn=$('dl-btn');btn.dataset.href=j.zip||j.url;
       $('dl-label').textContent='Download v'+j.version;
       const meta=$('dl-meta');meta.textContent='';
       const b=document.createElement('b');b.textContent='v'+j.version;
       meta.append('Latest: ',b,j.date?' · '+j.date:'');
       const alt=document.createElement('span');alt.className='alt';
-      const a=document.createElement('a');a.href=j.url;a.textContent='app only (.exe)';
+      const a=document.createElement('a');a.id='dl-exe';a.dataset.href=j.url;a.textContent='app only (.exe)';
       alt.append('Already installed? Get the ',a);meta.appendChild(alt);
+      dlGate();
       if(j.notes)$('dl-notes').textContent='New in v'+j.version+': '+j.notes;
     })
     .catch(()=>{$('dl-meta').textContent='Could not load the download right now — refresh in a minute.';});
+}
+
+// both download links work only after the terms box is ticked
+let passOk=false;
+function dlGate(){
+  const on=$('dl-ok').checked&&passOk;
+  [$('dl-btn'),$('dl-exe')].forEach(a=>{ if(!a||!a.dataset.href) return;
+    if(on){ a.href=a.dataset.href; a.removeAttribute('aria-disabled'); } else { a.removeAttribute('href'); a.setAttribute('aria-disabled','true'); } });
+}
+$('dl-ok').addEventListener('change',dlGate);
+document.addEventListener('click',e=>{ const a=e.target.closest('#dl-btn,#dl-exe'); if(!a) return;
+  if(!passOk){ e.preventDefault(); $('need').scrollIntoView({block:'center',behavior:'smooth'}); return; }
+  if(!$('dl-ok').checked){ e.preventDefault(); $('dl-terms').scrollIntoView({block:'center',behavior:'smooth'}); $('dl-ok').focus(); } });
+function renderPass(tier){
+  passOk=!!tier;
+  $('pass-line').innerHTML=passOk?`Weekly Pass: <b class="ok">${tier==='pro'?'Weekly Pro':'Weekly Pass'} ✓</b>`
+    :'Weekly Pass: <b class="no">needed</b> · <a href="/pass/">get one (50 points / 7 days)</a> to download and run the app';
+  $('need-pass').classList.toggle('done',passOk);
+  $('need-pass-btn').textContent=passOk?'Active ✓':'Get a pass';
+  dlGate();
 }
 
 function render(){
@@ -492,6 +554,7 @@ async function refresh(){
   const [{data,error},w]=await Promise.all([sb.rpc('optimizer_my_status'),sb.from('wallets').select('balance, unlimited').maybeSingle()]);
   if(error){msg(error.message,'err');return;}
   st=data;
+  $('need-plan').classList.toggle('done',!!(st&&st.tier));
   $('bal').textContent=w.data?(w.data.unlimited?'∞':Number(w.data.balance||0).toLocaleString()):'0';
   render();
 }
@@ -518,7 +581,7 @@ $('hero-get').onclick=e=>{e.preventDefault();($('acct').hidden?$('gate'):$('acct
   document.querySelectorAll('.rise').forEach(el=>io.observe(el));
   const links=[...document.querySelectorAll('.subnav a')];
   const so=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id));}),{rootMargin:'-45% 0px -50% 0px'});
-  ['overview','how','features','plans','faq'].forEach(id=>{const el=$(id);if(el)so.observe(el);});
+  ['overview','plans','how','features','faq'].forEach(id=>{const el=$(id);if(el)so.observe(el);});
 })();
 
 (async function init(){
@@ -529,6 +592,7 @@ $('hero-get').onclick=e=>{e.preventDefault();($('acct').hidden?$('gate'):$('acct
   $('me').textContent=pl&&pl.username?'@'+pl.username:(pl&&pl.player_tag)||session.user.email;
   $('acct').hidden=false;
   loadLatest();
+  sb.rpc('optimizer_can_download').then(({data})=>renderPass(data&&data.pass?(data.pass_tier||'basic'):null),()=>renderPass(null));
   await refresh();
 })();
 </script>
