@@ -1,6 +1,6 @@
 -- ── JD-Optimiers: moderators and the admin don't need a Weekly Pass (2026-10-23, owner decision) ──
 -- They still need an Optimizer plan. Only the optimizer's pass check changes: prizes, entries and
--- effects work the same as for every player. Staff = an email in public.moderators, or the owner's account.
+-- effects work the same as for every player. Staff = a role='staff' email in public.moderators, or the owner's account.
 begin;
 
 create or replace function public._optimizer_pass_ok(p_player uuid)
@@ -9,7 +9,7 @@ returns boolean language sql stable security definer set search_path = public as
       or exists (select 1 from public.players p
                  where p.id = p_player
                    and (lower(p.email) = 'ayerprabin95@gmail.com'
-                        or lower(p.email) in (select lower(email) from public.moderators)))
+                        or lower(p.email) in (select lower(email) from public.moderators where role = 'staff')))   -- not invited host mods (mod_roles.sql)
 $$;
 revoke all on function public._optimizer_pass_ok(uuid) from public, anon, authenticated;
 

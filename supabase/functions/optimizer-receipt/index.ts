@@ -48,7 +48,9 @@ Deno.serve(async (req: Request) => {
     return new Response('Signed receipts are part of Optimizer Max - sign in to the app first.', { status: 403, headers: CORS_HEADERS });
   }
   const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-  const { data: plan, error: planErr } = await sb.rpc('optimizer_check', { p_token: token });
+  // v5.7 apps also send m (the PC's machine hash), so a token copied to another PC can't get receipts either
+  const m = typeof body.m === 'string' && /^[0-9a-f]{64}$/.test(body.m) ? body.m : undefined;
+  const { data: plan, error: planErr } = await sb.rpc('optimizer_check', m ? { p_token: token, p_machine: m } : { p_token: token });
   if (planErr) return new Response('Plan check failed - try again.', { status: 503, headers: CORS_HEADERS });
   if (!plan || plan.status !== 'ok' || plan.tier !== 'max') {
     return new Response('Signed receipts are part of Optimizer Max.', { status: 403, headers: CORS_HEADERS });

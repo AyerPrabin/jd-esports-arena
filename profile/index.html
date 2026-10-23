@@ -38,6 +38,16 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
 .chip-link:hover{border-color:var(--gold-m)}
 
 .card{border-radius:20px;background:var(--panel);border:1px solid var(--line-2);padding:18px}
+/* JD-Optimiers session history (optimizer_my_sessions, optimizer_v57.sql) */
+.oh-pc{color:var(--silver);font-size:.82rem;margin:-4px 0 12px}
+.oh-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.oh-kpi div{background:var(--panel-2);border-radius:12px;padding:10px}.oh-kpi span{display:block;font-size:.7rem;color:var(--silver)}
+.oh-kpi b{font-family:var(--display);font-size:1.3rem}
+.oh-chart{width:100%;height:120px;display:block;background:var(--panel-2);border-radius:12px}
+.oh-leg{display:flex;gap:14px;font-size:.74rem;color:var(--silver);margin:6px 0 10px}.oh-leg i{display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.oh-rows{display:grid;gap:6px}.oh-rows div{display:flex;justify-content:space-between;gap:10px;font-size:.8rem;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.03)}
+.oh-rows small{color:var(--silver)}
+@media(max-width:480px){.oh-kpi{grid-template-columns:repeat(2,1fr)}}
 .card h2{margin:0 0 12px;font-family:var(--display);font-weight:700;font-size:1.35rem;letter-spacing:.01em;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .card h2 a{font-family:var(--font-body);font-size:.78rem;font-weight:600;color:var(--gold-l)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
@@ -185,6 +195,14 @@ input[type=text]:focus{border-color:var(--gold)}
           <div class="stat"><span>Best streak</span><b id="s-best">–</b></div>
         </div>
       </section>
+      <section class="card" id="opt-hist" hidden>
+        <h2>My PC &amp; FPS <a href="/optimizer/">JD-Optimiers</a></h2>
+        <p class="oh-pc" id="oh-pc"></p>
+        <div class="oh-kpi" id="oh-kpi"></div>
+        <svg class="oh-chart" id="oh-chart" viewBox="0 0 300 120" preserveAspectRatio="none" role="img" aria-label="FPS over your last sessions"></svg>
+        <div class="oh-leg"><span><i style="background:var(--gold)"></i>Average FPS</span><span><i style="background:var(--red)"></i>1% low</span></div>
+        <div class="oh-rows" id="oh-rows"></div>
+      </section>
     </div>
 
     <div class="stack" style="margin-top:12px">
@@ -301,6 +319,25 @@ async function loadWallet(){
   if(unl){$('bal-sub').textContent='Admin wallet · 100 billion points';$('wd-link').hidden=true;}
   const R={optimizer:'JD-Optimiers plan',challenge_stake:'Challenge stake',challenge_win:'Challenge won',challenge_refund:'Challenge refund',load:'Points loaded',prize:'Tournament prize',entry:'Tournament entry',effect:'Squad effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Entry refund',adjust:'Adjustment'};
   $('recent').innerHTML=(l||[]).length?(l.map(x=>`<div><span>${R[x.reason]||x.reason} · ${fmtDate(x.created_at)}</span><b class="${x.delta>0?'plus':''}">${x.delta>0?'+':'−'}${Math.abs(x.delta)}</b></div>`).join('')):'<div><span>No transactions yet.</span></div>';
+}
+// JD-Optimiers: the player's own sessions (sent by the app after each session, optimizer_my_sessions)
+async function loadOptHistory(){
+  const {data,error}=await sb.rpc('optimizer_my_sessions',{p_limit:20});
+  const ss=(data&&data.sessions)||[];
+  if(error||!ss.length) return;
+  const n=v=>Number.isFinite(+v)&&+v>=0?+v:null, pc=data.pc||{}, last=ss[0].s||{};
+  $('oh-pc').textContent=[pc.cpu,pc.gpu,pc.ram_gb?pc.ram_gb+' GB RAM':'',pc.hz?pc.hz+' Hz screen':'',pc.tier].filter(Boolean).join(' · ');
+  const k=(l,v)=>`<div><span>${l}</span><b>${v}</b></div>`;
+  $('oh-kpi').innerHTML=k('Last avg FPS',n(last.fps)!=null?Math.round(last.fps):'–')+k('1% low',n(last.low1)!=null?Math.round(last.low1):'–')+
+    k('Stable',n(last.stable)!=null?last.stable+'%':'–')+k('GPU temp',n(last.temp)?last.temp+'°C':'–');
+  // oldest -> newest, average FPS and 1% low
+  const pts=ss.slice().reverse().map(x=>x.s||{}), max=Math.max(60,...pts.map(p=>n(p.fps)||0))*1.1;
+  const line=key=>pts.map((p,i)=>{const v=n(p[key]);return v==null?null:`${(pts.length<2?150:i*300/(pts.length-1)).toFixed(1)},${(120-v/max*112).toFixed(1)}`;}).filter(Boolean).join(' ');
+  $('oh-chart').innerHTML=`<polyline points="${line('fps')}" fill="none" stroke="#FFC83D" stroke-width="2.5" vector-effect="non-scaling-stroke"/>`+
+    `<polyline points="${line('low1')}" fill="none" stroke="#FF8A8A" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
+  $('oh-rows').innerHTML=ss.slice(0,6).map(x=>{const v=x.s||{};return `<div><span>${esc(fmtDate(x.at))}<br><small>${esc([v.renderer,v.cap?'cap '+v.cap:'',v.dip_cause?'drops: '+v.dip_cause:(v.hint||'')].filter(Boolean).join(' · '))}</small></span>`+
+    `<b>${n(v.fps)!=null?Math.round(v.fps):'–'} <small>/ ${n(v.low1)!=null?Math.round(v.low1):'–'} low</small></b></div>`;}).join('');
+  $('opt-hist').hidden=false;
 }
 async function loadStats(){
   // daily check-in streak (daily_checkin.sql): badge only
@@ -419,7 +456,7 @@ $('ref-save').onclick=async()=>{
   me={id:session.user.id,email:session.user.email,verified:!!session.user.email_confirmed_at};
   $('app').hidden=false;
   await loadProfile();
-  await Promise.all([loadWallet(),loadStats(),loadTournaments(),loadFx(),loadInvite()]);
+  await Promise.all([loadWallet(),loadStats(),loadTournaments(),loadFx(),loadInvite(),loadOptHistory().catch(()=>{})]);
   setInterval(()=>{if(!document.hidden)loadWallet();},20000);
 })();
 </script>
