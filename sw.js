@@ -4,7 +4,8 @@
 // The app's "no internet" screen (instead of Chrome's dinosaur) is cached on install.
 self.addEventListener("install", e => {
   self.skipWaiting();
-  e.waitUntil(caches.open("jd-offline").then(c => c.add("/offline.html")).catch(() => {}));
+  // v2: the offline page also shows the saved tickets; cache:"reload" skips the 10-minute HTTP cache
+  e.waitUntil(caches.open("jd-offline").then(c => c.add(new Request("/offline.html", { cache: "reload" }))).catch(() => {}));
 });
 self.addEventListener("activate", e => e.waitUntil((async () => {
   for (const k of await caches.keys()) if (k.startsWith("jd-static-") && k !== STATIC_CACHE) await caches.delete(k);

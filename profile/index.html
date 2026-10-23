@@ -181,6 +181,8 @@ input[type=text]:focus{border-color:var(--gold)}
           <div class="stat"><span>Points</span><b id="s-points">0</b></div>
           <div class="stat"><span>Avg place</span><b id="s-avg">–</b></div>
           <div class="stat"><span>Prize won</span><b id="s-prize">0</b></div>
+          <div class="stat"><span>Daily streak</span><b id="s-streak">–</b></div>
+          <div class="stat"><span>Best streak</span><b id="s-best">–</b></div>
         </div>
       </section>
     </div>
@@ -301,6 +303,8 @@ async function loadWallet(){
   $('recent').innerHTML=(l||[]).length?(l.map(x=>`<div><span>${R[x.reason]||x.reason} · ${fmtDate(x.created_at)}</span><b class="${x.delta>0?'plus':''}">${x.delta>0?'+':'−'}${Math.abs(x.delta)}</b></div>`).join('')):'<div><span>No transactions yet.</span></div>';
 }
 async function loadStats(){
+  // daily check-in streak (daily_checkin.sql): badge only
+  sb.rpc('my_streak').then(({data})=>{ if(!data)return; $('s-streak').textContent=(data.streak||0)+(data.streak?' 🔥':''); $('s-best').textContent=(data.best||0)+' days'; },()=>{});
   if(!me.player_tag)return;
   const {data}=await sb.rpc('get_player_career_stats',{p_player_tag:me.player_tag});
   const s=(data&&data[0])||{};

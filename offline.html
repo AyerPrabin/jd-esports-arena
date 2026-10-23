@@ -12,6 +12,10 @@ h1{font-size:1.4rem;margin:18px 0 6px}
 p{color:#A6AFC2;margin:0 auto 22px;max-width:32ch;line-height:1.5}
 button{border:0;border-radius:14px;padding:14px 28px;font-weight:800;font-size:1rem;background:linear-gradient(180deg,#FFD25C,#FFAE00);color:#2b1d00}
 button:active{transform:scale(.98)}
+.tk{max-width:360px;margin:0 auto 18px;text-align:left;background:#101624;border:1px solid rgba(255,200,61,.4);border-radius:16px;padding:14px 16px}
+.tk small{color:#A6AFC2;font-size:.78rem}.tk b{display:block;font-size:1.05rem;margin:2px 0 8px}
+.tk .row{display:flex;gap:8px;flex-wrap:wrap}.tk .pill{background:#1B2335;border-radius:10px;padding:8px 10px;font-size:.85rem}
+.tk .pill i{display:block;font-style:normal;color:#A6AFC2;font-size:.7rem}.tk .room{border:1px solid #3BD38A}
 </style>
 </head>
 <body>
@@ -19,8 +23,23 @@ button:active{transform:scale(.98)}
 <img src="data:image/jpeg;base64,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" alt="JD Arena">
 <h1>No internet connection</h1>
 <p>JD Arena needs the internet for live slots, rooms and results. Check your Wi-Fi or mobile data.</p>
+<div id="tickets"></div>
 <button onclick="location.reload()">Try again</button>
 </main>
-<script>addEventListener('online',()=>location.reload());</script>
+<script>
+addEventListener('online',()=>location.reload());
+// the player's next tickets, saved on this device by the homepage (home.js saveOfflineTickets)
+try{
+  const d=JSON.parse(localStorage.getItem('jd_offline_tickets')||'null'),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  if(d&&d.list&&d.list.length){
+    document.getElementById('tickets').innerHTML='<p style="margin-bottom:10px">Your saved tickets (from '+esc(new Date(d.at).toLocaleString())+'):</p>'+d.list.map(t=>
+      '<div class="tk"><small>'+esc(t.when||'')+'</small><b>'+esc(t.event)+'</b><div class="row">'+
+      '<span class="pill"><i>Squad</i>'+esc(t.squad)+'</span>'+(t.slot?'<span class="pill"><i>Seat</i>#'+esc(t.slot)+'</span>':'')+
+      '<span class="pill"><i>Status</i>'+(t.confirmed?'Playing ✓':'Not confirmed')+'</span>'+
+      (t.room_id?'<span class="pill room"><i>Room ID</i>'+esc(t.room_id)+'</span><span class="pill room"><i>Password</i>'+esc(t.room_pass||'—')+'</span>':'')+
+      '</div></div>').join('');
+  }
+}catch(e){}
+</script>
 </body>
 </html>

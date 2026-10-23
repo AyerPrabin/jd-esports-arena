@@ -152,7 +152,10 @@ Deno.serve(async (req: Request) => {
   let pushed = 0;
   // one push per squad so each gets its own slot number
   for (const t of targets) {
-    pushed += await sendPush(supabase, [t.id], { title, body: bodyFor(t.id), url: 'https://jdesport.co.uk/#tournaments', tag: 'jd-room' });
+    // the code itself goes on the phone alert too, so it can be read from the lock screen without opening the app
+    pushed += await sendPush(supabase, [t.id], { title, body: `Room ID ${room_id}${room_pass ? ' · Password ' + room_pass : ''}
+${bodyFor(t.id)}`,
+      url: 'https://jdesport.co.uk/chat/?alerts=1', tag: 'jd-room' });
   }
 
   // ── Discord DM — a direct call to Discord's bot REST API using the same bot token as
