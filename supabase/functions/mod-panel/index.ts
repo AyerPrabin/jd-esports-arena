@@ -17,7 +17,9 @@
 // Moderators can NOT touch money, bans, tournaments, plans or anything else.
 // Roles (mod_roles.sql): 'staff' = the owner's own mods, everything above. 'host' = an invited scrim host: only the
 // events whose "host" field is their handle (squads, room code, notify those squads, results without prizes),
-// no JD Esports chat. "All players" notifications are the owner's only.
+// no JD Esports chat. "All players" notifications are the owner's only. Host mods also create and edit THEIR OWN
+// events ({ action: 'event_save', ... }: free entry only, never JD's prize money), and everything they send to
+// players is signed with their own @handle instead of "JD".
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 // only the owner may notify every player on JD Arena
@@ -105,6 +107,7 @@ Deno.serve(async (req: Request) => {
   };
   const canEvent = async (slug: string) => !isHost || (await myEvents()).has(slug);
   const notYours = () => fail("That event isn't yours. Ask the JD admin to set you as its host.", 403);
+  const tagT = (t: string) => (isHost ? `[@${handle}] ${t}` : `[JD] ${t}`).slice(0, 120);   // who the player sees it from
 
   if (action === 'whoami') return json({ ok: true, email, role, handle: handle || null, owner: isOwner,
     events: isHost ? [...await myEvents()] : null });
@@ -138,7 +141,7 @@ Deno.serve(async (req: Request) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET,
                  'Authorization': `Bearer ${SERVICE}`, 'apikey': SERVICE },
-      body: JSON.stringify({ tournament_slug: slug, room_id, room_pass: room_pass || undefined }),
+      body: JSON.stringify({ tournament_slug: slug, room_id, room_pass: room_pass || undefined, from: isHost ? handle : undefined }),
     });
     const text = await r.text();
     if (!r.ok) return fail('Could not send room code: ' + text, 502);
@@ -173,7 +176,7 @@ Deno.serve(async (req: Request) => {
     await admin.from('notifications').insert({
       player_id: r.player_id, push: true, tournament_slug: r.tournament_slug,
       title: `Removed from ${r.tournament_slug}`.slice(0, 120),
-      body: `Your squad "${r.squad_name}" was removed from ${r.tournament_slug} by a JD moderator.` +
+      body: `Your squad "${r.squad_name}" was removed from ${r.tournament_slug} by ${isHost ? '@' + handle + ' (event host)' : 'a JD moderator'}.` +
             (reason ? ` Reason: ${reason}.` : '') + ' You can join the next event from the Events page.',
     });
     const { error } = await admin.from('registrations').delete().eq('id', r.id);   // trg_promote_from_waitlist moves the next squad up
@@ -193,7 +196,7 @@ Deno.serve(async (req: Request) => {
     if (!title || !body) return fail('Title and message are required');
     const { error } = await admin.from('notifications').insert({
       player_id: r.player_id, push: true, tournament_slug: r.tournament_slug,
-      title: `[JD] ${title}`.slice(0, 120), body: body.slice(0, 1000),
+      title: tagT(title), body: body.slice(0, 1000),
     });
     if (error) return fail(error.message, 500);
     await log('notify_player', `${r.squad_name} · ${title}`);
@@ -245,6 +248,12 @@ Deno.serve(async (req: Request) => {
     const by = new Map(cards.map((c: any) => [c.id, c]));
     return json(list.map((t) => ({ ...t, player: by.get(t.player_id) || { id: t.player_id, name: 'Player' } })));
   }
+  if (action === 'chat_read_all') {   // "Mark all read" in the inbox
+    const { error } = await admin.from('jd_messages').update({ read_at: new Date().toISOString() })
+      .eq('channel', 'jd').eq('from_staff', false).is('read_at', null);
+    if (error) return fail(error.message, 500);
+    return json({ ok: true });
+  }
   // resolve who to chat with: a squad row (registration id), a player id, or @username / JD tag
   const chatTarget = async (): Promise<any> => {
     if (p.id) { const r = await regById(String(p.id)); if (!r) return null; p.player_id = r.player_id; }
@@ -271,9 +280,10 @@ Deno.serve(async (req: Request) => {
     ]);
     if (error) return fail(error.message, 500);
     const pc = card(pl, (regs || []).find((r: any) => r.squad_name)?.squad_name);
-    await withAvatars([pc]);
-    admin.from('jd_messages').update({ read_at: new Date().toISOString() })      // not awaited: the chat opens faster
-      .eq('player_id', pl.id).eq('channel', 'jd').eq('from_staff', false).is('read_at', null).then(() => {}, () => {});
+    // mark their replies read in parallel with the photo lookup, but finish before replying: an un-awaited write
+    // can be dropped when the function shuts down, and the chat then came back as unread on the next inbox poll
+    await Promise.all([withAvatars([pc]), admin.from('jd_messages').update({ read_at: new Date().toISOString() })
+      .eq('player_id', pl.id).eq('channel', 'jd').eq('from_staff', false).is('read_at', null).then(() => {}, () => {})]);
     return json({ player: pc, tickets: (regs || []).map((r: any) => ({ event: r.tournament_slug, squad: r.squad_name, status: r.status,
       confirmed: !!r.checked_in_at, whatsapp: r.whatsapp || null, at: r.created_at })), messages: (data || []).reverse().map((m: any) => ({
       id: m.id, staff: m.from_staff, by: m.from_staff ? (String(m.staff_email || '').startsWith('zulu') ? 'ZULU (auto)' : m.staff_email === email ? 'You' : m.staff_email === 'admin' ? 'Admin' : String(m.staff_email || 'JD team').split('@')[0]) : null,
@@ -351,6 +361,12 @@ Deno.serve(async (req: Request) => {
       if (sum + already > pool) return fail(`Prizes add up to ${sum + already} points (${already} already paid), more than the ${pool}-point prize pool.`);
     }
 
+    // the site has ONE live standings board: a host can't replace JD's while a JD event is still running
+    if (isHost && board === null && doc?.bo3?.tournament && doc.bo3.published) {
+      const cur = doc.tournaments?.find((x: any) => x.name === doc.bo3.tournament);
+      if (cur && !normHandle(cur.host) && !cur.winner && !['completed', 'cancelled'].includes(String(cur.status || '').toLowerCase()))
+        return fail(`JD's live standings for ${cur.name} are on the site right now. Publish yours after it finishes.`, 409);
+    }
     const prevLogos = new Map(((board?.teams || []) as any[]).concat(t.teams || []).map((x: any) => [norm(String(x.team || x.name || '')), x.logo || '']));
     doc.bo3 = {
       tournament: slug, title: `${slug} – ${final ? 'Final Standings' : 'Standings'}`, published: true,
@@ -382,6 +398,48 @@ Deno.serve(async (req: Request) => {
       prizes: paidOut.map((x: any) => ({ squad: x.squad, status: x.status, amount: x.amount })) });
   }
 
+  // ── host mods: create / edit their OWN events (free entry; JD never pays prizes for them) ──
+  if (action === 'event_save') {
+    if (!isHost) return fail('Staff create events in /admin/.', 403);
+    const name = String(p.name || '').trim().replace(/\s+/g, ' ').slice(0, 60);
+    if (name.length < 3) return fail('Give the event a name.');
+    if (/\bjd\b|jd ?esports?/i.test(name)) return fail('Use your own name for the event, not JD.');
+    const m = String(p.start || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (!m) return fail('Pick a day and a time.');
+    const [, y, mo, d, h, mi] = m;
+    const start = `${y}-${mo}-${d}T${h}:${mi}:00+05:45`;
+    const status = p.status === 'cancelled' ? 'cancelled' : 'upcoming';
+    if (status === 'upcoming' && Date.parse(start) <= Date.now()) return fail('That time is in the past.');
+    const MAPS = ['bermuda', 'purgatory', 'kalahari', 'alpine', 'nexterra'];
+    const DEV: Record<string, string> = { mobile: 'Mobile only', mixed: 'Mix Device', emulator: 'Emulator only' };
+    const device = DEV[p.device] ? String(p.device) : 'mobile';
+    const matches = Math.min(6, Math.max(1, Math.round(Number(p.matches) || 3)));
+    const hh = +h % 12 || 12;
+    const fields = {
+      date: new Date(Date.UTC(+y, +mo - 1, +d)).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }),
+      time: `${hh}:${mi} ${+h < 12 ? 'AM' : 'PM'} NPT`, start, status,
+      prize: String(p.prize || '').trim().slice(0, 40) || 'Hosted by @' + handle,
+      entry: 'Free', platform: DEV[device], platform_mode: device,
+      slots: Math.min(48, Math.max(2, Math.round(Number(p.slots) || 12))),
+      format: 'BR · ' + matches + (matches === 1 ? ' match' : ' matches'),
+      map: MAPS.includes(p.map) ? p.map : 'bermuda', host: handle,
+    };
+    const { data: sc } = await admin.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
+    const doc: any = sc?.content;
+    if (!doc?.tournaments) return fail('Could not load the events. Try again.', 500);
+    const ex = doc.tournaments.find((x: any) => String(x.name).trim().toLowerCase() === name.toLowerCase());
+    if (ex && normHandle(ex.host) !== handle) return fail('An event with that name already exists. Pick another name.', 409);
+    if (ex && (ex.winner || String(ex.status).toLowerCase() === 'completed')) return fail("That event is finished and can't be changed.", 409);
+    if (ex) Object.assign(ex, fields);
+    else doc.tournaments.push({ name, game: 'Free Fire BR · Squad', ...fields, winner: '', teams: [] });
+    doc._published_at = new Date().toISOString();
+    const H = { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET, 'Authorization': `Bearer ${SERVICE}`, 'apikey': SERVICE };
+    const pub = await fetch(`${URL_}/functions/v1/publish-tournaments`, { method: 'POST', headers: H, body: JSON.stringify({ content: JSON.stringify(doc, null, 2) }) });
+    if (!pub.ok) return fail('Could not publish: ' + (await pub.text()), 502);
+    await log(ex ? 'event_edit' : 'event_create', `${name} · ${fields.date} ${fields.time} · ${status}`);
+    return json({ ok: true, created: !ex, name });
+  }
+
   if (action === 'notify') {
     const title = String(p.title || '').trim();
     const body = String(p.body || '').trim();
@@ -401,7 +459,7 @@ Deno.serve(async (req: Request) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET,
                  'Authorization': `Bearer ${SERVICE}`, 'apikey': SERVICE },
-      body: JSON.stringify({ title: `[JD] ${title}`.slice(0, 120), body, player_tags }),
+      body: JSON.stringify({ title: tagT(title), body, player_tags }),
     });
     const text = await r.text();
     if (!r.ok) return fail('Could not send: ' + text, 502);

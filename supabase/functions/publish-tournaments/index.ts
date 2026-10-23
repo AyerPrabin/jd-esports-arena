@@ -54,10 +54,20 @@ Deno.serve(async (req: Request) => {
   } catch {
     return new Response('Bad JSON', { status: 400, headers: CORS_HEADERS });
   }
-  const { content } = payload;
+  let { content } = payload;
   if (typeof content !== 'string' || !content.trim()) {
     return new Response('content (the generated tournaments.json text) is required', { status: 400, headers: CORS_HEADERS });
   }
+  // Host mods publish their own events from /mod/ (mod-panel event_save). An admin page that was opened
+  // before that would otherwise drop them, so live events with a "host" that are missing here are kept.
+  try {
+    const doc = JSON.parse(content);
+    const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data: live } = await sb.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
+    const have = new Set((doc.tournaments || []).map((t: any) => String(t?.name || '').toLowerCase()));
+    const keep = ((live?.content as any)?.tournaments || []).filter((t: any) => t?.host && !have.has(String(t.name || '').toLowerCase()));
+    if (keep.length && Array.isArray(doc.tournaments)) { doc.tournaments.push(...keep); content = JSON.stringify(doc, null, 2); }
+  } catch { /* not JSON: publish as sent */ }
 
   const api = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_PATH}`;
   const authHeaders = { Authorization: `Bearer ${githubToken}`, Accept: 'application/vnd.github+json' };
@@ -147,14 +157,14 @@ Deno.serve(async (req: Request) => {
     warning = `Published to GitHub, but syncing tournament settings failed: ${e instanceof Error ? e.message : String(e)}`;
   }
 
-  // New-tournament announcement: the first time a tournament appears (upcoming, start in
-  // the future), every player gets ONE message about it. tournament_announcements makes it
+  // New-tournament announcement: the first time a JD tournament appears (upcoming, start in
+  // the future), every player gets ONE message about it. Host mods' events are never announced to everyone. tournament_announcements makes it
   // once-only — republishing or editing never re-sends. (This replaced the daily countdown.)
   let announced: string[] = [];
   try {
     const parsed = JSON.parse(content);
     const fresh = (Array.isArray(parsed?.tournaments) ? parsed.tournaments : []).filter((t: any) =>
-      t && typeof t.name === 'string' && !['completed', 'cancelled'].includes(String(t.status || '').toLowerCase()) &&
+      t && typeof t.name === 'string' && !t.host && !['completed', 'cancelled'].includes(String(t.status || '').toLowerCase()) &&
       (!t.start || Date.parse(t.start) > Date.now()));
     if (fresh.length) {
       const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);

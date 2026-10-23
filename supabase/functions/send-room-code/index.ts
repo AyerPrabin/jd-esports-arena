@@ -53,7 +53,7 @@ Deno.serve(async (req: Request) => {
   } catch {
     return new Response('Bad JSON', { status: 400, headers: CORS_HEADERS });
   }
-  const { tournament_slug, room_id, room_pass, player_tags } = payload;
+  const { tournament_slug, room_id, room_pass, player_tags, from } = payload;
   if (!tournament_slug || !room_id) {
     return new Response('tournament_slug and room_id are required', { status: 400, headers: CORS_HEADERS });
   }
@@ -104,7 +104,7 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  const title = `Room code: ${tournament_slug}`;
+  const title = `Room code: ${tournament_slug}` + (from ? ` · from @${String(from).slice(0, 30)}` : '');   // host mods sign their own
   const body = "Your match is about to start. Don't share this with anyone outside your squad.";
 
   // each squad's own slot goes into its alert (rule: sit in the seat matching your app slot)

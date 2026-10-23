@@ -608,7 +608,7 @@ h2[id]{scroll-margin-top:64px}
   <div id="op-list"></div>
 
   <h2 id="moderators">Moderators <span class="tag">staff · host</span></h2>
-  <p class="hint">Mods sign in at <a href="/mod/" target="_blank">/mod/</a> with their JD account (add them by that email). <b>Staff</b> = your own mods: every event, JD Esports chat, prize payouts. <b>Host</b> = an invited scrim host: only events whose "Host mod handle" is their handle – squads, room code, notifications to those squads, results without prizes. No JD Esports chat. Only you can notify all players. Nobody can touch bans, plans or balances.</p>
+  <p class="hint">Mods sign in at <a href="/mod/" target="_blank">/mod/</a> with their JD account (add them by that email). <b>Staff</b> = your own mods: every event, JD Esports chat, prize payouts. <b>Host</b> = an invited scrim host: creates and runs only their own free events (or ones whose "Host mod handle" you set) – squads, room code, notifications to those squads, results. Everything they send is signed with their @handle; JD never pays their prizes. No JD Esports chat. Only you can notify all players. Nobody can touch bans, plans or balances.</p>
   <div class="grid">
     <div class="f"><label>Add moderator email</label><input id="mod-email" placeholder="name@example.com" autocomplete="off"></div>
     <div class="f"><label>Role</label><select id="mod-role" onchange="document.getElementById('mod-handle-f').style.display=this.value==='host'?'':'none'"><option value="staff">Staff (my mod)</option><option value="host">Host (invited scrim host)</option></select></div>
