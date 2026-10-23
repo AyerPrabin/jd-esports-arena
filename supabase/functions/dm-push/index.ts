@@ -6,6 +6,7 @@
 // Must be deployed with --no-verify-jwt (the pg_net caller has no JWT, only x-cron-secret).
 //   body: { ids: number[], kind?: 'jd' }   header: x-cron-secret
 // kind 'jd': ids are jd_messages rows (the JD Esports chat, jd_chat.sql), pushed as "JD Esports ✓" -> /chat/?jd=1.
+// kind 'staff': ids are PLAYER messages in the JD Esports chat, pushed to every moderator (jd_chat_mod_push.sql) -> /mod/#chats.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { sendPush } from '../_shared/push.ts';
 
@@ -18,7 +19,7 @@ Deno.serve(async (req: Request) => {
   try {
     const j = await req.json();
     ids = (j.ids || []).map(Number).filter((x: number) => Number.isFinite(x)).slice(0, 200);
-    kind = j.kind === 'jd' ? 'jd' : 'dm';
+    kind = j.kind === 'jd' ? 'jd' : j.kind === 'staff' ? 'staff' : 'dm';
   } catch { /* empty */ }
   if (!ids.length) return Response.json({ sent: 0 });
   // Give an open chat a moment to mark the message read (chat.js refreshes every 2.5s), so a
@@ -44,6 +45,37 @@ Deno.serve(async (req: Request) => {
         });
       }
       console.log('dm-push jd sent', sent);
+      return;
+    }
+    if (kind === 'staff') {
+      // a player wrote in the JD Esports chat: tell the moderators (their JD accounts, matched by email).
+      // Skipped if a moderator already opened the chat (chat_thread marks it read). No category, so it
+      // can't be muted by the player-side alert settings.
+      const { data: jr } = await db.from('jd_messages').select('id, player_id, body, read_at').in('id', ids)
+        .eq('from_staff', false).eq('channel', 'jd').is('read_at', null).order('id');
+      if (!jr?.length) return;
+      const { data: mods } = await db.from('moderators').select('email');
+      const emails = [...new Set((mods || []).map((m: any) => String(m.email || '').toLowerCase()).filter(Boolean))];
+      const staff: string[] = [];
+      for (const e of emails) {
+        const { data: sp } = await db.from('players').select('id').ilike('email', e.replace(/[\\%_]/g, '\\$&')).limit(1);
+        if (sp?.[0]) staff.push(sp[0].id);
+      }
+      if (!staff.length) { console.log('dm-push staff: no moderator accounts'); return; }
+      const pids = [...new Set(jr.map((m: any) => m.player_id))];
+      const { data: ps } = await db.from('players').select('id, username, player_tag').in('id', pids);
+      const who = new Map((ps || []).map((p: any) => [p.id, p]));
+      for (const m of jr) {
+        const p: any = who.get(m.player_id) || {};
+        const name = p.username ? '@' + p.username : (p.player_tag || 'A player');
+        sent += await sendPush(db, staff.filter((id) => id !== m.player_id), {
+          title: `💬 New JD Esports chat · ${name}`,
+          body: String(m.body || '').slice(0, 200),
+          url: `${SITE}/mod/#chats`,
+          tag: 'jd-mod-' + String(m.player_id).slice(0, 8),
+        });
+      }
+      console.log('dm-push staff sent', sent);
       return;
     }
     const { data: rows } = await db.from('dm_messages').select('id, sender, recipient, body, read_at').in('id', ids).order('id');
