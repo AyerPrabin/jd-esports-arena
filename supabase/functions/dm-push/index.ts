@@ -48,13 +48,13 @@ Deno.serve(async (req: Request) => {
       return;
     }
     if (kind === 'staff') {
-      // a player wrote in the JD Esports chat: tell the moderators (their JD accounts, matched by email).
+      // a player wrote in the JD Esports chat: tell the staff moderators (their JD accounts, matched by email).
       // Skipped if a moderator already opened the chat (chat_thread marks it read). No category, so it
       // can't be muted by the player-side alert settings.
       const { data: jr } = await db.from('jd_messages').select('id, player_id, body, read_at').in('id', ids)
         .eq('from_staff', false).eq('channel', 'jd').is('read_at', null).order('id');
       if (!jr?.length) return;
-      const { data: mods } = await db.from('moderators').select('email');
+      const { data: mods } = await db.from('moderators').select('email').eq('role', 'staff');   // not invited host mods
       const emails = [...new Set((mods || []).map((m: any) => String(m.email || '').toLowerCase()).filter(Boolean))];
       const staff: string[] = [];
       for (const e of emails) {

@@ -454,10 +454,12 @@ textarea{min-height:96px;resize:vertical}
       <p>Pick tonight's event. In Squads, set Playing to Yes for squads that confirmed. Tap WhatsApp to send a ready reminder to the ones that haven't. Remove squads that never confirm – the waitlist moves up by itself.</p>
       <h3>Room code</h3>
       <p>Type the Room ID and password and send it about 5 minutes before the start. Only squads in a slot get it. If you remove a squad after sending, change the room password and send the new one.</p>
+      <h3>Host mods</h3>
+      <p>Invited scrim hosts see only the events the JD admin made them host of. Message on a squad sends its captain a notification. Chats and prize payouts stay with the JD team.</p>
       <h3>Chats</h3>
-      <p>Tap Message on a squad, or type a player's @username, to chat with them. They see it in Messages as JD Esports with a verified tick – never your name or email – and get a phone push. Their replies show up here with a count on the Chats tab. This chat is people only: ZULU's automatic messages go to the player's ZULU chat.</p>
+      <p>JD team only. Tap Message on a squad, or type a player's @username, to chat with them. They see it in Messages as JD Esports with a verified tick – never your name or email – and get a phone push. Their replies show up here with a count on the Chats tab. This chat is people only: ZULU's automatic messages go to the player's ZULU chat.</p>
       <h3>Notifications</h3>
-      <p>Templates fill the title and message. "Squads in this event" reaches only that event's players; "All players" reaches everyone on JD Arena – use it to promote an event.</p>
+      <p>Templates fill the title and message. Notifications go only to the squads in the event you picked, never to everyone on JD Arena.</p>
       <h3>Results and prizes</h3>
       <p>In Results, type each squad's points per match. Publish standings after each match so the leaderboard updates. After the last match, Finish &amp; pay prizes: it sets the winner, marks the event finished, saves the all-time leaderboard and pays the prizes into the winners' wallets. You can only pay registered squads, never more than the prize pool, and each squad once. Every payment is logged for the admin.</p>
       <h3>Points</h3>
@@ -475,6 +477,8 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let tournaments=[], selected=null, rows=[], filter='all', loadingSquads=false;
+let ME={role:'staff'};   // whoami: role 'host' = invited scrim host (own events only, no JD Esports chat, no prizes)
+const isHostMod=()=>ME.role==='host';
 
 /* ── sheet (replaces confirm / prompt / alert) and toast ── */
 function sheet(o){
@@ -554,7 +558,7 @@ function renderEvents(){
   const up=[], past=[];
   tournaments.forEach((t,i)=>(isDone(t)?past:up).push(evPill(t,i)));
   if(selected&&isDone(selected)) showPast=true;
-  const none='<p class="note">No upcoming events right now.</p>';
+  const none=isHostMod()?'<p class="note">No events are assigned to you yet. The JD admin sets you as the host of an event.</p>':'<p class="note">No upcoming events right now.</p>';
   const tog=past.length?`<button type="button" class="evpill evpast-tog" data-past aria-expanded="${showPast}"><span><b>Past</b><small>${past.length} finished ${showPast?'▴':'▾'}</small></span></button>`:'';
   $('evbar').innerHTML=(up.join('')||'')+tog+(showPast?past.join(''):'');
   $('evlist').innerHTML=(up.join('')||none)+(past.length?`<div class="evpast-h">Past events <span>· last 14 days</span></div>`+tog.replace('evpill evpast-tog','evpill evpast-tog sm')+(showPast?past.join(''):''):'');
@@ -563,7 +567,7 @@ async function loadTournaments(){
   try{
     const r=await fetch('/tournaments.json?t='+Date.now(),{cache:'no-store'});
     const j=await r.json();
-    const all=j.tournaments||[], ts=t=>new Date(t.start||0).getTime();
+    const mine=new Set(ME.events||[]), all=(j.tournaments||[]).filter(t=>!isHostMod()||mine.has(t.name)), ts=t=>new Date(t.start||0).getTime();
     tournaments=all.filter(isUpcoming).sort((a,b)=>ts(a)-ts(b)).concat(all.filter(isRecentPast).sort((a,b)=>ts(b)-ts(a)));
     const keep=selected&&tournaments.find(t=>t.name===selected.name);
     selectEvent(keep||tournaments.find(t=>!isDone(t))||tournaments[0]||null,false);
@@ -665,6 +669,12 @@ $('reg-body').addEventListener('click',async e=>{
       await loadSquads(true);
       if(rr&&rr.room_code_was_sent) await sheet({title:'Change the room password',text:`${sq} already got the Room ID. Change the password in Free Fire and send the new one from Room code.`,ok:'Got it',cancel:false});
       else toast(`${sq} removed.`);
+    } else if(b.dataset.act==='note'&&isHostMod()){
+      const body=await sheet({title:`Message ${sq}`,text:`Their captain gets a phone notification from JD Esports about ${selected.name}.`,
+        input:'text',placeholder:'Your message…',chips:['Confirm your slot on JD Arena','Room ID comes 5 min before start','Be online, match starts soon'],ok:'Send',required:true});
+      if(body===null) return;
+      await call({action:'notify_player',id,title:selected.name,body});
+      toast(`Sent to ${sq}.`);
     } else if(b.dataset.act==='note'){
       openChat({id},`Hi ${sq}! This is the JD Esports team. Is your squad ready for ${selected.name} (${fmtWhen(selected)})? Reply here to confirm your slot.`);
     }
@@ -746,6 +756,7 @@ function renderInbox(){
 }
 try{ const c=JSON.parse(localStorage.getItem('jd_mod_inbox')||'null'); if(Array.isArray(c)){ inbox=c; renderInbox(); } }catch(e){}
 async function loadInbox(){
+  if(isHostMod()) return;
   try{
     inbox=await call({action:'chat_inbox'});
     try{ localStorage.setItem('jd_mod_inbox',JSON.stringify(inbox.slice(0,40).map(t=>({...t,player:{...t.player,logo:null,avatar:null}})))); }catch(e){}
@@ -906,8 +917,8 @@ function renderResults(){
       `<span class="tot">${rsTotal(r)}</span></div>`; }).join('');
   $('rs-body').innerHTML=`<div class="rs">${head}${body}</div>`+
     `<button type="button" class="ghost rs-add" id="rs-add">+ Add squad</button>`+
-    `<div class="prz"><h3>Prizes (paid when you finish)</h3><p class="note" style="margin:0">Points go straight into the winners' JD wallets. Only registered squads can be paid, never more than the prize pool, and each squad only once.</p><div id="rs-prz"></div><div class="prz-sum" id="prz-sum"></div></div>`+
-    `<div class="rs-acts"><button type="button" class="btn alt" id="rs-pub">Publish standings</button><button type="button" class="btn" id="rs-fin">Finish &amp; pay prizes</button></div>`+
+    (isHostMod()?`<p class="note">Prize points are paid by the JD team after you finish.</p>`:`<div class="prz"><h3>Prizes (paid when you finish)</h3><p class="note" style="margin:0">Points go straight into the winners' JD wallets. Only registered squads can be paid, never more than the prize pool, and each squad only once.</p><div id="rs-prz"></div><div class="prz-sum" id="prz-sum"></div></div>`)+
+    `<div class="rs-acts"><button type="button" class="btn alt" id="rs-pub">Publish standings</button><button type="button" class="btn" id="rs-fin">${isHostMod()?'Finish event':'Finish &amp; pay prizes'}</button></div>`+
     `<p class="note">Publish standings after each match: the leaderboard on the site updates for everyone. Finish when the last match is done: it sets the winner, marks the event finished, saves the all-time leaderboard and pays the prizes.</p>`;
   renderPrizes();
 }
@@ -947,7 +958,7 @@ $('rs-body').addEventListener('click',async e=>{
   const rank=rsRanked(), msg=$('rs-msg');
   if(!rank.length){ msg.textContent='Add squads and points first.'; msg.className='msg err'; return; }
   const teams=rsRows.filter(r=>r.team.trim()).map(r=>({team:r.team.trim(),pts:r.pts}));
-  const prizes={}; if(fin) rank.slice(0,3).forEach((x,k)=>{ if(+rsPrize[k]>0&&!(rs.paid||[]).some(p=>p.squad.toLowerCase()===x.r.team.toLowerCase())) prizes[x.r.team.trim()]=+rsPrize[k]; });
+  const prizes={}; if(fin&&!isHostMod()) rank.slice(0,3).forEach((x,k)=>{ if(+rsPrize[k]>0&&!(rs.paid||[]).some(p=>p.squad.toLowerCase()===x.r.team.toLowerCase())) prizes[x.r.team.trim()]=+rsPrize[k]; });
   const sum=Object.values(prizes).reduce((a,b)=>a+b,0);
   const ok=await sheet(fin?{title:`Finish ${rs.event}?`,text:`Winner: ${rank[0].r.team} (${rank[0].t} points). `+(sum?`Pays ${Object.entries(prizes).map(([k,v])=>k+' '+v).join(', ')} points into their wallets. `:'No prizes will be paid. ')+`The event is marked finished and the leaderboard is saved. Payments can't be undone here.`,ok:'Finish & pay',danger:sum>0}
                           :{title:'Publish standings?',text:`#1 ${rank[0].r.team} (${rank[0].t}). The leaderboard on the site updates for everyone now.`,ok:'Publish'});
@@ -994,14 +1005,15 @@ $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
   const {data:{session}}=await sb.auth.getSession();
   if(!session){ $('gate').hidden=false; return; }
   try{
-    const me=await call({action:'whoami'});
-    $('who').textContent=me.email; $('who-wrap').hidden=false;
+    const me=await call({action:'whoami'}); ME=me;
+    $('who').textContent=me.email+(isHostMod()?' · host @'+me.handle:''); $('who-wrap').hidden=false;
+    if(isHostMod()){ document.querySelector('#tabs [data-tab=chats]').hidden=true; $('tab-chats').style.display='none'; }
+    if(!me.owner){ const all=document.querySelector('input[name=aud][value=all]'); all.closest('label').remove(); }
     $('main').hidden=false; $('tabs').hidden=false;
-    const h=(location.hash||'').slice(1); if(['results','chats','room','notify','help'].includes(h)) showTab(h);
+    const h=(location.hash||'').slice(1); if(['results','room','notify','help'].concat(isHostMod()?[]:['chats']).includes(h)) showTab(h);
     setTopH();
     loadTournaments();
-    loadInbox();
-    startLive();
+    if(!isHostMod()){ loadInbox(); startLive(); }
   }catch(e){
     $('gate').hidden=false;
     $('gate-note').textContent=/not a moderator/i.test(e.message)?'Signed in as '+(session.user.email||'')+', but that account is not a moderator yet. Ask the JD admin to add you.':e.message;

@@ -607,10 +607,12 @@ h2[id]{scroll-margin-top:64px}
   </div>
   <div id="op-list"></div>
 
-  <h2 id="moderators">Moderators <span class="tag">limited: push + view only</span></h2>
-  <p class="hint">A moderator signs in at <a href="/mod/" target="_blank">/mod/</a> with their JD account and can ONLY: send push notifications, view today's &amp; upcoming tournaments, and see squads' WhatsApp numbers for reminders. They cannot touch money, bans, tournaments or plans. Add them by the email they sign in with.</p>
+  <h2 id="moderators">Moderators <span class="tag">staff · host</span></h2>
+  <p class="hint">Mods sign in at <a href="/mod/" target="_blank">/mod/</a> with their JD account (add them by that email). <b>Staff</b> = your own mods: every event, JD Esports chat, prize payouts. <b>Host</b> = an invited scrim host: only events whose "Host mod handle" is their handle – squads, room code, notifications to those squads, results without prizes. No JD Esports chat. Only you can notify all players. Nobody can touch bans, plans or balances.</p>
   <div class="grid">
     <div class="f"><label>Add moderator email</label><input id="mod-email" placeholder="name@example.com" autocomplete="off"></div>
+    <div class="f"><label>Role</label><select id="mod-role" onchange="document.getElementById('mod-handle-f').style.display=this.value==='host'?'':'none'"><option value="staff">Staff (my mod)</option><option value="host">Host (invited scrim host)</option></select></div>
+    <div class="f" id="mod-handle-f" style="display:none"><label>Host handle <span class="tag">put this in the event's Host field</span></label><input id="mod-handle" placeholder="e.g. goats.esp" autocomplete="off"></div>
     <div class="f"><label>Note <span class="tag">optional</span></label><input id="mod-note" placeholder="e.g. Ramesh - reminders"></div>
   </div>
   <div class="row" style="margin:8px 0 0"><button class="btn" onclick="modAdd()">➕ Add moderator</button><button class="btn ghost" onclick="modList()">🔄 Refresh list</button><div id="mod-msg" class="hint"></div></div>
@@ -866,7 +868,7 @@ window.fetch=async function(input,init){
   if(adminSecret()){document.getElementById('gate').style.display='none';document.getElementById('app').style.display='';loadLive();loadSecurity();loadLoads();return;}
   tryGoogleSession();
 })();
-const TF=[['name','Name','text'],['game','Game / mode','text'],['date','Date (display)','text'],['time','Time','text'],['start','Start (ISO, for countdown)','text'],['prize','Prize pool','text'],['entry','Entry fee','text'],['platform','Platform','text'],['slots','Slots (max squads)','number'],['format','Format','text'],['register_url','Register URL','text'],['winner','Winner (if done)','text']];
+const TF=[['name','Name','text'],['game','Game / mode','text'],['date','Date (display)','text'],['time','Time','text'],['start','Start (ISO, for countdown)','text'],['prize','Prize pool','text'],['entry','Entry fee','text'],['platform','Platform','text'],['slots','Slots (max squads)','number'],['format','Format','text'],['register_url','Register URL','text'],['winner','Winner (if done)','text'],['host','Host mod handle (only that host mod sees this event in /mod/)','text']];
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 // only real image data URIs / https images may reach an <img src> (squad logos are player-uploaded)
@@ -2195,15 +2197,17 @@ async function modList(){
   const box=document.getElementById('mod-list'); modMsg('Loading…','');
   try{
     const rows=await modCall({action:'mod_list'});
-    box.innerHTML=rows.length?`<table style="width:100%;font-size:.8rem;border-collapse:collapse;margin-top:10px">${rows.map(m=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px"><b>${esc(m.email)}</b>${m.note?' <span class="hint">· '+esc(m.note)+'</span>':''}</td><td style="padding:6px 4px;text-align:right"><button class="btn ghost" style="font-size:.7rem;padding:4px 10px" data-e="${esc(m.email)}">Remove</button></td></tr>`).join('')}</table>`:'<p class="hint">No moderators yet.</p>';
+    box.innerHTML=rows.length?`<table style="width:100%;font-size:.8rem;border-collapse:collapse;margin-top:10px">${rows.map(m=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px"><b>${esc(m.email)}</b> <span class="tag">${m.role==='host'?'host @'+esc(m.handle||''):'staff'}</span>${m.note?' <span class="hint">· '+esc(m.note)+'</span>':''}</td><td style="padding:6px 4px;text-align:right"><button class="btn ghost" style="font-size:.7rem;padding:4px 10px" data-e="${esc(m.email)}">Remove</button></td></tr>`).join('')}</table>`:'<p class="hint">No moderators yet.</p>';
     box.querySelectorAll('button[data-e]').forEach(b=>b.onclick=()=>modRemove(b.dataset.e));
     modMsg('','');
   }catch(e){modMsg(e.message,'err');}
 }
 async function modAdd(){
   const email=document.getElementById('mod-email').value.trim(),note=document.getElementById('mod-note').value.trim();
+  const role=document.getElementById('mod-role').value,handle=document.getElementById('mod-handle').value.trim().replace(/^@+/,'');
   if(!email){modMsg('Enter an email.','err');return;}
-  try{ await modCall({action:'mod_add',email,note}); document.getElementById('mod-email').value='';document.getElementById('mod-note').value=''; modMsg('Added '+email+'.','ok'); modList(); }
+  if(role==='host'&&!handle){modMsg('Enter the host handle (e.g. their TikTok name).','err');return;}
+  try{ await modCall({action:'mod_add',email,note,role,handle}); ['mod-email','mod-note','mod-handle'].forEach(id=>document.getElementById(id).value=''); modMsg('Added '+email+(role==='host'?' as host @'+handle+'. Set "Host mod handle" on their events.':' as staff.'),'ok'); modList(); }
   catch(e){modMsg(e.message,'err');}
 }
 async function modRemove(email){

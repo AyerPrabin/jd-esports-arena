@@ -13,9 +13,16 @@
 //      The chat_* actions also accept the admin secret (x-admin-secret) so the admin can answer from /admin/.
 //      Every change is written to mod_actions (who, what, when) so the admin can see it.
 //  * The ADMIN (x-admin-secret) manages the moderator list:
-//      { action: 'mod_list' } | { action: 'mod_add', email, note? } | { action: 'mod_remove', email }
+//      { action: 'mod_list' } | { action: 'mod_add', email, note?, role?, handle? } | { action: 'mod_remove', email }
 // Moderators can NOT touch money, bans, tournaments, plans or anything else.
+// Roles (mod_roles.sql): 'staff' = the owner's own mods, everything above. 'host' = an invited scrim host: only the
+// events whose "host" field is their handle (squads, room code, notify those squads, results without prizes),
+// no JD Esports chat. "All players" notifications are the owner's only.
 import { createClient } from 'npm:@supabase/supabase-js@2';
+
+// only the owner may notify every player on JD Arena
+const OWNER_EMAIL = (Deno.env.get('ADMIN_EMAIL') || 'ayerprabin95@gmail.com').toLowerCase();
+const normHandle = (h: unknown) => String(h || '').trim().replace(/^@+/, '').toLowerCase();
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -47,16 +54,20 @@ Deno.serve(async (req: Request) => {
   if (['mod_list', 'mod_add', 'mod_remove'].includes(action)) {
     if (!ADMIN_SECRET || adminHeader !== ADMIN_SECRET) return fail('Unauthorized', 401);
     if (action === 'mod_list') {
-      const { data, error } = await admin.from('moderators').select('email, note, added_at').order('added_at', { ascending: false });
+      const { data, error } = await admin.from('moderators').select('email, note, role, handle, added_at').order('added_at', { ascending: false });
       if (error) return fail(error.message, 500);
       return json(data || []);
     }
     if (action === 'mod_add') {
       const email = String(p.email || '').trim().toLowerCase();
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail('Enter a valid email');
-      const { error } = await admin.from('moderators').upsert({ email, note: String(p.note || '').slice(0, 120) || null });
-      if (error) return fail(error.message, 500);
-      return json({ ok: true, email });
+      const role = p.role === 'host' ? 'host' : 'staff';
+      const handle = normHandle(p.handle);
+      if (role === 'host' && !/^[a-z0-9._]{2,30}$/.test(handle)) return fail('A host mod needs a handle, e.g. their TikTok name: goats.esp');
+      const { error } = await admin.from('moderators').upsert({ email, note: String(p.note || '').slice(0, 120) || null,
+        role, handle: handle || null });
+      if (error) return fail(/moderators_handle_key|duplicate/i.test(error.message) ? 'Another mod already uses that handle.' : error.message, 500);
+      return json({ ok: true, email, role, handle: handle || null });
     }
     if (action === 'mod_remove') {
       const email = String(p.email || '').trim().toLowerCase();
@@ -67,7 +78,7 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── moderator actions: require a signed-in moderator (the JD Esports chat also takes the admin secret) ──
-  let email = '';
+  let email = '', role = 'staff', handle = '';
   if (action.startsWith('chat_') && ADMIN_SECRET && adminHeader === ADMIN_SECRET) email = 'admin';
   else {
     const jwt = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
@@ -75,15 +86,34 @@ Deno.serve(async (req: Request) => {
     const { data: { user }, error: uErr } = await admin.auth.getUser(jwt);
     email = user?.email?.toLowerCase() || '';
     if (uErr || !email) return fail('Sign in first', 401);
-    const { data: mod } = await admin.from('moderators').select('email').eq('email', email).maybeSingle();
+    const { data: mod } = await admin.from('moderators').select('email, role, handle').eq('email', email).maybeSingle();
     if (!mod) return fail('Your account is not a moderator. Ask the JD admin to add you.', 403);
+    role = mod.role === 'host' ? 'host' : 'staff';
+    handle = normHandle(mod.handle);
   }
+  const isHost = role === 'host';
+  const isOwner = email === 'admin' || email === OWNER_EMAIL;
 
-  if (action === 'whoami') return json({ ok: true, email });
+  // host mods: only the events whose "host" field is their handle (live site_content, same doc the site shows)
+  let _mine: Set<string> | null = null;
+  const myEvents = async () => {
+    if (_mine) return _mine;
+    const { data: sc } = await admin.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
+    const list: any[] = (sc?.content as any)?.tournaments || [];
+    _mine = new Set(list.filter((t) => handle && normHandle(t.host) === handle).map((t) => String(t.name)));
+    return _mine;
+  };
+  const canEvent = async (slug: string) => !isHost || (await myEvents()).has(slug);
+  const notYours = () => fail("That event isn't yours. Ask the JD admin to set you as its host.", 403);
+
+  if (action === 'whoami') return json({ ok: true, email, role, handle: handle || null, owner: isOwner,
+    events: isHost ? [...await myEvents()] : null });
+  if (isHost && action.startsWith('chat_')) return fail('The JD Esports chat is for the JD team only. Use Message on a squad to send them a notification.', 403);
 
   if (action === 'registrations') {
     const slug = String(p.slug || '');
     if (!slug) return fail('slug required');
+    if (!await canEvent(slug)) return notYours();
     const { data, error } = await admin.from('registrations')
       .select('id, squad_name, status, whatsapp, checked_in_at, verified_at, created_at, players(username, player_tag)')
       .eq('tournament_slug', slug).order('created_at', { ascending: true });
@@ -101,6 +131,7 @@ Deno.serve(async (req: Request) => {
     const room_pass = String(p.room_pass || '').trim();
     if (!slug) return fail('Pick the tournament first');
     if (!room_id) return fail('Enter the Room ID');
+    if (!await canEvent(slug)) return notYours();
     // hand off to the admin-only room-code sender (service creds stay server-side).
     // No player_tags -> it goes to that tournament's confirmed/approved squads only.
     const r = await fetch(`${URL_}/functions/v1/send-room-code`, {
@@ -121,6 +152,7 @@ Deno.serve(async (req: Request) => {
     if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
     const { data } = await admin.from('registrations')
       .select('id, squad_name, tournament_slug, player_id, status, checked_in_at, players(player_tag)').eq('id', id).maybeSingle();
+    if (data && !await canEvent((data as any).tournament_slug)) return null;   // host mods: only their events' squads
     return data as any;
   };
 
@@ -268,6 +300,7 @@ Deno.serve(async (req: Request) => {
   if (action === 'results_get' || action === 'results_publish') {
     const slug = String(p.slug || '').trim();
     if (!slug) return fail('Pick the event first.');
+    if (!await canEvent(slug)) return notYours();
     const { data: sc } = await admin.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
     const doc: any = sc?.content;
     const t = doc?.tournaments?.find((x: any) => x.name === slug);
@@ -304,6 +337,7 @@ Deno.serve(async (req: Request) => {
       for (const [k, v] of Object.entries(p.prizes || {})) {
         const amt = Math.round(Number(v) || 0);
         if (amt <= 0) continue;
+        if (isHost) return fail('Prize points are paid by the JD team. Finish without prizes; the admin pays the winners.', 403);
         const tm = teams.find((x) => norm(x.team) === norm(k));
         if (!tm) return fail(`${k} isn't in the standings.`);
         if (!regSet.has(norm(tm.team))) return fail(`${tm.team} isn't a registered squad in ${slug}, so it can't be paid.`);
@@ -353,6 +387,8 @@ Deno.serve(async (req: Request) => {
     const body = String(p.body || '').trim();
     if (!title || !body) return fail('Title and message are required');
     let player_tags: string[] | undefined;
+    if (!p.slug && !isOwner) return fail('Pick an event: notifications go only to the squads in that event.', 403);
+    if (p.slug && !await canEvent(String(p.slug))) return notYours();
     if (p.slug) {
       const { data } = await admin.from('registrations')
         .select('players(player_tag)').eq('tournament_slug', String(p.slug))
