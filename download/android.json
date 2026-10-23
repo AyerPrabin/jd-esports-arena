@@ -1,9 +1,9 @@
 {
-  "versionCode": 4,
-  "versionName": "1.3.0",
-  "url": "https://jdesport.co.uk/download/jd-arena-1.3.0.apk",
-  "sha256": "05646faba4c7a0d83b04519875306a6ae2b6df72eba5dc468c283aac897003a7",
-  "size": 1608844,
-  "date": "2026-10-23",
-  "notes": "long-press the app icon for quick shortcuts: Tournaments, Alerts, Wallet and Challenges."
+  "versionCode": 5,
+  "versionName": "1.4.0",
+  "url": "https://jdesport.co.uk/download/jd-arena-1.4.0.apk",
+  "sha256": "e0f4593d15e073f7f53eb1299fd407abfe87a5a78704e4cf9aa26d4ce1dc7804",
+  "size": 1613220,
+  "date": "2026-10-24",
+  "notes": "a home-screen widget with the next tournament (countdown, prize, seats left), plus long-press shortcuts."
 }
