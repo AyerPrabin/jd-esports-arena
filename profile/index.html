@@ -304,7 +304,7 @@ async function loadWallet(){
 }
 async function loadStats(){
   // daily check-in streak (daily_checkin.sql): badge only
-  sb.rpc('my_streak').then(({data})=>{ if(!data)return; $('s-streak').textContent=(data.streak||0)+(data.streak?' 🔥':''); $('s-best').textContent=(data.best||0)+' days'; },()=>{});
+  sb.rpc('my_streak').then(({data})=>{ if(!data)return; $('s-streak').textContent=(data.streak||0)+(data.streak?' 🔥':''); $('s-best').textContent=(data.best||0)+(data.best===1?' day':' days'); },()=>{});
   if(!me.player_tag)return;
   const {data}=await sb.rpc('get_player_career_stats',{p_player_tag:me.player_tag});
   const s=(data&&data[0])||{};

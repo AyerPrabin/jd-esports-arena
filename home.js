@@ -1388,7 +1388,7 @@ async function loadStreak(checkin){
   const n=data.streak||0,done=!!data.checked_today,week=n%7||(n?7:0);
   const title=done?(n===1?'Day 1 – streak started!':`${n}-day streak 🔥`):n?`${n}-day streak – check in to keep it`:'Start your daily streak';
   box.innerHTML=`<span class="fl" aria-hidden="true">${done?'🔥':'🕯️'}</span><span class="tx"><b>${esc(title)}</b>`+
-    `<small>Best ${data.best||0} days · ${data.total||0} check-ins${n>=7?' · '+Math.floor(n/7)+' full week'+(n>=14?'s':''):''}</small>`+
+    `<small>Best ${data.best||0} day${data.best===1?'':'s'} · ${data.total||0} check-in${data.total===1?'':'s'}${n>=7?' · '+Math.floor(n/7)+' full week'+(n>=14?'s':''):''}</small>`+
     `<span class="days" aria-label="${week} of 7 days this week">${Array.from({length:7},(_,i)=>`<i class="${i<week?'on':''}"></i>`).join('')}</span></span>`+
     `<button type="button" id="streak-btn"${done?' disabled':''}>${done?'Checked in ✓':'Check in'}</button>`;
   box.hidden=false;
