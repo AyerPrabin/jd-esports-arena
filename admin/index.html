@@ -93,6 +93,8 @@ details[open]>.dsum-sm::before{content:'▾ '}
 .adm-nav{position:sticky;top:0;z-index:20;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:8px -22px 6px;padding:10px 22px;background:rgba(5,8,15,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .adm-nav::-webkit-scrollbar{display:none}
 .adm-nav a{flex:none;font-size:.76rem;color:var(--silver);text-decoration:none;padding:6px 11px;border-radius:999px;border:1px solid var(--line);white-space:nowrap;transition:.15s}
+.adm-nav .nav-pub{flex:none;font:700 .78rem inherit;font-family:inherit;color:#111;background:var(--gold);border:0;border-radius:999px;padding:6px 14px;cursor:pointer;white-space:nowrap}
+.adm-nav .nav-pub:hover{filter:brightness(1.1)}
 .adm-nav a:hover,.adm-nav a.on{color:var(--cream);border-color:var(--gold);background:rgba(201,168,76,.1)}
 h2[id]{scroll-margin-top:64px}
 @media(max-width:640px){.dash{grid-template-columns:1fr 1fr}.adm-nav{margin:8px -22px 6px}}
@@ -357,7 +359,7 @@ h2[id]{scroll-margin-top:64px}
   <div class="dash" id="dash"><div class="dash-tile loading"><b>…</b><span>Loading</span></div></div>
 
   <nav class="adm-nav" id="adm-nav">
-    <a href="#tournaments">🏆 Tournaments</a><a href="#history">📜 History</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#optimizer">🚀 Optimizer</a><a href="#moderators">🛡 Mods</a><a href="#mega">🏆 MEGA</a><a href="#challenges">⚔️ Challenges</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
+    <button type="button" class="nav-pub" onclick="publishNow()">🚀 Publish</button><a href="#tournaments">🏆 Tournaments</a><a href="#history">📜 History</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#optimizer">🚀 Optimizer</a><a href="#moderators">🛡 Mods</a><a href="#mega">🏆 MEGA</a><a href="#challenges">⚔️ Challenges</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
   </nav>
 
   <div class="f full" style="margin-bottom:8px">
@@ -884,7 +886,7 @@ window.fetch=async function(input,init){
   if(adminSecret()){document.getElementById('gate').style.display='none';document.getElementById('app').style.display='';loadLive();loadSecurity();loadLoads();return;}
   tryGoogleSession();
 })();
-const TF=[['name','Name','text'],['game','Game / mode','text'],['date','Date (display)','text'],['time','Time','text'],['start','Start (ISO, for countdown)','text'],['prize','Prize pool','text'],['entry','Entry fee','text'],['platform','Platform','text'],['slots','Slots (max squads)','number'],['format','Format','text'],['register_url','Register URL','text'],['winner','Winner (if done)','text'],['host','Host mod handle (only that host mod sees this event in /mod/)','text']];
+const TF=[['name','Name','text'],['game','Game / mode','text'],['date','Date (display)','text'],['time','Time','text'],['start','Start (ISO, for countdown)','text'],['prize','Prize pool','text'],['entry','Entry fee','text'],['slots','Slots (max squads)','number'],['format','Format','text'],['register_url','Register URL','text'],['winner','Winner (if done)','text'],['host','Host mod handle (only that host mod sees this event in /mod/)','text']];
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 // only real image data URIs / https images may reach an <img src> (squad logos are player-uploaded)
@@ -1098,7 +1100,7 @@ function evMiniHtml(t,i){
   const pill=ms===null?tStatus(t):(ms>Date.now()?tStatus(t)+' · in '+inText(ms):tStatus(t)+' · started '+agoText(ms)+' ago');
   return `<div class="card ev-mini" data-ev="${i}"><div class="ev-top"><b>${esc(t.name||'Untitled event')}</b><span class="pill">${esc(pill)}</span></div>`+
     `<div class="ev-facts"><span>📅 ${when}</span><span>🏆 <b>${esc(rsText(t.prize))}</b></span><span>🎟 <b>${esc(t.entry||'Free')}</b></span>`+
-    `<span>👥 <b>${live}${t.slots?'/'+esc(t.slots):''}</b> squads</span><span>📱 ${esc(t.platform||'Any device')}</span><span>🗺 ${esc(t.format||'')}</span></div>`+
+    `<span>👥 <b>${live}${t.slots?'/'+esc(t.slots):''}</b> squads</span><span>📱 ${esc(DEVICE_LABEL[t.platform_mode||'mixed'])}</span><span>🗺 ${esc(t.format||'')}</span></div>`+
     `<div class="ev-acts"><button class="btn ghost" onclick="evEdit(${i})">✏️ Edit</button>`+
     `<button class="btn ghost" onclick="jumpToRoomCode(${i})">🔑 Room code</button>`+
     `<button class="btn ghost" onclick="markFinished(${i})">✓ Finish</button></div></div>`;
@@ -1390,7 +1392,7 @@ async function zcRun(id){
   if(/_load$|_withdrawal$|credit_points/.test(a.type)){inboxLoad(true);loadDashboard();}
   if(/event|finish|room/.test(a.type))renderMatchDay();
 }
-function addT(){data.tournaments.push({name:'New Tournament',game:'Free Fire BR · Squad',date:'TBA',time:'TBA',start:'',status:'upcoming',map:'bermuda',prize:'Bragging rights + shoutout',entry:'Free',platform:'Mobile only',platform_mode:'mixed',slots:12,format:'BR · 4 matches',register_type:'whatsapp',register_url:'',winner:'',teams:[]});renderT();window.scrollBy(0,200);}
+function addT(){data.tournaments.push({name:'New Tournament',game:'Free Fire BR · Squad',date:'TBA',time:'TBA',start:'',status:'upcoming',map:'bermuda',prize:'Bragging rights + shoutout',entry:'Free',platform:'Mix Device',platform_mode:'mixed',slots:12,format:'BR · 4 matches',register_type:'whatsapp',register_url:'',winner:'',teams:[]});renderT();window.scrollBy(0,200);}
 // no confirm: nothing is saved until Publish, and the toast offers Undo
 function delT(i){const t=data.tournaments.splice(i,1)[0];renderT();undoToast('Deleted "'+(t&&t.name||'tournament')+'"',()=>{data.tournaments.splice(i,0,t);renderT();});}
 function addTeam(ti){data.tournaments[ti].teams=data.tournaments[ti].teams||[];data.tournaments[ti].teams.push({name:'',logo:'',members:''});renderT();}
@@ -1550,7 +1552,7 @@ let _lastCleanDropped=0; // count of fully-blank squad rows silently dropped by 
 function clean(){
   _lastCleanDropped=0;
   // drop empty optional fields so the JSON stays tidy
-  const out={tagline:data.tagline||'JD Esports Arena · AyerFire',tournaments:data.tournaments.map(t=>{const o={};/* every field the event has, not only the TF form fields: map, early_access, reg_opens, host, mega... used to be dropped on publish */for(const k of Object.keys(t)){if(k==='teams'||k==='registered'||k[0]==='_')continue;const v=t[k];if(v!==''&&v!=null&&typeof v!=='object')o[k]=v;}o.status=t.status||'upcoming';if(o.register_type==='whatsapp')delete o.register_type;if(o.platform_mode==='mixed')delete o.platform_mode;if('register_url' in o){const s=safeUrl(o.register_url);if(s)o.register_url=s;else delete o.register_url;}
+  const out={tagline:data.tagline||'JD Esports Arena · AyerFire',tournaments:data.tournaments.map(t=>{const o={};/* every field the event has, not only the TF form fields: map, early_access, reg_opens, host, mega... used to be dropped on publish */for(const k of Object.keys(t)){if(k==='teams'||k==='registered'||k[0]==='_')continue;const v=t[k];if(v!==''&&v!=null&&typeof v!=='object')o[k]=v;}o.status=t.status||'upcoming';if(o.register_type==='whatsapp')delete o.register_type;o.platform_mode=['mobile','emulator','mixed'].includes(t.platform_mode)?t.platform_mode:'mixed';o.platform=DEVICE_LABEL[o.platform_mode];if('register_url' in o){const s=safeUrl(o.register_url);if(s)o.register_url=s;else delete o.register_url;}
     // A squad only gets dropped here if EVERY field on it is empty (a throwaway
     // "+ Add squad" row nobody filled in) — a squad that still has a logo or
     // members but whose name field is blank (e.g. cleared by accident) is kept

@@ -535,7 +535,7 @@ function hostEventForm(t){
     `<div class="row2"><div><label class="f" for="hev-slots">Squads</label><input id="hev-slots" type="number" min="2" max="48" value="${esc(t?t.slots||12:12)}"></div>`+
     `<div><label class="f" for="hev-m">Matches</label><select id="hev-m">${opt([['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6']],m)}</select></div></div>`+
     `<div class="row2"><div><label class="f" for="hev-map">Map</label><select id="hev-map">${opt(MAPS,t?t.map||'bermuda':'bermuda')}</select></div>`+
-    `<div><label class="f" for="hev-dev">Device</label><select id="hev-dev">${opt([['mobile','Mobile only'],['mixed','Mix device'],['emulator','Emulator only']],t?t.platform_mode||'mobile':'mobile')}</select></div></div>`+
+    `<div><label class="f" for="hev-dev">Device</label><select id="hev-dev">${opt([['mobile','Mobile only'],['mixed','Mix device'],['emulator','Emulator only']],t?t.platform_mode||'mixed':'mobile')}</select></div></div>`+
     `<div class="msg" id="hev-msg" role="status"></div>`+
     `<div class="row2">${ed?'<button type="button" class="ghost" data-cancel-ev>Cancel event</button>':'<button type="button" class="ghost" data-x>Close</button>'}<button type="submit" class="btn sm">${ed?'Save &amp; publish':'Create &amp; publish'}</button></div></form>`;
   document.body.appendChild(bg); document.body.style.overflow='hidden'; requestAnimationFrame(()=>bg.classList.add('open'));
