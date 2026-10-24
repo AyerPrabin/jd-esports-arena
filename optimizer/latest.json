@@ -1,9 +1,9 @@
 {
-  "version": "5.7",
-  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.7.exe",
-  "sha256": "1d879300edba96c94f8f49378102e29b584cb0c9ac74e85022b6fb8e64559e6b",
-  "size": 2253402,
-  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.7.zip",
-  "notes": "v5.7: why it stuttered (FPS drops + cause), smart FPS cap advice, tips from players with your graphics card, live FPS even with the .exe alone, sign-in tied to your PC",
+  "version": "5.8",
+  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.8.exe",
+  "sha256": "f38912ac715a9b1fec2188d60035e00c011a0a822fec1b3ccc28bd12c62f2fc7",
+  "size": 2255639,
+  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.8.zip",
+  "notes": "Recording-friendly: OBS/Bandicam/Streamlabs/XSplit/Medal kept smooth while you play (above-normal CPU + GPU priority, never slept); Game Bar Win+Alt+R recording works again (only background capture stays off); report shows a Recording line and encoder advice.",
   "date": "2026-10-24"
 }
