@@ -1396,6 +1396,25 @@ async function loadStreak(checkin){
   const b=document.getElementById('streak-btn');if(b&&!done)b.onclick=()=>{b.disabled=true;loadStreak(true);};
 }
 
+/* MEGA invites (mega.sql): /mega/?r=<code> keeps the inviter (a host's @handle or a player's tag) on this device;
+   right after the squad joins a MEGA event it's credited once (mega_set_ref ignores other events). /?join=<event>
+   (the Join button on /mega/) opens that event's Join form once the events are loaded. */
+async function megaCredit(name){
+  let code=null;try{code=localStorage.getItem('jd_mega_ref');}catch(e){}
+  if(!code||!sb||!_player)return;
+  try{const {data}=await sb.rpc('mega_set_ref',{p_slug:name,p_code:code});if(data&&data.ok)localStorage.removeItem('jd_mega_ref');}catch(e){}
+}
+(function(){
+  const q=new URLSearchParams(location.search),j=q.get('join');
+  if(!j)return;
+  q.delete('join');try{history.replaceState(history.state,'',location.pathname+(q.toString()?'?'+q:'')+'#tournaments');}catch(e){}
+  let tries=0;const t=setInterval(()=>{
+    if(++tries>40){clearInterval(t);return;}
+    const b=[...document.querySelectorAll('[data-reg]')].find(x=>x.getAttribute('data-reg')===j);
+    if(b){clearInterval(t);b.scrollIntoView({block:'center'});b.click();}
+  },500);
+})();
+
 /* Invite links (jdesport.co.uk/?ref=JD-XXXXX): the code is kept on this device until the visitor signs in, then
    set_referrer() links the two accounts once (new players only, first 14 days - checked server-side). */
 (function(){const m=/[?&]ref=([A-Za-z0-9_@-]{3,30})/.exec(location.search);if(m)try{localStorage.setItem('jd_ref',m[1]);}catch(e){}})();
@@ -1751,6 +1770,7 @@ async function submitRegister(){
     if(rr.error)codeErr=rr.error.message;else{effectiveStatus='approved';loadWallet();}
   }
   _myRegs.set(name,{id:reg&&reg.id,squad_name:squad,squad_logo:_regLogoData||_player.squad_logo||"",status:effectiveStatus,checked_in_at:null,paid_points:effectiveStatus==='approved'&&paid?entryAmount(t):0});
+  megaCredit(name);
   regClose();
   regSuccessOpen(t,effectiveStatus,reg);
   if(codeErr){const n=document.getElementById('rs-note');if(n)n.innerHTML+=`<br><br><b>Payment not completed:</b> ${esc(codeErr)} Your place is held — you can pay from your ticket.`;}
@@ -1923,6 +1943,7 @@ async function payEntryWithPoints(name){
   const {data,error}=await sb.rpc('pay_entry_with_points',{p_tournament_slug:name});
   if(error){showMsg('Payment not completed',error.message,true);return;}
   const r=_myRegs.get(name);if(r){r.status='approved';r.paid_points=price;}
+  megaCredit(name);
   showMsg('Entry confirmed',`${price} points paid. Your squad is confirmed for ${name}. Wallet balance: ${data&&data.balance!=null?data.balance:'—'} points.`);
   await loadWallet();await loadPublicRoster();renderCur();
 }

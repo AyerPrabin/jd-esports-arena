@@ -357,7 +357,7 @@ h2[id]{scroll-margin-top:64px}
   <div class="dash" id="dash"><div class="dash-tile loading"><b>…</b><span>Loading</span></div></div>
 
   <nav class="adm-nav" id="adm-nav">
-    <a href="#tournaments">🏆 Tournaments</a><a href="#history">📜 History</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#optimizer">🚀 Optimizer</a><a href="#moderators">🛡 Mods</a><a href="#challenges">⚔️ Challenges</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
+    <a href="#tournaments">🏆 Tournaments</a><a href="#history">📜 History</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#optimizer">🚀 Optimizer</a><a href="#moderators">🛡 Mods</a><a href="#mega">🏆 MEGA</a><a href="#challenges">⚔️ Challenges</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
   </nav>
 
   <div class="f full" style="margin-bottom:8px">
@@ -617,6 +617,22 @@ h2[id]{scroll-margin-top:64px}
   </div>
   <div class="row" style="margin:8px 0 0"><button class="btn" onclick="modAdd()">➕ Add moderator</button><button class="btn ghost" onclick="modList()">🔄 Refresh list</button><div id="mod-msg" class="hint"></div></div>
   <div id="mod-list"></div>
+
+  <h2 id="mega">🏆 MEGA event <span class="tag">big paid event · refund if it doesn't fill</span></h2>
+  <p class="hint">One huge event (e.g. 1,500 squads, 200 points entry, Rs 3,00,000). Players join and pay like any event. If fewer than <b>Min squads</b> have paid when registration closes, everyone is refunded automatically and it's called off; otherwise it's confirmed and invite rewards are paid (host mods per squad they brought, players per squad they invited). Every day at 7 PM players who haven't joined get a progress alert (they can turn it off). The page is <a href="/mega/" target="_blank">/mega/</a>. Set the start date later in Tournaments; qualifier groups are drawn when registration closes.</p>
+  <div class="grid">
+    <div class="f"><label>Event name</label><input id="mg-slug" placeholder="JD MEGA Cup 2027" autocomplete="off"></div>
+    <div class="f"><label>Headline (shown everywhere)</label><input id="mg-head" placeholder="MEGA coming in the next 4-6 months" autocomplete="off"></div>
+    <div class="f"><label>Min squads (or refund)</label><input id="mg-min" type="number" value="1200"></div>
+    <div class="f"><label>Max squads</label><input id="mg-max" type="number" value="1500"></div>
+    <div class="f"><label>Entry (points per squad)</label><input id="mg-entry" type="number" value="200"></div>
+    <div class="f"><label>Prize pool (Rs)</label><input id="mg-pool" type="number" value="300000"></div>
+    <div class="f"><label>Registration closes</label><input id="mg-close" type="date"></div>
+    <div class="f"><label>Host reward (points per squad)</label><input id="mg-hr" type="number" value="10"></div>
+    <div class="f"><label>Player invite reward (points per squad)</label><input id="mg-pr" type="number" value="5"></div>
+  </div>
+  <div class="row" style="margin:8px 0 0"><button class="btn" onclick="megaSave()">💾 Save &amp; publish</button><button class="btn ghost" onclick="megaList()">🔄 Refresh</button><div id="mg-msg" class="hint"></div></div>
+  <div id="mg-list"></div>
 
   <h2 id="challenges">Challenges <span class="tag">player vs player · disputes</span></h2>
   <p class="hint">When both captains claim the win, the challenge waits here. Read the chat and screenshots, then pay the winner or refund both. Everything else settles automatically.</p>
@@ -1534,7 +1550,7 @@ let _lastCleanDropped=0; // count of fully-blank squad rows silently dropped by 
 function clean(){
   _lastCleanDropped=0;
   // drop empty optional fields so the JSON stays tidy
-  const out={tagline:data.tagline||'JD Esports Arena · AyerFire',tournaments:data.tournaments.map(t=>{const o={};for(const[k]of TF){if(t[k]!==''&&t[k]!=null)o[k]=t[k];}o.status=t.status||'upcoming';if(t.register_type&&t.register_type!=='whatsapp')o.register_type=t.register_type;if(t.platform_mode&&t.platform_mode!=='mixed')o.platform_mode=t.platform_mode;if('register_url' in o){const s=safeUrl(o.register_url);if(s)o.register_url=s;else delete o.register_url;}
+  const out={tagline:data.tagline||'JD Esports Arena · AyerFire',tournaments:data.tournaments.map(t=>{const o={};/* every field the event has, not only the TF form fields: map, early_access, reg_opens, host, mega... used to be dropped on publish */for(const k of Object.keys(t)){if(k==='teams'||k==='registered'||k[0]==='_')continue;const v=t[k];if(v!==''&&v!=null&&typeof v!=='object')o[k]=v;}o.status=t.status||'upcoming';if(o.register_type==='whatsapp')delete o.register_type;if(o.platform_mode==='mixed')delete o.platform_mode;if('register_url' in o){const s=safeUrl(o.register_url);if(s)o.register_url=s;else delete o.register_url;}
     // A squad only gets dropped here if EVERY field on it is empty (a throwaway
     // "+ Add squad" row nobody filled in) — a squad that still has a logo or
     // members but whose name field is blank (e.g. cleared by accident) is kept
@@ -2213,6 +2229,37 @@ async function modAdd(){
 async function modRemove(email){
   if(!confirm('Remove moderator '+email+'?'))return;
   try{ await modCall({action:'mod_remove',email}); modMsg('Removed.','ok'); modList(); }catch(e){modMsg(e.message,'err');}
+}
+
+/* ── MEGA event (mod-panel mega_save / mega_list, mega.sql) ── */
+function mgMsg(t,c){const el=document.getElementById('mg-msg');if(el){el.textContent=t;el.className='hint '+(c||'');}}
+async function megaList(){
+  const box=document.getElementById('mg-list');mgMsg('Loading…','');
+  try{
+    const rows=await modCall({action:'mega_list'});
+    box.innerHTML=rows.length?rows.map(m=>{const pct=Math.min(100,Math.round(100*m.squads/m.max_squads));
+      return `<div style="border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px"><b>${esc(m.slug)}</b> <span class="tag">${esc(m.status)}</span>`+
+        `<div class="hint">${m.squads} / ${m.max_squads} paid squads (min ${m.min_squads}) · ${m.entry} pts entry · Rs ${Number(m.prize_pool).toLocaleString('en-IN')} · closes ${new Date(m.reg_closes_at).toLocaleDateString()}</div>`+
+        `<div style="height:8px;border-radius:4px;background:rgba(255,255,255,.08);margin:8px 0;overflow:hidden"><span style="display:block;height:100%;width:${pct}%;background:var(--gold)"></span></div>`+
+        `<div class="hint">Top promoters: ${(m.top||[]).map(x=>esc(x.name)+' '+x.n).join(', ')||'none yet'}</div>`+
+        `<button class="btn ghost" style="font-size:.75rem;padding:4px 10px;margin-top:6px" data-mg="${esc(JSON.stringify(m))}">Edit</button></div>`;}).join(''):'<p class="hint">No MEGA event yet.</p>';
+    box.querySelectorAll('button[data-mg]').forEach(b=>b.onclick=()=>{const m=JSON.parse(b.dataset.mg);
+      [['mg-slug',m.slug],['mg-head',m.headline||''],['mg-min',m.min_squads],['mg-max',m.max_squads],['mg-entry',m.entry],['mg-pool',m.prize_pool],
+       ['mg-close',String(m.reg_closes_at).slice(0,10)],['mg-hr',m.host_reward],['mg-pr',m.refer_reward]].forEach(([id,v])=>document.getElementById(id).value=v);
+      document.getElementById('mega').scrollIntoView({behavior:'smooth'});});
+    mgMsg('','');
+  }catch(e){mgMsg(e.message,'err');}
+}
+async function megaSave(){
+  const v=id=>document.getElementById(id).value.trim(),d=v('mg-close');
+  if(!v('mg-slug')||!d){mgMsg('Enter the event name and the closing date.','err');return;}
+  if(!confirm(`Save ${v('mg-slug')}: ${v('mg-min')}-${v('mg-max')} squads, ${v('mg-entry')} points entry, Rs ${v('mg-pool')} prize pool, closes ${d}? The event card is published on the site.`))return;
+  mgMsg('Saving…','');
+  try{
+    const r=await modCall({action:'mega_save',slug:v('mg-slug'),headline:v('mg-head'),min:+v('mg-min'),max:+v('mg-max'),entry:+v('mg-entry'),
+      prize_pool:+v('mg-pool'),reg_closes_at:d+'T23:59:00+05:45',host_reward:+v('mg-hr'),refer_reward:+v('mg-pr')});
+    mgMsg('Saved and published - '+r.squads+' squads in so far. Reload the Tournaments list before publishing from there.','ok');megaList();
+  }catch(e){mgMsg(e.message,'err');}
 }
 
 /* ── JD-Optimiers plans (optimizer-admin Edge Function) ── */

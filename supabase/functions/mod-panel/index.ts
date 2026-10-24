@@ -53,6 +53,58 @@ Deno.serve(async (req: Request) => {
 
   // ── admin-only: manage the moderator list ──
   const adminHeader = req.headers.get('x-admin-secret');
+  // ── admin-only: MEGA event settings (mega.sql). Saves mega_events and creates / updates the event card in
+  //    tournaments.json (same Join / pay / ticket flow as every event), then publishes. ──
+  if (action === 'mega_list' || action === 'mega_save') {
+    if (!ADMIN_SECRET || adminHeader !== ADMIN_SECRET) return fail('Unauthorized', 401);
+    if (action === 'mega_list') {
+      const { data, error } = await admin.from('mega_events').select('*').order('created_at', { ascending: false });
+      if (error) return fail(error.message, 500);
+      const out = [];
+      for (const m of data || []) {
+        const { data: info } = await admin.rpc('mega_info', { p_slug: m.slug });
+        out.push({ ...m, squads: info?.squads ?? 0, top: info?.top || [] });
+      }
+      return json(out);
+    }
+    const slug = String(p.slug || '').trim().replace(/\s+/g, ' ').slice(0, 60);
+    const int = (v: any, lo: number, hi: number) => { const n = Math.round(Number(v)); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : NaN; };
+    const min = int(p.min, 12, 5000), max = int(p.max, 12, 5000), entry = int(p.entry, 0, 5000), pool = int(p.prize_pool, 0, 10000000);
+    const hostR = int(p.host_reward ?? 10, 0, 200), refR = int(p.refer_reward ?? 5, 0, 200);
+    const closes = Date.parse(String(p.reg_closes_at || ''));
+    if (slug.length < 3) return fail('Give the event a name.');
+    if ([min, max, entry, pool, hostR, refR].some(Number.isNaN) || max < min) return fail('Check the numbers: max squads must be at least min squads.');
+    if (!Number.isFinite(closes)) return fail('Pick the date registration closes.');
+    const { data: cur } = await admin.from('mega_events').select('*').eq('slug', slug).maybeSingle();
+    const { data: paid } = cur ? await admin.rpc('mega_info', { p_slug: slug }) : { data: null };
+    const squads = paid?.squads ?? 0;
+    if (cur && cur.status !== 'open') return fail(`${slug} is already ${cur.status} - make a new MEGA instead.`);
+    if (cur && squads > 0 && entry !== cur.entry) return fail(`${squads} squads already paid ${cur.entry} points - the entry can't change now.`);
+    if (max < squads) return fail(`${squads} squads are already in - max squads can't be lower.`);
+    if (!cur && closes < Date.now() + 86400e3) return fail('Registration should close at least a day from now.');
+    const row = { slug, headline: String(p.headline || '').trim().slice(0, 140) || null, min_squads: min, max_squads: max, entry,
+      prize_pool: pool, reg_closes_at: new Date(closes).toISOString(), host_reward: hostR, refer_reward: refR, updated_at: new Date().toISOString() };
+    const { error: e1 } = await admin.from('mega_events').upsert(row);
+    if (e1) return fail(e1.message, 500);
+    // the event card: added once, then prize / entry / slots kept in step (date and start are the admin's, in /admin/)
+    const { data: sc } = await admin.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
+    const doc: any = sc?.content;
+    if (!doc?.tournaments) return fail('Saved, but the events list could not be loaded - publish from /admin/.', 500);
+    const prize = 'Rs ' + pool.toLocaleString('en-IN');
+    let t = doc.tournaments.find((x: any) => x.name === slug);
+    if (!t) {
+      t = { name: slug, game: 'Free Fire BR · Squad', date: 'Coming soon', time: 'TBA', start: '', status: 'upcoming', map: 'bermuda',
+            platform: 'Mix Device', platform_mode: 'mixed', winner: '', teams: [] };
+      doc.tournaments.push(t);
+    }
+    Object.assign(t, { prize, entry: entry ? entry + ' points' : 'Free', slots: max, format: 'Qualifier groups → Semi-finals → Final', mega: true });
+    doc._published_at = new Date().toISOString();
+    const H = { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET, 'Authorization': `Bearer ${SERVICE}`, 'apikey': SERVICE };
+    const pub = await fetch(`${URL_}/functions/v1/publish-tournaments`, { method: 'POST', headers: H, body: JSON.stringify({ content: JSON.stringify(doc, null, 2) }) });
+    if (!pub.ok) return fail('Saved, but publishing the event card failed: ' + (await pub.text()), 502);
+    return json({ ok: true, slug, squads });
+  }
+
   if (['mod_list', 'mod_add', 'mod_remove'].includes(action)) {
     if (!ADMIN_SECRET || adminHeader !== ADMIN_SECRET) return fail('Unauthorized', 401);
     if (action === 'mod_list') {

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#07090F">
+<link rel="icon" type="image/png" href="/favicon-64.png">
+<title>MEGA — JD Esports Arena</title>
+<meta name="description" content="The JD MEGA Free Fire tournament: 1,500 squads, Rs 3,00,000 prize pool. Join, invite your friends, full refund if it doesn't fill.">
+<meta property="og:title" content="JD MEGA — 1,500 squads · Rs 3,00,000">
+<meta property="og:description" content="The biggest Free Fire tournament in Nepal is coming. Join early, invite your squad friends.">
+<meta property="og:image" content="https://jdesport.co.uk/og-image.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Geist:wght@300..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090F;--panel:#111827;--panel-2:#151D2E;--line:rgba(255,200,80,.14);--line-2:rgba(255,255,255,.07);
+  --gold:#FFC83D;--gold-l:#FFDD85;--gold-m:rgba(255,200,80,.42);
+  --cream:#FFFFFF;--silver:#A6AFC2;--green:#5EDB95;--red:#FF8A8A;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--cream);font-family:'Geist',system-ui,sans-serif;line-height:1.55;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(900px 520px at 75% -10%,rgba(255,200,61,.16),transparent 60%),radial-gradient(700px 420px at 0% 110%,rgba(255,120,30,.10),transparent 60%)}
+a{color:inherit;text-decoration:none}
+.wrap{position:relative;max-width:880px;margin:0 auto;padding:18px 16px 60px}
+.top{display:flex;align-items:center;gap:10px;font-weight:700;font-size:.86rem;color:var(--silver);margin-bottom:18px}
+.top img{width:30px;height:30px}
+.hero{border-radius:26px;padding:28px 22px;border:1px solid var(--gold-m);background:linear-gradient(160deg,rgba(255,200,61,.14),rgba(17,24,39,.9) 55%);text-align:center;overflow:hidden;position:relative}
+.kicker{display:inline-block;font-size:.72rem;letter-spacing:.14em;font-weight:800;color:#2b1d00;background:var(--gold);border-radius:999px;padding:5px 12px}
+h1{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:clamp(2.6rem,9vw,4.6rem);line-height:.95;margin:14px 0 6px;letter-spacing:.01em;text-transform:uppercase}
+h1 em{font-style:normal;background:linear-gradient(180deg,#FFE27A,#FFAE00);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--silver);font-size:1.02rem;margin:0 auto;max-width:46ch}
+.big{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0 4px}
+.big div{background:rgba(7,9,15,.55);border:1px solid var(--line-2);border-radius:16px;padding:12px 6px}
+.big b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:clamp(1.5rem,5vw,2.2rem);line-height:1;color:var(--gold-l)}
+.big span{font-size:.74rem;color:var(--silver)}
+.card{margin-top:14px;border-radius:20px;background:var(--panel);border:1px solid var(--line-2);padding:18px}
+.card h2{margin:0 0 10px;font-family:'Barlow Condensed',sans-serif;font-size:1.45rem;letter-spacing:.01em}
+.prog{position:relative;height:16px;border-radius:999px;background:rgba(255,255,255,.07);overflow:visible;margin:14px 0 8px}
+.prog>span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#FF8A1F,#FFC83D);min-width:6px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.prog i{position:absolute;top:-6px;bottom:-6px;width:2px;background:var(--cream);opacity:.7}
+.prog small{position:absolute;top:22px;transform:translateX(-50%);font-size:.7rem;color:var(--silver);white-space:nowrap}
+.cnt{display:flex;justify-content:space-between;gap:10px;font-size:.88rem;color:var(--silver);margin-top:26px}
+.cnt b{color:var(--cream)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;padding:14px 22px;font-weight:800;font-size:1rem;background:linear-gradient(180deg,#FFD25C,#FFAE00);color:#2b1d00;cursor:pointer;font-family:inherit}
+.btn.ghost{background:rgba(255,255,255,.06);color:var(--cream);border:1px solid var(--line)}
+.btn:active{transform:scale(.98)}
+.cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:20px}
+.steps{display:grid;gap:10px;counter-reset:s;margin:0;padding:0;list-style:none}
+.steps li{position:relative;padding:12px 14px 12px 50px;border-radius:14px;background:var(--panel-2)}
+.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:12px;top:12px;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:var(--gold);color:#2b1d00;font-weight:800;font-size:.85rem}
+.steps b{display:block}
+.steps span{color:var(--silver);font-size:.88rem}
+.guard{display:flex;gap:12px;align-items:flex-start;border:1px solid rgba(94,219,149,.4);background:rgba(94,219,149,.07);border-radius:16px;padding:14px}
+.guard .ic{font-size:1.6rem;line-height:1}
+.inv{display:grid;gap:10px}
+.link{display:flex;gap:8px}
+.link input{flex:1;min-width:0;background:var(--panel-2);border:1px solid var(--line);color:var(--cream);border-radius:12px;padding:12px;font:inherit;font-size:.9rem}
+.note{color:var(--silver);font-size:.86rem;margin:0}
+.top10{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.top10 li{display:flex;justify-content:space-between;padding:9px 12px;border-radius:12px;background:var(--panel-2);font-size:.9rem}
+.top10 li b{color:var(--gold-l)}
+.host{font-size:.68rem;font-weight:800;color:#CFE0FF;background:#2B3B63;border-radius:6px;padding:2px 6px;margin-left:6px}
+canvas{display:none}
+@media(max-width:520px){.big{grid-template-columns:1fr 1fr}.big div:last-child{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="top" href="/"><img src="/logo.webp" alt="">← JD Esports Arena</a>
+
+  <section class="hero" id="hero">
+    <span class="kicker" id="kicker">COMING SOON</span>
+    <h1 id="title">JD <em>MEGA</em></h1>
+    <p class="sub" id="headline">The biggest Free Fire tournament in Nepal is coming in the next few months.</p>
+    <div class="big">
+      <div><b id="b-teams">1,500</b><span>squads</span></div>
+      <div><b id="b-pool">Rs 3,00,000</b><span>prize pool</span></div>
+      <div><b id="b-entry">200</b><span>points entry per squad</span></div>
+    </div>
+    <div class="cta"><a class="btn" id="join" href="/#tournaments">Join now</a><button class="btn ghost" type="button" id="share-top">Share</button></div>
+  </section>
+
+  <section class="card">
+    <h2>Squads in</h2>
+    <div class="prog" id="prog"><span id="bar" style="width:0"></span><i id="min-mark"></i><small id="min-lab"></small></div>
+    <div class="cnt"><span><b id="c-in">0</b> squads joined</span><span><b id="c-left">–</b> slots left</span></div>
+  </section>
+
+  <section class="card">
+    <div class="guard"><span class="ic" aria-hidden="true">🛡️</span><div><b>No risk: full refund if it doesn't fill</b>
+      <p class="note" id="guard-txt">If fewer than the minimum squads have joined when registration closes, every squad gets its entry points back automatically and the event is called off.</p></div></div>
+  </section>
+
+  <section class="card">
+    <h2>How it works</h2>
+    <ol class="steps">
+      <li><b>Join and pay the entry</b><span>Tap Join, enter your squad, and the entry is paid in JD points (load points in your Wallet first).</span></li>
+      <li><b>Invite your friends</b><span>Share your invite link below. Every squad that joins with it earns you points when the event goes ahead.</span></li>
+      <li><b>Qualifier groups</b><span>When registration closes, squads are drawn into groups of 12. Partner hosts run the qualifier rooms; dates come to your Alerts.</span></li>
+      <li><b>Semi-finals → Grand Final</b><span>The best squads move up until the 12-squad grand final for the prize pool.</span></li>
+    </ol>
+  </section>
+
+  <section class="card" id="invite">
+    <h2>Your invite link</h2>
+    <div class="inv" id="inv-in" hidden>
+      <div class="link"><input id="inv-link" readonly aria-label="Your invite link"><button class="btn" type="button" id="copy">Copy</button></div>
+      <p class="note" id="inv-stat"></p>
+      <div class="cta" style="justify-content:flex-start;margin-top:4px"><button class="btn ghost" type="button" id="card-btn">🖼️ Today's share card</button><button class="btn ghost" type="button" id="share-btn">📤 Share link</button></div>
+    </div>
+    <p class="note" id="inv-out">Sign in on <a href="/" style="color:var(--gold-l)">jdesport.co.uk</a> to get your own invite link. You earn points for every squad that joins with it.</p>
+  </section>
+
+  <section class="card" id="promoters" hidden>
+    <h2>Top promoters</h2>
+    <ol class="top10" id="top"></ol>
+  </section>
+</div>
+<canvas id="cv" width="1080" height="1350"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL='https://cnoxvqvpmgowdiyrrusv.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=n=>Number(n||0).toLocaleString('en-IN');
+let M=null, ME=null;
+
+// an invite link (?r=<code>) is remembered on this device until the squad joins (home.js megaCredit)
+(function(){const r=new URLSearchParams(location.search).get('r');if(r&&/^@?[A-Za-z0-9_.-]{2,40}$/.test(r))try{localStorage.setItem('jd_mega_ref',r);}catch(e){}})();
+
+async function load(){
+  const {data}=await sb.rpc('mega_info',{p_slug:null});
+  M=data&&data.slug?data:null;
+  if(!M) return;
+  const left=Math.max(0,M.max-M.squads), pct=Math.min(100,100*M.squads/M.max), minPct=Math.min(100,100*M.min/M.max);
+  $('title').innerHTML=esc(M.slug).replace(/MEGA/i,'<em>MEGA</em>');
+  $('kicker').textContent=M.status==='open'?'REGISTRATION OPEN':M.status==='confirmed'?'IT\'S ON':'CALLED OFF';
+  $('headline').textContent=(M.headline||'The biggest Free Fire tournament in Nepal is coming')+' — '+num(M.max)+' squads, Rs '+num(M.prize_pool)+'.';
+  $('b-teams').textContent=num(M.max); $('b-pool').textContent='Rs '+num(M.prize_pool); $('b-entry').textContent=num(M.entry);
+  $('bar').style.width=pct+'%'; $('min-mark').style.left=minPct+'%'; $('min-lab').style.left=minPct+'%'; $('min-lab').textContent='needs '+num(M.min);
+  $('c-in').textContent=num(M.squads); $('c-left').textContent=num(left);
+  $('guard-txt').textContent=`If fewer than ${num(M.min)} squads have joined when registration closes (${new Date(M.reg_closes_at).toLocaleDateString([], {day:'numeric',month:'short',year:'numeric'})}), every squad gets its ${num(M.entry)} points back automatically and the event is called off.`;
+  $('join').href='/?join='+encodeURIComponent(M.slug);
+  if(M.status!=='open'){ $('join').textContent=M.status==='confirmed'?'See the event':'Back to events'; $('join').href='/#tournaments'; }
+  const top=M.top||[];
+  $('promoters').hidden=!top.length;
+  $('top').innerHTML=top.map((x,i)=>`<li><span>${i+1}. ${esc(x.name)}${x.host?'<span class="host">HOST</span>':''}</span><b>${num(x.n)} squad${x.n==1?'':'s'}</b></li>`).join('');
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){
+    const {data:me}=await sb.rpc('my_mega',{p_slug:M.slug}); ME=me;
+    if(me&&me.code){
+      $('inv-out').hidden=true; $('inv-in').hidden=false;
+      $('inv-link').value=link();
+      const per=me.host?M.host_reward:M.refer_reward;
+      $('inv-stat').innerHTML=`${me.joined?'✅ Your squad is in. ':''}<b>${num(me.brought)}</b> squad${me.brought==1?'':'s'} joined with your link · you get <b>${num(per)} points</b> for each one when ${esc(M.slug)} goes ahead.`;
+    }
+  }
+}
+function link(){ return 'https://jdesport.co.uk/mega/?r='+encodeURIComponent(ME&&ME.code?ME.code:''); }
+function shareText(){ return M?`🏆 ${M.slug}: ${num(M.max)} squads, Rs ${num(M.prize_pool)} prize pool! ${num(M.squads)} squads in already - only ${num(Math.max(0,M.max-M.squads))} slots left. Full refund if it doesn't fill. Join with my link:`:'JD MEGA is coming:'; }
+async function share(url){
+  const text=shareText();
+  try{ if(navigator.share){ await navigator.share({title:M?M.slug:'JD MEGA',text,url}); return; } }catch(e){ return; }
+  try{ await navigator.clipboard.writeText(text+' '+url); alertOk('Copied - paste it on TikTok, WhatsApp or Discord.'); }catch(e){}
+}
+function alertOk(t){ const n=$('inv-stat')||$('inv-out'); const old=n.innerHTML; n.innerHTML='<b style="color:var(--green)">'+esc(t)+'</b>'; setTimeout(()=>n.innerHTML=old,2600); }
+$('copy').onclick=async()=>{ try{ await navigator.clipboard.writeText($('inv-link').value); alertOk('Link copied.'); }catch(e){ $('inv-link').select(); } };
+$('share-btn').onclick=()=>share(link());
+$('share-top').onclick=()=>share(ME&&ME.code?link():'https://jdesport.co.uk/mega/');
+
+// today's share card (1080x1350, for TikTok / Instagram / WhatsApp status): progress, prize and the player's code
+$('card-btn').onclick=async()=>{
+  if(!M) return;
+  const c=$('cv'), x=c.getContext('2d'), W=1080, H=1350;
+  await document.fonts.load('800 120px "Barlow Condensed"').catch(()=>{});
+  const g=x.createLinearGradient(0,0,0,H); g.addColorStop(0,'#1a1405'); g.addColorStop(.45,'#0c1120'); g.addColorStop(1,'#07090F');
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+  const rg=x.createRadialGradient(W*.75,120,40,W*.75,120,700); rg.addColorStop(0,'rgba(255,200,61,.35)'); rg.addColorStop(1,'rgba(255,200,61,0)');
+  x.fillStyle=rg; x.fillRect(0,0,W,H);
+  try{ const lg=new Image(); lg.src='/logo.webp'; await lg.decode(); x.drawImage(lg,W/2-90,70,180,180); }catch(e){}
+  x.textAlign='center'; x.fillStyle='#FFC83D'; x.font='800 44px Geist, sans-serif'; x.fillText('JD ESPORTS ARENA',W/2,310);
+  x.fillStyle='#fff'; x.font='800 150px "Barlow Condensed", sans-serif'; x.fillText(M.slug.toUpperCase().slice(0,18),W/2,470);
+  x.fillStyle='#FFDD85'; x.font='800 120px "Barlow Condensed", sans-serif'; x.fillText('Rs '+num(M.prize_pool),W/2,620);
+  x.fillStyle='#A6AFC2'; x.font='500 44px Geist, sans-serif'; x.fillText(num(M.max)+' squads · '+num(M.entry)+' points entry',W/2,700);
+  // progress
+  const bx=120, bw=W-240, by=790, pct=Math.min(1,M.squads/M.max);
+  x.fillStyle='rgba(255,255,255,.1)'; x.beginPath(); x.roundRect(bx,by,bw,44,22); x.fill();
+  const pg=x.createLinearGradient(bx,0,bx+bw,0); pg.addColorStop(0,'#FF8A1F'); pg.addColorStop(1,'#FFC83D');
+  x.fillStyle=pg; x.beginPath(); x.roundRect(bx,by,Math.max(44,bw*pct),44,22); x.fill();
+  x.fillStyle='#fff'; x.font='800 64px "Barlow Condensed", sans-serif'; x.fillText(num(M.squads)+' / '+num(M.max)+' SQUADS IN',W/2,920);
+  x.fillStyle='#5EDB95'; x.font='600 40px Geist, sans-serif'; x.fillText('Full refund if it doesn\'t fill',W/2,990);
+  x.fillStyle='#FFC83D'; x.beginPath(); x.roundRect(140,1060,W-280,150,40); x.fill();
+  x.fillStyle='#2b1d00'; x.font='800 46px Geist, sans-serif'; x.fillText('JOIN WITH MY CODE',W/2,1122);
+  x.font='800 62px "Barlow Condensed", sans-serif'; x.fillText((ME&&ME.code?ME.code:'jdesport.co.uk/mega'),W/2,1188);
+  x.fillStyle='#A6AFC2'; x.font='500 36px Geist, sans-serif'; x.fillText('jdesport.co.uk/mega',W/2,1290);
+  c.toBlob(async b=>{
+    const f=new File([b],'jd-mega.png',{type:'image/png'});
+    try{ if(navigator.canShare&&navigator.canShare({files:[f]})){ await navigator.share({files:[f],text:shareText()+' '+link()}); return; } }catch(e){ return; }
+    const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='jd-mega-'+new Date().toISOString().slice(0,10)+'.png'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  },'image/png');
+};
+load();
+setInterval(()=>{ if(!document.hidden) load(); },60000);
+</script>
+</body>
+</html>
