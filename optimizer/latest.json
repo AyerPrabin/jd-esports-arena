@@ -1,9 +1,9 @@
 {
-  "version": "5.6",
-  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.6.exe",
-  "sha256": "55f8e51e5ab75a90c84e4c362c9970db51fb6a81b7a7cf8b5ac057fbe32539d6",
-  "size": 1265959,
-  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.6.zip",
-  "notes": "v5.6: needs a Weekly Pass too; terms once at start, no data questions (session data sends by itself, switchable in the tray); 3-day warning, then it restores your PC and removes itself if not renewed",
-  "date": "2026-10-23"
+  "version": "5.7",
+  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.7.exe",
+  "sha256": "1d879300edba96c94f8f49378102e29b584cb0c9ac74e85022b6fb8e64559e6b",
+  "size": 2253402,
+  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.7.zip",
+  "notes": "v5.7: why it stuttered (FPS drops + cause), smart FPS cap advice, tips from players with your graphics card, live FPS even with the .exe alone, sign-in tied to your PC",
+  "date": "2026-10-24"
 }
