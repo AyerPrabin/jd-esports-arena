@@ -1,7 +1,7 @@
 {
   "bo3": {
     "tournament": "JD Free Fire Open #4",
-    "title": "JD Free Fire Open #4 – Standings",
+    "title": "JD Free Fire Open #4 – Final Standings",
     "published": true,
     "kill_pts": 1,
     "teams": [
@@ -21,7 +21,8 @@
             "kills": 18,
             "pts": 12
           }
-        ]
+        ],
+        "prize_won": 350
       },
       {
         "team": "TEAM TIGER",
@@ -348,10 +349,11 @@
         }
       ],
       "format": "BR · 3 matches",
-      "status": "upcoming",
+      "status": "completed",
       "platform": "Mix Device",
       "registered": 12,
-      "platform_mode": "mixed"
+      "platform_mode": "mixed",
+      "winner": "Jhapa Esp"
     },
     {
       "date": "Mon, Oct 12",
@@ -471,5 +473,5 @@
       "platform_mode": "mobile"
     }
   ],
-  "_published_at": "2026-10-25T18:19:10.205Z"
+  "_published_at": "2026-10-25T18:19:27.378Z"
 }
