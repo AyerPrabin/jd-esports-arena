@@ -1162,3 +1162,6 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 .jd-flash{animation:jdFlash 1.3s ease-in-out 2}
 @keyframes jdFlash{50%{box-shadow:0 0 0 3px var(--gold,#ffc83d),0 0 28px rgba(255,200,61,.45)}}
 @media(prefers-reduced-motion:reduce){.jd-flash{animation:none;outline:3px solid var(--gold,#ffc83d)}}
+/* waitlist place on a waitlisted ticket */
+.mt-wpos{margin:8px 0 0;padding:9px 12px;border-radius:12px;border:1px dashed rgba(255,200,61,.45);background:rgba(255,200,61,.06);display:grid;gap:2px;font-size:.86rem}
+.mt-wpos b{color:var(--gold,#ffc83d);font-size:.98rem}.mt-wpos span{opacity:.8}

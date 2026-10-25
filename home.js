@@ -1583,6 +1583,8 @@ async function loadMyRegs(){
   _myRegs=new Map((data||[]).map(r=>[r.tournament_slug,{id:r.id,squad_name:r.squad_name,squad_logo:r.squad_logo,status:r.status||'confirmed',checked_in_at:r.checked_in_at||null,promoted_at:r.promoted_at||null,verified_at:r.verified_at||null,effect:r.effect||'',paid_points:r.paid_points||0,squad_logo:r.squad_logo||(_player&&_player.squad_logo)||''}]));
   // slot number per tournament (rule: sit in the seat matching your app slot)
   try{const {data:sl}=await sb.rpc('my_tournament_slots');(sl||[]).forEach(x=>{const r=_myRegs.get(x.tournament_slug);if(r)r.slot=x.slot;});}catch(e){}
+  // place in the waitlist queue (waitlist_position.sql - Pro pass first, then sign-up time)
+  if([..._myRegs.values()].some(r=>r.status==='waitlisted'))try{const {data:wp}=await sb.rpc('my_waitlist_positions');(wp||[]).forEach(x=>{const r=_myRegs.get(x.tournament_slug);if(r){r.wpos=x.pos;r.wtotal=x.total;r.wpro=x.pro;}});}catch(e){}
   saveOfflineTickets();
   const pr=await sb.from('effect_passes').select('tier, effect, starts_at, expires_at').eq('player_id',_player.id).gt('expires_at',new Date().toISOString()).order('starts_at',{ascending:true});
   const passes=pr.data||[];
@@ -2004,7 +2006,7 @@ function inAppRegBtn(t,st,full){
   if(!sb)return '';
   if(_myRegs.has(t.name)){
     const r=_myRegs.get(t.name);
-    if(r.status==='waitlisted')return `<div class="inapp-reg-done pending"><span>🕒 Waitlisted${r.squad_name?' as '+esc(r.squad_name):''} — we'll confirm you automatically if a slot opens · Ticket ${esc(regTicketCode(r))}</span></div>${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
+    if(r.status==='waitlisted')return `<div class="inapp-reg-done pending"><span>🕒 Waitlisted${r.squad_name?' as '+esc(r.squad_name):''} — we'll confirm you automatically if a slot opens · Ticket ${esc(regTicketCode(r))}</span></div>${r.wpos?`<div class="mt-wpos"><b>${r.wpos===1?"You're next in line":'#'+r.wpos+' in line'}</b><span>${r.wtotal} squad${r.wtotal===1?'':'s'} waiting${r.wpro?' · ⭐ your Pro pass puts you ahead':' · Pro pass holders move up first'}. Squads that don't confirm lose their slot, so keep alerts on.</span></div>`:''}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
     if(r.status==='pending')return `<div class="inapp-reg-done pending">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>${r.squad_name?esc(r.squad_name)+' · ':''}Ticket ${esc(regTicketCode(r))}</span></div>${entryCodeBoxHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
     if(r.status==='rejected')return `<div class="inapp-reg-done rejected"><span>✕ Payment could not be verified — please contact the organiser on Discord</span></div>`;
     if(r.status==='no_show')return `<div class="inapp-reg-done rejected"><span>✕ Check-in was missed, so this slot was released</span></div>`;
