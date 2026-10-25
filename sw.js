@@ -58,7 +58,7 @@ const STATIC_CACHE = "jd-static-v1";
 // Pages are cached by path (no ?query) after every good load, so a page opened once also opens offline.
 // Staff pages (admin, mod, secret links) are never kept on the phone.
 const PAGE_CACHE = "jd-pages-v1";
-const NO_KEEP = /^\/(admin|mod)|admin|private|secret|zulu-|jd-arena\.html/i;
+const NO_KEEP = /^\/(admin|mod)(\/|$)|admin|private|secret|zulu-|jd-arena\.html/i;
 function pageKey(r) { const u = new URL(r.url); return u.origin + u.pathname; }
 function keepPage(e, r, res) {
   if (!res || res.status !== 200 || res.type !== "basic" || NO_KEEP.test(new URL(r.url).pathname)) return;
@@ -116,7 +116,7 @@ self.addEventListener("push", e => {
     const now = Date.now();
     const loud = STYLE.sticky || !old || now - (od.buzzAt || 0) > 30000;
     const t0 = d.title || "JD Arena";
-    const title = (STYLE.pre && !t0.startsWith(STYLE.pre.trim()) ? STYLE.pre : "") + t0 + (count > 1 && (chat || room) ? ` · ${count} new` : "");
+    const title = (STYLE.pre && !t0.includes(STYLE.pre.trim()) ? STYLE.pre : "") + t0 + (count > 1 && (chat || room) ? ` · ${count} new` : "");
     const actions = chat ? [{ action: "open", title: "💬 Reply" }] : room ? [{ action: "open", title: "⚔️ Open room" }] : STYLE.action ? [{ action: "open", title: STYLE.action }] : [];
     // if a browser rejects any of the extras, still show a plain alert (a push without a
     // visible notification can get the subscription cancelled)
