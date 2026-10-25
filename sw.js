@@ -5,7 +5,13 @@
 self.addEventListener("install", e => {
   self.skipWaiting();
   // v2: the offline page also shows the saved tickets; cache:"reload" skips the 10-minute HTTP cache
-  e.waitUntil(caches.open("jd-offline").then(c => c.add(new Request("/offline.html", { cache: "reload" }))).catch(() => {}));
+  // v3: the main app pages are kept too, so Events / Messages / Profile open offline with what the phone saved
+  e.waitUntil((async () => {
+    try { await (await caches.open("jd-offline")).add(new Request("/offline.html", { cache: "reload" })); } catch (x) {}
+    const c = await caches.open(PAGE_CACHE);
+    await Promise.all(["/", "/events/", "/chat/", "/profile/"].map(u =>
+      fetch(u, { cache: "reload" }).then(res => res.ok && !res.redirected ? c.put(u, res) : 0).catch(() => {})));
+  })());
 });
 self.addEventListener("activate", e => e.waitUntil((async () => {
   for (const k of await caches.keys()) if (k.startsWith("jd-static-") && k !== STATIC_CACHE) await caches.delete(k);
@@ -21,8 +27,9 @@ self.addEventListener("fetch", e => {
   if (r.mode === "navigate" && r.method === "GET") {
     e.respondWith(
       fetch(r.url, { cache: "no-cache", credentials: "include", redirect: "manual" })
+        .then(res => { keepPage(e, r, res); return res; })
         .catch(() => fetch(r))
-        .catch(async () => (await caches.match("/offline.html")) || Response.error())
+        .catch(async () => (await pageFromCache(r)) || (await caches.match("/offline.html")) || Response.error())
     );
     return;
   }
@@ -31,13 +38,37 @@ self.addEventListener("fetch", e => {
   // Supabase), the APK and anything else go straight to the network, untouched.
   const u = new URL(r.url);
   const font = u.hostname === "fonts.gstatic.com" || u.hostname === "fonts.googleapis.com";
-  if (r.method === "GET" && (font || (u.origin === self.location.origin && STATIC.test(u.pathname) && !/\/sw\.js$/.test(u.pathname)))) {
+  // the Supabase library: a pinned version (never changes), needed by every page - also offline
+  const lib = u.hostname === "cdn.jsdelivr.net" && /^\/npm\/@supabase\/supabase-js@[\d.]+\//.test(u.pathname);
+  // the event list: newest from the network, the last copy when offline
+  if (r.method === "GET" && u.origin === self.location.origin && u.pathname === "/tournaments.json") {
+    e.respondWith(fetch(r).then(res => {
+      if (res.ok) { const c = res.clone(); e.waitUntil(caches.open(PAGE_CACHE).then(k => k.put("/tournaments.json", c)).catch(() => {})); }
+      return res;
+    }).catch(async () => (await caches.match("/tournaments.json", { cacheName: PAGE_CACHE })) || Response.error()));
+    return;
+  }
+  if (r.method === "GET" && (font || lib || (u.origin === self.location.origin && STATIC.test(u.pathname) && !/\/sw\.js$/.test(u.pathname)))) {
     e.respondWith(swr(e, r));
     return;
   }
 });
 const STATIC = /\.(?:png|jpe?g|webp|gif|svg|ico|css|js|woff2?)$/i;   // not audio: players ask for byte ranges
 const STATIC_CACHE = "jd-static-v1";
+// Pages are cached by path (no ?query) after every good load, so a page opened once also opens offline.
+// Staff pages (admin, mod, secret links) are never kept on the phone.
+const PAGE_CACHE = "jd-pages-v1";
+const NO_KEEP = /^\/(admin|mod)|admin|private|secret|zulu-|jd-arena\.html/i;
+function pageKey(r) { const u = new URL(r.url); return u.origin + u.pathname; }
+function keepPage(e, r, res) {
+  if (!res || res.status !== 200 || res.type !== "basic" || NO_KEEP.test(new URL(r.url).pathname)) return;
+  const c = res.clone();
+  e.waitUntil(caches.open(PAGE_CACHE).then(k => k.put(pageKey(r), c)).catch(() => {}));
+}
+async function pageFromCache(r) {
+  const k = await caches.open(PAGE_CACHE), key = pageKey(r);
+  return (await k.match(key)) || (await k.match(key.endsWith("/") ? key.slice(0, -1) : key + "/")) || null;
+}
 async function swr(e, r) {
   const cache = await caches.open(STATIC_CACHE);
   const hit = await cache.match(r);
