@@ -388,12 +388,16 @@ Deno.serve(async (req: Request) => {
     const teams = inTeams.map((x: any) => ({
       team: String(x.team || '').trim().slice(0, 60),
       pts: (Array.isArray(x.pts) ? x.pts : []).slice(0, matches).map((v: any) => Math.max(0, Math.min(300, Math.round(Number(v) || 0)))),
+      kills: (Array.isArray(x.kills) ? x.kills : []).slice(0, matches).map((v: any) => Math.max(0, Math.min(60, Math.round(Number(v) || 0)))),
     })).filter((x) => x.team);
     if (!teams.length) return fail('Add at least one squad with points.');
     if (new Set(teams.map((x) => norm(x.team))).size !== teams.length) return fail('A squad is listed twice.');
-    for (const x of teams) while (x.pts.length < matches) x.pts.push(0);
-    const total = (x: any) => x.pts.reduce((a: number, b: number) => a + b, 0);
-    const ranked = [...teams].sort((a, b) => total(b) - total(a));
+    for (const x of teams) { while (x.pts.length < matches) x.pts.push(0); while (x.kills.length < matches) x.kills.push(0); }
+    // 2026-10-25: every kill scores (kill_pts per kill, kept from this event's board; a new board = 1)
+    const killPts = typeof board?.kill_pts === 'number' ? board.kill_pts : 1;
+    const total = (x: any) => x.pts.reduce((a: number, b: number, k: number) => a + b + (x.kills[k] || 0) * killPts, 0);
+    const killSum = (x: any) => x.kills.reduce((a: number, b: number) => a + b, 0);
+    const ranked = [...teams].sort((a, b) => total(b) - total(a) || killSum(b) - killSum(a));
     const prizes: Record<string, number> = {};
     if (final) {
       for (const [k, v] of Object.entries(p.prizes || {})) {
@@ -421,9 +425,9 @@ Deno.serve(async (req: Request) => {
     }
     const prevLogos = new Map(((board?.teams || []) as any[]).concat(t.teams || []).map((x: any) => [norm(String(x.team || x.name || '')), x.logo || '']));
     doc.bo3 = {
-      tournament: slug, title: `${slug} – ${final ? 'Final Standings' : 'Standings'}`, published: true,
+      tournament: slug, title: `${slug} – ${final ? 'Final Standings' : 'Standings'}`, published: true, kill_pts: killPts,
       teams: ranked.map((x) => ({ team: x.team, logo: prevLogos.get(norm(x.team)) || '',
-        r: x.pts.map((v: number) => ({ kills: 0, pts: v })), ...(final && prizes[x.team] ? { prize_won: prizes[x.team] } : {}) })),
+        r: x.pts.map((v: number, k: number) => ({ kills: x.kills[k] || 0, pts: v })), ...(final && prizes[x.team] ? { prize_won: prizes[x.team] } : {}) })),
     };
     if (final) { t.winner = ranked[0].team; t.status = 'completed'; }
     doc._published_at = new Date().toISOString();

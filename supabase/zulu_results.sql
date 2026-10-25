@@ -23,9 +23,12 @@ begin
     v_ev := b->>'tournament';
     select jsonb_agg(x order by x.total desc, x.kills desc) into v_rows from (
       select tm->>'team' as team,
-             (select coalesce(sum((m->>'pts')::int), 0) from jsonb_array_elements(coalesce(tm->'r', '[]')) m) as total,
+             -- placement + kills x bo3.kill_pts (2026-10-25: 1 per kill; older boards have none = 0)
+             (select coalesce(sum(coalesce((m->>'pts')::int, 0) + coalesce((m->>'kills')::int, 0) * coalesce((b->>'kill_pts')::int, 0)), 0)
+                from jsonb_array_elements(coalesce(tm->'r', '[]')) m) as total,
              (select coalesce(sum((m->>'kills')::int), 0) from jsonb_array_elements(coalesce(tm->'r', '[]')) m) as kills,
-             (select string_agg(coalesce(m->>'pts', '0'), ' / ') from jsonb_array_elements(coalesce(tm->'r', '[]')) m) as per
+             (select string_agg((coalesce((m->>'pts')::int, 0) + coalesce((m->>'kills')::int, 0) * coalesce((b->>'kill_pts')::int, 0))::text, ' / ')
+                from jsonb_array_elements(coalesce(tm->'r', '[]')) m) as per
         from jsonb_array_elements(b->'teams') tm) x;
     select string_agg('#' || o || '  ' || (e->>'team') || ' – ' || (e->>'total') || ' pts (' || (e->>'per') || ')', chr(10) order by o)
       into v_table from jsonb_array_elements(v_rows) with ordinality as q(e, o) where o <= 15;

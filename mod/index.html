@@ -254,7 +254,8 @@ textarea{min-height:96px;resize:vertical}
 .rs-meta span{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.78rem;color:var(--silver);background:var(--panel-2)}
 .rs-meta span.done{color:var(--ok);border-color:rgba(94,219,149,.35)}
 .rs{display:grid;gap:6px}
-.rsr{display:grid;grid-template-columns:34px minmax(0,1fr) repeat(var(--n,3),58px) 44px 30px;gap:6px;align-items:center}
+.rsr{display:grid;grid-template-columns:34px minmax(0,1fr) repeat(var(--n,3),96px) 44px 30px;gap:6px;align-items:center}
+.rs .pk{display:grid;grid-template-columns:1fr 1fr;gap:3px}
 .rsr.h{font-size:.72rem;font-weight:500;color:var(--gold-l);text-align:center}
 .rsr.h span:nth-child(2){text-align:left}
 .rsr .m{display:contents}
@@ -263,7 +264,8 @@ textarea{min-height:96px;resize:vertical}
 .rsr.p2 .pl{background:#c8d1e6;color:#07090F}
 .rsr.p3 .pl{background:#c98b4c;color:#07090F}
 .rs input{padding:8px 8px;font-size:15px;border-radius:9px;min-width:0}
-.rs input.pt{text-align:center;font-variant-numeric:tabular-nums;padding:8px 2px}
+.rs input.pt,.rs input.kl{text-align:center;font-variant-numeric:tabular-nums;padding:8px 2px}
+.rs input.kl{border-color:rgba(255,120,90,.35)}
 .rs .tot{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.2rem;text-align:center;font-variant-numeric:tabular-nums}
 .rs .x{border:0;background:none;color:var(--body);cursor:pointer;padding:6px;border-radius:8px;display:grid;place-items:center;order:2}
 .rsr .tot{order:1}
@@ -932,7 +934,8 @@ document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&$('main'
 
 /* ── results: points per match, live positions, publish, finish + prizes ── */
 let rs=null, rsRows=[], rsPrize=null, rsDirty=false;   // prize points per place: [1st, 2nd, 3rd]
-const rsTotal=r=>r.pts.reduce((a,b)=>a+(+b||0),0);
+const rsKp=()=>rs&&rs.board&&typeof rs.board.kill_pts==='number'?rs.board.kill_pts:1;
+const rsTotal=r=>r.pts.reduce((a,b,k)=>a+(+b||0)+(+(r.kills&&r.kills[k])||0)*rsKp(),0);
 function rsRanked(){ return rsRows.filter(r=>r.team.trim()).map((r,i)=>({r,i,t:rsTotal(r)})).sort((a,b)=>b.t-a.t||a.i-b.i); }
 async function loadResults(keepMsg){
   if(!selected){ $('rs-body').innerHTML='<p class="note">Pick an event to enter its points.</p>'; $('rs-meta').innerHTML=''; return; }
@@ -940,10 +943,10 @@ async function loadResults(keepMsg){
   try{
     const d=await call({action:'results_get',slug:ev.name}); if(ev!==selected) return;
     rs=d; rsDirty=false;
-    const fromBoard=(d.board&&d.board.teams||[]).map(t=>({team:t.team,pts:Array.from({length:d.matches},(_,k)=>(t.r&&t.r[k]&&t.r[k].pts)||0)}));
+    const fromBoard=(d.board&&d.board.teams||[]).map(t=>({team:t.team,pts:Array.from({length:d.matches},(_,k)=>(t.r&&t.r[k]&&t.r[k].pts)||0),kills:Array.from({length:d.matches},(_,k)=>(t.r&&t.r[k]&&t.r[k].kills)||0)}));
     const have=new Set(fromBoard.map(r=>r.team.trim().toLowerCase()));
-    rsRows=fromBoard.concat(d.squads.filter(q=>!have.has(q.toLowerCase())).map(q=>({team:q,pts:Array(d.matches).fill(0)})));
-    if(!rsRows.length) rsRows=[{team:'',pts:Array(d.matches).fill(0)}];
+    rsRows=fromBoard.concat(d.squads.filter(q=>!have.has(q.toLowerCase())).map(q=>({team:q,pts:Array(d.matches).fill(0),kills:Array(d.matches).fill(0)})));
+    if(!rsRows.length) rsRows=[{team:'',pts:Array(d.matches).fill(0),kills:Array(d.matches).fill(0)}];
     const left=Math.max(0,d.pool-(d.paid||[]).reduce((a,p)=>a+p.amount,0)); rsPrize=[left,0,0]; renderResults();
   }catch(e){ $('rs-body').innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; }
 }
@@ -955,18 +958,18 @@ function rsMeta(){
 function renderResults(){
   const d=rs; if(!d) return; rsMeta();
   const rank=rsRanked(), place=new Map(rank.map((x,k)=>[x.i,k+1]));
-  const head=`<div class="rsr h" style="--n:${d.matches}"><span>#</span><span>Squad</span>${Array.from({length:d.matches},(_,k)=>`<span>M${k+1}</span>`).join('')}<span>Total</span><span></span></div>`;
+  const head=`<div class="rsr h" style="--n:${d.matches}"><span>#</span><span>Squad</span>${Array.from({length:d.matches},(_,k)=>`<span>M${k+1} pos · kills</span>`).join('')}<span>Total</span><span></span></div>`;
   const body=rsRows.map((r,i)=>{ const pl=place.get(i)||'–';
     return `<div class="rsr ${pl<=3?'p'+pl:''}" data-i="${i}" style="--n:${d.matches}"><span class="pl">${pl}</span>`+
       `<input class="tm" value="${esc(r.team)}" maxlength="60" placeholder="Squad name" aria-label="Squad name" translate="no">`+
-      `<span class="m">`+r.pts.map((v,k)=>`<label><span>Match ${k+1}</span><input class="pt" data-k="${k}" type="number" inputmode="numeric" min="0" max="300" value="${v||v===0?v:''}" aria-label="Match ${k+1} points for ${esc(r.team)}"></label>`).join('')+
+      `<span class="m">`+r.pts.map((v,k)=>{ const kl=(r.kills||[])[k]; return `<label><span>Match ${k+1} · pos / kills</span><span class="pk"><input class="pt" data-k="${k}" type="number" inputmode="numeric" min="0" max="300" placeholder="Pos" value="${v||v===0?v:''}" aria-label="Match ${k+1} placement points for ${esc(r.team)}"><input class="kl" data-k="${k}" type="number" inputmode="numeric" min="0" max="60" placeholder="K" value="${kl||kl===0?kl:''}" aria-label="Match ${k+1} kills for ${esc(r.team)}"></span></label>`; }).join('')+
       `<button type="button" class="x" data-del="${i}" aria-label="Remove ${esc(r.team)}"><svg viewBox="0 0 24 24"><use href="#i-x"/></svg></button></span>`+
       `<span class="tot">${rsTotal(r)}</span></div>`; }).join('');
   $('rs-body').innerHTML=`<div class="rs">${head}${body}</div>`+
     `<button type="button" class="ghost rs-add" id="rs-add">+ Add squad</button>`+
     (isHostMod()?`<p class="note">Prize points are paid by the JD team after you finish.</p>`:`<div class="prz"><h3>Prizes (paid when you finish)</h3><p class="note" style="margin:0">Points go straight into the winners' JD wallets. Only registered squads can be paid, never more than the prize pool, and each squad only once.</p><div id="rs-prz"></div><div class="prz-sum" id="prz-sum"></div></div>`)+
     `<div class="rs-acts"><button type="button" class="btn alt" id="rs-pub">Publish standings</button><button type="button" class="btn" id="rs-fin">${isHostMod()?'Finish event':'Finish &amp; pay prizes'}</button></div>`+
-    `<p class="note">Publish standings after each match: the leaderboard on the site updates for everyone. Finish when the last match is done: it sets the winner, marks the event finished, saves the all-time leaderboard and pays the prizes.</p>`;
+    `<p class="note">Per match: <b>Pos</b> = placement points (1st 12, 2nd 9, 3rd 8 … 10th 1), <b>K</b> = kills (+${rsKp()} point each). Publish standings after each match: the leaderboard on the site updates for everyone. Finish when the last match is done: it sets the winner, marks the event finished, saves the all-time leaderboard and pays the prizes.</p>`;
   renderPrizes();
 }
 function renderPrizes(){
@@ -994,17 +997,18 @@ $('rs-body').addEventListener('input',e=>{
   if(!tr) return; const r=rsRows[+tr.dataset.i]; rsDirty=true;
   if(e.target.classList.contains('tm')) r.team=e.target.value;
   else if(e.target.classList.contains('pt')) r.pts[+e.target.dataset.k]=Math.max(0,Math.min(300,+e.target.value||0));
+  else if(e.target.classList.contains('kl')){ r.kills=r.kills||Array(rs.matches).fill(0); r.kills[+e.target.dataset.k]=Math.max(0,Math.min(60,+e.target.value||0)); }
   tr.querySelector('.tot').textContent=rsTotal(r);
   rsPlaces(); renderPrizes();
 });
 $('rs-body').addEventListener('click',async e=>{
   const del=e.target.closest('[data-del]');
   if(del){ rsRows.splice(+del.dataset.del,1); rsDirty=true; renderResults(); return; }
-  if(e.target.closest('#rs-add')){ rsDirty=true; rsRows.push({team:'',pts:Array(rs.matches).fill(0)}); renderResults(); const ins=$('rs-body').querySelectorAll('input.tm'); ins[ins.length-1].focus(); return; }
+  if(e.target.closest('#rs-add')){ rsDirty=true; rsRows.push({team:'',pts:Array(rs.matches).fill(0),kills:Array(rs.matches).fill(0)}); renderResults(); const ins=$('rs-body').querySelectorAll('input.tm'); ins[ins.length-1].focus(); return; }
   const pub=e.target.closest('#rs-pub'), fin=e.target.closest('#rs-fin'); if(!pub&&!fin) return;
   const rank=rsRanked(), msg=$('rs-msg');
   if(!rank.length){ msg.textContent='Add squads and points first.'; msg.className='msg err'; return; }
-  const teams=rsRows.filter(r=>r.team.trim()).map(r=>({team:r.team.trim(),pts:r.pts}));
+  const teams=rsRows.filter(r=>r.team.trim()).map(r=>({team:r.team.trim(),pts:r.pts,kills:r.kills||[]}));
   const prizes={}; if(fin&&!isHostMod()) rank.slice(0,3).forEach((x,k)=>{ if(+rsPrize[k]>0&&!(rs.paid||[]).some(p=>p.squad.toLowerCase()===x.r.team.toLowerCase())) prizes[x.r.team.trim()]=+rsPrize[k]; });
   const sum=Object.values(prizes).reduce((a,b)=>a+b,0);
   const ok=await sheet(fin?{title:`Finish ${rs.event}?`,text:`Winner: ${rank[0].r.team} (${rank[0].t} points). `+(sum?`Pays ${Object.entries(prizes).map(([k,v])=>k+' '+v).join(', ')} points into their wallets. `:'No prizes will be paid. ')+`The event is marked finished and the leaderboard is saved. Payments can't be undone here.`,ok:'Finish & pay',danger:sum>0}

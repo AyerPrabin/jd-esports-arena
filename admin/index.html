@@ -408,10 +408,11 @@ h2[id]{scroll-margin-top:64px}
 
   <details>
   <summary class="dsum">Best-of-3 Results <span class="tag">round-by-round · rank arrows</span></summary>
-  <p class="hint">Points per match (3 matches, kills aren't counted separately) for one tournament's bracket — the live site shows one bracket at a time. Picking a different tournament here doesn't touch the others' data, it's just which one is currently on display.</p>
+  <p class="hint">Placement points + kills per match (3 matches; each kill adds the points-per-kill below) for one tournament's bracket — the live site shows one bracket at a time. Picking a different tournament here doesn't touch the others' data, it's just which one is currently on display.</p>
   <div class="grid">
     <div class="f full"><label>Tournament</label><select id="bo3-tourney" onchange="onBo3TourneyChange()"></select></div>
     <div class="f full"><label>Bracket title (optional)</label><input id="bo3-title" placeholder="e.g. JD Free Fire Open #1 — Finals"></div>
+    <div class="f"><label>Points per kill</label><input id="bo3-kp" type="number" min="0" max="5" value="1"></div>
   </div>
   <div class="row">
     <button class="btn ghost" onclick="loadBo3Roster()">Load squads from roster</button>
@@ -828,7 +829,7 @@ function renderAllPlayers(){
   }).join('')}</tbody></table>`:`<p class="hint">No players${f?' match "'+esc(f)+'"':' yet'}.</p>`;
 }
 
-function bo3Default(){return {tournament:'',title:'',published:false,teams:[]};}
+function bo3Default(){return {kill_pts:1,tournament:'',title:'',published:false,teams:[]};}
 function bo3Round(){return {kills:0,pts:0};}
 let data={tagline:'JD Esports Arena · AyerFire',tournaments:[],bo3:bo3Default()};
 let _loadedSnapshot=null; // tournaments.json exactly as last fetched from the live site — lets Publish detect a stale tab about to overwrite newer changes (e.g. a team someone else added)
@@ -1052,6 +1053,7 @@ document.addEventListener('input',e=>{
   const t=e.target;
   if(t.id==='tagline'){data.tagline=t.value;return;}
   if(t.id==='bo3-title'){data.bo3=data.bo3||bo3Default();data.bo3.title=t.value;return;}
+  if(t.id==='bo3-kp'){data.bo3=data.bo3||bo3Default();data.bo3.kill_pts=Math.max(0,Math.min(5,+t.value||0));renderBo3();return;}
   if(t.dataset.regopens!==undefined){
     const i=+t.dataset.i,f=startFieldsFromLocal(t.value);
     data.tournaments[i].reg_opens=f?f.start:'';
@@ -1431,7 +1433,9 @@ function onTeamLogo(e,ti,mi){
   };
   reader.readAsDataURL(f);
 }
-function bo3Total(t){return (t.r||[]).reduce((s,x)=>s+(+((x&&x.pts)||0)),0);}
+/* match total = placement pts + kills x points per kill (bo3.kill_pts; boards from before 2026-10-25 have none = 0) */
+function bo3Kp(){return +((data.bo3&&data.bo3.kill_pts)||0);}
+function bo3Total(t){const kp=bo3Kp();return (t.r||[]).reduce((s,x)=>s+(+((x&&x.pts)||0))+(+((x&&x.kills)||0))*kp,0);}
 // top squad (points, then kills) of the Best-of-3 table when it belongs to this tournament
 function bo3TopTeam(name){
   const B=data.bo3;if(!B||(B.tournament&&B.tournament!==name)||!(B.teams||[]).length)return '';
@@ -1444,13 +1448,14 @@ function renderBo3(){
   const sel=document.getElementById('bo3-tourney');
   if(sel)sel.innerHTML=data.tournaments.map(t=>`<option value="${esc(t.name)}" ${data.bo3.tournament===t.name?'selected':''}>${esc(t.name)}</option>`).join('')||'<option value="">No tournaments yet</option>';
   const ti=document.getElementById('bo3-title');if(ti)ti.value=data.bo3.title||'';
+  const kpi=document.getElementById('bo3-kp');if(kpi&&document.activeElement!==kpi)kpi.value=+(data.bo3.kill_pts||0);
   const pub=document.getElementById('bo3-published');if(pub)pub.checked=!!data.bo3.published;
   const teams=data.bo3.teams=data.bo3.teams||[];
   const box=document.getElementById('bo3list');if(!box)return;
   if(!teams.length){box.innerHTML='<p class="hint">No squads yet — "Load squads from roster" or "+ Add squad".</p>';return;}
-  box.innerHTML=`<table class="bo3-tbl"><thead><tr><th>Squad</th><th>M1 Pts</th><th>M2 Pts</th><th>M3 Pts</th><th>Total</th><th>Prize won (NPR)</th><th></th></tr></thead><tbody>${teams.map((tm,i)=>{
+  box.innerHTML=`<table class="bo3-tbl"><thead><tr><th>Squad</th><th>M1 Pos · K</th><th>M2 Pos · K</th><th>M3 Pos · K</th><th>Total</th><th>Prize won (NPR)</th><th></th></tr></thead><tbody>${teams.map((tm,i)=>{
     tm.r=tm.r||[bo3Round(),bo3Round(),bo3Round()];
-    const rounds=[0,1,2].map(ri=>`<td><input data-bi="${i}" data-bri="${ri}" data-brk="pts" type="number" value="${esc(tm.r[ri].pts??0)}"></td>`).join('');
+    const rounds=[0,1,2].map(ri=>`<td><div style="display:flex;gap:4px"><input data-bi="${i}" data-bri="${ri}" data-brk="pts" type="number" title="Placement points" value="${esc(tm.r[ri].pts??0)}"><input data-bi="${i}" data-bri="${ri}" data-brk="kills" type="number" title="Kills" placeholder="K" value="${esc(tm.r[ri].kills??0)}"></div></td>`).join('');
     return `<tr><td><input data-bi="${i}" data-bk="team" value="${esc(tm.team)}" placeholder="Squad name"></td>${rounds}<td class="bo3-tot">${bo3Total(tm)}</td><td><input data-bi="${i}" data-bk="prize_won" type="number" placeholder="0" value="${esc(tm.prize_won??'')}" style="min-width:80px"></td><td><button class="del" style="position:static;padding:6px 9px" onclick="delBo3Team(${i})">✕</button></td></tr>`;
   }).join('')}</tbody></table>`;
 }
@@ -1461,7 +1466,8 @@ function bo3FinalStandings(bo3){
   const teams=(bo3&&bo3.teams)||[];
   const rows=teams.map(t=>{
     let pts=0,kills=0;
-    for(const r of (t.r||[])){pts+=+((r&&r.pts)||0);kills+=+((r&&r.kills)||0);}
+    const kp=+((bo3&&bo3.kill_pts)||0);
+    for(const r of (t.r||[])){const k=+((r&&r.kills)||0);pts+=+((r&&r.pts)||0)+k*kp;kills+=k;}
     return {team:t.team,pts,kills,prize_won:+(t.prize_won||0)};
   }).filter(r=>r.team);
   rows.sort((a,b)=>b.pts-a.pts||b.kills-a.kills||String(a.team).localeCompare(String(b.team)));
@@ -1521,7 +1527,7 @@ function sendRecapToAnnouncement(){
   document.getElementById('announce').scrollIntoView({behavior:'smooth',block:'start'});
   mrMsg('Copied into Send Announcement below — edit and pick recipients there, nothing sent yet.','ok');
 }
-function onBo3TourneyChange(){data.bo3=data.bo3||bo3Default();data.bo3.tournament=document.getElementById('bo3-tourney').value;}
+function onBo3TourneyChange(){data.bo3=data.bo3||bo3Default();const v=document.getElementById('bo3-tourney').value;if(v!==data.bo3.tournament)data.bo3.kill_pts=1;data.bo3.tournament=v;renderBo3();}
 /* Pulls the REAL registered roster live from Supabase (same get_public_roster()
    RPC jd-arena.html uses) instead of tournaments.json's teams field — that field
    is no longer what the live site displays/maintains, so reading it here would
@@ -1560,7 +1566,7 @@ function clean(){
     const teams=(t.teams||[]).map(tm=>{const name=String(tm.name||'').trim();const logo=tm.logo||'';const members=(Array.isArray(tm.members)?tm.members:String(tm.members||'').split(',')).map(s=>String(s).trim()).filter(Boolean);const o2={name,logo};if(members.length)o2.members=members;if(tm.effect)o2.effect=tm.effect;return o2;}).filter(tm=>{const keep=tm.name||tm.logo||tm.effect||(tm.members&&tm.members.length);if(!keep)_lastCleanDropped++;return keep;});o.teams=teams;o.registered=teams.length;return o;})};
   const B=data.bo3||{};
   if(B.tournament||(B.teams&&B.teams.length)){
-    out.bo3={tournament:B.tournament||'',title:(B.title||'').trim(),published:!!B.published,teams:(B.teams||[]).map(tm=>({team:String(tm.team||'').trim(),logo:tm.logo||'',r:[0,1,2].map(i=>({kills:+((tm.r&&tm.r[i]&&tm.r[i].kills)||0),pts:+((tm.r&&tm.r[i]&&tm.r[i].pts)||0)}))})).filter(tm=>{const keep=tm.team||tm.logo||tm.r.some(r=>r.kills||r.pts);if(!keep)_lastCleanDropped++;return keep;})};
+    out.bo3={tournament:B.tournament||'',title:(B.title||'').trim(),published:!!B.published,kill_pts:+(B.kill_pts||0),teams:(B.teams||[]).map(tm=>({team:String(tm.team||'').trim(),logo:tm.logo||'',r:[0,1,2].map(i=>({kills:+((tm.r&&tm.r[i]&&tm.r[i].kills)||0),pts:+((tm.r&&tm.r[i]&&tm.r[i].pts)||0)}))})).filter(tm=>{const keep=tm.team||tm.logo||tm.r.some(r=>r.kills||r.pts);if(!keep)_lastCleanDropped++;return keep;})};
   }
   out._published_at=new Date().toISOString(); // lets the site pick the newest of the GitHub Pages file vs the instant live copy (see fetchLatestDoc)
   return out;

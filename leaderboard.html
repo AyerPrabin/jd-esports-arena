@@ -194,7 +194,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
   </section>
   <canvas id="confetti-canvas"></canvas>
   </div>
-  <div class="points-note" id="lb-points-note"><b>How points work:</b> each match, a squad gets points from the official room result (kills aren't counted separately). All matches add up — the highest total wins.<br><b>Position points:</b> 1st 12 · 2nd 9 · 3rd 8 · 4th 7 · 5th 6 · 6th 5 · 7th 4 · 8th 3 · 9th 2 · 10th 1 · 11th–12th 0. <a href="/#scoring" style="color:var(--gold-l)">See the full table</a></div>
+  <div class="points-note" id="lb-points-note"><b>How points work:</b> each match, a squad gets placement points from the official room result plus 1 point per kill. All matches add up — the highest total wins.<br><b>Position points:</b> 1st 12 · 2nd 9 · 3rd 8 · 4th 7 · 5th 6 · 6th 5 · 7th 4 · 8th 3 · 9th 2 · 10th 1 · 11th–12th 0 · <b>Kills:</b> +1 each. <a href="/#scoring" style="color:var(--gold-l)">See the full table</a></div>
 </main>
 
 <footer>JD Esports Arena · AyerFire</footer>
@@ -261,9 +261,10 @@ function renderClash(){
    no build step to import from. */
 function bo3Standings(bo3){
   const teams=(bo3&&bo3.teams)||[];
+  const kp=+(bo3&&bo3.kill_pts)||0;   // points per kill (2026-10-25: 1); boards from before have none = kills 0 pts
   const stageTotals=upto=>teams.map(t=>{
     let pts=0,kills=0;
-    for(let i=0;i<=upto;i++){pts+=+((t.r&&t.r[i]&&t.r[i].pts)||0);kills+=+((t.r&&t.r[i]&&t.r[i].kills)||0);}
+    for(let i=0;i<=upto;i++){const k=+((t.r&&t.r[i]&&t.r[i].kills)||0);pts+=+((t.r&&t.r[i]&&t.r[i].pts)||0)+k*kp;kills+=k;}
     return {team:t.team,pts,kills};
   });
   const rankOf=stage=>{
@@ -541,7 +542,7 @@ function render(d){
   }
   sub.textContent=B.title||(B.tournament?B.tournament+' · Best-of-3 standings':'Best-of-3 standings');
   const rows=bo3Standings(B);
-  _noKills=true; // kills aren't part of scoring any more — points only
+  _noKills=!(+B.kill_pts); // kill columns only on boards where kills score
   rows.forEach(r=>{r.fx=fxOf(B.tournament,r.team,d);if(!r.logo){const lg=_logoMap[fxKey(r.team)];if(lg)r.logo=lg;}});
   renderChamp(d,rows);
   const rowMap=new Map(rows.map(r=>[r.team,r]));
