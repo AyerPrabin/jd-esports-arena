@@ -241,6 +241,56 @@ Deno.serve(async (req: Request) => {
     return json({ ok: true, room_code_was_sent: !!rc?.sent_at });
   }
 
+  // waitlist tools (2026-10-25). The waitlist order is sign-up time (oldest first); trg_promote_from_waitlist fills a
+  // freed slot with the oldest waitlisted squad and notifies it, so every device (player, mod, admin) sees the same.
+  if (action === 'replace_unconfirmed') {
+    const slug = String(p.slug || '');
+    if (!slug) return fail('slug required');
+    if (!await canEvent(slug)) return notYours();
+    const { data: regs } = await admin.from('registrations')
+      .select('id, squad_name, player_id, status, checked_in_at, created_at').eq('tournament_slug', slug).order('created_at', { ascending: true });
+    const all = regs || [];
+    const waiting = all.filter((r: any) => r.status === 'waitlisted').length;
+    const out = all.filter((r: any) => ['confirmed', 'approved'].includes(r.status) && !r.checked_in_at)
+      .slice(-Math.max(0, Math.min(waiting, 40)));   // only as many as can be refilled, newest sign-ups first
+    if (!out.length) return json({ ok: true, removed: [], promoted: [] });
+    const reason = String(p.reason || 'Did not confirm before the match').trim().slice(0, 200);
+    for (const r of out) {
+      await admin.from('notifications').insert({
+        player_id: r.player_id, push: true, tournament_slug: slug,
+        title: `Removed from ${slug}`.slice(0, 120),
+        body: `Your squad "${r.squad_name}" didn't confirm, so its slot in ${slug} went to the next squad on the waitlist. Reason: ${reason}. You can join the next event from the Events page.`,
+      });
+      await admin.from('registrations').delete().eq('id', r.id);   // trigger promotes the next waitlisted squad
+      await admin.from('notifications').delete().eq('player_id', r.player_id).eq('tournament_slug', slug).not('room_id', 'is', null);
+    }
+    const { data: after } = await admin.from('registrations').select('id, squad_name, status').in('id', all.filter((r: any) => r.status === 'waitlisted').map((r: any) => r.id));
+    const promoted = (after || []).filter((r: any) => r.status === 'confirmed').map((r: any) => r.squad_name);
+    await log('replace_unconfirmed', `${slug} · out: ${out.map((r: any) => r.squad_name).join(', ')} · in: ${promoted.join(', ')}`);
+    const { data: rc } = await admin.from('tournament_room_codes').select('sent_at').eq('tournament_slug', slug).maybeSingle();
+    return json({ ok: true, removed: out.map((r: any) => r.squad_name), promoted, room_code_was_sent: !!rc?.sent_at });
+  }
+
+  if (action === 'give_slot') {
+    const r = await regById(String(p.id || ''));
+    if (!r) return fail('Squad not found');
+    if (r.status !== 'waitlisted') return fail(`${r.squad_name} is not on the waitlist.`);
+    const { data: cap } = await admin.from('tournament_capacity').select('slots').eq('tournament_slug', r.tournament_slug).maybeSingle();
+    const { count } = await admin.from('registrations').select('id', { count: 'exact', head: true })
+      .eq('tournament_slug', r.tournament_slug).in('status', ['confirmed', 'approved']);
+    if (cap?.slots && (count || 0) >= cap.slots)
+      return fail(`All ${cap.slots} slots are taken. Remove a squad that didn't confirm first - the waitlist #1 moves up by itself.`, 409);
+    const { error } = await admin.from('registrations').update({ status: 'confirmed' }).eq('id', r.id).eq('status', 'waitlisted');
+    if (error) return fail(error.message, 500);
+    await admin.from('notifications').insert({
+      player_id: r.player_id, push: true, tournament_slug: r.tournament_slug,
+      title: tagT(`🎟 You're in: ${r.tournament_slug}`),
+      body: `A slot opened and your squad "${r.squad_name}" is now confirmed for ${r.tournament_slug}. Open your ticket and tap "Confirm you're playing".`,
+    });
+    await log('give_slot', `${r.squad_name} · ${r.tournament_slug}`);
+    return json({ ok: true });
+  }
+
   if (action === 'notify_player') {
     const r = await regById(String(p.id || ''));
     if (!r) return fail('Squad not found');

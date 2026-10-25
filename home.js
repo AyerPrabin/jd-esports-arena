@@ -484,6 +484,7 @@ document.addEventListener('keydown',e=>{
    loaded, it fully replaces the JSON's teams field for every render — no
    more manual "Squad 1 / Squad 2" placeholders to keep in sync by hand. */
 let _liveRoster=new Map();  // tournament name -> [{squad_name, squad_logo}]
+let _rosterCached=false;
 let _rosterLoaded=false;
 let _allTime=null,_arenaStats=null;
 /* First-ever visit: wait for real data instead of flashing the built-in sample (its numbers would jump);
@@ -535,10 +536,21 @@ async function loadPublicRoster(poll){
     m.get(r.tournament_slug).push({squad_name:r.squad_name,squad_logo:r.squad_logo,effect:r.effect||'',pass:r.pass_tier||''});
   });
   _liveRoster=m;_rosterLoaded=true;
+  rosterSave(m);
   renderCur();
 }
+/* The real squad list (registrations) is kept on the device, so the next open - or the app offline - shows the same
+   squads every other device sees, never the admin's old typed list. Logos over ~12 KB are left out to stay small. */
+function rosterSave(m){
+  try{const o={};m.forEach((v,k)=>{o[k]=v.map(x=>({squad_name:x.squad_name,squad_logo:x.squad_logo&&x.squad_logo.length<12000?x.squad_logo:'',effect:x.effect,pass:x.pass}));});
+    localStorage.setItem('jd_roster_v1',JSON.stringify({at:Date.now(),r:o}));}catch(e){}
+}
+(function rosterRestore(){
+  try{const c=JSON.parse(localStorage.getItem('jd_roster_v1')||'null');
+    if(c&&c.r&&Date.now()-c.at<7*864e5){_liveRoster=new Map(Object.entries(c.r));_rosterCached=true;}}catch(e){}
+})();
 function teamsFor(t){
-  if(sb&&_rosterLoaded){
+  if(sb&&(_rosterLoaded||_rosterCached)){
     const live=_liveRoster.get(t.name);
     // Falls back to the admin-curated Manual squad list only when NOTHING has
     // actually self-registered for this tournament yet — once even one real
@@ -552,6 +564,9 @@ function teamsFor(t){
       const fxByName=new Map((Array.isArray(t.teams)?t.teams:[]).map(x=>[String(x.name||'').trim().toLowerCase(),x.effect||'']));
       return live.map(x=>({name:x.squad_name||'Squad',logo:x.squad_logo||'',members:[],pass:x.pass||'',effect:x.effect||fxByName.get(String(x.squad_name||'').trim().toLowerCase())||''}));
     }
+    // sign-ups happen in the app, so an event that isn't finished shows only who is really registered (even none) -
+    // the typed list is only for old events that ran before in-app sign-up
+    if(_rosterLoaded&&effectiveStatus(t)!=='completed')return [];
   }
   return Array.isArray(t.teams)?t.teams.map(x=>typeof x==='string'?{name:x,logo:'',members:[],effect:''}:{name:x.name,logo:x.logo||'',members:x.members||[],effect:x.effect||''}).filter(x=>x&&x.name):[];
 }

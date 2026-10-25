@@ -254,6 +254,8 @@ textarea{min-height:96px;resize:vertical}
 .rs-meta span{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.78rem;color:var(--silver);background:var(--panel-2)}
 .rs-meta span.done{color:var(--ok);border-color:rgba(94,219,149,.35)}
 .rs{display:grid;gap:6px}
+.wl-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel-2)}
+.wl-tools .note{margin:0;flex:1 1 220px}
 .rsr{display:grid;grid-template-columns:34px minmax(0,1fr) repeat(var(--n,3),96px) 44px 30px;gap:6px;align-items:center}
 .rs .pk{display:grid;grid-template-columns:1fr 1fr;gap:3px}
 .rsr.h{font-size:.72rem;font-weight:500;color:var(--gold-l);text-align:center}
@@ -672,22 +674,25 @@ function renderSquads(){
   const fil=(k,label,n,cls)=>`<button type="button" class="fil${cls?' '+cls:''}" data-fil="${k}" aria-pressed="${filter===k}"><b>${n}</b> ${label}</button>`;
   $('sum').innerHTML=fil('all','in slots',act.length)+fil('yes','playing',yes)+fil('no','not confirmed',no,no?'warn':'')+fil('wait','waitlist',wait);
   if(!rows.length){ $('reg-body').innerHTML='<div class="empty">No squads have registered yet.</div>'; return; }
-  let slotNo=0;
-  const shown=rows.map(r=>{const on=active(r);return {r,on,no:on?++slotNo:null};}).filter(({r,on})=>
+  let slotNo=0, wlNo=0;
+  const shown=rows.map(r=>{const on=active(r);return {r,on,no:on?++slotNo:null,wl:r.status==='waitlisted'?++wlNo:null};}).filter(({r,on})=>
     filter==='all'?true:filter==='yes'?on&&r.checked_in:filter==='no'?on&&!r.checked_in:r.status==='waitlisted');
   if(!shown.length){ $('reg-body').innerHTML='<div class="empty">Nothing here – every squad in this list is done.</div>'; return; }
-  $('reg-body').innerHTML='<div class="slots">'+shown.map(({r,on,no})=>{
+  const free=selected&&+selected.slots?Math.max(0,+selected.slots-act.length):0, unconf=act.filter(r=>!r.checked_in).length;
+  const tools=(wait&&unconf)?`<div class="wl-tools"><button type="button" class="btn alt" data-act="replace">Replace ${Math.min(unconf,wait)} unconfirmed with the waitlist</button><span class="note">Squads that didn't tap Yes lose their slot; waitlist W1, W2… move up in order and get a notification.</span></div>`:'';
+  $('reg-body').innerHTML=tools+'<div class="slots">'+shown.map(({r,on,no,wl:wn})=>{
     const wait=r.status==='waitlisted', name=r.squad_name||'(squad)';
     const wl=r.whatsapp?waLink(r.whatsapp,waTemplate(name,selected)):null;
     const play=on?`<div class="play" role="group" aria-label="Is ${esc(name)} playing?">`+
       `<button type="button" class="y" data-act="conf" data-id="${esc(r.id)}" data-on="1" aria-pressed="${r.checked_in?'true':'false'}">Yes</button>`+
       `<button type="button" class="n" data-act="conf" data-id="${esc(r.id)}" data-on="0" aria-pressed="${r.checked_in?'false':'true'}">No</button></div>`
-      :`<span class="state">${esc(wait?'Waitlist':r.status||'')}</span>`;
+      :`<span class="state">${esc(wait?(wn===1?'Next in':'Waitlist #'+wn):r.status||'')}</span>`;
     const acts=(wl?`<a class="abtn wa" href="${wl}" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-wa"/></svg>WhatsApp</a>`
                   :'')+
       `<button type="button" class="abtn" data-act="note" data-id="${esc(r.id)}" data-sq="${esc(name)}"><svg aria-hidden="true"><use href="#i-msg"/></svg>Message</button>`+
+      (wait&&free?`<button type="button" class="abtn" data-act="give" data-id="${esc(r.id)}" data-sq="${esc(name)}">Give slot</button>`:'')+
       `<button type="button" class="abtn rm" data-act="rm" data-id="${esc(r.id)}" data-sq="${esc(name)}"><svg aria-hidden="true"><use href="#i-x"/></svg>Remove</button>`;
-    return `<div class="slot${on?'':' off'}${wait?' wait':''}"><span class="no" aria-label="${on?'Slot '+no:wait?'Waitlist':''}">${on?no:wait?'W':'–'}</span>`+
+    return `<div class="slot${on?'':' off'}${wait?' wait':''}"><span class="no" aria-label="${on?'Slot '+no:wait?'Waitlist '+wn:''}">${on?no:wait?'W'+wn:'–'}</span>`+
       `<div class="nm"><b translate="no">${esc(name)}</b><small>${esc(r.captain||'')}${r.whatsapp?' · '+esc(r.whatsapp):''}</small></div>`+
       play+`<div class="acts">${acts}</div></div>`;
   }).join('')+'</div>';
@@ -701,12 +706,30 @@ async function setPlaying(id,on,sq,quiet){
 }
 $('reg-body').addEventListener('click',async e=>{
   const b=e.target.closest('button[data-act]'); if(!b) return;
+  if(b.dataset.act==='replace'){
+    const unconf=rows.filter(r=>active(r)&&!r.checked_in).length, wait=rows.filter(r=>r.status==='waitlisted').length, n=Math.min(unconf,wait);
+    const ok=await sheet({title:`Replace ${n} unconfirmed squad${n>1?'s':''}?`,text:`The ${n} most recent sign-ups that didn't tap Yes lose their slot in ${selected.name} and get a notification. Waitlist W1${n>1?'–W'+n:''} move up in order and are told to confirm.`,ok:'Replace',danger:true});
+    if(!ok) return;
+    b.disabled=true;
+    try{
+      const rr=await call({action:'replace_unconfirmed',slug:selected.name});
+      await loadSquads(true);
+      if(rr.room_code_was_sent) await sheet({title:'Change the room password',text:'Removed squads already got the Room ID. Change the password in Free Fire and send the new one from Room code.',ok:'Got it',cancel:false});
+      else toast(`Out: ${rr.removed.join(', ')||'none'} · In: ${rr.promoted.join(', ')||'none'}`);
+    }catch(err){ toast(err.message||'Something went wrong – try again.',null,true); b.disabled=false; }
+    return;
+  }
   const id=b.dataset.id, slot=b.closest('.slot'), sq=b.dataset.sq||(slot&&slot.querySelector('.nm b').textContent)||'this squad';
   try{
     if(b.dataset.act==='conf'){
       if(b.getAttribute('aria-pressed')==='true') return;
       b.parentElement.querySelectorAll('button').forEach(x=>x.disabled=true);
       await setPlaying(id,b.dataset.on==='1',sq);
+    } else if(b.dataset.act==='give'){
+      b.disabled=true;
+      await call({action:'give_slot',id});
+      await loadSquads(true);
+      toast(`${sq} is in. They were told to confirm.`);
     } else if(b.dataset.act==='rm'){
       const reason=await sheet({title:`Remove ${sq}?`,text:`They lose their slot in ${selected.name} and get a notification with the reason. The next squad on the waitlist moves up.`,
         input:'text',placeholder:'Reason (sent to the squad)…',chips:['Did not confirm','No full team','WhatsApp not reachable','Broke the rules'],ok:'Remove squad',danger:true,required:true});
