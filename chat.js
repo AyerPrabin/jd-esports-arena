@@ -12,7 +12,11 @@
 //             rename_group_chat / mute_group_chat / send_group_message / group_thread /
 //             group_info / group_mark_read
 //   matches:  challenge_messages (RLS: the two captains) / send_challenge_message / challenge_mark_read
-//   badge:    dm_poll (every 5s on a visible tab: unread counts, newest unread for the banner)
+//   sync:     jd_sync(p_since) every 5s on a visible tab (jd_sync.sql): unread counts + only the alerts / ZULU
+//             messages that changed since the last cursor, in one call (dm_poll / jd_poll are the fallback)
+// Local-first: the inbox, alerts, ZULU messages, the sync cursor and the last 60 messages of every chat are kept
+// in IndexedDB on the device (store 'jd-chat'), so Messages opens instantly - also offline and in the app - and the
+// network only fills in what's new. Signing out clears it.
 // No realtime: the open conversation refreshes every 2.5s. New messages also arrive as Web
 // Push (dm-push / chat-push Edge Functions) that open /?dm=<tag>, /?g=<group> or the challenge.
 // ZULU talks to the zulu-ai-reply Edge Function; its chat is kept on this device only, plus ZULU's own
@@ -245,6 +249,55 @@
   var ginfo = null, readMark = 0;
   var recs = null, recAt = 0, tourCache = null, zuluWait = null, chipFor = null;
   var MENTION = /(^|[^a-z0-9_])@zulu\b/i;
+  var cursor = null, legacy = false, saveT = null;
+
+  // ── on-device store (IndexedDB, one key-value store; every write is one transaction, off the render path) ──
+  var LS = (function () {
+    var dbp = null;
+    function db() {
+      if (!dbp) dbp = new Promise(function (ok, no) {
+        try {
+          var q = indexedDB.open('jd-chat', 1);
+          q.onupgradeneeded = function () { q.result.createObjectStore('kv'); };
+          q.onsuccess = function () { ok(q.result); };
+          q.onerror = function () { no(q.error); };
+        } catch (e) { no(e); }
+      }).catch(function () { return null; });   // private mode / blocked storage: the chat just works online
+      return dbp;
+    }
+    function tx(mode, fn) {
+      return db().then(function (d) {
+        if (!d) return null;
+        return new Promise(function (ok) {
+          try {
+            var t = d.transaction('kv', mode), r = fn(t.objectStore('kv'));
+            t.oncomplete = function () { ok(r ? r.result : null); };
+            t.onerror = t.onabort = function () { ok(null); };
+          } catch (e) { ok(null); }
+        });
+      });
+    }
+    return {
+      get: function (k) { return tx('readonly', function (st) { return st.get(k); }); },
+      put: function (k, v) { return tx('readwrite', function (st) { st.put(v, k); }); },
+      clear: function () { return tx('readwrite', function (st) { st.clear(); }); }
+    };
+  })();
+  function lk(k) { return me + ':' + k; }
+  function saveInbox() {
+    if (!me) return;
+    var id = me; clearTimeout(saveT);
+    saveT = setTimeout(function () {
+      if (id !== me) return;
+      LS.put(lk('inbox'), { ov: ov, th: th, zn: zn, zf: zf, badge: badge, cursor: cursor, jdLast: jdLast, at: Date.now() });
+    }, 300);
+  }
+  function saveThread(p) {
+    if (!me || !p || !p.id || p.kind === 'zulu' || p.kind === 'alerts') return;
+    var keep = msgs.filter(function (m) { return typeof m.id === 'number' && !m.failed; }).slice(-60)
+      .map(function (m) { var c = Object.assign({}, m); delete c.fresh; return c; });
+    LS.put(lk('t:' + p.kind + ':' + p.id), keep);
+  }
 
   function setBadges() {
     var chats = badge.dm + badge.g + badge.m + badge.z + badge.jd + badge.al, n = chats + badge.requests;
@@ -266,7 +319,8 @@
   function setUser(u) {
     var id = u ? u.id : null;
     if (id === me) return;
-    me = id; polled = false; lastAt = 0; ov = null; th = null; cur = null; msgs = []; myCard = null;
+    if (me && !id) LS.clear();   // signed out: nothing personal stays on this device
+    me = id; polled = false; lastAt = 0; ov = null; th = null; cur = null; msgs = []; myCard = null; cursor = null;
     badge = { dm: 0, g: 0, m: 0, requests: 0, z: 0, jd: 0, al: 0 }; jdLast = null; zn = []; znTop = null; zf = []; zfTop = null; setBadges();
     fab.hidden = !me || !!PAGE; if (navRow) navRow.hidden = !me;
     if (PAGE) { var si = $('cp-signin'); if (si) si.hidden = !!me; panel.hidden = !me; }
@@ -274,7 +328,17 @@
     syncZuluFab(); recs = null; recAt = 0;
     liveJd();
     if (!me) { close(true); return; }
-    poll(); loadMyTag();
+    var uid = me;
+    LS.get(lk('inbox')).then(function (c) {
+      if (uid !== me) return;
+      if (c && !polled) {   // what this device knew last time - shown at once, then jd_sync fills in what changed
+        ov = ov || c.ov || null; th = th || c.th || null; zn = c.zn || []; zf = c.zf || []; cursor = c.cursor || null; jdLast = c.jdLast || null;
+        badge = Object.assign({}, badge, c.badge || {}); setBadges();
+        if (isOpen && (!cur || wide())) renderOverview();
+      }
+      poll();
+    });
+    loadMyTag();
     if (PAGE && !pendingDeepLink) open();
     if (pendingDeepLink) { var w = pendingDeepLink; pendingDeepLink = null; w(); }
   }
@@ -315,13 +379,45 @@
       (k.kind === 'group' && cur.kind === 'group' && cur.id === k.key) ||
       (k.kind === 'match' && cur.kind === 'match' && cur.id === k.key));
   }
+  function mergeRows(old, inc, byId) {
+    var by = {};
+    old.forEach(function (m) { by[m.id] = m; });
+    inc.forEach(function (m) { by[m.id] = m; });
+    return Object.keys(by).map(function (k) { return by[k]; }).sort(function (a, b) {
+      return byId ? b.id - a.id : (Date.parse(b.created_at) || 0) - (Date.parse(a.created_at) || 0);
+    });
+  }
+  // one round trip: counts + only the alerts / ZULU messages changed since the cursor (jd_sync.sql)
+  async function sync() {
+    var id = me, r = await SB.rpc('jd_sync', cursor ? { p_since: cursor } : {});
+    if (id !== me) return null;
+    if (r.error) { if (r.error.code === 'PGRST202') legacy = true; return null; }   // not deployed: old polling
+    var d = r.data || {}, keep = {};
+    (d.al_ids || []).forEach(function (x) { keep[x] = 1; });
+    zn = mergeRows(zn, d.al || [], false).filter(function (n) { return keep[n.id]; });   // deleted on the server = gone here
+    zf = mergeRows(zf, d.zf || [], true).slice(0, 30);
+    cursor = d.now || cursor;
+    if ((d.ev || []).length) { tourCache = null; try { window.dispatchEvent(new CustomEvent('jd-events-changed', { detail: d.ev })); } catch (e) {} }
+    saveInbox();
+    return d;
+  }
   async function poll() {
     if (!me || document.hidden) return;
+    if (legacy) return pollLegacy();
+    var s0 = await sync();
+    if (!s0) return;
+    applyZn(true);
+    applyPoll(s0.dm || {}, s0.jd || {});
+  }
+  async function pollLegacy() {
     var r = await SB.rpc('dm_poll');
     if (r.error || !r.data) return;
     var d = r.data;
     if (pollN++ % 3 === 0) await loadZn(true);
-    var jr = await SB.rpc('jd_poll'), jd = (jr && jr.data) || {};
+    var jr = await SB.rpc('jd_poll');
+    applyPoll(d, (jr && jr.data) || {});
+  }
+  function applyPoll(d, jd) {
     jdLast = jd.last || null;
     var next = { dm: d.unread || 0, g: d.g_unread || 0, m: d.m_unread || 0, requests: d.requests || 0, z: badge.z, jd: jd.unread || 0, al: badge.al };
     var changed = JSON.stringify(next) !== JSON.stringify(badge);
@@ -337,18 +433,24 @@
     }
     if (grewReq) { pop(); bump(); }
     polled = true;
+    if (changed) saveInbox();
     if (isOpen && changed && (!cur || wide())) loadOverview();
   }
   // ── ZULU alerts: your notifications (room ID + password, reminders, results) as ZULU messages ──
   var zn = [], znTop = null, pollN = 0, zf = [], zfTop = null;
   async function loadZn(fromPoll) {
     if (!me) return zn;
+    if (!legacy) { if (await sync()) applyZn(fromPoll); return zn; }
     var id = me, r = await SB.from('notifications').select('id, title, body, room_id, room_pass, tournament_slug, created_at, read_at')
       .eq('player_id', me).order('created_at', { ascending: false }).limit(40);
     var f = await SB.rpc('zulu_feed');
     if (r.error || id !== me) return zn;
     zn = r.data || [];
     if (!f.error && Array.isArray(f.data)) zf = f.data;
+    applyZn(fromPoll);
+    return zn;
+  }
+  function applyZn(fromPoll) {
     var newest = zn[0] ? zn[0].id : null, isNew = znTop !== null && newest && newest !== znTop && !zn[0].read_at;
     znTop = newest || znTop || '';
     var fTop = zf[0] ? zf[0].id : null, fNew = zfTop !== null && fTop && fTop !== zfTop && !zf[0].read_at;
@@ -371,12 +473,11 @@
       if (isNew && fromPoll && typeof window.notifBanner !== 'function') notifyAlert(zn[0]);
     }
     if (!fromPoll) setBadges();
-    return zn;
   }
   function markZfRead() {
     badge.z = 0; setBadges();
     var at = new Date().toISOString();
-    if (zf.some(function (m) { return !m.read_at; })) { zf.forEach(function (m) { if (!m.read_at) m.read_at = at; }); SB.rpc('zulu_feed_read').then(function () {}, function () {}); }   // supabase-js only sends a query once it's awaited or then'd
+    if (zf.some(function (m) { return !m.read_at; })) { zf.forEach(function (m) { if (!m.read_at) m.read_at = at; }); SB.rpc('zulu_feed_read').then(function () {}, function () {}); saveInbox(); }   // supabase-js only sends a query once it's awaited or then'd
   }
   async function markAlRead() {
     var ids = zn.filter(function (n) { return !n.read_at; }).map(function (n) { return n.id; });
@@ -384,6 +485,7 @@
     if (!ids.length) return;
     var at = new Date().toISOString();
     zn.forEach(function (n) { if (!n.read_at) n.read_at = at; });
+    saveInbox();
     await SB.from('notifications').update({ read_at: at }).in('id', ids);
   }
   function notifyAlert(n) {
@@ -493,6 +595,7 @@
     if (r[0].error) { if (!ov) $('dm-list').innerHTML = '<div class="dm-empty">Couldn\'t load your chats. Check your connection.</div>'; return; }
     ov = r[0].data || { friends: [], incoming: [], outgoing: [], blocked: [] };
     th = (r[1] && r[1].data) || { groups: [], matches: [] };
+    saveInbox();
     renderOverview();
     loadRecs();
   }
@@ -791,6 +894,10 @@
       loadZn().then(function () { if (cur !== p) return; msgs = alertsLoad(); renderMsgs(true); markAlRead(); });
       return;
     }
+    LS.get(lk('t:' + p.kind + ':' + p.id)).then(function (c) {   // last time's messages at once; the fetch replaces them
+      if (cur !== p || msgs.length || !c || !c.length) return;
+      msgs = c; renderMsgs(true);
+    });
     refreshThread(true);
     threadTimer = setInterval(function () { if (!document.hidden) refreshThread(); }, 2500);
   }
@@ -929,7 +1036,7 @@
     }
     var s = msgs.map(function (m) { return m.id + (m.read_at ? 'r' : '') + (m.failed ? 'f' : ''); }).join(',') + (ginfo ? '|' + ginfo.members.map(function (x) { return x.read; }).join(',') : '');
     if (zuluWait && Date.now() > zuluWait.until) { zuluWait = null; s += '~'; }
-    if (first || s !== sig) { sig = s; renderMsgs(first); }
+    if (first || s !== sig) { sig = s; renderMsgs(first); saveThread(p); }
     smartChips(first);
     // mark read
     var top = 0; rows.forEach(function (m) { if (!m.mine) top = Math.max(top, m.id); });
