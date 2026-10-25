@@ -211,7 +211,7 @@
         ['all', 'friends', 'squads', 'matches', 'requests'].map(function (k, i) {
           return '<button type="button" role="tab" data-t="' + k + '" aria-selected="' + (i ? 'false' : 'true') + '">' + T(k) + '<b id="dm-tb-' + k + '" hidden></b></button>';
         }).join('') + '</div>' +
-      '<div class="dm-list" id="dm-list"></div>' +
+      '<div class="dm-list" id="dm-list" data-ptr="chat"></div>' +
       '<div class="dm-mytag" id="dm-mytag" hidden></div>' +
     '</div>' +
     '<div class="dm-view" id="dm-thread">' +
@@ -749,6 +749,12 @@
     list.innerHTML = h;
   }
 
+  // pull down on the chat list (ui.js pull-to-refresh): one sync + a fresh inbox, no page reload
+  window.addEventListener('jd-refresh', function (e) {
+    if (e.detail.kind !== 'chat' || !me) return;
+    e.preventDefault();
+    e.detail.wait(Promise.all([poll(), loadOverview()]).catch(function () {}));
+  });
   $('dm-list').addEventListener('click', async function (e) {
     var b = e.target.closest('button'); if (!b) return;
     var id;

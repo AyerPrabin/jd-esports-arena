@@ -165,17 +165,31 @@ Deno.serve(async (req: Request) => {
     events: isHost ? [...await myEvents()] : null });
   if (isHost && action.startsWith('chat_')) return fail('The JD Esports chat is for the JD team only. Use Message on a squad to send them a notification.', 403);
 
+  // The waitlist order the database trigger uses (promote_from_waitlist): Pro pass holders first, then sign-up time.
+  const proSet = new Set<string>();
+  const waitOrder = async (wait: any[]) => {
+    const tiers = await Promise.all(wait.map((r: any) =>
+      admin.rpc('weekly_pass_tier', { p_player: r.player_id }).then((x: any) => x.data, () => null)));
+    wait.forEach((r: any, i: number) => { if (tiers[i] === 'pro') proSet.add(r.player_id); });
+    const sorted = wait.map((r: any, i: number) => ({ r, i })).sort((a: any, b: any) =>
+      (+proSet.has(b.r.player_id) - +proSet.has(a.r.player_id)) || (a.i - b.i));
+    return new Map(sorted.map((x: any, n: number) => [x.r.id, n + 1]));
+  };
+
   if (action === 'registrations') {
     const slug = String(p.slug || '');
     if (!slug) return fail('slug required');
     if (!await canEvent(slug)) return notYours();
     const { data, error } = await admin.from('registrations')
-      .select('id, squad_name, status, whatsapp, checked_in_at, verified_at, created_at, players(username, player_tag)')
+      .select('id, player_id, squad_name, status, whatsapp, checked_in_at, verified_at, created_at, promoted_at, players(username, player_tag)')
       .eq('tournament_slug', slug).order('created_at', { ascending: true });
     if (error) return fail(error.message, 500);
+    const wlOrder = await waitOrder((data || []).filter((r: any) => r.status === 'waitlisted'));
     return json((data || []).map((r: any) => ({
       id: r.id, squad_name: r.squad_name, status: r.status, whatsapp: r.whatsapp || null,
       checked_in: !!r.checked_in_at, verified: !!r.verified_at,
+      wl: wlOrder.get(r.id) || null, pro: wlOrder.has(r.id) ? proSet.has(r.player_id) : undefined,
+      promoted_at: r.promoted_at || null,
       captain: r.players?.username ? '@' + r.players.username : (r.players?.player_tag || null),
     })));
   }
@@ -241,17 +255,19 @@ Deno.serve(async (req: Request) => {
     return json({ ok: true, room_code_was_sent: !!rc?.sent_at });
   }
 
-  // waitlist tools (2026-10-25). The waitlist order is sign-up time (oldest first); trg_promote_from_waitlist fills a
-  // freed slot with the oldest waitlisted squad and notifies it, so every device (player, mod, admin) sees the same.
+  // waitlist tools (2026-10-25). trg_promote_from_waitlist fills a freed slot with the next waitlisted squad (Pro pass
+  // first, then sign-up time) and notifies it, so every device (player, mod, admin) sees the same.
+  // Squads that just got their slot from the waitlist (promoted_at < 20 min ago) are left alone: they're still confirming.
   if (action === 'replace_unconfirmed') {
     const slug = String(p.slug || '');
     if (!slug) return fail('slug required');
     if (!await canEvent(slug)) return notYours();
     const { data: regs } = await admin.from('registrations')
-      .select('id, squad_name, player_id, status, checked_in_at, created_at').eq('tournament_slug', slug).order('created_at', { ascending: true });
+      .select('id, squad_name, player_id, status, checked_in_at, created_at, promoted_at').eq('tournament_slug', slug).order('created_at', { ascending: true });
     const all = regs || [];
     const waiting = all.filter((r: any) => r.status === 'waitlisted').length;
-    const out = all.filter((r: any) => ['confirmed', 'approved'].includes(r.status) && !r.checked_in_at)
+    const fresh = (r: any) => r.promoted_at && Date.now() - Date.parse(r.promoted_at) < 20 * 60 * 1000;
+    const out = all.filter((r: any) => ['confirmed', 'approved'].includes(r.status) && !r.checked_in_at && !fresh(r))
       .slice(-Math.max(0, Math.min(waiting, 40)));   // only as many as can be refilled, newest sign-ups first
     if (!out.length) return json({ ok: true, removed: [], promoted: [] });
     const reason = String(p.reason || 'Did not confirm before the match').trim().slice(0, 200);
@@ -280,7 +296,7 @@ Deno.serve(async (req: Request) => {
       .eq('tournament_slug', r.tournament_slug).in('status', ['confirmed', 'approved']);
     if (cap?.slots && (count || 0) >= cap.slots)
       return fail(`All ${cap.slots} slots are taken. Remove a squad that didn't confirm first - the waitlist #1 moves up by itself.`, 409);
-    const { error } = await admin.from('registrations').update({ status: 'confirmed' }).eq('id', r.id).eq('status', 'waitlisted');
+    const { error } = await admin.from('registrations').update({ status: 'confirmed', promoted_at: new Date().toISOString() }).eq('id', r.id).eq('status', 'waitlisted');
     if (error) return fail(error.message, 500);
     await admin.from('notifications').insert({
       player_id: r.player_id, push: true, tournament_slug: r.tournament_slug,

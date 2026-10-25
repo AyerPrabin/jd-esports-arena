@@ -99,10 +99,13 @@ self.addEventListener("push", e => {
   // stays until tapped; results = gold 🏆, celebration buzz.
   const kind = tag === "jd-room" || /^room code/i.test(d.title || "") ? "roomcode"
     : tag === "jd-results" || /^results are in/i.test(d.title || "") ? "result"
+    : /off the waitlist|you're in:/i.test(d.title || "") ? "slot"
     : chat ? "msg" : "";
   const STYLE = {
     msg: { icon: "/notif-msg.png", pre: "💬 ", vibrate: [90, 60, 90] },
     roomcode: { icon: "/notif-room.png", pre: "🔑 ", vibrate: [600, 200, 600, 200, 600], sticky: true, action: "🔑 Show Room ID" },
+    // a waitlist slot opened: it must be confirmed, so it stays until tapped
+    slot: { icon: "/icon-192.png", pre: "🎟 ", vibrate: [300, 120, 300, 120, 600], sticky: true, action: "🎟 Open my ticket" },
     result: { icon: "/notif-result.png", pre: "🏆 ", vibrate: [120, 60, 120, 60, 120, 60, 500], action: "🏆 See results" },
   }[kind] || { icon: "/icon-192.png", pre: "", vibrate: [200, 100, 200, 100, 200] };
   e.waitUntil((async () => {

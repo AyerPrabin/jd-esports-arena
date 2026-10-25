@@ -927,7 +927,7 @@ function refresh(){
   // (it was re-downloaded every minute, ~8 MB an hour on mobile data for no newer content)
   const needPages=!_pagesDoc||(!_liveDoc&&Date.now()-_pagesAt>60000);
   if(needPages)_pagesAt=Date.now();
-  Promise.all([needPages?fetchPagesDoc().catch(()=>{}):null,pollLiveContent().catch(()=>{})]).then(()=>{
+  return Promise.all([needPages?fetchPagesDoc().catch(()=>{}):null,pollLiveContent().catch(()=>{})]).then(()=>{
     const d=(_liveDoc&&_pagesDoc)?(pubTime(_liveDoc)>=pubTime(_pagesDoc)?_liveDoc:_pagesDoc):(_liveDoc||_pagesDoc);
     if(!d||d===_shownDoc)return;
     if(_lastData&&_lastData!==d&&pubTime(d)&&pubTime(d)<pubTime(_lastData))return;   // never step back to an older copy
@@ -1433,6 +1433,29 @@ async function megaCredit(name){
   },500);
 })();
 
+/* ?ticket=<event> (tapping a tournament alert): scroll to that event's card, where the ticket is, and flash it. */
+(function(){
+  const q=new URLSearchParams(location.search),slug=q.get('ticket');
+  if(!slug)return;
+  q.delete('ticket');try{history.replaceState(history.state,'',location.pathname+(q.toString()?'?'+q:'')+'#tournaments');}catch(e){}
+  let tries=0;const t=setInterval(()=>{
+    if(++tries>40){clearInterval(t);return;}
+    const c=[...document.querySelectorAll('.tcard[data-tname]')].find(x=>x.getAttribute('data-tname')===slug);
+    if(!c||(_player&&!_myRegsLoaded&&tries<20))return;
+    clearInterval(t);
+    const tk=c.querySelector('.mt')||c;
+    tk.scrollIntoView({block:'center',behavior:'smooth'});
+    tk.classList.add('jd-flash');setTimeout(()=>tk.classList.remove('jd-flash'),2600);
+  },500);
+})();
+
+/* Pull to refresh (ui.js sends jd-refresh): fresh events, squads, my tickets and alerts - no page reload. */
+window.addEventListener('jd-refresh',e=>{
+  if(e.detail.kind!=='page')return;
+  e.preventDefault();
+  e.detail.wait(Promise.all([Promise.resolve(refresh()),loadPublicRoster(true),_player?loadMyRegs():0,_player?loadNotifications(false,true):0]).catch(()=>{}));
+});
+
 /* Invite links (jdesport.co.uk/?ref=JD-XXXXX): the code is kept on this device until the visitor signs in, then
    set_referrer() links the two accounts once (new players only, first 14 days - checked server-side). */
 (function(){const m=/[?&]ref=([A-Za-z0-9_@-]{3,30})/.exec(location.search);if(m)try{localStorage.setItem('jd_ref',m[1]);}catch(e){}})();
@@ -1554,10 +1577,10 @@ let _myRegs=new Map(); // tournament name -> {id, squad_name, squad_logo, status
 let _regTarget=null,_regLogoData=null,_regPayData=null;
 async function loadMyRegs(){
   if(!sb||!_player){_myRegs=new Map();return;}
-  const {data}=await sb.from('registrations').select('id, tournament_slug, squad_name, squad_logo, status, checked_in_at, verified_at, effect, paid_points').eq('player_id',_player.id);
+  const {data}=await sb.from('registrations').select('id, tournament_slug, squad_name, squad_logo, status, checked_in_at, verified_at, effect, paid_points, promoted_at').eq('player_id',_player.id);
   _myRegsLoaded=true;
   loadWallet();
-  _myRegs=new Map((data||[]).map(r=>[r.tournament_slug,{id:r.id,squad_name:r.squad_name,squad_logo:r.squad_logo,status:r.status||'confirmed',checked_in_at:r.checked_in_at||null,verified_at:r.verified_at||null,effect:r.effect||'',paid_points:r.paid_points||0,squad_logo:r.squad_logo||(_player&&_player.squad_logo)||''}]));
+  _myRegs=new Map((data||[]).map(r=>[r.tournament_slug,{id:r.id,squad_name:r.squad_name,squad_logo:r.squad_logo,status:r.status||'confirmed',checked_in_at:r.checked_in_at||null,promoted_at:r.promoted_at||null,verified_at:r.verified_at||null,effect:r.effect||'',paid_points:r.paid_points||0,squad_logo:r.squad_logo||(_player&&_player.squad_logo)||''}]));
   // slot number per tournament (rule: sit in the seat matching your app slot)
   try{const {data:sl}=await sb.rpc('my_tournament_slots');(sl||[]).forEach(x=>{const r=_myRegs.get(x.tournament_slug);if(r)r.slot=x.slot;});}catch(e){}
   saveOfflineTickets();
@@ -1898,6 +1921,8 @@ const CONFIRM_REQUIRED=true;
 function confirmWindowOpen(t){const s=Date.parse(t&&t.start);if(isNaN(s))return false;const n=Date.now();return n>=s-48*3600*1000&&n<s-24*3600*1000;}
 function confirmBeforeWindow(t){const s=Date.parse(t&&t.start);return !isNaN(s)&&Date.now()<s-48*3600*1000;}
 function confirmOpensAt(t){const s=Date.parse(t&&t.start);return isNaN(s)?'':new Date(s-48*3600*1000).toLocaleString([],{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}
+// got the slot from the waitlist: can confirm from 48h before right up to the start (confirm_attendance, waitlist_promoted.sql)
+function lateUp(t,r){const s=Date.parse(t&&t.start),n=Date.now();return !!(r&&r.promoted_at)&&!isNaN(s)&&n>=s-48*3600*1000&&n<s;}
 function confirmDeadline(t){const s=Date.parse(t&&t.start);return isNaN(s)?'':new Date(s-24*3600*1000).toLocaleString([],{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}
 async function confirmAttendance(name){
   if(!sb||!_player)return;
@@ -1922,6 +1947,8 @@ function matchTicketHtml(t,r){
   let next;
   if(rc){
     next=`<div class="mt-room"><div class="mt-room-h"><span class="mt-live-dot"></span>Room is open — join now</div><div class="mt-room-row"><button type="button" class="mt-copy" data-copy="${esc(rc.room_id)}"><span>Room ID</span><b>${esc(rc.room_id)}</b><em>Tap to copy</em></button>${rc.room_pass?`<button type="button" class="mt-copy" data-copy="${esc(rc.room_pass)}"><span>Password</span><b>${esc(rc.room_pass)}</b><em>Tap to copy</em></button>`:''}</div></div>`;
+  }else if(CONFIRM_REQUIRED&&!checked&&!confirmWindowOpen(t)&&lateUp(t,r)){
+    next=`<button class="inapp-reg mt-checkin" data-confirm="${esc(t.name)}">✅ Confirm you're playing</button><div class="mt-next warn">🎟 You got this slot from the waitlist. Confirm now so it stays yours.</div>`;
   }else if(CONFIRM_REQUIRED&&!checked&&confirmWindowOpen(t)){
     const dl=confirmDeadline(t);
     next=`<button class="inapp-reg mt-checkin" data-confirm="${esc(t.name)}">✅ Confirm you're playing</button><div class="mt-next warn">Confirm${dl?` by <b>${esc(dl)}</b>`:''} (24h before start) or your seat is given to another squad. We need real players!</div>`;

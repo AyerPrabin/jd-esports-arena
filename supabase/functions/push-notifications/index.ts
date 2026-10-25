@@ -22,7 +22,8 @@ function linkFor(n: any): { url: string; tag: string; category?: string } {
   if (/challenge/i.test(t)) return { url: `${SITE}/challenges/`, tag: 'jd-challenge', category: 'challenges' };
   if (/wallet|points added/i.test(t)) return { url: `${SITE}/wallet/`, tag: 'jd-wallet', category: 'wallet' };
   if (/Admin →/.test(t)) return { url: `${SITE}/admin/`, tag: 'jd-admin' };
-  if (n.tournament_slug) return { url: `${SITE}/#tournaments`, tag: 'jd-t-' + String(n.tournament_slug).slice(0, 40) };
+  // tournament alerts open that event's ticket on the homepage (home.js ?ticket=)
+  if (n.tournament_slug) return { url: `${SITE}/?ticket=${encodeURIComponent(n.tournament_slug)}#tournaments`, tag: 'jd-t-' + String(n.tournament_slug).slice(0, 40) };
   return { url: `${SITE}/`, tag: 'jd-arena' };
 }
 

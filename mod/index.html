@@ -668,17 +668,20 @@ async function loadSquads(quiet){
   }catch(e){ if(!quiet) $('reg-body').innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; }
   finally{ loadingSquads=false; }
 }
+// a squad that just got its slot from the waitlist gets 20 minutes to confirm before "Replace" can touch it
+function freshUp(r){return !!(r.promoted_at&&!r.checked_in&&Date.now()-Date.parse(r.promoted_at)<20*60*1000);}
 function renderSquads(){
   const act=rows.filter(active), yes=act.filter(r=>r.checked_in).length, wait=rows.filter(r=>r.status==='waitlisted').length, no=act.length-yes;
   const badge=$('badge-unconf'); badge.hidden=!no; badge.textContent=no;
   const fil=(k,label,n,cls)=>`<button type="button" class="fil${cls?' '+cls:''}" data-fil="${k}" aria-pressed="${filter===k}"><b>${n}</b> ${label}</button>`;
   $('sum').innerHTML=fil('all','in slots',act.length)+fil('yes','playing',yes)+fil('no','not confirmed',no,no?'warn':'')+fil('wait','waitlist',wait);
   if(!rows.length){ $('reg-body').innerHTML='<div class="empty">No squads have registered yet.</div>'; return; }
-  let slotNo=0, wlNo=0;
-  const shown=rows.map(r=>{const on=active(r);return {r,on,no:on?++slotNo:null,wl:r.status==='waitlisted'?++wlNo:null};}).filter(({r,on})=>
+  let slotNo=0, wlNo=0;   // W numbers come from the server (Pro pass first, then sign-up time - same as the auto move-up)
+  const all=rows.map(r=>{const on=active(r);return {r,on,no:on?++slotNo:null,wl:r.status==='waitlisted'?(r.wl||++wlNo):null};});
+  const shown=all.filter(x=>!x.wl).concat(all.filter(x=>x.wl).sort((a,b)=>a.wl-b.wl)).filter(({r,on})=>
     filter==='all'?true:filter==='yes'?on&&r.checked_in:filter==='no'?on&&!r.checked_in:r.status==='waitlisted');
   if(!shown.length){ $('reg-body').innerHTML='<div class="empty">Nothing here – every squad in this list is done.</div>'; return; }
-  const free=selected&&+selected.slots?Math.max(0,+selected.slots-act.length):0, unconf=act.filter(r=>!r.checked_in).length;
+  const free=selected&&+selected.slots?Math.max(0,+selected.slots-act.length):0, unconf=act.filter(r=>!r.checked_in&&!freshUp(r)).length;
   const tools=(wait&&unconf)?`<div class="wl-tools"><button type="button" class="btn alt" data-act="replace">Replace ${Math.min(unconf,wait)} unconfirmed with the waitlist</button><span class="note">Squads that didn't tap Yes lose their slot; waitlist W1, W2… move up in order and get a notification.</span></div>`:'';
   $('reg-body').innerHTML=tools+'<div class="slots">'+shown.map(({r,on,no,wl:wn})=>{
     const wait=r.status==='waitlisted', name=r.squad_name||'(squad)';
@@ -693,7 +696,7 @@ function renderSquads(){
       (wait&&free?`<button type="button" class="abtn" data-act="give" data-id="${esc(r.id)}" data-sq="${esc(name)}">Give slot</button>`:'')+
       `<button type="button" class="abtn rm" data-act="rm" data-id="${esc(r.id)}" data-sq="${esc(name)}"><svg aria-hidden="true"><use href="#i-x"/></svg>Remove</button>`;
     return `<div class="slot${on?'':' off'}${wait?' wait':''}"><span class="no" aria-label="${on?'Slot '+no:wait?'Waitlist '+wn:''}">${on?no:wait?'W'+wn:'–'}</span>`+
-      `<div class="nm"><b translate="no">${esc(name)}</b><small>${esc(r.captain||'')}${r.whatsapp?' · '+esc(r.whatsapp):''}</small></div>`+
+      `<div class="nm"><b translate="no">${esc(name)}</b><small>${esc(r.captain||'')}${r.whatsapp?' · '+esc(r.whatsapp):''}${r.pro?' · ⭐ Pro pass':''}${on&&r.promoted_at?' · 🎟 from waitlist'+(freshUp(r)?' (confirming…)':''):''}</small></div>`+
       play+`<div class="acts">${acts}</div></div>`;
   }).join('')+'</div>';
 }
@@ -707,7 +710,7 @@ async function setPlaying(id,on,sq,quiet){
 $('reg-body').addEventListener('click',async e=>{
   const b=e.target.closest('button[data-act]'); if(!b) return;
   if(b.dataset.act==='replace'){
-    const unconf=rows.filter(r=>active(r)&&!r.checked_in).length, wait=rows.filter(r=>r.status==='waitlisted').length, n=Math.min(unconf,wait);
+    const unconf=rows.filter(r=>active(r)&&!r.checked_in&&!freshUp(r)).length, wait=rows.filter(r=>r.status==='waitlisted').length, n=Math.min(unconf,wait);
     const ok=await sheet({title:`Replace ${n} unconfirmed squad${n>1?'s':''}?`,text:`The ${n} most recent sign-ups that didn't tap Yes lose their slot in ${selected.name} and get a notification. Waitlist W1${n>1?'–W'+n:''} move up in order and are told to confirm.`,ok:'Replace',danger:true});
     if(!ok) return;
     b.disabled=true;

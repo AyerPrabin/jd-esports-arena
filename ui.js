@@ -199,3 +199,71 @@
   window.addEventListener('appinstalled', installed);
   if (navigator.getInstalledRelatedApps) navigator.getInstalledRelatedApps().then(function (apps) { if (apps && apps.length) installed(); }).catch(function () {});
 })();
+
+// Pull to refresh (phones, also inside the Android app). Pull down at the top of the page - or of a list marked
+// data-ptr="<kind>" - and release: pages listening for 'jd-refresh' reload their data in place (they call
+// e.preventDefault() and hand their work to e.detail.wait(promise)); any other page simply reloads.
+// Chrome's own pull-to-refresh is turned off (overscroll-behavior) so the two never fire together.
+(function () {
+  if (!('ontouchstart' in window) || window.__jdPtr) return;
+  window.__jdPtr = true;
+  var st = document.createElement('style');
+  st.textContent = 'html{overscroll-behavior-y:contain}' +
+    '.jd-ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 6px);z-index:2147483000;width:40px;height:40px;margin-left:-20px;border-radius:50%;' +
+    'background:#111827;border:1px solid rgba(255,255,255,.16);box-shadow:0 8px 22px rgba(0,0,0,.45);display:grid;place-items:center;pointer-events:none;opacity:0;transform:translateY(-60px)}' +
+    '.jd-ptr svg{width:20px;height:20px;color:#ffc83d;transition:transform .1s}.jd-ptr.go svg{animation:jdPtr .8s linear infinite}' +
+    '.jd-ptr.back{transition:transform .25s,opacity .25s}@keyframes jdPtr{to{transform:rotate(360deg)}}';
+  document.head.appendChild(st);
+  var el = document.createElement('div');
+  el.className = 'jd-ptr'; el.setAttribute('aria-hidden', 'true');
+  el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></svg>';
+  var y0 = null, x0 = 0, dy = 0, busy = false, kind = null, box = null, T = 72;
+  function pullable(t) {
+    for (var n = t; n && n !== document.body && n.nodeType === 1; n = n.parentElement) {
+      if (n.hasAttribute('data-ptr')) return n.scrollTop <= 0 ? n : null;
+      var cs = getComputedStyle(n);
+      if (cs.position === 'fixed') return null;   // sheets, popups, the chat overlay
+      if (/(auto|scroll)/.test(cs.overflowY) && n.scrollHeight > n.clientHeight + 1) return null;
+    }
+    return (window.scrollY || document.documentElement.scrollTop) <= 0 ? document.documentElement : null;
+  }
+  function show(d) {
+    if (!el.parentNode) document.body.appendChild(el);
+    var p = Math.min(d, T * 1.6);
+    el.classList.remove('back');
+    el.style.opacity = Math.min(1, p / T);
+    el.style.transform = 'translateY(' + (p * 0.75 - 50) + 'px)';
+    el.firstChild.style.transform = 'rotate(' + (p * 4) + 'deg)';
+  }
+  function hide() { el.classList.add('back'); el.classList.remove('go'); el.style.opacity = 0; el.style.transform = 'translateY(-60px)'; }
+  document.addEventListener('touchstart', function (e) {
+    if (busy || e.touches.length !== 1) { y0 = null; return; }
+    box = pullable(e.target);
+    if (!box) { y0 = null; return; }
+    kind = box === document.documentElement ? 'page' : box.getAttribute('data-ptr');
+    y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; dy = 0;
+  }, { passive: true });
+  document.addEventListener('touchmove', function (e) {
+    if (y0 === null) return;
+    var t = e.touches[0];
+    dy = t.clientY - y0;
+    if (dy < 0 || Math.abs(t.clientX - x0) > dy || (box.scrollTop || (kind === 'page' ? window.scrollY : 0)) > 0) { if (dy < 0) { y0 = null; hide(); } return; }
+    if (dy > 12) show(dy - 12);
+  }, { passive: true });
+  document.addEventListener('touchend', function () {
+    if (y0 === null) return;
+    y0 = null;
+    if (dy - 12 < T) { hide(); return; }
+    busy = true; show(T); el.classList.add('go');
+    try { if (navigator.vibrate) navigator.vibrate(12); } catch (x) {}
+    var work = null;
+    var ev = new CustomEvent('jd-refresh', { cancelable: true, detail: { kind: kind, wait: function (p) { work = p; } } });
+    window.dispatchEvent(ev);
+    if (!ev.defaultPrevented) { location.reload(); return; }
+    var t0 = Date.now();
+    Promise.race([Promise.resolve(work), new Promise(function (r) { setTimeout(r, 8000); })]).then(function () {
+      setTimeout(function () { hide(); busy = false; }, Math.max(0, 450 - (Date.now() - t0)));
+    });
+  }, { passive: true });
+  document.addEventListener('touchcancel', function () { y0 = null; hide(); }, { passive: true });
+})();
