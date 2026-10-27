@@ -74,10 +74,14 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  const ai = await askAI([
-    { role: 'system', content: SYSTEM },
-    { role: 'user', content: report + peers },
-  ], ['groq', 'cerebras', 'gemini'], { timeoutMs: 18000 });   // stays under the app's 90 s wait; Gemini last (ZULU shares it)
+  // 18 s per model, and 60 s for the whole fallback chain - the app waits 90 s. Gemini last (ZULU shares its key).
+  const ai = await Promise.race([
+    askAI([
+      { role: 'system', content: SYSTEM },
+      { role: 'user', content: report + peers },
+    ], ['groq', 'cerebras', 'gemini'], { timeoutMs: 18000 }),
+    new Promise<null>((res) => setTimeout(() => res(null), 60000)),
+  ]);
   if (!ai || !ai.text.trim()) return text('The AI is busy right now - try again in a few minutes.', 503);
   if (!cntErr) await sb.from('optimizer_ai_uses').insert({ token_hash: hash });
   // plain text for the app's text box: strip any markdown the model slipped in
