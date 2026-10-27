@@ -9,7 +9,7 @@ self.addEventListener("install", e => {
   e.waitUntil((async () => {
     try { await (await caches.open("jd-offline")).add(new Request("/offline.html", { cache: "reload" })); } catch (x) {}
     const c = await caches.open(PAGE_CACHE);
-    await Promise.all(["/", "/events/", "/chat/", "/profile/"].map(u =>
+    await Promise.all(TABS.map(u =>
       fetch(u, { cache: "reload" }).then(res => res.ok && !res.redirected ? c.put(u, res) : 0).catch(() => {})));
   })());
 });
@@ -24,6 +24,10 @@ self.addEventListener("activate", e => e.waitUntil((async () => {
 // /about/ redirects valid (a followed redirect can't answer a navigation request).
 self.addEventListener("fetch", e => {
   const r = e.request;
+  if (r.mode === "navigate" && r.method === "GET" && TABS.includes(new URL(r.url).pathname)) {
+    e.respondWith(tabPage(e, r));
+    return;
+  }
   if (r.mode === "navigate" && r.method === "GET") {
     e.respondWith(
       fetch(r.url, { cache: "no-cache", credentials: "include", redirect: "manual" })
@@ -37,6 +41,12 @@ self.addEventListener("fetch", e => {
   // the background (stale-while-revalidate), so the app opens without waiting on the network. Data (JSON,
   // Supabase), the APK and anything else go straight to the network, untouched.
   const u = new URL(r.url);
+  // ui.js prefetches the other tabs once a page is idle: the answer goes into the page cache tabPage reads
+  if (r.method === "GET" && u.origin === self.location.origin && TABS.includes(u.pathname) && /prefetch/.test(r.headers.get("sec-purpose") || r.headers.get("purpose") || "")) {
+    e.respondWith(fetch(u.pathname, { cache: "no-cache", credentials: "include", redirect: "manual" })
+      .then(res => { keepPage(e, r, res); return res; }));
+    return;
+  }
   const font = u.hostname === "fonts.gstatic.com" || u.hostname === "fonts.googleapis.com";
   // the Supabase library: a pinned version (never changes), needed by every page - also offline
   const lib = u.hostname === "cdn.jsdelivr.net" && /^\/npm\/@supabase\/supabase-js@[\d.]+\//.test(u.pathname);
@@ -59,6 +69,19 @@ const STATIC_CACHE = "jd-static-v1";
 // Staff pages (admin, mod, secret links) are never kept on the phone.
 const PAGE_CACHE = "jd-pages-v1";
 const NO_KEEP = /^\/(admin|mod)(\/|$)|admin|private|secret|zulu-|jd-arena\.html/i;
+// The bottom-tab pages open from the phone's copy at once (like a native app) while the network copy replaces
+// it in the background for next time. A copy older than TAB_FRESH (or none) waits on the network as before, so an
+// update reaches a player on their next open at the latest. v4: TABS, tabPage.
+const TABS = ["/", "/events/", "/challenges/", "/chat/", "/leaderboard.html", "/profile/"];
+const TAB_FRESH = 3 * 864e5;   // the HTML is a shell (data loads live), so a few days old is fine
+async function tabPage(e, r) {
+  const net = fetch(r.url, { cache: "no-cache", credentials: "include", redirect: "manual" })
+    .then(res => { keepPage(e, r, res); return res; });
+  const hit = await pageFromCache(r);
+  const at = hit && Date.parse(hit.headers.get("date") || "");
+  if (hit && at && Date.now() - at < TAB_FRESH) { e.waitUntil(net.catch(() => {})); return hit; }
+  return net.catch(() => fetch(r)).catch(async () => hit || (await caches.match("/offline.html")) || Response.error());
+}
 function pageKey(r) { const u = new URL(r.url); return u.origin + u.pathname; }
 function keepPage(e, r, res) {
   if (!res || res.status !== 200 || res.type !== "basic" || NO_KEEP.test(new URL(r.url).pathname)) return;

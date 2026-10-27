@@ -290,9 +290,28 @@ function resize(file,maxPx,cb){
   img.src=url;
 }
 
+/* Last visit's profile, kept on this device so the page fills in at once and the fetches only refresh it.
+   The avatar's signed URL is reused while it has 10+ minutes left (it lasts an hour). */
+const PK=()=>'jd_prof_'+me.id;
+function profCache(){try{return JSON.parse(localStorage.getItem(PK())||'null')||{};}catch(e){return {};}}
+function profSave(v){try{localStorage.setItem(PK(),JSON.stringify(Object.assign(profCache(),v)));}catch(e){}}
+function profFromCache(){
+  const c=profCache();
+  if(c.p){Object.assign(me,c.p);renderProfile(c.p);}
+  if(c.av&&Date.now()-c.avAt<50*60000)$('av-img').src=c.av;
+  if(c.bal!=null)$('bal').textContent=c.bal;
+}
 async function loadProfile(){
   const {data:p}=await sb.from('players').select('username, player_tag, discord_username, squad_name, squad_logo, app_installed_at').eq('id',me.id).maybeSingle();
   Object.assign(me,p||{});
+  if(p)profSave({p});
+  renderProfile(p);
+  const c=profCache();
+  if(!(c.av&&Date.now()-c.avAt<50*60000))sb.storage.from('avatars').createSignedUrl(`${me.id}/avatar.jpg`,3600).then(({data:a})=>{
+    if(a&&a.signedUrl){$('av-img').src=a.signedUrl;profSave({av:a.signedUrl,avAt:Date.now()});}
+  },()=>{});
+}
+function renderProfile(p){
   $('uname').textContent=me.username?'@'+me.username:'Player';
   if(p&&p.app_installed_at&&!$('app-badge')){const ab=document.createElement('span');ab.id='app-badge';ab.title='JD Arena app user';ab.textContent=' 📱';$('uname').after(ab);}
   $('ptag').textContent=me.player_tag||'';
@@ -300,8 +319,6 @@ async function loadProfile(){
   $('pemail').textContent=me.email||'';
   $('chg-user-s').textContent=me.username?'@'+me.username:'';
   renderSquad();
-  const {data:a}=await sb.storage.from('avatars').createSignedUrl(`${me.id}/avatar.jpg`,3600);
-  if(a&&a.signedUrl)$('av-img').src=a.signedUrl;
 }
 function renderSquad(){
   $('sq-name').textContent=me.squad_name||'No squad saved yet';
@@ -310,12 +327,14 @@ function renderSquad(){
   $('sq-remove').hidden=!me.squad_logo;
 }
 async function loadWallet(){
-  const [{data:w},{data:l}]=await Promise.all([
+  const [{data:w,error:we},{data:l}]=await Promise.all([
     sb.from('wallets').select('balance, unlimited').eq('player_id',me.id).maybeSingle(),
     sb.from('wallet_ledger').select('delta, reason, created_at').eq('player_id',me.id).order('created_at',{ascending:false}).limit(3)
   ]);
+  if(we)return;   // offline / failed: keep the balance already showing (the cached one) instead of a 0
   const unl=!!(w&&w.unlimited);
   $('bal').textContent=unl?'100B':((w&&w.balance)||0).toLocaleString();
+  profSave({bal:$('bal').textContent});
   if(unl){$('bal-sub').textContent='Admin wallet · 100 billion points';$('wd-link').hidden=true;}
   const R={optimizer:'JD-Optimiers plan',challenge_stake:'Challenge stake',challenge_win:'Challenge won',challenge_refund:'Challenge refund',load:'Points loaded',prize:'Tournament prize',entry:'Tournament entry',effect:'Squad effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Entry refund',adjust:'Adjustment'};
   $('recent').innerHTML=(l||[]).length?(l.map(x=>`<div><span>${R[x.reason]||x.reason} · ${fmtDate(x.created_at)}</span><b class="${x.delta>0?'plus':''}">${x.delta>0?'+':'−'}${Math.abs(x.delta)}</b></div>`).join('')):'<div><span>No transactions yet.</span></div>';
@@ -410,7 +429,7 @@ $('av-file').onchange=e=>{
     const blob=await (await fetch(uri)).blob();
     const {error}=await sb.storage.from('avatars').upload(`${me.id}/avatar.jpg`,blob,{upsert:true,contentType:'image/jpeg'});
     if(error){toast(error.message);return;}
-    $('av-img').src=uri;toast('Profile picture updated');
+    $('av-img').src=uri;profSave({av:uri,avAt:Date.now()});toast('Profile picture updated');
   });
 };
 /* username */
@@ -426,6 +445,7 @@ $('un-save').onclick=async()=>{
 // app 2.0+: stop this phone getting the player's alerts (delete_fcm_token only matches while still signed in)
 $('logout').onclick=async()=>{
   if(window.JDApp)await new Promise(res=>{window.__jdToken=async t=>{try{if(t&&!/^ERR/.test(t))await sb.rpc('delete_fcm_token',{p_token:t});}catch(e){}res();};try{JDApp.pushToken();}catch(e){res();}setTimeout(res,4000);});
+  try{localStorage.removeItem(PK());}catch(e){}
   await sb.auth.signOut();location.href='/';};
 
 /* invite friends: my_referrals() / set_referrer() (supabase/pass_prize_referral.sql) */
@@ -459,9 +479,10 @@ $('ref-save').onclick=async()=>{
   const {data:{session}}=await sb.auth.getSession();
   if(!session){$('gate').hidden=false;return;}
   me={id:session.user.id,email:session.user.email,verified:!!session.user.email_confirmed_at};
+  profFromCache();
   $('app').hidden=false;
-  await loadProfile();
-  await Promise.all([loadWallet(),loadStats(),loadTournaments(),loadFx(),loadInvite(),loadOptHistory().catch(()=>{})]);
+  // all at once - only the career stats need the player tag from the profile row
+  await Promise.all([loadProfile().then(loadStats),loadWallet(),loadTournaments(),loadFx(),loadInvite(),loadOptHistory().catch(()=>{})]);
   setInterval(()=>{if(!document.hidden)loadWallet();},20000);
 })();
 </script>
