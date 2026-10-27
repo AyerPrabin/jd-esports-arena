@@ -752,6 +752,10 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 }
 @media(min-width:641px) and (max-width:900px){.nav-link{padding:0 5px!important;font-size:.74rem!important}.brand>span{display:none}.lang-btn.acct-btn-signed{font-size:0;padding:0 5px!important;gap:0}.pts-pill .pts-unit{display:none}.bar-right{gap:6px}}
 @media(min-width:641px) and (max-width:780px){.dl-wrap{display:none!important}}
+/* tablets / small laptops: the full row (links + Sign up + Login + Download) is ~1200px wide and Sign up / Login
+   were cut off the edge - drop the brand text and the PC Optimizer link (still in Download > Windows PC) */
+@media(min-width:641px) and (max-width:1199px){.brand>span{display:none}html .bar-nav .nav-link.pc-opt{display:none!important}}
+@media(min-width:641px) and (max-width:719px){html .bar-nav .nav-link[href="/leaderboard.html"]{display:none!important}}
 /* ── mobile header: points pill, bell and menu share one size, shape and spacing ── */
 .nt-lines{position:relative;display:block;width:18px;height:12px}
 .nt-lines i{position:absolute;left:0;width:100%;height:2px;border-radius:2px;background:currentColor;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .2s,top .3s cubic-bezier(.16,1,.3,1)}

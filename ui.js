@@ -1,6 +1,7 @@
 // JD Arena shared UI: injects the phone bottom tab bar (styled in /ui.css, shown only
 // at <=640px) on every player-facing page, and marks the current tab. Icons are
 // Phosphor "bold" (MIT, @phosphor-icons/core), inlined so there's no icon-font download.
+if (window.JDApp || /JDArenaApp\//.test(navigator.userAgent)) document.documentElement.classList.add('jd-app'); // see html.jd-app in ui.css
 (function () {
   if (document.querySelector('.tabbar')) return;
   var P = function (d) { return '<svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="' + d + '"/></svg>'; };

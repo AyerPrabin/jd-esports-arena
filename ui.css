@@ -18,6 +18,10 @@
   --ui-muted:#8A94A8;
   --ui-line:rgba(255,200,80,.14);
 }
+/* JD Arena app 2.0+ (html.jd-app, set by ui.js): the app already keeps the page clear of the status bar and the
+   phone's back/home buttons, and newer Android WebViews report the same space again as safe-area insets - which
+   lifted the bottom tabs far too high. Inside the app the page adds no safe-area space of its own. */
+html.jd-app{--safe-b:0px;--safe-t:0px}
 
 /* ── base ── */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}

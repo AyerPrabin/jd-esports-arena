@@ -23,9 +23,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/home.css?v=6">
+<link rel="stylesheet" href="/home.css?v=10">
 <link rel="stylesheet" href="/effects-pro.css">
-<link rel="stylesheet" href="/ui.css?v=17">
+<link rel="stylesheet" href="/ui.css?v=18">
 <link rel="stylesheet" href="/broadcast.css?v=5">
 <link rel="stylesheet" href="/effects-styles.css?v=2">
 </head>
@@ -46,7 +46,7 @@
       <a id="pts-pill" class="pts-pill" href="/wallet/" aria-label="Points wallet" hidden><span class="jd-coin" aria-hidden="true">JD</span><b id="pts-bal">0</b><span class="pts-unit">pts</span></a>
       <button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History">🔔<span class="badge" id="notif-badge" hidden>0</span></button>
       <button class="nav-toggle" id="nav-toggle-btn" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="acct-nav"><span class="nt-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
-      <script>(function(){var u=navigator.userAgent||"",mob=/Android|iPhone|iPad|iPod|Mobile/i.test(u);if(!mob&&(/Windows NT/i.test(u)||(matchMedia("(pointer:fine)").matches&&innerWidth>=900)))document.documentElement.classList.add("is-pc");})();</script><nav class="bar-nav" id="acct-nav"><a class="lang-btn nav-m" id="nav-pts" href="/wallet/" hidden><span>🪙 Points wallet</span><b id="nav-pts-bal">0</b></a><button type="button" class="lang-btn nav-m" id="nav-notif" onclick="notifHistOpen()"><span>🔔 Notifications</span><b id="nav-notif-count" hidden>0</b></button><a class="lang-btn nav-link" href="/challenges/">⚔️ Challenges</a><a class="lang-btn nav-link" href="/events/" data-i18n="evnav">📅 Events</a><a class="lang-btn nav-link" href="/pass/">🎟 Weekly Pass</a><a class="lang-btn nav-link" href="/leaderboard.html">🏆 Leaderboard</a><button type="button" class="lang-btn nav-link" onclick="closeMobileNav();authOpen('support')">🎧 Help &amp; Support</button><a class="lang-btn nav-link pc-only pc-opt" href="/optimizer/">🚀 PC Optimizer</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="mod-btn" class="lang-btn nav-link" href="/mod/" style="display:none">🛡 Mod</a><a id="admin-btn" class="lang-btn nav-link" href="/admin/" style="display:none">🛠 Admin</a><a id="zulu-admin-btn" class="lang-btn nav-link" href="/admin/#zulu" style="display:none">🤖 ZULU</a><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none" aria-label="Settings" title="Settings"><span class="sb-ic" aria-hidden="true">⚙️</span><span class="sb-lbl"> Settings</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button><a class="pc-only" href="/optimizer/" onclick="closeDlMenu()">💻 Windows PC</a></div></div></nav>
+      <script>(function(){var u=navigator.userAgent||"",mob=/Android|iPhone|iPad|iPod|Mobile/i.test(u);if(!mob&&(/Windows NT/i.test(u)||(matchMedia("(pointer:fine)").matches&&innerWidth>=900)))document.documentElement.classList.add("is-pc");})();</script><nav class="bar-nav" id="acct-nav"><a class="lang-btn nav-m" id="nav-pts" href="/wallet/" hidden><span>🪙 Points wallet</span><b id="nav-pts-bal">0</b></a><button type="button" class="lang-btn nav-m" id="nav-notif" onclick="notifHistOpen()"><span>🔔 Notifications</span><b id="nav-notif-count" hidden>0</b></button><a class="lang-btn nav-link" href="/challenges/">⚔️ Challenges</a><a class="lang-btn nav-link" href="/events/" data-i18n="evnav">📅 Events</a><a class="lang-btn nav-link" href="/pass/">🎟 Weekly Pass</a><a class="lang-btn nav-link" href="/leaderboard.html">🏆 Leaderboard</a><button type="button" class="lang-btn nav-m" onclick="closeMobileNav();authOpen('support')"><span>🎧 Help &amp; Support</span></button><a class="lang-btn nav-link pc-only pc-opt" href="/optimizer/">🚀 PC Optimizer</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="mod-btn" class="lang-btn nav-link" href="/mod/" style="display:none">🛡 Mod</a><a id="admin-btn" class="lang-btn nav-link" href="/admin/" style="display:none">🛠 Admin</a><a id="zulu-admin-btn" class="lang-btn nav-link" href="/admin/#zulu" style="display:none">🤖 ZULU</a><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none" aria-label="Settings" title="Settings"><span class="sb-ic" aria-hidden="true">⚙️</span><span class="sb-lbl"> Settings</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button><a class="pc-only" href="/optimizer/" onclick="closeDlMenu()">💻 Windows PC</a></div></div></nav>
     </div>
   </div>
   <div class="nav-scrim" id="nav-scrim" onclick="closeMobileNav()"></div>
@@ -350,7 +350,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
 <script src="/ads.js?v=6" defer></script>
 <script src="/home.js?v=18"></script>
-<script src="/ui.js?v=21" defer></script>
+<script src="/ui.js?v=22" defer></script>
 <script src="/chat.js?v=25" defer></script>
 <script src="/fx-engine.js?v=4" defer></script>
 </body>
