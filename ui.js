@@ -108,7 +108,7 @@
   n.className = 'storage-note';
   n.setAttribute('role', 'region');
   n.setAttribute('aria-label', 'Storage notice');
-  n.innerHTML = '<p>We only store what the site needs to work, like your login and language. No ads, no tracking cookies. <a href="/privacy/#cookies">Privacy policy</a></p><button type="button">OK</button>';
+  n.innerHTML = '<p>We only store what the site needs to work, like your login and language. No tracking or ad cookies. <a href="/privacy/#cookies">Privacy policy</a></p><button type="button">OK</button>';
   n.querySelector('button').onclick = function () {
     try { localStorage.setItem('jd_storage_note', '1'); } catch (e) {}
     n.remove();

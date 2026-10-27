@@ -71,7 +71,7 @@ if(sb)sb.auth.getSession().then(r=>{if(!(r&&r.data&&r.data.session))document.get
 else document.getElementById('cp-signin').hidden=false;
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'}).catch(()=>{});
 </script>
-<script src="/ui.js?v=18" defer></script>
+<script src="/ui.js?v=19" defer></script>
 <script src="/chat.js?v=23" defer></script>
 </body>
 </html>

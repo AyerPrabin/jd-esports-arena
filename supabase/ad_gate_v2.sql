@@ -50,7 +50,7 @@ begin
   perform pg_advisory_xact_lock(hashtext('ad:' || auth.uid()::text));
   select max(viewed_at) into v_last from public.ad_views where player_id = auth.uid();
   if v_last is not null and v_last + make_interval(secs => c.gap_seconds) > now() then
-    raise exception 'AD_COOLDOWN: next ad at %', to_char(v_last + make_interval(secs => c.gap_seconds) at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"');
+    raise exception 'AD_COOLDOWN: next ad at %', to_char((v_last + make_interval(secs => c.gap_seconds)) at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"');
   end if;
   if p_kind = 'hourly' and (public._ad_quiet(auth.uid())
      or (v_last is not null and v_last + make_interval(mins => c.hourly_minutes) > now())) then

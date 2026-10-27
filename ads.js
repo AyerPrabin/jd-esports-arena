@@ -78,7 +78,8 @@
               'Watch ' + st.needed + ' short ads back to back to join this free tournament. Weekly Pass holders skip the ads.') + '</p>' +
             '<div class="dots">' + dots + '</div><div class="err">' + (msg || '') + '</div>' +
             (ready ? '<button class="go" data-a="join">Join now</button>'
-              : admob && !app ? '<p>The ads play in the JD Arena Android app.</p><button class="go" data-a="getapp">Get the JD Arena app</button>'
+              : admob && !app ? '<p>The ads play in the JD Arena Android app. On iPhone or the website, a Weekly Pass lets you join with no ads.</p>' +
+                '<button class="go" data-a="getapp">Get the Android app</button><button class="alt" data-a="pass">Get a Weekly Pass - no ads</button>'
               : '<button class="go" data-a="watch"' + (wait ? ' disabled' : '') + '>' + (wait ? 'Next ad in ' + fmtWait(st.next_at) : 'Watch ad ' + (st.have + 1) + ' of ' + st.needed) + '</button>' +
                 '<button class="alt" data-a="pass">Get a Weekly Pass - no ads</button>') +
             '<button class="alt" data-a="close">Later</button></div>';
