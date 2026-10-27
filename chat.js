@@ -37,7 +37,7 @@
   var PAGE = document.getElementById('chat-page');
 
   var css = document.createElement('link');
-  css.rel = 'stylesheet'; css.href = '/chat.css?v=11';
+  css.rel = 'stylesheet'; css.href = '/chat.css?v=12';
   document.head.appendChild(css);
 
   var NE = false;
@@ -245,7 +245,7 @@
   // cur = the open conversation: { kind: 'dm'|'group'|'match'|'zulu', id, ... }
   var me = null, myCard = null, isOpen = false, tab = 'all', ov = null, th = null, cur = null, filter = '';
   var msgs = [], hasOlder = false, threadTimer = null, polled = false, lastAt = 0;
-  var badge = { dm: 0, g: 0, m: 0, requests: 0, z: 0, jd: 0, al: 0 }, jdLast = null, sending = false, tmp = 0, bannerTimer = null, pendingDeepLink = null;
+  var badge = { dm: 0, g: 0, m: 0, requests: 0, z: 0, jd: 0, al: 0 }, jdLast = null, sending = false, tmp = 0, bannerTimer = null, pendingDeepLink = null, wantReply = false;
   var ginfo = null, readMark = 0;
   var recs = null, recAt = 0, tourCache = null, zuluWait = null, chipFor = null;
   var MENTION = /(^|[^a-z0-9_])@zulu\b/i;
@@ -887,7 +887,11 @@
       inp.addEventListener('focus', function () { setTimeout(fitKeyboard, 250); });
       $('dm-form').onsubmit = function (e) { e.preventDefault(); send(); };
       $('dm-like').onclick = function () { send('👍'); };
-      if (!phone()) setTimeout(function () { try { inp.focus(); } catch (e) {} }, 60);
+      if (wantReply) {   // opened from a notification's "Reply": typing box ready (and glowing, in case the keyboard stays down)
+        wantReply = false; inp.classList.add('dm-pulse');
+        setTimeout(function () { try { inp.focus(); } catch (e) {} }, 350);
+        setTimeout(function () { inp.classList.remove('dm-pulse'); }, 4000);
+      } else if (!phone()) setTimeout(function () { try { inp.focus(); } catch (e) {} }, 60);
     }
     stopThread();
     if (p.kind === 'zulu') {
@@ -1653,8 +1657,9 @@
   // /?alerts=1 (the app's "Alerts" shortcut)
   try {
     var q = new URLSearchParams(location.search), dm = q.get('dm'), g = q.get('g'), ch = q.get('chat'), jdq = q.get('jd'), zq = q.get('zulu'), aq = q.get('alerts');
+    if (q.get('reply') && (dm || g || jdq || zq)) wantReply = true;   // the notification's "Reply" button
     if (dm || g || ch || jdq || zq || aq) {
-      q.delete('dm'); q.delete('g'); q.delete('chat'); q.delete('jd'); q.delete('zulu'); q.delete('alerts');
+      q.delete('dm'); q.delete('g'); q.delete('chat'); q.delete('jd'); q.delete('zulu'); q.delete('alerts'); q.delete('reply');
       history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
       if (jdq) pendingDeepLink = openJd;
       else if (aq) pendingDeepLink = openAlerts;

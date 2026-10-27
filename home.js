@@ -1592,7 +1592,7 @@ async function loadMyRegs(){
   _myPassEnd=passes.length?passes[passes.length-1].expires_at:null;
   renderCur();
 }
-function registerInApp(name){
+async function registerInApp(name){
   if(!sb)return;
   if(!_player){authOpen('login');return;}
   const t=((_lastData||ARENA_SAMPLE).tournaments||[]).find(x=>x.name===name)||{};
@@ -1610,6 +1610,8 @@ function registerInApp(name){
       .then(ok=>{if(ok)goWallet('load');});
     return;
   }
+  /* free events: 3 rewarded ads first when the ad gate is on (ads.js + ad_gate.sql; Weekly Pass skips it) */
+  if(!paid&&!_myRegs.has(name)&&window.jdAds&&!(await jdAds.gate(sb,name)))return;
   _regTarget=name;_regLogoData=null;_regPayData=null;
   document.getElementById('reg-tname').textContent=name;
   // saved squad: name pre-filled, logo reused — they only upload again to change it
@@ -1796,6 +1798,7 @@ async function submitRegister(){
   if(error){
     if(/duplicate/i.test(error.message))msg.textContent="You're already registered for this one.";
     else if(/tournament full/i.test(error.message))msg.textContent='This tournament just filled up — all squad slots are taken.';
+    else if(/ADS_NEEDED/.test(error.message)){msg.textContent=error.message.replace(/^.*ADS_NEEDED:\s*/,'');msg.className='msg err';if(window.jdAds)jdAds.gate(sb,name,true).then(ok=>{if(ok)submitRegister();});return;}
     else if(/weekly pass/i.test(error.message)){msg.innerHTML=esc(error.message.replace(/\s*Get it at jdesport\.co\.uk\/pass\.?$/,''))+' <a href="/pass/" style="color:var(--gold-l);font-weight:700;text-decoration:underline">Get a Weekly Pass →</a>';}
     else msg.textContent=error.message; // covers the ban / mobile-only / emulator-only messages raised server-side, already human-readable
     msg.className='msg err';return;

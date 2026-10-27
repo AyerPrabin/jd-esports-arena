@@ -233,6 +233,8 @@ button.dm-row:hover{background:rgba(255,255,255,.05)}
 .dm-compose textarea{flex:1;min-width:0;max-height:120px;min-height:42px;padding:10px 16px;border-radius:21px;border:1px solid var(--dm-line);background:var(--dm-panel-2);color:var(--dm-text);
   font:500 .92rem/1.35 var(--font-body,system-ui);resize:none;outline:none;transition:border-color .2s}
 .dm-compose textarea:focus{border-color:var(--dm-line-2)}
+.dm-compose textarea.dm-pulse{border-color:var(--dm-gold);animation:dmPulse 1s ease-out 3}
+@keyframes dmPulse{0%{box-shadow:0 0 0 0 rgba(255,200,61,.55)}100%{box-shadow:0 0 0 12px rgba(255,200,61,0)}}
 .dm-send{flex:none;width:42px;height:42px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;background:var(--dm-gold);color:#0A0A12;transition:transform .15s,opacity .2s}
 .dm-send:disabled{opacity:.35;cursor:default}
 .dm-send:not(:disabled):active{transform:scale(.9)}

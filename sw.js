@@ -117,13 +117,17 @@ self.addEventListener("push", e => {
     const loud = STYLE.sticky || !old || now - (od.buzzAt || 0) > 30000;
     const t0 = d.title || "JD Arena";
     const title = (STYLE.pre && !t0.includes(STYLE.pre.trim()) ? STYLE.pre : "") + t0 + (count > 1 && (chat || room) ? ` · ${count} new` : "");
-    const actions = chat ? [{ action: "open", title: "💬 Reply" }] : room ? [{ action: "open", title: "⚔️ Open room" }] : STYLE.action ? [{ action: "open", title: STYLE.action }] : [];
+    // messages: "Reply" opens the chat with the typing box ready, "Dismiss" just clears it (Android shows 2 buttons max)
+    const actions = chat ? [{ action: "reply", title: "💬 Reply" }, { action: "dismiss", title: "✓ Dismiss" }]
+      : room ? [{ action: "open", title: "⚔️ Open room" }] : STYLE.action ? [{ action: "open", title: STYLE.action }] : [];
+    // a bundled chat alert shows the last 3 messages, newest at the bottom, instead of only the newest one
+    const lines = chat ? (od.lines || []).concat(d.body || "").filter(Boolean).slice(-3) : [];
     // if a browser rejects any of the extras, still show a plain alert (a push without a
     // visible notification can get the subscription cancelled)
     const plain = () => self.registration.showNotification(d.title || "JD Arena", {
       body: d.body || "You have a new notification.", icon: "/icon-192.png", badge: "/badge-96.png", tag, data: { url } });
     try { await self.registration.showNotification(title, {
-      body: d.body || "You have a new notification.",
+      body: (lines.length > 1 ? lines.join("\n") : d.body) || "You have a new notification.",
       icon: STYLE.icon,
       badge: "/badge-96.png",
       tag,
@@ -133,16 +137,26 @@ self.addEventListener("push", e => {
       vibrate: loud ? STYLE.vibrate : undefined,
       actions,
       timestamp: now,
-      data: { url, count, buzzAt: loud ? now : od.buzzAt },
+      data: { url, count, buzzAt: loud ? now : od.buzzAt, lines },
     }); } catch (x) { await plain(); }
     try { if (self.navigator.setAppBadge) await self.navigator.setAppBadge(); } catch (x) {}
   })());
 });
 
 // Tap: focus an open JD Arena tab (and take it to the link) or open a new one.
+// "Reply" adds reply=1 so the chat opens with the typing box focused; "Dismiss" only clears the alert
+// (and the app-icon dot once no JD alerts are left).
 self.addEventListener("notificationclick", e => {
   e.notification.close();
-  const url = new URL((e.notification.data && e.notification.data.url) || "/", self.location.origin).href;
+  if (e.action === "dismiss") {
+    e.waitUntil((async () => {
+      try { if (!(await self.registration.getNotifications()).length && self.navigator.clearAppBadge) await self.navigator.clearAppBadge(); } catch (x) {}
+    })());
+    return;
+  }
+  const u = new URL((e.notification.data && e.notification.data.url) || "/", self.location.origin);
+  if (e.action === "reply") u.searchParams.set("reply", "1");
+  const url = u.href;
   e.waitUntil((async () => {
     const wins = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
     for (const w of wins) {
