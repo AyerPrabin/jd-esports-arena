@@ -35,6 +35,11 @@ header{padding:20px var(--gutter);border-bottom:1px solid var(--line)}
 main{max-width:var(--container);margin:0 auto;padding:40px 0 80px}
 footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8rem}
 .next{margin-top:28px;display:flex;gap:10px;flex-wrap:wrap}
+/* best of 3: the three maps as mini tiles in place of the single map picture */
+.pe-img.pe-maps{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;overflow:hidden;background:#0d1320;filter:none}
+.pe-maps i{position:relative;background-size:cover;background-position:center;filter:saturate(.75);display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px}
+.pe-maps i.rnd{background:repeating-linear-gradient(135deg,#1a2233 0 6px,#151c2b 6px 12px);align-items:center;padding:0;font-style:normal;font-size:.9rem}
+.pe-maps b{font-size:.55rem;font-weight:800;color:#111;background:#FFC83D;border-radius:3px;padding:0 3px;line-height:1.4}
 </style>
 <link rel="stylesheet" href="/effects.css">
 <link rel="stylesheet" href="/ui.css?v=18">
@@ -82,6 +87,15 @@ function status(t){
   return s;
 }
 function mapOf(t){const m=String(t.map||'').toLowerCase();return MAPS.find(x=>m.includes(x))||'bermuda';}
+// best of 3 (from 28 Oct 2026): map / map2 / map3, each a map or 'random' (same fields as the homepage cards)
+const MAP_NAME={bermuda:'Bermuda',purgatory:'Purgatory',kalahari:'Kalahari',alpine:'Alpine',nexterra:'NeXTerra'};
+const isBo3=t=>!t.image&&(t.map2||t.map3);
+const bo3Keys=t=>[t.map,t.map2,t.map3].map(k=>String(k||'random').toLowerCase());
+function mapsHtml(t){
+  return `<div class="pe-img pe-maps" aria-hidden="true">${bo3Keys(t).map((k,i)=>MAP_NAME[k]
+    ?`<i style="background-image:url('/maps/ff-${k}.webp')"><b>M${i+1}</b></i>`:`<i class="rnd" title="Random">🎲</i>`).join('')}</div>`;
+}
+const mapsLine=t=>bo3Keys(t).map(k=>MAP_NAME[k]||'🎲 Random').join(' · ');
 function fmtDate(t){
   if(t.date)return t.date;
   const ms=Date.parse(t.start);
@@ -124,10 +138,10 @@ async function load(){
     const img=t.image||('/maps/ff-'+mapOf(t)+'.webp');
     const entry=String(t.entry||'Free').trim();
     return `<div class="pe-card" role="button" tabindex="0" aria-expanded="false">
-      <div class="pe-img" style="background-image:url('${esc(img)}')"></div>
+      ${isBo3(t)?mapsHtml(t):`<div class="pe-img" style="background-image:url('${esc(img)}')"></div>`}
       <div class="pe-main">
         <div class="pe-name">${esc(t.name)}${t.host?` <small style="font-size:.72em;color:#CFE0FF;font-weight:600">· hosted by @${esc(String(t.host).replace(/^@+/,''))}</small>`:''}</div>
-        <div class="pe-meta">${fmtDate(t)?`<span>📅 <b>${esc(fmtDate(t))}</b></span>`:''}${n?`<span>👥 <b>${n}</b> squad${n===1?'':'s'}</span>`:''}${t.prize?`<span>🏆 <b>${esc(t.prize)}</b></span>`:''}<span>${/^free$/i.test(entry)?'Free entry':'Entry '+esc(entry)}</span></div>
+        <div class="pe-meta">${fmtDate(t)?`<span>📅 <b>${esc(fmtDate(t))}</b></span>`:''}${n?`<span>👥 <b>${n}</b> squad${n===1?'':'s'}</span>`:''}${t.prize?`<span>🏆 <b>${esc(t.prize)}</b></span>`:''}<span>${/^free$/i.test(entry)?'Free entry':'Entry '+esc(entry)}</span>${isBo3(t)?`<span>🗺 <b>${esc(mapsLine(t))}</b></span>`:''}</div>
         ${st==='completed'&&String(t.winner||'').trim()?`<div class="pe-win">👑 ${esc(t.winner)}</div>`:''}
       </div>
       <span class="pe-status ${st}">${st==='cancelled'?'Cancelled':'Finished'}</span>
