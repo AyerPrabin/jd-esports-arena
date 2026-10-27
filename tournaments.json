@@ -284,6 +284,8 @@
       "status": "upcoming",
       "platform": "Mobile only",
       "platform_mode": "mobile",
+      "map2": "kalahari",
+      "map3": "alpine",
       "teams": [],
       "registered": 0
     }
@@ -512,5 +514,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-27T22:23:27.695Z"
+  "_published_at": "2026-10-27T22:23:41.807Z"
 }
