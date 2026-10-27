@@ -11,7 +11,7 @@
 <title>Weekly Pass — JD Esports Arena</title>
 <meta name="description" content="Free JD tournaments cost no money: watch 3 short ads in the JD Arena app to join, or skip the ads with a Weekly Pass. With a Weekly Pass (Rs 50) you keep your full prize when you win; Weekly Pro Rs 80 adds Pro effects, early registration and waitlist priority.">
 <meta property="og:title" content="JD Weekly Pass — keep your full prize">
-<meta property="og:description" content="Rs 50 / week. Weekly Pro Rs 80: Pro effects, 24 h early registration, waitlist priority, PRO badge.">
+<meta property="og:description" content="Rs 50 / week. Weekly Pro Rs 80: no ads, Pro effects, 24 h early registration, waitlist priority, PRO badge.">
 <meta property="og:image" content="https://jdesport.co.uk/og-image.png">
 <link rel="manifest" href="/manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -99,7 +99,7 @@ select{width:100%;padding:11px 12px;border-radius:12px;background:#0a0e17;color:
 .ov-b{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
-<link rel="stylesheet" href="/ui.css?v=16">
+<link rel="stylesheet" href="/ui.css?v=17">
 </head>
 <body class="pg-pass">
 <div class="wrap">
@@ -121,7 +121,9 @@ select{width:100%;padding:11px 12px;border-radius:12px;background:#0a0e17;color:
       <div class="price"><b>50</b><span>points / 7 days</span></div>
       <p class="sub">Rs 50 · 1 point = Rs 1</p>
       <ul class="grow">
+        <li>Join free tournaments with no ads</li>
         <li>Keep your full prize when you win a free tournament</li>
+        <li>From 1 Nov: at most 2 short ads a day in the app</li>
         <li>Lite squad effect on the roster (Glow or Steel)</li>
         <li>Stack weeks: a new pass starts when the old one ends</li>
         <li>Needed to download and run <a href="/optimizer/" style="color:var(--gold-l)">JD-Optimiers</a> (with an Optimizer plan)</li>
@@ -138,6 +140,7 @@ select{width:100%;padding:11px 12px;border-radius:12px;background:#0a0e17;color:
       <p class="sub">Rs 80 · upgrade from the pass any time</p>
       <ul class="grow">
         <li>Everything in Weekly Pass</li>
+        <li><b>No ads at all</b> in the app</li>
         <li>Pro squad effects: Galaxy, Thunder, Legend and 19 more</li>
         <li>Register 24 h early on early-access events</li>
         <li>First in line when a waitlist slot opens</li>
@@ -248,6 +251,6 @@ document.querySelectorAll('[data-buy]').forEach(b=>b.addEventListener('click',as
   setInterval(()=>{if(!document.hidden)refresh();},20000);
 })();
 </script>
-<script src="/ui.js?v=20" defer></script>
+<script src="/ui.js?v=21" defer></script>
 </body>
 </html>

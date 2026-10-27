@@ -47,6 +47,25 @@
   };
   document.body.classList.add('has-tabbar');
 
+  // Profile tab shows the signed-in player's own picture (or initial), like Instagram/Facebook. home.js calls
+  // jdTabbarMe after sign-in; other pages reuse the copy it keeps (signed avatar URLs last a day).
+  window.jdTabbarMe = function (me) {
+    var a = nav.querySelector('[data-tab="me"]'); if (!a) return;
+    var old = a.querySelector('.tb-me'); if (old) old.remove();
+    var svg = a.querySelector('svg'); if (svg) svg.style.display = '';
+    try { if (me) localStorage.setItem('jd_tb_me', JSON.stringify(me)); else localStorage.removeItem('jd_tb_me'); } catch (e) {}
+    if (!me || !(me.avatar || me.name)) return;
+    var el = document.createElement('span'); el.className = 'tb-me'; el.setAttribute('aria-hidden', 'true');
+    if (me.avatar) {
+      var img = new Image(); img.alt = ''; img.src = me.avatar;
+      img.onerror = function () { el.textContent = (me.name || '?').charAt(0).toUpperCase(); };
+      el.appendChild(img);
+    } else el.textContent = me.name.charAt(0).toUpperCase();
+    if (svg) svg.style.display = 'none';
+    a.insertBefore(el, a.firstChild);
+  };
+  try { var me0 = JSON.parse(localStorage.getItem('jd_tb_me') || 'null'); if (me0 && Date.now() - (me0.at || 0) < 20 * 3600000) window.jdTabbarMe(me0); } catch (e) {}
+
   // On the homepage, Home/Events are in-page: keep the highlight in sync with what's on screen.
   if (current === 'home' || current === 'events') {
     var sec = document.getElementById('tournaments');

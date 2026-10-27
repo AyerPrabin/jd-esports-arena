@@ -45,7 +45,7 @@ main{flex:1;min-height:0;width:100%;max-width:1120px;margin:0 auto;padding:16px 
   main{padding:0}
 }
 </style>
-<link rel="stylesheet" href="/ui.css?v=16">
+<link rel="stylesheet" href="/ui.css?v=17">
 <link rel="stylesheet" href="/broadcast.css?v=5">
 </head>
 <body class="chat-page">
@@ -71,7 +71,7 @@ if(sb)sb.auth.getSession().then(r=>{if(!(r&&r.data&&r.data.session))document.get
 else document.getElementById('cp-signin').hidden=false;
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'}).catch(()=>{});
 </script>
-<script src="/ui.js?v=20" defer></script>
+<script src="/ui.js?v=21" defer></script>
 <script src="/chat.js?v=25" defer></script>
 </body>
 </html>

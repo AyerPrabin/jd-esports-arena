@@ -994,7 +994,7 @@ let _gateActive=false; // true while the whole site sits behind the forced login
 let _termsGateActive=false; // true while a signed-in player hasn't accepted the current Terms & Conditions yet
 // Bump when the Terms or Privacy Policy change in a way players must accept again: anyone
 // whose terms_accepted_at is older sees the accept box once on their next visit.
-const TERMS_UPDATED_AT=Date.parse('2026-10-12T14:30:00Z');
+const TERMS_UPDATED_AT=Date.parse('2026-10-27T21:00:00Z');
 
 /* Full login wall: nobody sees tournaments/prizes/how-to-join without an account. Runs
    after every _player change (see authRefreshPlayer) so it always reflects the real
@@ -1597,6 +1597,7 @@ async function claimInvite(){
 }
 function updateAcctBtn(){
   const su=document.getElementById('signup-btn'),ac=document.getElementById('acct-btn'),ad=document.getElementById('admin-btn'),st=document.getElementById('settings-btn');
+  if(typeof window.jdTabbarMe==='function')window.jdTabbarMe(_player?{avatar:_player.avatar||'',name:_player.username||'',at:Date.now()}:null);
   if(!ac)return;
   document.body.classList.toggle('signed-in',!!_player);
   if(!_player){const sk=document.getElementById('streak');if(sk)sk.hidden=true;}

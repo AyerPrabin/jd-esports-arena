@@ -143,7 +143,8 @@
   }
 
   // ── 1 ad per hour in the app (owner rule): a 5-second notice with Skip, then the ad; it banks 1 credit toward
-  // the next free entry. Never for Weekly Pass holders, never from 30 min before one of the player's events
+  // the next free entry. Never for Weekly Pro / Optimizer Max; Basic Weekly Pass at most 2 a day from 1 Nov (server:
+  // ad_status.hourly_ok, ad_pass_tiers.sql); never from 30 min before one of the player's events
   // until 90 min after (Room ID / password time - the server says 'quiet'), never on the challenge-room pages.
   var HOURLY_ASKED = 'jd_ad_hourly_asked';
   function hourly() {
@@ -153,7 +154,7 @@
     whenReady(function () {
       sb.rpc('ad_status').then(function (r) {
         var st = r && r.data;
-        if (!st || !st.enabled || st.exempt || st.quiet || !st.hourly_due || !/^admob:/.test(st.unit || '')) return;
+        if (!st || !st.enabled || !(st.hourly_ok !== undefined ? st.hourly_ok : !st.exempt && !st.quiet && st.hourly_due) || !/^admob:/.test(st.unit || '')) return;
         if (document.getElementById('ad-gate')) return;
         try { localStorage.setItem(HOURLY_ASKED, String(Date.now())); } catch (e) {}
         var box = document.createElement('div'), left = 5, timer;
