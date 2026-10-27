@@ -957,7 +957,12 @@ function tEditorHtml(t,i){
     }).join('');
     const sel=`<div class="f"><label>Status</label><select data-i="${i}" data-k="status">${STATUSES.map(s=>`<option ${(t.status||'upcoming')===s?'selected':''}>${s}</option>`).join('')}</select></div>`;
     const reg=`<div class="f"><label>Register via</label><select data-i="${i}" data-k="register_type">${REG_TYPES.map(s=>`<option ${(t.register_type||'whatsapp')===s?'selected':''}>${s}</option>`).join('')}</select></div>`;
-    const mapSel=`<div class="f"><label>Map <span class="tag">sets the card image</span></label><select data-i="${i}" data-k="map">${MAPS.map(([v,lbl])=>`<option value="${v}" ${(t.map||'bermuda')===v?'selected':''}>${lbl}</option>`).join('')}</select></div>`;
+    // best of 3 (from 28 Oct 2026): one map per match - a fixed map or 🎲 Random (pick it when you make the room,
+    // or press Roll). Match 1's map also sets the card image.
+    const mOpt=(k,cur)=>`<select data-i="${i}" data-k="${k}">${[['random','🎲 Random'],...MAPS].map(([v,lbl])=>`<option value="${v}" ${cur===v?'selected':''}>${lbl}</option>`).join('')}</select>`;
+    const mapSel=`<div class="f full"><label>Maps · best of 3 <span class="tag">match 1 sets the card image</span></label><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">`+
+      `<span>M1</span>${mOpt('map',t.map||'bermuda')}<span>M2</span>${mOpt('map2',t.map2||'random')}<span>M3</span>${mOpt('map3',t.map3||'random')}`+
+      `<button type="button" class="btn ghost" style="font-size:.75rem;padding:6px 10px" onclick="rollMaps(${i})">🎲 Roll 3 different maps</button></div></div>`;
     const platMode=`<div class="f"><label>Device eligibility <span class="tag">enforced server-side</span></label><select data-i="${i}" data-k="platform_mode">${PLATFORM_MODES.map(([v,lbl])=>`<option value="${v}" ${(t.platform_mode||'mixed')===v?'selected':''}>${lbl}</option>`).join('')}</select><p class="hint" style="margin:4px 0 0">Mobile/Emulator-only actually blocks the wrong device at registration (not just a display label) — see the "Platform" text field below for what players see.</p></div>`;
     const early=`<div class="f"><label>📱 Early access <span class="tag">enforced server-side</span></label><select data-i="${i}" data-k="early_access"><option value="" ${t.early_access?'':'selected'}>No</option><option value="yes" ${t.early_access==='yes'?'selected':''}>Yes — app users join 24h early</option></select></div><div class="f"><label>Public registration opens (Nepal time)</label><input type="datetime-local" data-i="${i}" data-regopens="1" value="${esc(isoToLocalInputValue(t.reg_opens))}"><p class="hint" style="margin:4px 0 0">With early access on, app users can join from 24 hours before this, everyone else from this time. Blank = open to everyone now.</p></div>`;
     const startPicker=`<div class="f full"><label>Event start (Nepal date &amp; time) <span class="tag">sets Date, Time &amp; the live countdown together</span></label><input type="datetime-local" data-i="${i}" data-startpicker="1" value="${esc(isoToLocalInputValue(t.start))}"><p class="hint" style="margin:4px 0 0">Leave blank only if the date is genuinely TBA — without it the live site shows no countdown and won't auto-flip this event to "live".</p></div>`;
@@ -1140,12 +1145,12 @@ function chipRow(id,options,cur,onPick){
 function newEventOpen(){
   const base=latestEvent()||{};
   const hm=(isoToLocalInputValue(base.start).slice(11,16))||'22:00';
-  const m=String(base.format||'').match(/(\d+)\s*match/i);
+  const m=String(base.format||'').match(/(\d+)\s*match|best of (\d+)/i);
   Object.assign(NEV,{
     name:nextEventName(),day:addDays(nptToday(),1),time:hm,
     prize:String(base.prize||'300').replace(/[^\d]/g,'')||'300',
     entry:/^\s*free\s*$/i.test(base.entry||'Free')?'0':String(base.entry).replace(/[^\d]/g,'')||'0',
-    slots:String(base.slots||12),matches:m?m[1]:'3',
+    slots:String(base.slots||12),matches:m?(m[1]||m[2]):'3',
     device:deviceOf(base),map:base.map||'bermuda',base
   });
   document.getElementById('nev-name').value=NEV.name;
@@ -1189,7 +1194,7 @@ async function newEventCreate(publish){
   const t={name,game:b.game||'Free Fire BR · Squad',date:f.date,time:f.time,start:f.start,status:'upcoming',
     map:NEV.map,prize:NEV.prize,entry:+NEV.entry?NEV.entry+' points':'Free',
     platform:DEVICE_TEXT[NEV.device]||b.platform||'Mobile only',platform_mode:NEV.device,
-    slots:+NEV.slots||12,format:'BR · '+NEV.matches+(NEV.matches==='1'?' match':' matches'),
+    slots:+NEV.slots||12,format:NEV.matches==='3'?'BR · Best of 3':'BR · '+NEV.matches+(NEV.matches==='1'?' match':' matches'),map2:'random',map3:'random',
     register_type:b.register_type||'whatsapp',register_url:b.register_url||'',winner:'',teams:[]};
   if(b.early_access)t.early_access=b.early_access;
   data.tournaments.push(t);
@@ -1295,16 +1300,16 @@ function zcApplyFields(t,f){
   if(f.prize!==undefined)t.prize=String(f.prize);
   if(f.entry_points!==undefined)t.entry=+f.entry_points?f.entry_points+' points':'Free';
   if(f.slots!==undefined)t.slots=+f.slots;
-  if(f.matches!==undefined)t.format='BR · '+f.matches+(+f.matches===1?' match':' matches');
+  if(f.matches!==undefined)t.format=+f.matches===3?'BR · Best of 3':'BR · '+f.matches+(+f.matches===1?' match':' matches');
   if(f.device){t.platform_mode=f.device;t.platform=DEVICE_LABEL[f.device];}
   if(f.map)t.map=f.map;
   return t;
 }
 function zcBuildEvent(a){
   const b=latestEvent()||{};
-  const t={name:(a.name||nextEventName()).trim(),game:b.game||'Free Fire BR · Squad',status:'upcoming',map:b.map||'bermuda',
+  const t={name:(a.name||nextEventName()).trim(),game:b.game||'Free Fire BR · Squad',status:'upcoming',map:b.map||'bermuda',map2:'random',map3:'random',
     prize:String(b.prize||'300'),entry:b.entry||'Free',platform:DEVICE_LABEL[deviceOf(b)],platform_mode:deviceOf(b),
-    slots:b.slots||12,format:b.format||'BR · 3 matches',register_type:b.register_type||'whatsapp',register_url:b.register_url||'',winner:'',teams:[]};
+    slots:b.slots||12,format:'BR · Best of 3',register_type:b.register_type||'whatsapp',register_url:b.register_url||'',winner:'',teams:[]};
   if(b.early_access)t.early_access=b.early_access;
   zcApplyFields(t,a);
   let err='';
@@ -1400,7 +1405,8 @@ async function zcRun(id){
   if(/_load$|_withdrawal$|credit_points/.test(a.type)){inboxLoad(true);loadDashboard();}
   if(/event|finish|room/.test(a.type))renderMatchDay();
 }
-function addT(){data.tournaments.push({name:'New Tournament',game:'Free Fire BR · Squad',date:'TBA',time:'TBA',start:'',status:'upcoming',map:'bermuda',prize:'Bragging rights + shoutout',entry:'Free',platform:'Mix Device',platform_mode:'mixed',slots:12,format:'BR · 4 matches',register_type:'whatsapp',register_url:'',winner:'',teams:[]});renderT();window.scrollBy(0,200);}
+function rollMaps(i){const m=MAPS.map(x=>x[0]).sort(()=>Math.random()-.5);Object.assign(data.tournaments[i],{map:m[0],map2:m[1],map3:m[2]});renderT();}
+function addT(){data.tournaments.push({name:'New Tournament',game:'Free Fire BR · Squad',date:'TBA',time:'TBA',start:'',status:'upcoming',map:'bermuda',map2:'random',map3:'random',prize:'Bragging rights + shoutout',entry:'Free',platform:'Mix Device',platform_mode:'mixed',slots:12,format:'BR · Best of 3',register_type:'whatsapp',register_url:'',winner:'',teams:[]});renderT();window.scrollBy(0,200);}
 // no confirm: nothing is saved until Publish, and the toast offers Undo
 function delT(i){const t=data.tournaments.splice(i,1)[0];renderT();undoToast('Deleted "'+(t&&t.name||'tournament')+'"',()=>{data.tournaments.splice(i,0,t);renderT();});}
 function addTeam(ti){data.tournaments[ti].teams=data.tournaments[ti].teams||[];data.tournaments[ti].teams.push({name:'',logo:'',members:''});renderT();}

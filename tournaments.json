@@ -241,12 +241,15 @@
       "prize": "300",
       "slots": 12,
       "start": "2026-10-29T21:30:00+05:45",
-      "format": "BR · 3 matches",
+      "format": "BR · Best of 3",
       "status": "upcoming",
       "platform": "Mobile only",
       "platform_mode": "mobile",
       "teams": [],
-      "registered": 0
+      "registered": 0,
+      "map": "random",
+      "map2": "random",
+      "map3": "random"
     },
     {
       "map": "purgatory",
@@ -258,12 +261,14 @@
       "prize": "200",
       "slots": 12,
       "start": "2026-10-31T21:30:00+05:45",
-      "format": "BR · 3 matches",
+      "format": "BR · Best of 3",
       "status": "upcoming",
       "platform": "Mobile only",
       "platform_mode": "mobile",
       "teams": [],
-      "registered": 0
+      "registered": 0,
+      "map2": "random",
+      "map3": "random"
     },
     {
       "name": "JD Free Fire Open #12",
@@ -278,9 +283,11 @@
       "platform": "Mobile only",
       "platform_mode": "mobile",
       "slots": 12,
-      "format": "BR · 3 matches",
+      "format": "BR · Best of 3",
       "teams": [],
-      "registered": 0
+      "registered": 0,
+      "map2": "random",
+      "map3": "random"
     }
   ],
   "bo3": {
