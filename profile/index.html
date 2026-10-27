@@ -108,6 +108,9 @@ input[type=text]:focus{border-color:var(--gold)}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .row .btn{flex:1;min-width:130px;padding:11px}
 .msg{min-height:18px;margin-top:8px;font-size:.8rem}
+.sq-inv{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
+.sq-inv>b{display:block;font-size:.9rem}.sq-inv>small{display:block;margin:3px 0 4px;font-size:.78rem;color:var(--silver)}
+.lnk{background:none;border:none;padding:6px 0 0;color:var(--silver);font-size:.76rem;text-decoration:underline;cursor:pointer}
 .msg.err{color:var(--red)}.msg.ok{color:var(--green)}
 
 /* tournaments */
@@ -217,6 +220,16 @@ input[type=text]:focus{border-color:var(--gold)}
           <button class="btn danger" id="sq-remove" type="button" hidden>Remove logo</button>
         </div>
         <div class="msg" id="sq-msg"></div>
+        <div class="sq-inv">
+          <b>👥 Squad chat</b>
+          <small id="sqi-info">Invite your squad members with one link - they join your squad chat and you can all talk in the app.</small>
+          <div class="row">
+            <button class="btn" id="sqi-share" type="button">Invite squad members</button>
+            <button class="btn ghost" id="sqi-open" type="button">Open squad chat</button>
+          </div>
+          <button class="lnk" id="sqi-reset" type="button" hidden>Make a new link (the old one stops working)</button>
+          <div class="msg" id="sqi-msg"></div>
+        </div>
       </section>
 
       <section class="card" id="invite">
@@ -422,6 +435,34 @@ $('sq-remove').onclick=async()=>{
   if(error){toast(error.message);return;}
   me.squad_logo=null;renderSquad();toast('Logo removed');
 };
+/* squad invite link: everyone who opens it joins the captain's squad chat */
+let sqInv=null;
+async function squadInvite(reset){
+  const msg=$('sqi-msg');msg.className='msg';msg.textContent='Getting your squad link…';
+  const {data,error}=await sb.rpc('squad_invite',{p_reset:!!reset});
+  if(error){msg.className='msg err';msg.textContent=error.message;return null;}
+  sqInv=data;msg.textContent='';
+  $('sqi-info').textContent=`${data.name} · ${data.members}/${data.max} in the squad chat`;
+  $('sqi-reset').hidden=false;
+  return data;
+}
+const sqLink=d=>`https://jdesport.co.uk/chat/?join=${d.code}`;
+$('sqi-share').onclick=async()=>{
+  const d=sqInv||await squadInvite(false);if(!d)return;
+  const link=sqLink(d),text=`Join our squad ${d.name} on JD Esports Arena - tap to join our squad chat:`;
+  if(navigator.share){try{await navigator.share({title:'Join '+d.name,text,url:link});return;}catch(e){if(e&&e.name==='AbortError')return;}}
+  try{await navigator.clipboard.writeText(text+' '+link);$('sqi-msg').className='msg ok';$('sqi-msg').textContent='Link copied - paste it in your squad WhatsApp group.';}
+  catch(e){$('sqi-msg').className='msg ok';$('sqi-msg').textContent=link;}
+  window.open('https://wa.me/?text='+encodeURIComponent(text+' '+link),'_blank','noopener');
+};
+$('sqi-open').onclick=async()=>{
+  const d=sqInv||await squadInvite(false);if(!d)return;
+  location.href='/chat/?g='+d.group_id;
+};
+$('sqi-reset').onclick=async()=>{
+  if(!confirm('Make a new squad link? The old link will stop working (people already in the chat stay).'))return;
+  const d=await squadInvite(true);if(d){$('sqi-msg').className='msg ok';$('sqi-msg').textContent='New link ready - tap Invite squad members to share it.';}
+};
 /* avatar */
 $('av-file').onchange=e=>{
   const f=e.target.files[0];e.target.value='';if(!f)return;
@@ -487,6 +528,6 @@ $('ref-save').onclick=async()=>{
 })();
 </script>
 <script src="/ui.js?v=23" defer></script>
-<script src="/chat.js?v=26" defer></script>
+<script src="/chat.js?v=27" defer></script>
 </body>
 </html>

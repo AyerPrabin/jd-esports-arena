@@ -1,6 +1,8 @@
 // Admin-only: points wallet management (see the wallet section of schema.sql).
 //   { action: 'lookup', q }                                  -> player (tag / username / email) + balance
 //   { action: 'credit', player_id, amount, ref, note? }      -> add verified eSewa payment as points
+//   { action: 'refundables', player_id }                    -> recent charges + how much is left to refund
+//   { action: 'refund', player_id, ledger_id?, amount?, reason? } -> refund a charge (or a custom amount)
 //   { action: 'withdrawals' }                                 -> pending withdrawal requests
 //   { action: 'resolve', id, paid: bool, payout_ref? }        -> mark paid, or reject (points returned)
 //   { action: 'loads' }                                       -> pending eSewa screenshots from /wallet/
@@ -158,6 +160,21 @@ Deno.serve(async (req: Request) => {
     });
     if (error) return fail(error.message);
     return json({ balance: data });
+  }
+
+  // refunds: the player's refundable charges, and the refund itself (rules in admin_refund.sql)
+  if (p.action === 'refundables') {
+    const { data, error } = await supabase.rpc('admin_refundables', { p_player: p.player_id });
+    if (error) return fail(error.message);
+    return json(data || []);
+  }
+  if (p.action === 'refund') {
+    const amount = p.amount === null || p.amount === undefined || p.amount === '' ? null : parseInt(p.amount);
+    const { data, error } = await supabase.rpc('admin_refund', {
+      p_player: p.player_id, p_ledger: p.ledger_id || null, p_amount: amount, p_reason: p.reason || null,
+    });
+    if (error) return fail(error.message);
+    return json(data); // the player's notification (and its push) is inserted by admin_refund
   }
 
   if (p.action === 'withdrawals') {

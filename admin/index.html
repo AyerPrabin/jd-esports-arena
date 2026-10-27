@@ -2101,7 +2101,7 @@ async function waCall(body){
   if(!r.ok)throw new Error(await r.text());
   return r.json();
 }
-const WA_REASON={optimizer:'Optimizer plan',challenge_stake:'Challenge stake',challenge_win:'Challenge won',challenge_refund:'Challenge refund',prize:'Prize',load:'Loaded',entry:'Entry',effect:'Effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Refund',adjust:'Adjustment'};
+const WA_REASON={optimizer:'Optimizer plan',challenge_stake:'Challenge stake',challenge_win:'Challenge won',challenge_refund:'Challenge refund',prize:'Prize',load:'Loaded',entry:'Entry',effect:'Effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Refund',adjust:'Adjustment',pass:'Weekly Pass',referral:'Invite reward'};
 let _waTimer=null;
 function waSearch(){
   clearTimeout(_waTimer);
@@ -2131,7 +2131,8 @@ async function walletLookup(id){
         <div class="f"><label>Points to add</label><input id="wa-amt" type="number" min="1" inputmode="numeric" placeholder="Amount they paid"></div>
         <div class="f"><label>eSewa transaction ID <span class="tag">optional</span></label><input id="wa-ref" placeholder="Stops the same payment being added twice" autocomplete="off"></div>
       </div>
-      <div class="row" style="margin:8px 0 0">${[50,100,200,500].map(a=>`<button type="button" class="btn ghost" style="font-size:.74rem;padding:6px 12px" onclick="document.getElementById('wa-amt').value=${a}">${a}</button>`).join('')}<button class="btn" id="wa-credit" onclick="walletCredit()">➕ Add points</button></div>
+      <div class="row" style="margin:8px 0 0">${[50,100,200,500].map(a=>`<button type="button" class="btn ghost" style="font-size:.74rem;padding:6px 12px" onclick="document.getElementById('wa-amt').value=${a}">${a}</button>`).join('')}<button class="btn" id="wa-credit" onclick="walletCredit()">➕ Add points</button><button class="btn ghost" id="wa-rf-open" onclick="refundOpen()">↩ Refund…</button></div>
+      <div id="wa-refund"></div>
       ${d.ledger.length?`<table style="width:100%;font-size:.76rem;border-collapse:collapse;margin-top:12px">${d.ledger.map(x=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 4px">${esc(new Date(x.created_at).toLocaleString())}</td><td>${esc(WA_REASON[x.reason]||x.reason)}</td><td style="text-align:right;color:${x.delta>0?'var(--green,#5EDB95)':'#ff9d9d'}">${x.delta>0?'+':''}${x.delta}</td><td style="text-align:right">${x.balance_after}</td></tr>`).join('')}</table>`:'<p class="hint" style="margin:10px 0 0">No transactions yet.</p>'}
     </div>`;
     waMsg('','');
@@ -2149,6 +2150,42 @@ async function walletCredit(){
     waMsg(`Added ${amount} points. New balance: ${d.balance}. The player has been notified.`,'ok');
     walletLookup(_waPlayer.id);
   }catch(e){waMsg(e.message,'err');btn.disabled=false;}
+}
+/* ↩ refunds: any charge (entry, effect, Weekly Pass, Optimizer, challenge stake, deduction) or a custom amount.
+   The server never refunds more than was charged and ends the pass / effect that was refunded. */
+async function refundOpen(){
+  if(!_waPlayer)return;
+  const box=document.getElementById('wa-refund');box.innerHTML='<p class="hint">Loading charges…</p>';
+  try{
+    const rows=await waCall({action:'refundables',player_id:_waPlayer.id});
+    const open=rows.filter(r=>r.left>0),done=rows.filter(r=>r.left<=0);
+    const row=r=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px">${esc(new Date(r.created_at).toLocaleString())}</td><td>${esc(WA_REASON[r.reason]||r.reason)}<div class="hint" style="margin:0;font-size:.7rem">${esc((r.note||r.ref||'').slice(0,60))}</div></td><td style="text-align:right">${r.charged}</td><td style="text-align:right">${r.refunded||0}</td><td style="text-align:right">${r.left>0?`<input type="number" min="1" max="${r.left}" value="${r.left}" data-rf-amt="${esc(r.id)}" style="width:70px;padding:4px 6px"> <button class="btn" style="padding:5px 10px;font-size:.74rem" data-rf="${esc(r.id)}" data-what="${esc(WA_REASON[r.reason]||r.reason)}">↩ Refund</button>`:'<span class="hint" style="margin:0">refunded</span>'}</td></tr>`;
+    box.innerHTML=`<div class="card" style="margin-top:10px;border-color:var(--gold-m)">
+      <b>↩ Refund</b><p class="hint" style="margin:4px 0 8px">Pick a charge to give the points back (lower the number for a part refund). Refunding a Weekly Pass ends the pass; refunding an effect ends the effect. Event registrations, Optimizer plans and challenge results stay as they are - change those in their own section.</p>
+      ${open.length||done.length?`<div style="overflow:auto"><table style="width:100%;font-size:.76rem;border-collapse:collapse"><thead><tr><th style="text-align:left">When</th><th style="text-align:left">Charge</th><th style="text-align:right">Paid</th><th style="text-align:right">Refunded</th><th style="text-align:right">Refund</th></tr></thead><tbody>${open.map(row).join('')}${done.slice(0,10).map(row).join('')}</tbody></table></div>`:'<p class="hint">No charges to refund.</p>'}
+      <div class="grid" style="margin-top:10px"><div class="f"><label>Custom refund (points)</label><input id="rf-c-amt" type="number" min="1" max="5000" placeholder="e.g. 50"></div>
+      <div class="f"><label>Reason <span class="tag">the player sees it</span></label><input id="rf-c-why" maxlength="150" placeholder="e.g. Room never opened for Open #10"></div></div>
+      <div class="row" style="margin:6px 0 0"><button class="btn ghost" onclick="refundDo(null)">↩ Refund custom amount</button></div>
+      <div id="rf-msg" class="hint"></div></div>`;
+    box.querySelectorAll('[data-rf]').forEach(b=>b.onclick=()=>refundDo(b.dataset.rf,b.dataset.what));
+  }catch(e){box.innerHTML=`<p class="hint" style="color:#ff9d9d">${esc(e.message)}</p>`;}
+}
+async function refundDo(id,what){
+  if(!_waPlayer)return;
+  const who=_waPlayer.username||_waPlayer.player_tag,msg=document.getElementById('rf-msg');
+  let amount,reason;
+  if(id){amount=parseInt(document.querySelector(`[data-rf-amt="${CSS.escape(id)}"]`).value,10);reason='';}
+  else{amount=parseInt(document.getElementById('rf-c-amt').value,10);reason=document.getElementById('rf-c-why').value.trim();
+    if(!amount||amount<1){msg.textContent='Enter the points to refund.';return;}
+    if(!reason){msg.textContent='Write a reason - the player sees it.';return;}}
+  if(!amount||amount<1){msg.textContent='Enter the points to refund.';return;}
+  if(!confirm(`Refund ${amount} points to ${who}${id?' for this '+what:''}?`))return;
+  msg.textContent='Refunding…';
+  try{
+    const d=await waCall({action:'refund',player_id:_waPlayer.id,ledger_id:id,amount,reason});
+    msg.textContent=`✓ Refunded ${d.refunded} points. New balance ${d.balance}.${d.ended?' The pass/effect has ended.':''} The player was notified.`;
+    const keep=_waPlayer.id;await walletLookup(keep);refundOpen();
+  }catch(e){msg.textContent=e.message;}
 }
 let _balRows=[];
 function fmtRs(n){return 'Rs '+(Number(n)||0).toLocaleString();}

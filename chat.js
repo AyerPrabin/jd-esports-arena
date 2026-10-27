@@ -340,6 +340,9 @@
       poll();
     });
     loadMyTag();
+    var jc = null;
+    try { jc = localStorage.getItem('jd-squad-join'); } catch (e) {}
+    if (jc) { joinSquad(jc); return; }
     if (PAGE && !pendingDeepLink) open();
     if (pendingDeepLink) { var w = pendingDeepLink; pendingDeepLink = null; w(); }
   }
@@ -837,6 +840,17 @@
     var g = th && th.groups.find(function (x) { return x.id === id; });
     if (!isOpen) open();
     openThread(Object.assign({ kind: 'group', id: id, name: (g && g.name) || 'Squad chat', faces: g && g.faces, count: g && g.count, muted: g && g.muted }, {}));
+  }
+  // squad invite link (/chat/?join=<code>): join the captain's squad chat and open it
+  async function joinSquad(code) {
+    try { localStorage.removeItem('jd-squad-join'); } catch (e) {}
+    pendingDeepLink = null;
+    var r = await SB.rpc('join_squad_invite', { p_code: code });
+    if (!isOpen) open();
+    if (r.error) { note(r.error.message, 'err'); return; }
+    await loadOverview();
+    openGroup(r.data.group_id);
+    if (r.data.joined) setTimeout(function () { note('You joined ' + (r.data.name || 'the squad chat') + ' 👋 Say hi to your squad!', 'ok'); }, 400);
   }
   async function openMatch(id) {
     if (!me) { pendingDeepLink = function () { openMatch(id); }; return; }
@@ -1683,6 +1697,12 @@
   // /?alerts=1 (the app's "Alerts" shortcut)
   try {
     var q = new URLSearchParams(location.search), dm = q.get('dm'), g = q.get('g'), ch = q.get('chat'), jdq = q.get('jd'), zq = q.get('zulu'), aq = q.get('alerts');
+    var jn = (q.get('join') || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16);
+    if (jn) {   // squad invite link: kept on the device until the player is signed in, then joined once
+      try { localStorage.setItem('jd-squad-join', jn); } catch (e) {}
+      q.delete('join');
+      history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
+    }
     if (q.get('reply') && (dm || g || jdq || zq)) wantReply = true;   // the notification's "Reply" button
     if (dm || g || ch || jdq || zq || aq) {
       q.delete('dm'); q.delete('g'); q.delete('chat'); q.delete('jd'); q.delete('zulu'); q.delete('alerts'); q.delete('reply');
