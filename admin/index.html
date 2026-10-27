@@ -824,10 +824,10 @@ function fmtLastSeen(iso){
 function renderAllPlayers(){
   const box=document.getElementById('up-list');if(!box)return;
   const f=(document.getElementById('up-search').value||'').trim().toLowerCase();
-  const rows=_allPlayers.filter(p=>!f||(p.username||'').toLowerCase().includes(f)||(p.player_tag||'').toLowerCase().includes(f)||(p.email||'').toLowerCase().includes(f));
-  box.innerHTML=rows.length?`<table class="bo3-tbl"><thead><tr><th></th><th>Player</th><th>Tag</th><th>Email</th><th>Discord</th><th>Joined</th><th>Last seen</th><th>Regs</th></tr></thead><tbody>${rows.map(p=>{
+  const rows=_allPlayers.filter(p=>!f||(p.username||'').toLowerCase().includes(f)||(p.player_tag||'').toLowerCase().includes(f)||(p.email||'').toLowerCase().includes(f)||(p.ff_uid||'').includes(f)||(p.ff_name||'').toLowerCase().includes(f));
+  box.innerHTML=rows.length?`<table class="bo3-tbl"><thead><tr><th></th><th>Player</th><th>Tag</th><th>Free Fire</th><th>Email</th><th>Discord</th><th>Joined</th><th>Last seen</th><th>Regs</th></tr></thead><tbody>${rows.map(p=>{
     const online=(p.player_tag&&_onlineTags.has(String(p.player_tag).toLowerCase()))||(p.username&&_onlineTags.has(String(p.username).toLowerCase()));
-    return `<tr><td>${online?'<span class="ok" title="Online now">●</span>':''}</td><td>${esc(p.username||'—')}</td><td>${esc(p.player_tag||'—')}</td><td>${esc(p.email||'—')}</td><td>${p.discord_username?('@'+esc(p.discord_username)):'—'}</td><td>${esc(new Date(p.created_at).toLocaleDateString())}</td><td>${esc(fmtLastSeen(p.last_sign_in_at))}</td><td>${p.reg_count||0}</td></tr>`;
+    return `<tr><td>${online?'<span class="ok" title="Online now">●</span>':''}</td><td>${esc(p.username||'—')}</td><td>${esc(p.player_tag||'—')}</td><td>${p.ff_uid?esc((p.ff_name||'')+' · '+p.ff_uid):'—'}</td><td>${esc(p.email||'—')}</td><td>${p.discord_username?('@'+esc(p.discord_username)):'—'}</td><td>${esc(new Date(p.created_at).toLocaleDateString())}</td><td>${esc(fmtLastSeen(p.last_sign_in_at))}</td><td>${p.reg_count||0}</td></tr>`;
   }).join('')}</tbody></table>`:`<p class="hint">No players${f?' match "'+esc(f)+'"':' yet'}.</p>`;
 }
 

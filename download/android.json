@@ -1,9 +1,9 @@
 {
-  "versionCode": 8,
-  "versionName": "2.0.1",
-  "url": "https://jdesport.co.uk/download/jd-arena-2.0.1.apk",
-  "sha256": "d898d3e1640c5b9092542ae3b76eb5d940a1312781e188afe203e209a975d808",
+  "versionCode": 9,
+  "versionName": "2.0.2",
+  "url": "https://jdesport.co.uk/download/jd-arena-2.0.2.apk",
+  "sha256": "72bd54287a9b7d49be0b90de21f649965c9cdccdd9d5958fc421aea3cd525dfa",
   "size": 3499320,
   "date": "2026-10-27",
-  "notes": "JD Arena is now a real app - it no longer opens inside Chrome or Brave, so ad blockers can't break it. Faster alerts. 2.0.1 fixes the screen going under the top bar and the phone's back buttons. Please sign in once after updating."
+  "notes": "Notifications fixed: the app now asks to allow alerts when you open it, so room IDs and results reach you. Help & Support inside the app (AI chat, WhatsApp or call). Please sign in once after updating."
 }

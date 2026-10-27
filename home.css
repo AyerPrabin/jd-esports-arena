@@ -1068,7 +1068,9 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 .notif-empty p{margin:0;font-size:.82rem}
 .pm-row-sub{display:block;font-size:.72rem;font-weight:400;color:var(--pm-muted,#9CA8BE);margin-top:1px}
 #acct-push-btn.on .pm-row-sub{color:var(--pm-success,#5EDB95)}
-#acct-push-btn.warn .pm-row-sub{color:var(--warm-l)}
+#acct-push-btn.warn .pm-row-sub,.pm-row.warn .pm-row-sub{color:var(--warm-l)}
+.iab-note{font-size:.78rem;line-height:1.45;color:var(--warm-l);background:rgba(255,150,80,.1);border:1px solid rgba(255,150,80,.3);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.iab-note .link{font-weight:700}
 #acct-push-btn[disabled]{cursor:default}
 #acct-push-btn[disabled]:hover{background:none}
 .pm-toggle.warn{background:rgba(255,150,80,.18)}

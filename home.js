@@ -20,6 +20,8 @@ const EDGE_FN_BASE='https://cnoxvqvpmgowdiyrrusv.supabase.co/functions/v1'; // S
 const DISCORD_INVITE='https://discord.gg/dgvQTbNvVu'; /* JD Esports Arena Discord */
 const MAIN_SITE_URL='/about/'; /* clean who-I-am + contact page (no phases). Point to zulu-website.html instead if you want the full portfolio. */
 const WHATSAPP_NUMBER=''; /* ← your WhatsApp number, international format, digits only e.g. 97798XXXXXXXX. Powers one-tap Register. Leave '' to hide it. */
+/* Customer support (a person): call or WhatsApp. Separate from WHATSAPP_NUMBER above, which switches on WhatsApp registration. */
+const SUPPORT_PHONE='9779868813682',SUPPORT_PHONE_TXT='+977 986-8813682';
 /* Per-squad visual effect — set per squad in the admin editor's Manual squad list
    ("Special effect" dropdown), not hardcoded here. Keys must match admin/index.html's
    SQUAD_EFFECTS values exactly. */
@@ -330,7 +332,7 @@ const JD_APP=window.JDApp||null;
 function pushSupported(){return !!JD_APP||('serviceWorker' in navigator&&'PushManager' in window&&typeof Notification==='function');}
 function pushPerm(){if(JD_APP){try{return JD_APP.notifPermission();}catch(e){return 'default';}}return typeof Notification==='function'?Notification.permission:'default';}
 function pushAsk(){if(JD_APP)return new Promise(res=>{window.__jdPerm=res;JD_APP.requestNotifPermission();});return Notification.requestPermission();}
-function appPushToken(){return new Promise(res=>{window.__jdToken=res;try{JD_APP.pushToken();}catch(e){res('');}setTimeout(()=>res(''),15000);});}
+function appPushToken(){return new Promise(res=>{window.__jdToken=res;try{JD_APP.pushToken();}catch(e){res('ERR_bridge');}setTimeout(()=>res('ERR_timeout'),15000);});}
 /* iPhone/iPad only support push for a home-screen-installed app (Apple's own
    restriction) — detect it and explain instead of the button silently doing nothing. */
 /* Device text always follows platform_mode (what sign-up actually enforces; missing = mixed), never the old free-text field */
@@ -349,16 +351,21 @@ function isStandaloneApp(){return !!JD_TWA||window.matchMedia('(display-mode: st
 // signed-in player. Safe to call on every load: it re-saves, which also covers endpoints
 // the browser rotated and a device that signed in as a different player.
 async function ensurePushSubscribed(){
-  if(!pushSupported()||!sb||!_player||pushPerm()!=='granted')return false;
+  if(!pushSupported()||!sb||!_player)return false;
   if(JD_APP){
     try{
       const t=await appPushToken();
-      if(!t)throw new Error('The app could not get a notification token.');
+      if(!t||/^ERR/.test(t))throw new Error('The app could not get a notification token ('+(t||'ERR_empty')+').');
       const {error}=await sb.rpc('save_fcm_token',{p_token:t,p_app_version:JD_TWA||null});
       if(error)throw error;
-      _pushSub={fcm:t};_pushErr='';updatePushBtn();return true;
-    }catch(e){_pushErr=String((e&&e.message)||e);_pushSub=null;updatePushBtn();return false;}
+      _pushSub=pushPerm()==='granted'?{fcm:t}:null;_pushErr='';updatePushBtn();return !!_pushSub;
+    }catch(e){
+      _pushErr=String((e&&e.message)||e);_pushSub=null;updatePushBtn();
+      try{sb.rpc('log_app_push_error',{p_error:_pushErr.slice(0,300),p_app_version:JD_TWA||null,p_perm:pushPerm()});}catch(x){}
+      return false;
+    }
   }
+  if(pushPerm()!=='granted')return false;
   try{
     const reg=await navigator.serviceWorker.ready;
     let sub=await reg.pushManager.getSubscription();
@@ -439,6 +446,14 @@ async function appAskPush(){
   try{if(sessionStorage.getItem('jd_app_push'))return;sessionStorage.setItem('jd_app_push','1');}catch(e){return;}
   if(await confirmBox('🔔 Turn on notifications','Room IDs, check-in alerts, results and challenges arrive as JD Arena app notifications - even when the app is closed.','Turn on','Later'))enablePush();
 }
+/* App 2.0.2+: the app calls this when it comes back to the front and after Android's notification question,
+   so turning notifications on in phone settings takes effect without a reload. */
+let _pushRefreshAt=0;
+window.jdPushRefresh=function(force){
+  if(!JD_APP||!_player)return;
+  if(!force&&Date.now()-_pushRefreshAt<300000){updatePushBtn();return;}
+  _pushRefreshAt=Date.now();ensurePushSubscribed();
+};
 /* Called right when an account becomes active: ask once if the player hasn't answered yet. */
 async function maybeAskPush(){
   if(!pushSupported()||pushPerm()!=='default')return;
@@ -1049,16 +1064,38 @@ function authRender(){
     return;
   }
   if(_player&&_authView==='chooseusername'){
-    el.innerHTML=`<h3>${esc(_googleFirstRun?'Welcome! Pick a username':'Change username')}</h3><p class="sub">${_googleFirstRun?"You signed in with Google — pick a username so squadmates can find you. You can change this later.":'Pick a new username.'}</p>
+    el.innerHTML=`<h3>${esc(_googleFirstRun?'Welcome! Pick a username':'Username & game ID')}</h3><p class="sub">${_googleFirstRun?"You signed in with Google — pick a username and add your Free Fire UID and in-game name so squadmates and admins can find you. You can change these later.":'Change your username, Free Fire UID or in-game name.'}</p>
       <label>Username</label><input id="au-username" autocomplete="off" maxlength="20" placeholder="3-20 letters, numbers, underscore" value="${esc(_player.username||'')}">
       <div class="msg" id="au-uname-msg"></div>
+      ${gameIdFieldsHtml(_player.ff_uid,_player.ff_name)}
       ${_googleFirstRun?'<label class="tc-check"><input type="checkbox" id="au-tc-accept"><span>I am 13 or older (under 18: my parent or guardian agrees) and I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a></span></label>':''}
       <div class="msg" id="au-msg"></div>
-      <div class="row2"><button class="btn-primary" style="flex:1" onclick="authSetUsername()">Save username</button></div>
+      <div class="row2"><button class="btn-primary" style="flex:1" onclick="authSetUsername()">Save</button></div>
       ${_googleFirstRun?'<p class="sub" style="margin-top:16px"><button class="link" onclick="authClose()">Skip for now</button></p>':'<p class="sub" style="margin-top:16px"><button class="link" onclick="_authView=\'login\';authRender();">Cancel</button></p>'}`;
     const un=document.getElementById('au-username');
     if(un){un.addEventListener('input',checkUsernameLive);un.select();}
     setTimeout(()=>{const f=document.getElementById('au-username');if(f)f.focus();},50);
+    return;
+  }
+  if(_authView==='support'){
+    const waText='Hi JD Arena support! '+(_player&&_player.username?'My username: @'+_player.username+'. ':'')+'My problem: ';
+    el.innerHTML=`<h3>Help &amp; Support</h3><p class="sub">Ask our AI assistant ZULU anything, any time — or talk to a person on WhatsApp or by phone.</p>
+      <div class="pm-list">
+        <button class="pm-row" onclick="authClose();fbOpen()"><span class="pm-row-ic">🤖</span><span class="pm-row-txt">Chat with ZULU<small class="pm-row-sub">AI support · instant answers, 24/7</small></span><span class="pm-row-chev">›</span></button>
+        <a class="pm-row" href="https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(waText)}" target="_blank" rel="noopener"><span class="pm-row-ic">💬</span><span class="pm-row-txt">WhatsApp support<small class="pm-row-sub">${esc(SUPPORT_PHONE_TXT)}</small></span><span class="pm-row-chev">›</span></a>
+        <a class="pm-row" href="tel:+${SUPPORT_PHONE}"><span class="pm-row-ic">📞</span><span class="pm-row-txt">Call support<small class="pm-row-sub">${esc(SUPPORT_PHONE_TXT)}</small></span><span class="pm-row-chev">›</span></a>
+      </div>
+      <p class="pm-hint">For points, prizes or results, send your username and a screenshot so we can fix it fast.</p>
+      <p class="sub" style="margin-top:16px"><button class="link" onclick="_authView='login';authRender();">Back</button></p>`;
+    return;
+  }
+  if(_player&&_authView==='gameid'){
+    el.innerHTML=`<h3>Game UID &amp; name</h3><p class="sub">Your Free Fire UID and in-game name, so admins can check who played. Only you and the JD Arena team can see them.</p>
+      ${gameIdFieldsHtml(_player.ff_uid,_player.ff_name)}
+      <div class="msg" id="au-msg"></div>
+      <div class="row2"><button class="btn-primary" style="flex:1" onclick="authSaveGameId()">Save</button></div>
+      <p class="sub" style="margin-top:16px"><button class="link" onclick="_authView='login';authRender();">Cancel</button></p>`;
+    setTimeout(()=>{const f=document.getElementById('au-ffuid');if(f)f.focus();},50);
     return;
   }
   if(_authView==='settings'){
@@ -1082,6 +1119,7 @@ function authRender(){
     el.innerHTML=`<h3>Settings</h3><p class="sub">Reports, rules, downloads and other pages — not tied to your account.</p>
       ${accountOnlyBlock}
       <div class="pm-list">
+        <button class="pm-row" onclick="authOpen('support')"><span class="pm-row-ic">🎧</span><span class="pm-row-txt">Help &amp; Support<small class="pm-row-sub">AI chat, WhatsApp or call</small></span><span class="pm-row-chev">›</span></button>
         <button class="pm-row" onclick="openReportFlow()"><span class="pm-row-ic">🚩</span><span class="pm-row-txt">Report a player/squad</span><span class="pm-row-chev">›</span></button>
         <a class="pm-row" href="/leaderboard.html"><span class="pm-row-ic">🏆</span><span class="pm-row-txt">Leaderboard</span><span class="pm-row-chev">›</span></a>
         <a class="pm-row" href="/ban-list.html"><span class="pm-row-ic">🛡️</span><span class="pm-row-txt">Ban List</span><span class="pm-row-chev">›</span></a>
@@ -1110,7 +1148,9 @@ function authRender(){
       return `<button type="button" class="pm-history-row pm-history-btn" onclick="authClose();setTimeout(()=>nmJump(this.dataset.t),250)" data-t="${esc(slug)}">${r.squad_logo?`<img class="pm-history-logo" src="${esc(r.squad_logo)}" alt="">`:`<span class="pm-history-logo">${st==='live'?'🔴':st==='upcoming'?'⚔️':'🏁'}</span>`}<span class="pm-history-main"><span class="pm-history-name">${esc(slug)}</span><span class="pm-history-squad">${[r.squad_name&&esc(r.squad_name),when||(st&&esc(st)),esc(regTicketCode(r))].filter(Boolean).join(' · ')}</span></span><span class="pm-history-status pm-status-${esc(r.checked_in_at&&r.status==='confirmed'?'confirmed':r.status)}">${esc(statusLabel(r))}</span></button>`;}).join('')}</div>`:'';
     el.innerHTML=`<h3 class="pm-title">Signed in</h3>${avatarBlock}<div class="auth-tag">@${esc(_player.username||'…')}</div><div class="pm-meta"><span>${esc(_player.email)}</span>${_player.tag?`<span class="pm-dot">●</span><span>ID ${esc(_player.tag)}</span>`:''}${verifiedBadge}</div>${_player.tag?'<p class="pm-hint">Only needed if you register outside the app.</p>':''}<div id="career-stats"></div><div class="msg" id="au-msg"></div>${historyBlock}<div class="pm-list">
         <button class="pm-row" id="acct-push-btn" onclick="enablePush()"><span class="pm-row-ic">🔔</span><span class="pm-row-txt">Enable push alerts</span><span class="pm-toggle" id="acct-push-toggle"></span></button>
+        <button class="pm-row${_player.ff_uid?'':' warn'}" onclick="_authView='gameid';authRender();"><span class="pm-row-ic">🎮</span><span class="pm-row-txt">${_player.ff_uid?'Game UID &amp; name':'Add your Free Fire UID'}<small class="pm-row-sub">${_player.ff_uid?esc((_player.ff_name||'')+' · UID '+_player.ff_uid):'Needed so admins know who played'}</small></span><span class="pm-row-chev">›</span></button>
         <button class="pm-row" onclick="authChangeUsername()"><span class="pm-row-ic">✏️</span><span class="pm-row-txt">Change username</span><span class="pm-row-chev">›</span></button>
+        <button class="pm-row" onclick="authOpen('support')"><span class="pm-row-ic">🎧</span><span class="pm-row-txt">Help &amp; Support<small class="pm-row-sub">AI chat, WhatsApp or call</small></span><span class="pm-row-chev">›</span></button>
         <button class="pm-row" onclick="authLogout()"><span class="pm-row-ic">↩</span><span class="pm-row-txt">Log out</span><span class="pm-row-chev">›</span></button>
       </div>`;
     updatePushBtn();
@@ -1120,16 +1160,17 @@ function authRender(){
   const gateIntro=_gateActive?'<div class="gate-intro"><b>JD Esports Arena</b><span>Sign in to see tournaments, prizes, and how to join.</span></div>':'';
   if(_authView==='signup'){
     el.innerHTML=gateIntro+`<h3>Create account</h3><p class="sub">Pick a username, then register for tournaments in-app.</p>
-      <button class="btn-ghost" style="width:100%;margin-bottom:14px" onclick="authGoogleSignIn()">🔐 Continue with Google</button>
+      ${googleBtnHtml()}
       <p class="sub" style="text-align:center;margin:-6px 0 14px">— or —</p>
       <label>Username</label><input id="au-username" autocomplete="off" maxlength="20" placeholder="3-20 letters, numbers, underscore">
       <div class="msg" id="au-uname-msg"></div>
+      ${gameIdFieldsHtml('','')}
       <label class="tc-check"><input type="checkbox" id="au-tc-accept"><span>I am 13 or older (under 18: my parent or guardian agrees) and I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a></span></label>
       <label>Email</label><input id="au-email" type="email" autocomplete="email">
       <label>Password</label><input id="au-pass" type="password" autocomplete="new-password" placeholder="At least 6 characters">
       <div class="msg" id="au-msg"></div>
       <div class="row2"><button class="btn-primary" style="flex:1" onclick="authSignup()">Sign up</button></div>
-      <p class="sub" style="margin-top:16px">Already have an account? <button class="link" onclick="authOpen('login')">Log in</button></p>`;
+      <p class="sub" style="margin-top:16px">Already have an account? <button class="link" onclick="authOpen('login')">Log in</button> · <button class="link" onclick="authOpen('support')">Need help?</button></p>`;
     const un=document.getElementById('au-username');
     if(un)un.addEventListener('input',checkUsernameLive);
   }else if(_authView==='forgot'){
@@ -1140,17 +1181,65 @@ function authRender(){
       <p class="sub" style="margin-top:16px"><button class="link" onclick="authOpen('login')">Back to log in</button></p>`;
   }else{
     el.innerHTML=gateIntro+`<h3>Log in</h3><p class="sub">Log in to register and see your room IDs.</p>
-      <button class="btn-ghost" style="width:100%;margin-bottom:14px" onclick="authGoogleSignIn()">🔐 Continue with Google</button>
+      ${googleBtnHtml()}
       <p class="sub" style="text-align:center;margin:-6px 0 14px">— or —</p>
       <label>Email</label><input id="au-email" type="email" autocomplete="email">
       <label>Password</label><input id="au-pass" type="password" autocomplete="current-password">
       <div class="msg" id="au-msg"></div>
       <div class="row2"><button class="btn-primary" style="flex:1" onclick="authLogin()">Log in</button></div>
-      <p class="sub" style="margin-top:16px">New here? <button class="link" onclick="authOpen('signup')">Create an account</button> · <button class="link" onclick="authOpen('forgot')">Forgot password?</button></p>`;
+      <p class="sub" style="margin-top:16px">New here? <button class="link" onclick="authOpen('signup')">Create an account</button> · <button class="link" onclick="authOpen('forgot')">Forgot password?</button> · <button class="link" onclick="authOpen('support')">Need help?</button></p>`;
   }
   const first=el.querySelector('input');if(first)setTimeout(()=>first.focus(),50);
 }
 
+/* Free Fire UID + in-game name (game_id.sql set_my_game_id): asked at sign-up, on the username screen and in
+   the account panel. */
+const FF_UID_RE=/^[0-9]{6,13}$/;
+function gameIdFieldsHtml(uid,name){
+  return `<label>Free Fire UID</label><input id="au-ffuid" inputmode="numeric" autocomplete="off" maxlength="13" placeholder="Numbers on your Free Fire profile" value="${esc(uid||'')}">
+      <label>In-game name</label><input id="au-ffname" autocomplete="off" maxlength="30" placeholder="Your name in Free Fire" value="${esc(name||'')}">`;
+}
+// null = fields not on screen; {err} = invalid; {uid,name} = ok
+function gameIdRead(){
+  const u=document.getElementById('au-ffuid'),n=document.getElementById('au-ffname');
+  if(!u||!n)return null;
+  const uid=u.value.replace(/\s/g,''),name=n.value.trim();
+  if(!FF_UID_RE.test(uid))return {err:'Enter your Free Fire UID: 6-13 numbers (Free Fire > tap your profile picture > UID).'};
+  if(!name||name.length>30)return {err:'Enter your Free Fire in-game name.'};
+  return {uid,name};
+}
+async function gameIdSave(g){
+  const {error}=await sb.rpc('set_my_game_id',{p_uid:g.uid,p_name:g.name});
+  if(error)return error.message;
+  if(_player){_player.ff_uid=g.uid;_player.ff_name=g.name;}
+  return '';
+}
+async function authSaveGameId(){
+  const g=gameIdRead();if(!g)return;
+  if(g.err){authMsg(g.err);return;}
+  authMsg('Saving…',true);
+  const err=await gameIdSave(g);
+  if(err){authMsg(err);return;}
+  authMsg('Saved!',true);
+  setTimeout(()=>{_authView='login';authRender();},700);
+}
+/* Facebook, Instagram, Messenger, TikTok... open links in their own built-in browser, and Google refuses to sign
+   in there (403 disallowed_useragent). Many players arrive from those apps, so offer the real browser instead. */
+function inAppBrowser(){
+  const u=navigator.userAgent||'';
+  if(JD_APP||!/FBAN|FBAV|FB_IAB|FBIOS|Instagram|Messenger|musical_ly|TikTok|BytedanceWebview|Snapchat|Line\//i.test(u))return '';
+  return /Instagram/i.test(u)?'Instagram':/musical_ly|TikTok|Bytedance/i.test(u)?'TikTok':/Snapchat/i.test(u)?'Snapchat':/Line\//.test(u)?'LINE':/Messenger/i.test(u)?'Messenger':'Facebook';
+}
+function openInBrowser(){
+  const url=location.origin+location.pathname;
+  if(/Android/i.test(navigator.userAgent))location.href='intent://'+location.host+location.pathname+'#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent(url)+';end';
+  else location.href='x-safari-'+url; // iOS 17+ opens Safari; older iPhones follow the steps on screen
+}
+function googleBtnHtml(){
+  const iab=inAppBrowser();
+  const note=iab?`<div class="iab-note"><b>Opened from ${esc(iab)}?</b> Google sign-in doesn't work inside ${esc(iab)}. ${isIosDevice()?'Tap ••• at the top and choose "Open in external browser", or log in with email below.':'Open JD Arena in Chrome to use Google, or log in with email below.'}${isIosDevice()?'':' <button type="button" class="link" onclick="openInBrowser()">Open in Chrome</button>'}</div>`:'';
+  return note+'<button class="btn-ghost" style="width:100%;margin-bottom:14px" onclick="authGoogleSignIn()">🔐 Continue with Google</button>';
+}
 const USERNAME_RE=/^[A-Za-z0-9_]{3,20}$/;
 let _unameTimer=null;
 function checkUsernameLive(){
@@ -1181,6 +1270,12 @@ function checkUsernameLive(){
    Doesn't replace the email/password flow above; both create rows in the same players
    table via the same trigger. */
 async function authGoogleSignIn(){
+  const iab=inAppBrowser();
+  if(iab){
+    const ios=isIosDevice();
+    if(await confirmBox('Open in '+(ios?'Safari':'Chrome')+' for Google',iab+"'s built-in browser can't sign in with Google - Google blocks it.\n\n"+(ios?'Tap ••• at the top and choose "Open in external browser", then Continue with Google. ':'Open JD Arena in Chrome and tap Continue with Google there. ')+'Or log in with your email and password here.',ios?'Try Safari':'Open in Chrome','Use email'))openInBrowser();
+    return;
+  }
   authMsg('Redirecting to Google…',true);
   // Google sends the browser away and fully back — a JS variable wouldn't survive that
   // round trip, so this flag rides in sessionStorage instead. It's how the getSession()
@@ -1194,20 +1289,25 @@ async function authGoogleSignIn(){
     if(error||!data||!data.url){sessionStorage.removeItem('jd_google_flow');authMsg('Google sign-in isn\'t set up on this deploy yet.');return;}
     JD_APP.openAuth(data.url);return;
   }
-  const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href.split('#')[0]}});
+  const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});
   if(error){sessionStorage.removeItem('jd_google_flow');authMsg('Google sign-in isn\'t set up on this deploy yet.');}
 }
 async function authSetUsername(){
   const uname=document.getElementById('au-username').value.trim();
   if(!USERNAME_RE.test(uname)){authMsg('Pick a username: 3-20 letters, numbers, or underscore.');return;}
+  const g=gameIdRead();
+  if(g&&g.err){authMsg(g.err);return;}
   const tc=document.getElementById('au-tc-accept');
   if(tc&&!tc.checked){authMsg('Please confirm your age and accept the Terms & Privacy Policy to continue.');return;}
   authMsg('Saving…',true);
-  const {error}=await sb.rpc('set_my_username',{new_username:uname});
-  if(error){authMsg(/duplicate|unique|taken|constraint/i.test(error.message)?'That username is taken — try another.':error.message);return;}
+  if(g){const gerr=await gameIdSave(g);if(gerr){authMsg(gerr);return;}}
+  if(uname!==_player.username){
+    const {error}=await sb.rpc('set_my_username',{new_username:uname});
+    if(error){authMsg(/duplicate|unique|taken|constraint/i.test(error.message)?'That username is taken — try another.':error.message);return;}
+  }
   if(tc)await sb.rpc('accept_terms');
   await authRefreshPlayer();
-  authMsg('Username saved!',true);
+  authMsg('Saved!',true);
   _authView='login';
   setTimeout(authClose,900);
 }
@@ -1242,6 +1342,8 @@ async function authSignup(){
   const uname=document.getElementById('au-username').value.trim();
   const email=document.getElementById('au-email').value.trim(),pass=document.getElementById('au-pass').value;
   if(!USERNAME_RE.test(uname)){authMsg('Pick a username: 3-20 letters, numbers, or underscore.');return;}
+  const g=gameIdRead();
+  if(g&&g.err){authMsg(g.err);return;}
   const tc=document.getElementById('au-tc-accept');
   if(tc&&!tc.checked){authMsg('Please confirm your age and accept the Terms & Privacy Policy to continue.');return;}
   if(!email||pass.length<6){authMsg('Enter a valid email and a password of 6+ characters.');return;}
@@ -1249,7 +1351,7 @@ async function authSignup(){
   const {data:taken}=await sb.rpc('is_username_taken',{check_username:uname});
   if(taken){authMsg('That username is taken — try another.');return;}
   authMsg('Creating account…',true);
-  const {data:signUpData,error}=await sb.auth.signUp({email,password:pass,options:{data:{username:uname},emailRedirectTo:location.href.split('#')[0]}});
+  const {data:signUpData,error}=await sb.auth.signUp({email,password:pass,options:{data:Object.assign({username:uname},g?{ff_uid:g.uid,ff_name:g.name}:{}),emailRedirectTo:location.href.split('#')[0]}});
   if(error){authMsg(/duplicate|unique|taken|constraint|saving new user/i.test(error.message)?'That username was just taken — try another.':error.message);return;}
   if(signUpData&&signUpData.session){
     // Email confirmation is off on this project — the account is live immediately, no
@@ -1401,10 +1503,12 @@ async function authRefreshPlayer(){
   const {data:{user}}=await sb.auth.getUser();
   if(!user){_player=null;updateAcctBtn();updateGate();trackPresence();return;}
   let tag=null,uname=null;
-  const {data}=await sb.from('players').select('player_tag, username, discord_username, terms_accepted_at, squad_name, squad_logo, app_installed_at').eq('id',user.id).single();
+  const {data}=await sb.from('players').select('player_tag, username, discord_username, terms_accepted_at, squad_name, squad_logo, app_installed_at, ff_uid, ff_name').eq('id',user.id).single();
   if(data){tag=data.player_tag;uname=data.username;}
   _player={id:user.id,email:user.email,tag:tag,username:uname,discord_username:data&&data.discord_username||null,avatar:null,termsAccepted:!!(data&&data.terms_accepted_at&&Date.parse(data.terms_accepted_at)>=TERMS_UPDATED_AT),verified:!!user.email_confirmed_at,squad_name:(data&&data.squad_name)||'',squad_logo:(data&&data.squad_logo)||''};
   _player.app=!!(data&&data.app_installed_at);
+  _player.ff_uid=(data&&data.ff_uid)||'';_player.ff_name=(data&&data.ff_name)||'';
+  {const md=user.user_metadata||{};if(!_player.ff_uid&&FF_UID_RE.test(md.ff_uid||'')&&md.ff_name)gameIdSave({uid:md.ff_uid,name:md.ff_name});}
   updateAcctBtn();
   updateGate();
   trackPresence();
@@ -2808,7 +2912,7 @@ var Z={
   prizenone:"No prize pool is posted right now \u2014 check back soon or watch the Discord.",
   entrynone:"No entry fee is posted right now \u2014 the next tournament's details are coming soon.",
   about:"Prabin Ayer runs JD Arena and the AyerFire brand \u2014 a Computing Science student in London with roots in Nepal. Full intro: open \u201CAbout Prabin\u201D.",
-  contact:"Reach Prabin here:\n\u2022 Discord: "+DISCORD_INVITE+"\n\u2022 Email: "+FEEDBACK_EMAIL+((typeof WHATSAPP_NUMBER==='string'&&WHATSAPP_NUMBER)?"\n\u2022 WhatsApp: tap any Register button":""),
+  contact:"Customer support (call or WhatsApp): "+SUPPORT_PHONE_TXT+" \u2014 send your username and a screenshot.\n\u2022 WhatsApp: https://wa.me/"+SUPPORT_PHONE+"\n\u2022 Discord: "+DISCORD_INVITE+"\n\u2022 Email: "+FEEDBACK_EMAIL+((typeof WHATSAPP_NUMBER==='string'&&WHATSAPP_NUMBER)?"\n\u2022 WhatsApp: tap any Register button":""),
   hi:"Hey! \uD83D\uDC4B Ask me about tournaments, joining, rules, or contact.",
   hin:"Hey {x}! \uD83D\uDC4B What do you want to know \u2014 tournaments, joining, or rules?",
   thanks:"Anytime! \uD83D\uDE4C Good luck in the lobby.",
@@ -2820,7 +2924,7 @@ var Z={
   askc:"Got it. How can Prabin reach you if needed \u2014 Discord tag or email? (or type 'skip')",
   sent:"\u2705 Sent to Prabin \u2014 your ticket is {x}, quote it if you check back in. Thank you \u2014 this genuinely helps make JD Arena better. \uD83D\uDE4F",
   mail:"I'll open your email so you can send it to Prabin directly \uD83D\uDC47",
-  chiprules:'\uD83D\uDCDC Rules',chippoints:'\uD83C\uDFC6 Points system',chippay:'\uD83D\uDCB0 Payment',chipwallet:'\uD83E\uDE99 Points',chipjoin:'\uD83C\uDFAE How to join',
+  chiprules:'\uD83D\uDCDC Rules',chippoints:'\uD83C\uDFC6 Points system',chippay:'\uD83D\uDCB0 Payment',chipwallet:'\uD83E\uDE99 Points',chipjoin:'\uD83C\uDFAE How to join',chiphelp:'\uD83C\uDFA7 Support',
   nudge0:"\uD83D\uDC4B New here? I can help you find a tournament to join.",
   nudge1:"\u2753 Got questions about entry fees or how payouts work? Just ask.",
   nudge2:"\uD83C\uDFAE Not sure how registration works? I'll walk you through it."},
@@ -2845,7 +2949,7 @@ var Z={
   prizenone:"\u0905\u0939\u093F\u0932\u0947 \u0907\u0928\u093E\u092E \u0930\u093E\u0916\u093F\u090F\u0915\u094B \u091B\u0948\u0928 \u2014 \u091A\u093E\u0901\u0921\u0948 \u0939\u0947\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D \u0935\u093E Discord \u0939\u0947\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
   entrynone:"\u0905\u0939\u093F\u0932\u0947 \u092A\u094D\u0930\u0935\u0947\u0936 \u0936\u0941\u0932\u094D\u0915 \u0930\u093E\u0916\u093F\u090F\u0915\u094B \u091B\u0948\u0928 \u2014 \u0905\u0930\u094D\u0915\u094B \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E\u0915\u094B \u0935\u093F\u0935\u0930\u0923 \u091A\u093E\u0901\u0921\u0948 \u0906\u0909\u0901\u0926\u0948\u0964",
   about:"\u092A\u094D\u0930\u092C\u093F\u0928 \u0906\u092F\u0930 JD Arena \u0930 AyerFire \u091A\u0932\u093E\u0909\u0901\u091B\u0928\u094D \u2014 \u0932\u0928\u094D\u0921\u0928\u092E\u093E \u0930\u0939\u0947\u0915\u093E, \u0928\u0947\u092A\u093E\u0932\u0940 \u091C\u0930\u093E \u092D\u090F\u0915\u093E Computing Science \u0935\u093F\u0926\u094D\u092F\u093E\u0930\u094D\u0925\u0940\u0964 \u092A\u0942\u0930\u093E \u092A\u0930\u093F\u091A\u092F: \u201CAbout Prabin\u201D \u0916\u094B\u0932\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
-  contact:"\u092A\u094D\u0930\u092C\u093F\u0928\u0932\u093E\u0908 \u092F\u0939\u093E\u0901 \u0938\u092E\u094D\u092A\u0930\u094D\u0915 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D:\n\u2022 Discord: "+DISCORD_INVITE+"\n\u2022 \u0907\u092E\u0947\u0932: "+FEEDBACK_EMAIL+((typeof WHATSAPP_NUMBER==='string'&&WHATSAPP_NUMBER)?"\n\u2022 WhatsApp: \u0915\u0941\u0928\u0948 Register \u092C\u091F\u0928 \u0925\u093F\u091A\u094D\u0928\u0941\u0939\u094B\u0938\u094D":""),
+  contact:"\u0917\u094D\u0930\u093E\u0939\u0915 \u0938\u0939\u093E\u092F\u0924\u093E (\u092B\u094B\u0928 \u0935\u093E WhatsApp): "+SUPPORT_PHONE_TXT+" \u2014 \u0906\u092B\u094D\u0928\u094B username \u0930 screenshot \u092A\u0920\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D\u0964\n\u2022 WhatsApp: https://wa.me/"+SUPPORT_PHONE+"\n\u2022 Discord: "+DISCORD_INVITE+"\n\u2022 \u0907\u092E\u0947\u0932: "+FEEDBACK_EMAIL+((typeof WHATSAPP_NUMBER==='string'&&WHATSAPP_NUMBER)?"\n\u2022 WhatsApp: \u0915\u0941\u0928\u0948 Register \u092C\u091F\u0928 \u0925\u093F\u091A\u094D\u0928\u0941\u0939\u094B\u0938\u094D":""),
   hi:"\u0928\u092E\u0938\u094D\u0924\u0947! \uD83D\uDC4B \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0938\u0939\u092D\u093E\u0917\u093F\u0924\u093E, \u0928\u093F\u092F\u092E \u0935\u093E \u0938\u092E\u094D\u092A\u0930\u094D\u0915 \u092C\u093E\u0930\u0947 \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
   hin:"\u0928\u092E\u0938\u094D\u0924\u0947 {x}! \uD83D\uDC4B \u0915\u0947 \u0925\u093E\u0939\u093E \u092A\u093E\u0909\u0928 \u091A\u093E\u0939\u0928\u0941\u0939\u0941\u0928\u094D\u091B \u2014 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0938\u0939\u092D\u093E\u0917\u093F\u0924\u093E \u0935\u093E \u0928\u093F\u092F\u092E?",
   thanks:"\u091C\u0939\u093F\u0932\u0947 \u092A\u0928\u093F! \uD83D\uDE4C \u0932\u092C\u0940\u092E\u093E \u0936\u0941\u092D\u0915\u093E\u092E\u0928\u093E\u0964",
@@ -2857,7 +2961,7 @@ var Z={
   askc:"\u092C\u0941\u091D\u0947\u0901\u0964 \u0906\u0935\u0936\u094D\u092F\u0915 \u092A\u0930\u0947 \u092A\u094D\u0930\u092C\u093F\u0928\u0932\u0947 \u0915\u0938\u0930\u0940 \u0938\u092E\u094D\u092A\u0930\u094D\u0915 \u0917\u0930\u094D\u0928\u0947 \u2014 Discord \u091F\u094D\u092F\u093E\u0917 \u0935\u093E \u0907\u092E\u0947\u0932? ('skip' \u0932\u0947\u0916\u094D\u0928 \u0938\u0915\u094D\u0928\u0941\u0939\u0941\u0928\u094D\u091B)",
   sent:"\u2705 \u092A\u094D\u0930\u092C\u093F\u0928\u0932\u093E\u0908 \u092A\u0920\u093E\u0907\u092F\u094B \u2014 \u0924\u092A\u093E\u0908\u0902\u0915\u094B \u091F\u093F\u0915\u091F {x} \u0939\u094B, \u092A\u091B\u093F \u0938\u094B\u0927\u094D\u0926\u093E \u092F\u0939\u0940 \u0928\u092E\u094D\u092C\u0930 \u092D\u0928\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u0927\u0928\u094D\u092F\u0935\u093E\u0926 \u2014 \u092F\u0938\u0932\u0947 JD Arena \u0930\u093E\u092E\u094D\u0930\u094B \u092C\u0928\u093E\u0909\u0928 \u0938\u093E\u091A\u094D\u091A\u0948 \u092E\u0926\u094D\u0926\u0924 \u0917\u0930\u094D\u091B\u0964 \uD83D\uDE4F",
   mail:"\u0924\u092A\u093E\u0908\u0902\u0915\u094B \u0907\u092E\u0947\u0932 \u0916\u094B\u0932\u094D\u091B\u0941 \u0924\u093E\u0915\u093F \u0938\u093F\u0927\u0948 \u092A\u094D\u0930\u092C\u093F\u0928\u0932\u093E\u0908 \u092A\u0920\u093E\u0909\u0928 \u0938\u0915\u094D\u0928\u0941\u0939\u094B\u0938\u094D \uD83D\uDC47",
-  chiprules:'\uD83D\uDCDC \u0928\u093F\u092F\u092E',chippoints:'\uD83C\uDFC6 \u0905\u0919\u094D\u0915 \u092A\u094D\u0930\u0923\u093E\u0932\u0940',chippay:'\uD83D\uDCB0 \u092D\u0941\u0915\u094D\u0924\u093E\u0928\u0940',chipjoin:'\uD83C\uDFAE \u0915\u0938\u0930\u0940 \u091C\u094B\u0921\u093F\u0928\u0947',
+  chiprules:'\uD83D\uDCDC \u0928\u093F\u092F\u092E',chippoints:'\uD83C\uDFC6 \u0905\u0919\u094D\u0915 \u092A\u094D\u0930\u0923\u093E\u0932\u0940',chippay:'\uD83D\uDCB0 \u092D\u0941\u0915\u094D\u0924\u093E\u0928\u0940',chipjoin:'\uD83C\uDFAE \u0915\u0938\u0930\u0940 \u091C\u094B\u0921\u093F\u0928\u0947',chiphelp:'\uD83C\uDFA7 \u0938\u0939\u093E\u092F\u0924\u093E',
   nudge0:"\uD83D\uDC4B \u0928\u092F\u093E\u0901 \u0939\u0941\u0928\u0941\u0939\u0941\u0928\u094D\u091B? \u092E \u0924\u092A\u093E\u0908\u0902\u0932\u093E\u0908 \u0909\u092A\u092F\u0941\u0915\u094D\u0924 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E \u092B\u0947\u0932\u093E \u092A\u093E\u0930\u094D\u0928 \u092E\u0926\u094D\u0926\u0924 \u0917\u0930\u094D\u0928 \u0938\u0915\u094D\u091B\u0941\u0964",
   nudge1:"\u2753 \u092A\u094D\u0930\u0935\u0947\u0936 \u0936\u0941\u0932\u094D\u0915 \u0935\u093E \u092D\u0941\u0915\u094D\u0924\u093E\u0928\u0940 \u092C\u093E\u0930\u0947 \u092A\u094D\u0930\u0936\u094D\u0928 \u091B? \u0938\u093F\u0927\u0948 \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
   nudge2:"\uD83C\uDFAE \u0926\u0930\u094D\u0924\u093E \u0915\u0938\u0930\u0940 \u0917\u0930\u094D\u0928\u0947 \u0925\u093E\u0939\u093E \u091B\u0948\u0928? \u092E \u0924\u092A\u093E\u0908\u0902\u0932\u093E\u0908 \u091A\u0930\u0923\u092C\u0926\u094D\u0927 \u0930\u0942\u092A\u092E\u093E \u0926\u0947\u0916\u093E\u0909\u0901\u091B\u0941\u0964"}
@@ -2889,7 +2993,7 @@ function dismissNudge(){
    chance of a regex miss, since these go straight to the same canned answers
    zuluPublic() would give, not through its keyword matching. */
 function fbChips(){
-  var defs=[['chipjoin','howjoin'],['chipwallet','wallet'],['chippay','payout'],['chiprules','rules'],['chippoints','scoring']];
+  var defs=[['chipjoin','howjoin'],['chipwallet','wallet'],['chippay','payout'],['chiprules','rules'],['chippoints','scoring'],['chiphelp','contact']];
   var wrap=document.createElement('div');wrap.className='fb-chips';
   defs.forEach(function(d){
     var b=document.createElement('button');b.type='button';b.className='fb-chip';b.textContent=zL(d[0]);

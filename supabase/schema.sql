@@ -5920,3 +5920,73 @@ returns table(tournament_slug text, slot int) language sql stable security defin
 $$;
 revoke all on function public.my_tournament_slots() from public, anon;
 grant execute on function public.my_tournament_slots() to authenticated;
+
+-- Free Fire UID + in-game name on the player's account (2026-10-27). Asked at sign-up (email and Google) and
+-- editable from the account panel (home.js "Game UID & name"); admins use it to check who actually played.
+-- Players read their own row (existing "players read own" policy); only set_my_game_id() writes it. Safe to run again.
+begin;
+
+alter table public.players add column if not exists ff_uid text;
+alter table public.players add column if not exists ff_name text;
+alter table public.players drop constraint if exists players_ff_uid_format;
+alter table public.players add constraint players_ff_uid_format check (ff_uid is null or ff_uid ~ '^[0-9]{6,13}$');
+alter table public.players drop constraint if exists players_ff_name_len;
+alter table public.players add constraint players_ff_name_len check (ff_name is null or char_length(ff_name) between 1 and 30);
+
+create or replace function public.set_my_game_id(p_uid text, p_name text)
+returns void language plpgsql security definer set search_path = public as $$
+declare
+  v_uid text := regexp_replace(coalesce(p_uid, ''), '\s', '', 'g');
+  -- in-game names use fancy Unicode, so only control characters are removed
+  v_name text := btrim(regexp_replace(coalesce(p_name, ''), '[[:cntrl:]]', '', 'g'));
+begin
+  if auth.uid() is null then raise exception 'Please sign in first.'; end if;
+  if v_uid !~ '^[0-9]{6,13}$' then raise exception 'Free Fire UID must be 6-13 numbers (Free Fire > your profile > UID).'; end if;
+  if char_length(v_name) < 1 or char_length(v_name) > 30 then raise exception 'Enter your in-game name (up to 30 characters).'; end if;
+  update public.players set ff_uid = v_uid, ff_name = v_name where id = auth.uid();
+end $$;
+
+revoke all on function public.set_my_game_id(text, text) from public, anon;
+grant execute on function public.set_my_game_id(text, text) to authenticated;
+commit;
+
+-- App push diagnostics (2026-10-27): push_fcm_tokens stayed empty after app 2.0 shipped and every client-side
+-- failure was silent. home.js ensurePushSubscribed() now reports why a phone couldn't save its Firebase token
+-- (one row per player, latest error wins) so the admin can see it. Safe to run again.
+begin;
+
+create table if not exists public.app_push_errors (
+  player_id uuid primary key references public.players(id) on delete cascade,
+  error text not null,
+  app_version int,
+  permission text,
+  at timestamptz not null default now()
+);
+alter table public.app_push_errors enable row level security;
+revoke all on public.app_push_errors from anon, authenticated;
+
+create or replace function public.log_app_push_error(p_error text, p_app_version int default null, p_perm text default null)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then return; end if;
+  insert into public.app_push_errors (player_id, error, app_version, permission)
+  values (auth.uid(), left(coalesce(p_error, ''), 300), p_app_version, left(p_perm, 20))
+  on conflict (player_id) do update set error = excluded.error, app_version = excluded.app_version,
+    permission = excluded.permission, at = now();
+end $$;
+
+-- a token saved = that phone works now
+create or replace function public._clear_app_push_error() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  delete from public.app_push_errors where player_id = new.player_id;
+  return null;
+end $$;
+drop trigger if exists push_fcm_tokens_clear_error on public.push_fcm_tokens;
+create trigger push_fcm_tokens_clear_error after insert or update on public.push_fcm_tokens
+  for each row execute function public._clear_app_push_error();
+
+revoke all on function public.log_app_push_error(text, int, text) from public, anon;
+grant execute on function public.log_app_push_error(text, int, text) to authenticated;
+revoke all on function public._clear_app_push_error() from public, anon, authenticated;
+commit;
