@@ -2857,6 +2857,24 @@ async function appUpdateStrip(){
   const h=document.querySelector('header');if(h)h.insertAdjacentElement('afterend',el);else document.body.prepend(el);
 }
 appUpdateStrip();
+/* Required update: an app older than android.json minVersionCode (2.0.2 = the one whose notifications work) gets a
+   full screen with one Update button instead of the site - the same look as ui.js's "Get the app" screen.
+   JD_TWA -1 = the old 1.x app opened from a notification (version unknown), which is older than any minimum. */
+async function appRequiredUpdate(){
+  if(!JD_TWA)return;
+  let d;try{d=await (await fetch('/download/android.json',{cache:'no-store'})).json();}catch(e){return;}
+  if(!d||!d.url||!d.minVersionCode||(JD_TWA>0&&JD_TWA>=d.minVersionCode))return;
+  const g=document.createElement('div');
+  g.className='app-gate';g.setAttribute('role','dialog');g.setAttribute('aria-modal','true');g.setAttribute('aria-labelledby','ag-t');
+  g.innerHTML=`<div class="ag-card"><img src="/logo.webp" alt="" width="64" height="64"><h1 id="ag-t">Update JD Arena</h1>
+    <p class="ag-lead">This version of the app is too old - room IDs and alerts won't reach you. The new version takes a minute and your account stays the same.</p>
+    <a class="ag-btn" href="${esc(d.url)}">⬇ Update to ${esc(d.versionName)}</a>
+    <ol class="ag-steps"><li>Tap <b>Update</b> and wait for the download</li><li>Open the downloaded file and tap <b>Install</b> (or Update)</li><li>Open <b>JD Arena</b> and sign in once</li></ol>
+    <p class="ag-foot">Need help? <a href="https://wa.me/${SUPPORT_PHONE}" target="_blank" rel="noopener">WhatsApp ${esc(SUPPORT_PHONE_TXT)}</a></p></div>`;
+  document.documentElement.classList.add('app-gated');
+  document.body.appendChild(g);
+}
+appRequiredUpdate();
 if(!JD_TWA&&isAndroidDevice()&&isStandaloneApp()&&navigator.getInstalledRelatedApps)window.addEventListener('load',()=>setTimeout(async()=>{
   try{
     const day=new Date().toISOString().slice(0,10);

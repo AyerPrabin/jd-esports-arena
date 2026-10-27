@@ -1,6 +1,7 @@
 {
   "versionCode": 10,
   "versionName": "2.0.3",
+  "minVersionCode": 9,
   "url": "https://jdesport.co.uk/download/jd-arena-2.0.3.apk",
   "sha256": "eb75491a5321c0ba870dc5bc3c89545f6f761af6d605d85eded20855e50d214e",
   "size": 3499320,
