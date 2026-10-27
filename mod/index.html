@@ -73,7 +73,7 @@ main{position:relative;max-width:1280px;margin:0 auto;padding:16px 16px calc(var
 }
 @media (min-width:1080px){
   .tabs{display:none}
-  main{display:grid;grid-template-columns:240px minmax(0,1fr) 360px;gap:18px;align-items:start;padding-bottom:32px}
+  main{display:grid;grid-template-columns:240px minmax(0,1fr) 360px;grid-auto-flow:row dense;gap:18px;align-items:start;padding-bottom:32px}   /* dense: the right column and Help fill the space beside Squads instead of starting below it */
   .tab{display:block}
   #tab-events{display:block;position:sticky;top:var(--top-h,72px)}
   .col-right{position:sticky;top:var(--top-h,72px);max-height:calc(100vh - var(--top-h,72px) - 16px);overflow:auto;overscroll-behavior:contain}
@@ -125,11 +125,16 @@ main{position:relative;max-width:1280px;margin:0 auto;padding:16px 16px calc(var
 @media (max-width:640px){
   .slot{grid-template-columns:40px minmax(0,1fr) auto;grid-template-areas:"no nm play" "acts acts acts"}
   .slot .no{grid-area:no}.slot .nm{grid-area:nm}.slot .play,.slot .state{grid-area:play}
-  .slot .acts{grid-area:acts;flex-wrap:wrap;padding-top:8px;border-top:1px solid var(--line)}
-  .abtn{flex:1;justify-content:center}
-  .abtn.rm{flex:0 0 auto}
+  /* one compact row of actions per squad (they used to stretch and wrap onto 2-3 rows) */
+  .slot{gap:8px 10px;padding:9px 10px}
+  .slot .acts{grid-area:acts;flex-wrap:nowrap;gap:5px;padding-top:7px;border-top:1px solid var(--line)}
+  .acts .abtn{flex:1 1 0;min-width:0;justify-content:center;gap:4px;padding:6px 6px;min-height:34px;font-size:.78rem}
+  .acts .abtn svg{width:14px;height:14px;flex:none}
+  .acts .abtn.rm{flex:0 1 auto}
+  .play button{padding:7px 11px;min-width:42px}
 }
-@media (min-width:1080px) and (max-width:1279px){
+.lx{font-style:normal;opacity:.75;white-space:nowrap}
+@media (min-width:1080px){   /* the squads column is narrow in the 3-column layout: actions get their own row so names aren't cut to "Squ..." */
   .slot{grid-template-columns:40px minmax(0,1fr) auto;grid-template-areas:"no nm play" "acts acts acts"}
   .slot .no{grid-area:no}.slot .nm{grid-area:nm}.slot .play,.slot .state{grid-area:play}
   .slot .acts{grid-area:acts;justify-content:flex-end}
@@ -280,7 +285,7 @@ textarea{min-height:96px;resize:vertical}
   .rsr .m{display:grid;grid-area:m;grid-template-columns:repeat(var(--n,3),minmax(0,1fr)) 34px;gap:6px}
   .rsr .m label{display:grid;gap:2px;font-size:.66rem;color:var(--gold-l);text-align:center}
 }
-@media (min-width:641px){.rsr .m label{display:contents}.rsr .m label span{display:none}}
+@media (min-width:641px){.rsr .m label{display:contents}.rsr .m label>span:first-child{display:none}}   /* only the per-match caption (the header row has it): the .pk span holds the inputs */
 .rs-add{margin-top:4px}
 .prz{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
 .prz h3{font-size:.95rem;margin:0 0 4px;font-weight:600}
@@ -988,7 +993,7 @@ function renderResults(){
   const body=rsRows.map((r,i)=>{ const pl=place.get(i)||'–';
     return `<div class="rsr ${pl<=3?'p'+pl:''}" data-i="${i}" style="--n:${d.matches}"><span class="pl">${pl}</span>`+
       `<input class="tm" value="${esc(r.team)}" maxlength="60" placeholder="Squad name" aria-label="Squad name" translate="no">`+
-      `<span class="m">`+r.pts.map((v,k)=>{ const kl=(r.kills||[])[k]; return `<label><span>Match ${k+1} · pos / kills</span><span class="pk"><input class="pt" data-k="${k}" type="number" inputmode="numeric" min="0" max="300" placeholder="Pos" value="${v||v===0?v:''}" aria-label="Match ${k+1} placement points for ${esc(r.team)}"><input class="kl" data-k="${k}" type="number" inputmode="numeric" min="0" max="60" placeholder="K" value="${kl||kl===0?kl:''}" aria-label="Match ${k+1} kills for ${esc(r.team)}"></span></label>`; }).join('')+
+      `<span class="m">`+r.pts.map((v,k)=>{ const kl=(r.kills||[])[k]; return `<label><span>M${k+1} <i class="lx">pos · kills</i></span><span class="pk"><input class="pt" data-k="${k}" type="number" inputmode="numeric" min="0" max="300" placeholder="Pos" value="${v||v===0?v:''}" aria-label="Match ${k+1} placement points for ${esc(r.team)}"><input class="kl" data-k="${k}" type="number" inputmode="numeric" min="0" max="60" placeholder="K" value="${kl||kl===0?kl:''}" aria-label="Match ${k+1} kills for ${esc(r.team)}"></span></label>`; }).join('')+
       `<button type="button" class="x" data-del="${i}" aria-label="Remove ${esc(r.team)}"><svg viewBox="0 0 24 24"><use href="#i-x"/></svg></button></span>`+
       `<span class="tot">${rsTotal(r)}</span></div>`; }).join('');
   $('rs-body').innerHTML=`<div class="rs">${head}${body}</div>`+
