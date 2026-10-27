@@ -56,6 +56,8 @@
 
   // retry = called after the server refused a join: only a real "Join now" tap may send it again (no loops)
   function gate(sb, eventName, retry) {
+    var open = /^JD Free Fire Open #(\d+)$/.exec(eventName || '');   // ads start from Open #12 (_ad_event_free_of_ads)
+    if (open && +open[1] < 12) return Promise.resolve(!retry);
     return sb.rpc('ad_status').then(function (r) {
       var st = r && r.data;
       if (!st || !st.enabled || st.exempt || st.have >= st.needed || !st.unit) return !retry;
