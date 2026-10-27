@@ -423,7 +423,10 @@ $('un-save').onclick=async()=>{
   if(error){msg.className='msg err';msg.textContent=/taken|duplicate|unique/i.test(error.message)?'That username is taken.':error.message;return;}
   me.username=v;$('uname').textContent='@'+v;$('chg-user-s').textContent='@'+v;$('uname-edit').hidden=true;toast('Username saved');
 };
-$('logout').onclick=async()=>{await sb.auth.signOut();location.href='/';};
+// app 2.0+: stop this phone getting the player's alerts (delete_fcm_token only matches while still signed in)
+$('logout').onclick=async()=>{
+  if(window.JDApp)await new Promise(res=>{window.__jdToken=async t=>{try{if(t&&!/^ERR/.test(t))await sb.rpc('delete_fcm_token',{p_token:t});}catch(e){}res();};try{JDApp.pushToken();}catch(e){res();}setTimeout(res,4000);});
+  await sb.auth.signOut();location.href='/';};
 
 /* invite friends: my_referrals() / set_referrer() (supabase/pass_prize_referral.sql) */
 let refCode='';

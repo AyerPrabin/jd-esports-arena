@@ -324,7 +324,7 @@ if(FORCE_LOGIN_GATE&&sb){
    push_subscriptions (save_push_subscription RPC); every Edge Function sends through
    supabase/functions/_shared/push.ts; /sw.js shows the alert even when the site is closed. ── */
 const VAPID_PUBLIC_KEY='BPP1cVMCDdmZzwhR48u0BBEFbrg2LP9JEUm8YHAWogBIoegeuJLZaKOvv_6JSciOMwMB0tu4C9RgWghf4HjQo4I';
-let _pushSub=null,_pushErr='';
+let _pushSub=null,_pushErr='',_appToken='';
 function b64ToU8(s){const p='='.repeat((4-s.length%4)%4),b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(b,c=>c.charCodeAt(0));}
 /* JD Arena app 2.0+ is a real Android app (WebView + window.JDApp bridge), not a browser tab: alerts come
    through Firebase (save_fcm_token, push_fcm_tokens) and Android's own notification permission. */
@@ -358,6 +358,7 @@ async function ensurePushSubscribed(){
       if(!t||/^ERR/.test(t))throw new Error('The app could not get a notification token ('+(t||'ERR_empty')+').');
       const {error}=await sb.rpc('save_fcm_token',{p_token:t,p_app_version:JD_TWA||null});
       if(error)throw error;
+      _appToken=t;
       _pushSub=pushPerm()==='granted'?{fcm:t}:null;_pushErr='';updatePushBtn();return !!_pushSub;
     }catch(e){
       _pushErr=String((e&&e.message)||e);_pushSub=null;updatePushBtn();
@@ -381,7 +382,7 @@ async function ensurePushSubscribed(){
 }
 // on log out: stop sending this device the previous player's alerts
 async function forgetPushDevice(){
-  if(JD_APP){try{if(_pushSub&&_pushSub.fcm&&sb)await sb.rpc('delete_fcm_token',{p_token:_pushSub.fcm});}catch(e){}_pushSub=null;return;}
+  if(JD_APP){try{if(_appToken&&sb)await sb.rpc('delete_fcm_token',{p_token:_appToken});}catch(e){}_pushSub=null;_appToken='';return;}
   try{const reg=await navigator.serviceWorker.getRegistration();const sub=reg&&await reg.pushManager.getSubscription();if(sub&&sb)await sb.rpc('delete_push_subscription',{p_endpoint:sub.endpoint});}catch(e){}
   _pushSub=null;
 }
@@ -1231,8 +1232,9 @@ function inAppBrowser(){
   return /Instagram/i.test(u)?'Instagram':/musical_ly|TikTok|Bytedance/i.test(u)?'TikTok':/Snapchat/i.test(u)?'Snapchat':/Line\//.test(u)?'LINE':/Messenger/i.test(u)?'Messenger':'Facebook';
 }
 function openInBrowser(){
-  const url=location.origin+location.pathname;
-  if(/Android/i.test(navigator.userAgent))location.href='intent://'+location.host+location.pathname+'#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent(url)+';end';
+  const q=new URLSearchParams(location.search);q.delete('fbclid');
+  const path=location.pathname+(q.toString()?'?'+q:''),url=location.origin+path;
+  if(/Android/i.test(navigator.userAgent))location.href='intent://'+location.host+path+'#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent(url)+';end';
   else location.href='x-safari-'+url; // iOS 17+ opens Safari; older iPhones follow the steps on screen
 }
 function googleBtnHtml(){
@@ -1289,7 +1291,7 @@ async function authGoogleSignIn(){
     if(error||!data||!data.url){sessionStorage.removeItem('jd_google_flow');authMsg('Google sign-in isn\'t set up on this deploy yet.');return;}
     JD_APP.openAuth(data.url);return;
   }
-  const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});
+  const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href.split('#')[0]}});
   if(error){sessionStorage.removeItem('jd_google_flow');authMsg('Google sign-in isn\'t set up on this deploy yet.');}
 }
 async function authSetUsername(){
@@ -1394,8 +1396,8 @@ async function authForgot(){
 }
 
 async function authLogout(){
+  await forgetPushDevice(); // while still signed in: the delete only matches this player's own rows
   await sb.auth.signOut();
-  forgetPushDevice();
   _player=null;_myRegs=new Map();_roomCodes=new Map();_notifUnread=0;try{localStorage.removeItem('jd_offline_tickets');}catch(e){}_discordLinkCode=null;
   trackPresence();
   updateAcctBtn();updateNotifHistBtn();updateGate();renderCur();
