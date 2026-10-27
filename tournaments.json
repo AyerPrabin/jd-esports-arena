@@ -241,15 +241,15 @@
       "prize": "300",
       "slots": 12,
       "start": "2026-10-29T21:30:00+05:45",
-      "format": "BR · Best of 3",
+      "format": "BR · 3 matches",
       "status": "upcoming",
       "platform": "Mobile only",
       "platform_mode": "mobile",
+      "map": "kalahari",
+      "map2": "purgatory",
+      "map3": "bermuda",
       "teams": [],
-      "registered": 0,
-      "map": "random",
-      "map2": "random",
-      "map3": "random"
+      "registered": 0
     },
     {
       "map": "purgatory",
@@ -261,33 +261,29 @@
       "prize": "200",
       "slots": 12,
       "start": "2026-10-31T21:30:00+05:45",
-      "format": "BR · Best of 3",
+      "format": "BR · 3 matches",
       "status": "upcoming",
       "platform": "Mobile only",
       "platform_mode": "mobile",
       "teams": [],
-      "registered": 0,
-      "map2": "random",
-      "map3": "random"
+      "registered": 0
     },
     {
-      "name": "JD Free Fire Open #12",
-      "game": "Free Fire BR · Squad",
-      "date": "Mon, Nov 2",
-      "time": "9:30 PM NPT",
-      "start": "2026-11-02T21:30:00+05:45",
-      "status": "upcoming",
       "map": "bermuda",
-      "prize": "300",
+      "date": "Mon, Nov 2",
+      "game": "Free Fire BR · Squad",
+      "name": "JD Free Fire Open #12",
+      "time": "9:30 PM NPT",
       "entry": "Free",
+      "prize": "300",
+      "slots": 12,
+      "start": "2026-11-02T21:30:00+05:45",
+      "format": "BR · 3 matches",
+      "status": "upcoming",
       "platform": "Mobile only",
       "platform_mode": "mobile",
-      "slots": 12,
-      "format": "BR · Best of 3",
       "teams": [],
-      "registered": 0,
-      "map2": "random",
-      "map3": "random"
+      "registered": 0
     }
   ],
   "bo3": {
@@ -514,5 +510,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-27T21:00:07.127Z"
+  "_published_at": "2026-10-27T22:23:17.151Z"
 }
