@@ -1,5 +1,5 @@
-// Rewarded-ad gate for free tournaments (supabase/ad_gate.sql). Players without a Weekly Pass watch 3 Google
-// rewarded ads (max 1 per hour) before joining a free event. Off until public.ad_config.enabled is set, and then
+// Rewarded-ad gate for free tournaments (supabase/ad_gate.sql + ad_gate_v2.sql). Players without a Weekly Pass watch
+// 3 rewarded ads back to back before joining a free event; the app also offers 1 ad per hour (hourly() below). Off until public.ad_config.enabled is set; until then
 // jdAds.gate() resolves true straight away for everyone. Only Google's rewarded format (GPT rewarded) is used:
 // the credit is claimed only after Google fires rewardedSlotGranted, and the server enforces the hour + count.
 // jdAds.gate(sb, eventName) -> Promise<boolean>: true = go on and register.
@@ -50,8 +50,8 @@
   }
 
   function fmtWait(at) {
-    var m = Math.max(1, Math.ceil((new Date(at) - Date.now()) / 60000));
-    return m >= 60 ? '1 hour' : m + ' min';
+    var sec = Math.max(1, Math.ceil((new Date(at) - Date.now()) / 1000));
+    return sec < 60 ? sec + 's' : Math.ceil(sec / 60) + ' min';
   }
 
   // retry = called after the server refused a join: only a real "Join now" tap may send it again (no loops)
@@ -75,7 +75,7 @@
           var ready = st.have >= st.needed;
           box.innerHTML = '<div class="b"><h3>' + (ready ? 'Unlocked!' : 'Free entry = ' + st.needed + ' short ads') + '</h3>' +
             '<p>' + (ready ? 'You can join ' + eventName.replace(/</g, '&lt;') + ' now.' :
-              'Watch ' + st.needed + ' ads to join this free tournament - one ad per hour. Weekly Pass holders skip the ads.') + '</p>' +
+              'Watch ' + st.needed + ' short ads back to back to join this free tournament. Weekly Pass holders skip the ads.') + '</p>' +
             '<div class="dots">' + dots + '</div><div class="err">' + (msg || '') + '</div>' +
             (ready ? '<button class="go" data-a="join">Join now</button>'
               : admob && !app ? '<p>The ads play in the JD Arena Android app.</p><button class="go" data-a="getapp">Get the JD Arena app</button>'
@@ -91,26 +91,26 @@
           if (a === 'getapp') { location.href = '/download/'; return; }
           if (a !== 'watch') return;
           busy = true; e.target.disabled = true; e.target.textContent = 'Loading ad…';
-          if (admob) { openAppAd(eventName); return; }
+          if (admob) { openAppAd(eventName, 'gate'); return; }
           showRewarded(st.unit).then(function (ok) {
             if (!ok) { draw('Watch the ad to the end to earn it.'); return; }
-            return sb.rpc('ad_reward_claim').then(function (c) {
+            return sb.rpc('ad_reward_claim', { p_kind: 'gate' }).then(function (c) {
               if (c.error) { var m = /AD_COOLDOWN: next ad at (\S+)/.exec(c.error.message); if (m) st.next_at = m[1]; draw(m ? '' : c.error.message); return; }
               st = c.data; draw();
             });
           }).catch(function (err) { draw(err.message || 'Ad failed to load.'); });
         };
         draw();
-        timer = setInterval(function () { if (!busy && st.next_at) draw(); }, 30000);
+        timer = setInterval(function () { if (!busy && st.next_at && new Date(st.next_at) > Date.now() - 2000) draw(); }, 1000);   /* gap countdown */
       });
     }).catch(function () { return !retry; });   // gate not installed / offline: the server still decides
   }
 
   // ── in the Android app: the native screen plays the AdMob ad and comes back with ?adreward=<nonce>&adok=1 ──
   var PENDING = 'jd_ad_pending';
-  function openAppAd(eventName) {
+  function openAppAd(eventName, kind) {
     var n = Math.random().toString(36).slice(2, 12) + Date.now().toString(36);
-    try { localStorage.setItem(PENDING, JSON.stringify({ n: n, ev: eventName, t: Date.now() })); } catch (e) {}
+    try { localStorage.setItem(PENDING, JSON.stringify({ n: n, ev: eventName, kind: kind, t: Date.now() })); } catch (e) {}
     // an app older than 1.5.0 has no ad screen: Chrome then opens the download page to update
     location.href = 'intent://ad?n=' + n + '#Intent;scheme=jdarena;package=uk.co.jdesport.arena;S.browser_fallback_url=' +
       encodeURIComponent('https://jdesport.co.uk/download/') + ';end';
@@ -123,19 +123,57 @@
     var p = null;
     try { p = JSON.parse(localStorage.getItem(PENDING) || 'null'); localStorage.removeItem(PENDING); } catch (e) {}
     if (!p || p.n !== n || Date.now() - p.t > 30 * 60000) return;   // only the ad this page asked for
+    whenReady(function () {
+      // gate ad: re-open the ad popup with the new count (or the join form); hourly ad: just bank the credit
+      var next = function () { if (p.ev) registerInApp(p.ev); };
+      if (okv !== '1') return next();
+      sb.rpc('ad_reward_claim', { p_kind: p.kind === 'hourly' ? 'hourly' : 'gate' }).then(next, next);
+    });
+  }
+  function whenReady(fn) {   // home.js globals: the Supabase client, the event list, the join flow, a signed-in player
     var tries = 0;
-    (function wait() {   // home.js globals: the Supabase client, the event list, the join flow
+    (function wait() {
       var ready = typeof sb !== 'undefined' && sb && typeof _lastData !== 'undefined' && _lastData && typeof registerInApp === 'function' && typeof _player !== 'undefined' && _player;
       if (!ready) { if (++tries < 40) setTimeout(wait, 250); return; }
-      sb.auth.getSession().then(function (r) {
-        if (!r || !r.data || !r.data.session) return;
-        var next = function () { registerInApp(p.ev); };   // re-opens the ad popup with the new count (or the join form)
-        if (okv !== '1') return next();
-        sb.rpc('ad_reward_claim').then(next, next);
-      });
+      sb.auth.getSession().then(function (r) { if (r && r.data && r.data.session) fn(); });
     })();
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', resume); else resume();
+
+  // ── 1 ad per hour in the app (owner rule): a 5-second notice with Skip, then the ad; it banks 1 credit toward
+  // the next free entry. Never for Weekly Pass holders, never from 30 min before one of the player's events
+  // until 90 min after (Room ID / password time - the server says 'quiet'), never on the challenge-room pages.
+  var HOURLY_ASKED = 'jd_ad_hourly_asked';
+  function hourly() {
+    var app = typeof JD_TWA !== 'undefined' && JD_TWA !== 0;
+    if (!app || /^\/challenges/.test(location.pathname) || /[?&]adreward=/.test(location.search)) return;
+    try { if (Date.now() - (+localStorage.getItem(HOURLY_ASKED) || 0) < 3600000) return; } catch (e) {}
+    whenReady(function () {
+      sb.rpc('ad_status').then(function (r) {
+        var st = r && r.data;
+        if (!st || !st.enabled || st.exempt || st.quiet || !st.hourly_due || !/^admob:/.test(st.unit || '')) return;
+        if (document.getElementById('ad-gate')) return;
+        try { localStorage.setItem(HOURLY_ASKED, String(Date.now())); } catch (e) {}
+        var box = document.createElement('div'), left = 5, timer;
+        box.id = 'ad-gate';
+        document.body.appendChild(box);
+        function draw() {
+          box.innerHTML = '<div class="b"><h3>Short ad in ' + left + '…</h3><p>It keeps JD tournaments free and adds 1 ad toward your next free entry.</p>' +
+            '<button class="go" data-a="now">Watch now</button><button class="alt" data-a="skip">Skip</button></div>';
+        }
+        function go() { clearInterval(timer); box.remove(); openAppAd(null, 'hourly'); }
+        box.onclick = function (e) {
+          var a = e.target.dataset && e.target.dataset.a;
+          if (a === 'now') return go();
+          if (a === 'skip' || e.target === box) { clearInterval(timer); box.remove(); }
+        };
+        draw();
+        timer = setInterval(function () { if (--left <= 0) go(); else draw(); }, 1000);
+      });
+    });
+  }
+
+  function start() { resume(); setTimeout(hourly, 4000); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 
   window.jdAds = { gate: gate };
 })();
