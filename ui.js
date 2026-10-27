@@ -128,7 +128,9 @@
   var mm = function (q) { return window.matchMedia && window.matchMedia(q).matches; };
   var standalone = mm('(display-mode: standalone)') || mm('(display-mode: fullscreen)') || mm('(display-mode: minimal-ui)') || navigator.standalone === true;
   var path = location.pathname;
-  var exempt = /^\/(privacy|terms|reset-password|admin|about)/.test(path) ||
+  // JD Arena app 2.0+ is a real app (its own WebView, window.JDApp) - never gate it (its UA looks like an in-app browser)
+  if (window.JDApp || /JDArenaApp\//.test(ua)) return;
+  var exempt = /^\/(privacy|terms|reset-password|admin|about|download|app-auth)/.test(path) ||
     /confirm_delete=1|type=recovery/.test(location.search + location.hash) ||
     /bot|crawl|spider|slurp|lighthouse|inspectiontool|headless/i.test(ua);
   if (!(ios || android) || standalone || exempt) return;
@@ -155,10 +157,11 @@
     steps = '<ol class="ag-steps"><li>Tap the <b>Share</b> button ' + (iosNonSafari ? 'in the address bar' : 'at the bottom of Safari') + '</li>' +
       '<li>Scroll down and tap <b>Add to Home Screen</b></li><li>Tap <b>Add</b>, then open <b>JD Arena</b> from your home screen</li></ol>';
   } else {
-    steps = '<button type="button" class="ag-btn" id="ag-install" hidden>Install JD Arena</button>' +
-      '<ol class="ag-steps" id="ag-manual"><li>Tap the menu <b>' + (samsung ? '≡' : '⋮') + '</b> ' + (samsung ? 'at the bottom' : 'at the top right') + '</li>' +
-      '<li>Tap ' + (samsung ? '<b>Add page to → Home screen</b>' : '<b>Install app</b> or <b>Add to Home screen</b>') + '</li>' +
-      '<li>Open <b>JD Arena</b> from your home screen</li></ol>';
+    // Android: the real app (APK from /download/), not the old home-screen web app
+    steps = '<a class="ag-btn" href="/download/?get=1">Download the JD Arena app</a>' +
+      '<ol class="ag-steps"><li>Tap <b>Download</b>, then open the downloaded file</li>' +
+      '<li>Tap <b>Install</b> (allow installs from ' + (samsung ? 'Samsung Internet' : 'your browser') + ' if your phone asks)</li>' +
+      '<li>Open <b>JD Arena</b> and sign in</li></ol>';
   }
   // signup confirmation links open in the phone browser, even for people who signed up in the app
   if (/type=signup/.test(location.search + location.hash)) {
@@ -170,7 +173,7 @@
   g.setAttribute('aria-modal', 'true');
   g.setAttribute('aria-labelledby', 'ag-t');
   g.innerHTML = '<div class="ag-card"><img src="/logo.webp" alt="" width="64" height="64"><h1 id="ag-t">Get the JD Arena app</h1>' +
-    '<p class="ag-lead">On phones, JD Arena runs as an app. It takes 10 seconds, it is free, and there is no app store.</p>' + steps +
+    '<p class="ag-lead">' + (android && !inApp ? 'On Android, JD Arena is a free app - it takes a minute to install.' : 'On phones, JD Arena runs as an app. It takes 10 seconds, it is free, and there is no app store.') + '</p>' + steps +
     '<ul class="ag-perks"><li>🔔 Room IDs and check-in alerts straight to your phone</li><li>✨ A free 7-day squad effect</li>' +
     '<li>📱 App badge on your username</li><li>⚡ Join selected events 24 hours early</li></ul>' +
     '<p class="ag-installed" id="ag-installed" hidden>✅ Already installed? Open <b>JD Arena</b> from your home screen.</p>' +

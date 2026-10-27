@@ -2721,6 +2721,21 @@ if(JD_TWA>0)window.addEventListener('load',()=>setTimeout(async()=>{
    the web version, so alerts come through the app and don't arrive twice. Shown only when Chrome can
    confirm the APK isn't installed (manifest related_applications) - inside the app itself that check
    always finds the app, so this can never pop up there. */
+/* App 2.0 (2026-10-27): a strip under the top bar for every Android visitor who isn't in the 2.0 app - the old
+   1.x app (runs inside Chrome/Brave) gets "Update", a phone browser gets "Get the app". × hides it for this visit. */
+async function appUpdateStrip(){
+  if(JD_APP||!isAndroidDevice())return;
+  try{if(sessionStorage.getItem('jd_upd_strip'))return;}catch(e){}
+  let d;try{d=await (await fetch('/download/android.json',{cache:'no-store'})).json();}catch(e){return;}
+  if(!d||!d.url)return;
+  const old=JD_TWA!==0,el=document.createElement('div');
+  el.className='app-upd';el.setAttribute('role','region');el.setAttribute('aria-label','App update');
+  el.innerHTML=`<span class="app-upd-ic" aria-hidden="true">${old?'⬇':'📲'}</span><span class="app-upd-txt"><b>${old?'Update to JD Arena '+esc(d.versionName):'Get the JD Arena app'}</b>${old?'A real app now - no browser, no ad blockers, faster alerts. Sign in once after updating.':'Room IDs and alerts arrive as app notifications, even when JD Arena is closed.'}</span><button type="button" class="app-upd-go">${old?'Update':'Get app'}</button><button type="button" class="app-upd-x" aria-label="Hide">×</button>`;
+  el.querySelector('.app-upd-go').onclick=()=>{location.href=old?d.url:'/download/?get=1';};
+  el.querySelector('.app-upd-x').onclick=()=>{el.remove();try{sessionStorage.setItem('jd_upd_strip','1');}catch(e){}};
+  const h=document.querySelector('header');if(h)h.insertAdjacentElement('afterend',el);else document.body.prepend(el);
+}
+appUpdateStrip();
 if(!JD_TWA&&isAndroidDevice()&&isStandaloneApp()&&navigator.getInstalledRelatedApps)window.addEventListener('load',()=>setTimeout(async()=>{
   try{
     const day=new Date().toISOString().slice(0,10);

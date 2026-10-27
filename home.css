@@ -1165,3 +1165,10 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 /* waitlist place on a waitlisted ticket */
 .mt-wpos{margin:8px 0 0;padding:9px 12px;border-radius:12px;border:1px dashed rgba(255,200,61,.45);background:rgba(255,200,61,.06);display:grid;gap:2px;font-size:.86rem}
 .mt-wpos b{color:var(--gold,#ffc83d);font-size:.98rem}.mt-wpos span{opacity:.8}
+/* App 2.0 update strip (home.js appUpdateStrip): every Android visitor not in the 2.0 app */
+.app-upd{display:flex;align-items:center;gap:12px;margin:0 16px 12px;padding:12px 14px;border:1px solid var(--gold-m);border-radius:14px;background:linear-gradient(135deg,rgba(255,200,61,.16),rgba(255,174,0,.06));color:var(--cream)}
+.app-upd-ic{font-size:1.5rem;line-height:1;flex-shrink:0}
+.app-upd-txt{flex:1;min-width:0;font-size:.92rem;line-height:1.35}
+.app-upd-txt b{display:block;color:var(--gold-l);font-size:1rem}
+.app-upd-go{flex-shrink:0;border:0;border-radius:10px;padding:10px 14px;background:linear-gradient(135deg,var(--gold),var(--gold-2));color:#07090F;font-weight:700;font-size:.92rem;cursor:pointer}
+.app-upd-x{flex-shrink:0;border:0;background:none;color:var(--cream);opacity:.6;font-size:1.2rem;padding:4px 6px;cursor:pointer}

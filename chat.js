@@ -14,9 +14,10 @@
 //   matches:  challenge_messages (RLS: the two captains) / send_challenge_message / challenge_mark_read
 //   sync:     jd_sync(p_since) every 5s on a visible tab (jd_sync.sql): unread counts + only the alerts / ZULU
 //             messages that changed since the last cursor, in one call (dm_poll / jd_poll are the fallback)
-// Local-first: the inbox, alerts, ZULU messages, the sync cursor and the last 60 messages of every chat are kept
+// Local-first: the inbox, alerts, ZULU messages, the sync cursor and the last 200 messages of every chat are kept
 // in IndexedDB on the device (store 'jd-chat'), so Messages opens instantly - also offline and in the app - and the
-// network only fills in what's new. Signing out clears it.
+// network only fills in what's new (the open chat asks for messages after the newest one it has - chat_delta.sql).
+// Signing out clears it.
 // No realtime: the open conversation refreshes every 2.5s. New messages also arrive as Web
 // Push (dm-push / chat-push Edge Functions) that open /?dm=<tag>, /?g=<group> or the challenge.
 // ZULU talks to the zulu-ai-reply Edge Function; its chat is kept on this device only, plus ZULU's own
@@ -294,7 +295,7 @@
   }
   function saveThread(p) {
     if (!me || !p || !p.id || p.kind === 'zulu' || p.kind === 'alerts') return;
-    var keep = msgs.filter(function (m) { return typeof m.id === 'number' && !m.failed; }).slice(-60)
+    var keep = msgs.filter(function (m) { return typeof m.id === 'number' && !m.failed; }).slice(-200)   // up to 200 per chat on the phone
       .map(function (m) { var c = Object.assign({}, m); delete c.fresh; return c; });
     LS.put(lk('t:' + p.kind + ':' + p.id), keep);
   }
@@ -858,7 +859,7 @@
   }
   function openThread(p) {
     if (PAGE && !wide() && !cur) { try { history.pushState({ jdThread: 1 }, ''); } catch (e) {} }
-    cur = p; msgs = []; hasOlder = false; ginfo = null; readMark = 0; sig = '';
+    cur = p; msgs = []; hasOlder = false; ginfo = null; readMark = 0; sig = ''; ticks = 0;
     closeSheet(); layout();
     $('dm-home').classList.toggle('on', wide()); $('dm-thread').classList.add('on');
     if (wide()) renderOverview();
@@ -1004,41 +1005,53 @@
   }
 
   // ── fetching a page of messages, normalised to { id, sender, mine, kind, body, created_at, read_at } ──
-  async function fetchPage(p, before) {
+  // after = only messages newer than this id (the 2.5s refresh asks for what's new, not the last 60 again -
+  // chat_delta.sql). group/jd fall back to the full page until that SQL is applied (PGRST202 = unknown args).
+  var noAfter = {};
+  async function fetchPage(p, before, after) {
+    if (after && noAfter[p.kind]) after = null;
+    var args = function (o) { if (before) o.p_before = before; if (after) o.p_after = after; return o; };
     if (p.kind === 'dm') {
-      var r = await SB.rpc('dm_thread', before ? { p_with: p.id, p_before: before } : { p_with: p.id });
+      var r = await SB.rpc('dm_thread', args({ p_with: p.id }));
       return r.error ? r : { data: (r.data || []).map(function (m) { return Object.assign({ sender: m.mine ? me : p.id, kind: 'text' }, m); }) };
     }
-    if (p.kind === 'jd') {
-      var j = await SB.rpc('jd_thread', before ? { p_before: before } : {});
-      return j.error ? j : { data: (j.data || []).map(function (m) { return Object.assign({ sender: m.mine ? me : 'jd' }, m, { kind: 'text' }); }) };
-    }
-    if (p.kind === 'group') {
-      var g = await SB.rpc('group_thread', before ? { p_group: p.id, p_before: before } : { p_group: p.id });
-      return g;
+    if (p.kind === 'jd' || p.kind === 'group') {
+      var x = await SB.rpc(p.kind === 'jd' ? 'jd_thread' : 'group_thread', args(p.kind === 'jd' ? {} : { p_group: p.id }));
+      if (x.error && after && x.error.code === 'PGRST202') { noAfter[p.kind] = true; return fetchPage(p, before); }
+      if (x.error || p.kind === 'group') return x;
+      return { data: (x.data || []).map(function (m) { return Object.assign({ sender: m.mine ? me : 'jd' }, m, { kind: 'text' }); }) };
     }
     var q = SB.from('challenge_messages').select('id, sender, kind, body, created_at').eq('challenge_id', p.id).order('id', { ascending: false }).limit(60);
     if (before) q = q.lt('id', before);
+    if (after) q = q.gt('id', after);
     var c = await q;
     return c.error ? c : { data: (c.data || []).map(function (m) { return Object.assign({ mine: m.sender === me }, m, { kind: m.kind || 'text' }); }) };
   }
 
-  var sig = '';
+  var sig = '', ticks = 0;
   async function refreshThread(first) {
     var p = cur; if (!p || p.kind === 'zulu') return;
     if (sending && !first) return;
     if (first || Math.random() < 0.1) await loadMeta(p);
     if (cur !== p) return;
-    var r = await fetchPage(p);
+    // opening = one full page (also catches read receipts and unread marks); after that only new messages,
+    // with a full page every ~30s so "seen" ticks on your own messages still update
+    var newest = 0;
+    msgs.forEach(function (m) { if (typeof m.id === 'number') newest = Math.max(newest, m.id); });
+    var delta = !first && newest > 0 && (++ticks % 12 !== 0);
+    var r = await fetchPage(p, null, delta ? newest : null);
     if (cur !== p || r.error || (sending && !first)) return;
     var rows = (r.data || []).slice().reverse();
-    if (first) {
+    if (delta && !rows.length) { smartChips(false); return; }   // nothing new: no render, no save
+    if (first || (delta && rows.length >= 60)) {   // a gap bigger than one page: start from the newest page
       hasOlder = rows.length >= 60;
-      msgs = rows;
+      var kept = msgs.filter(function (m) { return typeof m.id === 'number'; }), lo = rows.length ? rows[0].id : 0;
+      // opening: the phone's older messages stay in front of the fresh page when the two overlap (no gap)
+      var older = first && lo && kept.length && kept[kept.length - 1].id >= lo ? kept.filter(function (m) { return m.id < lo; }) : [];
+      msgs = older.concat(rows, first ? [] : msgs.filter(function (m) { return typeof m.id !== 'number'; }));
     } else {
       var byId = {}; rows.forEach(function (m) { byId[m.id] = m; });
-      var newest = 0;
-      msgs.forEach(function (m) { if (typeof m.id === 'number') { if (byId[m.id]) m.read_at = byId[m.id].read_at; newest = Math.max(newest, m.id); } });
+      msgs.forEach(function (m) { if (typeof m.id === 'number' && byId[m.id]) m.read_at = byId[m.id].read_at; });
       var fresh = rows.filter(function (m) { return m.id > newest && !msgs.some(function (x) { return x.id === m.id; }); });
       fresh.forEach(function (m) { m.fresh = true; if (m.kind === 'ai') zuluWait = null; });
       var local = msgs.filter(function (m) { return typeof m.id !== 'number'; });
@@ -1346,6 +1359,7 @@
     hasOlder = rows.length >= 60;
     msgs = rows.concat(msgs);
     renderMsgs(false);
+    saveThread(p);   // older pages you scrolled to stay on the phone too (up to 200)
     box.scrollTop = box.scrollHeight - h0;
   }
 
