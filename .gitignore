@@ -56,3 +56,6 @@ zulu_parts_catalog.json
 # ZULU Discord bot log (run_discord_bot_hidden.pyw)
 zulu_discord.log
 zulu_discord.log.1
+
+# Firebase service-account key (secret - set with supabase secrets, never commit)
+fcm-key.json
