@@ -624,6 +624,13 @@ function teamsFor(t){
 const MAP_ART={bermuda:'Bermuda',purgatory:'Purgatory',kalahari:'Kalahari',alpine:'Alpine',nexterra:'NeXTerra'};
 function mapOf(t){const k=String(t.map||'').toLowerCase();return MAP_ART[k]?k:'bermuda';}
 /* Best of 3 (map2 / map3 set): one map per match, 'random' = picked when the room is made. */
+/* Card picture for a best of 3: the three maps side by side, labelled M1 / M2 / M3 (🎲 tile for Random). */
+function mapsStrip(t){
+  return '<div class="tm-maps" aria-hidden="true">'+[t.map,t.map2,t.map3].map((k,i)=>{
+    k=String(k||'random').toLowerCase();const m=MAP_ART[k];
+    return `<div class="tm-map${m?'':' rnd'}"${m?` style="background-image:url('maps/ff-${k}.webp')"`:''}><b>M${i+1}</b><span>${m||'🎲 Random'}</span></div>`;
+  }).join('')+'</div>';
+}
 function mapsText(t){
   if(!t.map2&&!t.map3)return '🗺️ '+MAP_ART[mapOf(t)];
   const n=k=>{k=String(k||'random').toLowerCase();return MAP_ART[k]||'🎲 Random';};
@@ -754,7 +761,8 @@ function render(d){
     const host=String(t.host||'').replace(/^@+/,'').trim();
     const org=host?`<span class="tm-org host" title="Run by partner host @${esc(host)}"><i>${esc(host.charAt(0).toUpperCase())}</i>Hosted by @${esc(host)}</span>`
                   :`<span class="tm-org" title="Official JD Esports event"><img src="/logo.webp" alt="">JD Official</span>`;
-    const media=`<div class="tcard-media" style="background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%),url('${esc(t.image||('maps/ff-'+mapOf(t)+'.webp'))}')">${org}<div class="tm-over">${prizeTxt!=='—'?`<span class="tm-prize">🏆 ${esc(prizeTxt)}</span>`:''}<span class="tm-entry${/^free$/i.test(entryTxt.trim())?' free':''}">${/^free$/i.test(entryTxt.trim())?'Free entry':'Entry '+esc(entryTxt)}</span></div>${urgency}</div>`;
+    const bo3=!t.image&&(t.map2||t.map3);
+    const media=`<div class="tcard-media${bo3?' bo3':''}" style="background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%)${bo3?'':`,url('${esc(t.image||('maps/ff-'+mapOf(t)+'.webp'))}')`}">${bo3?mapsStrip(t):''}${org}<div class="tm-over">${prizeTxt!=='—'?`<span class="tm-prize">🏆 ${esc(prizeTxt)}</span>`:''}<span class="tm-entry${/^free$/i.test(entryTxt.trim())?' free':''}">${/^free$/i.test(entryTxt.trim())?'Free entry':'Entry '+esc(entryTxt)}</span></div>${urgency}</div>`;
     const isPast=st==='completed'||st==='cancelled';
     return `<div class="tcard${isPast?' past':''}" data-tname="${esc(t.name)}" onclick="cardTap(event,this)">${media}<div class="tcard-body"><span class="tbadge ${st}">${st==='live'?'● Live':(st==='cancelled'?'✕ Cancelled':(st.charAt(0).toUpperCase()+st.slice(1)))}</span><div class="tname">${esc(t.name)}</div><div class="tgame">${esc(t.game||'Free Fire')}</div>${(st==='upcoming'&&t.start)?`<div class="tcount" data-start="${esc(t.start)}"></div><div class="tcount-bar"><span></span></div>`:''}<div class="tmeta"><div class="row"><span>Date</span><b>${esc(t.date||'TBA')}${t.time&&t.time!=='—'?' · '+esc(t.time):''}</b></div><div class="row"><span>Format</span><b>${esc(t.format||'BR')}</b></div><div class="row"><span>${t.map2||t.map3?'Maps':'Map'}</span><b>${esc(mapsText(t))}</b></div><div class="row"><span>Platform</span><b>📱 ${esc(platText(t))}</b></div>${host?`<div class="row"><span>Host</span><b>@${esc(host)}</b></div>`:''}</div>${host?`<p class="thost-note">Run by partner host <b>@${esc(host)}</b>: they send the room ID and pay the prize. JD Arena handles sign-up, slots and alerts.</p>`:''}${slots?`<div class="tslots"><span style="width:${pct}%"></span></div><button class="tslots-label" data-roster="${esc(t.name)}">${reg}/${slots} ${tr('sqview')}</button>`:''}${teams.length?`<div class="troster">${teams.slice(0,CHIP_MAX).map(tm=>{const fx=squadFx(tm);const cls=fx?' '+fx.cls:'';const badge=(fx&&fx.badge)?`<span class="fx-badge">${fx.badge}</span> `:'';const particles=fxParticlesHtml(fx);const nameHtml=fxNameHtml(fx,tm.name);return tm.logo?`<span class="${(fx?fx.cls:'')}"><img src="${esc(tm.logo)}" alt="">${badge}${nameHtml}${particles}</span>`:`<span class="nologo${cls}">${badge}${nameHtml}${particles}</span>`;}).join('')}${teams.length>CHIP_MAX?`<button type="button" class="chip-more" data-roster="${esc(t.name)}">+${teams.length-CHIP_MAX} more</button>`:''}</div>`:''}${btn}${inAppRegBtn(t,st,full)}</div></div>`;
   }).join(''):(lang==='ne'?'<p class="ev-empty">अहिले कुनै आगामी प्रतियोगिता छैन — अर्को प्रतियोगिता पहिले Discord मा घोषणा हुन्छ। त्यतिन्जेल <a href="/events/">पुराना प्रतियोगिता</a> हेर्नुहोस्।</p>':'<p class="ev-empty">No upcoming tournaments right now — the next one is announced on Discord first. Meanwhile, see <a href="/events/">past events</a>.</p>');
