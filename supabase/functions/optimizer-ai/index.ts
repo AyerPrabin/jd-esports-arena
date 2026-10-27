@@ -14,6 +14,8 @@ const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 const DAILY_CHECKS = 6;
+const sha256hex = async (s: string) => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s))))
+  .map((b) => b.toString(16).padStart(2, '0')).join('');
 const text = (body: string, status = 200) =>
   new Response(body, { status, headers: { ...CORS_HEADERS, 'Content-Type': 'text/plain; charset=utf-8' } });
 
@@ -30,6 +32,8 @@ HOW TO ANSWER (plain text only - no markdown, no tables, no ** or #):
 2. Then up to 8 numbered suggestions, most important first. Each one: what to do (exact menu path or JD button), then "Why:" quoting the number from the report that shows it (e.g. "1% low 41 vs avg 118", "GPU hit 88 C", "HD-Player crashed 3 times").
 3. If the report shows emulator crashes, explain the likely cause from the crash text (renderer, driver, RAM, overheating, antivirus) and the fix.
 4. End with "Looks good:" and one line on what is already fine.
+5. If a section "[Other JD players with the same graphics card]" is given, use it: e.g. "players with your card get a better 1% low on OpenGL at cap 90" - only when it has 3+ sessions.
+6. Very last line, only if one of these JD buttons would clearly help: "JD_ACTIONS: " followed by up to 3 of exactly fps60, fps90, fps120, sleep_on (comma separated). The app turns them into buttons the player can press; they apply at the next Play, never mid-match. Leave the line out if none fits.
 Keep it under 350 words, simple English a teenager understands. If data is missing (no sessions yet), say "Play one match with Play/Boost, then check again" and give only the safe basics for this hardware.`;
 
 Deno.serve(async (req: Request) => {
@@ -59,13 +63,39 @@ Deno.serve(async (req: Request) => {
     .eq('token_hash', hash).gte('at', since);
   if (!cntErr && (count ?? 0) >= DAILY_CHECKS) return text(`You used all ${DAILY_CHECKS} AI checks for today - try again tomorrow.`, 429);
 
+  // what other JD players with the same graphics card got (anonymous shared stats) - real numbers for the AI
+  const gpus = [...report.matchAll(/^GPU: (.+?), [\d.]+ GB VRAM$/gm)].map((x) => x[1].trim()).slice(0, 4);
+  let peers = '';
+  if (gpus.length) {
+    const { data: rows } = await sb.rpc('optimizer_gpu_stats', { p_gpus: gpus });
+    if (Array.isArray(rows) && rows.length) {
+      peers = '\n\n[Other JD players with the same graphics card, last 90 days: renderer, FPS cap -> avg FPS, 1% low, stutters/min]\n' +
+        rows.slice(0, 12).map((g: any) => `${g.gpu}: ${g.renderer} cap ${g.cap} -> ${g.fps} FPS, 1% low ${g.low1}, ${g.stutter_min}/min (${g.sessions} sessions)`).join('\n');
+    }
+  }
+
   const ai = await askAI([
     { role: 'system', content: SYSTEM },
-    { role: 'user', content: report },
+    { role: 'user', content: report + peers },
   ], ['groq', 'cerebras', 'gemini'], { timeoutMs: 18000 });   // stays under the app's 90 s wait; Gemini last (ZULU shares it)
   if (!ai || !ai.text.trim()) return text('The AI is busy right now - try again in a few minutes.', 503);
   if (!cntErr) await sb.from('optimizer_ai_uses').insert({ token_hash: hash });
   // plain text for the app's text box: strip any markdown the model slipped in
   const out = ai.text.replace(/\*\*|__|^#+\s*/gm, '').replace(/^\s*[-*]\s+/gm, '- ').trim();
+
+  // "My PC" card on /optimizer/: keep the latest answer for this linked PC (the player sees only their own)
+  try {
+    const { data: dev } = await sb.from('optimizer_devices').select('id, player_id')
+      .eq('token_hash', await sha256hex(token)).is('revoked_at', null).maybeSingle();
+    if (dev) {
+      const advice = out.replace(/^JD_ACTIONS:.*$/m, '').trim();
+      const sm = /Health:\s*(\d{1,2})\s*\/\s*10/i.exec(advice);
+      const score = sm ? Math.min(10, Math.max(0, +sm[1])) : null;
+      const first = advice.split('\n').map((l) => l.trim()).filter(Boolean);
+      const headline = (sm ? (first[0].replace(/Health:\s*\d+\s*\/\s*10[.\s-]*/i, '') || first[1] || '') : first[0] || '').slice(0, 300);
+      await sb.from('optimizer_ai_latest').upsert({ device_id: dev.id, player_id: dev.player_id, score, headline,
+        advice: advice.slice(0, 4000), at: new Date().toISOString() });
+    }
+  } catch (_) { /* the card is a bonus - the answer still goes back */ }
   return text(out);
 });

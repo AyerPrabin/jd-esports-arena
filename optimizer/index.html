@@ -224,6 +224,14 @@ footer.wrap{margin-top:130px;border-top:1px solid var(--line);padding:30px 0 44p
 footer a{color:var(--gold-l)}
 footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:10px}
 
+/* "My PC" AI Doctor card under each linked PC (v5.9) */
+.devs td.ai-pc{padding:4px 12px 14px;border-top:0}
+.ai-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;color:var(--body);font-size:.86rem}
+.ai-score{display:inline-grid;place-items:center;min-width:48px;padding:3px 8px;border-radius:999px;background:rgba(255,200,61,.14);color:var(--gold-l);font-size:.85rem}
+.ai-score.good{background:rgba(94,219,149,.14);color:#5EDB95}.ai-score.mid{background:rgba(255,159,28,.14);color:#FF9F1C}.ai-score.bad{background:rgba(255,95,109,.14);color:#FF5F6D}
+.ai-pc details{margin-top:6px}.ai-pc summary{cursor:pointer;color:var(--gold-l);font-size:.84rem}
+.ai-advice{white-space:pre-wrap;margin-top:8px;color:var(--body);font-size:.84rem;line-height:1.5;max-height:340px;overflow:auto}
+
 /* entrance motion (transform/opacity only) */
 .rise{opacity:0;transform:translateY(18px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
 .rise.in{opacity:1;transform:none}
@@ -447,7 +455,7 @@ footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin
   <section id="pcs-sec" hidden>
     <div class="sec-head"><div class="eyebrow">Your PCs</div><h2>Linked PCs.</h2></div>
     <table class="devs" id="devs"></table>
-    <p class="notes">Up to 2 PCs at a time and 4 new links per 30 days. Linking a third unlinks the oldest. Unlink a PC you no longer use, or if you didn't link it.</p>
+    <p class="notes">Press <b>AI Doctor</b> in the app to check a PC - its score and advice show here. Up to 2 PCs at a time and 4 new links per 30 days. Linking a third unlinks the oldest. Unlink a PC you no longer use, or if you didn't link it.</p>
   </section>
 
   <section id="faq">
@@ -547,12 +555,28 @@ function render(){
     u.onclick=async()=>{if(!confirm('Unlink "'+d.name+'"? The app on that PC will ask to sign in again.'))return;
       const {error}=await sb.rpc('optimizer_revoke_device',{p_id:d.id});if(error)msg(error.message,'err');else{msg('PC unlinked.','ok');refresh();}};
     x.appendChild(u);tr.append(n,w,x);tb.appendChild(tr);
+    // "My PC": the latest AI Doctor check from the app on this PC (v5.9, Tips button)
+    const ai=aiChecks.find(a=>a.device_id===d.id);
+    if(ai){
+      const ar=document.createElement('tr'),c=document.createElement('td');c.colSpan=3;c.className='ai-pc';
+      const s=ai.score==null?null:+ai.score,col=s==null?'':s>=8?'good':s>=5?'mid':'bad';
+      const head=document.createElement('div');head.className='ai-head';
+      const b=document.createElement('b');b.className='ai-score '+col;b.textContent=s==null?'AI':s+'/10';
+      const t=document.createElement('span');t.textContent=(ai.headline||'AI Doctor checked this PC')+' · '+new Date(ai.at).toLocaleString();
+      head.append(b,t);
+      const det=document.createElement('details'),sum=document.createElement('summary');sum.textContent='AI Doctor advice';
+      const pre=document.createElement('div');pre.className='ai-advice';pre.textContent=ai.advice||'';
+      det.append(sum,pre);c.append(head,det);ar.appendChild(c);tb.appendChild(ar);
+    }
   });
 }
 
+let aiChecks=[];
 async function refresh(){
-  const [{data,error},w]=await Promise.all([sb.rpc('optimizer_my_status'),sb.from('wallets').select('balance, unlimited').maybeSingle()]);
+  const [{data,error},w,ai]=await Promise.all([sb.rpc('optimizer_my_status'),sb.from('wallets').select('balance, unlimited').maybeSingle(),
+    sb.from('optimizer_ai_latest').select('device_id, score, headline, advice, at')]);
   if(error){msg(error.message,'err');return;}
+  aiChecks=(ai&&!ai.error&&ai.data)||[];   // table missing / not signed in: no card
   st=data;
   $('need-plan').classList.toggle('done',!!(st&&st.tier));
   $('bal').textContent=w.data?(w.data.unlimited?'∞':Number(w.data.balance||0).toLocaleString()):'0';

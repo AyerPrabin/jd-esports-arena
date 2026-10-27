@@ -5,6 +5,7 @@
 //   { action: 'end', player_id }                         -> end the plan now
 //   { action: 'devices', player_id }                     -> linked PCs
 //   { action: 'revoke_device', id }                      -> unlink a PC (the app asks to sign in again)
+//   { action: 'gpu_board' }                              -> FPS by graphics card from the anonymous stats (best renderer + cap)
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const CORS_HEADERS: Record<string, string> = {
@@ -87,6 +88,13 @@ Deno.serve(async (req: Request) => {
       .eq('player_id', p.player_id);
     if (error) return fail(error.message, 500);
     return json({ ok: true });
+  }
+
+  // v5.9 owner dashboard: per graphics card, the shared anonymous sessions and the best renderer + cap by 1% low
+  if (p.action === 'gpu_board') {
+    const { data, error } = await supabase.rpc('optimizer_gpu_board');
+    if (error) return fail(error.message, 500);
+    return json(data || []);
   }
 
   if (p.action === 'devices') {

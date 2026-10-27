@@ -606,9 +606,11 @@ h2[id]{scroll-margin-top:64px}
   <div id="op-player"></div>
   <div class="row" style="margin-top:10px">
     <button class="btn ghost" onclick="opList()">📋 All plans</button>
+    <button class="btn ghost" onclick="opGpuBoard()">📊 FPS by graphics card</button>
     <div id="op-msg" class="hint"></div>
   </div>
   <div id="op-list"></div>
+  <div id="op-gpu"></div>
 
   <h2 id="moderators">Moderators <span class="tag">staff · host</span></h2>
   <p class="hint">Mods sign in at <a href="/mod/" target="_blank">/mod/</a> with their JD account (add them by that email). <b>Staff</b> = your own mods: every event, JD Esports chat, prize payouts. <b>Host</b> = an invited scrim host: creates and runs only their own free events (or ones whose "Host mod handle" you set) – squads, room code, notifications to those squads, results. Everything they send is signed with their @handle; JD never pays their prizes. No JD Esports chat. Only you can notify all players. Nobody can touch bans, plans or balances.</p>
@@ -2297,6 +2299,22 @@ function opSearch(){
       box.querySelectorAll('.op-pick').forEach(b=>{const r=rows.find(x=>x.id===b.dataset.id);b.onclick=()=>{box.innerHTML='';opOpen(r);};});
     }catch(e){opMsg(e.message,'err');}
   },250);
+}
+/* Owner dashboard: anonymous shared sessions (last 90 days) per graphics card, with the renderer + FPS cap that gave
+ * the best 1% low (3+ sessions). The AI Doctor gives players the same numbers for their own card. */
+async function opGpuBoard(){
+  const box=document.getElementById('op-gpu');
+  opMsg('Loading…','');
+  try{
+    const rows=await opCall({action:'gpu_board'});
+    opMsg('','');
+    const RN={gl:'OpenGL',vlcn:'Vulkan',vulkan:'Vulkan',dx:'DirectX',opengl:'OpenGL',directx:'DirectX'};
+    rows.forEach(g=>{if(g.best_renderer)g.best_renderer=RN[g.best_renderer]||g.best_renderer;});
+    box.innerHTML=rows.length?`<div class="card" style="overflow-x:auto"><p class="hint" style="margin:0 0 8px">Last 90 days of JD-Optimiers sessions (5+ min): anonymous shared stats + private PC reports. "Best" = the renderer + cap with the highest 1% low (3+ sessions).</p>
+      <table style="width:100%;font-size:.76rem;border-collapse:collapse"><tr class="hint" style="text-align:left"><th style="padding:4px">Graphics card</th><th>PCs</th><th>Sessions</th><th>Avg FPS</th><th>Avg 1% low</th><th>Best setting</th><th>Best FPS / 1% low</th></tr>
+      ${rows.map(g=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 4px">${esc(g.gpu||'?')}</td><td>${g.pcs}</td><td>${g.sessions}</td><td>${g.fps??'-'}</td><td>${g.low1??'-'}</td><td>${g.best_renderer?esc(g.best_renderer)+' · cap '+esc(String(g.best_cap)):'<span class="hint" style="margin:0">not enough data</span>'}</td><td>${g.best_renderer?g.best_fps+' / '+g.best_low1:''}</td></tr>`).join('')}</table></div>`
+      :'<p class="hint">No shared sessions yet.</p>';
+  }catch(e){box.innerHTML='';opMsg(e.message,'err');}
 }
 async function opOpen(r){
   _opPlayer=r;
