@@ -252,7 +252,7 @@
       "registered": 0
     },
     {
-      "map": "purgatory",
+      "map": "nexterra",
       "date": "Sat, Oct 31",
       "game": "Free Fire BR · Squad",
       "name": "JD Free Fire Open #10",
@@ -265,6 +265,8 @@
       "status": "upcoming",
       "platform": "Mobile only",
       "platform_mode": "mobile",
+      "map2": "alpine",
+      "map3": "kalahari",
       "teams": [],
       "registered": 0
     },
@@ -510,5 +512,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-27T22:23:17.151Z"
+  "_published_at": "2026-10-27T22:23:27.695Z"
 }
