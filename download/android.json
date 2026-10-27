@@ -1,9 +1,9 @@
 {
-  "versionCode": 6,
-  "versionName": "1.5.0",
-  "url": "https://jdesport.co.uk/download/jd-arena-1.5.0.apk",
-  "sha256": "27e64bad6afc57d5c1d36545b2489bd21865b8a5df87dd6de4f8a85da981c3ae",
-  "size": 3833794,
+  "versionCode": 7,
+  "versionName": "2.0.0",
+  "url": "https://jdesport.co.uk/download/jd-arena-2.0.0.apk",
+  "sha256": "139ae529bf9c5eead510fb6b35a6a04f26ba65781320b816d8b7cb791a4147c6",
+  "size": 3499320,
   "date": "2026-10-27",
-  "notes": "watch short ads in the app to join free tournaments (3 ads back to back), no ads at Room ID time."
+  "notes": "JD Arena is now a real app - it no longer opens inside Chrome or Brave, so ad blockers can't break it. Faster alerts. Please sign in once after updating."
 }
