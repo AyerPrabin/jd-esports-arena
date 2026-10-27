@@ -59,7 +59,10 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .nav-scrim{display:none;position:fixed;inset:0;background:rgba(5,7,12,.6);z-index:55;opacity:0;transition:opacity .3s}
 @media(max-width:640px){
   .nav-toggle{display:inline-flex}
-  .bar-nav{position:fixed;top:0;right:0;bottom:0;width:min(80vw,320px);background:var(--bg-2);flex-direction:column;align-items:stretch;gap:6px;padding:90px 22px 28px;transform:translateX(100%);transition:transform .35s cubic-bezier(.16,1,.3,1);box-shadow:-20px 0 60px rgba(0,0,0,.5);z-index:60;overflow-y:auto}
+  .bar-nav{position:fixed;top:0;right:0;bottom:0;width:min(80vw,320px);background:var(--bg-2);flex-direction:column;align-items:stretch;gap:6px;padding:90px 22px 28px;transform:translateX(100%);transition:transform .35s cubic-bezier(.16,1,.3,1);box-shadow:-20px 0 60px rgba(0,0,0,.5);z-index:60;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
+  /* items keep their height so a long menu scrolls instead of squashing; tab-bar pages and the app's own download are not repeated here */
+  .bar-nav>*{flex-shrink:0}
+  html .bar-nav .nav-link[href="/challenges/"],html .bar-nav .nav-link[href="/events/"],html .bar-nav .nav-link[href="/leaderboard.html"],html .bar-nav .pc-opt,html.jd-app .bar-nav .dl-wrap{display:none!important}
   .bar-nav.open{transform:translateX(0)}
   .bar-nav>a,.bar-nav>.dl-wrap{width:100%}
   .bar-nav .lang-btn{width:100%;text-align:left;padding:12px 16px}

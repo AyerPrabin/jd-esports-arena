@@ -897,6 +897,7 @@
     stopThread();
     if (p.kind === 'zulu') {
       msgs = zuluLoad(); renderMsgs(true);
+      zuluWarm();
       loadZn().then(function () { if (cur !== p) return; msgs = zuluLoad(); renderMsgs(true); markZfRead(); });
       return;
     }
@@ -1255,6 +1256,17 @@
     return full.trim() || null;
   }
   window.zuluFetch = zuluFetch;
+  // Opening ZULU starts the slow parts early, so the first question doesn't wait for them: the account
+  // summary (7 small queries, cached 30 s) and the Edge Function itself (a cold one takes ~1 s to boot;
+  // the OPTIONS preflight wakes it without using any AI quota).
+  var warmAt = 0, acctPending = null;   // a question sent while the warm-up is still loading reuses it
+  function zuluWarm() {
+    if (Date.now() - warmAt < 25000) return;
+    warmAt = Date.now();
+    var w = acctPending = zuluAccount();
+    w.then(function () {}, function () {}).then(function () { if (acctPending === w) acctPending = null; });
+    try { fetch((SB.supabaseUrl || 'https://cnoxvqvpmgowdiyrrusv.supabase.co') + '/functions/v1/zulu-ai-reply', { method: 'OPTIONS' }).catch(function () {}); } catch (e) {}
+  }
   // follow-up questions after a ZULU answer (local, no AI quota)
   function zuluFollowups(q, a) {
     var t = (q + ' ' + a).toLowerCase(), out = [];
@@ -1427,7 +1439,7 @@
     if (typeof window.zuluLocalAnswer === 'function') { try { local = await window.zuluLocalAnswer(q); } catch (e) {} }
     if (local && local.text) reply = local.text;
     else try {
-      var account = await zuluAccount(), live = null;
+      var account = await (acctPending || zuluAccount()), live = null;
       reply = await zuluFetch({ message: q, lang: NE ? 'ne' : 'en', account: account,
         history: hist.slice(-9, -1).map(function (h) { return { role: h.role, content: h.content }; }) }, function (text) {
         if (!cur || cur.kind !== 'zulu') return;

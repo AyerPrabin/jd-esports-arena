@@ -47,6 +47,22 @@ if (window.JDApp || /JDArenaApp\//.test(navigator.userAgent)) document.documentE
     nav.querySelectorAll('span[data-en]').forEach(function (s) { s.textContent = np ? s.getAttribute('data-np') : s.getAttribute('data-en'); });
   };
   document.body.classList.add('has-tabbar');
+  // The other tabs' pages are fetched into the browser cache once this page is idle (and again on the
+  // first touch of a tab), so switching tabs opens at once - like a native app - instead of waiting on
+  // the network. Skipped on Data Saver / 2G.
+  var pre = {};
+  function prefetch(href) {
+    href = href.split('#')[0] || '/';
+    if (pre[href] || href === location.pathname) return;
+    pre[href] = 1;
+    var l = document.createElement('link'); l.rel = 'prefetch'; l.href = href; document.head.appendChild(l);
+  }
+  var cn = navigator.connection;
+  if (!(cn && (cn.saveData || /2g/.test(cn.effectiveType || '')))) {
+    var idle = window.requestIdleCallback || function (f) { setTimeout(f, 1500); };
+    window.addEventListener('load', function () { idle(function () { tabs.forEach(function (t) { prefetch(t.href); }); }); });
+    nav.addEventListener('touchstart', function (e) { var a = e.target.closest && e.target.closest('a'); if (a) prefetch(a.getAttribute('href')); }, { passive: true });
+  }
 
   // Profile tab shows the signed-in player's own picture (or initial), like Instagram/Facebook. home.js calls
   // jdTabbarMe after sign-in; other pages reuse the copy it keeps (signed avatar URLs last a day).
