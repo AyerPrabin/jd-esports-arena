@@ -324,7 +324,13 @@ if(FORCE_LOGIN_GATE&&sb){
 const VAPID_PUBLIC_KEY='BPP1cVMCDdmZzwhR48u0BBEFbrg2LP9JEUm8YHAWogBIoegeuJLZaKOvv_6JSciOMwMB0tu4C9RgWghf4HjQo4I';
 let _pushSub=null,_pushErr='';
 function b64ToU8(s){const p='='.repeat((4-s.length%4)%4),b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(b,c=>c.charCodeAt(0));}
-function pushSupported(){return 'serviceWorker' in navigator&&'PushManager' in window&&typeof Notification==='function';}
+/* JD Arena app 2.0+ is a real Android app (WebView + window.JDApp bridge), not a browser tab: alerts come
+   through Firebase (save_fcm_token, push_fcm_tokens) and Android's own notification permission. */
+const JD_APP=window.JDApp||null;
+function pushSupported(){return !!JD_APP||('serviceWorker' in navigator&&'PushManager' in window&&typeof Notification==='function');}
+function pushPerm(){if(JD_APP){try{return JD_APP.notifPermission();}catch(e){return 'default';}}return typeof Notification==='function'?Notification.permission:'default';}
+function pushAsk(){if(JD_APP)return new Promise(res=>{window.__jdPerm=res;JD_APP.requestNotifPermission();});return Notification.requestPermission();}
+function appPushToken(){return new Promise(res=>{window.__jdToken=res;try{JD_APP.pushToken();}catch(e){res('');}setTimeout(()=>res(''),15000);});}
 /* iPhone/iPad only support push for a home-screen-installed app (Apple's own
    restriction) — detect it and explain instead of the button silently doing nothing. */
 /* Device text always follows platform_mode (what sign-up actually enforces; missing = mixed), never the old free-text field */
@@ -343,7 +349,16 @@ function isStandaloneApp(){return !!JD_TWA||window.matchMedia('(display-mode: st
 // signed-in player. Safe to call on every load: it re-saves, which also covers endpoints
 // the browser rotated and a device that signed in as a different player.
 async function ensurePushSubscribed(){
-  if(!pushSupported()||!sb||!_player||Notification.permission!=='granted')return false;
+  if(!pushSupported()||!sb||!_player||pushPerm()!=='granted')return false;
+  if(JD_APP){
+    try{
+      const t=await appPushToken();
+      if(!t)throw new Error('The app could not get a notification token.');
+      const {error}=await sb.rpc('save_fcm_token',{p_token:t,p_app_version:JD_TWA||null});
+      if(error)throw error;
+      _pushSub={fcm:t};_pushErr='';updatePushBtn();return true;
+    }catch(e){_pushErr=String((e&&e.message)||e);_pushSub=null;updatePushBtn();return false;}
+  }
   try{
     const reg=await navigator.serviceWorker.ready;
     let sub=await reg.pushManager.getSubscription();
@@ -359,6 +374,7 @@ async function ensurePushSubscribed(){
 }
 // on log out: stop sending this device the previous player's alerts
 async function forgetPushDevice(){
+  if(JD_APP){try{if(_pushSub&&_pushSub.fcm&&sb)await sb.rpc('delete_fcm_token',{p_token:_pushSub.fcm});}catch(e){}_pushSub=null;return;}
   try{const reg=await navigator.serviceWorker.getRegistration();const sub=reg&&await reg.pushManager.getSubscription();if(sub&&sb)await sb.rpc('delete_push_subscription',{p_endpoint:sub.endpoint});}catch(e){}
   _pushSub=null;
 }
@@ -370,13 +386,13 @@ async function enablePush(){
   }
   if(!pushSupported()){showMsg('Push alerts not supported',"This browser can't receive push alerts. Use Chrome, Edge, Firefox, Brave or Samsung Internet.",true);return;}
   if(!_player){authOpen('login');return;}
-  if(Notification.permission==='denied'){
+  if(pushPerm()==='denied'){
     if(JD_TWA){showMsg('Notifications are turned off',"Notifications for the JD Arena app are switched off on this phone.\n\nTo turn them on: long-press the JD Arena icon on your home screen → App info → Notifications → Allow. Then open JD Arena again.",true);return;}
     showMsg("Notifications are turned off","Notifications for jdesport.co.uk were previously blocked on this device.\n\nTo turn them back on: open your browser's site settings (the icon next to the address bar), set Notifications to Allow, reload the page and tap Enable push alerts again.",true);
     return;
   }
-  let perm=Notification.permission;
-  if(perm!=='granted'){try{perm=await Notification.requestPermission();}catch(e){}}
+  let perm=pushPerm();
+  if(perm!=='granted'){try{perm=await pushAsk();}catch(e){}}
   if(perm!=='granted'){updatePushBtn();showMsg('Push alerts not enabled','Tap Allow when your browser asks, so JD Arena can alert you even when the site is closed.',true);return;}
   if(await ensurePushSubscribed())showMsg('Push alerts enabled','This device will now get alerts even when JD Arena is closed — match reminders, room details, new challenges and results.');
   else showMsg("Push alerts couldn't start",PUSH_SERVICE_HELP,true);
@@ -386,9 +402,9 @@ async function enablePush(){
 function pushState(){
   if(isIosDevice()&&!isStandaloneApp())return 'ios';
   if(!pushSupported())return 'unsupported';
-  if(Notification.permission==='denied')return 'blocked';
-  if(Notification.permission==='granted'&&_pushSub)return 'on';
-  if(Notification.permission==='granted'&&_pushErr)return 'svcerr';
+  if(pushPerm()==='denied')return 'blocked';
+  if(pushPerm()==='granted'&&_pushSub)return 'on';
+  if(pushPerm()==='granted'&&_pushErr)return 'svcerr';
   return 'ask';
 }
 const PUSH_UI={
@@ -419,14 +435,14 @@ function updatePushBtn(){
 /* Inside the Android app notifications are the whole point, and the player is often already signed in
    (the app shares Chrome's login) while Android 13+ starts the app with them off: ask once per app session. */
 async function appAskPush(){
-  if(!JD_TWA||!_player||!_player.termsAccepted||!pushSupported()||Notification.permission==='granted')return;
+  if(!JD_TWA||!_player||!_player.termsAccepted||!pushSupported()||pushPerm()==='granted')return;
   try{if(sessionStorage.getItem('jd_app_push'))return;sessionStorage.setItem('jd_app_push','1');}catch(e){return;}
   if(await confirmBox('🔔 Turn on notifications','Room IDs, check-in alerts, results and challenges arrive as JD Arena app notifications - even when the app is closed.','Turn on','Later'))enablePush();
 }
 /* Called right when an account becomes active: ask once if the player hasn't answered yet. */
 async function maybeAskPush(){
-  if(!pushSupported()||Notification.permission!=='default')return;
-  try{if(await Notification.requestPermission()==='granted')await ensurePushSubscribed();}catch(e){}
+  if(!pushSupported()||pushPerm()!=='default')return;
+  try{if(await pushAsk()==='granted')await ensurePushSubscribed();}catch(e){}
   updatePushBtn();
 }
 
@@ -1171,6 +1187,13 @@ async function authGoogleSignIn(){
   // handler near the bottom of this file knows to auto-open the username prompt only for
   // a sign-in that JUST completed, never for a plain returning-session page load.
   sessionStorage.setItem('jd_google_flow','1');
+  // app 2.0: Google refuses sign-in inside an app WebView, so it runs in a Chrome tab and /app-auth/ hands the
+  // session back to the app (jdarena://auth), which loads it here
+  if(JD_APP){
+    const {data,error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+'/app-auth/',skipBrowserRedirect:true}});
+    if(error||!data||!data.url){sessionStorage.removeItem('jd_google_flow');authMsg('Google sign-in isn\'t set up on this deploy yet.');return;}
+    JD_APP.openAuth(data.url);return;
+  }
   const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href.split('#')[0]}});
   if(error){sessionStorage.removeItem('jd_google_flow');authMsg('Google sign-in isn\'t set up on this deploy yet.');}
 }
@@ -1367,7 +1390,7 @@ async function claimAppPerks(){
   _player.app=true;updateAcctBtn();
   if(data&&data.new){
     loadMyRegs(); // picks up the new pass
-    const push=('Notification' in window)&&Notification.permission!=='granted';
+    const push=pushSupported()&&pushPerm()!=='granted';
     const ok=await confirmBox('📱 Welcome to the app!',
       'Your free 7-day Lite squad effect (Glow) is on, your username now has the 📱 badge, and you can join marked events 24 hours early.'+(push?'\n\nTurn on notifications so you get room IDs and check-in alerts the moment they are sent.':''),
       push?'Turn on notifications':'Nice!',push?'Later':'Close');

@@ -1610,7 +1610,7 @@
     sheet('<h3>🔔 Alert settings</h3><div class="dm-skel"><i></i><i></i></div>');
     var r = await SB.rpc('get_push_prefs');
     var off = (r.data && r.data.off) || [], daily = !(r.data && r.data.daily_challenge_alert === false);
-    var perm = typeof Notification === 'function' ? Notification.permission : 'unsupported';
+    var perm = window.JDApp ? JDApp.notifPermission() : typeof Notification === 'function' ? Notification.permission : 'unsupported';   // app 2.0: Android's own permission
     var sw = function (k, on, label) { return '<span class="dm-sw"><input type="checkbox" data-pref="' + k + '"' + (on ? ' checked' : '') + ' aria-label="' + esc(label) + '"><i aria-hidden="true"></i></span>'; };
     var warn = perm === 'granted' ? '' : '<p class="dm-warn">' + (perm === 'denied'
       ? '🚫 Alerts are blocked for this site in your browser or phone settings. Allow notifications there to get them.'
