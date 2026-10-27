@@ -1,9 +1,9 @@
 {
-  "versionCode": 9,
-  "versionName": "2.0.2",
-  "url": "https://jdesport.co.uk/download/jd-arena-2.0.2.apk",
-  "sha256": "72bd54287a9b7d49be0b90de21f649965c9cdccdd9d5958fc421aea3cd525dfa",
+  "versionCode": 10,
+  "versionName": "2.0.3",
+  "url": "https://jdesport.co.uk/download/jd-arena-2.0.3.apk",
+  "sha256": "eb75491a5321c0ba870dc5bc3c89545f6f761af6d605d85eded20855e50d214e",
   "size": 3499320,
   "date": "2026-10-27",
-  "notes": "Notifications fixed: the app now asks to allow alerts when you open it, so room IDs and results reach you. Help & Support inside the app (AI chat, WhatsApp or call). Please sign in once after updating."
+  "notes": "Notifications fixed: allow alerts when the app asks, so room IDs and results reach you. Optional: share your area (city only) to help us plan local tournaments. Help & Support inside the app. Please sign in once after updating."
 }

@@ -455,6 +455,18 @@ window.jdPushRefresh=function(force){
   if(!force&&Date.now()-_pushRefreshAt<300000){updatePushBtn();return;}
   _pushRefreshAt=Date.now();ensurePushSubscribed();
 };
+/* App 2.0.3+: the phone's approximate area (city / district), only if the player allowed location in the app
+   (LauncherActivity.readArea). '' = not known yet, 'none' = not allowed -> the saved area is cleared. */
+let _area='';
+window.jdArea=function(j){if(j){_area=j;saveArea();}};
+async function saveArea(){
+  if(!sb||!_player||!_area)return;
+  const key=_player.id+'|'+_area;
+  try{if(sessionStorage.getItem('jd_area_saved')===key)return;}catch(e){}
+  let a=null;if(_area!=='none'){try{a=JSON.parse(_area);}catch(e){return;}}
+  const {error}=await sb.rpc('save_my_area',{p_city:a&&a.city||null,p_district:a&&a.district||null,p_region:a&&a.region||null,p_country:a&&a.country||null,p_lat:a&&typeof a.lat==='number'?a.lat:null,p_lon:a&&typeof a.lon==='number'?a.lon:null});
+  if(!error)try{sessionStorage.setItem('jd_area_saved',key);}catch(e){}
+}
 /* Called right when an account becomes active: ask once if the player hasn't answered yet. */
 async function maybeAskPush(){
   if(!pushSupported()||pushPerm()!=='default')return;
@@ -994,7 +1006,7 @@ let _gateActive=false; // true while the whole site sits behind the forced login
 let _termsGateActive=false; // true while a signed-in player hasn't accepted the current Terms & Conditions yet
 // Bump when the Terms or Privacy Policy change in a way players must accept again: anyone
 // whose terms_accepted_at is older sees the accept box once on their next visit.
-const TERMS_UPDATED_AT=Date.parse('2026-10-27T21:00:00Z');
+const TERMS_UPDATED_AT=Date.parse('2026-10-27T21:09:00Z');
 
 /* Full login wall: nobody sees tournaments/prizes/how-to-join without an account. Runs
    after every _player change (see authRefreshPlayer) so it always reflects the real
@@ -1515,6 +1527,8 @@ async function authRefreshPlayer(){
   updateGate();
   trackPresence();
   ensurePushSubscribed();
+  if(JD_APP&&typeof JD_APP.area==='function'){try{const a=JD_APP.area();if(a)_area=a;}catch(e){}}
+  saveArea();
   if(_player.app)appAskPush(); // a first app open asks inside claimAppPerks' welcome instead
   claimAppPerks();
   claimInvite();

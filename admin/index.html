@@ -824,12 +824,16 @@ function fmtLastSeen(iso){
 function renderAllPlayers(){
   const box=document.getElementById('up-list');if(!box)return;
   const f=(document.getElementById('up-search').value||'').trim().toLowerCase();
-  const rows=_allPlayers.filter(p=>!f||(p.username||'').toLowerCase().includes(f)||(p.player_tag||'').toLowerCase().includes(f)||(p.email||'').toLowerCase().includes(f)||(p.ff_uid||'').includes(f)||(p.ff_name||'').toLowerCase().includes(f));
-  box.innerHTML=rows.length?`<table class="bo3-tbl"><thead><tr><th></th><th>Player</th><th>Tag</th><th>Free Fire</th><th>Email</th><th>Discord</th><th>Joined</th><th>Last seen</th><th>Regs</th></tr></thead><tbody>${rows.map(p=>{
+  const rows=_allPlayers.filter(p=>!f||(p.username||'').toLowerCase().includes(f)||(p.player_tag||'').toLowerCase().includes(f)||(p.email||'').toLowerCase().includes(f)||(p.ff_uid||'').includes(f)||(p.ff_name||'').toLowerCase().includes(f)||areaText(p).toLowerCase().includes(f));
+  // where players come from (app 2.0.3+, only players who allowed location): top districts / cities
+  const areaCount=new Map();_allPlayers.forEach(p=>{const k=p.area_district||p.area_city||p.area_region;if(k)areaCount.set(k,(areaCount.get(k)||0)+1);});
+  const topAreas=[...areaCount.entries()].sort((a,b)=>b[1]-a[1]).slice(0,12);
+  box.innerHTML=(topAreas.length?`<p class="hint">📍 Where players come from (${[...areaCount.values()].reduce((a,b)=>a+b,0)} shared their area): ${topAreas.map(([k,n])=>esc(k)+' '+n).join(' · ')}</p>`:'')+(rows.length?`<table class="bo3-tbl"><thead><tr><th></th><th>Player</th><th>Tag</th><th>Free Fire</th><th>Area</th><th>Email</th><th>Discord</th><th>Joined</th><th>Last seen</th><th>Regs</th></tr></thead><tbody>${rows.map(p=>{
     const online=(p.player_tag&&_onlineTags.has(String(p.player_tag).toLowerCase()))||(p.username&&_onlineTags.has(String(p.username).toLowerCase()));
-    return `<tr><td>${online?'<span class="ok" title="Online now">●</span>':''}</td><td>${esc(p.username||'—')}</td><td>${esc(p.player_tag||'—')}</td><td>${p.ff_uid?esc((p.ff_name||'')+' · '+p.ff_uid):'—'}</td><td>${esc(p.email||'—')}</td><td>${p.discord_username?('@'+esc(p.discord_username)):'—'}</td><td>${esc(new Date(p.created_at).toLocaleDateString())}</td><td>${esc(fmtLastSeen(p.last_sign_in_at))}</td><td>${p.reg_count||0}</td></tr>`;
-  }).join('')}</tbody></table>`:`<p class="hint">No players${f?' match "'+esc(f)+'"':' yet'}.</p>`;
+    return `<tr><td>${online?'<span class="ok" title="Online now">●</span>':''}</td><td>${esc(p.username||'—')}</td><td>${esc(p.player_tag||'—')}</td><td>${p.ff_uid?esc((p.ff_name||'')+' · '+p.ff_uid):'—'}</td><td>${esc(areaText(p)||'—')}</td><td>${esc(p.email||'—')}</td><td>${p.discord_username?('@'+esc(p.discord_username)):'—'}</td><td>${esc(new Date(p.created_at).toLocaleDateString())}</td><td>${esc(fmtLastSeen(p.last_sign_in_at))}</td><td>${p.reg_count||0}</td></tr>`;
+  }).join('')}</tbody></table>`:`<p class="hint">No players${f?' match "'+esc(f)+'"':' yet'}.</p>`);
 }
+function areaText(p){return [p.area_city,p.area_district,p.area_country].filter((x,i,a)=>x&&a.indexOf(x)===i).join(', ');}
 
 function bo3Default(){return {kill_pts:1,tournament:'',title:'',published:false,teams:[]};}
 function bo3Round(){return {kills:0,pts:0};}

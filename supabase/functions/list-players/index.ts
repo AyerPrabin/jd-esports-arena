@@ -24,7 +24,7 @@ Deno.serve(async (req: Request) => {
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
   const { data: players, error } = await supabase
     .from('players')
-    .select('id, player_tag, username, email, discord_username, created_at, ff_uid, ff_name')
+    .select('id, player_tag, username, email, discord_username, created_at, ff_uid, ff_name, area_city, area_district, area_region, area_country, area_at')
     .order('created_at', { ascending: false });
   if (error) return new Response(error.message, { status: 500, headers: CORS_HEADERS });
 
