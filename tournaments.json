@@ -291,22 +291,22 @@
       "registered": 0
     },
     {
-      "name": "JD Free Fire Open #13",
-      "game": "Free Fire BR · Squad",
-      "date": "Fri, Oct 30",
-      "time": "9:30 PM NPT",
-      "start": "2026-10-30T21:30:00+05:45",
-      "status": "upcoming",
       "map": "bermuda",
-      "prize": "200",
+      "date": "Wed, Nov 4",
+      "game": "Free Fire BR · Squad",
+      "map2": "purgatory",
+      "map3": "kalahari",
+      "name": "JD Free Fire Open #13",
+      "time": "9:30 PM NPT",
       "entry": "5 points",
-      "platform": "Mobile only",
-      "platform_mode": "mobile",
+      "prize": "200",
       "slots": 12,
+      "start": "2026-11-04T21:30:00+05:45",
       "format": "BR · Best of 3",
-      "map2": "random",
-      "map3": "random",
+      "status": "upcoming",
+      "platform": "Mobile only",
       "early_access": "yes",
+      "platform_mode": "mobile",
       "teams": [],
       "registered": 0
     }
@@ -535,5 +535,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-28T20:26:30.664Z"
+  "_published_at": "2026-10-28T20:27:26.027Z"
 }
