@@ -233,21 +233,21 @@
       "registered": 0
     },
     {
+      "map": "kalahari",
       "date": "Thu, Oct 29",
       "game": "Free Fire BR · Squad",
+      "map2": "purgatory",
+      "map3": "bermuda",
       "name": "JD Free Fire Open #11",
       "time": "9:30 PM NPT",
       "entry": "Free",
       "prize": "300",
       "slots": 12,
       "start": "2026-10-29T21:30:00+05:45",
-      "format": "BR · Best of 3",
+      "format": "BR · 3 matches",
       "status": "upcoming",
       "platform": "Mobile only",
       "platform_mode": "mobile",
-      "map": "kalahari",
-      "map2": "purgatory",
-      "map3": "bermuda",
       "teams": [],
       "registered": 0
     },
@@ -255,18 +255,18 @@
       "map": "nexterra",
       "date": "Sat, Oct 31",
       "game": "Free Fire BR · Squad",
+      "map2": "alpine",
+      "map3": "kalahari",
       "name": "JD Free Fire Open #10",
       "time": "9:30 PM NPT",
       "entry": "Free",
       "prize": "200",
       "slots": 12,
       "start": "2026-10-31T21:30:00+05:45",
-      "format": "BR · Best of 3",
+      "format": "BR · 3 matches",
       "status": "upcoming",
       "platform": "Mobile only",
       "platform_mode": "mobile",
-      "map2": "alpine",
-      "map3": "kalahari",
       "teams": [],
       "registered": 0
     },
@@ -274,18 +274,19 @@
       "map": "bermuda",
       "date": "Mon, Nov 2",
       "game": "Free Fire BR · Squad",
+      "map2": "kalahari",
+      "map3": "alpine",
       "name": "JD Free Fire Open #12",
       "time": "9:30 PM NPT",
-      "entry": "Free",
+      "entry": "5",
       "prize": "300",
       "slots": 12,
       "start": "2026-11-02T21:30:00+05:45",
-      "format": "BR · Best of 3",
+      "format": "BR · 3 matches",
       "status": "upcoming",
       "platform": "Mobile only",
       "platform_mode": "mobile",
-      "map2": "kalahari",
-      "map3": "alpine",
+      "early_access": "yes",
       "teams": [],
       "registered": 0
     }
@@ -514,5 +515,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-27T22:23:41.807Z"
+  "_published_at": "2026-10-28T20:24:33.909Z"
 }
