@@ -543,7 +543,7 @@ Deno.serve(async (req: Request) => {
       prize: String(p.prize || '').trim().slice(0, 40),
       entry: 'Free', platform: DEV[device], platform_mode: device,
       slots: Math.min(48, Math.max(2, Math.round(Number(p.slots) || 12))),
-      format: 'BR · ' + matches + (matches === 1 ? ' match' : ' matches'),
+      format: matches === 3 ? 'BR · Best of 3' : 'BR · ' + matches + (matches === 1 ? ' match' : ' matches'),
       map: MAPS.includes(p.map) ? p.map : 'bermuda', host: handle,
     };
     const { data: sc } = await admin.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
