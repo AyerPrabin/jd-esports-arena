@@ -392,3 +392,7 @@ html.app-gated .tabbar,html.app-gated .fab,html.app-gated .storage-note,html.app
   .tabbar a:active,button:active,.btn:active,[role="button"]:active{scale:none}
   .tabbar a[aria-current="page"] svg{animation:none}
 }
+
+/* Effects show without their names: the squad's look (glow, thunder, steel...) speaks for itself, so the label chip
+   next to the name is hidden everywhere it is rendered (home/events squad cards, leaderboard, challenge cards). */
+.sqfx-tag,.fxt{display:none!important}
