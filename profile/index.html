@@ -38,7 +38,7 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
 .chip-link:hover{border-color:var(--gold-m)}
 
 .card{border-radius:20px;background:var(--panel);border:1px solid var(--line-2);padding:18px}
-/* JD-Optimiers session history (optimizer_my_sessions, optimizer_v57.sql) */
+/* JD Frag Engine session history (optimizer_my_sessions, optimizer_v57.sql) */
 .oh-pc{color:var(--silver);font-size:.82rem;margin:-4px 0 12px}
 .oh-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
 .oh-kpi div{background:var(--panel-2);border-radius:12px;padding:10px}.oh-kpi span{display:block;font-size:.7rem;color:var(--silver)}
@@ -199,7 +199,7 @@ input[type=text]:focus{border-color:var(--gold)}
         </div>
       </section>
       <section class="card" id="opt-hist" hidden>
-        <h2>My PC &amp; FPS <a href="/optimizer/">JD-Optimiers</a></h2>
+        <h2>My PC &amp; FPS <a href="/optimizer/">JD Frag Engine</a></h2>
         <p class="oh-pc" id="oh-pc"></p>
         <div class="oh-kpi" id="oh-kpi"></div>
         <svg class="oh-chart" id="oh-chart" viewBox="0 0 300 120" preserveAspectRatio="none" role="img" aria-label="FPS over your last sessions"></svg>
@@ -349,10 +349,10 @@ async function loadWallet(){
   $('bal').textContent=unl?'100B':((w&&w.balance)||0).toLocaleString();
   profSave({bal:$('bal').textContent});
   if(unl){$('bal-sub').textContent='Admin wallet · 100 billion points';$('wd-link').hidden=true;}
-  const R={optimizer:'JD-Optimiers plan',challenge_stake:'Challenge stake',challenge_win:'Challenge won',challenge_refund:'Challenge refund',load:'Points loaded',prize:'Tournament prize',entry:'Tournament entry',effect:'Squad effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Entry refund',adjust:'Adjustment'};
+  const R={optimizer:'JD Frag Engine plan',challenge_stake:'Challenge stake',challenge_win:'Challenge won',challenge_refund:'Challenge refund',load:'Points loaded',prize:'Tournament prize',entry:'Tournament entry',effect:'Squad effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Entry refund',adjust:'Adjustment'};
   $('recent').innerHTML=(l||[]).length?(l.map(x=>`<div><span>${R[x.reason]||x.reason} · ${fmtDate(x.created_at)}</span><b class="${x.delta>0?'plus':''}">${x.delta>0?'+':'−'}${Math.abs(x.delta)}</b></div>`).join('')):'<div><span>No transactions yet.</span></div>';
 }
-// JD-Optimiers: the player's own sessions (sent by the app after each session, optimizer_my_sessions)
+// JD Frag Engine: the player's own sessions (sent by the app after each session, optimizer_my_sessions)
 async function loadOptHistory(){
   const {data,error}=await sb.rpc('optimizer_my_sessions',{p_limit:20});
   const ss=(data&&data.sessions)||[];
@@ -528,6 +528,6 @@ $('ref-save').onclick=async()=>{
 })();
 </script>
 <script src="/ui.js?v=23" defer></script>
-<script src="/chat.js?v=28" defer></script>
+<script src="/chat.js?v=29" defer></script>
 </body>
 </html>

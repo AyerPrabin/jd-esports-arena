@@ -1106,9 +1106,11 @@ function authRender(){
   }
   if(_authView==='support'){
     const waText='Hi JD Arena support! '+(_player&&_player.username?'My username: @'+_player.username+'. ':'')+'My problem: ';
-    el.innerHTML=`<h3>Help &amp; Support</h3><p class="sub">Ask our AI assistant ZULU anything, any time — or talk to a person on WhatsApp or by phone.</p>
+    // Android app, signed in: one support chat - ZULU (AI) first, a JD team member when needed (chat.js JD Support)
+    const appSupport=_player&&window.jdChat&&jdChat.inApp&&jdChat.support;
+    el.innerHTML=`<h3>Help &amp; Support</h3><p class="sub">${appSupport?'Chat with JD Support: ZULU (AI) answers first, and a JD team member takes over whenever you need a person.':'Ask our AI assistant ZULU anything, any time — or talk to a person on WhatsApp or by phone.'}</p>
       <div class="pm-list">
-        <button class="pm-row" onclick="authClose();fbOpen()"><span class="pm-row-ic">🤖</span><span class="pm-row-txt">Chat with ZULU<small class="pm-row-sub">AI support · instant answers, 24/7</small></span><span class="pm-row-chev">›</span></button>
+        ${appSupport?'<button class="pm-row" onclick="authClose();jdChat.support()"><span class="pm-row-ic">🎧</span><span class="pm-row-txt">Chat with JD Support<small class="pm-row-sub">ZULU AI first · our team joins if needed</small></span><span class="pm-row-chev">›</span></button>':'<button class="pm-row" onclick="authClose();fbOpen()"><span class="pm-row-ic">🤖</span><span class="pm-row-txt">Chat with ZULU<small class="pm-row-sub">AI support · instant answers, 24/7</small></span><span class="pm-row-chev">›</span></button>'}
         <a class="pm-row" href="https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(waText)}" target="_blank" rel="noopener"><span class="pm-row-ic">💬</span><span class="pm-row-txt">WhatsApp support<small class="pm-row-sub">${esc(SUPPORT_PHONE_TXT)}</small></span><span class="pm-row-chev">›</span></a>
         <a class="pm-row" href="tel:+${SUPPORT_PHONE}"><span class="pm-row-ic">📞</span><span class="pm-row-txt">Call support<small class="pm-row-sub">${esc(SUPPORT_PHONE_TXT)}</small></span><span class="pm-row-chev">›</span></a>
       </div>

@@ -1,9 +1,9 @@
 {
-  "version": "5.8",
-  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.8.exe",
-  "sha256": "f38912ac715a9b1fec2188d60035e00c011a0a822fec1b3ccc28bd12c62f2fc7",
-  "size": 2255639,
-  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.8.zip",
-  "notes": "Recording-friendly: OBS/Bandicam/Streamlabs/XSplit/Medal kept smooth while you play (above-normal CPU + GPU priority, never slept); Game Bar Win+Alt+R recording works again (only background capture stays off); report shows a Recording line and encoder advice.",
-  "date": "2026-10-24"
+  "version": "5.9",
+  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.9.exe",
+  "sha256": "333205860b8b32605d9a029c55eacc21c966affc3765b37087f4c0a5a74fbf5c",
+  "size": 2319346,
+  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.9.zip",
+  "notes": "JD Frag Engine (new name for JD-Optimiers): Aim steady + faster mouse, keyboard and USB response while you play, all put back when you stop; Pass Expired now keeps the app in Read-Only Diagnostic Mode (nothing deleted); AMD GPU temperatures; BlueStacks X; Panel scan checks inside the emulator over ADB (read-only) and reports Fair-Play status; ping every 3 s.",
+  "date": "2026-10-29"
 }

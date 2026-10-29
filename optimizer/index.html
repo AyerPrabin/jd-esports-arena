@@ -9,9 +9,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#05080f">
 <link rel="icon" type="image/png" href="/favicon-64.png">
-<title>JD-Optimiers — Free Fire PC booster · JD Esports Arena</title>
-<meta name="description" content="JD-Optimiers: one-tap FPS boost, steady-aim tools and a tournament panel scan for Free Fire on MSI App Player / BlueStacks 5 and any PC game. Windows 10/11. By AyerFire.">
-<meta property="og:title" content="JD-Optimiers — more FPS, steadier aim, one button">
+<title>JD Frag Engine — Free Fire PC booster · JD Esports Arena</title>
+<meta name="description" content="JD Frag Engine (formerly JD-Optimiers): one-tap FPS boost, steady-aim tools and a tournament panel scan for Free Fire on MSI App Player / BlueStacks 5 and any PC game. Windows 10/11. By AyerFire.">
+<meta property="og:title" content="JD Frag Engine — more FPS, steadier aim, one button">
 <meta property="og:description" content="Free Fire PC booster for MSI App Player / BlueStacks. Optimizer Pro 49 · Max 99 points / 30 days.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://jdesport.co.uk/optimizer/img/app-main.webp">
@@ -98,6 +98,13 @@ h3{font-size:1.45rem;line-height:1.1}
   box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 40px 90px rgba(0,0,0,.55),0 8px 22px rgba(0,0,0,.35)}
 .frame img{width:100%;height:auto}
 .caption{font-size:.8rem;color:var(--body);text-align:center;margin-top:12px}
+.gallery{max-width:1180px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;align-items:start}
+.gcard{margin:0;display:flex;flex-direction:column;gap:12px}
+.gcard .frame{aspect-ratio:926/801;display:grid;place-items:center}
+.gcard .frame img{width:100%;height:100%;object-fit:contain}
+.gcard figcaption{font-size:.84rem;line-height:1.5;color:var(--body);text-align:left}
+.gcard figcaption b{display:block;color:var(--cream);font-size:.95rem;margin-bottom:2px}
+@media (max-width:860px){.gallery{grid-template-columns:1fr;max-width:560px;gap:28px}}
 
 /* account / download strip */
 .acct{margin:56px auto 0;max-width:820px;border-radius:var(--r-lg);padding:22px 24px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01));
@@ -230,6 +237,15 @@ footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin
 .ai-score{display:inline-grid;place-items:center;min-width:48px;padding:3px 8px;border-radius:999px;background:rgba(255,200,61,.14);color:var(--gold-l);font-size:.85rem}
 .ai-score.good{background:rgba(94,219,149,.14);color:#5EDB95}.ai-score.mid{background:rgba(255,159,28,.14);color:#FF9F1C}.ai-score.bad{background:rgba(255,95,109,.14);color:#FF5F6D}
 .ai-pc details{margin-top:6px}.ai-pc summary{cursor:pointer;color:var(--gold-l);font-size:.84rem}
+.ai-badges,.ai-recs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ai-pill{display:inline-flex;align-items:baseline;gap:6px;max-width:100%;padding:3px 10px;border-radius:999px;font-size:.8rem;line-height:1.4;border:1px solid transparent;overflow-wrap:anywhere}
+.ai-pill i{font-style:normal;opacity:.75}.ai-pill b{font-weight:600}
+.ai-info{background:rgba(255,255,255,.06);color:var(--body)}
+.fp-ok{background:rgba(94,219,149,.14);color:#5EDB95}.fp-warn{background:rgba(255,159,28,.14);color:#FF9F1C}
+.fp-bad{background:rgba(255,95,109,.14);color:#FF5F6D}.fp-off{background:rgba(255,255,255,.06);color:var(--body);opacity:.8}
+.ai-recs .ai-pill{border-radius:10px;padding:5px 10px}
+.ai-bottle{background:rgba(255,95,109,.08);border-color:rgba(255,95,109,.3);color:var(--body)}
+.ai-set{background:rgba(255,200,61,.08);border-color:rgba(255,200,61,.3);color:var(--body)}
 .ai-advice{white-space:pre-wrap;margin-top:8px;color:var(--body);font-size:.84rem;line-height:1.5;max-height:340px;overflow:auto}
 
 /* entrance motion (transform/opacity only) */
@@ -251,28 +267,39 @@ footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin
 
 <main id="main" class="wrap">
   <section class="hero" id="overview" style="padding-top:64px">
-    <div class="eyebrow">JD-Optimiers · Windows 10 &amp; 11</div>
+    <div class="eyebrow">JD Frag Engine (formerly JD-Optimiers) · Windows 10 &amp; 11</div>
     <h1>More FPS. <span class="gold">Steadier aim.</span> One button.</h1>
     <p class="lede">Press <b>Play Free Fire</b>: it tunes Windows and MSI App Player / BlueStacks, opens the game and keeps boosting until you close it. Works for <b>any PC game</b>, on strong and weak PCs.</p>
     <div class="hero-cta">
       <a class="btn" href="#get" id="hero-get">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
-        Get JD-Optimiers
+        Get JD Frag Engine
       </a>
       <a class="link" href="#how">See how it works →</a>
     </div>
     <div class="chips"><span>Weekly Pass + Pro from 49 points</span><span>Windows PC &amp; laptop only</span><span>Every change can be undone</span><span>Auto-updates</span></div>
-    <div class="shot rise">
-      <div class="frame"><img src="img/app-main.webp" alt="The JD-Optimiers window: Play Free Fire button, live CPU and GPU tiles, mouse sensitivity and gaming boost switches" width="926" height="470" fetchpriority="high"></div>
-      <div class="caption">The real app on a Ryzen 7 / RTX 3050 laptop.</div>
+    <div class="shot gallery rise" aria-label="JD Frag Engine v5.9 screens">
+      <figure class="gcard">
+        <div class="frame"><img src="img/app-main.webp" alt="The JD Frag Engine v5.9 window: Launch Detected Game button, CPU, GPU, GPU temperature and ping tiles, mouse sensitivity and gaming boost switches" width="926" height="801" fetchpriority="high"></div>
+        <figcaption><b>Boost &amp; live telemetry</b>One button optimizes, launches and boosts your game; CPU, GPU, temperature and ping update live.</figcaption>
+      </figure>
+      <figure class="gcard">
+        <div class="frame"><img src="img/app-ai-doctor.webp" alt="My PC AI Doctor: health score, the main bottleneck and recommended emulator settings for this PC" width="606" height="669" loading="lazy"></div>
+        <figcaption><b>My PC · AI Doctor &amp; Fair-Play</b>Finds your bottleneck, recommends emulator settings, and Panel scan checks for cheat apps.</figcaption>
+      </figure>
+      <figure class="gcard">
+        <div class="frame"><img src="img/app-locked.webp" alt="Pass Expired, Read-Only Diagnostic Mode: gold Renew Weekly Pass (50 JD Points) button; FPS, ping, temperature and AI Doctor still work" width="926" height="801" loading="lazy"></div>
+        <figcaption><b>Free Read-Only Diagnostic Mode</b>When your pass ends nothing is deleted: diagnostics keep working until you renew for 50 points.</figcaption>
+      </figure>
     </div>
+    <div class="caption">The real app on a Ryzen 7 / RTX 3050 laptop.</div>
   </section>
 
   <div id="get">
     <div class="acct gate" id="gate" hidden>
       <div>
         <div class="status">Sign in to download</div>
-        <p>JD-Optimiers uses your JD Esports Arena account — the same login as tournaments and your points wallet (email or Google).</p>
+        <p>JD Frag Engine uses your JD Esports Arena account — the same login as tournaments and your points wallet (email or Google).</p>
         <a class="btn" id="gate-btn" href="/?signin=1&amp;next=%2Foptimizer%2F">Sign in</a>
       </div>
     </div>
@@ -290,14 +317,14 @@ footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin
       <div class="dl-terms" id="dl-terms">
         <h3>Before you download</h3>
         <ul>
-          <li>JD-Optimiers changes Windows settings (power plan, Game Mode, background apps, visual effects, GPU preference) and, when you choose, MSI App Player's own settings. <b>Restore all</b> puts everything back. It never touches game files or memory and adds no macros or aim assist.</li>
+          <li>JD Frag Engine changes Windows settings (power plan, Game Mode, background apps, visual effects, GPU preference) and, when you choose, MSI App Player's own settings. <b>Restore all</b> puts everything back. It never touches game files or memory and adds no macros or aim assist.</li>
           <li>You use it <b>at your own risk</b>. We can't promise any FPS, or how Garena / BlueStacks treat third-party apps.</li>
           <li><b>Data it sends by itself after each session</b> and when you close it: an <b>anonymous FPS summary</b> (FPS, 1% low, stutters, emulator settings, CPU / GPU / RAM model, a random ID made on your PC) and a <b>private PC report</b> to your own JD account (PC specs and score, emulator settings, how the session ran — only you and the JD admin can see it). Also needed to work: your PC's name, your plan and when the PC was last seen.</li>
           <li>It <b>never</b> sends files, passwords, game data, your screen, or mouse / aim numbers. You can switch both data sends off any time in the app's tray menu.</li>
-          <li>You need an active <b>Weekly Pass</b> and an <b>Optimizer plan</b>. If either runs out, the app warns you at start; if you don't renew within <b>3 days</b>, it puts your PC back to normal (Restore all) and deletes its own files — nothing else in the folder.</li>
+          <li>You need an active <b>Weekly Pass</b> and an <b>Optimizer plan</b>. If either runs out, the app warns you at start; if you don't renew within <b>3 days</b>, it safely puts your PC's stock settings back (Restore all) and switches to <b>Free Read-Only Diagnostic Mode</b>: FPS, ping, temperatures and AI Doctor stay visible, nothing is deleted, and one click on <b>Renew</b> brings everything back.</li>
           <li>Updates are required and install themselves at start. Plans and passes are paid in JD points and aren't refunded once started.</li>
         </ul>
-        <label class="dl-agree"><input type="checkbox" id="dl-ok"> <span>I have read and agree to the <a href="/terms.html#s19" target="_blank" rel="noopener">JD-Optimiers terms</a> and the <a href="/privacy/" target="_blank" rel="noopener">privacy policy</a>, including the automatic session data above.</span></label>
+        <label class="dl-agree"><input type="checkbox" id="dl-ok"> <span>I have read and agree to the <a href="/terms.html#s19" target="_blank" rel="noopener">JD Frag Engine terms</a> and the <a href="/privacy/" target="_blank" rel="noopener">privacy policy</a>, including the automatic session data above.</span></label>
       </div>
     </div>
     <div class="notes" id="dl-notes"></div>
@@ -341,8 +368,8 @@ footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin
       </div>
     </div>
     <div class="msg" id="buy-msg"></div>
-    <p class="notes">If your plan or pass runs out, the app stops at start and warns you. Renew within 3 days, or it puts your PC back to normal (Restore all) and removes itself — download it again any time.</p>
-    <p class="notes">Buying again adds 30 days. Upgrading Pro → Max turns the Pro days you have left into Max days (×49/99) and adds 30. Points are not refunded — see the <a href="/terms.html#s19" class="link">JD-Optimiers terms</a>. Load points on your <a href="/wallet/" class="link">wallet</a> with eSewa.</p>
+    <p class="notes">If your plan or pass runs out, the app stops at start and warns you. Renew within 3 days, or it safely restores your PC's stock settings and switches to <b>Free Read-Only Diagnostic Mode</b> — FPS, ping, temperatures and AI Doctor keep working, no files are deleted, and renewing is one click.</p>
+    <p class="notes">Buying again adds 30 days. Upgrading Pro → Max turns the Pro days you have left into Max days (×49/99) and adds 30. Points are not refunded — see the <a href="/terms.html#s19" class="link">JD Frag Engine terms</a>. Load points on your <a href="/wallet/" class="link">wallet</a> with eSewa.</p>
 
     <div class="cmp-wrap rise">
       <table class="cmp">
@@ -448,7 +475,7 @@ footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin
         <p class="copy">Mouse presets, pointer acceleration off and a macro check that warns you before a ban risk.</p>
       </div>
     </div>
-    <div class="safe"><b>Account-safe by design.</b> JD-Optimiers changes Windows settings and the emulator's own settings files, always with a backup. It never reads or edits the game's memory, never injects anything and adds no macros or aim assist.</div>
+    <div class="safe"><b>Account-safe by design.</b> JD Frag Engine changes Windows settings and the emulator's own settings files, always with a backup. It never reads or edits the game's memory, never injects anything and adds no macros or aim assist.</div>
   </section>
 
 
@@ -461,14 +488,14 @@ footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin
   <section id="faq">
     <div class="sec-head"><div class="eyebrow">Questions</div><h2>Good to know.</h2></div>
     <div class="faq">
-      <details><summary>Will it get my game account banned?</summary><p>JD-Optimiers only changes Windows and the emulator's own settings — the same things you could change by hand, always with a backup. It never touches the game's memory, never injects anything and adds no macros or aim assist. Everything can be undone with “Restore all”.</p></details>
+      <details><summary>Will it get my game account banned?</summary><p>JD Frag Engine only changes Windows and the emulator's own settings — the same things you could change by hand, always with a backup. It never touches the game's memory, never injects anything and adds no macros or aim assist. Everything can be undone with “Restore all”.</p></details>
       <details><summary>Does it work on a weak PC or laptop?</summary><p>Yes. It reads your hardware and tunes itself — strong PCs get the full treatment, weak PCs get Potato mode (lowest graphics, highest FPS). Any Windows 10/11 PC or laptop.</p></details>
       <details><summary>Can I use it for games other than Free Fire?</summary><p>Yes. Add any game's .exe, or leave auto-detect on and any full-screen PC game is boosted automatically.</p></details>
       <details><summary>Is it for phones?</summary><p>No — it's a Windows app for PCs and laptops running MSI App Player / BlueStacks (or PC games). Mobile players don't need it.</p></details>
       <details><summary>How do I pay?</summary><p>With JD points (1 point = Rs 1). Load points on your <a href="/wallet/">wallet</a> with eSewa, then buy a plan here.</p></details>
       <details><summary>How many PCs can I use?</summary><p>Two at a time per account (up to 4 new links in 30 days). You link each PC once with a code — no password is typed into the app.</p></details>
       <details><summary>How do updates work?</summary><p>Automatically. When a new version is posted, the app updates itself at start in a few seconds — the download is checked with SHA-256 before anything is replaced. It never updates mid-match.</p></details>
-      <details><summary>Can I get a refund?</summary><p>Points aren't refunded once a plan starts, except where the law requires it or the app never worked for you because of a fault on our side — see the <a href="/terms.html#s19">JD-Optimiers terms</a>.</p></details>
+      <details><summary>Can I get a refund?</summary><p>Points aren't refunded once a plan starts, except where the law requires it or the app never worked for you because of a fault on our side — see the <a href="/terms.html#s19">JD Frag Engine terms</a>.</p></details>
     </div>
   </section>
 
@@ -478,7 +505,7 @@ footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin
   </section>
 </main>
 <footer class="wrap">
-  <div>JD-Optimiers · JD Esports Arena · AyerFire</div>
+  <div>JD Frag Engine · JD Esports Arena · AyerFire</div>
   <div class="links"><a href="/">Arena</a><a href="/rules/">Rules</a><a href="/privacy/">Privacy</a><a href="/terms.html">Terms</a></div>
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
@@ -555,28 +582,56 @@ function render(){
     u.onclick=async()=>{if(!confirm('Unlink "'+d.name+'"? The app on that PC will ask to sign in again.'))return;
       const {error}=await sb.rpc('optimizer_revoke_device',{p_id:d.id});if(error)msg(error.message,'err');else{msg('PC unlinked.','ok');refresh();}};
     x.appendChild(u);tr.append(n,w,x);tb.appendChild(tr);
-    // "My PC": the latest AI Doctor check from the app on this PC (v5.9, Tips button)
-    const ai=aiChecks.find(a=>a.device_id===d.id);
-    if(ai){
+    // "My PC": the latest AI Doctor check from the app on this PC (v5.9, Tips button) + its latest Fair-Play scan
+    const ai=aiChecks.find(a=>a.device_id===d.id),fp=fairplay.find(f=>f.device_id===d.id);
+    if(ai||fp){
       const ar=document.createElement('tr'),c=document.createElement('td');c.colSpan=3;c.className='ai-pc';
-      const s=ai.score==null?null:+ai.score,col=s==null?'':s>=8?'good':s>=5?'mid':'bad';
-      const head=document.createElement('div');head.className='ai-head';
-      const b=document.createElement('b');b.className='ai-score '+col;b.textContent=s==null?'AI':s+'/10';
-      const t=document.createElement('span');t.textContent=(ai.headline||'AI Doctor checked this PC')+' · '+new Date(ai.at).toLocaleString();
-      head.append(b,t);
-      const det=document.createElement('details'),sum=document.createElement('summary');sum.textContent='AI Doctor advice';
-      const pre=document.createElement('div');pre.className='ai-advice';pre.textContent=ai.advice||'';
-      det.append(sum,pre);c.append(head,det);ar.appendChild(c);tb.appendChild(ar);
+      const pill=(cls,label,value,title)=>{const p=document.createElement('span');p.className='ai-pill '+cls;
+        const k=document.createElement('i');k.textContent=label;const v=document.createElement('b');v.textContent=value;
+        p.append(k,v);if(title)p.title=title;return p;};
+      if(ai){
+        const s=ai.score==null?null:+ai.score,col=s==null?'':s>=8?'good':s>=5?'mid':'bad';
+        const head=document.createElement('div');head.className='ai-head';
+        const b=document.createElement('b');b.className='ai-score '+col;b.textContent=s==null?'AI':s+'/10';
+        const t=document.createElement('span');t.textContent=(ai.headline||'AI Doctor checked this PC')+' · '+new Date(ai.at).toLocaleString();
+        head.append(b,t);c.appendChild(head);
+      }
+      const badges=document.createElement('div');badges.className='ai-badges';
+      if(fp){
+        const FP={VERIFIED_CLEAN:['fp-ok','Verified clean','PC and emulator scanned - nothing found'],
+          HOST_CLEAN_ADB_OFF:['fp-warn','PC clean · ADB off','PC scan clean, but ADB was off so the emulator was not scanned. Turn ADB on and scan again to get Verified.'],
+          FLAGGED:['fp-bad','Flagged','Cheat signs or hooking apps were found - open the Panel scan report in the app'],
+          INCOMPLETE:['fp-off','Incomplete','Some checks could not run (game not open?) - open the game and scan again']}[fp.verdict]||['fp-off',fp.verdict,''];
+        badges.appendChild(pill(FP[0],'Fair-Play',FP[1],FP[2]+' · '+new Date(fp.created_at).toLocaleString()));
+      }
+      if(ai&&ai.emulator)badges.appendChild(pill('ai-info','Emulator',ai.emulator));
+      if(ai&&(ai.temp_source||ai.temp_c!=null))badges.appendChild(pill(ai.temp_c>=85?'fp-bad':ai.temp_c>=75?'fp-warn':'ai-info','GPU temp',
+        (ai.temp_c!=null?ai.temp_c+' °C':'—')+(ai.temp_source?' · '+ai.temp_source.replace(/^system thermal zone.*/,'System sensor'):'')));
+      if(badges.childNodes.length)c.appendChild(badges);
+      if(ai&&(ai.bottleneck||ai.settings)){
+        const rec=document.createElement('div');rec.className='ai-recs';
+        if(ai.bottleneck)rec.appendChild(pill('ai-bottle','Primary bottleneck',ai.bottleneck));
+        if(ai.settings)rec.appendChild(pill('ai-set','Recommended emulator settings',ai.settings));
+        c.appendChild(rec);
+      }
+      if(ai&&ai.advice){
+        const det=document.createElement('details'),sum=document.createElement('summary');sum.textContent='AI Doctor advice';
+        const pre=document.createElement('div');pre.className='ai-advice';pre.textContent=ai.advice;
+        det.append(sum,pre);c.appendChild(det);
+      }
+      ar.appendChild(c);tb.appendChild(ar);
     }
   });
 }
 
-let aiChecks=[];
+let aiChecks=[],fairplay=[];
 async function refresh(){
-  const [{data,error},w,ai]=await Promise.all([sb.rpc('optimizer_my_status'),sb.from('wallets').select('balance, unlimited').maybeSingle(),
-    sb.from('optimizer_ai_latest').select('device_id, score, headline, advice, at')]);
+  const [{data,error},w,ai,fpr]=await Promise.all([sb.rpc('optimizer_my_status'),sb.from('wallets').select('balance, unlimited').maybeSingle(),
+    sb.from('optimizer_ai_latest').select('*'),   // * : the v5.9 badge columns may not exist yet
+    sb.from('optimizer_fairplay').select('device_id, verdict, adb_checked, warnings, created_at').order('created_at',{ascending:false}).limit(40)]);
   if(error){msg(error.message,'err');return;}
   aiChecks=(ai&&!ai.error&&ai.data)||[];   // table missing / not signed in: no card
+  fairplay=(fpr&&!fpr.error&&fpr.data)||[];   // newest first, so find() gets each PC's latest scan
   st=data;
   $('need-plan').classList.toggle('done',!!(st&&st.tier));
   $('bal').textContent=w.data?(w.data.unlimited?'∞':Number(w.data.balance||0).toLocaleString()):'0';
@@ -587,12 +642,12 @@ async function buy(tier){
   if(!signedIn){location.href=$('gate-btn').href;return;}
   const price=tier==='max'?99:49,name=tier==='max'?'Optimizer Max':'Optimizer Pro';
   const fx=$('fx-pick').value;
-  if(!confirm(`Pay ${price} points for 30 days of ${name}?`+(tier==='max'?`\nIncludes a 30-day Pro squad effect: ${$('fx-pick').selectedOptions[0].textContent}.`:'')+`\n\nBy paying you agree to the JD-Optimiers terms (no refunds of points, 2 PCs, no sharing).`))return;
+  if(!confirm(`Pay ${price} points for 30 days of ${name}?`+(tier==='max'?`\nIncludes a 30-day Pro squad effect: ${$('fx-pick').selectedOptions[0].textContent}.`:'')+`\n\nBy paying you agree to the JD Frag Engine terms (no refunds of points, 2 PCs, no sharing).`))return;
   busy=true;render();msg('Paying…','');
   const {data,error}=await sb.rpc('optimizer_buy',{p_tier:tier,p_effect:fx});
   busy=false;
   if(error){msg(error.message,'err');render();return;}
-  msg(`Done — ${name} until ${fmtDate(data.expires_at)}.`+(data.effect?` Your ${data.effect} squad effect runs until ${fmtDate(data.effect_expires_at)}.`:'')+` ${data.balance} points left. Open JD-Optimiers (or restart it) to use it.`,'ok');
+  msg(`Done — ${name} until ${fmtDate(data.expires_at)}.`+(data.effect?` Your ${data.effect} squad effect runs until ${fmtDate(data.effect_expires_at)}.`:'')+` ${data.balance} points left. Open JD Frag Engine (or restart it) to use it.`,'ok');
   refresh();
 }
 

@@ -66,6 +66,9 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
   .bar-nav.open{transform:translateX(0)}
   .bar-nav>a,.bar-nav>.dl-wrap{width:100%}
   .bar-nav .lang-btn{width:100%;text-align:left;padding:12px 16px}
+  /* Mod / Admin are links styled for the desktop bar: in the drawer they match the other rows (size, height, colour) */
+  .bar-nav .lang-btn.nav-link{font-size:.76rem;line-height:normal;color:var(--gold-l)}
+  #mod-btn{margin-top:10px}
   .bar-nav .dl-menu{position:static;width:100%;margin-top:4px;box-shadow:none}
   .nav-scrim.open{display:block}
   .nav-scrim.open{opacity:1}

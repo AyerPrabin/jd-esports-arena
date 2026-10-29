@@ -17,10 +17,17 @@ const GLOBAL_DAILY = 400;
 const GEMINI_MODELS = (Deno.env.get('ZULU_CHAT_GEMINI_MODELS') || 'gemini-flash-lite-latest,gemini-flash-latest,gemini-2.5-flash-lite')
   .split(',').map((m) => m.trim()).filter(Boolean);
 
+// what the app's "Talk to a person" button sends (chat.js HUMAN_ASK): answered at once, without the AI
+const HUMAN_ASK = /talk to a person from the JD team/i;
+
 const RULES = `
 
-You are answering inside the player's official "JD Esports" chat, on behalf of the JD Esports team. Moderators read this chat too.
-- Keep it short: 1–4 sentences, friendly, plain words. Reply in the player's language (English, Nepali, or romanized Nepali).
+You are answering inside the player's official "JD Esports" / "JD Support" chat, on behalf of the JD Esports team. Moderators read this chat too.
+- Sound like a friendly person from the team texting back, not a help-desk robot: short (usually 1–3 sentences), warm, casual, no "As an AI", no "I hope this helps", no long lists, no greeting at the start of every reply.
+- Talk the way THIS player talks (see PLAYER STYLE): the same language mix (English, Nepali, romanized Nepali like "kaile", "huncha", "bro"), about the same length, the same level of slang and emoji. If they write short and casual, you write short and casual. Never copy rude words.
+- Reply in the player's language.
+- If they ask whether you are a bot or a real person, be honest: you are ZULU, JD Arena's AI, and a JD team member is one tap away ("Talk to a person").
+- Never say a human checked something when nobody did.
 - Use the MY ACCOUNT note for their points, tickets, confirmations and alerts. Never invent numbers, slots, room IDs or passwords.
 - You cannot change anything yourself (points, slots, confirmations, refunds, withdrawals, bans, results). For those, or if they ask for a person, are upset, or you are not sure, say a JD moderator will reply here soon.
 - If they say their squad is ready / confirm, tell them to tap "Confirm you're playing" on their ticket, and that a moderator can also mark it.
@@ -34,7 +41,7 @@ Deno.serve(async (req: Request) => {
   if (!ids.length) return Response.json({ queued: 0 });
 
   const work = (async () => {
-    await new Promise((r) => setTimeout(r, 2500));      // let a quick burst of messages land first
+    await new Promise((r) => setTimeout(r, 1200));      // let a quick burst of messages land first (was 2.5 s)
     const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const { data: rows } = await db.from('jd_messages').select('player_id').in('id', ids).eq('from_staff', false);
     const players = [...new Set((rows || []).map((r: any) => r.player_id))];
@@ -61,9 +68,15 @@ async function answer(db: any, pid: string, day: Date, used: number): Promise<bo
   const human = msgs.filter((m: any) => m.from_staff && !String(m.staff_email || '').startsWith('zulu'));
   if (human.length && Date.now() - new Date(human[human.length - 1].created_at).getTime() < HUMAN_QUIET_MS) return false;
 
+  const say0 = (body: string) => db.from('jd_messages').insert({ player_id: pid, from_staff: true, staff_email: 'zulu-ai', body, push: true });
+  if (HUMAN_ASK.test(String(last.body))) {   // the app's hand-off button: instant, no AI; moderators see it unread in /mod/
+    await say0('Got it 👍 A JD team member will reply right here as soon as they can. You can keep writing what the problem is - send your username and a screenshot if it is about points, prizes or results.');
+    return false;
+  }
+
   const { count: mine } = await db.from('jd_messages').select('id', { count: 'exact', head: true })
     .eq('player_id', pid).eq('staff_email', 'zulu-ai').gte('created_at', day.toISOString());
-  const say = (body: string) => db.from('jd_messages').insert({ player_id: pid, from_staff: true, staff_email: 'zulu-ai', body: body.slice(0, 1000), push: true });
+  const say = (body: string) => say0(body.slice(0, 1000));
   if ((mine ?? 0) >= PER_PLAYER_DAILY || used >= GLOBAL_DAILY) {
     // out of AI for today: one hand-off note, then quiet
     const lastZulu = [...msgs].reverse().find((m: any) => m.staff_email === 'zulu-ai');
@@ -72,12 +85,24 @@ async function answer(db: any, pid: string, day: Date, used: number): Promise<bo
   }
 
   // the player's own account, the same kind of note their app sends to ZULU in Messages
-  const [{ data: pl }, { data: wal }, { data: regs }, { data: notes }] = await Promise.all([
+  const [{ data: pl }, { data: wal }, { data: regs }, { data: notes }, { data: own }] = await Promise.all([
     db.from('players').select('username, player_tag, squad_name').eq('id', pid).maybeSingle(),
     db.from('wallets').select('balance').eq('player_id', pid).maybeSingle(),
     db.from('registrations').select('tournament_slug, squad_name, status, checked_in_at, whatsapp').eq('player_id', pid).order('created_at', { ascending: false }).limit(5),
     db.from('notifications').select('title, created_at').eq('player_id', pid).is('room_id', null).order('created_at', { ascending: false }).limit(5),
+    // how this player writes: only their own messages in this chat (never their private chats with other players)
+    db.from('jd_messages').select('body').eq('player_id', pid).eq('from_staff', false).order('id', { ascending: false }).limit(40),
   ]);
+  const samples = (own || []).map((m: any) => String(m.body || '').trim()).filter((b: string) => b && !HUMAN_ASK.test(b)).slice(0, 12);
+  const words = samples.join(' ');
+  const style = samples.length ? [
+    'PLAYER STYLE (their own recent messages here, newest first - match this tone, never copy rude words):',
+    ...samples.map((b: string) => '- ' + b.slice(0, 140)),
+    `Typical length: about ${Math.round(words.length / samples.length)} characters` +
+      (/[\u0900-\u097F]/.test(words) ? '; writes in Nepali script' : '') +
+      (/\b(cha|chha|huncha|hunchha|kaile|kina|ho|haina|bro|dai|vai|bhai|yaar|ni|ta)\b/i.test(words) ? '; mixes romanized Nepali with English' : '') +
+      (/\p{Extended_Pictographic}/u.test(words) ? '; uses emoji' : '; rarely uses emoji'),
+  ].join('\n') : 'PLAYER STYLE: new player, no earlier messages - friendly and simple.';
   const account = [
     `Player: @${pl?.username || '?'} (${pl?.player_tag || ''})${pl?.squad_name ? ', squad ' + pl.squad_name : ''}`,
     `Points balance: ${wal?.balance ?? 0}`,
@@ -96,7 +121,7 @@ async function answer(db: any, pid: string, day: Date, used: number): Promise<bo
   if (turns[0]?.role === 'assistant') turns.unshift({ role: 'user', content: '(opened the JD Esports chat)' });
   const messages: AIMessage[] = [
     { role: 'system', content: (await zuluSystemPrompt(lang)) + RULES },
-    { role: 'user', content: 'MY ACCOUNT (from the JD server):\n' + account },
+    { role: 'user', content: 'MY ACCOUNT (from the JD server):\n' + account + '\n\n' + style },
     { role: 'assistant', content: 'Got it.' },
     ...turns,
   ];

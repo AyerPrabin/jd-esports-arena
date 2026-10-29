@@ -287,8 +287,12 @@ Deno.serve(async (req: Request) => {
       .eq('tournament_slug', t.name)
       .in('status', ['confirmed', 'approved']); // skip unverified-payment registrations, same as a manual send
     if (regErr || !regs || !regs.length) continue;
+    // players the admin withheld the code from after a fair-play review (ZULU, typed confirmation phrase;
+    // supabase/optimizer_fairplay.sql). Table missing / error = nobody withheld, never a blocked release.
+    const { data: held } = await supabase.from('tournament_code_withheld').select('player_id').eq('tournament_slug', t.name);
+    const withheld = new Set(((held as any[]) || []).map((h) => h.player_id));
     const targets = (regs as any[])
-      .filter((r) => r.players)
+      .filter((r) => r.players && !withheld.has(r.player_id))
       .map((r) => ({ id: r.player_id, email: r.players.email, discord_user_id: r.players.discord_user_id }));
     if (!targets.length) continue;
 

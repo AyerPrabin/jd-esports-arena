@@ -1,10 +1,10 @@
 {
-  "versionCode": 11,
-  "versionName": "2.0.4",
+  "versionCode": 12,
+  "versionName": "2.0.5",
   "minVersionCode": 9,
-  "url": "https://jdesport.co.uk/download/jd-arena-2.0.4.apk",
-  "sha256": "efddf7440992227fccf8bd101e345c187ef0def17cc6871d1e247381a0db427f",
+  "url": "https://jdesport.co.uk/download/jd-arena-2.0.5.apk",
+  "sha256": "716a9b5d3687d213bc29d418308449bab836b7c926b6b6ace0a7001cd6292848",
   "size": 3499320,
-  "date": "2026-10-27",
-  "notes": "Fixes the bottom tabs sitting too high on some phones. Notifications: allow alerts when the app asks, so room IDs and results reach you. Help & Support inside the app."
+  "date": "2026-10-29",
+  "notes": "JD Support: ZULU (AI) answers first and a JD team member takes over when you tap Talk to a person. The app no longer closes when the phone runs low on memory, and shows the JD logo while it starts."
 }

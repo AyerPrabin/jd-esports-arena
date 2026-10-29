@@ -597,7 +597,7 @@ h2[id]{scroll-margin-top:64px}
   <div id="wa-prizes"></div>
   <div id="wa-balances"></div>
 
-  <h2 id="optimizer">JD-Optimiers <span class="tag">Optimizer Pro 49 · Max 99 points / 30 days</span></h2>
+  <h2 id="optimizer">JD Frag Engine <span class="tag">Optimizer Pro 49 · Max 99 points / 30 days</span></h2>
   <p class="hint">Players buy plans with points on <a href="/optimizer/" target="_blank">/optimizer/</a>; the Windows app only opens with an active plan. Max also unlocks Panel scan, a 30-day Pro squad effect per purchase, early entry and the ✔ tag. Give free days here (sponsors, refunds, testers), end a plan, or unlink a PC. 2 PCs per account.</p>
   <div class="grid">
     <div class="f full"><label>Find player</label><input id="op-q" placeholder="Type a username, tag or email" autocomplete="off" oninput="opSearch()"></div>
@@ -1465,7 +1465,7 @@ function renderBo3(){
   const teams=data.bo3.teams=data.bo3.teams||[];
   const box=document.getElementById('bo3list');if(!box)return;
   if(!teams.length){box.innerHTML='<p class="hint">No squads yet — "Load squads from roster" or "+ Add squad".</p>';return;}
-  box.innerHTML=`<table class="bo3-tbl"><thead><tr><th>Squad</th><th>M1 Pos · K</th><th>M2 Pos · K</th><th>M3 Pos · K</th><th>Total</th><th>Prize won (NPR)</th><th></th></tr></thead><tbody>${teams.map((tm,i)=>{
+  box.innerHTML=`<table class="bo3-tbl"><thead><tr><th>Squad</th><th>M1 Pos · K</th><th>M2 Pos · K</th><th>M3 Pos · K</th><th>Total</th><th title="Rule 10: the owner is never paid. If the owner's squad places, give its prize to the next squad (every place below moves up one).">Prize won (NPR) ⓘ</th><th></th></tr></thead><tbody>${teams.map((tm,i)=>{
     tm.r=tm.r||[bo3Round(),bo3Round(),bo3Round()];
     const rounds=[0,1,2].map(ri=>`<td><div style="display:flex;gap:4px"><input data-bi="${i}" data-bri="${ri}" data-brk="pts" type="number" title="Placement points" value="${esc(tm.r[ri].pts??0)}"><input data-bi="${i}" data-bri="${ri}" data-brk="kills" type="number" title="Kills" placeholder="K" value="${esc(tm.r[ri].kills??0)}"></div></td>`).join('');
     return `<tr><td><input data-bi="${i}" data-bk="team" value="${esc(tm.team)}" placeholder="Squad name"></td>${rounds}<td class="bo3-tot">${bo3Total(tm)}</td><td><input data-bi="${i}" data-bk="prize_won" type="number" placeholder="0" value="${esc(tm.prize_won??'')}" style="min-width:80px"></td><td><button class="del" style="position:static;padding:6px 9px" onclick="delBo3Team(${i})">✕</button></td></tr>`;
@@ -2319,7 +2319,7 @@ async function megaSave(){
   }catch(e){mgMsg(e.message,'err');}
 }
 
-/* ── JD-Optimiers plans (optimizer-admin Edge Function) ── */
+/* ── JD Frag Engine plans (optimizer-admin Edge Function) ── */
 let _opPlayer=null,_opTimer=null;
 function opMsg(t,c){const el=document.getElementById('op-msg');if(el){el.textContent=t;el.className='hint '+(c||'');}}
 async function opCall(body){
@@ -2357,7 +2357,7 @@ async function opGpuBoard(){
     opMsg('','');
     const RN={gl:'OpenGL',vlcn:'Vulkan',vulkan:'Vulkan',dx:'DirectX',opengl:'OpenGL',directx:'DirectX'};
     rows.forEach(g=>{if(g.best_renderer)g.best_renderer=RN[g.best_renderer]||g.best_renderer;});
-    box.innerHTML=rows.length?`<div class="card" style="overflow-x:auto"><p class="hint" style="margin:0 0 8px">Last 90 days of JD-Optimiers sessions (5+ min): anonymous shared stats + private PC reports. "Best" = the renderer + cap with the highest 1% low (3+ sessions).</p>
+    box.innerHTML=rows.length?`<div class="card" style="overflow-x:auto"><p class="hint" style="margin:0 0 8px">Last 90 days of JD Frag Engine sessions (5+ min): anonymous shared stats + private PC reports. "Best" = the renderer + cap with the highest 1% low (3+ sessions).</p>
       <table style="width:100%;font-size:.76rem;border-collapse:collapse"><tr class="hint" style="text-align:left"><th style="padding:4px">Graphics card</th><th>PCs</th><th>Sessions</th><th>Avg FPS</th><th>Avg 1% low</th><th>Best setting</th><th>Best FPS / 1% low</th></tr>
       ${rows.map(g=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 4px">${esc(g.gpu||'?')}</td><td>${g.pcs}</td><td>${g.sessions}</td><td>${g.fps??'-'}</td><td>${g.low1??'-'}</td><td>${g.best_renderer?esc(g.best_renderer)+' · cap '+esc(String(g.best_cap)):'<span class="hint" style="margin:0">not enough data</span>'}</td><td>${g.best_renderer?g.best_fps+' / '+g.best_low1:''}</td></tr>`).join('')}</table></div>`
       :'<p class="hint">No shared sessions yet.</p>';

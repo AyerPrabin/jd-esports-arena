@@ -19,12 +19,15 @@ const sha256hex = async (s: string) => Array.from(new Uint8Array(await crypto.su
 const text = (body: string, status = 200) =>
   new Response(body, { status, headers: { ...CORS_HEADERS, 'Content-Type': 'text/plain; charset=utf-8' } });
 
-const SYSTEM = `You are JD AI Doctor inside JD-Optimiers, a Windows booster for Free Fire on MSI App Player / BlueStacks (emulator process HD-Player.exe).
+// The game is a variable (body.g from the app, else a neutral default) so no game trademark is hard-coded here.
+const DEFAULT_GAME = 'your mobile game';
+const gameName = (g: unknown) => typeof g === 'string' && /^[A-Za-z0-9][A-Za-z0-9 :'.-]{0,39}$/.test(g.trim()) ? g.trim() : DEFAULT_GAME;
+const system = (game: string) => `You are JD AI Doctor inside JD Frag Engine (formerly JD-Optimiers), a Windows booster for ${game} on MSI App Player / BlueStacks (emulator process HD-Player.exe).
 You get a health report from the player's PC. Find what is really holding their FPS, smoothness, ping or stability back, using the numbers in the report.
 
 STRICT SAFETY RULES (the player's game account must never be at risk of a ban):
 - Never suggest macros, scripts, auto-clickers, aim assist, recoil control, overlays drawn on the game, memory or game-file edits, modded APKs, root, Xposed, GFX tools that edit game files, or anything that reads or changes the game.
-- Only suggest: Windows settings, drivers, BIOS, cooling and hardware, the charger / power plan, background apps, network, MSI App Player / BlueStacks settings (renderer, FPS cap, CPU cores, RAM, ASTC, VSync), Free Fire's own in-game graphics menu, and JD-Optimiers features (Boost, Play, FPS cap buttons 60/90/120/240, App Sleep, Mouse presets, Live accel, Hardware Tips, Deep tweaks).
+- Only suggest: Windows settings, drivers, BIOS, cooling and hardware, the charger / power plan, background apps, network, MSI App Player / BlueStacks settings (renderer, FPS cap, CPU cores, RAM, ASTC, VSync), ${game}'s own in-game graphics menu, and JD Frag Engine features (Boost, Play, FPS cap buttons 60/90/120/240, App Sleep, Mouse presets, Live accel, Hardware Tips, Deep tweaks).
 - Never tell them to change settings in the middle of a match.
 
 HOW TO ANSWER (plain text only - no markdown, no tables, no ** or #):
@@ -33,13 +36,14 @@ HOW TO ANSWER (plain text only - no markdown, no tables, no ** or #):
 3. If the report shows emulator crashes, explain the likely cause from the crash text (renderer, driver, RAM, overheating, antivirus) and the fix.
 4. End with "Looks good:" and one line on what is already fine.
 5. If a section "[Other JD players with the same graphics card]" is given, use it: e.g. "players with your card get a better 1% low on OpenGL at cap 90" - only when it has 3+ sessions.
-6. Very last line, only if one of these JD buttons would clearly help: "JD_ACTIONS: " followed by up to 3 of exactly fps60, fps90, fps120, sleep_on (comma separated). The app turns them into buttons the player can press; they apply at the next Play, never mid-match. Leave the line out if none fits.
+6. Then exactly two machine lines for the player's web card: "BOTTLENECK: " + the single biggest limit in 2-8 words (e.g. "GPU overheating at 88 C"), and "SETTINGS: " + the emulator settings you recommend in one line (e.g. "OpenGL, FPS cap 90, 4 CPU cores, 4 GB RAM, VSync off").
+7. Very last line, only if one of these JD buttons would clearly help: "JD_ACTIONS: " followed by up to 3 of exactly fps60, fps90, fps120, sleep_on (comma separated). The app turns them into buttons the player can press; they apply at the next Play, never mid-match. Leave the line out if none fits.
 Keep it under 350 words, simple English a teenager understands. If data is missing (no sessions yet), say "Play one match with Play/Boost, then check again" and give only the safe basics for this hardware.`;
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
   if (req.method !== 'POST') return text('Method not allowed', 405);
-  let body: { t?: unknown; m?: unknown; v?: unknown; r?: unknown };
+  let body: { t?: unknown; m?: unknown; v?: unknown; r?: unknown; g?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -77,7 +81,7 @@ Deno.serve(async (req: Request) => {
   // 18 s per model, and 60 s for the whole fallback chain - the app waits 90 s. Gemini last (ZULU shares its key).
   const ai = await Promise.race([
     askAI([
-      { role: 'system', content: SYSTEM },
+      { role: 'system', content: system(gameName(body.g)) },
       { role: 'user', content: report + peers },
     ], ['groq', 'cerebras', 'gemini'], { timeoutMs: 18000 }),
     new Promise<null>((res) => setTimeout(() => res(null), 60000)),
@@ -92,13 +96,21 @@ Deno.serve(async (req: Request) => {
     const { data: dev } = await sb.from('optimizer_devices').select('id, player_id')
       .eq('token_hash', await sha256hex(token)).is('revoked_at', null).maybeSingle();
     if (dev) {
-      const advice = out.replace(/^JD_ACTIONS:.*$/m, '').trim();
+      const machine = (k: string, max: number) => (new RegExp(`^${k}:\\s*(.+)$`, 'mi').exec(out)?.[1] ?? '').trim().slice(0, max) || null;
+      const bottleneck = machine('BOTTLENECK', 160), settings = machine('SETTINGS', 240);
+      const advice = out.replace(/^(JD_ACTIONS|BOTTLENECK|SETTINGS):.*$/gm, '').replace(/\n{3,}/g, '\n\n').trim();
+      // badges from the app's own fixed report lines ([Sensors (v5.9)] in gui.c), never from the model's prose
+      const emulator = /^Emulator: (MSI App Player|BlueStacks 5|BlueStacks X)\r?$/m.exec(report)?.[1] ?? null;
+      const temp_source = /^GPU temperature sensor: (NVIDIA \(NVML\)|AMD \(ADL\)|system thermal zone[^\r\n]{0,40})\r?$/m.exec(report)?.[1] ?? null;
+      const tm = /^Last GPU temperature: (\d{1,3}) C\r?$/m.exec(report);
+      const temp_c = tm && +tm[1] <= 130 ? +tm[1] : null;
       const sm = /Health:\s*(\d{1,2})\s*\/\s*10/i.exec(advice);
       const score = sm ? Math.min(10, Math.max(0, +sm[1])) : null;
       const first = advice.split('\n').map((l) => l.trim()).filter(Boolean);
       const headline = (sm ? (first[0].replace(/Health:\s*\d+\s*\/\s*10[.\s-]*/i, '') || first[1] || '') : first[0] || '').slice(0, 300);
-      await sb.from('optimizer_ai_latest').upsert({ device_id: dev.id, player_id: dev.player_id, score, headline,
-        advice: advice.slice(0, 4000), at: new Date().toISOString() });
+      const row = { device_id: dev.id, player_id: dev.player_id, score, headline, advice: advice.slice(0, 4000), at: new Date().toISOString() };
+      const { error: upErr } = await sb.from('optimizer_ai_latest').upsert({ ...row, emulator, temp_source, temp_c, bottleneck, settings });
+      if (upErr) await sb.from('optimizer_ai_latest').upsert(row);   // badge columns not added yet (optimizer_fairplay.sql)
     }
   } catch (_) { /* the card is a bonus - the answer still goes back */ }
   return text(out);

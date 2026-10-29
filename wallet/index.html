@@ -443,7 +443,7 @@ async function loadWithdrawals(){
 }
 
 /* ── history ── */
-const R={referral:['🤝','Invite bonus','in'],pass:['🎟','Weekly Pass','out'],optimizer:['🚀','JD-Optimiers plan','out'],challenge_win:['⚔️','Challenge won','in'],challenge_refund:['↩️','Challenge refund','in'],challenge_stake:['⚔️','Challenge stake','out'],prize:['🏆','Tournament prize','in'],load:['💰','Points loaded','in'],refund:['↩️','Entry refund','in'],withdraw_returned:['↩️','Withdrawal returned','in'],adjust:['🛠️','Adjustment','in'],entry:['🎮','Tournament entry','out'],effect:['✨','Squad effect','out'],withdraw:['💸','Withdrawal to eSewa','wd']};
+const R={referral:['🤝','Invite bonus','in'],pass:['🎟','Weekly Pass','out'],optimizer:['🚀','JD Frag Engine plan','out'],challenge_win:['⚔️','Challenge won','in'],challenge_refund:['↩️','Challenge refund','in'],challenge_stake:['⚔️','Challenge stake','out'],prize:['🏆','Tournament prize','in'],load:['💰','Points loaded','in'],refund:['↩️','Entry refund','in'],withdraw_returned:['↩️','Withdrawal returned','in'],adjust:['🛠️','Adjustment','in'],entry:['🎮','Tournament entry','out'],effect:['✨','Squad effect','out'],withdraw:['💸','Withdrawal to eSewa','wd']};
 const FX={fx_game:'Single match',fx_lite_week:'Lite week',fx_week:'Pro week',fx_month:'Pro month'};
 function histSub(x){
   if(x.reason==='effect'&&x.note){const [k,e]=x.note.split(':');return (FX[k]||k)+(e?' · '+e:'');}
@@ -494,6 +494,6 @@ async function refresh(){
 })();
 </script>
 <script src="/ui.js?v=23" defer></script>
-<script src="/chat.js?v=28" defer></script>
+<script src="/chat.js?v=29" defer></script>
 </body>
 </html>

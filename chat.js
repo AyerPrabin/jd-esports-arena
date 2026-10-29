@@ -674,12 +674,17 @@
     });
     return out;
   }
+  // Android app only: the JD Esports chat is "JD Support" - ZULU (AI) answers first (zulu-auto), a JD team member
+  // takes over when asked or needed (ZULU stays quiet 20 min after a moderator writes). The website is unchanged.
+  var IN_APP = !!window.JDApp || /JDArenaApp\//.test(navigator.userAgent || '');
+  var HUMAN_ASK = '🙋 I want to talk to a person from the JD team, please.';
   function jdRow() {
     var l = jdLast, active = cur && cur.kind === 'jd' ? ' active' : '';
-    var prev = l ? (l.mine ? T('you') + ': ' : '') + l.body : 'Official JD Esports team · ask us anything';
+    var prev = l ? (l.mine ? T('you') + ': ' : '') + l.body
+                 : IN_APP ? 'ZULU AI answers first · our team joins if needed' : 'Official JD Esports team · ask us anything';
     var dot = badge.jd ? '<span class="dm-dot">' + (badge.jd > 9 ? '9+' : badge.jd) + '</span>' : '';
     return '<button type="button" class="dm-row jd' + (badge.jd ? ' unread' : '') + active + '" data-k="jd" data-open="jd">' + jdAv() +
-      '<span class="dm-mid"><span class="dm-name">JD Esports ' + VERIFIED + '</span>' +
+      '<span class="dm-mid"><span class="dm-name">' + (IN_APP ? '🎧 JD Support ' : 'JD Esports ') + VERIFIED + '</span>' +
       '<span class="dm-prev"><span>' + esc(prev) + '</span>' + (l && l.at ? '<span>· ' + short(l.at) + '</span>' : '') + '</span></span>' + dot + '</button>';
   }
   function alertsRow() {
@@ -737,9 +742,10 @@
       }).join('') + '</div>';
     }
     if (tab === 'all' && !q) h += recsHtml();
-    if (tab === 'all' && (!q || 'jd esports team'.indexOf(q) >= 0)) h += jdRow();
+    if (tab === 'all' && (!q || 'jd esports team support help zulu'.indexOf(q) >= 0)) h += jdRow();
     if (tab === 'all' && (!q || 'alerts notifications room'.indexOf(q) >= 0)) h += alertsRow();
-    if (tab === 'all' && (!q || 'zulu ai'.indexOf(q) >= 0)) h += zuluRow();
+    // app: ZULU lives inside JD Support; its own row only shows while it has an unread tip for you
+    if (tab === 'all' && (!q || 'zulu ai'.indexOf(q) >= 0) && (!IN_APP || !me || badge.z)) h += zuluRow();
     if (tab === 'squads' || (tab === 'all' && !th.groups.length && ov.friends.length && !q)) {
       h += '<button type="button" class="dm-row dm-cta" data-new="1"><span class="dm-av sq plus">' + ICON.plus + '</span><span class="dm-mid"><span class="dm-name">' + T('newSquad') + '</span><span class="dm-prev"><span>Group chat with your Clash Squad team</span></span></span></button>';
     }
@@ -857,7 +863,11 @@
     if (!isOpen) open();
     openThread({ kind: 'match', id: id, mode: '', other: null });
   }
-  function openZulu() { if (!isOpen) open(); openThread({ kind: 'zulu', id: 'zulu' }); }
+  function openZulu() {
+    if (IN_APP && me) return openJd();   // app: ZULU answers inside JD Support
+    if (!isOpen) open(); openThread({ kind: 'zulu', id: 'zulu' });
+  }
+  function openZuluOwn() { if (!isOpen) open(); openThread({ kind: 'zulu', id: 'zulu' }); }
   function openAlerts() {
     if (!me) { pendingDeepLink = openAlerts; return; }
     if (!isOpen) open(); openThread({ kind: 'alerts', id: 'alerts' });
@@ -883,7 +893,7 @@
     var foot = '';
     if (p.kind === 'dm' && p.friend === false) foot = composer(p.req === 'in' ? 'Reply…' : 'Message request…', 500);
     else if (p.kind === 'zulu') foot = composer(T('askZulu'), 500);
-    else if (p.kind === 'jd') foot = composer('Message the JD team…', 1000);
+    else if (p.kind === 'jd') foot = composer(IN_APP ? 'Ask anything - ZULU replies first…' : 'Message the JD team…', 1000);
     else if (p.kind === 'alerts') foot = '<div class="dm-locked">Alerts can\'t be answered. Questions? Message JD Esports or ask ZULU.</div>';
     else if (p.kind === 'match') foot = composer('Message… · @zulu asks AI', 300);
     else if (p.kind === 'group') foot = composer('Message… · @zulu asks AI', 500);
@@ -956,7 +966,17 @@
   }
   function smartChips(force) {
     var p = cur; if (!p || p.kind === 'zulu') return;
-    if (p.kind === 'jd') { if (msgs.length) $('dm-chips').innerHTML = ''; else chips(['Hi JD team 👋', 'Our squad is ready ✅', 'I need help with points 🪙', 'Room ID problem 🎮']); return; }
+    if (p.kind === 'jd') {
+      if (IN_APP) {   // the way to a person is always one tap away (hidden for 6 h once asked)
+        var asked = msgs.some(function (m) { return m.mine && m.body === HUMAN_ASK && Date.now() - Date.parse(m.created_at) < 6 * 3600000; });
+        var human = asked ? '' : '<button type="button" data-human="1">🙋 Talk to a person</button>';
+        if (msgs.length) setChips(human ? '<div class="dm-chips">' + human + '</div>' : '');
+        else chips(['I need help with points 🪙', 'Room ID problem 🎮', 'Our squad is ready ✅'], human);
+        return;
+      }
+      if (msgs.length) $('dm-chips').innerHTML = ''; else chips(['Hi JD team 👋', 'Our squad is ready ✅', 'I need help with points 🪙', 'Room ID problem 🎮']);
+      return;
+    }
     if (p.kind === 'match' && p.status === 'completed') { $('dm-chips').innerHTML = ''; return; }
     if ((p.kind === 'dm' && p.friend === false) || !$('dm-in')) { $('dm-chips').innerHTML = ''; return; }
     var last = null;
@@ -994,7 +1014,7 @@
       if (b.dataset.fill) smartChips(true);
       return;
     }
-    var t = b.textContent;
+    var t = b.dataset.human ? HUMAN_ASK : b.textContent;
     if (cur && cur.kind === 'zulu') t = t.replace(/^\S+\s/, '');
     send(t);
   });
@@ -1010,7 +1030,10 @@
     } else if (p.kind === 'match') {
       av = matchAv('sm'); name = (p.mode || 'Match') + (p.other ? ' vs ' + nameOf(p.other) : '');
       st = p.status === 'completed' ? 'Finished · chat is read-only' : p.status === 'disputed' ? 'Disputed · post your screenshots' : 'Captains’ match chat';
-    } else if (p.kind === 'jd') { av = jdAv('sm'); name = 'JD Esports'; st = 'Official JD team · we reply here'; }
+    } else if (p.kind === 'jd') {
+      av = jdAv('sm'); name = IN_APP ? 'JD Support' : 'JD Esports';
+      st = IN_APP ? 'ZULU AI answers first · JD team joins if needed' : 'Official JD team · we reply here';
+    }
     else if (p.kind === 'alerts') { av = alAv('sm'); name = 'Alerts'; st = 'Room IDs, reminders and results'; }
     else { av = zuluAv('sm'); name = 'ZULU'; st = 'AI assistant · replies in seconds'; on = true; }
     $('dm-th-av').innerHTML = av;
@@ -1052,7 +1075,7 @@
     // opening = one full page (also catches read receipts and unread marks); after that only new messages,
     // with a full page every ~30s so "seen" ticks on your own messages still update
     var newest = 0;
-    msgs.forEach(function (m) { if (typeof m.id === 'number') newest = Math.max(newest, m.id); });
+    msgs.forEach(function (m) { if (typeof m.id === 'number' && !m.recheck) newest = Math.max(newest, m.id); });
     var delta = !first && newest > 0 && (++ticks % 12 !== 0);
     var r = await fetchPage(p, null, delta ? newest : null);
     if (cur !== p || r.error || (sending && !first)) return;
@@ -1065,14 +1088,19 @@
       var older = first && lo && kept.length && kept[kept.length - 1].id >= lo ? kept.filter(function (m) { return m.id < lo; }) : [];
       msgs = older.concat(rows, first ? [] : msgs.filter(function (m) { return typeof m.id !== 'number'; }));
     } else {
-      var byId = {}; rows.forEach(function (m) { byId[m.id] = m; });
-      msgs.forEach(function (m) { if (typeof m.id === 'number' && byId[m.id]) m.read_at = byId[m.id].read_at; });
+      var byId = {}, edited = false; rows.forEach(function (m) { byId[m.id] = m; });
+      msgs.forEach(function (m) {
+        var x = typeof m.id === 'number' && byId[m.id];
+        if (!x) return;
+        m.read_at = x.read_at;
+        if (m.recheck) { delete m.recheck; if (x.body !== m.body) { m.body = x.body; edited = true; } }   // rule 9: as stored
+      });
       var fresh = rows.filter(function (m) { return m.id > newest && !msgs.some(function (x) { return x.id === m.id; }); });
       fresh.forEach(function (m) { m.fresh = true; if (m.kind === 'ai') zuluWait = null; });
       var local = msgs.filter(function (m) { return typeof m.id !== 'number'; });
       msgs = msgs.filter(function (m) { return typeof m.id === 'number'; }).concat(fresh, local);
     }
-    var s = msgs.map(function (m) { return m.id + (m.read_at ? 'r' : '') + (m.failed ? 'f' : ''); }).join(',') + (ginfo ? '|' + ginfo.members.map(function (x) { return x.read; }).join(',') : '');
+    var s = msgs.map(function (m) { return m.id + (m.read_at ? 'r' : '') + (m.failed ? 'f' : ''); }).join(',') + (edited ? '*' + Date.now() : '') + (ginfo ? '|' + ginfo.members.map(function (x) { return x.read; }).join(',') : '');
     if (zuluWait && Date.now() > zuluWait.until) { zuluWait = null; s += '~'; }
     if (first || s !== sig) { sig = s; renderMsgs(first); saveThread(p); }
     smartChips(first);
@@ -1153,6 +1181,7 @@
         : 'Not friends yet. ' + (p.req === 'out' ? 'Your request is waiting. ' : 'Sending a message also sends a friend request. ') + 'You can send 3 messages until they accept.') + '</div>';
     else if (p.kind === 'group') h += '<div class="dm-hello">' + groupAv(p) + '<b>' + esc(p.name) + '</b>Squad chat · plan matches, share room IDs<br><span class="dm-hint">Type <b>@zulu</b> + a question and ZULU (AI) answers here. It reads the last few messages.</span></div>';
     else if (p.kind === 'match') h += '<div class="dm-hello">' + matchAv() + '<b>' + esc((p.mode || '') + ' Clash Squad') + '</b>Only you and the other captain can see this chat.<br>Agree the room, play, then report the result on the challenge.<br><span class="dm-hint">Type <b>@zulu</b> to ask ZULU (AI) about the rules. It reads the last few messages.</span></div>';
+    else if (p.kind === 'jd' && IN_APP) h += '<div class="dm-hello">' + jdAv() + '<b>🎧 JD Support ' + VERIFIED + '</b>Ask anything. <strong>ZULU (AI) answers first</strong>, usually within a minute, using your own tickets, points and the schedule.<br>For points, prizes, refunds, results or bans, or whenever you want a person, tap <strong>🙋 Talk to a person</strong> and a JD team member replies right here.<br><span class="dm-hint">The JD team and ZULU never ask for your password, OTP or eSewa PIN.</span></div>';
     else if (p.kind === 'jd') h += '<div class="dm-hello">' + jdAv() + '<b>JD Esports ' + VERIFIED + '</b>The official JD Esports Arena team.<br>Real people from the JD team (moderators and admin) write here. Ask about events, slots, points or room IDs and we reply. For instant answers, ask ZULU.<br><span class="dm-hint">The JD team never asks for your password or eSewa PIN.</span></div>';
     else if (p.kind === 'alerts') h += '<div class="dm-hello">' + alAv() + '<b>Alerts</b>Room IDs and passwords, slot reminders, results and messages from the JD team or an event\'s host. Tap a Room ID or password to copy it.</div>';
     else h += '<div class="dm-hello">' + zuluAv() + '<b>ZULU</b>Your JD Arena buddy. Chat about anything gaming, get Free Fire tips, or ask about tournaments and your own points, tickets and challenges. It never sees your private chats.</div>';
@@ -1378,7 +1407,7 @@
       });
       ((r[6] && r[6].data) || []).slice(0, 2).forEach(function (x) {
         var pc = x.pc || {}, l = x.last || {};
-        lines.push('My PC (JD-Optimiers, private to me + admin): ' + (pc.cpu || '?') + ', ' + (pc.gpu || '?') + ', ' + (pc.ram_gb || '?') + ' GB RAM, PC score ' +
+        lines.push('My PC (JD Frag Engine, private to me + admin): ' + (pc.cpu || '?') + ', ' + (pc.gpu || '?') + ', ' + (pc.ram_gb || '?') + ' GB RAM, PC score ' +
           (pc.score != null ? pc.score : '?') + '/100 (' + (pc.tier || '?') + '). Last session: FPS ' + (l.fps != null ? l.fps : '?') + ', 1% low ' +
           (l.low1 != null ? l.low1 : '?') + ', cap ' + (l.cap || '?') + (l.stable != null && l.stable >= 0 ? ', Stable ' + l.target + ' ' + l.stable + '%' : '') +
           ', renderer ' + (l.renderer || '?') + ', ' + (l.res || '') + (l.hint ? '. Likely reason for drops: ' + l.hint : ''));
@@ -1459,9 +1488,11 @@
     }
     if (p.kind === 'match') { msgs.splice(msgs.indexOf(m), 1); await refreshThread(); SB.rpc('challenge_mark_read', { p_id: p.id }); return; }
     m.id = Number(r.data);
+    m.recheck = true;   // the next refresh reads it back as stored (rude words hidden by the server, rule 9)
     msgs = msgs.filter(function (x) { return x === m || x.id !== m.id; });
     if (p.kind === 'group') readMark = Math.max(readMark, m.id);
     renderMsgs(true);
+    setTimeout(function () { if (cur === p) refreshThread(); }, 400);
   }
 
   // ── ZULU (AI) — history kept on this device, last 40 lines ──
@@ -1769,5 +1800,6 @@
     tab = 'requests'; loadOverview();
   }
 
-  window.jdChat = { settings: settingsSheet, open: open, close: close, openWith: openWith, openGroup: openGroup, openMatch: openMatch, openZulu: openZulu, openAlerts: openAlerts, connect: connect, shareRoom: shareRoom };
+  window.jdChat = { settings: settingsSheet, open: open, close: close, openWith: openWith, openGroup: openGroup, openMatch: openMatch, openZulu: openZulu, openAlerts: openAlerts, connect: connect, shareRoom: shareRoom,
+                    support: openJd, openZuluOwn: openZuluOwn, inApp: IN_APP };
 })();
