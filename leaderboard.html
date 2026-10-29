@@ -488,7 +488,8 @@ function fxOf(tname,team,doc){
   if(r&&FX_TAG[r.effect])return r.effect;
   const t=((doc&&doc.tournaments)||[]).find(x=>x.name===tname);
   const m=t&&(t.teams||[]).find(x=>x&&fxKey(x.name)===k);
-  return m&&FX_TAG[m.effect]?m.effect:'';
+  if(m&&FX_TAG[m.effect])return m.effect;
+  return seasonFx(team); // squad's active effect from any event: it shows everywhere while their pass lasts
 }
 function fxText(fx,name,tag){return fx?`<span class="fxn fxn-${fx}">${esc(name)}</span>${tag?`<span class="fxn-tag">✨ ${FX_TAG[fx]}</span>`:''}`:esc(name);}
 function mvArrow(m){return m==='up'?'<span class="mv mv-up">▲</span>':m==='down'?'<span class="mv mv-down">▼</span>':'<span class="mv mv-same">–</span>';}

@@ -75,7 +75,10 @@ function fxForSquad(tname,squad){
   const k=fxKey(squad);if(!k)return null;
   const t=((_lastData||{}).tournaments||[]).find(x=>x.name===tname);
   const hit=(t?teamsFor(t):[]).find(x=>fxKey(x.name)===k)||(_liveRoster.get(tname)||[]).map(x=>({name:x.squad_name,effect:x.effect,logo:x.squad_logo})).find(x=>fxKey(x.name)===k);
-  return hit?{fx:SQUAD_FX[hit.effect]||null,logo:hit.logo||''}:{fx:null,logo:''};
+  if(hit&&SQUAD_FX[hit.effect])return {fx:SQUAD_FX[hit.effect],logo:hit.logo||''};
+  // no effect on this event's entry: use the squad's active effect from any event, so it shows everywhere while their pass lasts
+  let any=null;for(const list of _liveRoster.values())for(const x of list)if(fxKey(x.squad_name)===k&&SQUAD_FX[x.effect]&&(!any||(any.tier!=='pro'&&SQUAD_FX[x.effect].tier==='pro')))any=SQUAD_FX[x.effect];
+  return {fx:any,logo:(hit&&hit.logo)||''};
 }
 // name with its effect as text only (no card) — see .fxn-* in effects-pro.css
 function fxText(fx,name,tag){return fx?`<span class="fxn fxn-${fx.key}">${esc(name)}</span>${tag?`<span class="fxn-tag">✨ ${esc(fx.tag)}</span>`:''}`:esc(name);}
