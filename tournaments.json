@@ -324,8 +324,8 @@
       "platform_mode": "mixed",
       "slots": 12,
       "format": "BR · Best of 3",
-      "map2": "random",
-      "map3": "random",
+      "map2": "nexterra",
+      "map3": "purgatory",
       "early_access": "yes",
       "teams": [],
       "registered": 0
@@ -555,5 +555,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-29T09:04:25.591Z"
+  "_published_at": "2026-10-29T09:04:44.464Z"
 }
