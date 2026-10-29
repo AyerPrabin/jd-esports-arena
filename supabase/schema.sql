@@ -6817,3 +6817,107 @@ as $$
 $$;
 grant execute on function public.get_season_logos() to anon, authenticated;
 commit;
+-- ── Open #10 restore (owner, 29 Oct 2026): the date moved to 30 Oct, so the 24-hour confirm sweep at 20:25 UTC
+-- removed 9 unconfirmed squads and promoted 9 from the waitlist. Owner: put the 9 back, keep 12 slots, so the
+-- 9 promoted go back to the waitlist. Re-add first (count stays >= slots, so promote_from_waitlist does nothing),
+-- then demote. ──
+begin;
+alter table public.jd_no_show_log add column if not exists restored_at timestamptz;
+
+insert into public.registrations (tournament_slug, player_id, squad_name, squad_logo, status, verified_at)
+select l.tournament_slug, l.player_id, l.squad_name, p.squad_logo, 'confirmed', now()
+from public.jd_no_show_log l join public.players p on p.id = l.player_id
+where l.tournament_slug = 'JD Free Fire Open #10' and l.removed_at = '2026-10-29 20:25:00.314602+00'
+  and not exists (select 1 from public.registrations r where r.tournament_slug = l.tournament_slug and r.player_id = l.player_id);
+
+update public.jd_no_show_log set restored_at = now()
+where tournament_slug = 'JD Free Fire Open #10' and removed_at = '2026-10-29 20:25:00.314602+00';
+
+insert into public.notifications (player_id, tournament_slug, title, body)
+select player_id, tournament_slug, '✅ You''re back in JD Free Fire Open #10',
+  'Sorry, "' || squad_name || '" was removed by mistake when the date changed. Your slot is back: Fri 30 Oct, 9:30 PM NPT. Open your ticket and tap "Confirm you''re playing".'
+from public.jd_no_show_log
+where tournament_slug = 'JD Free Fire Open #10' and removed_at = '2026-10-29 20:25:00.314602+00';
+
+with d as (
+  update public.registrations set status = 'waitlisted', promoted_at = null
+  where tournament_slug = 'JD Free Fire Open #10' and status = 'confirmed' and promoted_at = '2026-10-29 20:25:00.314602+00'
+  returning player_id, squad_name)
+insert into public.notifications (player_id, tournament_slug, title, body)
+select player_id, 'JD Free Fire Open #10', '⏳ Back on the waitlist: JD Free Fire Open #10',
+  'Sorry, squads were removed by mistake when the date changed and they have their slots back, so "' || squad_name || '" is on the waitlist again. You''re near the front: if a squad drops out you move up automatically.'
+from d;
+commit;
+-- ── Removed squads → Add back (owner, 29 Oct 2026): the 24-hour confirm sweep stays on, but mods and the admin
+-- see every squad taken out of an event (sweep, mod/admin remove, or the player leaving) and can put it back. ──
+begin;
+-- every removal is logged; the sweep already writes its own row (did_not_confirm) in the same transaction
+create or replace function public._log_registration_removed() returns trigger
+language plpgsql security definer set search_path to 'public' as $$
+begin
+  if old.status not in ('confirmed','approved','waitlisted') then return old; end if;
+  if exists (select 1 from public.jd_no_show_log where tournament_slug = old.tournament_slug
+               and player_id = old.player_id and removed_at = now()) then return old; end if;
+  insert into public.jd_no_show_log (tournament_slug, player_id, squad_name, reason)
+  values (old.tournament_slug, old.player_id, old.squad_name,
+          case when auth.uid() is not null and auth.uid() = old.player_id then 'left' else 'removed' end);
+  return old;
+end $$;
+drop trigger if exists registrations_log_removed on public.registrations;
+create trigger registrations_log_removed before delete on public.registrations
+  for each row execute function public._log_registration_removed();
+
+-- mods (hosts: only their own events) and the owner
+create or replace function public._staff_can_event(p_slug text) returns boolean
+language sql stable security definer set search_path to 'public' as $$
+  select exists (
+    select 1 from public.moderators m
+    where m.email = lower((select email from auth.users where id = auth.uid()))
+      and (coalesce(m.role,'staff') <> 'host' or exists (
+        select 1 from public.site_content s, jsonb_array_elements(s.content->'tournaments') t
+        where s.key = 'tournaments' and t->>'name' = p_slug
+          and lower(regexp_replace(coalesce(t->>'host',''), '^@', '')) = lower(regexp_replace(coalesce(m.handle,''), '^@', ''))
+          and coalesce(m.handle,'') <> '')));
+$$;
+revoke all on function public._staff_can_event(text) from public, anon, authenticated;
+
+create or replace function public.staff_removed_squads(p_slug text)
+returns table(id bigint, squad_name text, captain text, reason text, removed_at timestamptz, restored_at timestamptz, back boolean)
+language plpgsql stable security definer set search_path to 'public' as $$
+begin
+  if not public._staff_can_event(p_slug) then raise exception 'Moderators only.'; end if;
+  return query
+  select l.id, l.squad_name, coalesce('@' || p.username, p.player_tag), l.reason, l.removed_at, l.restored_at,
+         exists (select 1 from public.registrations r where r.tournament_slug = l.tournament_slug and r.player_id = l.player_id)
+  from public.jd_no_show_log l left join public.players p on p.id = l.player_id
+  where l.tournament_slug = p_slug
+  order by l.removed_at desc, l.id;
+end $$;
+revoke all on function public.staff_removed_squads(text) from public, anon;
+grant execute on function public.staff_removed_squads(text) to authenticated;
+
+-- put a removed squad back in a slot (it can go over the slot count: the mod decides who plays)
+create or replace function public.staff_restore_removed(p_id bigint)
+returns jsonb language plpgsql security definer set search_path to 'public' as $$
+declare l public.jd_no_show_log; v_slots int; v_taken int;
+begin
+  select * into l from public.jd_no_show_log where jd_no_show_log.id = p_id;
+  if not found then raise exception 'Not found.'; end if;
+  if not public._staff_can_event(l.tournament_slug) then raise exception 'Moderators only.'; end if;
+  if exists (select 1 from public.registrations r where r.tournament_slug = l.tournament_slug and r.player_id = l.player_id) then
+    raise exception '% is already registered for this event.', l.squad_name;
+  end if;
+  insert into public.registrations (tournament_slug, player_id, squad_name, squad_logo, status, verified_at)
+  select l.tournament_slug, l.player_id, l.squad_name, p.squad_logo, 'confirmed', now()
+  from public.players p where p.id = l.player_id;
+  update public.jd_no_show_log set restored_at = now() where jd_no_show_log.id = p_id;
+  insert into public.notifications (player_id, tournament_slug, title, body)
+  values (l.player_id, l.tournament_slug, '✅ You''re back in ' || l.tournament_slug,
+    'A JD moderator put "' || l.squad_name || '" back in ' || l.tournament_slug || '. Open your ticket and tap "Confirm you''re playing".');
+  select slots into v_slots from public.tournament_capacity where tournament_slug = l.tournament_slug;
+  select count(*) into v_taken from public.registrations where tournament_slug = l.tournament_slug and status in ('confirmed','approved');
+  return jsonb_build_object('squad', l.squad_name, 'slots', v_slots, 'taken', v_taken);
+end $$;
+revoke all on function public.staff_restore_removed(bigint) from public, anon;
+grant execute on function public.staff_restore_removed(bigint) to authenticated;
+commit;

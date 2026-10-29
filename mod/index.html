@@ -259,6 +259,13 @@ textarea{min-height:96px;resize:vertical}
 .rs-meta span{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.78rem;color:var(--silver);background:var(--panel-2)}
 .rs-meta span.done{color:var(--ok);border-color:rgba(94,219,149,.35)}
 .rs{display:grid;gap:6px}
+.rmv{margin:14px 0 0;border:1px solid var(--line);border-radius:12px;background:var(--panel-2)}
+.rmv summary{cursor:pointer;padding:11px 12px;font-weight:600;font-size:.9rem;color:var(--silver)}
+.rmv summary b{color:#ff8f8f}
+.rmv-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-top:1px solid var(--line)}
+.rmv-row .nm{flex:1;min-width:0}
+.rmv-row small{display:block;color:var(--muted,#8a93a6);font-size:.74rem;margin-top:2px}
+.rmv-row .ok{font-size:.78rem;color:#5edb95;white-space:nowrap}
 .wl-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel-2)}
 .wl-tools .note{margin:0;flex:1 1 220px}
 .rsr{display:grid;grid-template-columns:34px minmax(0,1fr) repeat(var(--n,3),96px) 44px 30px;gap:6px;align-items:center}
@@ -387,6 +394,7 @@ textarea{min-height:96px;resize:vertical}
       <p class="lead" id="ev-line"></p>
       <div class="sum" id="sum"></div>
       <div id="reg-body"><p class="note">Pick an event to see its squads.</p></div>
+      <div id="removed-box"></div>
       <p class="note">Playing Yes / No saves straight away. WhatsApp opens a ready message – you only tap Send. Numbers are shown only to moderators.</p>
     </div>
   </section>
@@ -669,12 +677,35 @@ async function loadSquads(quiet){
     if(ev!==selected) return;
     rows=data;
     renderSquads();
+    loadRemoved(ev);
     $('updated').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
   }catch(e){ if(!quiet) $('reg-body').innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; }
   finally{ loadingSquads=false; }
 }
 // a squad that just got its slot from the waitlist gets 20 minutes to confirm before "Replace" can touch it
 function freshUp(r){return !!(r.promoted_at&&!r.checked_in&&Date.now()-Date.parse(r.promoted_at)<20*60*1000);}
+/* squads taken out of this event (the 24-hour confirm check, a mod/admin, or the player leaving) — Add back puts one
+   in a slot again (staff_removed_squads / staff_restore_removed in supabase/schema.sql) */
+const RM_WHY={did_not_confirm:'Auto: did not confirm 24h before',removed:'Removed by a mod/admin',left:'Left by themselves'};
+async function loadRemoved(ev){
+  const box=$('removed-box');
+  const {data,error}=await sb.rpc('staff_removed_squads',{p_slug:ev.name});
+  if(ev!==selected) return;
+  if(error||!data||!data.length){ box.innerHTML=''; return; }
+  const out=data.filter(r=>!r.back).length;
+  const open=box.querySelector('details')?.open;
+  box.innerHTML=`<details class="rmv"${open?' open':''}><summary>Removed squads${out?` · <b>${out} out</b>`:''} (${data.length})</summary>`+data.map(r=>
+    `<div class="rmv-row"><div class="nm"><b translate="no">${esc(r.squad_name||'(squad)')}</b><small>${esc(r.captain||'')} · ${esc(RM_WHY[r.reason]||r.reason||'')} · ${new Date(r.removed_at).toLocaleString([], {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</small></div>`+
+    (r.back?`<span class="ok">✓ In the event</span>`:`<button type="button" class="abtn" data-rm-back="${r.id}" data-sq="${esc(r.squad_name||'')}">Add back</button>`)+`</div>`).join('')+`</details>`;
+}
+$('removed-box').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-rm-back]'); if(!b) return;
+  b.disabled=true;
+  const {data,error}=await sb.rpc('staff_restore_removed',{p_id:+b.dataset.rmBack});
+  if(error){ toast(error.message,null,true); b.disabled=false; return; }
+  await loadSquads(true);
+  toast(`${b.dataset.sq} is back in.`+(data&&data.slots&&data.taken>data.slots?` Slots ${data.taken}/${data.slots}: remove one squad that isn't playing.`:''));
+});
 function renderSquads(){
   const act=rows.filter(active), yes=act.filter(r=>r.checked_in).length, wait=rows.filter(r=>r.status==='waitlisted').length, no=act.length-yes;
   const badge=$('badge-unconf'); badge.hidden=!no; badge.textContent=no;
