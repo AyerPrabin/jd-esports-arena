@@ -362,7 +362,7 @@ async function ensurePushSubscribed(){
       _pushSub=pushPerm()==='granted'?{fcm:t}:null;_pushErr='';updatePushBtn();return !!_pushSub;
     }catch(e){
       _pushErr=String((e&&e.message)||e);_pushSub=null;updatePushBtn();
-      try{sb.rpc('log_app_push_error',{p_error:_pushErr.slice(0,300),p_app_version:JD_TWA||null,p_perm:pushPerm()});}catch(x){}
+      try{sb.rpc('log_app_push_error',{p_error:_pushErr.slice(0,300),p_app_version:JD_TWA||null,p_perm:pushPerm()}).then(()=>{},()=>{});}catch(x){}   // .then: a Supabase call only runs when awaited / then'd
       return false;
     }
   }
@@ -403,7 +403,7 @@ async function enablePush(){
   if(perm!=='granted'){try{perm=await pushAsk();}catch(e){}}
   if(perm!=='granted'){updatePushBtn();showMsg('Push alerts not enabled','Tap Allow when your browser asks, so JD Arena can alert you even when the site is closed.',true);return;}
   if(await ensurePushSubscribed())showMsg('Push alerts enabled','This device will now get alerts even when JD Arena is closed — match reminders, room details, new challenges and results.');
-  else showMsg("Push alerts couldn't start",PUSH_SERVICE_HELP,true);
+  else showMsg("Push alerts couldn't start",JD_APP?"The JD Arena app couldn't turn on notifications on this phone.\n\nReason: "+(_pushErr||"unknown")+"\n\nCheck that Google Play services is up to date, then close and reopen JD Arena and try again. We have been sent this reason too.":PUSH_SERVICE_HELP,true);
 }
 /* One place that decides what push looks like on this device, so the account row and the
    strip at the top of the notifications modal never disagree. */
