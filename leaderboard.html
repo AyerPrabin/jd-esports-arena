@@ -155,7 +155,12 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .rv-row img{width:28px;height:28px;border-radius:50%;object-fit:cover;background:#000}
 .rv-nm{flex:1;min-width:0;font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rv-nm small{display:block;font-weight:600;font-size:.66rem;color:var(--silver);letter-spacing:.02em}
-.rv-k{font:700 .8rem var(--font-body);color:#ff9d7a;min-width:46px;text-align:right}
+.rv-k{font:700 .8rem var(--font-body);color:#fff;min-width:46px;text-align:right;white-space:nowrap}
+.rv-sk{display:inline-block;width:1.05em;height:1.05em;vertical-align:-.17em;margin-right:3px;filter:drop-shadow(0 0 3px rgba(255,80,60,.6))}
+.rv-nm small .rv-sk{width:.95em;height:.95em;margin-right:1px;filter:none}
+.rv-feed .rv-sk{filter:none}
+.rv-card .map{width:min(70vw,340px);aspect-ratio:16/9;margin:14px auto 0;border-radius:14px;background:center/cover no-repeat;border:2px solid rgba(255,200,61,.6);box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.rv-steps button small{display:block;font-size:.62rem;font-weight:700;opacity:.8;letter-spacing:.04em}
 .rv-tot{font:700 1.5rem/1 'Barlow Condensed',sans-serif;color:var(--gold-l);min-width:44px;text-align:right}
 .rv-tot.bump{animation:rvBump .25s ease-out}
 @keyframes rvBump{0%{transform:scale(1.35);color:#fff}100%{transform:scale(1)}}
@@ -800,6 +805,7 @@ const RV={gen:0,paused:false,speed:1,open:false,started:false,ev:null,list:[],te
 const RV_AUTO=location.hash==='#replay';   // /leaderboard.html#replay opens it straight away
 let TOURNAMENT_ARCHIVE=null;               // {events:[{name,date,maps,kill_pts,teams:[{team,r:[{kills,pts}]}]}]}
 const RV_PLACE={12:1,9:2,8:3,7:4,6:5,5:6,4:7,3:8,2:9,1:10};
+const RV_SKULL='<svg class="rv-sk" viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M12 2C6.9 2 3 5.6 3 10.4c0 2.7 1.2 4.6 3 5.8V19c0 .6.4 1 1 1h1.5v-2h1.5v2h4v-2h1.5v2H17c.6 0 1-.4 1-1v-2.8c1.8-1.2 3-3.1 3-5.8C21 5.6 17.1 2 12 2z"/><circle cx="8.6" cy="11" r="2.3" fill="#111"/><circle cx="15.4" cy="11" r="2.3" fill="#111"/><path fill="#111" d="M12 13.6l-1.3 2.4h2.6z"/></svg>';
 const RV_MAP={bermuda:'Bermuda',purgatory:'Purgatory',kalahari:'Kalahari',alpine:'Alpine',nexterra:'NeXTerra'};
 const rvOrd=n=>n+(n%10===1&&n%100!==11?'st':n%10===2&&n%100!==12?'nd':n%10===3&&n%100!==13?'rd':'th');
 const $rv=id=>document.getElementById(id);
@@ -818,9 +824,9 @@ function rvRand(seed){let x=seed|0||1;return()=>{x^=x<<13;x^=x>>>17;x^=x<<5;retu
 function rvFeed(html){const f=$rv('rv-feed'),el=document.createElement('div');el.innerHTML=html;f.appendChild(el);while(f.children.length>3)f.firstChild.remove();}
 function rvFloat(row,txt,green){const el=document.createElement('span');el.className='rv-fl'+(green?' g':'');el.textContent=txt;row.appendChild(el);setTimeout(()=>el.remove(),850);}
 function rvFlash(row,cls){row.classList.remove('hit','pl');void row.offsetWidth;row.classList.add(cls);clearTimeout(row._fl);row._fl=setTimeout(()=>row.classList.remove(cls),cls==='hit'?180:420);}
-async function rvCard(big,sm,g,boo){
+async function rvCard(big,sm,g,boo,map){
   const c=$rv('rv-card');c.className='rv-card'+(boo?' boo':'');
-  c.innerHTML=`<div><div class="big">${big}</div>${sm?`<div class="sm">${sm}</div>`:''}</div>`;c.hidden=false;
+  c.innerHTML=`<div><div class="big">${big}</div>${sm?`<div class="sm">${sm}</div>`:''}${map?`<div class="map" style="background-image:url('/maps/ff-${map}.webp')"></div>`:''}</div>`;c.hidden=false;
   try{await rvWait(1500,g);}finally{if(g===RV.gen)c.hidden=true;}
 }
 function rvLoadArchive(){
@@ -848,7 +854,7 @@ function rvBuild(ev){
   const kp=+ev.kill_pts||0,cur=!!ev.current;
   RV.teams=(ev.teams||[]).filter(x=>x&&x.team).map(x=>({team:x.team,logo:cur?(x.logo||_logoMap[fxKey(x.team)]||''):'',r:x.r||[],kp}));
   $rv('rv-steps').innerHTML=`<button type="button" data-a="reset">⟲ Reset (0 pts)</button>`+
-    Array.from({length:RV.n},(_,i)=>`<button type="button" data-a="m${i}">▶ M${i+1}</button>`).join('')+
+    Array.from({length:RV.n},(_,i)=>{const m=RV_MAP[String((ev.maps||[])[i]||'').toLowerCase()];return `<button type="button" data-a="m${i}">▶ M${i+1}${m?`<small>${m}</small>`:''}</button>`;}).join('')+
     `<button type="button" data-a="full" class="full">▶ Full (M1→M${RV.n})</button>`;
   $rv('rv-prog').innerHTML=Array.from({length:RV.n},()=>'<span><i></i></span>').join('');
   const board=$rv('rv-board');board.innerHTML='';
@@ -865,7 +871,7 @@ function rvBuild(ev){
 }
 function rvText(t){
   t.tt.textContent=t.tot;
-  t.sm.textContent=`PL ${t.pl} · ${t.kp?'EL '+t.kills*t.kp:t.kills+' kills'}`+(t.boo?` · 🏆${t.boo}`:'');
+  t.sm.innerHTML=`PL ${t.pl} · ${RV_SKULL}${t.kills}${t.kp?' (+'+t.kills*t.kp+')':''}`+(t.boo?` · 🏆${t.boo}`:'');
 }
 function rvCmp(a,b){return b.tot-a.tot||b.boo-a.boo||b.kills-a.kills||b.last-a.last||String(a.team).localeCompare(String(b.team));}
 function rvLayout(animate){
@@ -911,23 +917,23 @@ async function rvMatch(s,g){
   if(!RV.full)rvOn('m'+s);
   const ev=RV.ev,map=String((ev.maps||[])[s]||'').toLowerCase(),teams=RV.teams;
   const before=new Map(RV.order.map((t,i)=>[t.team,i+1]));
-  teams.forEach(t=>{t.mk=0;t.last=0;t.k.textContent='🔫 0';t.chip.innerHTML='';});
+  teams.forEach(t=>{t.mk=0;t.last=0;t.k.innerHTML=RV_SKULL+'0';t.chip.innerHTML='';});
   if(RV_MAP[map])$rv('rv-bg').style.backgroundImage=`url('/maps/ff-${map}.webp')`;
   $rv('rv-m').innerHTML=`MATCH ${s+1}${RV_MAP[map]?`<small>${RV_MAP[map].toUpperCase()}</small>`:''}`;
   $rv('rv-phase').textContent='';rvProg(s,0);
-  await rvCard('MATCH '+(s+1),RV_MAP[map]||'',g);
+  await rvCard('MATCH '+(s+1),RV_MAP[map]?'Map · '+RV_MAP[map]:'',g,false,RV_MAP[map]?map:'');
   // every kill, one at a time, in a shuffled (but always the same) order
-  $rv('rv-phase').textContent='🔫 Eliminations';
+  $rv('rv-phase').innerHTML=RV_SKULL+'Eliminations';
   const evs=[];teams.forEach((t,i)=>{for(let k=0;k<(+((t.r[s]||{}).kills)||0);k++)evs.push(i);});
   const rnd=rvRand(9973*(s+1)+evs.length);
   for(let i=evs.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[evs[i],evs[j]]=[evs[j],evs[i]];}
   const per=Math.max(80,Math.min(150,6000/Math.max(1,evs.length)));
   for(let i=0;i<evs.length;i++){
     const t=teams[evs[i]];t.mk++;t.kills++;t.tot+=t.kp;
-    t.k.textContent='🔫 '+t.mk;rvText(t);if(t.kp){t.tt.classList.remove('bump');void t.tt.offsetWidth;t.tt.classList.add('bump');}
-    rvFlash(t.el,'hit');rvFloat(t.el,t.kp?'+1':'🔫');
+    t.k.innerHTML=RV_SKULL+t.mk;rvText(t);if(t.kp){t.tt.classList.remove('bump');void t.tt.offsetWidth;t.tt.classList.add('bump');}
+    rvFlash(t.el,'hit');rvFloat(t.el,t.kp?'+1':'+');
     const was=t.pos;rvLayout(true);
-    rvFeed(`🔫 <b>${esc(t.team)}</b> elimination #${t.mk}`+(t.pos<was?` · <span style="color:var(--green)">▲ ${rvOrd(t.pos)}</span>`:''));
+    rvFeed(`${RV_SKULL}<b>${esc(t.team)}</b> elimination #${t.mk}`+(t.pos<was?` · <span style="color:var(--green)">▲ ${rvOrd(t.pos)}</span>`:''));
     rvProg(s,.6*(i+1)/evs.length);
     await rvWait(i<3?per*2:per,g);
   }
@@ -1164,6 +1170,6 @@ lbTab(location.hash==="#clash"?"clash":location.hash==="#latest"||location.hash=
 setInterval(()=>{if(!document.hidden)load();},15000);
 </script>
 <script src="/ui.js?v=23" defer></script>
-<script src="/chat.js?v=29" defer></script>
+<script src="/chat.js?v=30" defer></script>
 </body>
 </html>

@@ -277,7 +277,7 @@ footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin
       </a>
       <a class="link" href="#how">See how it works →</a>
     </div>
-    <div class="chips"><span>Weekly Pass + Pro from 49 points</span><span>Windows PC &amp; laptop only</span><span>Every change can be undone</span><span>Auto-updates</span></div>
+    <div class="chips"><span>Optimizer Pro from 49 points</span><span>Windows PC &amp; laptop only</span><span>Every change can be undone</span><span>Auto-updates</span></div>
     <div class="shot gallery rise" aria-label="JD Frag Engine v5.9 screens">
       <figure class="gcard">
         <div class="frame"><img src="img/app-main.webp" alt="The JD Frag Engine v5.9 window: Launch Detected Game button, CPU, GPU, GPU temperature and ping tiles, mouse sensitivity and gaming boost switches" width="926" height="801" fetchpriority="high"></div>
@@ -321,8 +321,8 @@ footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin
           <li>You use it <b>at your own risk</b>. We can't promise any FPS, or how Garena / BlueStacks treat third-party apps.</li>
           <li><b>Data it sends by itself after each session</b> and when you close it: an <b>anonymous FPS summary</b> (FPS, 1% low, stutters, emulator settings, CPU / GPU / RAM model, a random ID made on your PC) and a <b>private PC report</b> to your own JD account (PC specs and score, emulator settings, how the session ran — only you and the JD admin can see it). Also needed to work: your PC's name, your plan and when the PC was last seen.</li>
           <li>It <b>never</b> sends files, passwords, game data, your screen, or mouse / aim numbers. You can switch both data sends off any time in the app's tray menu.</li>
-          <li>You need an active <b>Weekly Pass</b> and an <b>Optimizer plan</b>. If either runs out, the app warns you at start; if you don't renew within <b>3 days</b>, it safely puts your PC's stock settings back (Restore all) and switches to <b>Free Read-Only Diagnostic Mode</b>: FPS, ping, temperatures and AI Doctor stay visible, nothing is deleted, and one click on <b>Renew</b> brings everything back.</li>
-          <li>Updates are required and install themselves at start. Plans and passes are paid in JD points and aren't refunded once started.</li>
+          <li>You need an active <b>Optimizer plan</b> (no Weekly Pass needed). If it runs out, the app warns you at start; if you don't renew within <b>3 days</b>, it safely puts your PC's stock settings back (Restore all) and switches to <b>Free Read-Only Diagnostic Mode</b>: FPS, ping, temperatures and AI Doctor stay visible, nothing is deleted, and one click on <b>Renew</b> brings everything back.</li>
+          <li>Updates are required and install themselves at start. Plans are paid in JD points and aren't refunded once started.</li>
         </ul>
         <label class="dl-agree"><input type="checkbox" id="dl-ok"> <span>I have read and agree to the <a href="/terms.html#s19" target="_blank" rel="noopener">JD Frag Engine terms</a> and the <a href="/privacy/" target="_blank" rel="noopener">privacy policy</a>, including the automatic session data above.</span></label>
       </div>
@@ -337,8 +337,7 @@ footer .links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin
       <p class="lede">Paid with JD points (1 point = Rs 1). Plans last 30 days and never renew by themselves.</p>
     </div>
     <div class="need rise" id="need">
-      <div class="need-step" id="need-pass"><span class="need-n">1</span><div><b>Weekly Pass</b><small>50 points / 7 days (Weekly Pro 80). Needed to download and to run the app.</small></div><a class="btn ghost sm" href="/pass/" id="need-pass-btn">Get a pass</a></div>
-      <div class="need-step" id="need-plan"><span class="need-n">2</span><div><b>Optimizer Pro or Max</b><small>Pick one below. Needed every time the app starts.</small></div><a class="btn ghost sm" href="#plan-cards">Choose</a></div>
+            <div class="need-step" id="need-plan"><span class="need-n">1</span><div><b>Optimizer Pro or Max</b><small>Pick one below. Needed every time the app starts.</small></div><a class="btn ghost sm" href="#plan-cards">Choose</a></div>
     </div>
     <div class="plans" id="plan-cards">
       <div class="plan rise">
@@ -539,7 +538,7 @@ function loadLatest(){
 }
 
 // both download links work only after the terms box is ticked
-let passOk=false;
+let passOk=true;   // Weekly Pass switched off (29 Oct 2026): signed in = can download
 function dlGate(){
   const on=$('dl-ok').checked&&passOk;
   [$('dl-btn'),$('dl-exe')].forEach(a=>{ if(!a||!a.dataset.href) return;
@@ -549,12 +548,9 @@ $('dl-ok').addEventListener('change',dlGate);
 document.addEventListener('click',e=>{ const a=e.target.closest('#dl-btn,#dl-exe'); if(!a) return;
   if(!passOk){ e.preventDefault(); $('need').scrollIntoView({block:'center',behavior:'smooth'}); return; }
   if(!$('dl-ok').checked){ e.preventDefault(); $('dl-terms').scrollIntoView({block:'center',behavior:'smooth'}); $('dl-ok').focus(); } });
-function renderPass(tier){
-  passOk=!!tier;
-  $('pass-line').innerHTML=passOk?(tier==='staff'?'Weekly Pass: <b class="ok">not needed (JD staff) ✓</b>':`Weekly Pass: <b class="ok">${tier==='pro'?'Weekly Pro':'Weekly Pass'} ✓</b>`)
-    :'Weekly Pass: <b class="no">needed</b> · <a href="/pass/">get one (50 points / 7 days)</a> to download and run the app';
-  $('need-pass').classList.toggle('done',passOk);
-  $('need-pass-btn').textContent=tier==='staff'?'Staff ✓':passOk?'Active ✓':'Get a pass';
+function renderPass(){
+  passOk=true;
+  $('pass-line').innerHTML='Weekly Pass: <b class="ok">not needed ✓</b>';
   dlGate();
 }
 
@@ -671,7 +667,7 @@ $('hero-get').onclick=e=>{e.preventDefault();($('acct').hidden?$('gate'):$('acct
   $('me').textContent=pl&&pl.username?'@'+pl.username:(pl&&pl.player_tag)||session.user.email;
   $('acct').hidden=false;
   loadLatest();
-  sb.rpc('optimizer_can_download').then(({data})=>renderPass(data&&data.pass?(data.pass_tier||'basic'):null),()=>renderPass(null));
+  renderPass();
   await refresh();
 })();
 </script>

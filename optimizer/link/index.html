@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#05080f">
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" href="/favicon-64.png">
-<title>Link JD-Optimiers — JD Esports Arena</title>
+<title>Link JD Frag Engine — JD Esports Arena</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&display=swap" rel="stylesheet">
@@ -37,11 +37,11 @@ p b{color:var(--cream);font-weight:500}
 <div class="wrap">
   <div class="card" id="card">
     <img class="logo" src="/logo.webp" alt="JD" width="72" height="72">
-    <h1>Link JD-Optimiers</h1>
+    <h1>Link JD Frag Engine</h1>
     <div id="body"><p>Loading…</p></div>
     <div class="msg" id="msg"></div>
   </div>
-  <p style="text-align:center;font-size:.82rem"><a href="/optimizer/">JD-Optimiers plans &amp; download</a> · <a href="/">JD Esports Arena</a></p>
+  <p style="text-align:center;font-size:.82rem"><a href="/optimizer/">JD Frag Engine plans &amp; download</a> · <a href="/">JD Esports Arena</a></p>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
 <script>
@@ -56,7 +56,7 @@ function el(tag,attrs,text){const e=document.createElement(tag);Object.assign(e,
 (async function(){
   const body=$('body');
   if(!/^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)){
-    body.replaceChildren(el('p',null,'This link has no code. In JD-Optimiers, press "Sign in" — it opens this page with your code.'));return;
+    body.replaceChildren(el('p',null,'This link has no code. In JD Frag Engine, press "Sign in" — it opens this page with your code.'));return;
   }
   const {data:{session}}=await sb.auth.getSession();
   if(!session){
@@ -70,12 +70,12 @@ function el(tag,attrs,text){const e=document.createElement(tag);Object.assign(e,
   const {data:info,error}=await sb.rpc('optimizer_link_info',{p_code:code});
   if(error){msg(error.message,'err');body.replaceChildren();return;}
   if(info.status!=='pending'){
-    body.replaceChildren(el('p',null,info.status==='used'?'This code was already used. If the app is still waiting, press "Sign in" in the app again.':'This code has expired. Press "Sign in" in JD-Optimiers again to get a new one.'));
+    body.replaceChildren(el('p',null,info.status==='used'?'This code was already used. If the app is still waiting, press "Sign in" in the app again.':'This code has expired. Press "Sign in" in JD Frag Engine again to get a new one.'));
     return;
   }
   const {data:pl}=await sb.from('players').select('username').eq('id',session.user.id).maybeSingle();
   const warn=el('div',{className:'warn'});
-  warn.append(el('b',null,'Only press the button if JD-Optimiers on your own PC shows this exact code right now. '),
+  warn.append(el('b',null,'Only press the button if JD Frag Engine on your own PC shows this exact code right now. '),
               'Never approve a code someone sent you — it would put their PC on your plan.');
   const btn=el('button',{className:'btn',type:'button'},'Link this PC');
   const who=el('p');who.append('Account: ',el('b',null,pl&&pl.username?'@'+pl.username:session.user.email));
@@ -86,7 +86,7 @@ function el(tag,attrs,text){const e=document.createElement(tag);Object.assign(e,
     const {error:e}=await sb.rpc('optimizer_link_approve',{p_code:code});
     if(e){msg(e.message,'err');btn.disabled=false;return;}
     const {data:st}=await sb.rpc('optimizer_my_status');
-    const done=[el('div',{className:'big-ok'},'✓'),el('p',null,'PC linked. Go back to JD-Optimiers — it opens by itself in a few seconds.')];
+    const done=[el('div',{className:'big-ok'},'✓'),el('p',null,'PC linked. Go back to JD Frag Engine — it opens by itself in a few seconds.')];
     if(!st||!st.tier){const p=el('p');p.append('You also need a plan to use the app: ',el('a',{href:'/optimizer/'},'get Optimizer Pro or Max'),'.');done.push(p);}
     body.replaceChildren(...done);msg('');
   };

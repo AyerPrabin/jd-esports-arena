@@ -6655,3 +6655,116 @@ end;
 $function$;
 
 commit;
+
+-- -- Weekly Pass switched OFF for now (owner, 29 Oct 2026) --
+-- JD Frag Engine (every version) only needs Optimizer Pro / Max; nobody can buy a pass. To switch back on, make
+-- _weekly_pass_on() return true: _optimizer_pass_ok and buy_weekly_pass follow it.
+begin;
+create or replace function public._weekly_pass_on() returns boolean language sql stable as $$ select false $$;
+
+create or replace function public._optimizer_pass_ok(p_player uuid)
+ returns boolean language sql stable security definer set search_path to 'public'
+as $function$
+  select not public._weekly_pass_on()
+      or public.weekly_pass_tier(p_player, greatest(now(), timestamptz '2026-10-27 00:00:00+05:45')) is not null
+      or exists (select 1 from public.players p
+                 where p.id = p_player
+                   and (lower(p.email) = 'ayerprabin95@gmail.com'
+                        or lower(p.email) in (select lower(email) from public.moderators where role = 'staff')))
+$function$;
+
+CREATE OR REPLACE FUNCTION public.buy_weekly_pass(p_tier text, p_effect text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_price int;
+  v_cur public.weekly_passes;
+  v_launch constant timestamptz := timestamptz '2026-10-27 00:00:00+05:45';
+  v_start timestamptz := greatest(now(), timestamptz '2026-10-27 00:00:00+05:45');  -- bought early: the week starts on launch day
+  v_bonus interval := interval '0';
+  v_exp timestamptz;
+  v_bal int;
+  v_ref text := 'pass:' || gen_random_uuid()::text;
+  v_fx jsonb;
+begin
+  if auth.uid() is null then raise exception 'Please sign in first.'; end if;
+  if not public._weekly_pass_on() then raise exception 'The Weekly Pass is switched off for now - nothing to buy. Free JD tournaments and JD Frag Engine work without it.'; end if;
+  if p_tier not in ('basic','pro') then raise exception 'Pick Weekly Pass or Weekly Pro.'; end if;
+  if exists(select 1 from public.banned_players where player_id = auth.uid()) then
+    raise exception 'Your account is banned from JD tournaments.';
+  end if;
+  v_price := case p_tier when 'basic' then 50 else 80 end;
+  if p_effect is not null and not public.fx_tier_ok(case p_tier when 'basic' then 'lite' else 'pro' end, p_effect) then
+    raise exception 'That effect is not included in this pass.';
+  end if;
+  perform pg_advisory_xact_lock(hashtext('pass:' || auth.uid()::text));
+  select * into v_cur from public.weekly_passes where player_id = auth.uid() and expires_at > now()
+    order by expires_at desc limit 1;
+  if found then
+    if v_cur.tier = 'basic' and p_tier = 'pro' then   -- upgrade: the lite effect of the old pass ends here
+      update public.effect_passes set expires_at = least(expires_at, greatest(starts_at, now()))
+        where player_id = auth.uid() and code in (select ref from public.weekly_passes
+          where player_id = auth.uid() and tier = 'basic' and expires_at > now() and ref is not null);
+    end if;
+    if v_cur.tier = 'basic' and p_tier = 'pro' and now() < v_launch then   -- upgrade before launch: same week, now Pro
+      update public.weekly_passes set expires_at = starts_at where id = v_cur.id;
+      v_price := 30;                                                         -- pays only the difference
+    elsif v_cur.tier = p_tier or (v_cur.tier = 'pro' and p_tier = 'basic') then
+      v_start := v_cur.expires_at;                                  -- stack after the current pass
+    else                                                            -- basic -> pro upgrade now
+      v_bonus := (v_cur.expires_at - greatest(now(), v_cur.starts_at)) * (50.0 / 80.0)::float8;
+      update public.weekly_passes set expires_at = now() where player_id = auth.uid() and tier = 'basic' and expires_at > now();
+    end if;
+  end if;
+  v_exp := v_start + interval '7 days' + v_bonus;
+  v_bal := public._wallet_apply(auth.uid(), -v_price, 'pass', v_ref,
+                                case p_tier when 'basic' then 'Weekly Pass' else 'Weekly Pro' end);
+  insert into public.weekly_passes (player_id, tier, starts_at, expires_at, price, ref) values (auth.uid(), p_tier, v_start, v_exp, v_price, v_ref);
+  if p_effect is not null then
+    v_fx := public._apply_effect_plan(auth.uid(), case p_tier when 'basic' then 'fx_lite_week' else 'fx_week' end, p_effect, null, v_ref);
+    update public.effect_passes set starts_at = v_start, expires_at = v_exp where code = v_ref;   -- effect runs with the pass week
+    v_fx := v_fx || jsonb_build_object('starts_at', v_start, 'expires_at', v_exp);
+  end if;
+  insert into public.notifications (player_id, title, body) values (auth.uid(),
+    case p_tier when 'basic' then '🎟 Weekly Pass active' else '👑 Weekly Pro active' end,
+    case when v_start > now() then 'Starts ' || to_char(v_start at time zone 'Asia/Kathmandu', 'Dy DD Mon') || ', valid until ' else 'Valid until ' end || to_char(v_exp at time zone 'Asia/Kathmandu', 'Dy DD Mon, HH12:MI AM') || ' NPT. ' ||
+    case p_tier when 'basic' then 'You can join every free JD tournament this week.'
+                else 'Free tournaments, Pro effect, 24 h early registration, waitlist priority and your PRO badge.' end);
+  return jsonb_build_object('tier', p_tier, 'starts_at', v_start, 'expires_at', v_exp, 'balance', v_bal, 'effect', v_fx);
+end;
+$function$;
+
+commit;
+
+-- ── Open #10 moved to Fri 30 Oct 9:30 PM NPT: 4 notifications to every player (owner, 29 Oct 2026) ──
+-- 1 now, 2 at 10:00 NPT, 3 at 20:30 NPT, 4 at 21:15 NPT on 30 Oct. Each cron job runs once and removes itself.
+begin;
+create or replace function public._open10_notice(p_n int) returns int
+language plpgsql security definer set search_path to 'public' as $$
+declare v_title text; v_body text; v_n int;
+begin
+  select t, b into v_title, v_body from (values
+    (1, '📅 Open #10 is TOMORROW',
+        'JD Free Fire Open #10 moved to tomorrow, Fri 30 Oct, 9:30 PM NPT. Free entry · 200 points prize · 3 matches (Nexterra, Alpine, Kalahari). Already registered? Your slot is kept. Join on jdesport.co.uk/events'),
+    (2, '🔥 Open #10 is TONIGHT',
+        'JD Free Fire Open #10 starts tonight at 9:30 PM NPT. Free to join, 200 points prize. Get your squad in on jdesport.co.uk/events'),
+    (3, '⏰ 1 hour to Open #10',
+        'JD Free Fire Open #10 starts at 9:30 PM NPT - 1 hour to go. Registered teams: confirm your slot and watch for the room code.'),
+    (4, '🎮 Open #10 starts in 15 minutes',
+        'Room code comes to registered teams just before 9:30 PM NPT. Be online and ready in Free Fire. Good luck!')
+  ) v(n, t, b) where n = p_n;
+  if v_title is null then return 0; end if;
+  insert into public.notifications (player_id, tournament_slug, title, body)
+  select id, 'JD Free Fire Open #10', v_title, v_body from public.players;
+  get diagnostics v_n = row_count;
+  return v_n;
+end $$;
+revoke all on function public._open10_notice(int) from public, anon, authenticated;
+
+select cron.schedule('open10-notice-2', '15 4 30 10 *',  $c$select public._open10_notice(2); select cron.unschedule('open10-notice-2')$c$);
+select cron.schedule('open10-notice-3', '45 14 30 10 *', $c$select public._open10_notice(3); select cron.unschedule('open10-notice-3')$c$);
+select cron.schedule('open10-notice-4', '30 15 30 10 *', $c$select public._open10_notice(4); select cron.unschedule('open10-notice-4')$c$);
+commit;

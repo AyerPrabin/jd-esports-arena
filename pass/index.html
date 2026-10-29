@@ -8,8 +8,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#07090F">
 <link rel="icon" type="image/png" href="/favicon-64.png">
-<title>Weekly Pass — JD Esports Arena</title>
-<meta name="description" content="Free JD tournaments cost no money: watch 3 short ads in the JD Arena app to join, or skip the ads with a Weekly Pass. With a Weekly Pass (Rs 50) you skip the ads and get squad effects; prizes are always paid in full; Weekly Pro Rs 80 adds Pro effects, early registration and waitlist priority.">
+<title>Weekly Pass (off) — JD Esports Arena</title>
+<meta name="description" content="The JD Weekly Pass is switched off for now. Free JD tournaments and JD Frag Engine work without it.">
 <meta property="og:title" content="JD Weekly Pass — skip the ads">
 <meta property="og:description" content="Rs 50 / week. Weekly Pro Rs 80: no ads, Pro effects, 24 h early registration, waitlist priority, PRO badge.">
 <meta property="og:image" content="https://jdesport.co.uk/og-image.png">
@@ -99,157 +99,23 @@ select{width:100%;padding:11px 12px;border-radius:12px;background:#0a0e17;color:
 .ov-b{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
-<link rel="stylesheet" href="/ui.css?v=18">
 </head>
 <body class="pg-pass">
 <div class="wrap">
   <div class="top">
     <a class="back" href="/"><img src="/logo.webp" alt="">← Back to Arena</a>
-    <span class="me" id="me" hidden></span>
   </div>
-
-  <span class="kicker">From Tue 27 Oct</span>
-  <h1>Weekly Pass: <em>skip the ads</em></h1>
-  <p class="lede">Free JD tournaments cost no money: watch 3 short ads in the JD Arena app to join - a Weekly Pass skips the ads. Prizes are always paid in full, with or without a pass. A pass also gets you squad effects. Buy early and your 7 days still start on 27 Oct.</p>
-  <div class="count" id="count" aria-label="Time until the Weekly Pass starts"></div>
-
-  <div class="status" id="status" hidden></div>
-
-  <div class="plans">
-    <section class="plan">
-      <h2>Weekly Pass</h2>
-      <div class="price"><b>50</b><span>points / 7 days</span></div>
-      <p class="sub">Rs 50 · 1 point = Rs 1</p>
-      <ul class="grow">
-        <li>Join free tournaments with no ads</li>
-        <li>From 1 Nov: at most 2 short ads a day in the app</li>
-        <li>Lite squad effect on the roster (Glow or Steel)</li>
-        <li>Stack weeks: a new pass starts when the old one ends</li>
-        <li>Needed to download and run <a href="/optimizer/" style="color:var(--gold-l)">JD Frag Engine</a> (with an Optimizer plan)</li>
-      </ul>
-      <label class="fx" for="fx-basic">Squad effect</label>
-      <select id="fx-basic"></select>
-      <button class="btn" type="button" data-buy="basic">Get Weekly Pass · 50</button>
-      <div class="msg" id="msg-basic"></div>
-    </section>
-    <section class="plan pro">
-      <span class="flag">BEST</span>
-      <h2>Weekly Pro</h2>
-      <div class="price"><b>80</b><span>points / 7 days</span></div>
-      <p class="sub">Rs 80 · upgrade from the pass any time</p>
-      <ul class="grow">
-        <li>Everything in Weekly Pass</li>
-        <li><b>No ads at all</b> in the app</li>
-        <li>Pro squad effects: Galaxy, Thunder, Legend and 19 more</li>
-        <li>Register 24 h early on early-access events</li>
-        <li>First in line when a waitlist slot opens</li>
-        <li>PRO badge next to your squad on the roster</li>
-      </ul>
-      <label class="fx" for="fx-pro">Squad effect</label>
-      <select id="fx-pro"></select>
-      <button class="btn gold" type="button" data-buy="pro">Get Weekly Pro · 80</button>
-      <div class="msg" id="msg-pro"></div>
-    </section>
-  </div>
-
-  <p class="bal" id="bal-line" hidden>Your wallet: <b id="bal">0</b> points · <a href="/wallet/#load">Load points</a></p>
-  <div class="gate" id="gate" hidden>Sign in to buy a pass. <a href="/?signin=1">Sign in</a></div>
-
-  <section class="how">
-    <h3>Good to know</h3>
-    <div class="qa">
-      <div><b>No pass and we win?</b><p>You get the whole prize. Nothing is taken from prizes for a pass.</p></div>
-      <div><b>I bought before 27 Oct</b><p>Your 7 days start on Tue 27 Oct, 12:00 AM NPT. Prizes are always paid in full.</p></div>
-      <div><b>Upgrading to Pro</b><p>Before 27 Oct you pay only the 30-point difference. After that, the days left on your pass turn into Pro days (50/80 of the time).</p></div>
-      <div><b>Invite friends</b><p>Share your JD tag from your <a href="/profile/#invite" style="color:var(--gold-l)">profile</a>. When a friend you invited wins their first prize, you both get +40 points.</p></div>
-      <div><b>Paid tournaments</b><p>Nothing changes: entry is paid with points and prizes are paid in full.</p></div>
-      <div><b>Rules still apply</b><p>A pass doesn't skip the <a href="/rules/" style="color:var(--gold-l)">rules</a>. No-shows and banned skills can still lose you your slot.</p></div>
-    </div>
-  </section>
+  <span class="kicker">Weekly Pass</span>
+  <h1>Switched off for now.</h1>
+  <p>The Weekly Pass is paused - there is nothing to buy and nothing is taken from your points or prizes.</p>
+  <ul>
+    <li>Free JD tournaments stay free to join.</li>
+    <li>Prizes are always paid in full.</li>
+    <li>JD Frag Engine (PC) only needs an Optimizer Pro or Max plan.</li>
+    <li>Passes bought before were refunded to your wallet.</li>
+  </ul>
+  <p><a href="/#tournaments" style="color:var(--gold-l);font-weight:700;text-decoration:underline">See tournaments →</a></p>
 </div>
-
-<div class="ov" id="ov" role="dialog" aria-modal="true" aria-labelledby="ov-t">
-  <div class="ov-c"><h4 id="ov-t"></h4><p id="ov-b"></p>
-    <div class="ov-b"><button class="btn" id="ov-no" type="button">Cancel</button><button class="btn gold" id="ov-yes" type="button">Buy</button></div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
-<script>
-const SUPABASE_URL='https://cnoxvqvpmgowdiyrrusv.supabase.co';
-const SUPABASE_ANON_KEY='sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil';
-const LAUNCH=new Date('2026-10-27T00:00:00+05:45');
-const FX={basic:['glow','steel'],pro:['galaxy','thunder','legend','bullets','blade','gold','fire','ice','neon','rainbow','glow','steel',
-  'skeuo','soft','glass','clay','brutal','mono','maximal','liquid','bento','spatial']};
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-const $=id=>document.getElementById(id);
-const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
-const npt=d=>new Date(d).toLocaleString('en-GB',{timeZone:'Asia/Kathmandu',weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})+' NPT';
-let session=null,bal=0,pass=null;
-
-for(const t of ['basic','pro'])$('fx-'+t).innerHTML=FX[t].map(e=>`<option value="${e}">${cap(e)}</option>`).join('');
-
-function tick(){
-  const ms=LAUNCH-Date.now();
-  if(ms<=0){$('count').innerHTML='<div><b>Live</b><span>new rule is live</span></div>';return;}
-  const d=Math.floor(ms/864e5),h=Math.floor(ms/36e5)%24,m=Math.floor(ms/6e4)%60;
-  $('count').innerHTML=[[d,'days'],[h,'hours'],[m,'min']].map(([v,l])=>`<div><b>${v}</b><span>${l}</span></div>`).join('');
-}
-tick();setInterval(tick,30000);
-
-function confirmBox(title,body){
-  return new Promise(res=>{
-    $('ov-t').textContent=title;$('ov-b').textContent=body;$('ov').classList.add('open');$('ov-yes').focus();
-    const done=v=>{$('ov').classList.remove('open');$('ov-yes').onclick=$('ov-no').onclick=null;res(v);};
-    $('ov-yes').onclick=()=>done(true);$('ov-no').onclick=()=>done(false);
-  });
-}
-
-async function refresh(){
-  if(!session)return;
-  const [w,p]=await Promise.all([
-    sb.from('wallets').select('balance').eq('player_id',session.user.id).maybeSingle(),
-    sb.rpc('my_weekly_pass')]);
-  bal=(w.data&&w.data.balance)||0;$('bal').textContent=bal.toLocaleString();$('bal-line').hidden=false;
-  pass=p.data||null;
-  const st=$('status');
-  if(pass&&pass.tier){
-    st.hidden=false;st.className='status'+(pass.tier==='pro'?' pro':'');
-    const name=pass.tier==='pro'?'👑 Weekly Pro':'🎟 Weekly Pass';
-    st.innerHTML=pass.active_now?`<b>${name} active</b> until ${npt(pass.expires_at)}.`
-      :`<b>${name} ready</b>: starts ${npt(pass.starts_at||LAUNCH)}, valid until ${npt(pass.expires_at)}.`;
-  }else st.hidden=true;
-  const up=pass&&pass.tier==='basic';
-  document.querySelector('[data-buy="pro"]').textContent=up?(Date.now()<LAUNCH?'Upgrade to Pro · 30':'Upgrade to Pro · 80'):'Get Weekly Pro · 80';
-  document.querySelector('[data-buy="basic"]').textContent=pass&&pass.tier?'Add another week · 50':'Get Weekly Pass · 50';
-}
-
-document.querySelectorAll('[data-buy]').forEach(b=>b.addEventListener('click',async()=>{
-  const tier=b.dataset.buy,msg=$('msg-'+tier);msg.className='msg';msg.textContent='';
-  if(!session){location.href='/?signin=1';return;}
-  const preUp=tier==='pro'&&pass&&pass.tier==='basic'&&Date.now()<LAUNCH;
-  const price=tier==='basic'?50:(preUp?30:80),fx=$('fx-'+tier).value;
-  if(bal<price){msg.innerHTML=`You need ${price} points and have ${bal}. <a href="/wallet/#load">Load points</a>`;return;}
-  const name=tier==='basic'?'Weekly Pass':'Weekly Pro';
-  const when=Date.now()<LAUNCH?'Your 7 days start on Tue 27 Oct.':'Starts now (or right after your current pass).';
-  if(!await confirmBox(`Buy ${name} for ${price} points?`,`${when}\nSquad effect: ${cap(fx)}.\nPoints are not refundable once the pass is bought.`))return;
-  b.disabled=true;
-  const {data,error}=await sb.rpc('buy_weekly_pass',{p_tier:tier,p_effect:fx});
-  b.disabled=false;
-  if(error){msg.textContent=error.message.replace(/^.*?:\s*(?=[A-Z])/,'');return;}
-  msg.className='msg ok';msg.textContent=`Done. ${name} valid until ${npt(data.expires_at)}.`;
-  refresh();
-}));
-
-(async function init(){
-  ({data:{session}}=await sb.auth.getSession());
-  if(!session){$('gate').hidden=false;return;}
-  const {data:pl}=await sb.from('players').select('username').eq('id',session.user.id).maybeSingle();
-  $('me').hidden=false;$('me').textContent=pl&&pl.username?'@'+pl.username:session.user.email;
-  await refresh();
-  setInterval(()=>{if(!document.hidden)refresh();},20000);
-})();
-</script>
 <script src="/ui.js?v=23" defer></script>
 </body>
 </html>
