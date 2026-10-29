@@ -1,6 +1,6 @@
 // Google Analytics 4 + conversion events. Does nothing until GA_ID is set (Admin > Data streams > Measurement ID).
 (function () {
-  var GA_ID = '';
+  var GA_ID = 'G-TF6BE9NYJD';
   if (!GA_ID || /^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
 
   var s = document.createElement('script');
