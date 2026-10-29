@@ -2024,6 +2024,7 @@ function regSuccessOpen(t,status,reg){
   statusEl.className='rs-val'+(waitlisted||pending?' warn':' ok');
   const rc=document.getElementById('rs-cal');if(rc){rc.innerHTML=calBtnHtml(t);const b=rc.querySelector('[data-cal]');if(b)b.onclick=()=>calAdd(t.name);}
   document.getElementById('regsuccess-overlay').classList.add('open');
+  if(!pending&&!waitlisted&&window.jdSuccess)jdSuccess();else if(window.jdHaptic)jdHaptic('tap');
 }
 /* ── Add to calendar: a standard .ics event with three alarms (1 hour, 15 minutes and
    5 minutes before), which the phone's own calendar app opens (iPhone Calendar, Google
@@ -2291,7 +2292,7 @@ document.addEventListener('click',e=>{
   e.stopPropagation();
   const text=b.getAttribute('data-copy');
   const done=()=>{b.classList.add('copied');const em=b.querySelector('em');const old=em?em.textContent:null;if(em)em.textContent='✓ Copied';else{b.dataset.label=b.dataset.label||b.innerHTML;b.innerHTML='✓ Copied';}
-    if(navigator.vibrate)try{navigator.vibrate(15);}catch(x){}
+    if(window.jdHaptic)jdHaptic('tick');
     setTimeout(()=>{b.classList.remove('copied');if(em)em.textContent=old;else if(b.dataset.label){b.innerHTML=b.dataset.label;delete b.dataset.label;}},1300);};
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(done,()=>{});
   else{try{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();done();}catch(x){}}

@@ -294,7 +294,7 @@ if (window.JDApp || /JDArenaApp\//.test(navigator.userAgent)) document.documentE
     y0 = null;
     if (dy - 12 < T) { hide(); return; }
     busy = true; show(T); el.classList.add('go');
-    try { if (navigator.vibrate) navigator.vibrate(12); } catch (x) {}
+    if (window.jdHaptic) window.jdHaptic('heavy');
     var work = null;
     var ev = new CustomEvent('jd-refresh', { cancelable: true, detail: { kind: kind, wait: function (p) { work = p; } } });
     window.dispatchEvent(ev);
@@ -305,4 +305,53 @@ if (window.JDApp || /JDArenaApp\//.test(navigator.userAgent)) document.documentE
     });
   }, { passive: true });
   document.addEventListener('touchcancel', function () { y0 = null; hide(); }, { passive: true });
+})();
+
+// Haptics + success animation. In the JD Arena app (2.0.7+) haptics go through the phone's own touch feedback
+// (window.JDApp.haptic, follows the system setting); older app builds have no VIBRATE permission, so nothing
+// happens there. On Android browsers navigator.vibrate is used. Only meaningful actions buzz, never every tap.
+(function () {
+  var last = 0;
+  var PATTERN = { tap: 8, tick: 5, success: [12, 60, 18], error: [30, 40, 30], heavy: 35 };
+  window.jdHaptic = function (kind) {
+    var now = Date.now();
+    if (now - last < 60) return;
+    last = now;
+    try {
+      if (window.JDApp && typeof window.JDApp.haptic === 'function') window.JDApp.haptic(kind || 'tap');
+      else if (!window.JDApp && navigator.vibrate) navigator.vibrate(PATTERN[kind] || PATTERN.tap);
+    } catch (e) {}
+  };
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest && e.target.closest('.tabbar a, [data-haptic], #signup-btn, #join');
+    if (el) window.jdHaptic(el.getAttribute('data-haptic') || (el.closest('.tabbar') ? 'tick' : 'tap'));
+  }, true);
+
+  // Lottie tick (/lottie/success.json) over the page for a moment; lottie-web is loaded only the first time.
+  var lottieP = null;
+  function loadLottie() {
+    if (window.lottie) return Promise.resolve(window.lottie);
+    return lottieP || (lottieP = new Promise(function (ok, no) {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js';
+      s.onload = function () { ok(window.lottie); };
+      s.onerror = function () { lottieP = null; no(); };
+      document.head.appendChild(s);
+    }));
+  }
+  window.jdSuccess = function () {
+    window.jdHaptic('success');
+    if (matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+    loadLottie().then(function (lottie) {
+      var box = document.createElement('div');
+      box.className = 'jd-lottie-pop';
+      box.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(box);
+      var a = lottie.loadAnimation({ container: box, renderer: 'svg', loop: false, autoplay: true, path: '/lottie/success.json' });
+      a.addEventListener('complete', function () {
+        box.classList.add('out');
+        setTimeout(function () { a.destroy(); box.remove(); }, 260);
+      });
+    }, function () {});
+  };
 })();

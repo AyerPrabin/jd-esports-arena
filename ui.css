@@ -377,3 +377,18 @@ html.app-gated .tabbar,html.app-gated .fab,html.app-gated .storage-note,html.app
 .tabbar a{position:relative}
 .tabbar .tb-count{position:absolute;top:4px;left:calc(50% + 4px);min-width:17px;height:17px;padding:0 5px;border-radius:9px;background:#FF3B5C;color:#fff;font:800 .62rem/17px var(--font-body,system-ui);text-align:center;box-shadow:0 0 0 2px #07090F}
 .tabbar .tb-count[hidden]{display:none}
+
+/* Motion polish: page-to-page cross-fade (Chrome/WebView 126+, ignored elsewhere), a press-down on buttons and
+   tabs, and the Lottie success tick from jdSuccess() in ui.js. All off with prefers-reduced-motion. */
+@view-transition{navigation:auto}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}
+.tabbar a:active,button:not(:disabled):active,.btn:active,[role="button"]:active{transform:scale(.96)}
+.tabbar a[aria-current="page"] svg{animation:jd-tab-pop .32s cubic-bezier(.34,1.56,.64,1)}
+@keyframes jd-tab-pop{0%{transform:scale(.8)}100%{transform:scale(1)}}
+.jd-lottie-pop{position:fixed;left:50%;top:42%;width:150px;height:150px;margin:-75px 0 0 -75px;z-index:2147483000;pointer-events:none;transition:opacity .25s,transform .25s}
+.jd-lottie-pop.out{opacity:0;transform:scale(.9)}
+@media(prefers-reduced-motion:reduce){
+  @view-transition{navigation:none}
+  .tabbar a:active,button:active,.btn:active,[role="button"]:active{transform:none}
+  .tabbar a[aria-current="page"] svg{animation:none}
+}
