@@ -138,3 +138,12 @@
 .ss-pro .ss-badge{background:linear-gradient(90deg,#ffd24a,#ff9be6,#5fd3ff);box-shadow:0 0 12px -2px var(--fxc)}
 .ss-pro .ss-badge::before{content:'PRO · ';font-weight:900}
 .ss-pro .ss-pts b{color:#fff;text-shadow:0 0 12px var(--fxc)}
+
+/* ── fxchip: a squad name inside a small effect card, for places with no squad card around the name
+   (podiums, Champions banner, winner spotlight, Winner label). Same .sqfx classes, so fx-engine.js
+   draws the same live layer as on the event roster ── */
+.fxchip{display:inline-flex;align-items:center;gap:7px;max-width:100%;padding:5px 13px;border-radius:999px;vertical-align:middle;line-height:1.15;position:relative;overflow:hidden;isolation:isolate}
+.fxchip>*:not(.fxc):not(.sqp):not(.sqfx-shine){position:relative;z-index:1}
+.fxchip .fx-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fxchip .sqfx-tag{margin:0;flex:none}
+.fxchip::before{border-radius:inherit}

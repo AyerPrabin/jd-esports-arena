@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/effects.css">
-<link rel="stylesheet" href="/effects-pro.css?v=3">
+<link rel="stylesheet" href="/effects-pro.css?v=4">
 <style>
 :root{
   --bg:#07090F;--bg-2:#0D111B;--panel:#111827;--panel-2:#151D2E;--line:rgba(255,200,80,.14);
@@ -130,8 +130,9 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 @media(prefers-reduced-motion:reduce){.ss-fx::after{animation:none;display:none}}
 /* effects on the boards are the event page's own squad-card effects (.sqfx .sqfx-<key> from
    effects.css / effects-pro.css / effects-styles.css): same border, particles, shine and tag */
-.ss-row.sqfx>*:not(.sqp):not(.sqfx-shine):not(.fxc),.cs-row.sqfx>*:not(.sqp):not(.sqfx-shine):not(.fxc),.lbg tr.sqfx>td{position:relative;z-index:1}
-.ss-row.sqfx,.cs-row.sqfx,.lbg tbody tr.sqfx{position:relative;overflow:hidden}
+.ss-row.sqfx>*:not(.sqp):not(.sqfx-shine):not(.fxc),.pred-row.sqfx>*:not(.sqp):not(.sqfx-shine):not(.fxc),.cs-row.sqfx>*:not(.sqp):not(.sqfx-shine):not(.fxc),.lbg tr.sqfx>td{position:relative;z-index:1}
+.ss-row.sqfx,.cs-row.sqfx,.pred-row.sqfx,.lbg tbody tr.sqfx{position:relative;overflow:hidden}
+.pod-name{overflow:visible}.pod-name .fxchip{max-width:100%}
 .sqfx .ss-av,.sqfx .av,.lbg tr.sqfx .team img{box-shadow:0 0 0 2px var(--fx1),0 0 16px var(--fx1)}
 .sqfx .sqfx-tag{margin:0 0 0 8px;vertical-align:2px}
 .ss-row.sqfx .sqfx-tag{flex:none;margin:0}
@@ -612,7 +613,7 @@ function fillPodiumSlot(sel,r){
   el.style.visibility='';
   const img=el.querySelector('.pod-logo');
   if(r.logo){img.src=r.logo;img.hidden=false;}else{img.hidden=true;}
-  el.querySelector('.pod-name').innerHTML=fxText(r.fx,r.team);
+  el.querySelector('.pod-name').innerHTML=fxChip(r.fx,r.team);
   img.className='pod-logo'+(r.fx?' fxa-'+r.fx:'');
   const numEl=el.querySelector('.num-val');
   numEl.textContent='0';
@@ -670,6 +671,8 @@ function rowHTML(r){
 function sqfxParticles(){let h='';for(let k=0;k<6;k++)h+=`<i class="sqp" style="--x:${(k*37+9)%96}%;--y:${(k*53+11)%78}%;--d:${((k*.43)%2.6).toFixed(2)}s;--t:${(1.9+(k%3)*.55).toFixed(2)}s"></i>`;return h;}
 function fxDeco(fx){return fx?`<span class="sqfx-shine"></span>${sqfxParticles()}`:'';}
 function fxCardCls(fx){return fx?` sqfx sqfx-${fx}`:'';}
+// a name inside a small effect card (podium, Champions banner): crowns and medals around it stay unclipped
+function fxChip(fx,name,tag){return fx?`<span class="fxchip sqfx sqfx-${fx}"><span class="fx-name">${esc(name)}</span>${tag?`<span class="sqfx-tag">${FX_TAG[fx]}</span>`:''}</span>`:esc(name);}
 function fxCardName(fx,name){return fx?`<span class="fx-name">${esc(name)}</span><span class="sqfx-tag">${FX_TAG[fx]}</span>`:esc(name);}
 function fxRow(tr,fx){
   if((tr.dataset.fxk||'')===(fx||''))return;
@@ -1134,7 +1137,7 @@ async function renderPredict(d){
     const ranked=scored.map((r,i)=>({...r,prob:exps[i]/sum})).sort((a,b)=>b.prob-a.prob);
     const top=ranked[0].prob||1;
     document.getElementById('predict-sub').textContent=name;
-    document.getElementById('predict-list').innerHTML=ranked.map((r,i)=>`<div class="pred-row"><span class="rk">${i+1}</span><span class="nm">${fxText(fxOf(name,r.squad_name,d),r.squad_name)}<small>${r.appearances>0?'Season avg '+(+r.avg_points).toFixed(1)+' pts':'First season event'}</small></span><span class="pc">${(r.prob*100).toFixed(0)}%</span><span class="bar"><i style="width:${Math.round(r.prob/top*100)}%"></i></span></div>`).join('');
+    document.getElementById('predict-list').innerHTML=ranked.map((r,i)=>{const fx=fxOf(name,r.squad_name,d);return `<div class="pred-row${fxCardCls(fx)}"><span class="rk">${i+1}</span><span class="nm">${fx?fxCardName(fx,r.squad_name):esc(r.squad_name)}<small>${r.appearances>0?'Season avg '+(+r.avg_points).toFixed(1)+' pts':'First season event'}</small></span><span class="pc">${(r.prob*100).toFixed(0)}%</span><span class="bar"><i style="width:${Math.round(r.prob/top*100)}%"></i></span></div>`;}).join('');
     sec.hidden=false;
   }catch(e){sec.hidden=true;}
 }
@@ -1221,7 +1224,7 @@ function renderChamp(d,rows){
   const w=done?(String(t.winner||'').trim()||(rows[0]&&rows[0].totalPts>0?rows[0].team:'')):'';
   if(!w){el.hidden=true;return;}
   const fx=fxOf(B.tournament,w,d),row=rows.find(r=>fxKey(r.team)===fxKey(w));
-  const html=fxText(fx,w,true),nm=document.getElementById('champ-name');
+  const html=fxChip(fx,w,true),nm=document.getElementById('champ-name');
   if(nm.innerHTML!==html)nm.innerHTML=html;
   document.getElementById('champ-sub').textContent=(t.name||'')+(row?` · ${row.totalPts} pts`:'');
   el.hidden=false;

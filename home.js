@@ -81,6 +81,8 @@ function fxForSquad(tname,squad){
   return {fx:any,logo:(hit&&hit.logo)||''};
 }
 // name with its effect as text only (no card) — see .fxn-* in effects-pro.css
+// a name inside a small effect card (same .sqfx card + fx-engine canvas as the roster): winner spotlight, Winner label
+function fxChip(fx,name,tag){return fx?`<span class="fxchip sqfx sqfx-${fx.key}"><span class="fx-name">${esc(name)}</span>${tag?`<span class="sqfx-tag">${esc(fx.tag)}</span>`:''}</span>`:esc(name);}
 function fxText(fx,name,tag){return fx?`<span class="fxn fxn-${fx.key}">${esc(name)}</span>${tag?`<span class="fxn-tag">✨ ${esc(fx.tag)}</span>`:''}`:esc(name);}
 /* The champion of a finished event: the admin's Winner field, or — if that's still blank —
    the top squad of its published Best-of-3 table, so the name shows the moment it ends. */
@@ -744,7 +746,7 @@ function render(d){
     const full=slots>0&&reg>=slots&&st!=='completed'&&st!=='cancelled'&&!_myRegs.has(t.name);
     let btn;
     if(st==='cancelled')btn=`<span class="tbtn done">Cancelled</span>`;
-    else if(st==='completed'){const w=winnerOf(t,d),wf=w?fxForSquad(t.name,w):null;btn=`<span class="tbtn done win">🏆 ${tr('winner')}: <b>${w?fxText(wf.fx,w):'TBA'}</b></span>`;}
+    else if(st==='completed'){const w=winnerOf(t,d),wf=w?fxForSquad(t.name,w):null;btn=`<span class="tbtn done win">🏆 ${tr('winner')}: <b>${w?fxChip(wf.fx,w):'TBA'}</b></span>`;}
     // Free tournaments waitlist via inAppRegBtn's "Join Waitlist" button below — don't also
     // show a static "Squads full" label right next to an actual clickable CTA that contradicts
     // it. Paid tournaments (no waitlist yet) and non-Supabase deploys still show it plainly.
@@ -874,13 +876,13 @@ function renderWinnerSpot(d){
   const prize=fmtPrize(t.prize);
   const ru=rows.filter(r=>fxKey(r.team)!==fxKey(w)).slice(0,2);
   const mini=r=>{const lf=fxForSquad(t.name,r.team),lg=r.logo||lf.logo;return lg?`<img src="${esc(lg)}" alt="">`:esc(String(r.team||'?').trim().charAt(0).toUpperCase());};
-  const ruCard=(r,i)=>r?`<div class="ws-ru r${i+2}"><span class="ws-medal">${i?'🥉':'🥈'}</span><span class="ws-mini">${mini(r)}</span><span class="ws-plc">${i?'3rd':'2nd'}</span><b>${fxText(fxForSquad(t.name,r.team).fx,r.team)}</b><small><em>${r.totalPts}</em> pts</small></div>`:'<div></div>';
+  const ruCard=(r,i)=>r?`<div class="ws-ru r${i+2}"><span class="ws-medal">${i?'🥉':'🥈'}</span><span class="ws-mini">${mini(r)}</span><span class="ws-plc">${i?'3rd':'2nd'}</span><b>${fxChip(fxForSquad(t.name,r.team).fx,r.team)}</b><small><em>${r.totalPts}</em> pts</small></div>`:'<div></div>';
   const stat=(v,l,pre)=>`<div class="ws-stat"><b${typeof v==='number'?` data-count="${v}"`:''}>${pre||''}${typeof v==='number'?v.toLocaleString('en-IN'):esc(v)}</b><span>${l}</span></div>`;
   const prizeNum=/^Rs [\d,]+$/.test(prize)?Number(prize.replace(/\D/g,'')):null;
   const html=`<div class="ws"><div class="ws-bg" role="img" aria-label="Free Fire gameplay"></div><div class="ws-rays" aria-hidden="true"></div><div class="ws-in">`+
     `<span class="ws-eye">🏆 Champions</span><div class="ws-title" aria-hidden="true">Booyah!</div><div class="ws-ev"><b>${esc(t.name)}</b>${t.date?' · '+esc(t.date):''}</div>`+
     `<div class="ws-pod">${ruCard(ru[0],0)}<div class="ws-champ"><div class="ws-av${fx?' fxa-'+fx.key:''}"><span class="ws-crown">👑</span>${logo?`<img src="${esc(logo)}" alt="">`:esc(w.charAt(0).toUpperCase())}</div>`+
-    `<div class="ws-name">${fxText(fx,w,true)}</div><div class="ws-lbl">🏆 ${tr('winner')}</div></div>${ruCard(ru[1],1)}</div>`+
+    `<div class="ws-name">${fxChip(fx,w,true)}</div><div class="ws-lbl">🏆 ${tr('winner')}</div></div>${ruCard(ru[1],1)}</div>`+
     `<div class="ws-stats">${prize!=='—'?(prizeNum!=null?stat(prizeNum,'Prize','Rs '):stat(prize,'Prize')):''}${row?stat(row.totalPts,'Points'):''}</div>`+
     `<div class="ws-acts">${rows.length?`<a class="ws-cta" href="/leaderboard.html#replay">🎬 Watch replay</a><a class="ws-share" href="/leaderboard.html#latest">Full results →</a>`:''}<button type="button" class="ws-share" data-share="${esc(w)}" data-ev="${esc(t.name)}">📣 Share</button></div>`+
     `</div></div>`;
