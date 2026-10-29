@@ -309,6 +309,26 @@
       "platform_mode": "mobile",
       "teams": [],
       "registered": 0
+    },
+    {
+      "name": "JD Free Fire Open #14",
+      "game": "Free Fire BR · Squad",
+      "date": "Fri, Nov 6",
+      "time": "9:30 PM NPT",
+      "start": "2026-11-06T21:30:00+05:45",
+      "status": "upcoming",
+      "map": "bermuda",
+      "prize": "200",
+      "entry": "5 points",
+      "platform": "Mix Device",
+      "platform_mode": "mixed",
+      "slots": 12,
+      "format": "BR · Best of 3",
+      "map2": "random",
+      "map3": "random",
+      "early_access": "yes",
+      "teams": [],
+      "registered": 0
     }
   ],
   "bo3": {
@@ -535,5 +555,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-28T20:27:26.027Z"
+  "_published_at": "2026-10-29T09:04:25.591Z"
 }
