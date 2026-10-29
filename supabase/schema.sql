@@ -6768,3 +6768,35 @@ select cron.schedule('open10-notice-2', '15 4 30 10 *',  $c$select public._open1
 select cron.schedule('open10-notice-3', '45 14 30 10 *', $c$select public._open10_notice(3); select cron.unschedule('open10-notice-3')$c$);
 select cron.schedule('open10-notice-4', '30 15 30 10 *', $c$select public._open10_notice(4); select cron.unschedule('open10-notice-4')$c$);
 commit;
+
+-- ── Open #10 reminders every 8 hours (owner, 29 Oct 2026): notice 1 went out 18:47 UTC, so 02:45 UTC (8:30 NPT)
+-- and 10:45 UTC (16:30 NPT) on 30 Oct, then the 1-hour and 15-minute warnings stay as they were. ──
+begin;
+create or replace function public._open10_notice(p_n int) returns int
+language plpgsql security definer set search_path to 'public' as $$
+declare v_title text; v_body text; v_n int;
+begin
+  select t, b into v_title, v_body from (values
+    (1, '📅 Open #10 is TOMORROW',
+        'JD Free Fire Open #10 moved to tomorrow, Fri 30 Oct, 9:30 PM NPT. Free entry · 200 points prize · 3 matches (Nexterra, Alpine, Kalahari). Already registered? Your slot is kept. Join on jdesport.co.uk/events'),
+    (2, '🔥 Open #10 is TONIGHT',
+        'JD Free Fire Open #10 starts tonight at 9:30 PM NPT. Free to join, 200 points prize. Get your squad in on jdesport.co.uk/events'),
+    (3, '⏰ 1 hour to Open #10',
+        'JD Free Fire Open #10 starts at 9:30 PM NPT - 1 hour to go. Registered teams: confirm your slot and watch for the room code.'),
+    (4, '🎮 Open #10 starts in 15 minutes',
+        'Room code comes to registered teams just before 9:30 PM NPT. Be online and ready in Free Fire. Good luck!'),
+    (5, '⚡ 5 hours to Open #10',
+        'JD Free Fire Open #10 is tonight at 9:30 PM NPT. Free entry, 200 points prize, Nexterra · Alpine · Kalahari. Last chance to join on jdesport.co.uk/events')
+  ) v(n, t, b) where n = p_n;
+  if v_title is null then return 0; end if;
+  insert into public.notifications (player_id, tournament_slug, title, body)
+  select id, 'JD Free Fire Open #10', v_title, v_body from public.players;
+  get diagnostics v_n = row_count;
+  return v_n;
+end $$;
+revoke all on function public._open10_notice(int) from public, anon, authenticated;
+
+select cron.unschedule('open10-notice-2');
+select cron.schedule('open10-notice-2', '45 2 30 10 *',  $c$select public._open10_notice(2); select cron.unschedule('open10-notice-2')$c$);
+select cron.schedule('open10-notice-5', '45 10 30 10 *', $c$select public._open10_notice(5); select cron.unschedule('open10-notice-5')$c$);
+commit;
