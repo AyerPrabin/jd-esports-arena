@@ -14,7 +14,8 @@ self.addEventListener("install", e => {
   })());
 });
 self.addEventListener("activate", e => e.waitUntil((async () => {
-  for (const k of await caches.keys()) if (k.startsWith("jd-static-") && k !== STATIC_CACHE) await caches.delete(k);
+  for (const k of await caches.keys())
+    if ((k.startsWith("jd-static-") && k !== STATIC_CACHE) || (k.startsWith("jd-pages-") && k !== PAGE_CACHE)) await caches.delete(k);
   await self.clients.claim();
 })()));
 // Pages (navigations) are always revalidated with GitHub Pages: it serves HTML with
@@ -67,7 +68,7 @@ const STATIC = /\.(?:png|jpe?g|webp|gif|svg|ico|css|js|woff2?)$/i;   // not audi
 const STATIC_CACHE = "jd-static-v1";
 // Pages are cached by path (no ?query) after every good load, so a page opened once also opens offline.
 // Staff pages (admin, mod, secret links) are never kept on the phone.
-const PAGE_CACHE = "jd-pages-v1";
+const PAGE_CACHE = "jd-pages-v2";   // v2 (30 Oct 2026): drop pages saved before the Withdraw button fix
 const NO_KEEP = /^\/(admin|mod)(\/|$)|admin|private|secret|zulu-|jd-arena\.html/i;
 // The bottom-tab pages open from the phone's copy at once (like a native app) while the network copy replaces
 // it in the background for next time. A copy older than TAB_FRESH (or none) waits on the network as before, so an
