@@ -466,7 +466,7 @@ async function refresh(){
     sb.from('withdraw_requests').select('amount').eq('player_id',me.id).eq('status','pending')
   ]);
   const prev=bal;bal=(w.data&&w.data.balance)||0;unl=!!(w.data&&w.data.unlimited);ledger=l.data||[];
-  if(unl){$('bal').textContent='100B';$('bal-sub').textContent='Admin wallet · 100 billion points for testing';const sub=document.querySelector('#p-withdraw .sub');if(sub)sub.textContent='This is the admin test wallet: its unlimited points can't be paid out. Players see their real balance here and withdraw to eSewa (minimum 100 points).';}
+  if(unl){$('bal').textContent='100B';$('bal-sub').textContent='Admin wallet · 100 billion points for testing';const sub=document.querySelector('#p-withdraw .sub');if(sub)sub.textContent='This is the admin test wallet: its unlimited points cannot be paid out. Players see their real balance here and withdraw to eSewa (minimum 100 points).';}
   else countTo($('bal'),bal);
   const sum=f=>ledger.filter(f).reduce((a,x)=>a+Math.abs(x.delta),0);
   countTo($('st-in'),sum(x=>x.reason==='load'||x.reason==='prize'||x.reason==='referral'||x.reason==='challenge_win'));
