@@ -1,0 +1,33 @@
+# Keeps results-archive.json (the 🎬 match replay's past events) up to date: the site only keeps the
+# latest board in tournaments.json, so each time it changes, every event's last board is rebuilt from git history.
+name: Results archive
+on:
+  push:
+    branches: [master]
+    paths: [tournaments.json]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: results-archive
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python tools/make_results_archive.py
+      - name: Commit if changed
+        run: |
+          git diff --quiet -- results-archive.json && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add results-archive.json
+          git commit -m "Update results-archive.json (match replay past events)"
+          for i in 1 2 3; do git pull --rebase -q origin master && git push -q origin HEAD:master && exit 0; sleep 5; done
+          exit 1
