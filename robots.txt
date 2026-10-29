@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /mod/
+Disallow: /chat/
+Disallow: /app-auth/
+Disallow: /profile/
+Disallow: /wallet/
+Disallow: /reset-password
+Disallow: /optimizer/link/
+Disallow: /supabase/
+Disallow: /tools/
+Disallow: /deploy/
+Disallow: /*.py$
+
+Sitemap: https://jdesport.co.uk/sitemap.xml
