@@ -1,10 +1,10 @@
 {
-  "versionCode": 12,
-  "versionName": "2.0.5",
+  "versionCode": 13,
+  "versionName": "2.0.6",
   "minVersionCode": 9,
-  "url": "https://jdesport.co.uk/download/jd-arena-2.0.5.apk",
-  "sha256": "716a9b5d3687d213bc29d418308449bab836b7c926b6b6ace0a7001cd6292848",
+  "url": "https://jdesport.co.uk/download/jd-arena-2.0.6.apk",
+  "sha256": "405f4e4799402352e8a2ef014b7ec87a192a90e1f8ce4886434db32fbe21ad5f",
   "size": 3499320,
-  "date": "2026-10-29",
-  "notes": "JD Support: ZULU (AI) answers first and a JD team member takes over when you tap Talk to a person. The app no longer closes when the phone runs low on memory, and shows the JD logo while it starts."
+  "date": "2026-10-30",
+  "notes": "Smoother scrolling and animations: watch every match of a tournament replay live on the Leaderboard (Latest event → Watch match replay)."
 }

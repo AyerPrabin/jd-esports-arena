@@ -1,0 +1,1078 @@
+{
+ "events": [
+  {
+   "name": "JD Free Fire Open #11",
+   "date": "Thu, Oct 29",
+   "start": "2026-10-29T21:30:00+05:45",
+   "maps": [
+    "kalahari",
+    "purgatory",
+    "bermuda"
+   ],
+   "prize": "300",
+   "winner": "Soul2Ash",
+   "kill_pts": 1,
+   "teams": [
+    {
+     "team": "Soul2Ash",
+     "r": [
+      {
+       "kills": 15,
+       "pts": 7
+      },
+      {
+       "kills": 3,
+       "pts": 6
+      },
+      {
+       "kills": 22,
+       "pts": 12
+      }
+     ]
+    },
+    {
+     "team": "Youtz Esp",
+     "r": [
+      {
+       "kills": 10,
+       "pts": 12
+      },
+      {
+       "kills": 8,
+       "pts": 12
+      },
+      {
+       "kills": 9,
+       "pts": 9
+      }
+     ]
+    },
+    {
+     "team": "THE REAL TIGER",
+     "r": [
+      {
+       "kills": 6,
+       "pts": 6
+      },
+      {
+       "kills": 15,
+       "pts": 8
+      },
+      {
+       "kills": 8,
+       "pts": 6
+      }
+     ]
+    },
+    {
+     "team": "TEAM TIGER",
+     "r": [
+      {
+       "kills": 11,
+       "pts": 8
+      },
+      {
+       "kills": 7,
+       "pts": 9
+      },
+      {
+       "kills": 6,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "Ancient Ogs 1",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 4
+      },
+      {
+       "kills": 4,
+       "pts": 5
+      },
+      {
+       "kills": 11,
+       "pts": 3
+      }
+     ]
+    },
+    {
+     "team": "ANNI ESPORT",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 9
+      },
+      {
+       "kills": 3,
+       "pts": 3
+      },
+      {
+       "kills": 1,
+       "pts": 5
+      }
+     ]
+    },
+    {
+     "team": "NXT tram",
+     "r": [
+      {
+       "kills": 1,
+       "pts": 5
+      },
+      {
+       "kills": 2,
+       "pts": 2
+      },
+      {
+       "kills": 8,
+       "pts": 4
+      }
+     ]
+    },
+    {
+     "team": "Jhapa Esp",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 3,
+       "pts": 7
+      },
+      {
+       "kills": 8,
+       "pts": 2
+      }
+     ]
+    },
+    {
+     "team": "PRIME ESP",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 3
+      },
+      {
+       "kills": 0,
+       "pts": 4
+      },
+      {
+       "kills": 5,
+       "pts": 8
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "JD Free Fire Open #9",
+   "date": "Tue, Oct 27",
+   "start": "2026-10-27T22:00:00+05:45",
+   "maps": [
+    "",
+    "",
+    ""
+   ],
+   "prize": "300",
+   "winner": "TEAM TIGER",
+   "kill_pts": 1,
+   "teams": [
+    {
+     "team": "TEAM TIGER",
+     "r": [
+      {
+       "kills": 15,
+       "pts": 8
+      },
+      {
+       "kills": 13,
+       "pts": 12
+      },
+      {
+       "kills": 13,
+       "pts": 12
+      }
+     ]
+    },
+    {
+     "team": "Youtz Esp",
+     "r": [
+      {
+       "kills": 12,
+       "pts": 9
+      },
+      {
+       "kills": 20,
+       "pts": 9
+      },
+      {
+       "kills": 4,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "User City",
+     "r": [
+      {
+       "kills": 12,
+       "pts": 12
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 3,
+       "pts": 8
+      }
+     ]
+    },
+    {
+     "team": "Ancient Ogs 1",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 6
+      },
+      {
+       "kills": 3,
+       "pts": 5
+      },
+      {
+       "kills": 1,
+       "pts": 6
+      }
+     ]
+    },
+    {
+     "team": "ANNI ESPORT",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 1,
+       "pts": 6
+      },
+      {
+       "kills": 3,
+       "pts": 9
+      }
+     ]
+    },
+    {
+     "team": "WRACKER×ESP",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 5
+      },
+      {
+       "kills": 0,
+       "pts": 7
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Devil Era",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Nepal Army",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Devil God",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Jhapa Esp",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "ZRX_FAMILY2",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Fox Esport",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "JD Free Fire Open #4",
+   "date": "Sun, Oct 25",
+   "start": "2026-10-25T22:00:00+05:45",
+   "maps": [
+    "",
+    "",
+    ""
+   ],
+   "prize": "350",
+   "winner": "Jhapa Esp",
+   "kill_pts": 1,
+   "teams": [
+    {
+     "team": "Jhapa Esp",
+     "r": [
+      {
+       "kills": 13,
+       "pts": 12
+      },
+      {
+       "kills": 13,
+       "pts": 9
+      },
+      {
+       "kills": 18,
+       "pts": 12
+      }
+     ]
+    },
+    {
+     "team": "TEAM TIGER",
+     "r": [
+      {
+       "kills": 15,
+       "pts": 9
+      },
+      {
+       "kills": 8,
+       "pts": 5
+      },
+      {
+       "kills": 4,
+       "pts": 9
+      }
+     ]
+    },
+    {
+     "team": "ANNI ESPORT",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 7
+      },
+      {
+       "kills": 12,
+       "pts": 12
+      },
+      {
+       "kills": 3,
+       "pts": 6
+      }
+     ]
+    },
+    {
+     "team": "lol",
+     "r": [
+      {
+       "kills": 10,
+       "pts": 3
+      },
+      {
+       "kills": 11,
+       "pts": 7
+      },
+      {
+       "kills": 4,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "Ancient Ogs 1",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 5
+      },
+      {
+       "kills": 7,
+       "pts": 4
+      },
+      {
+       "kills": 3,
+       "pts": 5
+      }
+     ]
+    },
+    {
+     "team": "Infernal Legacy",
+     "r": [
+      {
+       "kills": 8,
+       "pts": 4
+      },
+      {
+       "kills": 1,
+       "pts": 3
+      },
+      {
+       "kills": 2,
+       "pts": 8
+      }
+     ]
+    },
+    {
+     "team": "Devil God",
+     "r": [
+      {
+       "kills": 1,
+       "pts": 1
+      },
+      {
+       "kills": 7,
+       "pts": 8
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Youtz Esp",
+     "r": [
+      {
+       "kills": 8,
+       "pts": 8
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "ᴛɪᴛᴀɴ_ᴇᴅɢᴇ☯",
+     "r": [
+      {
+       "kills": 5,
+       "pts": 6
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "User City",
+     "r": [
+      {
+       "kills": 3,
+       "pts": 2
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Nepal Army",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "ZRX_FAMILY2",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "JD Free Fire Open #8",
+   "date": "Thu, Oct 22",
+   "start": "2026-10-22T22:00:00+05:45",
+   "maps": [
+    "",
+    "",
+    ""
+   ],
+   "prize": "300",
+   "winner": "Jhapa Esp",
+   "kill_pts": 0,
+   "teams": [
+    {
+     "team": "Jhapa Esp",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 13
+      },
+      {
+       "kills": 0,
+       "pts": 21
+      },
+      {
+       "kills": 0,
+       "pts": 25
+      }
+     ]
+    },
+    {
+     "team": "WRACKER×ESP",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 19
+      },
+      {
+       "kills": 0,
+       "pts": 9
+      },
+      {
+       "kills": 0,
+       "pts": 16
+      }
+     ]
+    },
+    {
+     "team": "Ancient Ogs 1",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 7
+      },
+      {
+       "kills": 0,
+       "pts": 6
+      },
+      {
+       "kills": 0,
+       "pts": 11
+      }
+     ]
+    },
+    {
+     "team": "DB Esport",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "TUFAN ESP",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Rajiv",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "TD team",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "RAGE ESP",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "User City",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Ꮃɪʟᴅ乂Esportꔪ",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Only Heroes",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "BLACKNEPAL",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "JD Free Fire Open #6",
+   "date": "Mon, Oct 19",
+   "start": "2026-10-19T22:30:00+05:45",
+   "maps": [
+    "",
+    "",
+    ""
+   ],
+   "prize": "450",
+   "winner": "Jhapa Esp",
+   "kill_pts": 0,
+   "teams": [
+    {
+     "team": "Jhapa Esp",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 18
+      },
+      {
+       "kills": 0,
+       "pts": 31
+      },
+      {
+       "kills": 0,
+       "pts": 19
+      }
+     ]
+    },
+    {
+     "team": "BLACKNEPAL",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 27
+      },
+      {
+       "kills": 0,
+       "pts": 9
+      },
+      {
+       "kills": 0,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "KR",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 5
+      },
+      {
+       "kills": 0,
+       "pts": 12
+      },
+      {
+       "kills": 0,
+       "pts": 10
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "JD Free Fire Open #7",
+   "date": "Sat, Oct 17",
+   "start": "2026-10-17T22:30:00+05:45",
+   "maps": [
+    "",
+    "",
+    ""
+   ],
+   "prize": "400",
+   "winner": "A1-GOLPHA",
+   "kill_pts": 0,
+   "teams": [
+    {
+     "team": "A1-GOLPHA",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 31
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Ultras",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 30
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "BLACKNEPAL",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 30
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Ancient Ogs 1",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 25
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "KR",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 6
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "JD Free Fire Open #5",
+   "date": "Mon, Oct 12",
+   "start": "2026-10-12T22:30:00+05:45",
+   "maps": [
+    "",
+    "",
+    ""
+   ],
+   "prize": "500",
+   "winner": "Ancient Ogs 1",
+   "kill_pts": 0,
+   "teams": [
+    {
+     "team": "Ancient Ogs 1",
+     "r": [
+      {
+       "kills": 25,
+       "pts": 27
+      },
+      {
+       "kills": 23,
+       "pts": 31
+      },
+      {
+       "kills": 8,
+       "pts": 20
+      }
+     ]
+    },
+    {
+     "team": "Hyper esp",
+     "r": [
+      {
+       "kills": 20,
+       "pts": 28
+      },
+      {
+       "kills": 12,
+       "pts": 24
+      },
+      {
+       "kills": 2,
+       "pts": 10
+      }
+     ]
+    },
+    {
+     "team": "MHX4 ESPORTS",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "KR",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1451,9 +1451,8 @@ function bo3Total(t){const kp=bo3Kp();return (t.r||[]).reduce((s,x)=>s+(+((x&&x.
 // top squad (points, then kills) of the Best-of-3 table when it belongs to this tournament
 function bo3TopTeam(name){
   const B=data.bo3;if(!B||(B.tournament&&B.tournament!==name)||!(B.teams||[]).length)return '';
-  const kills=t=>(t.r||[]).reduce((s,x)=>s+(+((x&&x.kills)||0)),0);
-  const best=B.teams.slice().sort((a,b)=>bo3Total(b)-bo3Total(a)||kills(b)-kills(a))[0];
-  return best&&bo3Total(best)>0?String(best.team||'').trim():'';
+  const best=bo3FinalStandings(B)[0];
+  return best&&best.points>0?String(best.squad_name||'').trim():'';
 }
 function renderBo3(){
   data.bo3=data.bo3||bo3Default();
@@ -1477,12 +1476,13 @@ function renderBo3(){
 function bo3FinalStandings(bo3){
   const teams=(bo3&&bo3.teams)||[];
   const rows=teams.map(t=>{
-    let pts=0,kills=0;
+    let pts=0,kills=0,boo=0,last=0;
     const kp=+((bo3&&bo3.kill_pts)||0);
-    for(const r of (t.r||[])){const k=+((r&&r.kills)||0);pts+=+((r&&r.pts)||0)+k*kp;kills+=k;}
-    return {team:t.team,pts,kills,prize_won:+(t.prize_won||0)};
+    for(const r of (t.r||[])){const k=+((r&&r.kills)||0),p=+((r&&r.pts)||0);pts+=p+k*kp;kills+=k;boo+=p===12?1:0;last=p;}
+    return {team:t.team,pts,kills,boo,last,prize_won:+(t.prize_won||0)};
   }).filter(r=>r.team);
-  rows.sort((a,b)=>b.pts-a.pts||b.kills-a.kills||String(a.team).localeCompare(String(b.team)));
+  // official Free Fire tie-break: points, booyahs, eliminations, placement in the last match
+  rows.sort((a,b)=>b.pts-a.pts||b.boo-a.boo||b.kills-a.kills||b.last-a.last||String(a.team).localeCompare(String(b.team)));
   return rows.map((r,i)=>({squad_name:r.team,placement:i+1,kills:r.kills,points:r.pts,prize_won:r.prize_won}));
 }
 async function archiveResults(){

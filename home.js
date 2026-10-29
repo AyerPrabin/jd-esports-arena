@@ -821,16 +821,20 @@ function cardTap(e,el){
    desc by points (tie-break: total kills desc, then name) at each stage. The R2/R3
    movement arrows compare each team's rank at consecutive cumulative stages — i.e. did
    they gain or lose position once that round's score was added in. ── */
+/* Official Free Fire tie-break (2026-10-30): total points, then booyahs, then eliminations,
+   then placement in the most recent match. Same order in leaderboard.html, home.js, admin and mod-panel. */
+function ffRank(a,b){return b.pts-a.pts||b.boo-a.boo||b.kills-a.kills||b.last-a.last||String(a.team).localeCompare(String(b.team));}
 function bo3Standings(bo3){
   const teams=(bo3&&bo3.teams)||[];
   const kp=+(bo3&&bo3.kill_pts)||0;   // points per kill (2026-10-25: 1); boards from before have none = kills 0 pts
+  // boo = booyahs (12 placement pts), last = placement pts in the latest match counted (tie-breaks, see ffRank)
   const stageTotals=upto=>teams.map(t=>{
-    let pts=0,kills=0;
-    for(let i=0;i<=upto;i++){const k=+((t.r&&t.r[i]&&t.r[i].kills)||0);pts+=+((t.r&&t.r[i]&&t.r[i].pts)||0)+k*kp;kills+=k;}
-    return {team:t.team,pts,kills};
+    let pts=0,kills=0,boo=0,last=0;
+    for(let i=0;i<=upto;i++){const k=+((t.r&&t.r[i]&&t.r[i].kills)||0),p=+((t.r&&t.r[i]&&t.r[i].pts)||0);pts+=p+k*kp;kills+=k;boo+=p===12?1:0;last=p;}
+    return {team:t.team,pts,kills,boo,last};
   });
   const rankOf=stage=>{
-    const sorted=stage.slice().sort((a,b)=>b.pts-a.pts||b.kills-a.kills||String(a.team).localeCompare(String(b.team)));
+    const sorted=stage.slice().sort(ffRank);
     const m=new Map();sorted.forEach((x,i)=>m.set(x.team,i+1));return m;
   };
   const s1=stageTotals(0),s2=stageTotals(1),s3=stageTotals(2);
@@ -875,7 +879,7 @@ function renderWinnerSpot(d){
     `<div class="ws-pod">${ruCard(ru[0],0)}<div class="ws-champ"><div class="ws-av${fx?' fxa-'+fx.key:''}"><span class="ws-crown">👑</span>${logo?`<img src="${esc(logo)}" alt="">`:esc(w.charAt(0).toUpperCase())}</div>`+
     `<div class="ws-name">${fxText(fx,w,true)}</div><div class="ws-lbl">🏆 ${tr('winner')}</div></div>${ruCard(ru[1],1)}</div>`+
     `<div class="ws-stats">${prize!=='—'?(prizeNum!=null?stat(prizeNum,'Prize','Rs '):stat(prize,'Prize')):''}${row?stat(row.totalPts,'Points'):''}</div>`+
-    `<div class="ws-acts">${rows.length?`<a class="ws-cta" href="/leaderboard.html">Full results →</a>`:''}<button type="button" class="ws-share" data-share="${esc(w)}" data-ev="${esc(t.name)}">📣 Share</button></div>`+
+    `<div class="ws-acts">${rows.length?`<a class="ws-cta" href="/leaderboard.html#replay">🎬 Watch replay</a><a class="ws-share" href="/leaderboard.html#latest">Full results →</a>`:''}<button type="button" class="ws-share" data-share="${esc(w)}" data-ev="${esc(t.name)}">📣 Share</button></div>`+
     `</div></div>`;
   if(html===_lastSpotHTML)return;
   _lastSpotHTML=html;box.innerHTML=html;box.hidden=false;

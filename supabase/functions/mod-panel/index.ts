@@ -463,7 +463,11 @@ Deno.serve(async (req: Request) => {
     const killPts = typeof board?.kill_pts === 'number' ? board.kill_pts : 1;
     const total = (x: any) => x.pts.reduce((a: number, b: number, k: number) => a + b + (x.kills[k] || 0) * killPts, 0);
     const killSum = (x: any) => x.kills.reduce((a: number, b: number) => a + b, 0);
-    const ranked = [...teams].sort((a, b) => total(b) - total(a) || killSum(b) - killSum(a));
+    // official Free Fire tie-break: points, booyahs, eliminations, placement in the last match
+    const boo = (x: any) => x.pts.filter((v: number) => v === 12).length;
+    const lastPl = (x: any) => x.pts[x.pts.length - 1] || 0;
+    const ranked = [...teams].sort((a, b) => total(b) - total(a) || boo(b) - boo(a) || killSum(b) - killSum(a) ||
+      lastPl(b) - lastPl(a) || a.team.localeCompare(b.team));
     const prizes: Record<string, number> = {};
     if (final) {
       for (const [k, v] of Object.entries(p.prizes || {})) {

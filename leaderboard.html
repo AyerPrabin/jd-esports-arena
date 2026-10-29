@@ -75,6 +75,8 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .pod-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 12px 14px;text-align:center;width:100%;box-shadow:0 10px 34px rgba(0,0,0,.4)}
 .pod-slot.p1 .pod-card{border-color:var(--gold);box-shadow:0 0 42px rgba(255,200,61,.28),0 10px 34px rgba(0,0,0,.45)}
 .pod-logo{width:52px;height:52px;border-radius:50%;object-fit:cover;background:#000;margin-bottom:8px;border:2px solid var(--gold-m)}
+/* a squad without a logo keeps the logo's space, so 1st is always the tallest step (it wasn't when only 2nd had a logo) */
+.pod-logo[hidden]{display:inline-block;visibility:hidden}
 .pod-name{font-weight:700;font-size:.9rem;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pod-pts{color:var(--gold-l);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.4rem;letter-spacing:.02em}
 .pod-pts-lbl{color:var(--body);font-size:.62rem;letter-spacing:.01em;margin-left:3px}
@@ -119,6 +121,87 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 @keyframes rpUp{0%{background:rgba(61,220,132,.3)}100%{background:var(--panel)}}
 @keyframes rpDown{0%{background:rgba(255,90,90,.24)}100%{background:var(--panel)}}
 @media(prefers-reduced-motion:reduce){.pod-slot,.pts-table td{transition:none!important;animation:none!important}.rp-chip{animation:none}.rp-track i{transition:none}}
+.rp-watch{background:linear-gradient(135deg,#ff4d4d,#ff8a3d);color:#fff;border:0;border-radius:999px;padding:8px 16px;font:800 .8rem var(--font-body);cursor:pointer;box-shadow:0 0 18px rgba(255,90,60,.35)}
+
+/* ── 🎬 match replay "video": full screen, every kill +1, live overtakes, placement count-up, BOOYAH, champions.
+   Started by a tap, so it plays with motion even when the device asks for less (see rvOpen()). ── */
+.rv{position:fixed;inset:0;z-index:9000;background:#05070d;color:#fff;display:flex;flex-direction:column;overflow:hidden;font-family:var(--font-body)}
+.rv[hidden]{display:none}
+.rv-bg{position:absolute;inset:-6%;background:center/cover no-repeat;filter:blur(3px) brightness(.32) saturate(1.2);animation:rvKen 18s ease-in-out infinite alternate;z-index:0}
+@keyframes rvKen{from{transform:scale(1)}to{transform:scale(1.12) translate(-2%,-1%)}}
+.rv::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.75));pointer-events:none;z-index:1}
+.rv>*{position:relative;z-index:2}
+.rv-top{display:flex;align-items:center;gap:10px;padding:12px 14px 6px}
+.rv-ev{flex:1;min-width:0;font:800 .74rem var(--font-body);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-l);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rv-btn{width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;font-size:1rem;cursor:pointer;display:grid;place-items:center}
+.rv-btn.sp{width:auto;padding:0 12px;border-radius:999px;font:800 .78rem var(--font-body)}
+.rv-prog{display:flex;gap:5px;padding:0 14px}
+.rv-prog span{flex:1;height:4px;border-radius:4px;background:rgba(255,255,255,.14);overflow:hidden}
+.rv-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-m),var(--gold-l))}
+.rv-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:10px 16px 4px}
+.rv-m{font:700 1.9rem/1 'Barlow Condensed',sans-serif;letter-spacing:.03em}
+.rv-m small{font-size:.95rem;color:var(--gold-l);margin-left:8px;letter-spacing:.08em}
+.rv-phase{font:800 .7rem var(--font-body);letter-spacing:.14em;text-transform:uppercase;color:#ff7a59}
+.rv-feed{height:58px;overflow:hidden;padding:0 16px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px}
+.rv-feed div{font-size:.78rem;color:#d9deea;animation:rvFeed .35s ease-out;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rv-feed div b{color:var(--gold-l)}
+@keyframes rvFeed{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+.rv-board{position:relative;flex:1;margin:6px 12px 14px;max-width:640px;width:calc(100% - 24px);align-self:center}
+.rv-row{position:absolute;left:0;right:0;display:flex;align-items:center;gap:10px;padding:0 12px;border-radius:12px;background:rgba(17,22,34,.88);border:1px solid rgba(255,255,255,.07);transition:transform .45s cubic-bezier(.2,.9,.25,1),background .3s,border-color .3s;will-change:transform}
+.rv-row.lead{border-color:var(--gold);background:linear-gradient(90deg,rgba(255,200,61,.2),rgba(17,22,34,.9));box-shadow:0 0 22px rgba(255,200,61,.25)}
+.rv-row.hit{background:rgba(255,90,60,.25)}
+.rv-row.pl{background:rgba(61,220,132,.2)}
+.rv-rk{width:26px;text-align:center;font:700 1.3rem 'Barlow Condensed',sans-serif;color:var(--gold-l)}
+.rv-row img{width:28px;height:28px;border-radius:50%;object-fit:cover;background:#000}
+.rv-nm{flex:1;min-width:0;font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rv-nm small{display:block;font-weight:600;font-size:.66rem;color:var(--silver);letter-spacing:.02em}
+.rv-k{font:700 .8rem var(--font-body);color:#ff9d7a;min-width:46px;text-align:right}
+.rv-tot{font:700 1.5rem/1 'Barlow Condensed',sans-serif;color:var(--gold-l);min-width:44px;text-align:right}
+.rv-tot.bump{animation:rvBump .25s ease-out}
+@keyframes rvBump{0%{transform:scale(1.35);color:#fff}100%{transform:scale(1)}}
+.rv-chip{font:800 .66rem var(--font-body);padding:2px 6px;border-radius:999px;animation:chipPop .45s cubic-bezier(.2,1.6,.4,1)}
+.rv-chip.up{background:var(--green);color:#06120a}.rv-chip.down{background:#d94b4b;color:#fff}
+.rv-fl{position:absolute;right:58px;top:50%;font:800 .9rem var(--font-body);color:#ff9d7a;pointer-events:none;animation:rvFl .8s ease-out forwards}
+.rv-fl.g{color:var(--green);font-size:1rem}
+@keyframes rvFl{from{opacity:1;transform:translateY(-50%)}to{opacity:0;transform:translateY(-190%)}}
+.rv-card{position:absolute;inset:0;z-index:5;display:grid;place-items:center;text-align:center;pointer-events:none}
+.rv-card[hidden]{display:none}
+.rv-card>div{animation:rvCard 1.5s cubic-bezier(.2,.9,.25,1) both}
+.rv-card .big{font:700 clamp(3rem,15vw,6.5rem)/.95 'Barlow Condensed',sans-serif;letter-spacing:.03em;text-shadow:0 0 40px rgba(255,200,61,.5)}
+.rv-card .sm{font:800 .8rem var(--font-body);letter-spacing:.3em;text-transform:uppercase;color:var(--gold-l);margin-top:10px}
+.rv-card.boo .big{color:var(--gold-l);font-size:clamp(3.4rem,17vw,7.5rem)}
+@keyframes rvCard{0%{opacity:0;transform:scale(2.2);filter:blur(10px)}25%{opacity:1;transform:scale(1);filter:none}80%{opacity:1;transform:scale(1.04)}100%{opacity:0;transform:scale(1.1)}}
+.rv-champ{position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:rgba(5,7,13,.9);padding:20px}
+.rv-champ[hidden]{display:none}
+.rv-champ h2{margin:0;font:700 clamp(2.4rem,11vw,4.4rem)/1 'Barlow Condensed',sans-serif;color:var(--gold-l);letter-spacing:.04em;animation:rvRise .8s cubic-bezier(.2,1.3,.4,1) both}
+/* podium: name + points sit above a fixed-height step, so long names never make 2nd/3rd taller than 1st */
+.rv-pod{display:flex;align-items:flex-end;gap:10px}
+.rv-pod>div{width:min(30vw,150px);display:flex;flex-direction:column;align-items:center;text-align:center;font-weight:800;font-size:.84rem;animation:rvRise .9s cubic-bezier(.2,1.3,.4,1) both}
+.rv-pod .nm{overflow-wrap:anywhere;line-height:1.15;padding:0 2px}
+.rv-pod b{display:block;font:700 1.8rem 'Barlow Condensed',sans-serif;color:var(--gold-l);margin:2px 0 6px}
+.rv-pod .st{width:100%;border-radius:12px 12px 0 0;display:grid;place-items:center;font:700 2.2rem 'Barlow Condensed',sans-serif;color:rgba(255,255,255,.35)}
+.rv-pod .p1{order:2;animation-delay:1s}.rv-pod .p1 .st{height:130px;background:linear-gradient(180deg,rgba(255,200,61,.5),rgba(255,200,61,.08))}
+.rv-pod .p2{order:1;animation-delay:.5s}.rv-pod .p2 .st{height:90px;background:linear-gradient(180deg,rgba(166,175,194,.45),rgba(166,175,194,.06))}
+.rv-pod .p3{order:3}.rv-pod .p3 .st{height:60px;background:linear-gradient(180deg,rgba(227,161,95,.5),rgba(227,161,95,.06))}
+@keyframes rvRise{from{opacity:0;transform:translateY(80px)}to{opacity:1;transform:none}}
+.rv.paused *,.rv.paused *::before,.rv.paused *::after{animation-play-state:paused!important}
+.rv-top .rv-ev{flex:none}
+.rv-sel{flex:1;min-width:0;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:8px 10px;font:700 .8rem var(--font-body)}
+.rv-sel option{background:#0b0f19;color:#fff}
+.rv-ctl{padding:8px 12px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(180deg,transparent,rgba(0,0,0,.7) 30%);display:flex;flex-direction:column;gap:8px;align-items:center}
+.rv-steps{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.rv-steps button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#e6e9f2;border-radius:999px;padding:8px 13px;font:800 .78rem var(--font-body);cursor:pointer}
+.rv-steps button.on{border-color:var(--gold);color:#140f02;background:linear-gradient(180deg,var(--gold-l),var(--gold))}
+.rv-steps button.full{background:linear-gradient(135deg,#ff4d4d,#ff8a3d);border-color:transparent;color:#fff}
+.rv-ctl2{display:flex;gap:10px;align-items:center}
+.rv-spd{display:flex;border:1px solid rgba(255,255,255,.18);border-radius:999px;overflow:hidden}
+.rv-spd button{background:transparent;border:0;color:#cfd5e2;padding:9px 13px;font:800 .76rem var(--font-body);cursor:pointer}
+.rv-spd button.on{background:var(--gold);color:#140f02}
+.rv-mv{width:14px;font-size:.7rem;font-weight:800;text-align:center;opacity:0;transition:opacity .25s}
+.rv-mv.up{color:var(--green);opacity:1}.rv-mv.down{color:#ff6b6b;opacity:1}
+.rv-row.tie{border-color:#f5a524;border-style:dashed}
+.rv-tb{position:absolute;right:8px;top:-8px;background:#f5a524;color:#1a1000;font:800 .58rem var(--font-body);padding:1px 6px;border-radius:999px;letter-spacing:.04em}
+.rv-again{background:linear-gradient(180deg,var(--gold-l),var(--gold));color:#140f02;border:0;border-radius:999px;padding:10px 20px;font:800 .86rem var(--font-body);cursor:pointer}
 @media(max-width:640px){.pts-table{font-size:.78rem}.pts-table th,.pts-table td{padding:9px 8px}.pts-table .team img{width:20px;height:20px}.podium{gap:8px}.pod-slot{width:100px}.pod-logo{width:38px;height:38px}.pod-name{font-size:.74rem}.pod-pts{font-size:1.1rem}}
 .pred{margin:34px 0 10px}
 .pred-h{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.6rem;margin:0 0 4px}
@@ -208,6 +291,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
     <div class="pod-slot p3"><div class="pod-card"><img class="pod-logo" alt="" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">3</div></div>
   </div>
   <div class="replay" id="replay" hidden>
+    <button type="button" class="rp-watch" id="rv-open">🎬 Watch match replay</button>
     <button type="button" class="rp-play" id="rp-play">▶ Replay matches</button>
     <div class="rp-steps" id="rp-steps"></div>
     <div class="rp-track"><i id="rp-fill"></i></div>
@@ -220,6 +304,25 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
     <div class="pred-list" id="predict-list"></div>
   </section>
   <canvas id="confetti-canvas"></canvas>
+  <div class="rv" id="rv" hidden role="dialog" aria-label="Match replay">
+    <div class="rv-bg" id="rv-bg"></div>
+    <div class="rv-top"><div class="rv-ev">🎬 Replay</div>
+      <select class="rv-sel" id="rv-sel" aria-label="Event"></select>
+      <button type="button" class="rv-btn" id="rv-close" aria-label="Close">✕</button></div>
+    <div class="rv-prog" id="rv-prog"></div>
+    <div class="rv-head"><div class="rv-m" id="rv-m"></div><div class="rv-phase" id="rv-phase"></div></div>
+    <div class="rv-feed" id="rv-feed" aria-live="off"></div>
+    <div class="rv-board" id="rv-board"></div>
+    <div class="rv-ctl">
+      <div class="rv-steps" id="rv-steps"></div>
+      <div class="rv-ctl2">
+        <button type="button" class="rv-btn" id="rv-pause" aria-label="Pause">⏸</button>
+        <div class="rv-spd" id="rv-spd" role="group" aria-label="Speed"><button type="button" data-v="0.5">0.5x</button><button type="button" data-v="1" class="on">1x</button><button type="button" data-v="2">2x</button></div>
+      </div>
+    </div>
+    <div class="rv-card" id="rv-card" hidden></div>
+    <div class="rv-champ" id="rv-champ" hidden></div>
+  </div>
   </div>
   <div class="points-note" id="lb-points-note"><b>How points work:</b> each match, a squad gets placement points from the official room result plus 1 point per kill. All matches add up — the highest total wins.<br><b>Position points:</b> 1st 12 · 2nd 9 · 3rd 8 · 4th 7 · 5th 6 · 6th 5 · 7th 4 · 8th 3 · 9th 2 · 10th 1 · 11th–12th 0 · <b>Kills:</b> +1 each. <a href="/#scoring" style="color:var(--gold-l)">See the full table</a></div>
 </main>
@@ -287,16 +390,20 @@ function renderClash(){
 /* Same standings math as index.html's bo3Standings()/renderBo3Board() — kept in
    sync deliberately rather than shared, since this is a separate static file with
    no build step to import from. */
+/* Official Free Fire tie-break (2026-10-30): total points, then booyahs, then eliminations,
+   then placement in the most recent match. Same order in leaderboard.html, home.js, admin and mod-panel. */
+function ffRank(a,b){return b.pts-a.pts||b.boo-a.boo||b.kills-a.kills||b.last-a.last||String(a.team).localeCompare(String(b.team));}
 function bo3Standings(bo3){
   const teams=(bo3&&bo3.teams)||[];
   const kp=+(bo3&&bo3.kill_pts)||0;   // points per kill (2026-10-25: 1); boards from before have none = kills 0 pts
+  // boo = booyahs (12 placement pts), last = placement pts in the latest match counted (tie-breaks, see ffRank)
   const stageTotals=upto=>teams.map(t=>{
-    let pts=0,kills=0;
-    for(let i=0;i<=upto;i++){const k=+((t.r&&t.r[i]&&t.r[i].kills)||0);pts+=+((t.r&&t.r[i]&&t.r[i].pts)||0)+k*kp;kills+=k;}
-    return {team:t.team,pts,kills};
+    let pts=0,kills=0,boo=0,last=0;
+    for(let i=0;i<=upto;i++){const k=+((t.r&&t.r[i]&&t.r[i].kills)||0),p=+((t.r&&t.r[i]&&t.r[i].pts)||0);pts+=p+k*kp;kills+=k;boo+=p===12?1:0;last=p;}
+    return {team:t.team,pts,kills,boo,last};
   });
   const rankOf=stage=>{
-    const sorted=stage.slice().sort((a,b)=>b.pts-a.pts||b.kills-a.kills||String(a.team).localeCompare(String(b.team)));
+    const sorted=stage.slice().sort(ffRank);
     const m=new Map();sorted.forEach((x,i)=>m.set(x.team,i+1));return m;
   };
   const s1=stageTotals(0),s2=stageTotals(1),s3=stageTotals(2);
@@ -388,8 +495,8 @@ addEventListener('resize',resizeConfetti);resizeConfetti();
 const CONFETTI_COLORS=['#FFC83D','#FFDD85','#FFFFFF','#A6AFC2','#E3A15F'];
 const GRAVITY=780,DRAG=0.55;
 let _particles=[],_confettiRunning=false,_lastConfettiT=0;
-function burstConfetti(x,y,count){
-  if(REDUCE_MOTION)return;
+function burstConfetti(x,y,count,force){
+  if(REDUCE_MOTION&&!force)return;   // force: the 🎬 replay, which the viewer started
   for(let i=0;i<count;i++){
     const angle=-Math.PI/2+(Math.random()-0.5)*Math.PI*1.15; // fans mostly upward
     const speed=240+Math.random()*360;
@@ -519,8 +626,8 @@ function stageCount(B){return Math.min(3,Math.max(0,...((B&&B.teams)||[]).map(t=
 // same scoring and tie-break as bo3Standings(), counted only up to match s (0-based)
 function stageRows(B,s){
   const kp=+(B.kill_pts)||0,teams=B.teams||[];
-  const at=u=>teams.map(t=>{let pts=0,kills=0;for(let i=0;i<=u;i++){const x=(t.r&&t.r[i])||{};const k=+x.kills||0;pts+=(+x.pts||0)+k*kp;kills+=k;}return{team:t.team,pts,kills};});
-  const rankOf=list=>{const m=new Map();list.slice().sort((a,b)=>b.pts-a.pts||b.kills-a.kills||String(a.team).localeCompare(String(b.team))).forEach((x,i)=>m.set(x.team,i+1));return m;};
+  const at=u=>teams.map(t=>{let pts=0,kills=0,boo=0,last=0;for(let i=0;i<=u;i++){const x=(t.r&&t.r[i])||{};const k=+x.kills||0,p=+x.pts||0;pts+=p+k*kp;kills+=k;boo+=p===12?1:0;last=p;}return{team:t.team,pts,kills,boo,last};});
+  const rankOf=list=>{const m=new Map();list.slice().sort(ffRank).forEach((x,i)=>m.set(x.team,i+1));return m;};
   const ranks=[];for(let u=0;u<=s;u++)ranks.push(rankOf(at(u)));
   const cur=at(s),rk=ranks[s];
   return teams.map((t,i)=>{
@@ -681,6 +788,230 @@ document.getElementById('rp-steps').addEventListener('click',e=>{
   if(s===n-1)setTimeout(()=>{if(_rp.stage===s&&_rp.busy){_rp.busy=false;_rp.stage=-1;if(_lastDoc)render(_lastDoc);}},1400);
 });
 
+/* ═══════════════ 🎬 match replay (full screen, plays like a video) ═══════════════
+   Any event with match-by-match points: the latest board (bo3) or a past one from /results-archive.json
+   (TOURNAMENT_ARCHIVE, rebuilt from tournaments.json's git history). Every squad starts on 0; in each
+   match every kill lands one at a time (+1, kill feed), then placement points count up 1 by 1 from last
+   place to the BOOYAH. Squads overtake live (rows slide with transform: translateY), ▲/▼ on movers,
+   tied squads get a dashed outline and the tie-break that split them. Ranking = ffRank's official order.
+   Reset · M1 · M2 · M3 · Full, pause, 0.5x / 1x / 2x. The viewer starts it, so it plays with motion
+   even on devices set to reduce motion. */
+const RV={gen:0,paused:false,speed:1,open:false,started:false,ev:null,list:[],teams:[],order:[],stage:-1,rowH:48,n:0};
+const RV_AUTO=location.hash==='#replay';   // /leaderboard.html#replay opens it straight away
+let TOURNAMENT_ARCHIVE=null;               // {events:[{name,date,maps,kill_pts,teams:[{team,r:[{kills,pts}]}]}]}
+const RV_PLACE={12:1,9:2,8:3,7:4,6:5,5:6,4:7,3:8,2:9,1:10};
+const RV_MAP={bermuda:'Bermuda',purgatory:'Purgatory',kalahari:'Kalahari',alpine:'Alpine',nexterra:'NeXTerra'};
+const rvOrd=n=>n+(n%10===1&&n%100!==11?'st':n%10===2&&n%100!==12?'nd':n%10===3&&n%100!==13?'rd':'th');
+const $rv=id=>document.getElementById(id);
+function rvWait(ms,g){
+  return new Promise((res,rej)=>{
+    let left=ms,last=performance.now();
+    const tick=()=>{
+      if(g!==RV.gen)return rej(0);
+      const now=performance.now();if(!RV.paused)left-=(now-last)*RV.speed;last=now;
+      if(left<=0)res();else requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}
+function rvRand(seed){let x=seed|0||1;return()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return((x>>>0)%100000)/100000;};}
+function rvFeed(html){const f=$rv('rv-feed'),el=document.createElement('div');el.innerHTML=html;f.appendChild(el);while(f.children.length>3)f.firstChild.remove();}
+function rvFloat(row,txt,green){const el=document.createElement('span');el.className='rv-fl'+(green?' g':'');el.textContent=txt;row.appendChild(el);setTimeout(()=>el.remove(),850);}
+function rvFlash(row,cls){row.classList.remove('hit','pl');void row.offsetWidth;row.classList.add(cls);clearTimeout(row._fl);row._fl=setTimeout(()=>row.classList.remove(cls),cls==='hit'?180:420);}
+async function rvCard(big,sm,g,boo){
+  const c=$rv('rv-card');c.className='rv-card'+(boo?' boo':'');
+  c.innerHTML=`<div><div class="big">${big}</div>${sm?`<div class="sm">${sm}</div>`:''}</div>`;c.hidden=false;
+  try{await rvWait(1500,g);}finally{if(g===RV.gen)c.hidden=true;}
+}
+function rvLoadArchive(){
+  if(TOURNAMENT_ARCHIVE)return Promise.resolve();
+  return fetch('/results-archive.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(j=>{TOURNAMENT_ARCHIVE=j||{events:[]};}).catch(()=>{TOURNAMENT_ARCHIVE={events:[]};});
+}
+// the latest board first, then past events (newest first), each event once
+function rvEvents(){
+  const d=_lastDoc,B=d&&d.bo3,list=[];
+  if(B&&B.published&&stageCount(B)>0){
+    const t=((d.tournaments||[]).find(x=>x.name===B.tournament))||{};
+    list.push({name:B.tournament||'Latest event',date:t.date||'',maps:[t.map,t.map2,t.map3],kill_pts:+B.kill_pts||0,teams:B.teams||[],current:true});
+  }
+  ((TOURNAMENT_ARCHIVE&&TOURNAMENT_ARCHIVE.events)||[]).forEach(e=>{if(!list.some(x=>x.name===e.name))list.push(e);});
+  return list;
+}
+function rvFillSel(keep){
+  RV.list=rvEvents();
+  const sel=$rv('rv-sel');
+  sel.innerHTML=RV.list.map((e,i)=>`<option value="${i}">${esc(e.name)}${e.date?' · '+esc(e.date):''}${e.current?' (latest)':''}</option>`).join('');
+  const i=keep?RV.list.findIndex(e=>e.name===keep):0;sel.value=String(Math.max(0,i));
+}
+function rvBuild(ev){
+  RV.ev=ev;RV.n=Math.min(3,Math.max(0,...(ev.teams||[]).map(t=>(t.r||[]).length)));
+  const kp=+ev.kill_pts||0,cur=!!ev.current;
+  RV.teams=(ev.teams||[]).filter(x=>x&&x.team).map(x=>({team:x.team,logo:cur?(x.logo||_logoMap[fxKey(x.team)]||''):'',r:x.r||[],kp}));
+  $rv('rv-steps').innerHTML=`<button type="button" data-a="reset">⟲ Reset (0 pts)</button>`+
+    Array.from({length:RV.n},(_,i)=>`<button type="button" data-a="m${i}">▶ M${i+1}</button>`).join('')+
+    `<button type="button" data-a="full" class="full">▶ Full (M1→M${RV.n})</button>`;
+  $rv('rv-prog').innerHTML=Array.from({length:RV.n},()=>'<span><i></i></span>').join('');
+  const board=$rv('rv-board');board.innerHTML='';
+  RV.rowH=Math.max(34,Math.min(56,Math.floor((board.clientHeight||480)/Math.max(1,RV.teams.length))));
+  board.style.minHeight=(RV.rowH*RV.teams.length)+'px';
+  RV.teams.forEach(t=>{
+    const el=document.createElement('div');el.className='rv-row';el.style.height=(RV.rowH-6)+'px';
+    el.innerHTML=`<span class="rv-mv"></span><span class="rv-rk">-</span>${t.logo?`<img src="${esc(t.logo)}" alt="">`:''}<span class="rv-nm">${esc(t.team)}<small></small></span><span class="rv-chipslot"></span><span class="rv-k"></span><span class="rv-tot">0</span><span class="rv-tb" hidden></span>`;
+    board.appendChild(el);
+    Object.assign(t,{el,mv:el.querySelector('.rv-mv'),rk:el.querySelector('.rv-rk'),sm:el.querySelector('small'),k:el.querySelector('.rv-k'),
+      tt:el.querySelector('.rv-tot'),chip:el.querySelector('.rv-chipslot'),tb:el.querySelector('.rv-tb')});
+  });
+  rvZero();
+}
+function rvText(t){
+  t.tt.textContent=t.tot;
+  t.sm.textContent=`PL ${t.pl} · ${t.kp?'EL '+t.kills*t.kp:t.kills+' kills'}`+(t.boo?` · 🏆${t.boo}`:'');
+}
+function rvCmp(a,b){return b.tot-a.tot||b.boo-a.boo||b.kills-a.kills||b.last-a.last||String(a.team).localeCompare(String(b.team));}
+function rvLayout(animate){
+  const order=RV.teams.slice().sort(rvCmp);
+  order.forEach((t,i)=>{
+    const was=t.pos;t.pos=i+1;
+    if(animate&&was&&was!==t.pos){
+      t.mv.className='rv-mv '+(t.pos<was?'up':'down');t.mv.textContent=t.pos<was?'▲':'▼';
+      clearTimeout(t._mv);t._mv=setTimeout(()=>{t.mv.className='rv-mv';},1000);
+    }
+    if(!animate){t.el.style.transition='none';}
+    t.el.style.transform=`translateY(${i*RV.rowH}px)`;
+    t.rk.textContent=i+1;
+    t.el.classList.toggle('lead',i===0&&t.tot>0);
+  });
+  // tied on points: dashed outline + which tie-break put the upper squad ahead
+  order.forEach((t,i)=>{
+    const up=order[i-1],dn=order[i+1];
+    t.el.classList.toggle('tie',t.tot>0&&((up&&up.tot===t.tot)||(dn&&dn.tot===t.tot)));
+    const why=dn&&t.tot>0&&dn.tot===t.tot?(t.boo!==dn.boo?'more booyahs':t.kills!==dn.kills?'more kills':t.last!==dn.last?'better last match':''):'';
+    t.tb.textContent=why?'TB: '+why:'';t.tb.hidden=!why;
+  });
+  if(!animate){void $rv('rv-board').offsetWidth;RV.teams.forEach(t=>{t.el.style.transition='';});}
+  RV.order=order;
+}
+function rvProg(s,f){[...$rv('rv-prog').querySelectorAll('i')].forEach((b,i)=>{b.style.width=(i<s?100:i===s?Math.round(f*100):0)+'%';});}
+function rvOn(a){$rv('rv-steps').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.a===a));}
+function rvZero(){
+  RV.teams.forEach(t=>{Object.assign(t,{tot:0,kills:0,pl:0,boo:0,last:0,mk:0,pos:0});t.k.textContent='';t.chip.innerHTML='';t.mv.className='rv-mv';rvText(t);});
+  RV.stage=-1;rvLayout(false);rvProg(0,0);rvOn('reset');
+  $rv('rv-m').innerHTML='READY';$rv('rv-phase').textContent=RV.teams.length+' squads · 0 pts';$rv('rv-feed').innerHTML='';
+  $rv('rv-bg').style.backgroundImage="url('/ff-victory.webp')";$rv('rv-champ').hidden=true;$rv('rv-card').hidden=true;
+}
+// standings after match s straight away (no animation), the start point for playing match s+1
+function rvJump(s){
+  rvZero();
+  for(let u=0;u<=s;u++)RV.teams.forEach(t=>{const x=t.r[u]||{},k=+x.kills||0,p=+x.pts||0;t.kills+=k;t.tot+=p+k*t.kp;t.pl+=p;t.boo+=p===12?1:0;t.last=p;});
+  RV.teams.forEach(rvText);RV.stage=s;rvLayout(false);
+  if(s>=0){rvProg(s+1,0);$rv('rv-m').innerHTML='AFTER M'+(s+1);$rv('rv-phase').textContent='';}
+}
+async function rvMatch(s,g){
+  if(RV.stage!==s-1)rvJump(s-1);
+  if(!RV.full)rvOn('m'+s);
+  const ev=RV.ev,map=String((ev.maps||[])[s]||'').toLowerCase(),teams=RV.teams;
+  const before=new Map(RV.order.map((t,i)=>[t.team,i+1]));
+  teams.forEach(t=>{t.mk=0;t.last=0;t.k.textContent='🔫 0';t.chip.innerHTML='';});
+  if(RV_MAP[map])$rv('rv-bg').style.backgroundImage=`url('/maps/ff-${map}.webp')`;
+  $rv('rv-m').innerHTML=`MATCH ${s+1}${RV_MAP[map]?`<small>${RV_MAP[map].toUpperCase()}</small>`:''}`;
+  $rv('rv-phase').textContent='';rvProg(s,0);
+  await rvCard('MATCH '+(s+1),RV_MAP[map]||'',g);
+  // every kill, one at a time, in a shuffled (but always the same) order
+  $rv('rv-phase').textContent='🔫 Eliminations';
+  const evs=[];teams.forEach((t,i)=>{for(let k=0;k<(+((t.r[s]||{}).kills)||0);k++)evs.push(i);});
+  const rnd=rvRand(9973*(s+1)+evs.length);
+  for(let i=evs.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[evs[i],evs[j]]=[evs[j],evs[i]];}
+  const per=Math.max(80,Math.min(150,6000/Math.max(1,evs.length)));
+  for(let i=0;i<evs.length;i++){
+    const t=teams[evs[i]];t.mk++;t.kills++;t.tot+=t.kp;
+    t.k.textContent='🔫 '+t.mk;rvText(t);if(t.kp){t.tt.classList.remove('bump');void t.tt.offsetWidth;t.tt.classList.add('bump');}
+    rvFlash(t.el,'hit');rvFloat(t.el,t.kp?'+1':'🔫');
+    const was=t.pos;rvLayout(true);
+    rvFeed(`🔫 <b>${esc(t.team)}</b> elimination #${t.mk}`+(t.pos<was?` · <span style="color:var(--green)">▲ ${rvOrd(t.pos)}</span>`:''));
+    rvProg(s,.6*(i+1)/evs.length);
+    await rvWait(i<3?per*2:per,g);
+  }
+  await rvWait(800,g);
+  // placement points, last place first, +1 at a time; the BOOYAH comes last
+  $rv('rv-phase').textContent='🏁 Placement';
+  const pl=teams.map(t=>({t,p:+((t.r[s]||{}).pts)||0})).sort((a,b)=>a.p-b.p);
+  for(let i=0;i<pl.length;i++){
+    const {t,p}=pl[i],place=RV_PLACE[p];
+    if(p===12){$rv('rv-phase').textContent='🏆 Booyah';await rvCard('BOOYAH!',esc(t.team),g,true);t.boo++;}
+    rvFeed(`🏁 <b>${esc(t.team)}</b> ${place?rvOrd(place)+' place':'no placement points'}${p?` <span style="color:var(--green)">+${p}</span>`:''}`);
+    if(p){rvFlash(t.el,'pl');rvFloat(t.el,'+'+p,true);}
+    for(let k=0;k<p;k++){
+      t.tot++;t.pl++;t.last++;rvText(t);t.tt.classList.remove('bump');void t.tt.offsetWidth;t.tt.classList.add('bump');
+      rvLayout(true);await rvWait(90,g);
+    }
+    if(p===12){const r=t.el.getBoundingClientRect();burstConfetti(r.left+r.width/2,r.top,110,true);$rv('rv-phase').textContent='🏁 Placement';}
+    rvProg(s,.6+.4*(i+1)/pl.length);
+    await rvWait(p?320:120,g);
+  }
+  // who moved this match + the biggest climb + any tie-breaks
+  RV.stage=s;rvProg(s,1);
+  $rv('rv-phase').textContent='📊 After match '+(s+1);
+  let climb=null;
+  teams.forEach(t=>{
+    const dlt=before.get(t.team)-t.pos;
+    if(s>0&&dlt)t.chip.innerHTML=`<span class="rv-chip ${dlt>0?'up':'down'}">${dlt>0?'▲':'▼'}${Math.abs(dlt)}</span>`;
+    if(s>0&&dlt>0&&(!climb||dlt>climb.d))climb={t,d:dlt};
+  });
+  if(climb)rvFeed(`🚀 Biggest climb: <b>${esc(climb.t.team)}</b> ${rvOrd(before.get(climb.t.team))} → ${rvOrd(climb.t.pos)} <span style="color:var(--green)">▲${climb.d}</span>`);
+  RV.order.forEach((t,i)=>{const dn=RV.order[i+1];if(dn&&t.tot>0&&dn.tot===t.tot&&t.tb.textContent)rvFeed(`⚖️ Tie on ${t.tot}: <b>${esc(t.team)}</b> ahead of ${esc(dn.team)} (${t.tb.textContent.replace('TB: ','')})`);});
+  rvFeed(`👑 Leading: <b>${esc(RV.order[0].team)}</b> ${RV.order[0].tot} pts`);
+  await rvWait(2400,g);
+}
+async function rvFull(g){
+  rvZero();rvOn('full');RV.full=true;
+  try{
+    await rvCard('REPLAY',esc(RV.ev.name||''),g);
+    for(let s=0;s<RV.n;s++)await rvMatch(s,g);
+  }finally{RV.full=false;}
+  RV.teams.forEach(t=>{t.chip.innerHTML='';});
+  const top=RV.order.slice(0,3),ch=$rv('rv-champ');
+  $rv('rv-phase').textContent='🏆 Final';
+  ch.innerHTML=`<h2>CHAMPIONS</h2><div class="rv-pod">${top.map((t,i)=>`<div class="p${i+1}"><span>${['🥇','🥈','🥉'][i]}</span><span class="nm">${esc(t.team)}</span><b>${t.tot}</b><div class="st">${i+1}</div></div>`).join('')}</div><div style="display:flex;gap:10px"><button type="button" class="rv-again" data-rv="again">⟲ Watch again</button><button type="button" class="rv-btn sp" data-rv="close">Close</button></div>`;
+  ch.hidden=false;
+  for(let i=0;i<3;i++){burstConfetti(innerWidth*(.25+.25*i),innerHeight*.3,120,true);await rvWait(600,g);}
+}
+function rvRun(fn){
+  const g=++RV.gen;RV.paused=false;$rv('rv').classList.remove('paused');$rv('rv-pause').textContent='⏸';
+  $rv('rv-champ').hidden=true;$rv('rv-card').hidden=true;
+  fn(g).catch(()=>{/* stopped: another button, another event, or closed */});
+}
+function rvPick(i){
+  const ev=RV.list[i];if(!ev)return;
+  RV.gen++;rvBuild(ev);rvRun(rvFull);
+}
+function rvOpen(){
+  if(!rvEvents().length&&!TOURNAMENT_ARCHIVE){rvLoadArchive().then(()=>{if(rvEvents().length)rvOpen();});return;}
+  RV.open=true;$rv('rv').hidden=false;
+  document.body.style.overflow='hidden';confettiCanvas.style.zIndex='9001';
+  try{history.replaceState(null,'',location.pathname+location.search+'#replay');}catch(e){}
+  rvFillSel();
+  requestAnimationFrame(()=>rvPick(0));   // after the overlay has its size (row height comes from it)
+  rvLoadArchive().then(()=>{if(RV.open)rvFillSel(RV.ev&&RV.ev.name);});
+}
+function rvClose(){
+  RV.gen++;RV.open=false;$rv('rv').hidden=true;document.body.style.overflow='';confettiCanvas.style.zIndex='';
+  try{history.replaceState(null,'',location.pathname+location.search+'#latest');}catch(e){}
+}
+$rv('rv-open').addEventListener('click',rvOpen);
+$rv('rv-close').addEventListener('click',rvClose);
+$rv('rv-sel').addEventListener('change',e=>rvPick(+e.target.value));
+$rv('rv-pause').addEventListener('click',()=>{RV.paused=!RV.paused;$rv('rv').classList.toggle('paused',RV.paused);$rv('rv-pause').textContent=RV.paused?'▶':'⏸';});
+$rv('rv-spd').addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b)return;RV.speed=+b.dataset.v;$rv('rv-spd').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));});
+$rv('rv-steps').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-a]');if(!b||!RV.ev)return;
+  const a=b.dataset.a;
+  if(a==='reset'){RV.gen++;rvZero();return;}
+  if(a==='full'){rvRun(rvFull);return;}
+  const s=+a.slice(1);rvRun(g=>rvMatch(s,g));
+});
+$rv('rv-champ').addEventListener('click',e=>{const b=e.target.closest('[data-rv]');if(!b)return;if(b.dataset.rv==='again')rvRun(rvFull);else rvClose();});
+addEventListener('keydown',e=>{if(RV.open&&e.key==='Escape')rvClose();});
+
 // same rules as index.html: a typed winner means finished, and results with no tournament
 // picked belong to the most recently started live/finished event
 function isDone(t){const s=String(t.status||'').toLowerCase();return s==='completed'||(s!=='cancelled'&&!!String(t.winner||'').trim());}
@@ -746,6 +1077,7 @@ function render(d){
   renderChamp(d,rows);
   const rowMap=new Map(rows.map(r=>[r.team,r]));
   setupReplay(B);
+  if(RV_AUTO&&!RV.started&&stageCount(B)>0){RV.started=true;setTimeout(rvOpen,300);}
   if(_rp.busy)return;   // the M1 → M2 → final replay owns the table until it ends
 
   if(!_revealed){
@@ -828,7 +1160,7 @@ function load(){
   });
 }
 load();
-lbTab(location.hash==="#clash"?"clash":location.hash==="#latest"?"latest":"season");
+lbTab(location.hash==="#clash"?"clash":location.hash==="#latest"||location.hash==="#replay"?"latest":"season");
 setInterval(()=>{if(!document.hidden)load();},15000);
 </script>
 <script src="/ui.js?v=23" defer></script>
