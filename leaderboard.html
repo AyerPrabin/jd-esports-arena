@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/effects.css">
-<link rel="stylesheet" href="/effects-pro.css">
+<link rel="stylesheet" href="/effects-pro.css?v=3">
 <style>
 :root{
   --bg:#07090F;--bg-2:#0D111B;--panel:#111827;--panel-2:#151D2E;--line:rgba(255,200,80,.14);
@@ -392,9 +392,10 @@ async function loadSeason(){
 let _seasonLogos=null;
 const FX_COLOR={glow:'#ffd24a',gold:'#ffc83d',legend:'#ffd24a',steel:'#c7d0dc',fire:'#ff7a3d',ice:'#8fd8ff',neon:'#ff4fd8',rainbow:'#b48cff',galaxy:'#9b7bff',thunder:'#4fd8ff',bullets:'#ffb347',blade:'#ff5a5a'};
 // a squad's effect for the season board: the best one it has used on any entry (anything beats the basic Glow)
+const PRO_FX=new Set(['galaxy','thunder','bullets','blade','legend']);
 function seasonFx(name){
   const k=fxKey(name);let best='';
-  for(const x of _roster)if(fxKey(x.squad_name)===k&&FX_TAG[x.effect]&&(!best||best==='glow'))best=x.effect;
+  for(const x of _roster)if(fxKey(x.squad_name)===k&&FX_TAG[x.effect]&&(!best||best==='glow'||(PRO_FX.has(x.effect)&&!PRO_FX.has(best))))best=x.effect;
   return best;
 }
 function seasonAv(name,fx){
@@ -409,7 +410,7 @@ function renderSeason(){
   box.innerHTML=`<div class="ss-list">${rows.map((r,i)=>{
     const fx=seasonFx(r.squad_name),c=FX_COLOR[fx]||'#ffc83d';
     const sub=`${r.events} event${r.events===1?'':'s'} · 🏆 ${r.wins}${r.kills!=null?` · ${r.kills} kills`:''}`;
-    return `<div class="ss-row ${fx?'ss-fx':'ss-plain'}${i<3?' ss-top':''}"${fx?` style="--fxc:${c}"`:''}><span class="ss-rk">${medal(i+1)}</span>${seasonAv(r.squad_name,fx)}`+
+    return `<div class="ss-row ${fx?'ss-fx':'ss-plain'}${PRO_FX.has(fx)?' ss-pro':''}${i<3?' ss-top':''}"${fx?` style="--fxc:${c}"`:''}><span class="ss-rk">${medal(i+1)}</span>${seasonAv(r.squad_name,fx)}`+
       `<span class="ss-main"><span class="ss-nm">${fx?`<span class="fxn fxn-${fx}">${esc(r.squad_name)}</span>`:esc(r.squad_name)}</span><small>${sub}</small></span>`+
       `${fx?`<span class="ss-badge">✨ ${FX_TAG[fx]}</span>`:''}<span class="ss-pts"><b>${r.points}</b><small>pts</small></span></div>`;
   }).join('')}</div><div class="ss-cta"><span>✨ <b>Make your squad stand out.</b> Squads with an effect glow on every board.</span><a href="/#tournaments">Get an effect</a></div>`;

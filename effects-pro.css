@@ -94,3 +94,47 @@
 .fxa-thunder{box-shadow:0 0 0 2px #4fd8ff,0 0 22px rgba(79,216,255,.8)!important}
 .fxa-bullets{box-shadow:0 0 0 2px #ff9a3d,0 0 20px rgba(255,154,61,.75)!important}
 .fxa-blade{box-shadow:0 0 0 2px #ff5a6a,0 0 20px rgba(255,90,106,.7)!important}
+
+/* ── Pro layer v2 (30 Oct 2026): Pro effects look a level above the rest wherever they appear ──
+   names: a bright sweep + breathing glow · logos: pulsing aura · tags: PRO mark */
+@keyframes fxProGlow{0%,100%{filter:drop-shadow(0 0 4px var(--fxd,rgba(255,200,61,.5)))}50%{filter:drop-shadow(0 0 10px var(--fxd,rgba(255,200,61,.8))) drop-shadow(0 0 2px #fff)}}
+@keyframes fxSweep{0%,62%{background-position:-60% 0,0 50%}100%{background-position:160% 0,200% 50%}}
+.fxn-galaxy,.fxn-bullets,.fxn-blade,.fxn-legend{
+  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.95) 50%,transparent 60%) -60% 0/45% 100% no-repeat,var(--fxt) 0 50%/200% auto;
+  -webkit-background-clip:text;background-clip:text;
+  animation:fxSweep 3.2s ease-in-out infinite,fxProGlow 2.4s ease-in-out infinite}
+.fxn-thunder{background:linear-gradient(105deg,transparent 40%,#fff 50%,transparent 60%) -60% 0/45% 100% no-repeat,var(--fxt) 0 50%/200% auto;
+  -webkit-background-clip:text;background-clip:text;animation:fxSweep 2.2s ease-in-out infinite,fxBolt 3.4s linear infinite}
+@keyframes fxRingPulse{0%,100%{filter:drop-shadow(0 0 3px var(--rc)) saturate(1.05)}50%{filter:drop-shadow(0 0 12px var(--rc)) drop-shadow(0 0 4px #fff) saturate(1.25)}}
+.fxa-galaxy{--rc:#8f6bff}.fxa-thunder{--rc:#4fd8ff}.fxa-bullets{--rc:#ff9a3d}.fxa-blade{--rc:#ff5a6a}.fxa-legend{--rc:#ffd24a}
+.fxa-galaxy,.fxa-thunder,.fxa-bullets,.fxa-blade,.fxa-legend{animation:fxRingPulse 2.2s ease-in-out infinite}
+.fxn-galaxy+.fxn-tag,.fxn-thunder+.fxn-tag,.fxn-bullets+.fxn-tag,.fxn-blade+.fxn-tag,.fxn-legend+.fxn-tag{
+  color:#fff;border-color:transparent;background:linear-gradient(rgba(6,8,14,.8),rgba(6,8,14,.8)) padding-box,linear-gradient(90deg,#ff6bd6,#5fd3ff,#ffd24a,#ff6bd6) border-box;
+  box-shadow:0 0 10px -2px rgba(95,211,255,.6)}
+.fxn-galaxy+.fxn-tag::before,.fxn-thunder+.fxn-tag::before,.fxn-bullets+.fxn-tag::before,.fxn-blade+.fxn-tag::before,.fxn-legend+.fxn-tag::before{
+  content:'PRO';margin-right:4px;padding:0 4px;border-radius:3px;font-size:.5rem;font-weight:900;letter-spacing:.06em;color:#07090f;background:linear-gradient(90deg,#ffd24a,#ff9be6)}
+/* same bright sweep on Pro names inside cards */
+.sqfx-galaxy .fx-name,.sq-fx-galaxy .fx-name,.sqfx-bullets .fx-name,.sq-fx-bullets .fx-name,
+.sqfx-blade .fx-name,.sq-fx-blade .fx-name,.sqfx-legend .fx-name,.sq-fx-legend .fx-name{
+  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.95) 50%,transparent 60%) -60% 0/45% 100% no-repeat,var(--fxt) 0 50%/200% auto;
+  -webkit-background-clip:text;background-clip:text;animation:fxSweep 3.2s ease-in-out infinite,fxProGlow 2.4s ease-in-out infinite}
+.sqfx-thunder .fx-name,.sq-fx-thunder .fx-name{
+  background:linear-gradient(105deg,transparent 40%,#fff 50%,transparent 60%) -60% 0/45% 100% no-repeat,var(--fxt) 0 50%/200% auto;
+  -webkit-background-clip:text;background-clip:text;animation:fxSweep 2.2s ease-in-out infinite,fxBolt 3.4s linear infinite}
+/* Thunder — a lightning flash over the whole card */
+@keyframes fxFlash{0%,82%,87%,91%,100%{opacity:0}84%,89%{opacity:.55}}
+.sqfx-thunder::after{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;
+  background:radial-gradient(120% 90% at 70% 0%,rgba(190,240,255,.55),transparent 60%);animation:fxFlash 3.4s linear infinite}
+/* Blade — a sword slash cutting across the card */
+@keyframes fxSlash{0%,70%{transform:translateX(-120%) skewX(-24deg);opacity:0}74%{opacity:1}86%,100%{transform:translateX(220%) skewX(-24deg);opacity:0}}
+.sqfx-blade::after{content:'';position:absolute;top:0;bottom:0;left:0;width:45%;z-index:0;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.08) 40%,rgba(255,255,255,.85) 50%,rgba(255,90,106,.35) 54%,transparent 64%);animation:fxSlash 3.6s ease-in infinite}
+
+/* ── season leaderboard: Pro squads get a moving rainbow-edge border and a PRO badge ── */
+@keyframes ssProEdge{to{background-position:300% 0}}
+.ss-pro{border-color:transparent;background:linear-gradient(100deg,color-mix(in srgb,var(--fxc) 26%,#0d1320),#0d1320 64%) padding-box,
+  linear-gradient(90deg,var(--fxc),#ff9be6,#5fd3ff,#ffd24a,var(--fxc)) 0 0/300% 100% border-box;border:1.5px solid transparent;
+  animation:ssProEdge 6s linear infinite;box-shadow:0 0 26px -4px color-mix(in srgb,var(--fxc) 45%,transparent)}
+.ss-pro .ss-badge{background:linear-gradient(90deg,#ffd24a,#ff9be6,#5fd3ff);box-shadow:0 0 12px -2px var(--fxc)}
+.ss-pro .ss-badge::before{content:'PRO · ';font-weight:900}
+.ss-pro .ss-pts b{color:#fff;text-shadow:0 0 12px var(--fxc)}
