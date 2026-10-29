@@ -128,6 +128,27 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .ss-cta a{margin-left:auto;flex:none;padding:8px 14px;border-radius:999px;background:linear-gradient(180deg,var(--gold-l),var(--gold));color:#140f02;font-weight:800;font-size:.78rem}
 @media(max-width:520px){.ss-row{gap:9px;padding:10px 11px}.ss-rk{width:24px;font-size:1.1rem}.ss-av{width:34px;height:34px}.ss-nm{font-size:.9rem}.ss-badge{font-size:.52rem;padding:3px 7px}.ss-pts{min-width:44px}.ss-pts b{font-size:1.4rem}.ss-cta{flex-wrap:wrap}.ss-cta a{margin-left:0}}
 @media(prefers-reduced-motion:reduce){.ss-fx::after{animation:none;display:none}}
+/* event standings + Clash Squad rows: a squad's effect lights the whole row like its event card */
+.pts-table tr.lb-fx td{background:color-mix(in srgb,var(--fxc) 13%,var(--panel))}
+.pts-table tr.lb-fx td:first-child{box-shadow:inset 4px 0 0 var(--fxc)}
+.pts-table tr.lb-fx td:last-child{box-shadow:inset -1px 0 0 color-mix(in srgb,var(--fxc) 40%,transparent)}
+.pts-table tr.lb-fx .team img{box-shadow:0 0 0 2px var(--fxc),0 0 12px var(--fxc);border-radius:50%}
+.pts-table tr.lb-pro td{background:color-mix(in srgb,var(--fxc) 24%,var(--panel));animation:lbProPulse 2.6s ease-in-out infinite}
+@keyframes lbProPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18) saturate(1.2)}}
+@media(max-width:640px){
+  .pts-table tbody tr.lb-fx.lb-fx{position:relative;overflow:hidden;border-color:color-mix(in srgb,var(--fxc) 55%,transparent);
+    background:linear-gradient(100deg,color-mix(in srgb,var(--fxc) 20%,var(--panel)),var(--panel) 62%);box-shadow:inset 4px 0 0 var(--fxc),0 0 18px color-mix(in srgb,var(--fxc) 22%,transparent)}
+  .pts-table tbody tr.lb-pro.lb-pro{border:1.5px solid transparent;background:linear-gradient(100deg,color-mix(in srgb,var(--fxc) 26%,#0d1320),#0d1320 64%) padding-box,
+    linear-gradient(90deg,var(--fxc),#ff9be6,#5fd3ff,#ffd24a,var(--fxc)) 0 0/300% 100% border-box;animation:ssProEdge 6s linear infinite;
+    box-shadow:0 0 26px -4px color-mix(in srgb,var(--fxc) 45%,transparent)}
+  .pts-table tr.lb-pro td{animation:none}
+}
+.cs-row.lb-fx{position:relative;overflow:hidden;border-color:color-mix(in srgb,var(--fxc) 55%,transparent);
+  background:linear-gradient(100deg,color-mix(in srgb,var(--fxc) 20%,var(--panel)),var(--panel) 62%);box-shadow:inset 4px 0 0 var(--fxc),0 0 18px color-mix(in srgb,var(--fxc) 22%,transparent)}
+.cs-row.lb-pro{border:1.5px solid transparent;background:linear-gradient(100deg,color-mix(in srgb,var(--fxc) 26%,#0d1320),#0d1320 64%) padding-box,
+  linear-gradient(90deg,var(--fxc),#ff9be6,#5fd3ff,#ffd24a,var(--fxc)) 0 0/300% 100% border-box;animation:ssProEdge 6s linear infinite}
+.cs-row.lb-fx .av{box-shadow:0 0 0 2px var(--fxc),0 0 12px var(--fxc)}
+.cs-row .fxn-tag{font-size:.54rem;margin-left:6px}
 /* match-by-match replay: the table plays the standings after M1, M2, then the final (see playReplay()) */
 .replay{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 4px}
 .replay[hidden]{display:none}
@@ -437,7 +458,8 @@ function renderClash(){
   h+='<div class="cs-list">'+list.map(r=>{
     const u=String(r.username||'').replace(/[^A-Za-z0-9_-]/g,'');
     const acts=r.me||!u?'':`<span class="acts"><button type="button" title="Message @${esc(u)}" aria-label="Message @${esc(u)}" onclick="window.jdChat&&jdChat.connect('${u}')">💬</button><a href="/challenges/?invite=${encodeURIComponent(u)}" title="Challenge @${esc(u)}" aria-label="Challenge @${esc(u)}">⚔️</a></span>`;
-    return `<div class="cs-row${r.me?' me':''}"><span class="rk${r.rank<=3?' m':''}">${medal(r.rank)}</span>${csAv(r)}<span class="nm"><b>${esc(r.name)}${r.me?' · You':''}</b><small>${esc(r.squad||r.tag||'')}${r.streak>1?' · 🔥 '+r.streak+' streak':''}</small></span>${acts||`<span class="stat">${r.wins}<small>wins</small></span>`}
+    const fx=seasonFx(r.squad||'')||seasonFx(r.name||'');
+    return `<div class="cs-row${r.me?' me':''}${fx?' lb-fx':''}${PRO_FX.has(fx)?' lb-pro':''}"${fx?` style="--fxc:${FX_COLOR[fx]||'#ffc83d'}"`:''}><span class="rk${r.rank<=3?' m':''}">${medal(r.rank)}</span>${csAv(r)}<span class="nm"><b>${fx?`<span class="fxn fxn-${fx}">${esc(r.name)}</span>`:esc(r.name)}${r.me?' · You':''}</b><small>${esc(r.squad||r.tag||'')}${r.streak>1?' · 🔥 '+r.streak+' streak':''}</small></span>${acts||`<span class="stat">${r.wins}<small>wins</small></span>`}
       <span class="wr"><span>${r.wins}W · ${r.played-r.wins}L</span><span class="bar"><i style="width:${r.rate}%"></i></span><span>${r.rate}%</span></span></div>`;
   }).join('')+'</div>';
   box.innerHTML=h;
@@ -644,10 +666,14 @@ function rowHTML(r){
     kc+
     `<td class="tot" data-role="tot"><span class="num-val">${r.totalPts}</span></td>`;
 }
+function fxRow(el,fx){
+  el.classList.toggle('lb-fx',!!fx);el.classList.toggle('lb-pro',PRO_FX.has(fx));
+  if(fx)el.style.setProperty('--fxc',FX_COLOR[fx]||'#ffc83d');else el.style.removeProperty('--fxc');
+}
 function makeRow(r){
   const tr=document.createElement('tr');
   tr.dataset.flipKey=r.team;tr.dataset.fx=r.fx||'';
-  tr.innerHTML=rowHTML(r);
+  tr.innerHTML=rowHTML(r);fxRow(tr,r.fx);
   return tr;
 }
 function updateRow(tr,r,prev){
@@ -657,7 +683,7 @@ function updateRow(tr,r,prev){
   }else if(tr.dataset.fx!==(r.fx||'')){
     tr.querySelector('.team-name').innerHTML=fxText(r.fx,r.team,true);
   }
-  tr.dataset.fx=r.fx||'';
+  tr.dataset.fx=r.fx||'';fxRow(tr,r.fx);
   const r1=tr.querySelector('[data-role="r1"] .num-val');if(r1)animateCount(r1,r.r1k,{stiffness:170,damping:20});
   const r2=tr.querySelector('[data-role="r2"] .num-val');if(r2)animateCount(r2,r.r2k,{stiffness:170,damping:20});
   const r3=tr.querySelector('[data-role="r3"] .num-val');if(r3)animateCount(r3,r.r3k,{stiffness:170,damping:20});
@@ -1202,7 +1228,7 @@ let _rosterAt=0;
 async function loadRoster(){
   if(!sb||Date.now()-_rosterAt<60000)return;
   _rosterAt=Date.now();
-  try{const {data,error}=await sb.rpc('get_public_roster');if(!error&&data){_roster=data;if(_season)renderSeason();}}catch(e){}
+  try{const {data,error}=await sb.rpc('get_public_roster');if(!error&&data){_roster=data;if(_season)renderSeason();if(_cs)renderClash();}}catch(e){}
 }
 function load(){
   const bust='v='+Math.floor(Date.now()/20000);
