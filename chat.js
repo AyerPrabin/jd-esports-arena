@@ -1226,25 +1226,62 @@
 
   // 🔊 Read a ZULU reply aloud with the device's own voices (speechSynthesis, on tap only).
   // Devanagari needs a Nepali (ne) or Hindi (hi) voice - phones usually have one, many PCs don't.
-  var sayBtn = null;
+  // Picks the most natural voice the device has (the first "en" voice is often a robotic desktop one), speaks
+  // sentence by sentence (Chrome stops a single long utterance after ~15 s) and never reads symbols like → or ·.
+  var sayBtn = null, sayRun = 0;
+  var GOOD_VOICE = /natural|neural|online|enhanced|premium|google|siri|samantha|daniel|serena/i;
+  function bestVoice(voices, langs) {
+    for (var i = 0; i < langs.length; i++) {
+      var m = voices.filter(function (v) { return langs[i].test(v.lang); });
+      if (m.length) return m.find(function (v) { return GOOD_VOICE.test(v.name); }) || m.find(function (v) { return !v.localService; }) || m[0];
+    }
+    return null;
+  }
+  function sayChunks(s) {   // sentences, then commas, so no piece runs past ~180 characters
+    var out = [];
+    (s.match(/[^.!?।]+[.!?।]*/g) || [s]).forEach(function (p) {
+      p = p.trim();
+      while (p.length > 180) { var cut = p.lastIndexOf(',', 180); if (cut < 60) cut = p.lastIndexOf(' ', 180); if (cut < 1) cut = 180; out.push(p.slice(0, cut + 1).trim()); p = p.slice(cut + 1).trim(); }
+      if (p) out.push(p);
+    });
+    return out;
+  }
   function zuluSpeak(text, btn) {
     var ss = window.speechSynthesis;
     if (!ss || typeof SpeechSynthesisUtterance === 'undefined') return 'This browser can\'t read aloud.';
-    if (ss.speaking) { ss.cancel(); var was = sayBtn; if (sayBtn) sayBtn.classList.remove('on'); sayBtn = null; if (was === btn) return ''; }
+    if (ss.speaking || ss.pending || sayBtn) { sayRun++; ss.cancel(); var was = sayBtn; if (sayBtn) sayBtn.classList.remove('on'); sayBtn = null; if (was === btn) return ''; }
     var clean = String(text || '').replace(/(^|\s)\/[a-z-]+\/?(?:[a-z-]+\.html)?(?:#[a-z]+)?(?=\s|$)/g, ' ')
-      .replace(/https?:\/\/\S+/g, ' ').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '').replace(/\s+/g, ' ').trim();
+      .replace(/https?:\/\/\S+/g, ' ').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, '')
+      .replace(/\s[·•|—–]\s/g, ', ').replace(/[*_#`~>]+/g, ' ').replace(/\bRs\.?\s?(?=\d)/g, 'rupees ')
+      .replace(/\s+/g, ' ').trim();
     if (!clean) return '';
-    var deva = /[ऀ-ॿ]/.test(clean), voices = ss.getVoices() || [];
-    var pick = function (re) { return voices.find(function (v) { return re.test(v.lang); }); };
-    var v = deva ? (pick(/^ne/i) || pick(/^hi/i)) : (pick(/^en-IN/i) || pick(/^en/i));
-    if (deva && !v) return 'No Nepali voice on this device - try ZULU on your phone.';
-    var u = new SpeechSynthesisUtterance(clean);
-    if (v) { u.voice = v; u.lang = v.lang; }
-    u.rate = 1;
-    u.onend = u.onerror = function () { if (btn) btn.classList.remove('on'); if (sayBtn === btn) sayBtn = null; };
+    var deva = /[ऀ-ॿ]/.test(clean), run = ++sayRun;
     if (btn) btn.classList.add('on');
     sayBtn = btn;
-    ss.speak(u);
+    var done = function () { if (btn) btn.classList.remove('on'); if (sayBtn === btn) sayBtn = null; };
+    var start = function () {
+      if (run !== sayRun) return;
+      var voices = ss.getVoices() || [];
+      var v = deva ? bestVoice(voices, [/^ne/i, /^hi/i]) : bestVoice(voices, [/^en-(GB|IN)/i, /^en/i]);
+      if (deva && !v) { done(); if (btn && !btn.nextElementSibling) btn.insertAdjacentHTML('afterend', '<span class="dm-sayerr">No Nepali voice on this device - try ZULU on your phone.</span>'); return; }
+      var parts = sayChunks(clean);
+      parts.forEach(function (p, i) {
+        var u = new SpeechSynthesisUtterance(p);
+        if (v) { u.voice = v; u.lang = v.lang; } else u.lang = deva ? 'ne-NP' : 'en-GB';
+        u.rate = deva ? 0.95 : 1;
+        u.pitch = 1;
+        if (i === parts.length - 1) u.onend = done;
+        u.onerror = function (e) { if (e && e.error !== 'interrupted' && e.error !== 'canceled') done(); };
+        ss.speak(u);
+      });
+    };
+    // voices load late (often empty on the first tap): wait for them, up to 1.2 s
+    if ((ss.getVoices() || []).length) start();
+    else {
+      var go = function () { ss.removeEventListener && ss.removeEventListener('voiceschanged', go); clearTimeout(t); start(); };
+      var t = setTimeout(go, 1200);
+      if (ss.addEventListener) ss.addEventListener('voiceschanged', go);
+    }
     return '';
   }
   window.zuluSpeak = zuluSpeak;
