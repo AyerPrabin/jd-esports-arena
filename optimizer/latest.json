@@ -1,9 +1,9 @@
 {
-  "version": "5.9",
-  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.9.exe",
-  "sha256": "333205860b8b32605d9a029c55eacc21c966affc3765b37087f4c0a5a74fbf5c",
-  "size": 2319346,
-  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-5.9.zip",
-  "notes": "JD Frag Engine (new name for JD-Optimiers): Aim steady + faster mouse, keyboard and USB response while you play, all put back when you stop; Pass Expired now keeps the app in Read-Only Diagnostic Mode (nothing deleted); AMD GPU temperatures; BlueStacks X; Panel scan checks inside the emulator over ADB (read-only) and reports Fair-Play status; ping every 3 s.",
+  "version": "6.0",
+  "url": "https://jdesport.co.uk/optimizer/JD-Optimiers-6.0.exe",
+  "sha256": "861f14e6ff3dd896e22f8d79926799d25d07f19957d1be47d8ee5e4e22ef3c26",
+  "size": 2321303,
+  "zip": "https://jdesport.co.uk/optimizer/JD-Optimiers-6.0.zip",
+  "notes": "JD Frag Engine 6.0: JD-Optimiers now has its new name everywhere (window, tray, pop-ups, console, file properties, sign-in page). Nothing to redo: your sign-in, settings and history carry on. No Weekly Pass needed - your Optimizer plan is enough. MSI App Player now starts as a normal app, so the taskbar shows its own logo. Includes Aim steady (faster mouse, keyboard and USB response while you play, put back when you stop), Read-Only Diagnostic Mode, AMD GPU temperatures, BlueStacks X and the Fair-Play panel scan.",
   "date": "2026-10-29"
 }
