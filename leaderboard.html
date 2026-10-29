@@ -128,27 +128,27 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .ss-cta a{margin-left:auto;flex:none;padding:8px 14px;border-radius:999px;background:linear-gradient(180deg,var(--gold-l),var(--gold));color:#140f02;font-weight:800;font-size:.78rem}
 @media(max-width:520px){.ss-row{gap:9px;padding:10px 11px}.ss-rk{width:24px;font-size:1.1rem}.ss-av{width:34px;height:34px}.ss-nm{font-size:.9rem}.ss-badge{font-size:.52rem;padding:3px 7px}.ss-pts{min-width:44px}.ss-pts b{font-size:1.4rem}.ss-cta{flex-wrap:wrap}.ss-cta a{margin-left:0}}
 @media(prefers-reduced-motion:reduce){.ss-fx::after{animation:none;display:none}}
-/* event standings + Clash Squad rows: a squad's effect lights the whole row like its event card */
-.pts-table tr.lb-fx td{background:color-mix(in srgb,var(--fxc) 13%,var(--panel))}
-.pts-table tr.lb-fx td:first-child{box-shadow:inset 4px 0 0 var(--fxc)}
-.pts-table tr.lb-fx td:last-child{box-shadow:inset -1px 0 0 color-mix(in srgb,var(--fxc) 40%,transparent)}
-.pts-table tr.lb-fx .team img{box-shadow:0 0 0 2px var(--fxc),0 0 12px var(--fxc);border-radius:50%}
-.pts-table tr.lb-pro td{background:color-mix(in srgb,var(--fxc) 24%,var(--panel));animation:lbProPulse 2.6s ease-in-out infinite}
-@keyframes lbProPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18) saturate(1.2)}}
-@media(max-width:640px){
-  .pts-table tbody tr.lb-fx.lb-fx{position:relative;overflow:hidden;border-color:color-mix(in srgb,var(--fxc) 55%,transparent);
-    background:linear-gradient(100deg,color-mix(in srgb,var(--fxc) 20%,var(--panel)),var(--panel) 62%);box-shadow:inset 4px 0 0 var(--fxc),0 0 18px color-mix(in srgb,var(--fxc) 22%,transparent)}
-  .pts-table tbody tr.lb-pro.lb-pro{border:1.5px solid transparent;background:linear-gradient(100deg,color-mix(in srgb,var(--fxc) 26%,#0d1320),#0d1320 64%) padding-box,
-    linear-gradient(90deg,var(--fxc),#ff9be6,#5fd3ff,#ffd24a,var(--fxc)) 0 0/300% 100% border-box;animation:ssProEdge 6s linear infinite;
-    box-shadow:0 0 26px -4px color-mix(in srgb,var(--fxc) 45%,transparent)}
-  .pts-table tr.lb-pro td{animation:none}
+/* effects on the boards are the event page's own squad-card effects (.sqfx .sqfx-<key> from
+   effects.css / effects-pro.css / effects-styles.css): same border, particles, shine and tag */
+.ss-row.sqfx>*:not(.sqp):not(.sqfx-shine),.cs-row.sqfx>*:not(.sqp):not(.sqfx-shine),.lbg tr.sqfx>td{position:relative;z-index:1}
+.ss-row.sqfx,.cs-row.sqfx,.lbg tbody tr.sqfx{position:relative;overflow:hidden}
+.sqfx .ss-av,.sqfx .av,.lbg tr.sqfx .team img{box-shadow:0 0 0 2px var(--fx1),0 0 16px var(--fx1)}
+.sqfx .sqfx-tag{margin:0 0 0 8px;vertical-align:2px}
+.ss-row.sqfx .sqfx-tag{flex:none;margin:0}
+.sqfx .fx-name{font-weight:800}
+.lbg .team-name{display:inline-flex;align-items:center;min-width:0;max-width:100%}
+.lbg .team-name .fx-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* laptop: rows as cards (a grid) so the effect border and particles wrap the whole row */
+@media(min-width:641px){
+  .pts-table.lbg,.lbg thead,.lbg tbody{display:block}
+  .lbg tr{display:grid;grid-template-columns:56px minmax(0,1fr) repeat(3,96px) 84px;align-items:center;margin:0 0 7px;border-radius:12px}
+  .lbg.nok tr{grid-template-columns:56px minmax(0,1fr) 84px}
+  .lbg th,.lbg td{display:block;background:none!important;border-radius:0!important}
+  .lbg td.team{display:flex;align-items:center;gap:8px;min-width:0}
+  .lbg th.num,.lbg td.num,.lbg td.tot{text-align:right}
+  .lbg tbody tr:not(.sqfx){background:var(--panel);border:1.5px solid rgba(255,200,80,.08)}
+  .lbg tbody tr:not(.sqfx):hover{background:var(--panel-2)}
 }
-.cs-row.lb-fx{position:relative;overflow:hidden;border-color:color-mix(in srgb,var(--fxc) 55%,transparent);
-  background:linear-gradient(100deg,color-mix(in srgb,var(--fxc) 20%,var(--panel)),var(--panel) 62%);box-shadow:inset 4px 0 0 var(--fxc),0 0 18px color-mix(in srgb,var(--fxc) 22%,transparent)}
-.cs-row.lb-pro{border:1.5px solid transparent;background:linear-gradient(100deg,color-mix(in srgb,var(--fxc) 26%,#0d1320),#0d1320 64%) padding-box,
-  linear-gradient(90deg,var(--fxc),#ff9be6,#5fd3ff,#ffd24a,var(--fxc)) 0 0/300% 100% border-box;animation:ssProEdge 6s linear infinite}
-.cs-row.lb-fx .av{box-shadow:0 0 0 2px var(--fxc),0 0 12px var(--fxc)}
-.cs-row .fxn-tag{font-size:.54rem;margin-left:6px}
 /* match-by-match replay: the table plays the standings after M1, M2, then the final (see playReplay()) */
 .replay{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 4px}
 .replay[hidden]{display:none}
@@ -308,7 +308,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
   .cs-row .av{width:38px;height:38px}
 }
 </style>
-<link rel="stylesheet" href="/ui.css?v=18">
+<link rel="stylesheet" href="/ui.css?v=19">
 <link rel="stylesheet" href="/broadcast.css?v=5">
 <link rel="stylesheet" href="/effects-styles.css?v=2">
 </head>
@@ -429,11 +429,11 @@ function renderSeason(){
   if(!rows.length){box.innerHTML='<div class="empty-state">No finished events yet — the season table fills in as results are published.</div>';return;}
   const medal=n=>n===1?'🥇':n===2?'🥈':n===3?'🥉':n;
   box.innerHTML=`<div class="ss-list">${rows.map((r,i)=>{
-    const fx=seasonFx(r.squad_name),c=FX_COLOR[fx]||'#ffc83d';
+    const fx=seasonFx(r.squad_name);
     const sub=`${r.events} event${r.events===1?'':'s'} · 🏆 ${r.wins}${r.kills!=null?` · ${r.kills} kills`:''}`;
-    return `<div class="ss-row ${fx?'ss-fx':'ss-plain'}${PRO_FX.has(fx)?' ss-pro':''}${i<3?' ss-top':''}"${fx?` style="--fxc:${c}"`:''}><span class="ss-rk">${medal(i+1)}</span>${seasonAv(r.squad_name,fx)}`+
-      `<span class="ss-main"><span class="ss-nm">${fx?`<span class="fxn fxn-${fx}">${esc(r.squad_name)}</span>`:esc(r.squad_name)}</span><small>${sub}</small></span>`+
-      `${fx?`<span class="ss-badge">✨ ${FX_TAG[fx]}</span>`:''}<span class="ss-pts"><b>${r.points}</b><small>pts</small></span></div>`;
+    return `<div class="ss-row${fx?fxCardCls(fx):' ss-plain'}${i<3?' ss-top':''}">${fxDeco(fx)}<span class="ss-rk">${medal(i+1)}</span>${seasonAv(r.squad_name,fx)}`+
+      `<span class="ss-main"><span class="ss-nm">${fx?`<span class="fx-name">${esc(r.squad_name)}</span>`:esc(r.squad_name)}</span><small>${sub}</small></span>`+
+      `${fx?`<span class="sqfx-tag">${FX_TAG[fx]}</span>`:''}<span class="ss-pts"><b>${r.points}</b><small>pts</small></span></div>`;
   }).join('')}</div><div class="ss-cta"><span>✨ <b>Make your squad stand out.</b> Squads with an effect glow on every board.</span><a href="/#tournaments">Get an effect</a></div>`;
 }
 async function loadClash(){
@@ -459,7 +459,7 @@ function renderClash(){
     const u=String(r.username||'').replace(/[^A-Za-z0-9_-]/g,'');
     const acts=r.me||!u?'':`<span class="acts"><button type="button" title="Message @${esc(u)}" aria-label="Message @${esc(u)}" onclick="window.jdChat&&jdChat.connect('${u}')">💬</button><a href="/challenges/?invite=${encodeURIComponent(u)}" title="Challenge @${esc(u)}" aria-label="Challenge @${esc(u)}">⚔️</a></span>`;
     const fx=seasonFx(r.squad||'')||seasonFx(r.name||'');
-    return `<div class="cs-row${r.me?' me':''}${fx?' lb-fx':''}${PRO_FX.has(fx)?' lb-pro':''}"${fx?` style="--fxc:${FX_COLOR[fx]||'#ffc83d'}"`:''}><span class="rk${r.rank<=3?' m':''}">${medal(r.rank)}</span>${csAv(r)}<span class="nm"><b>${fx?`<span class="fxn fxn-${fx}">${esc(r.name)}</span>`:esc(r.name)}${r.me?' · You':''}</b><small>${esc(r.squad||r.tag||'')}${r.streak>1?' · 🔥 '+r.streak+' streak':''}</small></span>${acts||`<span class="stat">${r.wins}<small>wins</small></span>`}
+    return `<div class="cs-row${r.me?' me':''}${fxCardCls(fx)}">${fxDeco(fx)}<span class="rk${r.rank<=3?' m':''}">${medal(r.rank)}</span>${csAv(r)}<span class="nm"><b>${fx?`<span class="fx-name">${esc(r.name)}</span>`:esc(r.name)}${r.me?' · You':''}</b>${fx?`<span class="sqfx-tag">${FX_TAG[fx]}</span>`:''}<small>${esc(r.squad||r.tag||'')}${r.streak>1?' · 🔥 '+r.streak+' streak':''}</small></span>${acts||`<span class="stat">${r.wins}<small>wins</small></span>`}
       <span class="wr"><span>${r.wins}W · ${r.played-r.wins}L</span><span class="bar"><i style="width:${r.rate}%"></i></span><span>${r.rate}%</span></span></div>`;
   }).join('')+'</div>';
   box.innerHTML=h;
@@ -561,7 +561,7 @@ function flip(container,mutate,opts){
     const l=el.getBoundingClientRect();
     const dx=f.left-l.left,dy=f.top-l.top;
     if(!dx&&!dy)return;
-    spring(0,1,t=>{el.style.transform=`translate(${dx*(1-t)}px,${dy*(1-t)}px)`;},()=>{el.style.transform='';},opts||{stiffness:260,damping:26});
+    spring(0,1,t=>{el.style.translate=`${dx*(1-t)}px ${dy*(1-t)}px`;},()=>{el.style.translate='';},opts||{stiffness:260,damping:26});
   });
 }
 
@@ -654,7 +654,7 @@ let _lastDoc=null, _noKills=false, _logoMap={}, _logoSlug=''; // kills-free boar
 
 function tableSkeleton(){
   const kc=_noKills?'':'<th class="num">R1 Kills</th><th class="num">R2 Kills</th><th class="num">R3 Kills</th>';
-  return `<table class="pts-table"><thead><tr><th>#</th><th>Squad</th>${kc}<th class="num">Total</th></tr></thead><tbody id="lb-tbody"></tbody></table>`;
+  return `<table class="pts-table lbg${_noKills?' nok':''}"><thead><tr><th>#</th><th>Squad</th>${kc}<th class="num">Total</th></tr></thead><tbody id="lb-tbody"></tbody></table>`;
 }
 function rowHTML(r){
   const kc=_noKills?'':
@@ -662,13 +662,23 @@ function rowHTML(r){
     `<td class="num" data-role="r2"><span class="num-val">${r.r2k}</span><span class="arrow-slot">${mvArrow(r.moveR2)}</span></td>`+
     `<td class="num" data-role="r3"><span class="num-val">${r.r3k}</span><span class="arrow-slot">${mvArrow(r.moveR3)}</span></td>`;
   return `<td class="rk" data-role="rk">${r.rank}</td>`+
-    `<td class="team" data-role="team">${r.logo?`<img src="${esc(r.logo)}" alt="">`:''}<span class="team-name">${fxText(r.fx,r.team,true)}</span></td>`+
+    `<td class="team" data-role="team">${r.logo?`<img src="${esc(r.logo)}" alt="">`:''}<span class="team-name">${fxCardName(r.fx,r.team)}</span></td>`+
     kc+
     `<td class="tot" data-role="tot"><span class="num-val">${r.totalPts}</span></td>`;
 }
-function fxRow(el,fx){
-  el.classList.toggle('lb-fx',!!fx);el.classList.toggle('lb-pro',PRO_FX.has(fx));
-  if(fx)el.style.setProperty('--fxc',FX_COLOR[fx]||'#ffc83d');else el.style.removeProperty('--fxc');
+// same markup as an event squad card (home.js sqCardHtml): shine + 6 particles, .fx-name, .sqfx-tag
+function sqfxParticles(){let h='';for(let k=0;k<6;k++)h+=`<i class="sqp" style="--x:${(k*37+9)%96}%;--y:${(k*53+11)%78}%;--d:${((k*.43)%2.6).toFixed(2)}s;--t:${(1.9+(k%3)*.55).toFixed(2)}s"></i>`;return h;}
+function fxDeco(fx){return fx?`<span class="sqfx-shine"></span>${sqfxParticles()}`:'';}
+function fxCardCls(fx){return fx?` sqfx sqfx-${fx}`:'';}
+function fxCardName(fx,name){return fx?`<span class="fx-name">${esc(name)}</span><span class="sqfx-tag">${FX_TAG[fx]}</span>`:esc(name);}
+function fxRow(tr,fx){
+  if((tr.dataset.fxk||'')===(fx||''))return;
+  if(tr.dataset.fxk)tr.classList.remove('sqfx','sqfx-'+tr.dataset.fxk);
+  tr.querySelectorAll(':scope>.sqp,:scope>.sqfx-shine').forEach(e=>e.remove());
+  tr.dataset.fxk=fx||'';
+  if(!fx)return;
+  tr.classList.add('sqfx','sqfx-'+fx);
+  const d=document.createElement('div');d.innerHTML=fxDeco(fx);tr.append(...d.childNodes); // DOM insert (a <tr> can't parse spans from HTML), after the cells so td:nth-child layouts hold
 }
 function makeRow(r){
   const tr=document.createElement('tr');
@@ -679,9 +689,9 @@ function makeRow(r){
 function updateRow(tr,r,prev){
   tr.querySelector('[data-role="rk"]').textContent=r.rank;
   if(r.logo&&!tr.querySelector('.team img')){
-    tr.querySelector('[data-role="team"]').innerHTML=`<img src="${esc(r.logo)}" alt=""><span class="team-name">${fxText(r.fx,r.team,true)}</span>`;
+    tr.querySelector('[data-role="team"]').innerHTML=`<img src="${esc(r.logo)}" alt=""><span class="team-name">${fxCardName(r.fx,r.team)}</span>`;
   }else if(tr.dataset.fx!==(r.fx||'')){
-    tr.querySelector('.team-name').innerHTML=fxText(r.fx,r.team,true);
+    tr.querySelector('.team-name').innerHTML=fxCardName(r.fx,r.team);
   }
   tr.dataset.fx=r.fx||'';fxRow(tr,r.fx);
   const r1=tr.querySelector('[data-role="r1"] .num-val');if(r1)animateCount(r1,r.r1k,{stiffness:170,damping:20});
@@ -693,9 +703,9 @@ function updateRow(tr,r,prev){
 }
 function staggerRows(tbody){
   [...tbody.children].forEach((tr,i)=>{
-    tr.style.opacity='0';tr.style.transform='translateY(14px)';
+    tr.style.opacity='0';tr.style.translate='0 14px';
     setTimeout(()=>{
-      spring(0,1,t=>{tr.style.opacity=t;tr.style.transform=`translateY(${14*(1-t)}px)`;},()=>{tr.style.opacity='';tr.style.transform='';},{stiffness:190,damping:22});
+      spring(0,1,t=>{tr.style.opacity=t;tr.style.translate=`0 ${14*(1-t)}px`;},()=>{tr.style.opacity='';tr.style.translate='';},{stiffness:190,damping:22});
     },Math.min(i*55,500));
   });
 }
@@ -773,7 +783,7 @@ function showStage(s,fresh){
 }
 function endReplay(){
   _rp.busy=false;_rp.stage=-1;
-  document.querySelectorAll('#lb-tbody tr').forEach(tr=>{tr.style.transition='';tr.style.transform='';});
+  document.querySelectorAll('#lb-tbody tr').forEach(tr=>{tr.style.transition='';tr.style.translate='';});
   document.getElementById('rp-play').disabled=false;
   if(_lastDoc)render(_lastDoc);   // reconcile to the live final: arrows, podium rise, confetti
 }
@@ -785,8 +795,8 @@ function glide(tbody,order){
   if(REDUCE_MOTION)return;
   rows.forEach(tr=>{
     const dy=first.get(tr)-tr.getBoundingClientRect().top;if(!dy)return;
-    tr.style.transition='none';tr.style.transform=`translateY(${dy}px)`;void tr.offsetWidth;
-    tr.style.transition='transform .42s cubic-bezier(.2,.8,.2,1)';tr.style.transform='';
+    tr.style.transition='none';tr.style.translate=`0 ${dy}px`;void tr.offsetWidth;
+    tr.style.transition='translate .42s cubic-bezier(.2,.8,.2,1)';tr.style.translate='';
   });
 }
 function zeroStage(){

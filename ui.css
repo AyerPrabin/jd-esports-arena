@@ -164,13 +164,13 @@ img{max-width:100%}
     display:grid;grid-template-columns:30px auto auto auto 1fr auto;
     grid-template-areas:"rk team team team team tot" "rk r1 r2 r3 . tot";
     align-items:center;column-gap:10px;row-gap:3px;
-    margin:0 0 8px;padding:11px 14px 11px 12px;border-radius:14px;
-    background:var(--panel,#111827);border:1px solid rgba(255,200,80,.08)}
+    margin:0 0 8px;padding:11px 14px 11px 12px;border-radius:14px}
+  .pts-table tr:not(.sqfx){background:var(--panel,#111827);border:1px solid rgba(255,200,80,.08)}
   .pts-table td,.pts-table tr:hover td,.pts-table tr.mine td{
     display:block;padding:0!important;background:none!important;border-radius:0!important;box-shadow:none!important;border:0!important}
-  .pts-table tbody tr:nth-child(1){border-color:rgba(255,213,74,.45);background:linear-gradient(100deg,rgba(255,200,61,.12),var(--panel,#111827) 60%)}
-  .pts-table tbody tr:nth-child(2){border-color:rgba(217,222,232,.28)}
-  .pts-table tbody tr:nth-child(3){border-color:rgba(227,161,95,.32)}
+  .pts-table tbody tr:nth-child(1):not(.sqfx){border-color:rgba(255,213,74,.45);background:linear-gradient(100deg,rgba(255,200,61,.12),var(--panel,#111827) 60%)}
+  .pts-table tbody tr:nth-child(2):not(.sqfx){border-color:rgba(217,222,232,.28)}
+  .pts-table tbody tr:nth-child(3):not(.sqfx){border-color:rgba(227,161,95,.32)}
   .pts-table tr.mine{background:rgba(94,219,149,.11);box-shadow:inset 3px 0 0 #5EDB95}
   .pts-table td.rk{grid-area:rk;font-size:1.45rem;line-height:1;text-align:center}
   .pts-table td:nth-child(2){
