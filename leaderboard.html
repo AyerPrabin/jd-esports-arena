@@ -99,6 +99,35 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .champ-name .fxn-tag{font-family:var(--font-body);font-size:.66rem;vertical-align:super}
 .champ-sub{color:var(--silver);font-size:.86rem}
 .pts-table .fxn-tag{font-size:.54rem}
+.pts-table th:first-child,.pts-table td.rk{width:46px}
+.ss-list{display:flex;flex-direction:column;gap:8px;max-width:820px;margin:0 auto}
+.ss-row{position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--panel);border:1px solid rgba(255,255,255,.06);overflow:hidden}
+.ss-rk{width:30px;flex:none;text-align:center;font:700 1.3rem/1 'Barlow Condensed',sans-serif;color:var(--gold-l)}
+.ss-top .ss-rk{font-size:1.5rem}
+.ss-av{position:relative;width:40px;height:40px;flex:none;border-radius:50%;display:grid;place-items:center;overflow:hidden;font-weight:800;color:#fff;background:#2a3346}
+.ss-av img{width:100%;height:100%;object-fit:cover}
+.ss-main{flex:1;min-width:0}
+.ss-nm{display:block;font-weight:700;font-size:.98rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ss-main small{display:block;font-size:.7rem;color:var(--body);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ss-badge{flex:none;font:800 .6rem var(--font-body);letter-spacing:.06em;text-transform:uppercase;padding:4px 9px;border-radius:999px;color:#0b0f19;background:var(--fxc)}
+.ss-pts{flex:none;text-align:right;min-width:52px}
+.ss-pts b{display:block;font:700 1.65rem/1 'Barlow Condensed',sans-serif;color:var(--gold-l)}
+.ss-pts small{font-size:.58rem;color:var(--body);text-transform:uppercase;letter-spacing:.08em}
+/* bought an effect: tinted card, coloured edge, a slow sheen and the effect's name + ring */
+.ss-fx{border-color:color-mix(in srgb,var(--fxc) 55%,transparent);background:linear-gradient(100deg,color-mix(in srgb,var(--fxc) 20%,var(--panel)),var(--panel) 62%);box-shadow:0 0 20px color-mix(in srgb,var(--fxc) 22%,transparent)}
+.ss-fx::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--fxc);box-shadow:0 0 12px var(--fxc)}
+.ss-fx::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.09) 50%,transparent 65%);transform:translateX(-100%);animation:ssSheen 5s ease-in-out infinite;pointer-events:none}
+@keyframes ssSheen{0%,55%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+/* no effect: plain and quieter */
+.ss-plain{background:rgba(17,24,39,.55);border-color:rgba(255,255,255,.04)}
+.ss-plain .ss-nm{color:var(--silver);font-weight:600}
+.ss-plain .ss-av{background:#222a38;color:#7d879b;filter:grayscale(1) brightness(.85)}
+.ss-plain .ss-pts b{color:#bfae80}
+.ss-cta{max-width:820px;margin:14px auto 0;padding:14px 16px;border-radius:14px;border:1px dashed var(--gold-m);display:flex;align-items:center;gap:12px;font-size:.84rem;color:var(--silver)}
+.ss-cta b{color:var(--gold-l)}
+.ss-cta a{margin-left:auto;flex:none;padding:8px 14px;border-radius:999px;background:linear-gradient(180deg,var(--gold-l),var(--gold));color:#140f02;font-weight:800;font-size:.78rem}
+@media(max-width:520px){.ss-row{gap:9px;padding:10px 11px}.ss-rk{width:24px;font-size:1.1rem}.ss-av{width:34px;height:34px}.ss-nm{font-size:.9rem}.ss-badge{font-size:.52rem;padding:3px 7px}.ss-pts{min-width:44px}.ss-pts b{font-size:1.4rem}.ss-cta{flex-wrap:wrap}.ss-cta a{margin-left:0}}
+@media(prefers-reduced-motion:reduce){.ss-fx::after{animation:none;display:none}}
 /* match-by-match replay: the table plays the standings after M1, M2, then the final (see playReplay()) */
 .replay{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 4px}
 .replay[hidden]{display:none}
@@ -355,15 +384,35 @@ async function loadSeason(){
   const box=document.getElementById('alltime-body');
   if(_season){renderSeason();return;}
   if(!sb){box.innerHTML='<p class="sub">Couldn\'t load standings.</p>';return;}
+  if(!_seasonLogos)sb.rpc('get_season_logos').then(({data})=>{_seasonLogos={};(data||[]).forEach(x=>{if(x.logo)_seasonLogos[fxKey(x.squad_name)]=x.logo;});if(_season)renderSeason();}).catch(()=>{});
   const {data,error}=await sb.rpc('get_season_standings');
   if(error){box.innerHTML='<p class="sub">Couldn\'t load standings. Check your connection.</p>';return;}
   _season=data||[];renderSeason();
+}
+let _seasonLogos=null;
+const FX_COLOR={glow:'#ffd24a',gold:'#ffc83d',legend:'#ffd24a',steel:'#c7d0dc',fire:'#ff7a3d',ice:'#8fd8ff',neon:'#ff4fd8',rainbow:'#b48cff',galaxy:'#9b7bff',thunder:'#4fd8ff',bullets:'#ffb347',blade:'#ff5a5a'};
+// a squad's effect for the season board: the best one it has used on any entry (anything beats the basic Glow)
+function seasonFx(name){
+  const k=fxKey(name);let best='';
+  for(const x of _roster)if(fxKey(x.squad_name)===k&&FX_TAG[x.effect]&&(!best||best==='glow'))best=x.effect;
+  return best;
+}
+function seasonAv(name,fx){
+  const logo=_seasonLogos&&_seasonLogos[fxKey(name)];
+  const inner=logo&&/^(https:|data:image\/)/.test(logo)?`<img src="${esc(logo)}" alt="" loading="lazy">`:esc(String(name||'?').trim().charAt(0).toUpperCase());
+  return `<span class="ss-av${fx?' fxa-'+fx:''}">${inner}</span>`;
 }
 function renderSeason(){
   const box=document.getElementById('alltime-body'),rows=_season||[];
   if(!rows.length){box.innerHTML='<div class="empty-state">No finished events yet — the season table fills in as results are published.</div>';return;}
   const medal=n=>n===1?'🥇':n===2?'🥈':n===3?'🥉':n;
-  box.innerHTML=`<table class="pts-table"><thead><tr><th>#</th><th>Squad</th><th class="num">Events</th><th class="num">🏆</th><th class="num">Points</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td class="rk">${medal(i+1)}</td><td class="team"><span class="team-name">${esc(r.squad_name)}</span></td><td class="num">${r.events}</td><td class="num">${r.wins}</td><td class="tot"><span class="num-val">${r.points}</span></td></tr>`).join('')}</tbody></table>`;
+  box.innerHTML=`<div class="ss-list">${rows.map((r,i)=>{
+    const fx=seasonFx(r.squad_name),c=FX_COLOR[fx]||'#ffc83d';
+    const sub=`${r.events} event${r.events===1?'':'s'} · 🏆 ${r.wins}${r.kills!=null?` · ${r.kills} kills`:''}`;
+    return `<div class="ss-row ${fx?'ss-fx':'ss-plain'}${i<3?' ss-top':''}"${fx?` style="--fxc:${c}"`:''}><span class="ss-rk">${medal(i+1)}</span>${seasonAv(r.squad_name,fx)}`+
+      `<span class="ss-main"><span class="ss-nm">${fx?`<span class="fxn fxn-${fx}">${esc(r.squad_name)}</span>`:esc(r.squad_name)}</span><small>${sub}</small></span>`+
+      `${fx?`<span class="ss-badge">✨ ${FX_TAG[fx]}</span>`:''}<span class="ss-pts"><b>${r.points}</b><small>pts</small></span></div>`;
+  }).join('')}</div><div class="ss-cta"><span>✨ <b>Make your squad stand out.</b> Squads with an effect glow on every board.</span><a href="/#tournaments">Get an effect</a></div>`;
 }
 async function loadClash(){
   const box=document.getElementById('cs-body');
@@ -1151,7 +1200,7 @@ let _rosterAt=0;
 async function loadRoster(){
   if(!sb||Date.now()-_rosterAt<60000)return;
   _rosterAt=Date.now();
-  try{const {data,error}=await sb.rpc('get_public_roster');if(!error&&data)_roster=data;}catch(e){}
+  try{const {data,error}=await sb.rpc('get_public_roster');if(!error&&data){_roster=data;if(_season)renderSeason();}}catch(e){}
 }
 function load(){
   const bust='v='+Math.floor(Date.now()/20000);

@@ -6800,3 +6800,20 @@ select cron.unschedule('open10-notice-2');
 select cron.schedule('open10-notice-2', '45 2 30 10 *',  $c$select public._open10_notice(2); select cron.unschedule('open10-notice-2')$c$);
 select cron.schedule('open10-notice-5', '45 10 30 10 *', $c$select public._open10_notice(5); select cron.unschedule('open10-notice-5')$c$);
 commit;
+
+-- ── Season board logos (30 Oct 2026): the latest logo each squad name used on a confirmed / approved entry ──
+-- Same data get_squad_logos(slug) already shows per event, for every event at once.
+begin;
+create or replace function public.get_season_logos()
+ returns table(squad_name text, logo text)
+ language sql stable security definer set search_path to 'public'
+as $$
+  select distinct on (lower(trim(r.squad_name))) r.squad_name, coalesce(nullif(r.squad_logo, ''), p.squad_logo) as logo
+  from public.registrations r
+  join public.players p on p.id = r.player_id
+  where r.status in ('confirmed','approved')
+    and coalesce(nullif(r.squad_logo, ''), p.squad_logo) is not null
+  order by lower(trim(r.squad_name)), r.created_at desc;
+$$;
+grant execute on function public.get_season_logos() to anon, authenticated;
+commit;
