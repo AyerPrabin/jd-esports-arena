@@ -1,10 +1,10 @@
 {
-  "versionCode": 13,
-  "versionName": "2.0.6",
+  "versionCode": 14,
+  "versionName": "2.0.7",
   "minVersionCode": 13,
-  "url": "https://jdesport.co.uk/download/jd-arena-2.0.6.apk",
-  "sha256": "405f4e4799402352e8a2ef014b7ec87a192a90e1f8ce4886434db32fbe21ad5f",
-  "size": 3499320,
+  "url": "https://jdesport.co.uk/download/jd-arena-2.0.7.apk",
+  "sha256": "a146e206e95389f22151240162f1b00ec7d5578a13797c473ee650dd20014762",
+  "size": 3585393,
   "date": "2026-10-30",
-  "notes": "Smoother scrolling and animations: watch every match of a tournament replay live on the Leaderboard (Latest event → Watch match replay)."
+  "notes": "Feels better: a new animated opening screen, and a gentle vibration when you switch tabs, join, copy a room code or get confirmed."
 }
