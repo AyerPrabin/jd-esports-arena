@@ -246,11 +246,11 @@
       "start": "2026-10-29T21:30:00+05:45",
       "format": "BR · 3 matches",
       "status": "completed",
+      "winner": "Soul2Ash",
       "platform": "Mix Device",
       "platform_mode": "mixed",
       "teams": [],
-      "registered": 0,
-      "winner": "Soul2Ash"
+      "registered": 0
     },
     {
       "map": "nexterra",
@@ -354,8 +354,7 @@
             "kills": 22,
             "pts": 12
           }
-        ],
-        "prize_won": 150
+        ]
       },
       {
         "team": "Youtz Esp",
@@ -373,8 +372,7 @@
             "kills": 9,
             "pts": 9
           }
-        ],
-        "prize_won": 90
+        ]
       },
       {
         "team": "THE REAL TIGER",
@@ -392,8 +390,7 @@
             "kills": 8,
             "pts": 6
           }
-        ],
-        "prize_won": 60
+        ]
       },
       {
         "team": "TEAM TIGER",
@@ -505,5 +502,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-29T17:51:02.422Z"
+  "_published_at": "2026-10-29T19:43:37.590Z"
 }
