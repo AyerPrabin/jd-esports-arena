@@ -173,22 +173,22 @@ img{max-width:100%}
   .pts-table tbody tr:nth-child(3):not(.sqfx){border-color:rgba(227,161,95,.32)}
   .pts-table tr.mine{background:rgba(94,219,149,.11);box-shadow:inset 3px 0 0 #5EDB95}
   .pts-table td.rk{grid-area:rk;font-size:1.45rem;line-height:1;text-align:center}
-  .pts-table td:nth-child(2){
+  .pts-table td:nth-of-type(2){
     grid-area:team;min-width:0;display:flex!important;align-items:center;gap:8px;
     font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden}
-  .pts-table td:nth-child(2) img{width:26px!important;height:26px!important;flex:none;margin:0!important}
-  .pts-table td:nth-child(2) .team-name,.pts-table td:nth-child(2)>.fxn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .pts-table td:nth-child(2) .team-name{display:flex;align-items:center;gap:6px}
-  .pts-table td:nth-child(2) .team-name>.fxn{min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .pts-table td:nth-of-type(2) img{width:26px!important;height:26px!important;flex:none;margin:0!important}
+  .pts-table td:nth-of-type(2) .team-name,.pts-table td:nth-of-type(2)>.fxn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pts-table td:nth-of-type(2) .team-name{display:flex;align-items:center;gap:6px}
+  .pts-table td:nth-of-type(2) .team-name>.fxn{min-width:0;overflow:hidden;text-overflow:ellipsis}
   .pts-table .fxn-tag{flex:none;font-size:.58rem!important;padding:1px 6px!important;margin-left:6px}
-  .pts-table td:nth-child(3){grid-area:r1}
-  .pts-table td:nth-child(4){grid-area:r2}
-  .pts-table td:nth-child(5){grid-area:r3}
+  .pts-table td:nth-of-type(3){grid-area:r1}
+  .pts-table td:nth-of-type(4){grid-area:r2}
+  .pts-table td:nth-of-type(5){grid-area:r3}
   .pts-table td.num{font-size:.74rem;color:var(--silver,#A6AFC2);text-align:left;white-space:nowrap;display:flex!important;align-items:center;gap:2px}
   .pts-table td.num::before{color:rgba(166,175,194,.6);font-weight:600;margin-right:3px}
-  .pts-table td:nth-child(3).num::before{content:'R1'}
-  .pts-table td:nth-child(4).num::before{content:'R2'}
-  .pts-table td:nth-child(5).num::before{content:'R3'}
+  .pts-table td:nth-of-type(3).num::before{content:'R1'}
+  .pts-table td:nth-of-type(4).num::before{content:'R2'}
+  .pts-table td:nth-of-type(5).num::before{content:'R3'}
   .pts-table td.num .mv{font-size:.62rem;margin-left:1px}
   .pts-table td.tot{grid-area:tot;font-family:var(--font-display);font-weight:700;font-size:1.7rem;line-height:1;text-align:right;color:var(--gold-l,#FFDD85)}
   .pts-table td.tot::after{content:'pts';display:block;font-family:var(--font-body);font-size:.58rem;font-weight:600;color:var(--silver,#A6AFC2);letter-spacing:.04em;margin-top:2px}
