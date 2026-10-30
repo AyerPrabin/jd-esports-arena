@@ -1,6 +1,208 @@
 {
  "events": [
   {
+   "name": "JD Free Fire Open #10",
+   "date": "Fri, Oct 30",
+   "start": "2026-10-30T21:30:00+05:45",
+   "maps": [
+    "nexterra",
+    "purgatory",
+    "kalahari"
+   ],
+   "prize": "200",
+   "winner": "TEAM TIGER",
+   "kill_pts": 1,
+   "teams": [
+    {
+     "team": "Ancient Ogs 1",
+     "r": [
+      {
+       "kills": 12,
+       "pts": 8
+      },
+      {
+       "kills": 6,
+       "pts": 5
+      },
+      {
+       "kills": 23,
+       "pts": 12
+      }
+     ]
+    },
+    {
+     "team": "TEAM TIGER",
+     "r": [
+      {
+       "kills": 23,
+       "pts": 12
+      },
+      {
+       "kills": 14,
+       "pts": 9
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "AGEE ESP",
+     "r": [
+      {
+       "kills": 7,
+       "pts": 7
+      },
+      {
+       "kills": 14,
+       "pts": 12
+      },
+      {
+       "kills": 3,
+       "pts": 8
+      }
+     ]
+    },
+    {
+     "team": "Hell godzz",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 1
+      },
+      {
+       "kills": 11,
+       "pts": 8
+      },
+      {
+       "kills": 4,
+       "pts": 6
+      }
+     ]
+    },
+    {
+     "team": "NXT tram",
+     "r": [
+      {
+       "kills": 9,
+       "pts": 6
+      },
+      {
+       "kills": 1,
+       "pts": 4
+      },
+      {
+       "kills": 9,
+       "pts": 5
+      }
+     ]
+    },
+    {
+     "team": "lol",
+     "r": [
+      {
+       "kills": 10,
+       "pts": 5
+      },
+      {
+       "kills": 2,
+       "pts": 2
+      },
+      {
+       "kills": 6,
+       "pts": 9
+      }
+     ]
+    },
+    {
+     "team": "THE REAL TIGER",
+     "r": [
+      {
+       "kills": 5,
+       "pts": 9
+      },
+      {
+       "kills": 1,
+       "pts": 7
+      },
+      {
+       "kills": 4,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "Youtz Esp",
+     "r": [
+      {
+       "kills": 6,
+       "pts": 0
+      },
+      {
+       "kills": 6,
+       "pts": 6
+      },
+      {
+       "kills": 0,
+       "pts": 4
+      }
+     ]
+    },
+    {
+     "team": "PRIME ESP",
+     "r": [
+      {
+       "kills": 13,
+       "pts": 2
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "ANNI ESPORT",
+     "r": [
+      {
+       "kills": 1,
+       "pts": 4
+      },
+      {
+       "kills": 5,
+       "pts": 3
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "DB Esport",
+     "r": [
+      {
+       "kills": 7,
+       "pts": 3
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
    "name": "JD Free Fire Open #11",
    "date": "Thu, Oct 29",
    "start": "2026-10-29T21:30:00+05:45",
