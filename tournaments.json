@@ -270,7 +270,7 @@
       "platform_mode": "mobile",
       "teams": [],
       "registered": 0,
-      "winner": "TEAM TIGER"
+      "winner": "Ancient Ogs 1"
     },
     {
       "map": "bermuda",
@@ -355,7 +355,8 @@
             "kills": 23,
             "pts": 12
           }
-        ]
+        ],
+        "prize_won": "100"
       },
       {
         "team": "TEAM TIGER",
@@ -372,24 +373,6 @@
           {
             "kills": 0,
             "pts": 0
-          }
-        ]
-      },
-      {
-        "team": "AGEE ESP",
-        "logo": "",
-        "r": [
-          {
-            "kills": 7,
-            "pts": 7
-          },
-          {
-            "kills": 14,
-            "pts": 12
-          },
-          {
-            "kills": 3,
-            "pts": 8
           }
         ],
         "prize_won": "60"
@@ -486,24 +469,6 @@
         ]
       },
       {
-        "team": "PRIME ESP",
-        "logo": "",
-        "r": [
-          {
-            "kills": 13,
-            "pts": 2
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          }
-        ]
-      },
-      {
         "team": "ANNI ESPORT",
         "logo": "",
         "r": [
@@ -528,6 +493,42 @@
           {
             "kills": 7,
             "pts": 3
+          },
+          {
+            "kills": 0,
+            "pts": 0
+          },
+          {
+            "kills": 0,
+            "pts": 0
+          }
+        ]
+      },
+      {
+        "team": "AGEE ESP",
+        "logo": "",
+        "r": [
+          {
+            "kills": 0,
+            "pts": 0
+          },
+          {
+            "kills": 0,
+            "pts": 0
+          },
+          {
+            "kills": 0,
+            "pts": 0
+          }
+        ]
+      },
+      {
+        "team": "PRIME ESP",
+        "logo": "",
+        "r": [
+          {
+            "kills": 0,
+            "pts": 0
           },
           {
             "kills": 0,
