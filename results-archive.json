@@ -10,7 +10,7 @@
     "kalahari"
    ],
    "prize": "200",
-   "winner": "TEAM TIGER",
+   "winner": "Ancient Ogs 1",
    "kill_pts": 1,
    "teams": [
     {
@@ -44,23 +44,6 @@
       {
        "kills": 0,
        "pts": 0
-      }
-     ]
-    },
-    {
-     "team": "AGEE ESP",
-     "r": [
-      {
-       "kills": 7,
-       "pts": 7
-      },
-      {
-       "kills": 14,
-       "pts": 12
-      },
-      {
-       "kills": 3,
-       "pts": 8
       }
      ]
     },
@@ -150,23 +133,6 @@
      ]
     },
     {
-     "team": "PRIME ESP",
-     "r": [
-      {
-       "kills": 13,
-       "pts": 2
-      },
-      {
-       "kills": 0,
-       "pts": 0
-      },
-      {
-       "kills": 0,
-       "pts": 0
-      }
-     ]
-    },
-    {
      "team": "ANNI ESPORT",
      "r": [
       {
@@ -189,6 +155,40 @@
       {
        "kills": 7,
        "pts": 3
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "AGEE ESP",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "PRIME ESP",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
       },
       {
        "kills": 0,
