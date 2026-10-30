@@ -9,7 +9,7 @@
 //   body: { ids: number[] }   header: x-cron-secret
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { askAI, type AIMessage } from '../_shared/ai.ts';
-import { teamAnswers, zuluSystemPrompt } from '../_shared/zulu.ts';
+import { safeReply, teamAnswers, zuluSystemPrompt } from '../_shared/zulu.ts';
 
 const HUMAN_QUIET_MS = 20 * 60000;
 const PER_PLAYER_DAILY = 25;
@@ -143,8 +143,10 @@ async function answer(db: any, pid: string, day: Date, used: number): Promise<bo
   // a newer player message may have arrived while the AI was thinking: that one triggers its own answer
   const { data: newest } = await db.from('jd_messages').select('id, from_staff').eq('player_id', pid).eq('channel', 'jd').order('id', { ascending: false }).limit(1).maybeSingle();
   if (!newest || newest.id !== last.id) return false;
-  const raw = String(r?.text || '').trim(), big = !raw || /\[FLAG\]/i.test(raw) || /(moderator|team member|JD team).{0,30}(reply|join|check|contact)/i.test(raw);
-  const text = raw.replace(FLAG, '').trim();
+  const raw = String(r?.text || '').trim();
+  let big = !raw || /\[FLAG\]/i.test(raw) || /(moderator|team member|JD team).{0,30}(reply|join|check|contact)/i.test(raw);
+  const safe = safeReply(raw.replace(FLAG, '').trim()), text = safe.text.trim();
+  if (safe.risky) big = true;   // a promise only a person may make: the team checks it
   await say(text || 'Thanks! A JD moderator will reply here soon.');
   if (big) await flag(); else await handled();
   return !!raw;

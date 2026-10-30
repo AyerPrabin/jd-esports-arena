@@ -16,7 +16,7 @@
 // canned answer", so a maxed-out quota degrades gracefully instead of erroring visibly.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { askAI, streamGemini, type AIMessage } from '../_shared/ai.ts';
-import { contextVersion, teamAnswers, zuluSystemPrompt } from '../_shared/zulu.ts';
+import { contextVersion, safeReply, teamAnswers, zuluSystemPrompt } from '../_shared/zulu.ts';
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -145,12 +145,12 @@ This player is signed in, and the conversation starts with a MY ACCOUNT note the
           if (s) provider = 'gemini:' + s.model + ':stream';
           else if (!full) {                         // no model started: the normal chain, sent in one piece
             const r = await askAI(messages, undefined, { geminiModels: CHAT_GEMINI_MODELS, timeoutMs: MODEL_TIMEOUT_MS });
-            if (r) { full = r.text; provider = r.provider; ctrl.enqueue(enc.encode(r.text)); }
+            if (r) { full = safeReply(r.text).text; provider = r.provider; ctrl.enqueue(enc.encode(full)); }
           }
         } catch { /* whatever was sent stays; the page falls back if nothing came */ }
         if (cacheKey && full.trim() && provider) {
           if (answers.size > 200) answers.delete(answers.keys().next().value!);
-          answers.set(cacheKey, { at: Date.now(), reply: full.trim(), provider });
+          answers.set(cacheKey, { at: Date.now(), reply: safeReply(full.trim()).text, provider });
         }
         ctrl.close();
       },
@@ -166,11 +166,12 @@ This player is signed in, and the conversation starts with a MY ACCOUNT note the
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
     }
+    const reply = safeReply(result.text).text;   // last safety check before the player sees it
     if (cacheKey) {
       if (answers.size > 200) answers.delete(answers.keys().next().value!);
-      answers.set(cacheKey, { at: Date.now(), reply: result.text, provider: result.provider });
+      answers.set(cacheKey, { at: Date.now(), reply, provider: result.provider });
     }
-    return json({ reply: result.text, provider: result.provider });
+    return json({ reply, provider: result.provider });
   } catch (e) {
     return new Response(JSON.stringify({ reply: null, note: e instanceof Error ? e.message : String(e) }), {
       status: 200,
