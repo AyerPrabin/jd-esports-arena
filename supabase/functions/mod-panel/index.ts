@@ -182,7 +182,7 @@ Deno.serve(async (req: Request) => {
     if (!await canEvent(slug)) return notYours();
     const { data, error } = await admin.from('registrations')
       .select('id, player_id, squad_name, status, whatsapp, checked_in_at, verified_at, created_at, promoted_at, players(username, player_tag)')
-      .eq('tournament_slug', slug).order('created_at', { ascending: true });
+      .eq('tournament_slug', slug).order('slot_key', { ascending: true });
     if (error) return fail(error.message, 500);
     const wlOrder = await waitOrder((data || []).filter((r: any) => r.status === 'waitlisted'));
     return json((data || []).map((r: any) => ({
@@ -263,7 +263,7 @@ Deno.serve(async (req: Request) => {
     if (!slug) return fail('slug required');
     if (!await canEvent(slug)) return notYours();
     const { data: regs } = await admin.from('registrations')
-      .select('id, squad_name, player_id, status, checked_in_at, created_at, promoted_at').eq('tournament_slug', slug).order('created_at', { ascending: true });
+      .select('id, squad_name, player_id, status, checked_in_at, created_at, promoted_at').eq('tournament_slug', slug).order('slot_key', { ascending: true });
     const all = regs || [];
     const waiting = all.filter((r: any) => r.status === 'waitlisted').length;
     const fresh = (r: any) => r.promoted_at && Date.now() - Date.parse(r.promoted_at) < 20 * 60 * 1000;
@@ -436,7 +436,7 @@ Deno.serve(async (req: Request) => {
     const pool = Number(String(t.prize || '').replace(/,/g, '').match(/\d+/)?.[0] || 0);
     const matches = Math.min(6, Math.max(1, Number(String(t.format || '').match(/(\d+)\s*match/i)?.[1] || 3)));
     const { data: regs } = await admin.from('registrations').select('squad_name, status, created_at')
-      .eq('tournament_slug', slug).in('status', ['confirmed', 'approved']).order('created_at');
+      .eq('tournament_slug', slug).in('status', ['confirmed', 'approved']).order('slot_key');
     const squads = [...new Set((regs || []).map((r: any) => String(r.squad_name || '').trim()).filter(Boolean))];
     const board = doc?.bo3?.tournament === slug ? doc.bo3 : null;
     const { data: paid } = await admin.from('wallet_ledger').select('ref, delta').eq('reason', 'prize').like('ref', `prize:${slug}:%`);

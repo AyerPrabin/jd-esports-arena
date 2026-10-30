@@ -2855,17 +2855,20 @@ function handleDlClick(e){
   toggleDlMenu(e);
 }
 /* Inside the app (JD_TWA, see isStandaloneApp) the download button says "already using the app", and a newer
-   /download/android.json offers a one-tap update (once a day). */
+   /download/android.json offers a one-tap update (once a day, or at once from the "update ready" push: /?update=1,
+   app-update-push). d.url is the Supabase storage copy: the app claims every jdesport.co.uk link, so an APK
+   link there opened in the app itself and the Update button did nothing. */
+const _updAsked=/[?&]update=1/.test(location.search);
 if(JD_TWA>0)window.addEventListener('load',()=>setTimeout(async()=>{
   try{
     const d=await (await fetch('/download/android.json',{cache:'no-store'})).json();
     const day=new Date().toISOString().slice(0,10);
-    if(d.versionCode>JD_TWA&&localStorage.getItem('jd_apk_upd')!==day){
+    if(d.versionCode>JD_TWA&&(_updAsked||localStorage.getItem('jd_apk_upd')!==day)){
       localStorage.setItem('jd_apk_upd',day);
       if(await confirmBox('⬇ App update ready',`JD Arena ${d.versionName}: ${d.notes||'a better app.'}\n\nTap Update, open the downloaded file and tap Install (Update). Your account and settings stay.`,'Update now','Later'))location.href=d.url;
-    }
+    }else if(_updAsked&&d.versionCode<=JD_TWA)showMsg('Up to date',"You already have the newest JD Arena app. 🎮");
   }catch(e){}
-},4000));
+},_updAsked?800:4000));
 /* Old home-screen web app on Android (not the APK): ask once a day to install the real app and delete
    the web version, so alerts come through the app and don't arrive twice. Shown only when Chrome can
    confirm the APK isn't installed (manifest related_applications) - inside the app itself that check

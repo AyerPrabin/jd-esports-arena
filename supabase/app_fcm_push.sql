@@ -18,7 +18,8 @@ create or replace function public.save_fcm_token(p_token text, p_app_version int
 returns void language plpgsql security definer set search_path = public as $$
 begin
   if auth.uid() is null then raise exception 'Please sign in first.'; end if;
-  if p_token is null or p_token !~ '^[A-Za-z0-9_:.-]{20,400}$' then raise exception 'Invalid app token.'; end if;
+  -- length checked apart: a Postgres regex can't count above 255 ({20,400} made every call fail, 2026-10-30)
+  if p_token is null or length(p_token) not between 20 and 400 or p_token !~ '^[A-Za-z0-9_:.-]+$' then raise exception 'Invalid app token.'; end if;
   -- the same phone signing in as someone else moves to that player
   insert into public.push_fcm_tokens (token, player_id, app_version) values (p_token, auth.uid(), p_app_version)
   on conflict (token) do update set player_id = excluded.player_id, app_version = excluded.app_version;

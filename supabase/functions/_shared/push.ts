@@ -111,7 +111,7 @@ async function fcmAccessToken(): Promise<string> {
   return fcmToken;
 }
 
-async function sendFcm(supabase: any, ids: string[], msg: PushMessage): Promise<number> {
+export async function sendFcm(supabase: any, ids: string[], msg: PushMessage): Promise<number> {
   const tokens: string[] = [];
   for (let i = 0; i < ids.length; i += 300) {
     const { data } = await supabase.from('push_fcm_tokens').select('token').in('player_id', ids.slice(i, i + 300));

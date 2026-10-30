@@ -126,6 +126,8 @@ h2[id]{scroll-margin-top:64px}
 .tm-btn.ok-on{border-color:#5aab8a;background:rgba(90,171,138,.14);color:#7fcfae}
 .tm-btn.danger{border-color:rgba(227,107,107,.4);color:var(--red);background:rgba(227,107,107,.08)}
 .tm-btn.danger:hover{border-color:var(--red)}
+.tm-btn.swap-on{border-color:var(--gold);background:rgba(255,200,61,.16);color:var(--gold-l,#FFDD85)}
+.tm-slot{font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;color:var(--gold-l,#FFDD85);border:1px solid var(--line);border-radius:6px;padding:1px 7px}
 .tm-verdict{margin:10px 0 0;padding:10px 14px;border-radius:10px;font-size:.86rem;animation:msgIn .2s ease}
 .tm-verdict.good{background:rgba(90,171,138,.12);border:1px solid rgba(90,171,138,.45);color:#9fe0c3}
 .tm-verdict.bad{background:rgba(227,107,107,.1);border:1px solid rgba(227,107,107,.4);color:#f0a0a0}
@@ -2605,6 +2607,8 @@ function renderTeamsAdmin(){
   sum.innerHTML=_teams.length?`<span><b>${counts.active}</b>${slots?'/'+slots:''} confirmed</span><span><b>${counts.pending}</b> pending</span><span><b>${counts.waitlisted}</b> waitlisted</span>${counts.other?`<span><b>${counts.other}</b> other</span>`:''}<span><b>${nVer}</b>/${_teams.length} verified</span>`:'';
   const rows=_teams.filter(r=>!filter||(filter==='active'?(r.status==='confirmed'||r.status==='approved'):r.status===filter));
   const matchIds=new Set(match.map(m=>m.id));
+  // slot numbers: active squads in list order (list-registrations sorts by slot_key, same as the site)
+  const slotOf=new Map();let sn=0;for(const r of _teams)if(r.status==='confirmed'||r.status==='approved')slotOf.set(r.id,++sn);
   box.innerHTML=rows.length?rows.map(r=>{
     const p=r.players||{},isVer=verified.has(r.id),tc=ticketCode(r.id);
     const cls=(code.length>=4?(matchIds.has(r.id)?' match':' dim'):'')+(isVer?' verified':'');
@@ -2615,7 +2619,7 @@ function renderTeamsAdmin(){
     if(r.device_type)bits.push(r.device_type==='emulator'?'🖥 Emulator':'📱 Mobile');
     if(r.checked_in_at)bits.push('✓ checked in '+esc(new Date(r.checked_in_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})));
     bits.push('joined '+esc(new Date(r.created_at).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})));
-    return `<div class="card tm-card${cls}">${logo}<div class="tm-main"><div class="tm-top"><span class="tm-name">${esc(r.squad_name||'(no squad name)')}</span><span class="tm-code" title="Click to copy" onclick="copyTicket(this,'${tc}')">${tc}</span><span class="tm-pill ${esc(r.status)}">${esc(String(r.status).replace('_','-'))}</span></div><div class="tm-meta">${bits.join(' · ')}</div></div><div class="tm-actions"><button class="tm-btn${isVer?' ok-on':''}" onclick="tmToggleVerified('${r.id}',this)" title="${isVer?'Verified '+esc(new Date(r.verified_at).toLocaleString())+' — click to undo':'Saved permanently; the player sees a Verified badge'}">${isVer?'✓ Verified':'Mark verified'}</button><button class="tm-btn" onclick="messageTeam('${r.id}')">📣 Message</button><button class="tm-btn danger" onclick="removeTeamAdmin('${r.id}')">✕ Remove</button></div></div>`;
+    return `<div class="card tm-card${cls}">${logo}<div class="tm-main"><div class="tm-top">${slotOf.has(r.id)?`<span class="tm-slot" title="Slot number">#${slotOf.get(r.id)}</span>`:''}<span class="tm-name">${esc(r.squad_name||'(no squad name)')}</span><span class="tm-code" title="Click to copy" onclick="copyTicket(this,'${tc}')">${tc}</span><span class="tm-pill ${esc(r.status)}">${esc(String(r.status).replace('_','-'))}</span></div><div class="tm-meta">${bits.join(' · ')}</div></div><div class="tm-actions"><button class="tm-btn${isVer?' ok-on':''}" onclick="tmToggleVerified('${r.id}',this)" title="${isVer?'Verified '+esc(new Date(r.verified_at).toLocaleString())+' — click to undo':'Saved permanently; the player sees a Verified badge'}">${isVer?'✓ Verified':'Mark verified'}</button>${slotOf.has(r.id)?`<button class="tm-btn${_swapFrom===r.id?' swap-on':''}" onclick="tmSwap('${r.id}')" title="Swap this squad's slot number with another squad">${_swapFrom===r.id?'Cancel swap':_swapFrom?'⇄ Swap here':'⇄ Swap slot'}</button>`:''}<button class="tm-btn" onclick="messageTeam('${r.id}')">📣 Message</button><button class="tm-btn danger" onclick="removeTeamAdmin('${r.id}')">✕ Remove</button></div></div>`;
   }).join(''):`<p class="hint">${_teams.length?'No teams with that status.':'No registrations loaded — pick an event and click "↻ Load teams".'}</p>`;
 }
 /* Players can leave a WhatsApp number when registering (optional, this event only).
@@ -2629,6 +2633,25 @@ function waReminderLink(r){
 }
 function copyTicket(el,code){
   navigator.clipboard&&navigator.clipboard.writeText(code).then(()=>{const t=el.textContent;el.textContent='Copied';setTimeout(()=>{el.textContent=t;},900);}).catch(()=>{});
+}
+/* Swap two squads' slot numbers (admin-swap-slots / slot_swap.sql): tap ⇄ on the first squad, then on the
+   second. Everyone else keeps their slot; both squads get a notification with their new slot. */
+let _swapFrom=null;
+async function tmSwap(id){
+  if(!_swapFrom){_swapFrom=id;renderTeamsAdmin();tmMsg('Now tap "⇄ Swap here" on the squad to swap with (or Cancel swap).','');return;}
+  if(_swapFrom===id){_swapFrom=null;renderTeamsAdmin();tmMsg('Swap cancelled.','');return;}
+  const secret=adminSecret();if(!secret){tmMsg('Enter the admin passcode first.','err');return;}
+  const a=_teams.find(x=>x.id===_swapFrom),b=_teams.find(x=>x.id===id);_swapFrom=null;
+  if(!a||!b){renderTeamsAdmin();return;}
+  if(!confirm('Swap the slots of "'+(a.squad_name||'?')+'" and "'+(b.squad_name||'?')+'"?\n\nBoth squads get a notification with their new slot.')){renderTeamsAdmin();return;}
+  tmMsg('Swapping…','');
+  try{
+    const res=await fetch(EDGE_FN_BASE+'/admin-swap-slots',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({a:a.id,b:b.id})});
+    if(!res.ok)throw new Error(await res.text());
+    const out=await res.json();
+    await loadTeamsAdmin();
+    tmMsg('Swapped: "'+(a.squad_name||'?')+'" is now #'+out.a_slot+', "'+(b.squad_name||'?')+'" is now #'+out.b_slot+'.'+(out.room_code_was_sent?' ⚠️ The Room ID was already sent with the old seats: tell both squads their new seat.':''),out.room_code_was_sent?'err':'ok');
+  }catch(e){renderTeamsAdmin();tmMsg('Swap failed: '+e.message,'err');}
 }
 async function removeTeamAdmin(id){
   const secret=adminSecret();
