@@ -9,7 +9,7 @@
 //   body: { ids: number[] }   header: x-cron-secret
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { askAI, type AIMessage } from '../_shared/ai.ts';
-import { zuluSystemPrompt } from '../_shared/zulu.ts';
+import { teamAnswers, zuluSystemPrompt } from '../_shared/zulu.ts';
 
 const HUMAN_QUIET_MS = 20 * 60000;
 const PER_PLAYER_DAILY = 25;
@@ -43,7 +43,7 @@ Deno.serve(async (req: Request) => {
   if (!ids.length) return Response.json({ queued: 0 });
 
   const work = (async () => {
-    await new Promise((r) => setTimeout(r, 1200));      // let a quick burst of messages land first (was 2.5 s)
+    await new Promise((r) => setTimeout(r, 600));       // let a quick burst of messages land first (was 1.2 s)
     const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const { data: rows } = await db.from('jd_messages').select('player_id').in('id', ids).eq('from_staff', false);
     const players = [...new Set((rows || []).map((r: any) => r.player_id))];
@@ -95,6 +95,10 @@ async function answer(db: any, pid: string, day: Date, used: number): Promise<bo
     return false;
   }
 
+  // started now, in parallel with the account reads below (faster replies)
+  const lang = /[ऀ-ॿ]/.test(last.body) ? 'ne' : 'en';
+  const promptP = zuluSystemPrompt(lang);
+  const learnedP = teamAnswers(msgs.filter((m: any) => !m.from_staff).slice(-3).map((m: any) => m.body).join(' '), pid);
   // the player's own account, the same kind of note their app sends to ZULU in Messages
   const [{ data: pl }, { data: wal }, { data: regs }, { data: notes }, { data: own }] = await Promise.all([
     db.from('players').select('username, player_tag, squad_name').eq('id', pid).maybeSingle(),
@@ -121,7 +125,6 @@ async function answer(db: any, pid: string, day: Date, used: number): Promise<bo
     'Recent alerts: ' + ((notes || []).map((n: any) => n.title).join('; ') || 'none'),
   ].join('\n');
 
-  const lang = /[ऀ-ॿ]/.test(last.body) ? 'ne' : 'en';
   const turns: AIMessage[] = [];
   for (const m of msgs) {
     const role = m.from_staff ? 'assistant' : 'user';
@@ -131,12 +134,12 @@ async function answer(db: any, pid: string, day: Date, used: number): Promise<bo
   }
   if (turns[0]?.role === 'assistant') turns.unshift({ role: 'user', content: '(opened the JD Esports chat)' });
   const messages: AIMessage[] = [
-    { role: 'system', content: (await zuluSystemPrompt(lang)) + RULES },
+    { role: 'system', content: (await promptP) + (await learnedP) + RULES },
     { role: 'user', content: 'MY ACCOUNT (from the JD server):\n' + account + '\n\n' + style },
     { role: 'assistant', content: 'Got it.' },
     ...turns,
   ];
-  const r = await askAI(messages, undefined, { geminiModels: GEMINI_MODELS, timeoutMs: 12000 });
+  const r = await askAI(messages, undefined, { geminiModels: GEMINI_MODELS, timeoutMs: 9000 });
   // a newer player message may have arrived while the AI was thinking: that one triggers its own answer
   const { data: newest } = await db.from('jd_messages').select('id, from_staff').eq('player_id', pid).eq('channel', 'jd').order('id', { ascending: false }).limit(1).maybeSingle();
   if (!newest || newest.id !== last.id) return false;

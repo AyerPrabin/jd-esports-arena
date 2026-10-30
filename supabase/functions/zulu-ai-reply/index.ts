@@ -16,7 +16,7 @@
 // canned answer", so a maxed-out quota degrades gracefully instead of erroring visibly.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { askAI, streamGemini, type AIMessage } from '../_shared/ai.ts';
-import { contextVersion, zuluSystemPrompt } from '../_shared/zulu.ts';
+import { contextVersion, teamAnswers, zuluSystemPrompt } from '../_shared/zulu.ts';
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -87,6 +87,7 @@ Deno.serve(async (req: Request) => {
   }
   // Built while the rate-limit checks run, not after them.
   const promptP = zuluSystemPrompt(lang);
+  const learnedP = teamAnswers(message);   // how the JD team answered similar questions
 
   const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
@@ -120,7 +121,7 @@ Deno.serve(async (req: Request) => {
     // it just means this one request isn't counted/capped.
   }
 
-  const systemPrompt = await promptP;
+  const systemPrompt = (await promptP) + (await learnedP);
 
   const messages: AIMessage[] = [
     { role: 'system', content: systemPrompt + (account ? `

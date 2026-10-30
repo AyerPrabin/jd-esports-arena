@@ -51,6 +51,22 @@ const ago = (at: string) => {
   return !Number.isFinite(m) ? 'recently' : m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : Math.round(m / 1440) + ' d ago';
 };
 
+// What ZULU learned from the JD team: moderators' answers to the most similar questions in the official
+// JD Esports chat (zulu_learn.sql zulu_team_answers). Usernames, numbers, emails and links are blanked so
+// nothing about another player reaches this one. Players' private chats are never read. '' when none match.
+export async function teamAnswers(question: string, exclude?: string): Promise<string> {
+  try {
+    const url = Deno.env.get('SUPABASE_URL'), key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!url || !key || !question.trim()) return '';
+    const { data, error } = await createClient(url, key).rpc('zulu_team_answers', { p_q: question.slice(0, 400), p_exclude: exclude || null });
+    if (error || !data?.length) return '';
+    const clean = (t: string) => String(t || '').replace(/\S+@\S+\.\S+/g, '[email]').replace(/https?:\/\/\S+/g, '[link]')
+      .replace(/@[\w.]+/g, '@player').replace(/\d[\d\s-]{4,}\d/g, '[number]').replace(/\s+/g, ' ').trim();
+    return '\n\nHOW THE JD TEAM ANSWERED SIMILAR QUESTIONS (other players\' support chats, learned so you answer the same way: copy the policy, the fix and the tone, never mention those players or their details; the facts above and the live data win if they disagree):\n' +
+      data.map((r: any) => `- Player: "${clean(r.q)}" -> JD team: "${clean(r.a)}"`).join('\n');
+  } catch { return ''; }
+}
+
 export async function zuluSystemPrompt(lang: 'en' | 'ne'): Promise<string> {
   const live = await liveContext();
   // Real-time context: the broadcast announcements JD Arena recently pushed to players,
