@@ -36,8 +36,8 @@ export async function sendPush(supabase: any, playerIds: string[], msg: PushMess
   // notification row in history, just no push
   if (msg.category) {
     const muted = new Set<string>();
-    for (let i = 0; i < ids.length; i += 300) {
-      const { data } = await supabase.from('push_prefs').select('player_id').in('player_id', ids.slice(i, i + 300)).contains('off', [msg.category]);
+    for (let i = 0; i < ids.length; i += 100) {
+      const { data } = await supabase.from('push_prefs').select('player_id').in('player_id', ids.slice(i, i + 100)).contains('off', [msg.category]);
       (data || []).forEach((r: any) => muted.add(r.player_id));
     }
     ids = ids.filter((id) => !muted.has(id));
@@ -47,8 +47,8 @@ export async function sendPush(supabase: any, playerIds: string[], msg: PushMess
   let ok = await sendFcm(supabase, ids, msg);
   if (!configure()) { if (!ok) lastPushError = lastPushError || 'VAPID keys not set'; return ok; }
   const subs: any[] = [];
-  for (let i = 0; i < ids.length; i += 300) {
-    const { data } = await supabase.from('push_subscriptions').select('endpoint, p256dh, auth').in('player_id', ids.slice(i, i + 300));
+  for (let i = 0; i < ids.length; i += 100) {
+    const { data } = await supabase.from('push_subscriptions').select('endpoint, p256dh, auth').in('player_id', ids.slice(i, i + 100));
     subs.push(...(data || []));
   }
   const payload = JSON.stringify({
@@ -73,8 +73,9 @@ export async function sendPush(supabase: any, playerIds: string[], msg: PushMess
       }
     }));
   }
-  if (dead.length) await supabase.from('push_subscriptions').delete().in('endpoint', dead);
-  if (good.length) await supabase.from('push_subscriptions').update({ last_ok_at: new Date().toISOString() }).in('endpoint', good);
+  // in chunks: a web-push endpoint is ~200 characters, so many of them in one .in() overflow the request URL
+  for (let i = 0; i < dead.length; i += 20) await supabase.from('push_subscriptions').delete().in('endpoint', dead.slice(i, i + 20));
+  for (let i = 0; i < good.length; i += 20) await supabase.from('push_subscriptions').update({ last_ok_at: new Date().toISOString() }).in('endpoint', good.slice(i, i + 20));
   return ok;
 }
 
@@ -113,8 +114,8 @@ async function fcmAccessToken(): Promise<string> {
 
 export async function sendFcm(supabase: any, ids: string[], msg: PushMessage): Promise<number> {
   const tokens: string[] = [];
-  for (let i = 0; i < ids.length; i += 300) {
-    const { data } = await supabase.from('push_fcm_tokens').select('token').in('player_id', ids.slice(i, i + 300));
+  for (let i = 0; i < ids.length; i += 100) {
+    const { data } = await supabase.from('push_fcm_tokens').select('token').in('player_id', ids.slice(i, i + 100));
     (data || []).forEach((r: any) => tokens.push(r.token));
   }
   if (!tokens.length) return 0;
@@ -138,7 +139,7 @@ export async function sendFcm(supabase: any, ids: string[], msg: PushMessage): P
       } catch (e) { lastPushError = 'FCM ' + String(e); }
     }));
   }
-  if (dead.length) await supabase.from('push_fcm_tokens').delete().in('token', dead);
-  if (good.length) await supabase.from('push_fcm_tokens').update({ last_ok_at: new Date().toISOString() }).in('token', good);
+  for (let i = 0; i < dead.length; i += 30) await supabase.from('push_fcm_tokens').delete().in('token', dead.slice(i, i + 30));
+  for (let i = 0; i < good.length; i += 30) await supabase.from('push_fcm_tokens').update({ last_ok_at: new Date().toISOString() }).in('token', good.slice(i, i + 30));
   return ok;
 }
