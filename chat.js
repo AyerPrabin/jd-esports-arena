@@ -46,7 +46,7 @@
   var L = {
     messages: ['Messages', 'सन्देश'], all: ['All', 'सबै'], friends: ['Friends', 'साथी'], squads: ['Squads', 'स्क्वाड'],
     matches: ['Matches', 'म्याच'], requests: ['Requests', 'अनुरोध'],
-    add: ['Add', 'थप्नुहोस्'], addPh: ['Search, or message @username / JD tag', 'खोज्नुहोस् वा @युजरनेम / JD ट्यागलाई सन्देश'],
+    add: ['Add', 'थप्नुहोस्'], addPh: ['Search, or message @username', 'खोज्नुहोस् वा @युजरनेमलाई सन्देश'],
     typePh: ['Message…', 'सन्देश लेख्नुहोस्…'], you: ['You', 'तपाईं'], now: ['Active now', 'अहिले सक्रिय'],
     accept: ['Accept', 'स्वीकार'], decline: ['Decline', 'अस्वीकार'], cancel: ['Cancel', 'रद्द'],
     newSquad: ['New squad chat', 'नयाँ स्क्वाड च्याट'], create: ['Create', 'बनाउनुहोस्'], members: ['members', 'सदस्य'],
@@ -124,7 +124,7 @@
   setInterval(function () { AV = {}; }, 50 * 60000);
   function avatar(p, size) {
     p = p || {};
-    var name = p.username || p.tag || '?', h = hue(p.id || name);
+    var name = p.username || '?', h = hue(p.id || name);
     var bg = 'linear-gradient(145deg,hsl(' + h + ' 70% 52%),hsl(' + ((h + 40) % 360) + ' 75% 38%))';
     var pic = p.id && /^[0-9a-f-]{36}$/i.test(p.id) ? AV[p.id] : false;
     if (pic === undefined) wantAv(p.id);
@@ -146,7 +146,7 @@
   // "[@goats.esp] Title" = from that event's host mod, "[JD] Title" = from the JD team
   function alFrom(t) { var m = /^\[(@[\w.]+|JD)\]\s*/.exec(String(t || '')); return m ? { from: m[1] === 'JD' ? 'JD Esports' : m[1], title: String(t).slice(m[0].length) } : { from: '', title: String(t || '') }; }
   function zuluAv(size) { return '<span class="dm-av' + (size ? ' ' + size : '') + ' zu" aria-hidden="true">' + ICON.spark + '</span>'; }
-  var nameOf = function (p) { return p ? (p.username ? '@' + p.username : p.tag) : ''; };
+  var nameOf = function (p) { return p ? (p.username ? '@' + p.username : 'Player') : ''; };
   var emojiOnly = function (s) { return s.length <= 12 && /^(\p{Extended_Pictographic}|\p{Emoji_Component}|‍|️|\s)+$/u.test(s) && !/^[\d#*\s]+$/.test(s); };
   var roomOf = function (body) { var p = String(body || '').split('|'); return p[0] === 'ROOM' ? { id: p[1] || '', pass: p[2] || '', label: p.slice(3).join('|') } : null; };
   function copyText(t, btn) {
@@ -367,10 +367,10 @@
     var id = me, r = await SB.from('players').select('username, player_tag, squad_name').eq('id', id).maybeSingle();
     var box = $('dm-mytag'); if (!r.data || id !== me) return;
     myCard = r.data;
-    box.innerHTML = '<span>Your tag <b>' + esc(r.data.player_tag) + '</b>' + (r.data.username ? ' · @' + esc(r.data.username) : '') + '</span><button type="button">Share</button>';
+    box.innerHTML = '<span>You are <b>@' + esc(r.data.username || '') + '</b></span><button type="button">Share</button>';
     box.hidden = false;
     box.querySelector('button').onclick = function () {
-      var t = 'Add me on JD Arena: ' + (r.data.username ? '@' + r.data.username + ' · ' : '') + r.data.player_tag + ' https://jdesport.co.uk/';
+      var t = 'Add me on JD Arena: @' + (r.data.username || '') + ' https://jdesport.co.uk/';
       if (navigator.share && phone()) { navigator.share({ text: t }).catch(function () {}); return; }
       copyText(t, this);
     };
@@ -460,10 +460,10 @@
     var fTop = zf[0] ? zf[0].id : null, fNew = zfTop !== null && fTop && fTop !== zfTop && !zf[0].read_at;
     zfTop = fTop || zfTop || '';
     var onThread = isOpen && cur && $('dm-thread').classList.contains('on') && !document.hidden;
-    var watchingZ = onThread && cur.kind === 'zulu', watchingA = onThread && cur.kind === 'alerts';
+    var watchingZ = onThread && (cur.kind === 'zulu' || (MERGED && cur.kind === 'jd')), watchingA = onThread && cur.kind === 'alerts';
     if (watchingZ) {
       if (zf.some(function (m) { return !m.read_at; })) markZfRead();
-      if (fNew) { msgs = zuluLoad(); msgs[msgs.length - 1].fresh = true; renderMsgs(true); }
+      if (fNew) { if (cur.kind === 'jd') renderMsgs(true); else { msgs = zuluLoad(); msgs[msgs.length - 1].fresh = true; renderMsgs(true); } }
     } else {
       badge.z = zf.filter(function (m) { return !m.read_at; }).length;
       if (fNew && fromPoll) notifyZulu({ title: String(zf[0].body).split('\n')[0].slice(0, 90) });
@@ -632,7 +632,7 @@
       else if (open.length) out.push({ ic: '🔥', t: open.length + ' open challenge' + (open.length > 1 ? 's' : '') + ' in the lobby', s: 'Accept one and win JD points', href: '/challenges/' });
     } catch (e) {}
     if (online.length) { var f = online[0]; out.push({ ic: '🟢', t: nameOf(f) + ' is online', s: 'Challenge them to a 1v1', href: '/challenges/?invite=' + encodeURIComponent(f.username || '') }); }
-    if (!ov.friends.length) out.push({ ic: '🤝', t: 'Add your teammates', s: 'Search their username or JD tag above', go: function () { $('dm-add-in').focus(); } });
+    if (!ov.friends.length) out.push({ ic: '🤝', t: 'Add your teammates', s: 'Search their username above', go: function () { $('dm-add-in').focus(); } });
     else if (!th.groups.length) out.push({ ic: '👥', t: 'Make a squad chat', s: 'Plan matches with your Clash Squad team', go: function () { newSquadSheet(); } });
     out.push({ ic: '✨', t: 'Ask ZULU anything', s: 'Tournaments, rules, points, tips', go: openZulu });
     recs = out.slice(0, 5);
@@ -674,17 +674,17 @@
     });
     return out;
   }
-  // Android app only: the JD Esports chat is "JD Support" - ZULU (AI) answers first (zulu-auto), a JD team member
-  // takes over when asked or needed (ZULU stays quiet 20 min after a moderator writes). The website is unchanged.
-  var IN_APP = !!window.JDApp || /JDArenaApp\//.test(navigator.userAgent || '');
+  // Website and app: the JD Esports chat and ZULU are one chat - ZULU (AI) answers (zulu-auto), a JD team member
+  // joins only when ZULU flags a big issue (ZULU stays quiet 20 min after a moderator writes). One chat for fast replies.
+  var MERGED = true;
   var HUMAN_ASK = '🙋 I want to talk to a person from the JD team, please.';
   function jdRow() {
-    var l = jdLast, active = cur && cur.kind === 'jd' ? ' active' : '';
+    var l = jdLast, active = cur && cur.kind === 'jd' ? ' active' : '', un = badge.jd + (MERGED ? badge.z : 0);
     var prev = l ? (l.mine ? T('you') + ': ' : '') + l.body
-                 : IN_APP ? 'ZULU AI answers first · our team joins if needed' : 'Official JD Esports team · ask us anything';
-    var dot = badge.jd ? '<span class="dm-dot">' + (badge.jd > 9 ? '9+' : badge.jd) + '</span>' : '';
-    return '<button type="button" class="dm-row jd' + (badge.jd ? ' unread' : '') + active + '" data-k="jd" data-open="jd">' + jdAv() +
-      '<span class="dm-mid"><span class="dm-name">' + (IN_APP ? '🎧 JD Support ' : 'JD Esports ') + VERIFIED + '</span>' +
+                 : MERGED ? 'ZULU AI replies in seconds · JD team joins for big issues' : 'Official JD Esports team · ask us anything';
+    var dot = un ? '<span class="dm-dot">' + (un > 9 ? '9+' : un) + '</span>' : '';
+    return '<button type="button" class="dm-row jd' + (un ? ' unread' : '') + active + '" data-k="jd" data-open="jd">' + jdAv() +
+      '<span class="dm-mid"><span class="dm-name">' + (MERGED ? 'JD Esports · ZULU ' : 'JD Esports ') + VERIFIED + '</span>' +
       '<span class="dm-prev"><span>' + esc(prev) + '</span>' + (l && l.at ? '<span>· ' + short(l.at) + '</span>' : '') + '</span></span>' + dot + '</button>';
   }
   function alertsRow() {
@@ -716,7 +716,7 @@
     var match = function (it) { return !q || String(it.search).toLowerCase().indexOf(q) >= 0; };
     if (tab === 'requests') {
       if (ov.incoming.length) h += '<div class="dm-sec">Friend requests</div>' + ov.incoming.map(function (p) {
-        return '<div class="dm-row">' + avatar(p) + '<span class="dm-mid"><span class="dm-name">' + esc(nameOf(p)) + '</span><span class="dm-prev"><span>' + esc(p.tag || '') + ' · ' + short(p.at) + '</span></span></span>' +
+        return '<div class="dm-row">' + avatar(p) + '<span class="dm-mid"><span class="dm-name">' + esc(nameOf(p)) + '</span><span class="dm-prev"><span>' + (p.squad ? esc(p.squad) + ' · ' : '') + short(p.at) + '</span></span></span>' +
           '<span class="dm-acts"><button type="button" class="dm-btn ghost" data-chat="' + esc(p.id) + '" aria-label="Open chat with ' + esc(nameOf(p)) + '">💬</button><button type="button" class="dm-btn" data-accept="' + esc(p.id) + '">' + T('accept') + '</button><button type="button" class="dm-btn ghost" data-decline="' + esc(p.id) + '" aria-label="' + T('decline') + ' ' + esc(nameOf(p)) + '">✕</button></span></div>';
       }).join('');
       if (ov.outgoing.length) h += '<div class="dm-sec">Sent · waiting</div>' + ov.outgoing.map(function (p) {
@@ -738,14 +738,14 @@
     var online = ov.friends.filter(function (f) { return f.online; });
     if ((tab === 'all' || tab === 'friends') && online.length && !q) {
       h += '<div class="dm-strip" aria-label="Active now">' + online.map(function (f) {
-        return '<button type="button" data-k="dm" data-open="' + esc(f.id) + '">' + avatar(f) + '<span>' + esc(f.username || f.tag) + '</span></button>';
+        return '<button type="button" data-k="dm" data-open="' + esc(f.id) + '">' + avatar(f) + '<span>' + esc(f.username || 'Player') + '</span></button>';
       }).join('') + '</div>';
     }
     if (tab === 'all' && !q) h += recsHtml();
     if (tab === 'all' && (!q || 'jd esports team support help zulu'.indexOf(q) >= 0)) h += jdRow();
     if (tab === 'all' && (!q || 'alerts notifications room'.indexOf(q) >= 0)) h += alertsRow();
-    // app: ZULU lives inside JD Support; its own row only shows while it has an unread tip for you
-    if (tab === 'all' && (!q || 'zulu ai'.indexOf(q) >= 0) && (!IN_APP || !me || badge.z)) h += zuluRow();
+    // signed in, ZULU lives inside the JD Esports chat (its tips show there too)
+    if (tab === 'all' && (!q || 'zulu ai'.indexOf(q) >= 0) && (!MERGED || !me)) h += zuluRow();
     if (tab === 'squads' || (tab === 'all' && !th.groups.length && ov.friends.length && !q)) {
       h += '<button type="button" class="dm-row dm-cta" data-new="1"><span class="dm-av sq plus">' + ICON.plus + '</span><span class="dm-mid"><span class="dm-name">' + T('newSquad') + '</span><span class="dm-prev"><span>Group chat with your Clash Squad team</span></span></span></button>';
     }
@@ -754,7 +754,7 @@
       if (q) h += '<div class="dm-empty">No chats match “' + esc(filter) + '”. Press <b style="display:inline">' + T('add') + '</b> to send a friend request.</div>';
       else if (tab === 'matches') h += '<div class="dm-empty"><span class="dm-empty-ic">' + ICON.swords + '</span><b>No live matches</b>When someone accepts your Clash Squad challenge, the match chat with the other captain shows up here.<br><a class="dm-btn" style="display:inline-grid;place-items:center;margin-top:12px;text-decoration:none" href="/challenges/">Go to challenges</a></div>';
       else if (tab === 'squads') h += '<div class="dm-empty">Make a squad chat for your 2v2–4v4 team: plan, share room IDs, call the next match.</div>';
-      else if (!ov.friends.length) h += '<div class="dm-empty"><span class="dm-empty-ic">' + ICON.users + '</span><b>No friends yet</b>Add your squadmates by their username or JD tag (like JD-7F3K2) above. Once they accept, you can chat and make a squad chat together.</div>';
+      else if (!ov.friends.length) h += '<div class="dm-empty"><span class="dm-empty-ic">' + ICON.users + '</span><b>No friends yet</b>Add your squadmates by their username above. Once they accept, you can chat and make a squad chat together.</div>';
     }
     list.innerHTML = h;
   }
@@ -864,7 +864,7 @@
     openThread({ kind: 'match', id: id, mode: '', other: null });
   }
   function openZulu() {
-    if (IN_APP && me) return openJd();   // app: ZULU answers inside JD Support
+    if (MERGED && me) return openJd();   // ZULU answers inside the JD Esports chat
     if (!isOpen) open(); openThread({ kind: 'zulu', id: 'zulu' });
   }
   function openZuluOwn() { if (!isOpen) open(); openThread({ kind: 'zulu', id: 'zulu' }); }
@@ -893,7 +893,7 @@
     var foot = '';
     if (p.kind === 'dm' && p.friend === false) foot = composer(p.req === 'in' ? 'Reply…' : 'Message request…', 500);
     else if (p.kind === 'zulu') foot = composer(T('askZulu'), 500);
-    else if (p.kind === 'jd') foot = composer(IN_APP ? 'Ask anything - ZULU replies first…' : 'Message the JD team…', 1000);
+    else if (p.kind === 'jd') foot = composer(MERGED ? 'Message JD Esports · ZULU replies…' : 'Message the JD team…', 1000);
     else if (p.kind === 'alerts') foot = '<div class="dm-locked">Alerts can\'t be answered. Questions? Message JD Esports or ask ZULU.</div>';
     else if (p.kind === 'match') foot = composer('Message… · @zulu asks AI', 300);
     else if (p.kind === 'group') foot = composer('Message… · @zulu asks AI', 500);
@@ -935,6 +935,7 @@
       msgs = c; renderMsgs(true);
     });
     refreshThread(true);
+    if (p.kind === 'jd' && MERGED) loadZn().then(function () { if (cur !== p) return; renderMsgs(false); markZfRead(); });
     threadTimer = setInterval(function () { if (!document.hidden) refreshThread(); }, 2500);
   }
   // swap the chips row without hiding the newest message behind it
@@ -967,11 +968,8 @@
   function smartChips(force) {
     var p = cur; if (!p || p.kind === 'zulu') return;
     if (p.kind === 'jd') {
-      if (IN_APP) {   // the way to a person is always one tap away (hidden for 6 h once asked)
-        var asked = msgs.some(function (m) { return m.mine && m.body === HUMAN_ASK && Date.now() - Date.parse(m.created_at) < 6 * 3600000; });
-        var human = asked ? '' : '<button type="button" data-human="1">🙋 Talk to a person</button>';
-        if (msgs.length) setChips(human ? '<div class="dm-chips">' + human + '</div>' : '');
-        else chips(['I need help with points 🪙', 'Room ID problem 🎮', 'Our squad is ready ✅'], human);
+      if (MERGED) {   // ZULU answers; it brings in the JD team itself when the issue is big (zulu-auto [FLAG])
+        if (msgs.length) setChips(''); else chips(['🏆 Next tournament?', '🪙 How many points do I have?', 'Room ID problem 🎮', 'Our squad is ready ✅']);
         return;
       }
       if (msgs.length) $('dm-chips').innerHTML = ''; else chips(['Hi JD team 👋', 'Our squad is ready ✅', 'I need help with points 🪙', 'Room ID problem 🎮']);
@@ -1031,8 +1029,8 @@
       av = matchAv('sm'); name = (p.mode || 'Match') + (p.other ? ' vs ' + nameOf(p.other) : '');
       st = p.status === 'completed' ? 'Finished · chat is read-only' : p.status === 'disputed' ? 'Disputed · post your screenshots' : 'Captains’ match chat';
     } else if (p.kind === 'jd') {
-      av = jdAv('sm'); name = IN_APP ? 'JD Support' : 'JD Esports';
-      st = IN_APP ? 'ZULU AI answers first · JD team joins if needed' : 'Official JD team · we reply here';
+      av = jdAv('sm'); name = MERGED ? 'JD Esports · ZULU' : 'JD Esports';
+      st = MERGED ? 'ZULU AI replies in seconds · JD team joins for big issues' : 'Official JD team · we reply here';
     }
     else if (p.kind === 'alerts') { av = alAv('sm'); name = 'Alerts'; st = 'Room IDs, reminders and results'; }
     else { av = zuluAv('sm'); name = 'ZULU'; st = 'AI assistant · replies in seconds'; on = true; }
@@ -1057,7 +1055,7 @@
       var x = await SB.rpc(p.kind === 'jd' ? 'jd_thread' : 'group_thread', args(p.kind === 'jd' ? {} : { p_group: p.id }));
       if (x.error && after && x.error.code === 'PGRST202') { noAfter[p.kind] = true; return fetchPage(p, before); }
       if (x.error || p.kind === 'group') return x;
-      return { data: (x.data || []).map(function (m) { return Object.assign({ sender: m.mine ? me : 'jd' }, m, { kind: 'text' }); }) };
+      return { data: (x.data || []).map(function (m) { return Object.assign({ sender: m.mine ? me : 'jd' }, m, { kind: m.ai ? 'ai' : 'text' }); }) };
     }
     var q = SB.from('challenge_messages').select('id, sender, kind, body, created_at').eq('challenge_id', p.id).order('id', { ascending: false }).limit(60);
     if (before) q = q.lt('id', before);
@@ -1175,20 +1173,25 @@
     var nearBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 80;
     var h = '';
     if (hasOlder) h += '<button type="button" class="dm-more" id="dm-older">Load earlier messages</button>';
-    else if (p.kind === 'dm') h += '<div class="dm-hello">' + avatar(p) + '<b>' + esc(nameOf(p)) + '</b>' + esc(p.tag || '') + (p.squad ? ' · ' + esc(p.squad) : '') + '<br>' +
+    else if (p.kind === 'dm') h += '<div class="dm-hello">' + avatar(p) + '<b>' + esc(nameOf(p)) + '</b>' + (p.squad ? esc(p.squad) : '') + '<br>' +
       (p.friend !== false ? 'You\'re friends on JD Arena'
         : p.req === 'in' ? esc(nameOf(p)) + ' wants to be friends. Accept to chat freely.<span class="dm-req"><button type="button" class="dm-btn" data-th-accept="1">' + T('accept') + '</button><button type="button" class="dm-btn ghost" data-th-decline="1">' + T('decline') + '</button></span>'
         : 'Not friends yet. ' + (p.req === 'out' ? 'Your request is waiting. ' : 'Sending a message also sends a friend request. ') + 'You can send 3 messages until they accept.') + '</div>';
     else if (p.kind === 'group') h += '<div class="dm-hello">' + groupAv(p) + '<b>' + esc(p.name) + '</b>Squad chat · plan matches, share room IDs<br><span class="dm-hint">Type <b>@zulu</b> + a question and ZULU (AI) answers here. It reads the last few messages.</span></div>';
     else if (p.kind === 'match') h += '<div class="dm-hello">' + matchAv() + '<b>' + esc((p.mode || '') + ' Clash Squad') + '</b>Only you and the other captain can see this chat.<br>Agree the room, play, then report the result on the challenge.<br><span class="dm-hint">Type <b>@zulu</b> to ask ZULU (AI) about the rules. It reads the last few messages.</span></div>';
-    else if (p.kind === 'jd' && IN_APP) h += '<div class="dm-hello">' + jdAv() + '<b>🎧 JD Support ' + VERIFIED + '</b>Ask anything. <strong>ZULU (AI) answers first</strong>, usually within a minute, using your own tickets, points and the schedule.<br>For points, prizes, refunds, results or bans, or whenever you want a person, tap <strong>🙋 Talk to a person</strong> and a JD team member replies right here.<br><span class="dm-hint">The JD team and ZULU never ask for your password, OTP or eSewa PIN.</span></div>';
+    else if (p.kind === 'jd' && MERGED) h += '<div class="dm-hello">' + jdAv() + '<b>JD Esports · ZULU ' + VERIFIED + '</b>One chat for everything. <strong>ZULU (AI) replies in seconds</strong> using your own tickets, points and the schedule.<br>For big issues (payments, prizes, refunds, results, bans) ZULU brings in the JD team and they reply right here.<br><span class="dm-hint">The JD team and ZULU never ask for your password, OTP or eSewa PIN.</span></div>';
     else if (p.kind === 'jd') h += '<div class="dm-hello">' + jdAv() + '<b>JD Esports ' + VERIFIED + '</b>The official JD Esports Arena team.<br>Real people from the JD team (moderators and admin) write here. Ask about events, slots, points or room IDs and we reply. For instant answers, ask ZULU.<br><span class="dm-hint">The JD team never asks for your password or eSewa PIN.</span></div>';
     else if (p.kind === 'alerts') h += '<div class="dm-hello">' + alAv() + '<b>Alerts</b>Room IDs and passwords, slot reminders, results and messages from the JD team or an event\'s host. Tap a Room ID or password to copy it.</div>';
     else h += '<div class="dm-hello">' + zuluAv() + '<b>ZULU</b>Your JD Arena buddy. Chat about anything gaming, get Free Fire tips, or ask about tournaments and your own points, tickets and challenges. It never sees your private chats.</div>';
+    var list = msgs;
+    if (p.kind === 'jd' && MERGED && zf.length) {   // ZULU's automatic tips (zulu_feed) in the same chat
+      list = msgs.concat(zf.map(function (f) { return { id: 'f' + f.id, mine: false, kind: 'ai', body: f.body, created_at: f.created_at }; }))
+        .sort(function (a, b) { return new Date(a.created_at) - new Date(b.created_at); });
+    }
     var lastMine = -1;
-    msgs.forEach(function (m, i) { if (m.mine) lastMine = i; });
-    for (var i = 0; i < msgs.length; i++) {
-      var m = msgs[i], prev = msgs[i - 1], next = msgs[i + 1];
+    list.forEach(function (m, i) { if (m.mine) lastMine = i; });
+    for (var i = 0; i < list.length; i++) {
+      var m = list[i], prev = list[i - 1], next = list[i + 1];
       var t = new Date(m.created_at).getTime();
       var gapBefore = !prev || t - new Date(prev.created_at).getTime() > 15 * 60000;
       if (gapBefore) h += '<div class="dm-time">' + esc(stamp(m.created_at)) + '</div>';
@@ -1214,7 +1217,7 @@
           : '<div class="dm-b">' + esc(m.body) + '</div>';
       h += '<div class="' + cls + '" title="' + esc(stamp(m.created_at)) + '">' + av + bubble + '</div>';
       if (m.failed) h += '<div class="dm-err">' + esc(m.failed) + ' · <button type="button" class="dm-more" style="margin:0;padding:2px 8px" data-retry="' + esc(m.id) + '">Retry</button></div>';
-      else if (i === lastMine && i === msgs.length - 1 && p.kind !== 'zulu') h += '<div class="dm-seen">' + seenLine(m) + '</div>';
+      else if (i === lastMine && i === list.length - 1 && p.kind !== 'zulu') h += '<div class="dm-seen">' + seenLine(m) + '</div>';
       m.fresh = false;
     }
     if ((p.kind === 'zulu' && zuluBusy) || (zuluWait && zuluWait.key === p.kind + p.id && Date.now() < zuluWait.until)) h += '<div class="dm-line them head tail">' + zuluAv('xs') + '<div class="dm-b dm-typing"><i></i><i></i><i></i></div></div>';
@@ -1482,7 +1485,7 @@
       if (/only message your friends/i.test(m.failed)) { p.friend = false; $('dm-foot').innerHTML = '<div class="dm-locked">You can\'t message this player.</div>'; }
       renderMsgs(true); return;
     }
-    if (p.kind !== 'dm' && p.kind !== 'jd' && MENTION.test(body)) {
+    if ((p.kind !== 'dm' && p.kind !== 'jd' && MENTION.test(body)) || (p.kind === 'jd' && MERGED)) {   // ZULU typing dots until its reply lands
       zuluWait = { key: p.kind + p.id, until: Date.now() + 30000 };
       setTimeout(function () { if (cur === p && zuluWait) { sig += '~'; refreshThread(); } }, 30500);
     }
@@ -1555,9 +1558,9 @@
 
   function friendPicker(exclude, max) {
     var fr = (ov ? ov.friends : []).filter(function (f) { return exclude.indexOf(f.id) < 0; });
-    if (!fr.length) return '<p>No friends to add yet — add your teammates by username or JD tag first.</p>';
+    if (!fr.length) return '<p>No friends to add yet — add your teammates by username first.</p>';
     return '<div class="dm-pickl" data-max="' + max + '">' + fr.map(function (f) {
-      return '<label class="dm-pk">' + avatar(f, 'sm') + '<span class="dm-mid"><span class="dm-name">' + esc(nameOf(f)) + '</span><span class="dm-prev"><span>' + esc(f.squad || f.tag || '') + '</span></span></span><input type="checkbox" value="' + esc(f.id) + '"><i class="dm-ck" aria-hidden="true"></i></label>';
+      return '<label class="dm-pk">' + avatar(f, 'sm') + '<span class="dm-mid"><span class="dm-name">' + esc(nameOf(f)) + '</span><span class="dm-prev"><span>' + esc(f.squad || '') + '</span></span></span><input type="checkbox" value="' + esc(f.id) + '"><i class="dm-ck" aria-hidden="true"></i></label>';
     }).join('') + '</div>';
   }
   function picked() { return Array.prototype.map.call($('dm-sheet-in').querySelectorAll('.dm-pickl input:checked'), function (x) { return x.value; }); }
@@ -1646,7 +1649,7 @@
       if (!ginfo) return;
       return sheet('<h3>Members · ' + ginfo.members.length + '/8</h3><div class="dm-pickl">' + ginfo.members.map(function (m) {
         var act = m.me ? '<span class="dm-prev">' + T('you') + '</span>' : m.friend ? '<button type="button" class="dm-btn ghost" data-a="dm-member" data-id="' + esc(m.id) + '">Message</button>' : (m.username ? '<button type="button" class="dm-btn ghost" data-a="friend-member" data-u="' + esc(m.username) + '">Add friend</button>' : '');
-        return '<div class="dm-pk">' + avatar(m, 'sm') + '<span class="dm-mid"><span class="dm-name">' + esc(nameOf(m)) + '</span><span class="dm-prev"><span>' + esc(m.online ? T('now') : (m.squad || m.tag || '')) + '</span></span></span>' + act + '</div>';
+        return '<div class="dm-pk">' + avatar(m, 'sm') + '<span class="dm-mid"><span class="dm-name">' + esc(nameOf(m)) + '</span><span class="dm-prev"><span>' + esc(m.online ? T('now') : (m.squad || '')) + '</span></span></span>' + act + '</div>';
       }).join('') + '</div><div class="dm-row2"><button type="button" class="dm-btn ghost" data-a="add-members">➕ Add friends</button><button type="button" class="dm-btn" data-a="close">Done</button></div>');
     }
     if (a === 'dm-member') { closeSheet(); openWith(b.dataset.id); return; }
@@ -1801,5 +1804,5 @@
   }
 
   window.jdChat = { settings: settingsSheet, open: open, close: close, openWith: openWith, openGroup: openGroup, openMatch: openMatch, openZulu: openZulu, openAlerts: openAlerts, connect: connect, shareRoom: shareRoom,
-                    support: openJd, openZuluOwn: openZuluOwn, inApp: IN_APP };
+                    support: openJd, openZuluOwn: openZuluOwn, merged: MERGED };
 })();

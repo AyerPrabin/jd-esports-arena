@@ -1090,7 +1090,7 @@ function authRender(){
   if(_player&&_authView==='report'){
     el.innerHTML=`<h3>Report a player/squad</h3><p class="sub">Emulator use in a mobile-only bracket, cheating, no-shows — whatever happened. Reports are never public; only a ban resulting from one shows up on the public ban list.</p>
       <label>Tournament (optional)</label><input id="rp-tournament" placeholder="e.g. JD Free Fire Open #3">
-      <label>Who are you reporting?</label><input id="rp-reported" placeholder="Squad name or player tag/username" maxlength="60">
+      <label>Who are you reporting?</label><input id="rp-reported" placeholder="Squad name or username" maxlength="60">
       <label>Evidence link (optional)</label><input id="rp-evidence" placeholder="Google Drive / Discord / YouTube clip URL">
       <label>What happened?</label><textarea id="rp-description" rows="4" placeholder="Describe it as specifically as you can" maxlength="1000"></textarea>
       <div class="msg" id="au-msg"></div>
@@ -1115,11 +1115,11 @@ function authRender(){
   }
   if(_authView==='support'){
     const waText='Hi JD Arena support! '+(_player&&_player.username?'My username: @'+_player.username+'. ':'')+'My problem: ';
-    // Android app, signed in: one support chat - ZULU (AI) first, a JD team member when needed (chat.js JD Support)
-    const appSupport=_player&&window.jdChat&&jdChat.inApp&&jdChat.support;
-    el.innerHTML=`<h3>Help &amp; Support</h3><p class="sub">${appSupport?'Chat with JD Support: ZULU (AI) answers first, and a JD team member takes over whenever you need a person.':'Ask our AI assistant ZULU anything, any time — or talk to a person on WhatsApp or by phone.'}</p>
+    // signed in: one support chat - ZULU (AI) first, a JD team member when needed (chat.js JD Esports · ZULU)
+    const appSupport=_player&&window.jdChat&&jdChat.merged&&jdChat.support;
+    el.innerHTML=`<h3>Help &amp; Support</h3><p class="sub">${appSupport?'One chat with JD Esports and ZULU: ZULU (AI) replies in seconds, and it brings in the JD team for big issues.':'Ask our AI assistant ZULU anything, any time — or talk to a person on WhatsApp or by phone.'}</p>
       <div class="pm-list">
-        ${appSupport?'<button class="pm-row" onclick="authClose();jdChat.support()"><span class="pm-row-ic">🎧</span><span class="pm-row-txt">Chat with JD Support<small class="pm-row-sub">ZULU AI first · our team joins if needed</small></span><span class="pm-row-chev">›</span></button>':'<button class="pm-row" onclick="authClose();fbOpen()"><span class="pm-row-ic">🤖</span><span class="pm-row-txt">Chat with ZULU<small class="pm-row-sub">AI support · instant answers, 24/7</small></span><span class="pm-row-chev">›</span></button>'}
+        ${appSupport?'<button class="pm-row" onclick="authClose();jdChat.support()"><span class="pm-row-ic">🎧</span><span class="pm-row-txt">Chat with JD Esports · ZULU<small class="pm-row-sub">ZULU replies in seconds · JD team for big issues</small></span><span class="pm-row-chev">›</span></button>':'<button class="pm-row" onclick="authClose();fbOpen()"><span class="pm-row-ic">🤖</span><span class="pm-row-txt">Chat with ZULU<small class="pm-row-sub">AI support · instant answers, 24/7</small></span><span class="pm-row-chev">›</span></button>'}
         <a class="pm-row" href="https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(waText)}" target="_blank" rel="noopener"><span class="pm-row-ic">💬</span><span class="pm-row-txt">WhatsApp support<small class="pm-row-sub">${esc(SUPPORT_PHONE_TXT)}</small></span><span class="pm-row-chev">›</span></a>
         <a class="pm-row" href="tel:+${SUPPORT_PHONE}"><span class="pm-row-ic">📞</span><span class="pm-row-txt">Call support<small class="pm-row-sub">${esc(SUPPORT_PHONE_TXT)}</small></span><span class="pm-row-chev">›</span></a>
       </div>
@@ -1184,7 +1184,7 @@ function authRender(){
     const statusLabel=r=>r.checked_in_at&&(r.status==='confirmed'||r.status==='approved')?'Checked in':r.status==='no_show'?'No-show':(r.status.charAt(0).toUpperCase()+r.status.slice(1));
     const historyBlock=regRows.length?`<div class="pm-history"><div class="pm-history-title">Your tournaments</div>${regRows.map(([slug,r])=>{const t=tByName.get(slug);const st=t?effectiveStatus(t):'';const when=t&&t.date&&t.date!=='TBA'?esc(t.date)+(t.time&&t.time!=='TBA'?' · '+esc(t.time):''):'';
       return `<button type="button" class="pm-history-row pm-history-btn" onclick="authClose();setTimeout(()=>nmJump(this.dataset.t),250)" data-t="${esc(slug)}">${r.squad_logo?`<img class="pm-history-logo" src="${esc(r.squad_logo)}" alt="">`:`<span class="pm-history-logo">${st==='live'?'🔴':st==='upcoming'?'⚔️':'🏁'}</span>`}<span class="pm-history-main"><span class="pm-history-name">${esc(slug)}</span><span class="pm-history-squad">${[r.squad_name&&esc(r.squad_name),when||(st&&esc(st)),esc(regTicketCode(r))].filter(Boolean).join(' · ')}</span></span><span class="pm-history-status pm-status-${esc(r.checked_in_at&&r.status==='confirmed'?'confirmed':r.status)}">${esc(statusLabel(r))}</span></button>`;}).join('')}</div>`:'';
-    el.innerHTML=`<h3 class="pm-title">Signed in</h3>${avatarBlock}<div class="auth-tag">@${esc(_player.username||'…')}</div><div class="pm-meta"><span>${esc(_player.email)}</span>${_player.tag?`<span class="pm-dot">●</span><span>ID ${esc(_player.tag)}</span>`:''}${verifiedBadge}</div>${_player.tag?'<p class="pm-hint">Only needed if you register outside the app.</p>':''}<div id="career-stats"></div><div class="msg" id="au-msg"></div>${historyBlock}<div class="pm-list">
+    el.innerHTML=`<h3 class="pm-title">Signed in</h3>${avatarBlock}<div class="auth-tag">@${esc(_player.username||'…')}</div><div class="pm-meta"><span>${esc(_player.email)}</span>${verifiedBadge}</div>${_player.ff_uid?`<div class="pm-meta"><span>🎮 ${esc(_player.ff_name||'')}</span><span class="pm-dot">●</span><span>UID ${esc(_player.ff_uid)}</span></div>`:''}<div id="career-stats"></div><div class="msg" id="au-msg"></div>${historyBlock}<div class="pm-list">
         <a class="pm-row" href="/wallet/#withdraw"><span class="pm-row-ic">💸</span><span class="pm-row-txt">Withdraw points<small class="pm-row-sub">To your eSewa · minimum 100 points</small></span><span class="pm-row-chev">›</span></a>
         <a class="pm-row" href="/wallet/#load"><span class="pm-row-ic">🪙</span><span class="pm-row-txt">Load points</span><span class="pm-row-chev">›</span></a>
         <button class="pm-row" id="acct-push-btn" onclick="enablePush()"><span class="pm-row-ic">🔔</span><span class="pm-row-txt">Enable push alerts</span><span class="pm-toggle" id="acct-push-toggle"></span></button>
@@ -1649,7 +1649,7 @@ function updateAcctBtn(){
   if(_player){
     if(su)su.style.display='none';
     ac.classList.add('acct-btn-signed');
-    ac.innerHTML=`<img class="acct-avatar-mini" src="${esc(_player.avatar||'/logo.webp')}" alt="">${esc(_player.username||_player.tag||'Account')}${_player.app?' <span class="app-badge" title="JD Arena app user">📱</span>':''}`;
+    ac.innerHTML=`<img class="acct-avatar-mini" src="${esc(_player.avatar||'/logo.webp')}" alt="">${esc(_player.username||'Account')}${_player.app?' <span class="app-badge" title="JD Arena app user">📱</span>':''}`;
     ac.onclick=()=>{location.href='/profile/';}; // profile has its own page; account settings stay reachable via /?account=1
     if(ad)ad.style.display=((_player.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase())?'':'none';
     {const zb=document.getElementById('zulu-admin-btn');if(zb&&ad)zb.style.display=ad.style.display;}

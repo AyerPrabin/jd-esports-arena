@@ -316,7 +316,7 @@ function profFromCache(){
   if(c.bal!=null)$('bal').textContent=c.bal;
 }
 async function loadProfile(){
-  const {data:p}=await sb.from('players').select('username, player_tag, discord_username, squad_name, squad_logo, app_installed_at').eq('id',me.id).maybeSingle();
+  const {data:p}=await sb.from('players').select('username, player_tag, discord_username, squad_name, squad_logo, app_installed_at, ff_uid, ff_name').eq('id',me.id).maybeSingle();
   Object.assign(me,p||{});
   if(p)profSave({p});
   renderProfile(p);
@@ -328,7 +328,7 @@ async function loadProfile(){
 function renderProfile(p){
   $('uname').textContent=me.username?'@'+me.username:'Player';
   if(p&&p.app_installed_at&&!$('app-badge')){const ab=document.createElement('span');ab.id='app-badge';ab.title='JD Arena app user';ab.textContent=' 📱';$('uname').after(ab);}
-  $('ptag').textContent=me.player_tag||'';
+  $('ptag').textContent=me.ff_uid?'🎮 '+(me.ff_name?me.ff_name+' · ':'')+'UID '+me.ff_uid:'';$('ptag').hidden=!me.ff_uid;   // Free Fire details (no player tag)
   $('pver').innerHTML=me.verified?'<span class="badge ok">✓ Verified</span>':'';
   $('pemail').textContent=me.email||'';
   $('chg-user-s').textContent=me.username?'@'+me.username:'';
@@ -510,7 +510,7 @@ $('ref-share').onclick=async()=>{
 };
 $('ref-save').onclick=async()=>{
   const msg=$('ref-msg'),v=$('ref-input').value.trim();
-  if(!v){msg.className='msg err';msg.textContent='Enter your friend\'s JD tag or username.';return;}
+  if(!v){msg.className='msg err';msg.textContent='Enter your friend\'s invite code or username.';return;}
   const {data,error}=await sb.rpc('set_referrer',{p_code:v});
   if(error){msg.className='msg err';msg.textContent=error.message;return;}
   msg.className='msg ok';msg.textContent=`Linked to ${data.inviter}. Win your first prize and you both get +40 points.`;
@@ -529,6 +529,6 @@ $('ref-save').onclick=async()=>{
 })();
 </script>
 <script src="/ui.js?v=24" defer></script>
-<script src="/chat.js?v=30" defer></script>
+<script src="/chat.js?v=31" defer></script>
 </body>
 </html>
