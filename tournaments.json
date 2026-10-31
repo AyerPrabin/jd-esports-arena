@@ -326,9 +326,9 @@
       "start": "2026-11-06T21:30:00+05:45",
       "format": "BR · Best of 3",
       "status": "upcoming",
-      "platform": "Mix Device",
+      "platform": "Mobile only",
       "early_access": "yes",
-      "platform_mode": "mixed",
+      "platform_mode": "mobile",
       "teams": [],
       "registered": 0
     },
@@ -346,9 +346,9 @@
       "start": "2026-11-07T21:30:00+05:45",
       "format": "BR · 4 matches",
       "status": "upcoming",
-      "platform": "Mix Device",
+      "platform": "Mobile only",
       "early_access": "yes",
-      "platform_mode": "mixed",
+      "platform_mode": "mobile",
       "teams": [],
       "registered": 0
     },
@@ -579,5 +579,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-31T01:24:55.698Z"
+  "_published_at": "2026-10-31T01:25:33.586Z"
 }
