@@ -373,22 +373,22 @@
       "registered": 0
     },
     {
-      "name": "Halloween Special Event",
-      "game": "Free Fire BR · Squad",
-      "status": "upcoming",
-      "map": "bermuda",
-      "map2": "random",
-      "map3": "random",
-      "prize": "333",
-      "entry": "Free",
-      "platform": "Mobile only",
-      "platform_mode": "mobile",
-      "slots": 12,
-      "format": "BR · 6 matches",
-      "early_access": "yes",
-      "start": "2026-11-01T21:00:00+05:45",
+      "map": "purgatory",
       "date": "Sun, Nov 1",
+      "game": "Free Fire BR · Squad",
+      "map2": "kalahari",
+      "map3": "bermuda",
+      "name": "Halloween Special Event",
       "time": "9:00 PM NPT",
+      "entry": "Free",
+      "prize": "333",
+      "slots": 12,
+      "start": "2026-11-01T21:00:00+05:45",
+      "format": "BR · 3 matches",
+      "status": "upcoming",
+      "platform": "Mobile only",
+      "early_access": "yes",
+      "platform_mode": "mobile",
       "teams": [],
       "registered": 0
     }
@@ -599,5 +599,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-31T20:20:15.017Z"
+  "_published_at": "2026-10-31T20:25:32.297Z"
 }
