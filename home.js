@@ -778,6 +778,7 @@ function render(d){
     grid.querySelectorAll('[data-reg]').forEach(b=>b.onclick=()=>registerInApp(b.getAttribute('data-reg')));
     grid.querySelectorAll('[data-checkin]').forEach(b=>b.onclick=()=>checkInForTournament(b.getAttribute('data-checkin')));
     grid.querySelectorAll('[data-confirm]').forEach(b=>b.onclick=()=>confirmAttendance(b.getAttribute('data-confirm')));
+    grid.querySelectorAll('[data-sqv]').forEach(b=>b.onclick=e=>{e.stopPropagation();sqvOpen(b.getAttribute('data-sqv'));});
     grid.querySelectorAll('[data-pts-entry]').forEach(b=>b.onclick=e=>{e.stopPropagation();payEntryWithPoints(b.getAttribute('data-pts-entry'));});
     grid.querySelectorAll('[data-code-in]').forEach(i=>i.onclick=e=>e.stopPropagation());
     grid.querySelectorAll('[data-fx-buy]').forEach(b=>b.onclick=e=>{e.stopPropagation();fxShopOpen(b.getAttribute('data-fx-buy'));});
@@ -1748,10 +1749,10 @@ let _myRegs=new Map(); // tournament name -> {id, squad_name, squad_logo, status
 let _regTarget=null,_regLogoData=null,_regPayData=null;
 async function loadMyRegs(){
   if(!sb||!_player){_myRegs=new Map();return;}
-  const {data}=await sb.from('registrations').select('id, tournament_slug, squad_name, squad_logo, status, checked_in_at, verified_at, effect, paid_points, promoted_at, created_at').eq('player_id',_player.id);
+  const {data}=await sb.from('registrations').select('id, tournament_slug, squad_name, squad_logo, status, checked_in_at, verified_at, lineup, lineup_at, effect, paid_points, promoted_at, created_at').eq('player_id',_player.id);
   _myRegsLoaded=true;
   loadWallet();
-  _myRegs=new Map((data||[]).map(r=>[r.tournament_slug,{id:r.id,squad_name:r.squad_name,squad_logo:r.squad_logo,status:r.status||'confirmed',checked_in_at:r.checked_in_at||null,promoted_at:r.promoted_at||null,created_at:r.created_at||null,verified_at:r.verified_at||null,effect:r.effect||'',paid_points:r.paid_points||0,squad_logo:r.squad_logo||(_player&&_player.squad_logo)||''}]));
+  _myRegs=new Map((data||[]).map(r=>[r.tournament_slug,{id:r.id,squad_name:r.squad_name,squad_logo:r.squad_logo,status:r.status||'confirmed',checked_in_at:r.checked_in_at||null,promoted_at:r.promoted_at||null,created_at:r.created_at||null,verified_at:r.verified_at||null,lineup:r.lineup||null,lineup_at:r.lineup_at||null,effect:r.effect||'',paid_points:r.paid_points||0,squad_logo:r.squad_logo||(_player&&_player.squad_logo)||''}]));
   // slot number per tournament (rule: sit in the seat matching your app slot)
   try{const {data:sl}=await sb.rpc('my_tournament_slots');(sl||[]).forEach(x=>{const r=_myRegs.get(x.tournament_slug);if(r)r.slot=x.slot;});}catch(e){}
   // place in the waitlist queue (waitlist_position.sql - Pro pass first, then sign-up time)
@@ -1990,9 +1991,66 @@ async function submitRegister(){
   megaCredit(name);
   regClose();
   regSuccessOpen(t,effectiveStatus,reg);
+  {const n=document.getElementById('rs-note');if(n&&reg&&reg.id)n.innerHTML+=`<br><br><b>🛡️ Next: verify your squad.</b> Add your real squad name and your 4 players' Free Fire names + UIDs so everyone knows who's playing.<br><button type="button" class="inapp-reg mt-sqv-btn" style="margin-top:10px" onclick="regSuccessClose();sqvOpen(${esc(JSON.stringify(name))})">🛡️ Verify your squad now</button>`;}
   if(codeErr){const n=document.getElementById('rs-note');if(n)n.innerHTML+=`<br><br><b>Payment not completed:</b> ${esc(codeErr)} Your place is held — you can pay from your ticket.`;}
   renderCur();
   loadPublicRoster(); // pulls the new registration into the public count/roster right away instead of waiting for the 45s poll
+}
+/* Verify your squad (squad_verify.sql): after joining, the captain gives the squad's real name and the
+   4 players (+ up to 2 subs) with Free Fire names and UIDs. verify_my_squad() checks it (no "abc"/"test"
+   names, no UID in two squads) and saves it on the registration; locked once the room details are out. */
+function sqvTicketHtml(t,r){
+  if(!r||!r.id||_roomCodes.has(t.name))return r&&r.lineup_at?`<div class="mt-next">🛡️ <b>Squad verified</b> · ${(r.lineup||[]).length} players</div>`:'';
+  if(r.lineup_at)return `<div class="mt-next">🛡️ <b>Squad verified</b> · ${(r.lineup||[]).map(m=>esc(m.name)).join(', ')} <button type="button" class="link" data-sqv="${esc(t.name)}" style="background:none;border:none;color:var(--gold-l);text-decoration:underline;cursor:pointer;font:inherit">Edit</button></div>`;
+  return `<button type="button" class="inapp-reg mt-checkin mt-sqv-btn" data-sqv="${esc(t.name)}">🛡️ Verify your squad</button><div class="mt-next warn">Add your real squad name and your 4 players' Free Fire names + UIDs. Random names like "abc" or "test" aren't accepted.</div>`;
+}
+function sqvEnsure(){
+  if(document.getElementById('sqv-overlay'))return;
+  const d=document.createElement('div');
+  d.className='zoverlay';d.id='sqv-overlay';
+  d.onclick=e=>{if(e.target===d)sqvClose();};
+  d.innerHTML=`<div class="zmodal" style="max-width:440px"><button class="fb-x" style="position:absolute;top:12px;right:14px" onclick="sqvClose()" aria-label="close">×</button>
+    <div class="reg-hero"><span class="reg-hero-eye">🛡️ Verify your squad</span><h3 id="sqv-tname"></h3></div>
+    <p class="sub" style="margin:0">Use the name your squad really plays under and the exact in-game names and UIDs (Free Fire &gt; your profile &gt; UID). The admin checks the room against this line-up.</p>
+    <label>Squad name <span style="color:var(--gold-l)">*</span></label>
+    <input id="sqv-squad" maxlength="30" placeholder="Your real squad name">
+    <div id="sqv-rows"></div>
+    <div class="msg" id="sqv-msg"></div>
+    <button type="button" class="btn-primary" id="sqv-save" style="margin-top:14px;width:100%" onclick="sqvSave()">✅ Verify squad</button></div>`;
+  document.body.appendChild(d);
+}
+let _sqvTarget=null;
+function sqvOpen(name){
+  const r=_myRegs.get(name);if(!sb||!_player||!r)return;
+  sqvEnsure();_sqvTarget=name;
+  document.getElementById('sqv-tname').textContent=name;
+  document.getElementById('sqv-squad').value=r.squad_name||_player.squad_name||'';
+  const have=Array.isArray(r.lineup)&&r.lineup.length?r.lineup:[{name:_player.ff_name||'',uid:_player.ff_uid||''}];
+  const rows=[];for(let i=0;i<6;i++){const m=have[i]||{};
+    rows.push(`<label>${i<4?'Player '+(i+1)+(i===0?' (you)':'')+' <span style="color:var(--gold-l)">*</span>':'Sub '+(i-3)+' (optional)'}</label><div style="display:flex;gap:8px"><input class="sqv-n" maxlength="30" placeholder="In-game name" value="${esc(m.name||'')}"><input class="sqv-u" inputmode="numeric" maxlength="13" placeholder="UID" value="${esc(m.uid||'')}" style="max-width:42%"></div>`);}
+  document.getElementById('sqv-rows').innerHTML=rows.join('');
+  const msg=document.getElementById('sqv-msg');msg.textContent='';msg.className='msg';
+  document.getElementById('sqv-overlay').classList.add('open');
+}
+function sqvClose(){const o=document.getElementById('sqv-overlay');if(o)o.classList.remove('open');}
+async function sqvSave(){
+  const name=_sqvTarget,msg=document.getElementById('sqv-msg'),btn=document.getElementById('sqv-save');
+  const ns=[...document.querySelectorAll('#sqv-rows .sqv-n')],us=[...document.querySelectorAll('#sqv-rows .sqv-u')];
+  const members=[];
+  for(let i=0;i<ns.length;i++){const n=ns[i].value.trim(),u=us[i].value.replace(/\s/g,'');
+    if(!n&&!u){if(i<4){msg.textContent=`Player ${i+1} is missing. Add all 4 players.`;msg.className='msg err';return;}continue;}
+    if(!n||!/^[0-9]{6,13}$/.test(u)){msg.textContent=`Player ${i+1}: add the in-game name and a 6-13 digit UID.`;msg.className='msg err';return;}
+    members.push({name:n,uid:u});}
+  btn.disabled=true;
+  const {data,error}=await sb.rpc('verify_my_squad',{p_slug:name,p_squad:document.getElementById('sqv-squad').value,p_members:members});
+  btn.disabled=false;
+  if(error){msg.textContent=error.message;msg.className='msg err';return;}
+  const r=_myRegs.get(name);
+  if(r&&data){r.squad_name=data.squad_name;r.lineup=data.lineup;r.lineup_at=data.lineup_at;}
+  if(_player&&data)_player.squad_name=data.squad_name;
+  sqvClose();
+  showMsg('Squad verified',`${data&&data.squad_name||'Your squad'} is verified for ${name} with ${members.length} players. You can edit it until the room details are sent.`);
+  renderCur();loadPublicRoster();
 }
 // Ticket shown to the player is just their registration row's own id, short-formed — not a
 // separate value stored anywhere, so there's nothing new to keep in sync. It's for the
@@ -2145,7 +2203,7 @@ function matchTicketHtml(t,r){
     next=`<div class="mt-next">⏰ Check-in opens 12 hours before start${opens?` (<b>${esc(opens)}</b>)`:''} — we will send you a reminder.</div>`;
   }
   const logo=r.squad_logo?`<img class="mt-logo" src="${esc(r.squad_logo)}" alt="">`:`<span class="mt-logo mt-logo-empty">${esc((r.squad_name||'?').trim().charAt(0).toUpperCase()||'?')}</span>`;
-  return `<div class="mt"><div class="mt-head">${logo}<div class="mt-squad"><b>${esc(r.squad_name||'Your squad')}</b><small>${checked?'Confirmed ✓':(CONFIRM_REQUIRED?'Confirm needed':'You\'re in')}${r.verified_at?' · <span class="mt-ver">✅ Verified</span>':''}</small></div><button type="button" class="mt-code" data-copy="${esc(code)}" title="Tap to copy your ticket code">🎫 ${esc(code)}</button></div><ol class="mt-steps">${stepHtml}</ol>${slot}${next}${calBtnHtml(t)}${fxTicketHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}</div>`;
+  return `<div class="mt"><div class="mt-head">${logo}<div class="mt-squad"><b>${esc(r.squad_name||'Your squad')}</b><small>${checked?'Confirmed ✓':(CONFIRM_REQUIRED?'Confirm needed':'You\'re in')}${r.verified_at?' · <span class="mt-ver">✅ Verified</span>':''}</small></div><button type="button" class="mt-code" data-copy="${esc(code)}" title="Tap to copy your ticket code">🎫 ${esc(code)}</button></div><ol class="mt-steps">${stepHtml}</ol>${slot}${sqvTicketHtml(t,r)}${next}${calBtnHtml(t)}${fxTicketHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}</div>`;
 }
 function fxTicketHtml(t,r){
   const own=SQUAD_FX[r.effect],pass=fxPassNow(),pk=pass&&SQUAD_FX[pass.effect];
@@ -2182,7 +2240,7 @@ function inAppRegBtn(t,st,full){
   if(!sb)return '';
   if(_myRegs.has(t.name)){
     const r=_myRegs.get(t.name);
-    if(r.status==='waitlisted')return `<div class="inapp-reg-done pending"><span>🕒 Waitlisted${r.squad_name?' as '+esc(r.squad_name):''} — we'll confirm you automatically if a slot opens · Ticket ${esc(regTicketCode(r))}</span></div>${r.wpos?`<div class="mt-wpos"><b>${r.wpos===1?"You're next in line":'#'+r.wpos+' in line'}</b><span>${r.wtotal} squad${r.wtotal===1?'':'s'} waiting${r.wpro?' · ⭐ your Pro pass puts you ahead':' · Pro pass holders move up first'}. Squads that don't confirm lose their slot, so keep alerts on.</span></div>`:''}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
+    if(r.status==='waitlisted')return `<div class="inapp-reg-done pending"><span>🕒 Waitlisted${r.squad_name?' as '+esc(r.squad_name):''} — we'll confirm you automatically if a slot opens · Ticket ${esc(regTicketCode(r))}</span></div>${r.wpos?`<div class="mt-wpos"><b>${r.wpos===1?"You're next in line":'#'+r.wpos+' in line'}</b><span>${r.wtotal} squad${r.wtotal===1?'':'s'} waiting${r.wpro?' · ⭐ your Pro pass puts you ahead':' · Pro pass holders move up first'}. Squads that don't confirm lose their slot, so keep alerts on.</span></div>`:''}${sqvTicketHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
     if(r.status==='pending')return `<div class="inapp-reg-done pending">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>${r.squad_name?esc(r.squad_name)+' · ':''}Ticket ${esc(regTicketCode(r))}</span></div>${entryCodeBoxHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
     if(r.status==='rejected')return `<div class="inapp-reg-done rejected"><span>✕ Payment could not be verified — please contact the organiser on Discord</span></div>`;
     if(r.status==='no_show')return `<div class="inapp-reg-done rejected"><span>✕ Check-in was missed, so this slot was released</span></div>`;
