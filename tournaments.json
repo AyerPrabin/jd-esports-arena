@@ -353,11 +353,11 @@
       "registered": 0
     },
     {
-      "map": "bermuda",
+      "map": "purgatory",
       "date": "Thu, Nov 5",
       "game": "Free Fire BR · Squad",
-      "map2": "random",
-      "map3": "random",
+      "map2": "kalahari",
+      "map3": "bermuda",
       "name": "JD Free Fire Open #16",
       "time": "9:30 PM NPT",
       "entry": "Free",
@@ -366,9 +366,9 @@
       "start": "2026-11-05T21:30:00+05:45",
       "format": "BR · Best of 3",
       "status": "upcoming",
-      "platform": "Mix Device",
+      "platform": "Mobile only",
       "early_access": "yes",
-      "platform_mode": "mixed",
+      "platform_mode": "mobile",
       "teams": [],
       "registered": 0
     }
@@ -579,5 +579,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-31T01:24:04.626Z"
+  "_published_at": "2026-10-31T01:24:55.698Z"
 }
