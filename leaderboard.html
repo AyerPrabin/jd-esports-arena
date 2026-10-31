@@ -163,6 +163,10 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .rp-cap{min-height:1.4em;color:var(--silver);font-size:.84rem;margin:2px 0 2px}
 .rp-cap b{color:var(--gold-l)}
 .rp-cap .up{color:var(--green);font-weight:700}
+.lbg .plc{font:800 .68rem var(--font-body);color:#cfd5e2;background:rgba(255,255,255,.07);border-radius:6px;padding:1px 5px;margin-right:5px}
+.lbg .plc:empty{display:none}.lbg .plc.p1{background:var(--gold);color:#140f02}.lbg .plc.p3{background:rgba(255,200,80,.18);color:var(--gold-l)}
+.lbg .kl{font-style:normal;font-size:.62rem;opacity:.6;margin-left:1px}
+@media(max-width:400px){.lbg.pts-table tr{column-gap:5px;padding-left:8px;padding-right:10px}.lbg .plc{margin-right:2px;padding:1px 3px;font-size:.6rem}.lbg.pts-table td.num::before{margin-right:2px}.lbg.pts-table td.num{font-size:.7rem}.lbg.pts-table td.tot{font-size:1.45rem}.lbg .arrow-slot,.lbg .kl{display:none}}
 .rp-chip{display:inline-block;margin-left:6px;font:800 .68rem var(--font-body);padding:2px 6px;border-radius:999px;vertical-align:middle;animation:chipPop .5s cubic-bezier(.2,1.6,.4,1)}
 .rp-chip.up{color:#06120a;background:var(--green)}
 .rp-chip.down{color:#fff;background:#d94b4b}
@@ -194,7 +198,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .rv-m small{font-size:.95rem;color:var(--gold-l);margin-left:8px;letter-spacing:.08em}
 .rv-phase{font:800 .7rem var(--font-body);letter-spacing:.14em;text-transform:uppercase;color:#ff7a59}
 .rv-feed{height:58px;overflow:hidden;padding:0 16px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px}
-.rv-feed div{font-size:.78rem;color:#d9deea;animation:rvFeed .35s ease-out;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rv-feed div{flex:none;line-height:18px;font-size:.78rem;color:#d9deea;animation:rvFeed .35s ease-out;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rv-feed div b{color:var(--gold-l)}
 @keyframes rvFeed{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
 .rv-board{position:relative;flex:1;margin:6px 12px 14px;max-width:640px;width:calc(100% - 24px);align-self:center}
@@ -253,6 +257,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .rv-spd{display:flex;border:1px solid rgba(255,255,255,.18);border-radius:999px;overflow:hidden}
 .rv-spd button{background:transparent;border:0;color:#cfd5e2;padding:9px 13px;font:800 .76rem var(--font-body);cursor:pointer}
 .rv-spd button.on{background:var(--gold);color:#140f02}
+.rv-spd-l{display:flex;align-items:center;padding:0 4px 0 12px;font:700 .7rem var(--font-body);color:#9aa3b5}
 .rv-mv{width:14px;font-size:.7rem;font-weight:800;text-align:center;opacity:0;transition:opacity .25s}
 .rv-mv.up{color:var(--green);opacity:1}.rv-mv.down{color:#ff6b6b;opacity:1}
 .rv-row.tie{border-color:#f5a524;border-style:dashed}
@@ -309,7 +314,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
   .cs-row .av{width:38px;height:38px}
 }
 </style>
-<link rel="stylesheet" href="/ui.css?v=23">
+<link rel="stylesheet" href="/ui.css?v=24">
 <link rel="stylesheet" href="/broadcast.css?v=5">
 <link rel="stylesheet" href="/effects-styles.css?v=2">
 <link rel="canonical" href="https://jdesport.co.uk/leaderboard.html">
@@ -347,7 +352,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
     <div id="cs-body"><p class="sub">Loading…</p></div>
   </section>
   <div id="lb-season" role="tabpanel" aria-labelledby="tab-latest" hidden>
-  <div class="sec-h"><h1 id="lb-ttl">Season Leaderboard</h1><span class="ln"></span></div>
+  <div class="sec-h"><h1 id="lb-ttl">Latest Event</h1><span class="ln"></span></div>
   <p class="sub" id="lb-sub">Loading standings…</p>
   <div class="champ" id="champ" hidden><div class="champ-eye">🏆 Champions</div><div class="champ-name" id="champ-name"></div><div class="champ-sub" id="champ-sub"></div></div>
   <div class="podium" id="podium">
@@ -362,6 +367,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
     <div class="rp-track"><i id="rp-fill"></i></div>
   </div>
   <div class="rp-cap" id="rp-cap" hidden></div>
+  <p class="sub" style="margin:6px 0 8px;font-size:.74rem">How to read a row: <b>M1 <span style="background:var(--gold);color:#140f02;border-radius:5px;padding:0 4px">#1</span> 23</b> = match 1, finished 1st, 23 kills.</p>
   <div id="lb-body"></div>
   <section class="pred" id="predict" hidden>
     <h2 class="pred-h">🔮 Prediction <span id="predict-sub"></span></h2>
@@ -382,7 +388,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
       <div class="rv-steps" id="rv-steps"></div>
       <div class="rv-ctl2">
         <button type="button" class="rv-btn" id="rv-pause" aria-label="Pause">⏸</button>
-        <div class="rv-spd" id="rv-spd" role="group" aria-label="Speed"><button type="button" data-v="0.5">0.5x</button><button type="button" data-v="1" class="on">1x</button><button type="button" data-v="2">2x</button></div>
+        <div class="rv-spd" id="rv-spd" role="group" aria-label="Speed"><span class="rv-spd-l">🐢 Speed</span><button type="button" data-v="0.5">0.5x</button><button type="button" data-v="1" class="on">1x</button><button type="button" data-v="2">2x</button><button type="button" data-v="3">3x ⚡</button></div>
       </div>
     </div>
     <div class="rv-card" id="rv-card" hidden></div>
@@ -480,6 +486,9 @@ function renderClash(){
 /* Official Free Fire tie-break (2026-10-30): total points, then booyahs, then eliminations,
    then placement in the most recent match. Same order in leaderboard.html, home.js, admin and mod-panel. */
 function ffRank(a,b){return b.pts-a.pts||b.boo-a.boo||b.kills-a.kills||b.last-a.last||String(a.team).localeCompare(String(b.team));}
+// a squad's finishing place in match i, from its position points (RV_PLACE); '' when unknown (0 pts = 11th-12th)
+const PLACE_OF={12:1,9:2,8:3,7:4,6:5,5:6,4:7,3:8,2:9,1:10};
+function plc(t,i){const x=t.r&&t.r[i];return x?(PLACE_OF[+x.pts]||''):'';}
 function bo3Standings(bo3){
   const teams=(bo3&&bo3.teams)||[];
   const kp=+(bo3&&bo3.kill_pts)||0;   // points per kill (2026-10-25: 1); boards from before have none = kills 0 pts
@@ -499,6 +508,7 @@ function bo3Standings(bo3){
   const totalOf=(stage,team)=>{const x=stage.find(s=>s.team===team);return x?x.pts:0;};
   return teams.map(t=>({
     team:t.team,logo:t.logo,
+    r1p:plc(t,0),r2p:plc(t,1),r3p:plc(t,2),
     r1k:+((t.r&&t.r[0]&&t.r[0].kills)||0),
     r2k:+((t.r&&t.r[1]&&t.r[1].kills)||0),
     r3k:+((t.r&&t.r[2]&&t.r[2].kills)||0),
@@ -663,14 +673,16 @@ let _revealed=false;
 let _lastDoc=null, _noKills=false, _logoMap={}, _logoSlug=''; // kills-free boards hide kill columns; logos from get_squad_logos
 
 function tableSkeleton(){
-  const kc=_noKills?'':'<th class="num">R1 Kills</th><th class="num">R2 Kills</th><th class="num">R3 Kills</th>';
+  const kc=_noKills?'':'<th class="num">M1 place · kills</th><th class="num">M2 place · kills</th><th class="num">M3 place · kills</th>';
   return `<table class="pts-table lbg${_noKills?' nok':''}"><thead><tr><th>#</th><th>Squad</th>${kc}<th class="num">Total</th></tr></thead><tbody id="lb-tbody"></tbody></table>`;
 }
+function plcHtml(p){return `<b class="plc${p===1?' p1':p&&p<=3?' p3':''}">${p?'#'+p:''}</b>`;}
+function setPlc(tr,role,p){const el=tr.querySelector(`[data-role="${role}"] .plc`);if(el)el.outerHTML=plcHtml(p);}
 function rowHTML(r){
   const kc=_noKills?'':
-    `<td class="num" data-role="r1"><span class="num-val">${r.r1k}</span></td>`+
-    `<td class="num" data-role="r2"><span class="num-val">${r.r2k}</span><span class="arrow-slot">${mvArrow(r.moveR2)}</span></td>`+
-    `<td class="num" data-role="r3"><span class="num-val">${r.r3k}</span><span class="arrow-slot">${mvArrow(r.moveR3)}</span></td>`;
+    `<td class="num" data-role="r1">${plcHtml(r.r1p)}<span class="num-val">${r.r1k}</span><i class="kl">K</i></td>`+
+    `<td class="num" data-role="r2">${plcHtml(r.r2p)}<span class="num-val">${r.r2k}</span><i class="kl">K</i><span class="arrow-slot">${mvArrow(r.moveR2)}</span></td>`+
+    `<td class="num" data-role="r3">${plcHtml(r.r3p)}<span class="num-val">${r.r3k}</span><i class="kl">K</i><span class="arrow-slot">${mvArrow(r.moveR3)}</span></td>`;
   return `<td class="rk" data-role="rk">${r.rank}</td>`+
     `<td class="team" data-role="team">${r.logo?`<img src="${esc(r.logo)}" alt="">`:''}<span class="team-name">${fxCardName(r.fx,r.team)}</span></td>`+
     kc+
@@ -706,6 +718,7 @@ function updateRow(tr,r,prev){
     tr.querySelector('.team-name').innerHTML=fxCardName(r.fx,r.team);
   }
   tr.dataset.fx=r.fx||'';fxRow(tr,r.fx);
+  setPlc(tr,'r1',r.r1p);setPlc(tr,'r2',r.r2p);setPlc(tr,'r3',r.r3p);
   const r1=tr.querySelector('[data-role="r1"] .num-val');if(r1)animateCount(r1,r.r1k,{stiffness:170,damping:20});
   const r2=tr.querySelector('[data-role="r2"] .num-val');if(r2)animateCount(r2,r.r2k,{stiffness:170,damping:20});
   const r3=tr.querySelector('[data-role="r3"] .num-val');if(r3)animateCount(r3,r.r3k,{stiffness:170,damping:20});
@@ -737,7 +750,8 @@ function stageRows(B,s){
   return teams.map((t,i)=>{
     const k=u=>u<=s?+(((t.r&&t.r[u])||{}).kills||0):'–';
     const mv=u=>{if(u>s)return null;const c=ranks[u].get(t.team),p=ranks[u-1].get(t.team);return c<p?'up':c>p?'down':'same';};
-    return{team:t.team,logo:t.logo,r1k:k(0),r2k:k(1),r3k:k(2),totalPts:cur[i].pts,rank:rk.get(t.team),
+    const pl=u=>u<=s?plc(t,u):'';
+    return{team:t.team,logo:t.logo,r1k:k(0),r2k:k(1),r3k:k(2),r1p:pl(0),r2p:pl(1),r3p:pl(2),totalPts:cur[i].pts,rank:rk.get(t.team),
       delta:s?ranks[s-1].get(t.team)-rk.get(t.team):0,moveR2:mv(1),moveR3:mv(2)};
   }).sort((a,b)=>a.rank-b.rank);
 }
@@ -763,6 +777,7 @@ function stageCaption(B,s,rows){
 function applyStage(tr,r,fresh){
   tr.querySelector('[data-role="rk"]').innerHTML=r.rank+(r.delta>0?`<span class="rp-chip up">▲${r.delta}</span>`:r.delta<0?`<span class="rp-chip down">▼${-r.delta}</span>`:'');
   [['r1',r.r1k,null],['r2',r.r2k,r.moveR2],['r3',r.r3k,r.moveR3]].forEach(([role,v,mv])=>{
+    setPlc(tr,role,r[role+'p']);
     const el=tr.querySelector(`[data-role="${role}"] .num-val`);if(!el)return;
     if(v==='–'||fresh)el.textContent=String(v);
     else{if(el.textContent==='–')el.textContent='0';animateCount(el,v,{stiffness:120,damping:18});}
@@ -970,7 +985,7 @@ function rvBuild(ev){
 }
 function rvText(t){
   t.tt.textContent=t.tot;
-  t.sm.innerHTML=`PL ${t.pl} · ${RV_SKULL}${t.kills}${t.kp?' (+'+t.kills*t.kp+')':''}`+(t.boo?` · 🏆${t.boo}`:'');
+  t.sm.innerHTML=`${t.pl} place pts · ${RV_SKULL}${t.kills} kill${t.kills===1?'':'s'}${t.kp?' (+'+t.kills*t.kp+')':''}`+(t.boo?` · 🏆${t.boo}`:'');
 }
 function rvCmp(a,b){return b.tot-a.tot||b.boo-a.boo||b.kills-a.kills||b.last-a.last||String(a.team).localeCompare(String(b.team));}
 function rvLayout(animate){
@@ -1106,7 +1121,9 @@ $rv('rv-open').addEventListener('click',rvOpen);
 $rv('rv-close').addEventListener('click',rvClose);
 $rv('rv-sel').addEventListener('change',e=>rvPick(+e.target.value));
 $rv('rv-pause').addEventListener('click',()=>{RV.paused=!RV.paused;$rv('rv').classList.toggle('paused',RV.paused);$rv('rv-pause').textContent=RV.paused?'▶':'⏸';});
-$rv('rv-spd').addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b)return;RV.speed=+b.dataset.v;$rv('rv-spd').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));});
+function rvSpeed(v){RV.speed=v;$rv('rv-spd').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.v===v));}
+$rv('rv-spd').addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b)return;rvSpeed(+b.dataset.v);try{localStorage.setItem('jd_rv_speed',b.dataset.v);}catch(x){}});
+try{const v=+localStorage.getItem('jd_rv_speed');if([0.5,1,2,3].includes(v))rvSpeed(v);}catch(x){}   // last speed this viewer picked
 $rv('rv-steps').addEventListener('click',e=>{
   const b=e.target.closest('button[data-a]');if(!b||!RV.ev)return;
   const a=b.dataset.a;
