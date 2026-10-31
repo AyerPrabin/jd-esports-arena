@@ -266,11 +266,11 @@
       "start": "2026-10-30T21:30:00+05:45",
       "format": "BR · 3 matches",
       "status": "completed",
+      "winner": "Ancient Ogs 1",
       "platform": "Mobile only",
       "platform_mode": "mobile",
       "teams": [],
-      "registered": 0,
-      "winner": "Ancient Ogs 1"
+      "registered": 0
     },
     {
       "map": "bermuda",
@@ -331,6 +331,26 @@
       "platform_mode": "mixed",
       "teams": [],
       "registered": 0
+    },
+    {
+      "name": "JD Free Fire Open #15",
+      "game": "Free Fire BR · Squad",
+      "date": "Sat, Nov 7",
+      "time": "9:30 PM NPT",
+      "start": "2026-11-07T21:30:00+05:45",
+      "status": "upcoming",
+      "map": "bermuda",
+      "prize": "300",
+      "entry": "20 points",
+      "platform": "Mix Device",
+      "platform_mode": "mixed",
+      "slots": 12,
+      "format": "BR · 4 matches",
+      "map2": "random",
+      "map3": "random",
+      "early_access": "yes",
+      "teams": [],
+      "registered": 0
     }
   ],
   "bo3": {
@@ -355,8 +375,7 @@
             "kills": 23,
             "pts": 12
           }
-        ],
-        "prize_won": "100"
+        ]
       },
       {
         "team": "TEAM TIGER",
@@ -374,8 +393,7 @@
             "kills": 0,
             "pts": 0
           }
-        ],
-        "prize_won": "60"
+        ]
       },
       {
         "team": "Hell godzz",
@@ -393,8 +411,7 @@
             "kills": 4,
             "pts": 6
           }
-        ],
-        "prize_won": "40"
+        ]
       },
       {
         "team": "NXT tram",
@@ -542,5 +559,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-30T18:02:50Z"
+  "_published_at": "2026-10-31T01:22:05.444Z"
 }
