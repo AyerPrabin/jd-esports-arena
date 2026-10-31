@@ -1,10 +1,10 @@
 {
-  "versionCode": 14,
-  "versionName": "2.0.7",
+  "versionCode": 15,
+  "versionName": "2.0.8",
   "minVersionCode": 13,
-  "url": "https://cnoxvqvpmgowdiyrrusv.supabase.co/storage/v1/object/public/app/jd-arena-2.0.7.apk",
-  "sha256": "a146e206e95389f22151240162f1b00ec7d5578a13797c473ee650dd20014762",
-  "size": 3585393,
-  "date": "2026-10-30",
-  "notes": "Feels better: a new animated opening screen, and a gentle vibration when you switch tabs, join, copy a room code or get confirmed."
+  "url": "https://cnoxvqvpmgowdiyrrusv.supabase.co/storage/v1/object/public/app/jd-arena-2.0.8.apk",
+  "sha256": "dc056ea477ad297cca455bdbfce201f5a52f48531c621506d041698c0db56304",
+  "size": 3589489,
+  "date": "2026-10-31",
+  "notes": "Ring your squad: tap 📞 in your squad chat and your teammates' phones ring until they open it. Plus Verify your squad on your ticket."
 }

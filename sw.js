@@ -116,17 +116,20 @@ self.addEventListener("push", e => {
   try { d = e.data ? e.data.json() : {}; } catch (x) { d = { body: e.data ? e.data.text() : "" }; }
   const tag = d.tag || "jd-arena";
   const url = d.url || "/";
-  const chat = /[?&](dm|g|chat)=|\/chat\//.test(url) || /^jd-(g-|c-|dm-|chat|staff-chat|zulu)/.test(tag);
+  // 📞 a teammate ringing the squad (squad-ring): long buzz, stays until tapped, never bundled with messages
+  const ring = /^jd-ring/.test(tag);
+  const chat = !ring && (/[?&](dm|g|chat)=|\/chat\//.test(url) || /^jd-(g-|c-|dm-|chat|staff-chat|zulu)/.test(tag));
   const room = /\/challenges\/\?c=/.test(url);
   // Each alert type looks and buzzes differently so players know what it is before opening:
   // messages = blue 💬, short buzz, bundled; Room ID/password = green 🔑, long urgent buzz,
   // stays until tapped; results = gold 🏆, celebration buzz.
-  const kind = tag === "jd-room" || /^room code/i.test(d.title || "") ? "roomcode"
+  const kind = ring ? "ring" : tag === "jd-room" || /^room code/i.test(d.title || "") ? "roomcode"
     : tag === "jd-results" || /^results are in/i.test(d.title || "") ? "result"
     : /off the waitlist|you're in:/i.test(d.title || "") ? "slot"
     : chat ? "msg" : "";
   const STYLE = {
     msg: { icon: "/notif-msg.png", pre: "💬 ", vibrate: [90, 60, 90] },
+    ring: { icon: "/notif-msg.png", pre: "", vibrate: [1000, 400, 1000, 400, 1000, 400, 1000, 400, 1000], sticky: true, action: "📞 Open squad chat" },
     roomcode: { icon: "/notif-room.png", pre: "🔑 ", vibrate: [600, 200, 600, 200, 600], sticky: true, action: "🔑 Show Room ID" },
     // a waitlist slot opened: it must be confirmed, so it stays until tapped
     slot: { icon: "/icon-192.png", pre: "🎟 ", vibrate: [300, 120, 300, 120, 600], sticky: true, action: "🎟 Open my ticket" },

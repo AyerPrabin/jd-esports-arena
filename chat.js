@@ -216,7 +216,7 @@
       '<div class="dm-mytag" id="dm-mytag" hidden></div>' +
     '</div>' +
     '<div class="dm-view" id="dm-thread">' +
-      '<div class="dm-thead"><button type="button" class="dm-ib" id="dm-back" aria-label="Back">' + ICON.back + '</button><span id="dm-th-av"></span><button type="button" class="dm-who" id="dm-who"><b id="dm-th-name"></b><small id="dm-th-st"></small></button><button type="button" class="dm-ib" id="dm-menu" aria-label="Options">' + ICON.dots + '</button><button type="button" class="dm-ib" id="dm-close2" aria-label="Close">' + ICON.x + '</button></div>' +
+      '<div class="dm-thead"><button type="button" class="dm-ib" id="dm-back" aria-label="Back">' + ICON.back + '</button><span id="dm-th-av"></span><button type="button" class="dm-who" id="dm-who"><b id="dm-th-name"></b><small id="dm-th-st"></small></button><button type="button" class="dm-ib" id="dm-ring" aria-label="Ring squad" title="Ring squad: their phones ring" hidden>📞</button><button type="button" class="dm-ib" id="dm-menu" aria-label="Options">' + ICON.dots + '</button><button type="button" class="dm-ib" id="dm-close2" aria-label="Close">' + ICON.x + '</button></div>' +
       '<div id="dm-pin"></div>' +
       '<div class="dm-msgs" id="dm-msgs" aria-live="polite"></div>' +
       '<div id="dm-chips"></div>' +
@@ -1038,6 +1038,7 @@
     $('dm-th-name').textContent = name;
     if (p.kind === 'jd') $('dm-th-name').insertAdjacentHTML('beforeend', ' ' + VERIFIED);
     var s = $('dm-th-st'); s.textContent = st; s.className = on ? 'on' : '';
+    $('dm-ring').hidden = p.kind !== 'group';
   }
 
   // ── fetching a page of messages, normalised to { id, sender, mine, kind, body, created_at, read_at } ──
@@ -1617,6 +1618,23 @@
       sheet('<h3>ZULU</h3><p>ZULU is an AI assistant; answers can be wrong. Your ZULU chat is stored only on this device. Messages you send it go to our AI providers (see /privacy/).</p>' +
         '<button type="button" class="dm-opt red" data-a="zulu-clear">🧹 Clear ZULU chat</button><button type="button" class="dm-opt" data-a="close">' + T('cancel') + '</button>');
     }
+  };
+  // 📞 ring everyone in this squad chat (squad-ring): their phones ring until they open it. Tap twice (no
+  // confirm() - app WebViews can swallow it): the first tap asks, a second tap within 4 s rings.
+  var ringArm = 0;
+  $('dm-ring').onclick = async function () {
+    var p = cur, b = this; if (!p || p.kind !== 'group' || b.disabled) return;
+    if (Date.now() - ringArm > 4000) { ringArm = Date.now(); note(NE ? '📞 पूरै squad लाई ring गर्न फेरि थिच्नुहोस्' : '📞 Tap again to ring your whole squad'); return; }
+    ringArm = 0; b.disabled = true;
+    var r = null, err = '';
+    try { r = await SB.functions.invoke('squad-ring', { body: { group_id: p.id } }); } catch (e) {}
+    if (r && r.error && r.error.context && r.error.context.json) { try { err = ((await r.error.context.json()) || {}).error || ''; } catch (e) {} }
+    b.disabled = false;
+    if (cur !== p) return;
+    var d = r && r.data;
+    if (d && d.ok) { note('📞 Ringing ' + d.members + ' teammate' + (d.members === 1 ? '' : 's') + '…'); if (navigator.vibrate) navigator.vibrate(60); refreshThread(); }
+    else note(err || 'Could not ring right now. Try again.', 'err');
+    setTimeout(function () { if (cur === p) note(''); }, 5000);
   };
   $('dm-who').onclick = function () { if (cur && cur.kind === 'group') $('dm-menu').click(); };
 
