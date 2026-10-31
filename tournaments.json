@@ -371,6 +371,26 @@
       "platform_mode": "mobile",
       "teams": [],
       "registered": 0
+    },
+    {
+      "name": "Halloween Special Event",
+      "game": "Free Fire BR · Squad",
+      "status": "upcoming",
+      "map": "bermuda",
+      "map2": "random",
+      "map3": "random",
+      "prize": "333",
+      "entry": "Free",
+      "platform": "Mobile only",
+      "platform_mode": "mobile",
+      "slots": 12,
+      "format": "BR · 6 matches",
+      "early_access": "yes",
+      "start": "2026-11-01T21:00:00+05:45",
+      "date": "Sun, Nov 1",
+      "time": "9:00 PM NPT",
+      "teams": [],
+      "registered": 0
     }
   ],
   "bo3": {
@@ -579,5 +599,5 @@
       }
     ]
   },
-  "_published_at": "2026-10-31T01:25:33.586Z"
+  "_published_at": "2026-10-31T20:20:15.017Z"
 }
