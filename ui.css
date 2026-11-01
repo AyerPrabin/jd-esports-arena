@@ -242,7 +242,7 @@ img{max-width:100%}
   header .back-btn{display:none}
   /* the leaderboard showed the winner 3 times (photo banner, podium, row 1): the podium's
      crowned #1 is enough on a phone */
-  #champ{display:none!important}
+  #champ:not(.hw){display:none!important}   /* the 🎃 Halloween banner still shows */
 }
 
 /* squad-effects showcase: it pauses its animations off-screen (.fx-paused), which also froze
