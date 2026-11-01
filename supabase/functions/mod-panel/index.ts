@@ -181,7 +181,7 @@ Deno.serve(async (req: Request) => {
     if (!slug) return fail('slug required');
     if (!await canEvent(slug)) return notYours();
     const { data, error } = await admin.from('registrations')
-      .select('id, player_id, squad_name, status, whatsapp, checked_in_at, verified_at, created_at, promoted_at, players(username, player_tag)')
+      .select('id, player_id, squad_name, status, whatsapp, checked_in_at, verified_at, lineup, lineup_at, created_at, promoted_at, players(username, player_tag, ff_uid, ff_name)')
       .eq('tournament_slug', slug).order('slot_key', { ascending: true });
     if (error) return fail(error.message, 500);
     const wlOrder = await waitOrder((data || []).filter((r: any) => r.status === 'waitlisted'));
@@ -190,6 +190,8 @@ Deno.serve(async (req: Request) => {
       checked_in: !!r.checked_in_at, verified: !!r.verified_at,
       wl: wlOrder.get(r.id) || null, pro: wlOrder.has(r.id) ? proSet.has(r.player_id) : undefined,
       promoted_at: r.promoted_at || null,
+      lineup: Array.isArray(r.lineup) ? r.lineup : null, lineup_at: r.lineup_at || null,
+      captain_ff: r.players?.ff_uid ? `${r.players.ff_name || ''} (${r.players.ff_uid})` : null,
       captain: r.players?.username ? '@' + r.players.username : (r.players?.player_tag || null),
     })));
   }

@@ -105,6 +105,12 @@ main{position:relative;max-width:1280px;margin:0 auto;padding:16px 16px calc(var
 .slot .nm{min-width:0}
 .slot .nm b{display:block;font-weight:600;color:var(--cream);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .slot .nm small{display:block;color:var(--body);font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lu-no{color:#e8a94d!important}
+details.lu{margin-top:4px;font-size:.78rem;color:var(--body)}
+details.lu summary{cursor:pointer;color:#5EDB95;font-weight:600;list-style:none}
+details.lu summary::-webkit-details-marker{display:none}
+details.lu div{padding:3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+details.lu .uid{font-family:ui-monospace,monospace;color:var(--cream);text-decoration:underline dotted;cursor:pointer}
 .play{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:#070b15}
 .play button{border:0;background:none;color:var(--body);font-weight:600;font-size:.82rem;padding:8px 13px;border-radius:999px;cursor:pointer;min-width:48px;transition:background-color .15s,color .15s}
 .play button[aria-pressed=true].y{background:rgba(94,219,149,.16);color:var(--ok)}
@@ -706,16 +712,24 @@ $('removed-box').addEventListener('click',async e=>{
   await loadSquads(true);
   toast(`${b.dataset.sq} is back in.`+(data&&data.slots&&data.taken>data.slots?` Slots ${data.taken}/${data.slots}: remove one squad that isn't playing.`:''));
 });
+/* the line-up the captain gave with "Verify your squad" (squad_verify.sql): check names/UIDs against the room */
+function lineupHtml(r){
+  if(!r.lineup||!r.lineup.length) return `<small class="lu lu-no">⚠ Squad not verified${r.captain_ff?' · captain '+esc(r.captain_ff):''}</small>`;
+  return `<details class="lu"><summary>🛡️ Verified · ${r.lineup.length} players</summary>`+
+    r.lineup.map((m,i)=>`<div translate="no">${i<4?i+1:'Sub'} · ${esc(m.name)} · <span class="uid" data-copy="${esc(m.uid)}" title="Tap to copy">${esc(m.uid)}</span></div>`).join('')+
+    `<small>Saved ${esc(new Date(r.lineup_at).toLocaleString([], {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))}</small></details>`;
+}
 function renderSquads(){
+  const unv=rows.filter(r=>(active(r)||r.status==='waitlisted')&&!r.lineup).length;
   const act=rows.filter(active), yes=act.filter(r=>r.checked_in).length, wait=rows.filter(r=>r.status==='waitlisted').length, no=act.length-yes;
   const badge=$('badge-unconf'); badge.hidden=!no; badge.textContent=no;
   const fil=(k,label,n,cls)=>`<button type="button" class="fil${cls?' '+cls:''}" data-fil="${k}" aria-pressed="${filter===k}"><b>${n}</b> ${label}</button>`;
-  $('sum').innerHTML=fil('all','in slots',act.length)+fil('yes','playing',yes)+fil('no','not confirmed',no,no?'warn':'')+fil('wait','waitlist',wait);
+  $('sum').innerHTML=fil('all','in slots',act.length)+fil('yes','playing',yes)+fil('no','not confirmed',no,no?'warn':'')+fil('wait','waitlist',wait)+fil('unv','squad not verified',unv,unv?'warn':'');
   if(!rows.length){ $('reg-body').innerHTML='<div class="empty">No squads have registered yet.</div>'; return; }
   let slotNo=0, wlNo=0;   // W numbers come from the server (Pro pass first, then sign-up time - same as the auto move-up)
   const all=rows.map(r=>{const on=active(r);return {r,on,no:on?++slotNo:null,wl:r.status==='waitlisted'?(r.wl||++wlNo):null};});
   const shown=all.filter(x=>!x.wl).concat(all.filter(x=>x.wl).sort((a,b)=>a.wl-b.wl)).filter(({r,on})=>
-    filter==='all'?true:filter==='yes'?on&&r.checked_in:filter==='no'?on&&!r.checked_in:r.status==='waitlisted');
+    filter==='all'?true:filter==='yes'?on&&r.checked_in:filter==='no'?on&&!r.checked_in:filter==='unv'?(on||r.status==='waitlisted')&&!r.lineup:r.status==='waitlisted');
   if(!shown.length){ $('reg-body').innerHTML='<div class="empty">Nothing here – every squad in this list is done.</div>'; return; }
   const free=selected&&+selected.slots?Math.max(0,+selected.slots-act.length):0, unconf=act.filter(r=>!r.checked_in&&!freshUp(r)).length;
   const tools=(wait&&unconf)?`<div class="wl-tools"><button type="button" class="btn alt" data-act="replace">Replace ${Math.min(unconf,wait)} unconfirmed with the waitlist</button><span class="note">Squads that didn't tap Yes lose their slot; waitlist W1, W2… move up in order and get a notification.</span></div>`:'';
@@ -732,7 +746,7 @@ function renderSquads(){
       (wait&&free?`<button type="button" class="abtn" data-act="give" data-id="${esc(r.id)}" data-sq="${esc(name)}">Give slot</button>`:'')+
       `<button type="button" class="abtn rm" data-act="rm" data-id="${esc(r.id)}" data-sq="${esc(name)}"><svg aria-hidden="true"><use href="#i-x"/></svg>Remove</button>`;
     return `<div class="slot${on?'':' off'}${wait?' wait':''}"><span class="no" aria-label="${on?'Slot '+no:wait?'Waitlist '+wn:''}">${on?no:wait?'W'+wn:'–'}</span>`+
-      `<div class="nm"><b translate="no">${esc(name)}</b><small>${esc(r.captain||'')}${r.whatsapp?' · '+esc(r.whatsapp):''}${r.pro?' · ⭐ Pro pass':''}${on&&r.promoted_at?' · 🎟 from waitlist'+(freshUp(r)?' (confirming…)':''):''}</small></div>`+
+      `<div class="nm"><b translate="no">${esc(name)}</b><small>${esc(r.captain||'')}${r.whatsapp?' · '+esc(r.whatsapp):''}${r.pro?' · ⭐ Pro pass':''}${on&&r.promoted_at?' · 🎟 from waitlist'+(freshUp(r)?' (confirming…)':''):''}</small>${lineupHtml(r)}</div>`+
       play+`<div class="acts">${acts}</div></div>`;
   }).join('')+'</div>';
 }
@@ -743,6 +757,7 @@ async function setPlaying(id,on,sq,quiet){
   renderSquads();
   if(!quiet) toast(`${sq} marked ${on?'playing':'not confirmed'}.`,()=>setPlaying(id,!on,sq,true).catch(err=>toast(err.message,null,true)));
 }
+$('reg-body').addEventListener('click',e=>{const u=e.target.closest('.uid[data-copy]');if(u){navigator.clipboard&&navigator.clipboard.writeText(u.dataset.copy);toast('Copied UID '+u.dataset.copy);}});
 $('reg-body').addEventListener('click',async e=>{
   const b=e.target.closest('button[data-act]'); if(!b) return;
   if(b.dataset.act==='replace'){

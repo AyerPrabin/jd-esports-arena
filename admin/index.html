@@ -504,7 +504,7 @@ h2[id]{scroll-margin-top:64px}
   <div class="row">
     <button class="btn ghost" onclick="loadTeamsAdmin()">↻ Load teams</button>
     <button class="btn ghost" id="tm-verify-all" onclick="tmVerifyAll()">✓ Verify all</button>
-    <select id="tm-status" onchange="renderTeamsAdmin()" style="width:auto"><option value="">All statuses</option><option value="active">Confirmed + approved</option><option value="pending">Pending payment</option><option value="waitlisted">Waitlisted</option><option value="no_show">No-show</option><option value="rejected">Rejected</option></select>
+    <select id="tm-status" onchange="renderTeamsAdmin()" style="width:auto"><option value="">All statuses</option><option value="active">Confirmed + approved</option><option value="unverified">Squad not verified</option><option value="pending">Pending payment</option><option value="waitlisted">Waitlisted</option><option value="no_show">No-show</option><option value="rejected">Rejected</option></select>
     <div id="tm-msg" class="hint"></div>
   </div>
   <div id="tm-summary" class="tm-summary"></div>
@@ -2541,6 +2541,12 @@ function renderTmTourney(){
 }
 function tmMsg(t,c){setMsg(document.getElementById('tm-msg'),t,c);}
 let _teams=[];
+// the line-up from "Verify your squad" (squad_verify.sql): names + UIDs to check against the room; tap a UID to copy
+function tmLineup(r){
+  if(!(r.lineup&&r.lineup.length))return '<div class="tm-meta" style="color:#e8a94d">⚠ Squad not verified (no line-up yet)</div>';
+  return `<details class="tm-meta" style="margin-top:4px"><summary style="cursor:pointer;color:#5EDB95;font-weight:600">🛡️ Line-up · ${r.lineup.length} players · ${esc(new Date(r.lineup_at).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}))}</summary>`+
+    r.lineup.map((m,i)=>`<div>${i<4?i+1:'Sub'} · ${esc(m.name)} · <span style="font-family:monospace;text-decoration:underline dotted;cursor:pointer" title="Click to copy" onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(m.uid)}');this.textContent='${esc(m.uid)} ✓'">${esc(m.uid)}</span></div>`).join('')+'</details>';
+}
 function tmVerified(){return new Set(_teams.filter(r=>r.verified_at).map(r=>r.id));}
 async function tmToggleVerified(id,btn){
   const secret=adminSecret();
@@ -2604,8 +2610,8 @@ function renderTeamsAdmin(){
   for(const r of _teams){if(r.status==='confirmed'||r.status==='approved')counts.active++;else if(r.status==='pending')counts.pending++;else if(r.status==='waitlisted')counts.waitlisted++;else counts.other++;}
   const nVer=_teams.filter(r=>verified.has(r.id)).length;
   const slots=+((data.tournaments.find(t=>t.name===document.getElementById('tm-tourney').value)||{}).slots)||0;
-  sum.innerHTML=_teams.length?`<span><b>${counts.active}</b>${slots?'/'+slots:''} confirmed</span><span><b>${counts.pending}</b> pending</span><span><b>${counts.waitlisted}</b> waitlisted</span>${counts.other?`<span><b>${counts.other}</b> other</span>`:''}<span><b>${nVer}</b>/${_teams.length} verified</span>`:'';
-  const rows=_teams.filter(r=>!filter||(filter==='active'?(r.status==='confirmed'||r.status==='approved'):r.status===filter));
+  sum.innerHTML=_teams.length?`<span><b>${counts.active}</b>${slots?'/'+slots:''} confirmed</span><span><b>${counts.pending}</b> pending</span><span><b>${counts.waitlisted}</b> waitlisted</span>${counts.other?`<span><b>${counts.other}</b> other</span>`:''}<span><b>${nVer}</b>/${_teams.length} verified</span><span><b>${_teams.filter(r=>r.lineup&&r.lineup.length).length}</b>/${_teams.length} line-ups</span>`:'';
+  const rows=_teams.filter(r=>!filter||(filter==='active'?(r.status==='confirmed'||r.status==='approved'):filter==='unverified'?!(r.lineup&&r.lineup.length)&&['confirmed','approved','pending','waitlisted'].includes(r.status):r.status===filter));
   const matchIds=new Set(match.map(m=>m.id));
   // slot numbers: active squads in list order (list-registrations sorts by slot_key, same as the site)
   const slotOf=new Map();let sn=0;for(const r of _teams)if(r.status==='confirmed'||r.status==='approved')slotOf.set(r.id,++sn);
@@ -2617,10 +2623,9 @@ function renderTeamsAdmin(){
     if(p.email)bits.push(esc(p.email));
     if(r.whatsapp)bits.push(`<a class="tm-wa" href="${esc(waReminderLink(r))}" target="_blank" rel="noopener" title="Opens WhatsApp with a reminder ready to send">💬 ${esc(r.whatsapp)} · send reminder</a>`);
     if(r.device_type)bits.push(r.device_type==='emulator'?'🖥 Emulator':'📱 Mobile');
-    bits.push(Array.isArray(r.lineup)&&r.lineup.length?'🛡️ Line-up: '+r.lineup.map(m=>esc(m.name)+' ('+esc(m.uid)+')').join(', '):'<span style="color:var(--warn,#e8a94d)">⚠ Squad not verified (no line-up)</span>');
     if(r.checked_in_at)bits.push('✓ checked in '+esc(new Date(r.checked_in_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})));
     bits.push('joined '+esc(new Date(r.created_at).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})));
-    return `<div class="card tm-card${cls}">${logo}<div class="tm-main"><div class="tm-top">${slotOf.has(r.id)?`<span class="tm-slot" title="Slot number">#${slotOf.get(r.id)}</span>`:''}<span class="tm-name">${esc(r.squad_name||'(no squad name)')}</span><span class="tm-code" title="Click to copy" onclick="copyTicket(this,'${tc}')">${tc}</span><span class="tm-pill ${esc(r.status)}">${esc(String(r.status).replace('_','-'))}</span></div><div class="tm-meta">${bits.join(' · ')}</div></div><div class="tm-actions"><button class="tm-btn${isVer?' ok-on':''}" onclick="tmToggleVerified('${r.id}',this)" title="${isVer?'Verified '+esc(new Date(r.verified_at).toLocaleString())+' — click to undo':'Saved permanently; the player sees a Verified badge'}">${isVer?'✓ Verified':'Mark verified'}</button>${slotOf.has(r.id)?`<button class="tm-btn${_swapFrom===r.id?' swap-on':''}" onclick="tmSwap('${r.id}')" title="Swap this squad's slot number with another squad">${_swapFrom===r.id?'Cancel swap':_swapFrom?'⇄ Swap here':'⇄ Swap slot'}</button>`:''}<button class="tm-btn" onclick="messageTeam('${r.id}')">📣 Message</button><button class="tm-btn danger" onclick="removeTeamAdmin('${r.id}')">✕ Remove</button></div></div>`;
+    return `<div class="card tm-card${cls}">${logo}<div class="tm-main"><div class="tm-top">${slotOf.has(r.id)?`<span class="tm-slot" title="Slot number">#${slotOf.get(r.id)}</span>`:''}<span class="tm-name">${esc(r.squad_name||'(no squad name)')}</span><span class="tm-code" title="Click to copy" onclick="copyTicket(this,'${tc}')">${tc}</span><span class="tm-pill ${esc(r.status)}">${esc(String(r.status).replace('_','-'))}</span></div><div class="tm-meta">${bits.join(' · ')}</div>${tmLineup(r)}</div><div class="tm-actions"><button class="tm-btn${isVer?' ok-on':''}" onclick="tmToggleVerified('${r.id}',this)" title="${isVer?'Verified '+esc(new Date(r.verified_at).toLocaleString())+' — click to undo':'Saved permanently; the player sees a Verified badge'}">${isVer?'✓ Verified':'Mark verified'}</button>${slotOf.has(r.id)?`<button class="tm-btn${_swapFrom===r.id?' swap-on':''}" onclick="tmSwap('${r.id}')" title="Swap this squad's slot number with another squad">${_swapFrom===r.id?'Cancel swap':_swapFrom?'⇄ Swap here':'⇄ Swap slot'}</button>`:''}<button class="tm-btn" onclick="messageTeam('${r.id}')">📣 Message</button><button class="tm-btn danger" onclick="removeTeamAdmin('${r.id}')">✕ Remove</button></div></div>`;
   }).join(''):`<p class="hint">${_teams.length?'No teams with that status.':'No registrations loaded — pick an event and click "↻ Load teams".'}</p>`;
 }
 /* Players can leave a WhatsApp number when registering (optional, this event only).
