@@ -93,6 +93,8 @@ img{max-width:100%}
     box-shadow:0 -10px 30px rgba(3,5,10,.55)}
   @supports(backdrop-filter:blur(1px)){
     .tabbar{background:rgba(9,12,20,.82);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%)}}
+  /* phones: a live blur behind the fixed tab bar is redrawn every scroll frame and left pages blank while scrolling */
+  @media(pointer:coarse){.tabbar{background:rgba(9,12,20,.97);backdrop-filter:none;-webkit-backdrop-filter:none}}
   .tabbar a{
     position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
     min-height:48px;color:var(--ui-muted);font:600 .64rem/1.1 var(--font-body);letter-spacing:.01em;
@@ -291,7 +293,7 @@ img{max-width:100%}
 .pe-list{display:grid;gap:12px}
 .pe-card{display:grid;grid-template-columns:96px 1fr auto;gap:16px;align-items:center;padding:12px;border-radius:16px;background:var(--panel,#111827);border:1px solid var(--line,rgba(255,200,80,.14));cursor:pointer;text-align:left;width:100%;color:inherit;font:inherit;transition:border-color .2s,transform .2s var(--ease-out)}
 .pe-card:hover{border-color:var(--gold-m,rgba(255,200,80,.42))}
-.pe-img{width:96px;height:96px;border-radius:12px;background-size:cover;background-position:center;filter:saturate(.75)}
+.pe-img{width:96px;height:96px;border-radius:12px;background-size:cover;background-position:center;background-color:#0d1320}
 .pe-main{min-width:0}
 .pe-name{font-family:var(--font-display);font-weight:700;font-size:1.35rem;line-height:1.1;margin:0 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pe-meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.8rem;color:var(--silver,#A6AFC2)}

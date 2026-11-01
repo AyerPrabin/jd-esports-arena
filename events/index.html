@@ -37,12 +37,12 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .next{margin-top:28px;display:flex;gap:10px;flex-wrap:wrap}
 /* best of 3: the three maps as mini tiles in place of the single map picture */
 .pe-img.pe-maps{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;overflow:hidden;background:#0d1320;filter:none}
-.pe-maps i{position:relative;background-size:cover;background-position:center;filter:saturate(.75);display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px}
+.pe-maps i{position:relative;background-size:cover;background-position:center;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px}
 .pe-maps i.rnd{background:repeating-linear-gradient(135deg,#1a2233 0 6px,#151c2b 6px 12px);align-items:center;padding:0;font-style:normal;font-size:.9rem}
 .pe-maps b{font-size:.55rem;font-weight:800;color:#111;background:#FFC83D;border-radius:3px;padding:0 3px;line-height:1.4}
 </style>
 <link rel="stylesheet" href="/effects.css">
-<link rel="stylesheet" href="/ui.css?v=24">
+<link rel="stylesheet" href="/ui.css?v=25">
 <link rel="stylesheet" href="/broadcast.css?v=5">
 <link rel="stylesheet" href="/effects-styles.css?v=2">
 <link rel="canonical" href="https://jdesport.co.uk/events/">
@@ -102,7 +102,7 @@ const isBo3=t=>!t.image&&(t.map2||t.map3);
 const bo3Keys=t=>[t.map,t.map2,t.map3].map(k=>String(k||'random').toLowerCase());
 function mapsHtml(t){
   return `<div class="pe-img pe-maps" aria-hidden="true">${bo3Keys(t).map((k,i)=>MAP_NAME[k]
-    ?`<i style="background-image:url('/maps/ff-${k}.webp')"><b>M${i+1}</b></i>`:`<i class="rnd" title="Random">🎲</i>`).join('')}</div>`;
+    ?`<i style="background-image:url('/maps/thumb/ff-${k}.webp')"><b>M${i+1}</b></i>`:`<i class="rnd" title="Random">🎲</i>`).join('')}</div>`;
 }
 const mapsLine=t=>bo3Keys(t).map(k=>MAP_NAME[k]||'🎲 Random').join(' · ');
 function fmtDate(t){
@@ -144,7 +144,7 @@ async function load(){
   };
   const card=t=>{
     const st=status(t),n=Math.max(count.get(t.name)||0,(squads.get(t.name)||[]).length);
-    const img=t.image||('/maps/ff-'+mapOf(t)+'.webp');
+    const img=t.image||('/maps/thumb/ff-'+mapOf(t)+'.webp');   // 160px, colour already toned down: 20 cards scroll smoothly
     const entry=String(t.entry||'Free').trim();
     return `<div class="pe-card" role="button" tabindex="0" aria-expanded="false">
       ${isBo3(t)?mapsHtml(t):`<div class="pe-img" style="background-image:url('${esc(img)}')"></div>`}
