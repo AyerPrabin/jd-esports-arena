@@ -14,23 +14,6 @@
    "kill_pts": 1,
    "teams": [
     {
-     "team": "Youtz Esp",
-     "r": [
-      {
-       "kills": 7,
-       "pts": 12
-      },
-      {
-       "kills": 18,
-       "pts": 12
-      },
-      {
-       "kills": 0,
-       "pts": 0
-      }
-     ]
-    },
-    {
      "team": "Soul2Ash",
      "r": [
       {
@@ -42,8 +25,25 @@
        "pts": 8
       },
       {
-       "kills": 0,
-       "pts": 0
+       "kills": 19,
+       "pts": 12
+      }
+     ]
+    },
+    {
+     "team": "Youtz Esp",
+     "r": [
+      {
+       "kills": 7,
+       "pts": 12
+      },
+      {
+       "kills": 18,
+       "pts": 12
+      },
+      {
+       "kills": 3,
+       "pts": 9
       }
      ]
     },
@@ -59,8 +59,8 @@
        "pts": 9
       },
       {
-       "kills": 0,
-       "pts": 0
+       "kills": 2,
+       "pts": 7
       }
      ]
     },
@@ -76,8 +76,8 @@
        "pts": 7
       },
       {
-       "kills": 0,
-       "pts": 0
+       "kills": 3,
+       "pts": 6
       }
      ]
     },
@@ -99,23 +99,6 @@
      ]
     },
     {
-     "team": "Team Protocol",
-     "r": [
-      {
-       "kills": 3,
-       "pts": 5
-      },
-      {
-       "kills": 0,
-       "pts": 0
-      },
-      {
-       "kills": 0,
-       "pts": 0
-      }
-     ]
-    },
-    {
      "team": "Dijhfaf786",
      "r": [
       {
@@ -125,6 +108,23 @@
       {
        "kills": 0,
        "pts": 6
+      },
+      {
+       "kills": 2,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "Team Protocol",
+     "r": [
+      {
+       "kills": 3,
+       "pts": 5
+      },
+      {
+       "kills": 0,
+       "pts": 0
       },
       {
        "kills": 0,
