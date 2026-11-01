@@ -1991,7 +1991,10 @@ async function submitRegister(){
   megaCredit(name);
   regClose();
   regSuccessOpen(t,effectiveStatus,reg);
-  {const n=document.getElementById('rs-note');if(n&&reg&&reg.id)n.innerHTML+=`<br><br><b>🛡️ Next: verify your squad.</b> Add your real squad name and your 4 players' Free Fire names + UIDs so everyone knows who's playing.<br><button type="button" class="inapp-reg mt-sqv-btn" style="margin-top:10px" onclick="regSuccessClose();sqvOpen(${esc(JSON.stringify(name))})">🛡️ Verify your squad now</button>`;}
+  // a squad that verified before gets its saved line-up copied in (squad_verify_saved.sql): only ask the others
+  if(reg&&reg.id)sb.from('registrations').select('lineup, lineup_at').eq('id',reg.id).maybeSingle().then(({data:lu})=>{
+    const r=_myRegs.get(name);if(r&&lu&&lu.lineup){r.lineup=lu.lineup;r.lineup_at=lu.lineup_at;renderCur();return;}
+    const n=document.getElementById('rs-note');if(n)n.innerHTML+=`<br><br><b>🛡️ Next: verify your squad.</b> Add your real squad name and your 4 players' Free Fire names + UIDs so everyone knows who's playing.<br><button type="button" class="inapp-reg mt-sqv-btn" style="margin-top:10px" onclick="regSuccessClose();sqvOpen(${esc(JSON.stringify(name))})">🛡️ Verify your squad now</button>`;});
   if(codeErr){const n=document.getElementById('rs-note');if(n)n.innerHTML+=`<br><br><b>Payment not completed:</b> ${esc(codeErr)} Your place is held — you can pay from your ticket.`;}
   renderCur();
   loadPublicRoster(); // pulls the new registration into the public count/roster right away instead of waiting for the 45s poll
