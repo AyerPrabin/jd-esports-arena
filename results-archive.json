@@ -1,6 +1,225 @@
 {
  "events": [
   {
+   "name": "Halloween Special Event",
+   "date": "Sun, Nov 1",
+   "start": "2026-11-01T21:15:00+05:45",
+   "maps": [
+    "purgatory",
+    "kalahari",
+    "bermuda"
+   ],
+   "prize": "333",
+   "winner": "",
+   "kill_pts": 1,
+   "teams": [
+    {
+     "team": "Youtz Esp",
+     "r": [
+      {
+       "kills": 7,
+       "pts": 12
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Soul2Ash",
+     "r": [
+      {
+       "kills": 11,
+       "pts": 7
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "PRIME ESPORTS",
+     "r": [
+      {
+       "kills": 8,
+       "pts": 8
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Hell godzz",
+     "r": [
+      {
+       "kills": 5,
+       "pts": 9
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "THE REAL TIGER",
+     "r": [
+      {
+       "kills": 3,
+       "pts": 6
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Team Protocol",
+     "r": [
+      {
+       "kills": 3,
+       "pts": 5
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Ancient Ogs 1",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Devil Era",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Dijhfaf786",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Fox Esport",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "PK_zon",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Team Volts",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
    "name": "JD Free Fire Open #10",
    "date": "Fri, Oct 30",
    "start": "2026-10-30T21:30:00+05:45",
