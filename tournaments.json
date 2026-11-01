@@ -6,24 +6,6 @@
     "kill_pts": 1,
     "teams": [
       {
-        "team": "Youtz Esp",
-        "logo": "",
-        "r": [
-          {
-            "kills": 7,
-            "pts": 12
-          },
-          {
-            "kills": 18,
-            "pts": 12
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          }
-        ]
-      },
-      {
         "team": "Soul2Ash",
         "logo": "",
         "r": [
@@ -36,8 +18,26 @@
             "pts": 8
           },
           {
-            "kills": 0,
-            "pts": 0
+            "kills": 19,
+            "pts": 12
+          }
+        ]
+      },
+      {
+        "team": "Youtz Esp",
+        "logo": "",
+        "r": [
+          {
+            "kills": 7,
+            "pts": 12
+          },
+          {
+            "kills": 18,
+            "pts": 12
+          },
+          {
+            "kills": 3,
+            "pts": 9
           }
         ]
       },
@@ -54,8 +54,8 @@
             "pts": 9
           },
           {
-            "kills": 0,
-            "pts": 0
+            "kills": 2,
+            "pts": 7
           }
         ]
       },
@@ -72,8 +72,8 @@
             "pts": 7
           },
           {
-            "kills": 0,
-            "pts": 0
+            "kills": 3,
+            "pts": 6
           }
         ]
       },
@@ -96,24 +96,6 @@
         ]
       },
       {
-        "team": "Team Protocol",
-        "logo": "",
-        "r": [
-          {
-            "kills": 3,
-            "pts": 5
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          }
-        ]
-      },
-      {
         "team": "Dijhfaf786",
         "logo": "",
         "r": [
@@ -124,6 +106,24 @@
           {
             "kills": 0,
             "pts": 6
+          },
+          {
+            "kills": 2,
+            "pts": 7
+          }
+        ]
+      },
+      {
+        "team": "Team Protocol",
+        "logo": "",
+        "r": [
+          {
+            "kills": 3,
+            "pts": 5
+          },
+          {
+            "kills": 0,
+            "pts": 0
           },
           {
             "kills": 0,
@@ -617,5 +617,5 @@
       "platform_mode": "mobile"
     }
   ],
-  "_published_at": "2026-11-01T16:33:30.424Z"
+  "_published_at": "2026-11-01T16:53:05.773Z"
 }
