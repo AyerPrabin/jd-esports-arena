@@ -14,8 +14,8 @@
             "pts": 12
           },
           {
-            "kills": 0,
-            "pts": 0
+            "kills": 18,
+            "pts": 12
           },
           {
             "kills": 0,
@@ -32,8 +32,8 @@
             "pts": 7
           },
           {
-            "kills": 0,
-            "pts": 0
+            "kills": 11,
+            "pts": 8
           },
           {
             "kills": 0,
@@ -50,8 +50,26 @@
             "pts": 8
           },
           {
+            "kills": 2,
+            "pts": 9
+          },
+          {
             "kills": 0,
             "pts": 0
+          }
+        ]
+      },
+      {
+        "team": "THE REAL TIGER",
+        "logo": "",
+        "r": [
+          {
+            "kills": 3,
+            "pts": 6
+          },
+          {
+            "kills": 6,
+            "pts": 7
           },
           {
             "kills": 0,
@@ -69,25 +87,7 @@
           },
           {
             "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          }
-        ]
-      },
-      {
-        "team": "THE REAL TIGER",
-        "logo": "",
-        "r": [
-          {
-            "kills": 3,
-            "pts": 6
-          },
-          {
-            "kills": 0,
-            "pts": 0
+            "pts": 5
           },
           {
             "kills": 0,
@@ -106,6 +106,24 @@
           {
             "kills": 0,
             "pts": 0
+          },
+          {
+            "kills": 0,
+            "pts": 0
+          }
+        ]
+      },
+      {
+        "team": "Dijhfaf786",
+        "logo": "",
+        "r": [
+          {
+            "kills": 0,
+            "pts": 0
+          },
+          {
+            "kills": 0,
+            "pts": 6
           },
           {
             "kills": 0,
@@ -133,24 +151,6 @@
       },
       {
         "team": "Devil Era",
-        "logo": "",
-        "r": [
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          }
-        ]
-      },
-      {
-        "team": "Dijhfaf786",
         "logo": "",
         "r": [
           {
@@ -617,5 +617,5 @@
       "platform_mode": "mobile"
     }
   ],
-  "_published_at": "2026-11-01T16:07:05.771Z"
+  "_published_at": "2026-11-01T16:33:30.424Z"
 }
