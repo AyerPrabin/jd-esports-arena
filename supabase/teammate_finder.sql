@@ -100,15 +100,20 @@ begin
   if f.status = 'accepted' then return 'friend'; end if;
   if f.id is not null and f.requester = v_me then return 'pending'; end if;
   if f.id is not null then perform public.respond_friend_request(p.player_id, true); return 'accepted'; end if;
-  if (select count(*) from public.friendships where requester = v_me and created_at > now() - interval '1 hour') >= 30 then
+  -- same cap + log as send_friend_request, so cancel/re-send can't spam notifications
+  if (select count(*) from public.friend_request_log where requester = v_me and created_at > now() - interval '1 hour') >= 30 then
     raise exception 'Too many requests. Try again in a while.';
   end if;
   insert into public.friendships (requester, addressee) values (v_me, p.player_id);
-  insert into public.notifications (player_id, title, body) values (p.player_id,
-    '👥 ' || public._chat_name(v_me) || ' wants to team up',
-    left(v_ign || ' saw your ' || case when p.kind = 'player' then 'teammate' else 'squad' end || ' post'
-      || case when p.tournament <> '' then ' for ' || p.tournament else '' end
-      || '. Open 💬 Messages to accept and chat.', 300));
+  if not exists(select 1 from public.friend_request_log where requester = v_me and addressee = p.player_id
+                and created_at > now() - interval '24 hours') then
+    insert into public.notifications (player_id, title, body) values (p.player_id,
+      '👥 ' || public._chat_name(v_me) || ' wants to team up',
+      left(v_ign || ' saw your ' || case when p.kind = 'player' then 'teammate' else 'squad' end || ' post'
+        || case when p.tournament <> '' then ' for ' || p.tournament else '' end
+        || '. Open 💬 Messages to accept and chat.', 300));
+  end if;
+  insert into public.friend_request_log (requester, addressee) values (v_me, p.player_id);
   return 'sent';
 end $$;
 

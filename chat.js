@@ -1387,7 +1387,10 @@
   async function zuluFetch(body, onText) {
     var base = (SB.supabaseUrl || 'https://cnoxvqvpmgowdiyrrusv.supabase.co') + '/functions/v1/zulu-ai-reply';
     body.stream = true;
-    var res = await fetch(base, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    var hd = { 'Content-Type': 'application/json' };
+    // the login token lets ZULU check (server side) whether this is a JD mod or the admin
+    try { var ss = (await SB.auth.getSession()).data.session; if (ss) hd.Authorization = 'Bearer ' + ss.access_token; } catch (e) {}
+    var res = await fetch(base, { method: 'POST', headers: hd, body: JSON.stringify(body) });
     if (!res.ok) return null;
     if ((res.headers.get('content-type') || '').indexOf('application/json') >= 0) { var d = await res.json(); return d && d.reply; }
     if (!res.body || !window.TextDecoder) { var t = await res.text(); if (onText && t) onText(t); return t || null; }

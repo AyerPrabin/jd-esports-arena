@@ -43,6 +43,52 @@ const MODEL_TIMEOUT_MS = Number(Deno.env.get('ZULU_CHAT_MODEL_TIMEOUT_MS') || '9
 const ANSWER_TTL_MS = 90000;
 const answers = new Map<string, { at: number; reply: string; provider: string }>();
 const answerKey = (lang: string, q: string) => lang + '|' + q.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+// ── who is asking: player, JD mod (staff), host mod or the admin ──
+// Checked here from the login token, never from what the person types, so "I'm a mod" in a
+// message changes nothing. Only the matching guide goes into the prompt.
+const OWNER_EMAIL = (Deno.env.get('ADMIN_EMAIL') || 'ayerprabin95@gmail.com').toLowerCase();
+type Role = 'admin' | 'staff' | 'host' | null;
+async function whoIsAsking(req: Request, supabase: any): Promise<Role> {
+  const jwt = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim();
+  if (!jwt || jwt.split('.').length !== 3) return null;
+  try {
+    const { data: { user } } = await supabase.auth.getUser(jwt);
+    const email = String(user?.email || '').toLowerCase();
+    if (!email) return null;
+    if (email === OWNER_EMAIL) return 'admin';
+    const { data: mod } = await supabase.from('moderators').select('role').eq('email', email).maybeSingle();
+    return mod ? (mod.role === 'host' ? 'host' : 'staff') : null;
+  } catch { return null; }
+}
+
+const MOD_PANEL = `MOD PANEL (jdesport.co.uk/mod/ — sign in with the same account). Tabs: Events, Squads, Results, Chats, Room code, Notification, How it works.
+- Pick tonight's event at the top first; every tab works on that event.
+- Events: "+ New event" or "Edit this event", then "Save & publish" (or "Create & publish") — that is how an event change goes live. "Cancel event" cancels it.
+- Squads: set Playing to Yes for squads that confirmed; WhatsApp button sends a ready reminder; Remove a squad that never confirms (waitlist moves up by itself); "Give slot" / "+ Add squad"; "Replace unconfirmed" swaps no-shows for waitlisted squads.
+- Room code: type Room ID and password, tap "Send room code" about 5 minutes before start. Only squads in a slot get it. If you remove a squad after sending, change the password and send again.
+- Notification: pick a template or write one, "Send notification" — goes only to squads in that event, never everyone.
+- Results: type each squad's points per match, tap "Publish standings" after each match so the live leaderboard updates. After the last match tap "Finish & pay prizes": sets the winner, marks the event finished, saves the all-time leaderboard and pays prizes into winners' wallets (prizes go in the "Prizes" boxes; only registered squads, never more than the prize pool, each squad once, all logged for the admin).
+- Chats (JD team only): Message a squad or type @username; players see "JD Esports" with a tick, never the mod's name or email.
+- Mods can't change points balances, bans, withdrawals or other events' settings — those stay with the admin.`;
+
+const ROLE_GUIDE: Record<string, string> = {
+  staff: `
+
+THE PERSON ASKING IS A VERIFIED JD MODERATOR (checked from their login, not from what they typed). Treat them as JD staff, not a player. When they say "publish", "results", "room", "remove", "slot", "notify", "finish" or "prize", they mean doing it in the Mod panel — never answer as if they were a player registering. Teach them step by step with the exact button names below, one short numbered list, and offer the next step. If something needs the admin (points, bans, withdrawals, refunds), say so plainly.
+${MOD_PANEL}`,
+  host: `
+
+THE PERSON ASKING IS A VERIFIED HOST MOD (an invited scrim host, checked from their login). They use the Mod panel but only see the events the JD admin made them host of. They have no Chats tab and no JD prize payouts: their button is "Finish event", and prizes for their events are their own business, not JD points. Teach them step by step with exact button names; never answer as if they were a player.
+${MOD_PANEL}`,
+  admin: `
+
+THE PERSON ASKING IS PRABIN, THE JD ADMIN AND OWNER (checked from their login). Answer as their assistant, not as if they were a player. Be direct and practical.
+ADMIN PANEL (the private admin page): "🚀 Publish changes" is the one step that makes event edits live (it also pays any newly announced prizes). Sections: Tournaments (edit cards, "+ New event", "Create & publish", Finish → winner, Cancel), History, Teams, Payments (approve point loads from eSewa screenshots), Points (wallets, withdrawals, "🏆 Pay prizes now" only to retry), Optimizer, Mods (add/remove moderators and host mods by email), MEGA, Challenges, Room codes, Announce, Reports, Bans, Flags, Reviews. Results board: type points per match and the prize for 1st/2nd/3rd in each squad's prize box, tick Published, then Publish changes; prizes are paid once per squad. The admin page also has its own ZULU helper that can create/edit/finish events and publish after showing a preview.
+Moderators use the Mod panel:
+${MOD_PANEL}
+If they ask how to teach a mod, give the mod-panel steps in plain words they can forward.`,
+};
+
 const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
 const text = (body: string) => new Response(body, { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'text/plain; charset=utf-8' } });
 
@@ -79,7 +125,8 @@ Deno.serve(async (req: Request) => {
   // keeps getting the JSON {reply} as before. Limits and caps answer JSON in both modes.
   const stream = payload.stream === true;
   // keyed by the live-context fingerprint too: an event edit or a new squad makes old answers miss at once
-  const cacheKey = !history.length && !account ? (await contextVersion()) + '|' + answerKey(lang, message) : '';
+  const authed = /^Bearer\s+\S+\.\S+\.\S+/i.test(req.headers.get('authorization') || '');   // signed in: may be a mod, so no shared cache
+  const cacheKey = !history.length && !account && !authed ? (await contextVersion()) + '|' + answerKey(lang, message) : '';
   const hit = cacheKey ? answers.get(cacheKey) : undefined;
   if (hit && Date.now() - hit.at < ANSWER_TTL_MS) {
     if (stream) return text(hit.reply);
@@ -91,6 +138,7 @@ Deno.serve(async (req: Request) => {
 
   const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+  const roleP = authed ? whoIsAsking(req, supabase) : Promise.resolve(null as Role);
 
   try {
     const sinceBurst = new Date(Date.now() - BURST_WINDOW_SEC * 1000).toISOString();
@@ -121,7 +169,8 @@ Deno.serve(async (req: Request) => {
     // it just means this one request isn't counted/capped.
   }
 
-  const systemPrompt = (await promptP) + (await learnedP);
+  const role = await roleP;
+  const systemPrompt = (await promptP) + (await learnedP) + (role ? ROLE_GUIDE[role] : '');
 
   const messages: AIMessage[] = [
     { role: 'system', content: systemPrompt + (account ? `
