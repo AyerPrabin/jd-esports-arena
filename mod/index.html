@@ -56,14 +56,16 @@ main{position:relative;max-width:1280px;margin:0 auto;padding:16px 16px calc(var
 
 #tab-events{display:none}
 /* tabs: bottom bar on phones, top strip on tablets, gone on desktop (everything is visible there) */
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(6,1fr);background:rgba(10,14,26,.97);border-top:1px solid var(--line);padding:0 0 env(safe-area-inset-bottom);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);background:rgba(10,14,26,.97);border-top:1px solid var(--line);padding:0 0 env(safe-area-inset-bottom);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .tabs button{min-width:0;height:var(--tabh);border:0;background:none;color:var(--body);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font-size:.74rem;font-weight:500}
 .tabs svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .tabs button[aria-selected=true]{color:var(--cta)}
 .tabs .badge{position:absolute;margin:-18px 0 0 22px;min-width:18px;height:18px;border-radius:9px;background:var(--warn);color:#1a0d00;font-size:.68rem;font-weight:700;display:grid;place-items:center;padding:0 4px}
 .tabs .tb{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px}
+.tabs button[hidden]{display:none}
+#tab-promo:not(.ok){display:none!important}
 @media (min-width:700px) and (max-width:1079px){
-  .tabs{position:sticky;top:var(--top-h,112px);bottom:auto;grid-template-columns:repeat(6,auto);justify-content:start;gap:6px;background:var(--bg);border:0;padding:12px max(16px,calc((100% - 1280px)/2 + 16px));backdrop-filter:none;z-index:25}
+  .tabs{position:sticky;top:var(--top-h,112px);bottom:auto;grid-auto-columns:auto;justify-content:start;gap:6px;background:var(--bg);border:0;padding:12px max(16px,calc((100% - 1280px)/2 + 16px));backdrop-filter:none;z-index:25}
   .tabs button{height:auto;flex-direction:row;gap:7px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);font-size:.86rem}
   .tabs button[aria-selected=true]{background:rgba(255,200,61,.1);border-color:var(--gold-m)}
   .tabs svg{width:18px;height:18px}
@@ -311,6 +313,8 @@ textarea{min-height:96px;resize:vertical}
 .rs-acts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
 .rs-acts .btn{margin:0}
 .btn.alt{background:none;border:1px solid var(--gold-m);color:var(--gold-l)}
+.pr-item{padding:12px 0;border-top:1px solid var(--line)}.pr-item:first-child{border-top:0}
+.pr-item a{color:var(--gold-l);font-weight:700;word-break:break-all}.cap{text-transform:capitalize}
 @media (max-width:480px){.rs-acts{grid-template-columns:1fr}}
 
 /* help */
@@ -349,6 +353,7 @@ textarea{min-height:96px;resize:vertical}
   <symbol id="i-squads" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c.6-3.2 3-5 6-5s5.4 1.8 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c2.6.2 4.7 1.8 5.5 4.8"/></symbol>
   <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l2.5 2.5M14 9l2 2"/></symbol>
   <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></symbol>
+  <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3 9a2 2 0 0 0 0 6v3h18v-3a2 2 0 0 1 0-6V6H3z"/><path d="M14 6v12" stroke-dasharray="2 2.5"/></symbol>
   <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.8c0 1.7-2.4 2.1-2.4 3.6"/><path d="M12 17h.01"/></symbol>
   <symbol id="i-wa" viewBox="0 0 24 24"><path d="M4 20l1.2-3.6A8 8 0 1 1 8 19z"/><path d="M9.2 9.3c.3 2 2.4 4.2 4.6 4.7l1.1-1.1 1.8.8"/></symbol>
   <symbol id="i-msg" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
@@ -380,6 +385,7 @@ textarea{min-height:96px;resize:vertical}
   <button type="button" role="tab" aria-selected="false" data-tab="results"><span class="tb"><svg aria-hidden="true"><use href="#i-trophy"/></svg>Results</span></button>
   <button type="button" role="tab" aria-selected="false" data-tab="chats"><span class="tb"><svg aria-hidden="true"><use href="#i-chat"/></svg><span class="badge" id="badge-chat" hidden></span>Chats</span></button>
   <button type="button" role="tab" aria-selected="false" data-tab="notify"><span class="tb"><svg aria-hidden="true"><use href="#i-bell"/></svg>Notify</span></button>
+  <button type="button" role="tab" aria-selected="false" data-tab="promo" hidden><span class="tb"><svg aria-hidden="true"><use href="#i-ticket"/></svg><span class="badge" id="badge-promo" hidden></span>Promo</span></button>
   <button type="button" role="tab" aria-selected="false" data-tab="help"><span class="tb"><svg aria-hidden="true"><use href="#i-help"/></svg>Help</span></button>
 </div>
 
@@ -470,6 +476,15 @@ textarea{min-height:96px;resize:vertical}
       </div>
     </section>
   </div>
+
+  <!-- promo: players' posts about JD Arena → 2 free entries (promo_vouchers.sql). JD staff + admin only. -->
+  <section class="tab" id="tab-promo" aria-labelledby="h-promo">
+    <div class="panel">
+      <div class="sec-h"><h2 id="h-promo">Promo posts</h2><button type="button" class="btn alt" id="pr-reload" style="font-size:.9rem;padding:6px 12px">Refresh</button></div>
+      <p class="note" style="margin:0 0 10px">Open each link. Approve only if the post is about JD Arena, tags AyerFire (@ayer_fire or #AyerFire) and shows 500+ views now. Approving gives the player 2 free entries (30 days). Reject fake or bought views, reposts and someone else's video.</p>
+      <div id="pr-q"></div>
+    </div>
+  </section>
 
   <!-- help -->
   <section class="tab help" id="tab-help" aria-labelledby="h-help">
@@ -1112,11 +1127,34 @@ document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&$('tab-r
 /* ── tabs (phone / tablet) ── */
 function showTab(name){
   document.querySelectorAll('#tabs [role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===name?'true':'false'));
-  ['squads','results','chats','room','notify','help'].forEach(n=>$('tab-'+n).classList.toggle('on',n===name));
+  ['squads','results','chats','room','notify','promo','help'].forEach(n=>$('tab-'+n).classList.toggle('on',n===name));
   try{history.replaceState(null,'','#'+name);}catch(e){}
   window.scrollTo({top:0});
   if(name==='results') rsAutoReload();
+  if(name==='promo') prLoad();
 }
+/* ── promo review ── */
+async function prLoad(){
+  const box=$('pr-q');
+  const {data,error}=await sb.rpc('promo_queue');
+  if(error){box.innerHTML='<p class="note">'+esc(error.message)+'</p>';return;}
+  const q=data||[];const bd=$('badge-promo');if(bd){bd.hidden=!q.length;bd.textContent=q.length;}
+  box.innerHTML=q.length?q.map(p=>`<div class="pr-item" data-id="${p.id}"><a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"><span class="cap">${esc(p.platform)}</span> · ${(+p.views).toLocaleString()} views claimed</a>
+    <p class="note" style="margin:4px 0 8px">@${esc(p.username||'?')}${p.ign?' · 🎮 '+esc(p.ign):''} · ${esc(new Date(p.at).toLocaleString())}${p.approved_before?' · approved '+p.approved_before+'× before':''}</p>
+    <div class="rs-acts"><button type="button" class="btn alt" data-pr="no">Reject</button><button type="button" class="btn" data-pr="yes">Approve · 2 free entries</button></div></div>`).join(''):'<p class="note">No posts waiting.</p>';
+}
+$('pr-reload').onclick=prLoad;
+$('pr-q').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-pr]');if(!b)return;
+  const it=b.closest('.pr-item'),yes=b.dataset.pr==='yes';
+  let note=null;
+  if(!yes){note=await sheet({title:'Why not approved?',text:'The player sees this.',input:'text',chips:['Under 500 views','No AyerFire tag','Not about JD Arena','Fake or bought views','Not their video'],ok:'Reject'});if(note===null)return;}
+  else if(!await sheet({title:'Approve this post?',text:'The player gets 2 free entries right away.',ok:'Approve'}))return;
+  it.querySelectorAll('button').forEach(x=>x.disabled=true);
+  const {error}=await sb.rpc('promo_review',{p_id:+it.dataset.id,p_approve:yes,p_note:note||null});
+  if(error){toast(error.message,null,true);it.querySelectorAll('button').forEach(x=>x.disabled=false);return;}
+  toast(yes?'Approved: 2 free entries sent.':'Rejected.');prLoad();
+});
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)showTab(b.dataset.tab);});
 $('tabs').addEventListener('keydown',e=>{
   if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
@@ -1142,6 +1180,7 @@ $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
     setTopH();
     loadTournaments();
     if(!isHostMod()){ loadInbox(); startLive(); }
+    if(!isHostMod()) sb.rpc('promo_queue').then(r=>{ if(r.error) return; document.querySelector('#tabs [data-tab=promo]').hidden=false; $('tab-promo').classList.add('ok'); prLoad(); const n=(r.data||[]).length,bd=$('badge-promo'); bd.hidden=!n; bd.textContent=n; if(h==='promo') showTab('promo'); });
   }catch(e){
     $('gate').hidden=false;
     $('gate-note').textContent=/not a moderator/i.test(e.message)?'Signed in as '+(session.user.email||'')+', but that account is not a moderator yet. Ask the JD admin to add you.':e.message;

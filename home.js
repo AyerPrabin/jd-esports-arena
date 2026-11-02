@@ -780,6 +780,7 @@ function render(d){
     grid.querySelectorAll('[data-confirm]').forEach(b=>b.onclick=()=>confirmAttendance(b.getAttribute('data-confirm')));
     grid.querySelectorAll('[data-sqv]').forEach(b=>b.onclick=e=>{e.stopPropagation();sqvOpen(b.getAttribute('data-sqv'));});
     grid.querySelectorAll('[data-pts-entry]').forEach(b=>b.onclick=e=>{e.stopPropagation();payEntryWithPoints(b.getAttribute('data-pts-entry'));});
+    grid.querySelectorAll('[data-v-entry]').forEach(b=>b.onclick=e=>{e.stopPropagation();payEntryWithVoucher(b.getAttribute('data-v-entry'));});
     grid.querySelectorAll('[data-code-in]').forEach(i=>i.onclick=e=>e.stopPropagation());
     grid.querySelectorAll('[data-fx-buy]').forEach(b=>b.onclick=e=>{e.stopPropagation();fxShopOpen(b.getAttribute('data-fx-buy'));});
     grid.querySelectorAll('[data-cal]').forEach(b=>b.onclick=e=>{e.stopPropagation();calAdd(b.getAttribute('data-cal'));});
@@ -1777,7 +1778,7 @@ async function registerInApp(name){
   // waitlists automatically and auto-promotes the moment a confirmed slot frees up.
   if(full&&paid){showMsg('Tournament full',"All "+slots+" squad slots are taken.",true);return;}
   /* no points, no registration: straight to Load points (the server refuses it too - register_for_tournament) */
-  if(paid&&!canAfford(entryAmount(t))){
+  if(paid&&!canAfford(entryAmount(t))&&!_vouchers){
     const need=entryAmount(t)-(+_wallet||0);
     confirmBox('🪙 Load points to join',`${name} costs ${entryAmount(t)} points to join. You have ${walletLabel()} - load ${need} more points, then come back and join in one tap.`,'Load points','Later')
       .then(ok=>{if(ok)goWallet('load');});
@@ -1799,7 +1800,7 @@ async function registerInApp(name){
   regQuickSetup(false);
   myContact().then(()=>{if(_regTarget===name)regQuickSetup(true);});
   const pp=document.getElementById('reg-pay-price');if(pp)pp.textContent='Entry '+(t.entry||'');
-  const ps=document.getElementById('reg-pay-steps');if(ps){const pr=entryAmount(t);ps.innerHTML=paid?`<div class="pts-line" style="font-size:.8rem;color:var(--body)">Entry <b style="color:var(--gold-l)">${pr} points</b> · You have <b style="color:var(--gold-l)">${walletLabel()}</b>${canAfford(pr)?' — paid automatically when you register.':''}</div>`+(!canAfford(pr)?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="goWallet('load')">➕ Load points (need ${pr-_wallet} more)</button>`:''):'';}
+  const ps=document.getElementById('reg-pay-steps');if(ps){const pr=entryAmount(t);ps.innerHTML=paid&&_vouchers?`<label class="pts-line" style="font-size:.82rem;color:var(--body);display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="reg-use-v" checked${canAfford(pr)?'':' disabled'} style="width:auto">🎟️ Use a free entry <span style="color:var(--muted)">(${_vouchers} left${canAfford(pr)?' · untick to pay '+pr+' points':''})</span></label>`:paid?`<div class="pts-line" style="font-size:.8rem;color:var(--body)">Entry <b style="color:var(--gold-l)">${pr} points</b> · You have <b style="color:var(--gold-l)">${walletLabel()}</b>${canAfford(pr)?' — paid automatically when you register.':''}</div>`+(!canAfford(pr)?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="goWallet('load')">➕ Load points (need ${pr-_wallet} more)</button>`:''):'';}
   const payNote=document.getElementById('reg-pay-note');if(payNote)payNote.textContent='The entry is paid from your points when you register.';
   const rok=document.getElementById('reg-rules-ok');if(rok)rok.checked=false;
   // squads that registered and didn't show up before get a final warning (they can still join)
@@ -1984,7 +1985,11 @@ async function submitRegister(){
   if(wa&&reg&&reg.id){try{await sb.rpc('set_registration_whatsapp',{p_reg_id:reg.id,p_whatsapp:wa});_myContact=Object.assign({},_myContact||{},{whatsapp:wa,device_type:deviceType});}catch(e){}}
   // Paid: entry is paid in points only — taken straight away when the wallet covers it.
   let codeErr='';
-  if(paid&&effectiveStatus==='pending'&&canAfford(entryAmount(t))){
+  const useV=paid&&_vouchers>0&&(!canAfford(entryAmount(t))||((document.getElementById('reg-use-v')||{}).checked));
+  if(paid&&effectiveStatus==='pending'&&useV){
+    const rr=await sb.rpc('pay_entry_with_voucher',{p_tournament_slug:name});
+    if(rr.error)codeErr=rr.error.message;else{effectiveStatus='approved';_vouchers=Math.max(0,_vouchers-1);loadWallet();}
+  }else if(paid&&effectiveStatus==='pending'&&canAfford(entryAmount(t))){
     const rr=await sb.rpc('pay_entry_with_points',{p_tournament_slug:name});
     if(rr.error)codeErr=rr.error.message;else{effectiveStatus='approved';loadWallet();}
   }
@@ -2218,7 +2223,17 @@ function fxTicketHtml(t,r){
 }
 function entryCodeBoxHtml(t,r){
   const price=entryAmount(t);
-  return `<div class="mt-codebox"><p>⏳ <b>Place held.</b> Pay the entry from your points to confirm your slot.</p>${ptsPayHtml(price,'Entry',`data-pts-entry="${esc(t.name)}"`)}</div>`;
+  return `<div class="mt-codebox"><p>⏳ <b>Place held.</b> Pay the entry from your points to confirm your slot.</p>${_vouchers?`<button type="button" class="pts-btn" data-v-entry="${esc(t.name)}" style="margin-bottom:8px">🎟️ Use a free entry (${_vouchers} left)</button>`:''}${ptsPayHtml(price,'Entry',`data-pts-entry="${esc(t.name)}"`)}</div>`;
+}
+async function payEntryWithVoucher(name){
+  const ok=await confirmBox('Use a free entry?',`One free-entry voucher confirms your squad for ${name}. If you withdraw before the start, the voucher comes back.`,'Use free entry','Cancel');
+  if(!ok)return;
+  const {data,error}=await sb.rpc('pay_entry_with_voucher',{p_tournament_slug:name});
+  if(error){showMsg('Entry not confirmed',error.message,true);return;}
+  const r=_myRegs.get(name);if(r){r.status='approved';r.paid_points=0;}
+  _vouchers=(data&&data.vouchers)||0;megaCredit(name);
+  showMsg('Entry confirmed',`Free entry used. Your squad is confirmed for ${name}. Free entries left: ${_vouchers}.`);
+  await loadWallet();await loadPublicRoster();renderCur();
 }
 async function payEntryWithPoints(name){
   const t=((_lastData||ARENA_SAMPLE).tournaments||[]).find(x=>x.name===name)||{};
@@ -2474,12 +2489,13 @@ async function checkLock(){
 }
 setTimeout(renderFxShow,600);
 function goWallet(tab){location.href='/wallet/'+(tab?'#'+tab:'');}
-let _wallet=0,_walletLoaded=false,_walletUnlimited=false;
+let _wallet=0,_walletLoaded=false,_walletUnlimited=false,_vouchers=0;   /* _vouchers: free-entry vouchers from promoting JD Arena (promo_vouchers.sql) */
 function canAfford(n){return _walletUnlimited||_wallet>=n;}
 function walletLabel(){return _walletUnlimited?'100B':String(_wallet);}
 async function loadWallet(){
   if(!sb||!_player){_wallet=0;return;}
-  const {data}=await sb.from('wallets').select('balance, unlimited').eq('player_id',_player.id).maybeSingle();
+  const [{data},vr]=await Promise.all([sb.from('wallets').select('balance, unlimited').eq('player_id',_player.id).maybeSingle(),sb.rpc('promo_mine').then(r=>r,()=>null)]);
+  _vouchers=(vr&&vr.data&&vr.data.vouchers)||0;
   const prev=_wallet;_wallet=(data&&data.balance)||0;_walletUnlimited=!!(data&&data.unlimited);_walletLoaded=true;
   const el=document.getElementById('pts-bal');if(el)el.textContent=walletLabel();
   const nb=document.getElementById('nav-pts-bal');if(nb)nb.textContent=walletLabel();

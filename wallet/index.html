@@ -63,7 +63,7 @@ h1{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.04e
 
 /* tabs */
 .tabs{position:sticky;top:0;z-index:5;display:flex;gap:6px;margin:18px -16px 16px;padding:10px 16px;background:linear-gradient(var(--bg) 70%,transparent)}
-.tab{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:12px 8px;border-radius:14px;border:1px solid var(--line-2);background:var(--panel);color:var(--silver);font-weight:700;font-size:.84rem;cursor:pointer;transition:.2s}
+.tab{flex:1;min-width:0;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:7px;padding:12px 8px;border-radius:14px;border:1px solid var(--line-2);background:var(--panel);color:var(--silver);font-weight:700;font-size:.84rem;cursor:pointer;transition:.2s}
 .tab svg{width:17px;height:17px}
 .tab[hidden]{display:none}
 .tab:hover{color:var(--cream)}
@@ -74,6 +74,13 @@ h1{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.04e
 
 .card{border-radius:20px;background:var(--panel);border:1px solid var(--line-2);padding:18px}
 .card+.card{margin-top:12px}
+.pr-have{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:12px 14px;border-radius:14px;background:rgba(255,200,61,.08);border:1px dashed var(--gold-m)}
+.pr-have b{font-family:'Barlow Condensed',sans-serif;font-size:2.4rem;line-height:1;color:var(--gold-l)}
+.pr-have span{font-size:.84rem;font-weight:700;color:var(--gold-l)}.pr-have small{font-weight:500;color:var(--body)}
+.pr-msg{margin:8px 0 0;font-size:.8rem;color:var(--body);min-height:1em}.pr-msg.err{color:#ff8a8a}.pr-msg.ok{color:var(--green)}
+.pr-row{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line-2)}.pr-row:first-child{border-top:none}
+.pr-row a{color:var(--gold-l);font-weight:700;font-size:.86rem;word-break:break-all}.cap{text-transform:capitalize}.pr-row small{display:block;font-size:.76rem;color:var(--body);margin-top:2px}
+.pr-row.rejected a{color:var(--body)}.pr-ic{width:22px;text-align:center}
 .card h2{margin:0 0 4px;font-size:1rem;font-weight:800}
 .card p.sub{margin:0 0 12px;font-size:.82rem;color:var(--body)}
 label{display:block;margin:14px 0 6px;font-size:.7rem;font-weight:700;letter-spacing:.01em;color:var(--silver)}
@@ -199,7 +206,35 @@ input:focus{border-color:var(--gold)}
       <button class="tab" data-tab="load" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Load</button>
       <button class="tab" id="tab-withdraw" data-tab="withdraw" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>Withdraw</button>
       <button class="tab" data-tab="history" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>History</button>
+      <button class="tab" data-tab="promo" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9a2 2 0 0 0 0 6v3h18v-3a2 2 0 0 1 0-6V6H3z"/><path d="M14 6v12" stroke-dasharray="2 2.5"/></svg>Free</button>
     </nav>
+
+    <!-- FREE ENTRY: promote JD Arena (promo_vouchers.sql) -->
+    <section class="pane" id="p-promo">
+      <div class="card">
+        <div class="pr-have" id="pr-have"><b id="pr-n">0</b><span>free entries<small id="pr-exp"></small></span></div>
+        <h2>Post about JD Arena, play 2 events free</h2>
+        <p class="sub">Make a video or post about JD Esports Arena. When it passes 500 views, send us the link and get 2 free entries to any paid event.</p>
+        <ol class="steps">
+          <li class="step"><h3>Post it</h3><p class="sub">TikTok, YouTube, Facebook or Instagram: your match clips, a win, or why you play here. Show the app or say jdesport.co.uk.</p></li>
+          <li class="step"><h3>Tag AyerFire</h3><p class="sub">Tag <b>@ayer_fire</b> or write <b>#AyerFire</b> in the caption, so we can find it.</p></li>
+          <li class="step"><h3>Reach 500 views</h3><p class="sub">Real views only. Bought or fake views get the post rejected and can get the account banned.</p></li>
+          <li class="step"><h3>Send the link</h3>
+            <form id="pr-form" novalidate>
+              <input id="pr-url" type="url" inputmode="url" placeholder="https://www.tiktok.com/@you/video/…" maxlength="300" autocomplete="off" aria-label="Link to your post">
+              <input id="pr-views" type="number" inputmode="numeric" min="500" placeholder="Views now (500 or more)" aria-label="Views now" style="margin-top:8px">
+              <button class="btn" id="pr-send" type="submit" style="margin-top:10px">Send for a check</button>
+              <p class="pr-msg" id="pr-msg" role="status"></p>
+            </form>
+          </li>
+        </ol>
+        <p class="sub" style="margin:4px 0 0">A JD mod opens your link and checks the views and the tag, usually within a day. One rewarded post every 30 days. Free entries last 30 days, work on any paid event and can't be swapped for points. If you withdraw before the start, the free entry comes back.</p>
+      </div>
+      <div class="card" id="pr-list-card" hidden>
+        <h2>Your posts</h2>
+        <div id="pr-list"></div>
+      </div>
+    </section>
 
     <!-- LOAD -->
     <section class="pane" id="p-load">
@@ -325,13 +360,37 @@ function countTo(el,to){
 
 /* ── tabs (#load / #withdraw / #history) ── */
 function setTab(t){
-  if(!['load','withdraw','history'].includes(t))t='load';
+  if(!['load','withdraw','history','promo'].includes(t))t='load';
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
   document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));
   if(location.hash!=='#'+t)history.replaceState(null,'','#'+t);
   if(t==='history')renderHistory();
   if(t==='withdraw')loadWithdrawals();
+  if(t==='promo')loadPromo();
 }
+
+/* ── free entry: promote JD Arena ── */
+const PR_ST={pending:['⏳','Being checked'],approved:['🎟️','Approved · 2 free entries'],rejected:['✕','Not approved']};
+async function loadPromo(){
+  const {data,error}=await sb.rpc('promo_mine');
+  if(error||!data){$('pr-msg').textContent=error?'Free entries open soon.':'';return;}
+  $('pr-n').textContent=data.vouchers||0;
+  $('pr-exp').textContent=data.next_expiry?' · next ends '+new Date(data.next_expiry).toLocaleDateString(undefined,{day:'numeric',month:'short'}):'';
+  const posts=data.posts||[];$('pr-list-card').hidden=!posts.length;
+  $('pr-list').innerHTML=posts.map(p=>{const st=PR_ST[p.status]||['',''];return `<div class="pr-row ${esc(p.status)}"><span class="pr-ic">${st[0]}</span><div><a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"><span class="cap">${esc(p.platform)}</span> · ${(+p.views).toLocaleString()} views</a><small>${st[1]}${p.note?' · '+esc(p.note):''}</small></div></div>`;}).join('');
+}
+$('pr-form').onsubmit=async e=>{
+  e.preventDefault();
+  const url=$('pr-url').value.trim(),views=parseInt($('pr-views').value,10),m=$('pr-msg');
+  if(!/^https:\/\/\S+$/i.test(url)){m.textContent='Paste the full link to your post (starting with https://).';m.className='pr-msg err';$('pr-url').focus();return;}
+  if(!(views>=500)){m.textContent='The post needs at least 500 views first.';m.className='pr-msg err';$('pr-views').focus();return;}
+  $('pr-send').disabled=true;m.textContent='Sending…';m.className='pr-msg';
+  const {error}=await sb.rpc('promo_submit',{p_url:url,p_views:views});
+  $('pr-send').disabled=false;
+  if(error){m.textContent=error.message;m.className='pr-msg err';return;}
+  m.textContent='Sent. A JD mod will check it, and you’ll get a notification.';m.className='pr-msg ok';
+  $('pr-url').value='';$('pr-views').value='';loadPromo();
+};
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 window.addEventListener('hashchange',()=>setTab(location.hash.slice(1)));
 
