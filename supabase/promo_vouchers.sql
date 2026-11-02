@@ -62,8 +62,12 @@ declare v_me uuid := auth.uid(); v_url text := trim(coalesce(p_url, '')); v_host
 begin
   if v_me is null then raise exception 'Please sign in first.'; end if;
   if exists(select 1 from public.banned_players where player_id = v_me) then raise exception 'Your account is banned.'; end if;
-  if v_url !~* '^https://[^\s/]+/\S+$' or length(v_url) > 300 then raise exception 'Paste the full link to your post (starting with https://).'; end if;
-  v_host := lower(substring(v_url from '^https://([^/?#]+)'));
+  -- strict: host is letters/digits/dots/dashes only (no user@, port or backslash tricks that open a different
+  -- site than the one shown), path is plain URL characters only
+  if v_url !~ '^https://[A-Za-z0-9.-]+/[A-Za-z0-9._~:/?#@!$&''()*+,;=%-]+$' or length(v_url) > 300 then
+    raise exception 'Paste the full link to your post (starting with https://).';
+  end if;
+  v_host := lower(substring(v_url from '^https://([A-Za-z0-9.-]+)/'));
   v_plat := case
     when v_host ~ '(^|\.)tiktok\.com$' then 'tiktok'
     when v_host ~ '(^|\.)(youtube\.com|youtu\.be)$' then 'youtube'
@@ -72,10 +76,18 @@ begin
   if v_plat is null then raise exception 'Use a TikTok, YouTube, Facebook or Instagram link.'; end if;
   if p_views is null or p_views < 500 then raise exception 'The post needs at least 500 views first.'; end if;
   if p_views > 100000000 then raise exception 'Check the view count.'; end if;
-  -- same post, however the link is written: no scheme/www/m., no tracking query (YouTube keeps its ?v=)
-  v_key := regexp_replace(lower(v_url), '^https://(www\.|m\.|web\.)?', '');
-  v_key := case when v_key ~ '^youtube\.com/watch' then 'youtube.com/watch?' || coalesce(substring(v_key from '[?&](v=[^&#]+)'), '')
-                else regexp_replace(regexp_replace(v_key, '[?#].*$', ''), '/+$', '') end;
+  -- same post, however the link is written: the platform's own video/post ID when the link has one
+  -- (IDs are case-sensitive, so they're read from the link as typed); otherwise host+path without www/m./query
+  v_key := case v_plat
+    when 'youtube' then 'yt:' || substring(v_url from '(?:[?&]v=|youtu\.be/|/shorts/|/live/|/embed/)([A-Za-z0-9_-]{11})')
+    when 'tiktok' then 'tt:' || substring(v_url from '/(?:video|photo)/([0-9]{6,})')
+    when 'instagram' then 'ig:' || substring(v_url from '/(?:p|reel|reels|tv)/([A-Za-z0-9_-]+)')
+    when 'facebook' then 'fb:' || coalesce(substring(v_url from '/(?:videos|reel|reels)/(?:[^/?#]+/)?([0-9]{6,})'),
+                                           substring(v_url from '[?&](?:v|story_fbid|fbid)=([0-9]{6,})'))
+  end;
+  if v_key is null then
+    v_key := regexp_replace(regexp_replace(regexp_replace(lower(v_url), '^https://(www\.|m\.|web\.|vm\.|vt\.)?', ''), '[?#].*$', ''), '/+$', '');
+  end if;
   if exists(select 1 from public.promo_posts where url_key = v_key and status <> 'rejected') then
     raise exception 'This post was already sent.';
   end if;
