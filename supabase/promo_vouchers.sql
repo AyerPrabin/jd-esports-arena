@@ -93,9 +93,6 @@ begin
     v_plat := 'tiktok';
     v_m := regexp_match(v_path, '^/@([A-Za-z0-9._-]{1,40})/(video|photo)/([0-9]{6,25})/?$');
     if v_m is not null then v_key := 'tt:' || v_m[3]; v_canon := 'https://www.tiktok.com/@' || v_m[1] || '/' || v_m[2] || '/' || v_m[3]; end if;
-  elsif v_host in ('vm.tiktok.com', 'vt.tiktok.com') then   -- the app's Share link: mods open it to see the video
-    v_plat := 'tiktok'; v_id := substring(v_path from '^/([A-Za-z0-9]{5,20})/?$');
-    if v_id is not null then v_key := 'tts:' || v_id; v_canon := 'https://vm.tiktok.com/' || v_id || '/'; end if;
   elsif v_host in ('instagram.com', 'www.instagram.com') then
     v_plat := 'instagram'; v_id := substring(v_path from '^/(?:[A-Za-z0-9._]{1,30}/)?(?:p|reel|reels|tv)/([A-Za-z0-9_-]{5,40})/?$');
     if v_id is not null then v_key := 'ig:' || v_id; v_canon := 'https://www.instagram.com/p/' || v_id || '/'; end if;
@@ -106,9 +103,11 @@ begin
       v_id := substring(v_query from '(?:^|&)v=([0-9]{6,25})(?:&|$)');
     end if;
     if v_id is not null then v_key := 'fb:' || v_id; v_canon := 'https://www.facebook.com/watch/?v=' || v_id; end if;
-  elsif v_host = 'fb.watch' then
-    v_plat := 'facebook'; v_id := substring(v_path from '^/([A-Za-z0-9_-]{5,20})/?$');
-    if v_id is not null then v_key := 'fbs:' || v_id; v_canon := 'https://fb.watch/' || v_id || '/'; end if;
+  end if;
+  -- short share links (vm.tiktok.com, fb.watch) hide the video ID, so the same video could be claimed twice:
+  -- ask for the full link instead
+  if v_host in ('vm.tiktok.com', 'vt.tiktok.com', 'fb.watch') then
+    raise exception 'Short links can''t be checked. Open the video in your browser and copy the full link (tiktok.com/@you/video/… or facebook.com/…/videos/…).';
   end if;
   if v_plat is null then raise exception 'Use a TikTok, YouTube, Facebook or Instagram link.'; end if;
   if v_key is null then raise exception 'Use the link to the video or post itself (tap Share > Copy link in the app).'; end if;
