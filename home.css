@@ -1252,3 +1252,10 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 .promo-strip small{display:block;font-size:.78rem;opacity:.8;margin-top:2px}
 .promo-strip .ps-go{margin-left:auto;flex:none;padding:8px 12px;border-radius:10px;background:linear-gradient(100deg,#FFC83D,#FFAE00);color:#0a0a12;font-weight:800;font-size:.8rem}
 @media (max-width:420px){.promo-strip .ps-go{display:none}}
+/* home preview of Find Teammates: links to the full page /squad/ */
+.tm-bar a.tm-postbtn{text-decoration:none}
+.tm-seeall{margin-left:auto;color:var(--gold-l);font-weight:700;font-size:.86rem;text-decoration:none;white-space:nowrap}
+.tm-uid span{color:var(--silver);font-weight:500;margin-left:4px}
+.tm-more{scroll-snap-align:start;display:grid;place-content:center;text-align:center;gap:4px;min-height:160px;border-radius:18px;border:1px dashed var(--gold-m);color:var(--gold-l);text-decoration:none;font-size:.86rem}
+.tm-more b{font:700 2rem 'Barlow Condensed',sans-serif}
+.tm-empty a{color:var(--gold-l);font-weight:700}

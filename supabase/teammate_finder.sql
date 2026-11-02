@@ -72,7 +72,13 @@ returns jsonb language sql stable security definer set search_path = public as $
       'id', p.id, 'player', pl.id, 'username', pl.username, 'logo', pl.squad_logo,
       'ign', pl.ff_name, 'uid', case when auth.uid() is not null then pl.ff_uid end,
       'kind', p.kind, 'roles', p.roles, 'pay', p.pay, 'amount', p.amount, 'tournament', p.tournament,
-      'note', p.note, 'at', p.created_at, 'mine', p.player_id = auth.uid()) as j
+      'note', p.note, 'at', p.created_at, 'mine', p.player_id = auth.uid(),
+      -- you and them, for the card's button: friend | sent (you asked) | received (they asked) | null
+      'rel', case when auth.uid() is not null and p.player_id <> auth.uid() then
+        (select case when f.status = 'accepted' then 'friend' when f.requester = auth.uid() then 'sent' else 'received' end
+           from public.friendships f
+          where least(f.requester, f.addressee) = least(auth.uid(), p.player_id)
+            and greatest(f.requester, f.addressee) = greatest(auth.uid(), p.player_id) limit 1) end) as j
     from public.teammate_posts p join public.players pl on pl.id = p.player_id
     where p.expires_at > now() and pl.ff_uid is not null
       and (p_tournament is null or p.tournament in ('', p_tournament))

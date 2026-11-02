@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="JD Arena">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#07090F">
+<link rel="icon" type="image/png" href="/favicon-64.png">
+<link rel="manifest" href="/manifest.json">
+<title>Find Teammates — JD Esports Arena</title>
+<meta name="description" content="Find Free Fire teammates on JD Esports Arena: rushers, snipers, supporters and IGLs looking for a squad. Add them as friends, chat and play the next tournament together.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090F;--panel:#111827;--panel-2:#0D1320;--line:rgba(255,200,80,.14);--line-2:rgba(255,255,255,.08);
+  --gold:#FFC83D;--gold-l:#FFDD85;--gold-m:rgba(255,200,80,.42);
+  --cream:#FFFFFF;--silver:#A6AFC2;--body:#8A94A8;--green:#5EDB95;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:var(--font-body,'Geist',system-ui,sans-serif);line-height:1.45;-webkit-tap-highlight-color:transparent}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+#squad-page{max-width:720px;margin:0 auto;padding:0 16px 120px}
+
+/* top: title, search, filters stay in reach while scrolling */
+.sq-top{position:sticky;top:0;z-index:20;margin:0 -16px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:linear-gradient(var(--bg) 82%,rgba(7,9,15,0))}
+.sq-title{display:flex;align-items:center;gap:10px;min-height:44px}
+.sq-back{width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:12px;border:1px solid var(--line-2);color:var(--silver)}
+.sq-title h1{margin:0;font:700 1.55rem/1 'Barlow Condensed',sans-serif;letter-spacing:.01em}
+.sq-title small{display:block;font:500 .78rem var(--font-body,'Geist',sans-serif);color:var(--green);margin-top:3px;letter-spacing:0}
+.sq-title small:empty{display:none}
+.sq-search{position:relative;margin:10px 0 0}
+.sq-search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:var(--body);fill:none;stroke-width:2}
+.sq-search input{width:100%;height:46px;padding:0 14px 0 42px;border-radius:14px;border:1px solid var(--line-2);background:var(--panel);color:var(--cream);font:500 .95rem var(--font-body,'Geist',sans-serif)}
+.sq-search input:focus{border-color:var(--gold-m);outline:none}
+.sq-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:10px -16px 0;padding:0 16px}
+.sq-row::-webkit-scrollbar{display:none}
+.sq-chip{flex:none;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line-2);background:var(--panel);color:var(--silver);font-weight:600;font-size:.84rem;cursor:pointer;white-space:nowrap}
+.sq-chip[aria-pressed=true]{background:var(--gold);border-color:var(--gold);color:#1a1300}
+.sq-chip.role[aria-pressed=true]{background:rgba(255,200,61,.16);color:var(--gold-l);border-color:var(--gold-m)}
+.tm-event{display:flex;align-items:center;gap:8px;margin:12px 0 0;padding:8px 8px 8px 14px;border-radius:12px;background:rgba(255,200,61,.08);border:1px solid var(--gold-m);font-size:.86rem;color:var(--gold-l)}
+.tm-event[hidden]{display:none}
+.tm-event b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tm-event button{width:32px;height:32px;flex:none;border:0;border-radius:8px;background:none;color:var(--silver);cursor:pointer}
+
+/* feed: one card per player, like "people you may know" */
+.tm-list{display:flex;flex-direction:column;gap:12px;margin-top:6px}
+.tm-card{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:20px;background:var(--panel);border:1px solid var(--line-2)}
+.tm-card.mine{border-color:var(--gold-m);background:linear-gradient(180deg,rgba(255,200,61,.06),var(--panel) 60%)}
+.tm-top{display:flex;align-items:center;gap:12px}
+.tm-av{flex:none;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#2a3550,#141b2c);display:grid;place-items:center;font:700 1.4rem 'Barlow Condensed',sans-serif;color:var(--gold-l);box-shadow:0 0 0 2px var(--panel),0 0 0 3.5px var(--gold-m)}
+.tm-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.tm-who{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}
+.tm-who b{font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tm-who b small{font-weight:500;color:var(--body);font-size:.78rem}
+.tm-who span{font-size:.84rem;color:var(--silver);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tm-pay{flex:none;font-size:.76rem;font-weight:700;padding:5px 10px;border-radius:999px;background:rgba(94,219,149,.12);color:var(--green)}
+.tm-pay.paid{background:rgba(255,200,61,.14);color:var(--gold-l)}
+.tm-kind{font-size:.86rem;font-weight:600;color:var(--cream)}
+.tm-roles{display:flex;flex-wrap:wrap;gap:6px}
+.tm-role{--c:#A6AFC2;font-size:.78rem;font-weight:700;padding:4px 10px;border-radius:8px;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}
+.tm-role.r-rusher{--c:#FF7A59}.tm-role.r-sniper{--c:#5CC8FF}.tm-role.r-supporter{--c:#5ED39A}
+.tm-role.r-igl{--c:#B593FF}.tm-role.r-bomber{--c:#FFB547}.tm-role.r-all-rounder{--c:#FFD86B}
+.tm-note{margin:0;font-size:.88rem;color:var(--body);overflow-wrap:anywhere}
+.tm-uid{align-self:flex-start;display:inline-flex;gap:6px;align-items:center;min-height:32px;padding:0 10px;border-radius:8px;border:1px dashed var(--line-2);background:none;color:var(--silver);font-size:.8rem;font-weight:600;cursor:pointer}
+.tm-uid span{color:var(--gold-l)}
+.tm-acts{display:flex;gap:8px}
+.tm-btn{flex:1;min-height:44px;border-radius:12px;border:1px solid var(--gold);background:var(--gold);color:#1a1300;font-weight:700;font-size:.92rem;cursor:pointer}
+.tm-btn.ghost{background:rgba(255,255,255,.04);border-color:var(--line-2);color:var(--cream)}
+.tm-btn.gold{background:rgba(255,200,61,.12);border-color:var(--gold-m);color:var(--gold-l)}
+.tm-btn:disabled{opacity:.6;cursor:default}
+.tm-btn.big{width:100%;min-height:50px;font-size:1rem;margin-top:6px}
+.tm-empty{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:40px 18px;border-radius:20px;border:1px dashed var(--line-2);color:var(--body)}
+.tm-empty b{color:var(--cream);font-size:1.05rem}
+.tm-empty .tm-btn{flex:none;padding:0 22px}
+
+/* post button: thumb reach, above the app's bottom tab bar */
+.sq-fab{position:fixed;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:30;display:flex;align-items:center;gap:8px;height:52px;padding:0 20px;border:0;border-radius:999px;background:linear-gradient(100deg,var(--gold),#FFAE00);color:#1a1300;font-weight:800;font-size:.95rem;box-shadow:0 12px 30px -8px rgba(255,190,50,.6);cursor:pointer}
+@media (min-width:900px){.sq-fab{bottom:28px}}
+.tm-msg{position:fixed;left:16px;right:16px;bottom:calc(146px + env(safe-area-inset-bottom));z-index:40;max-width:520px;margin:0 auto;padding:12px 16px;border-radius:14px;background:#1b2436;border:1px solid var(--line-2);font-size:.9rem;box-shadow:0 14px 34px rgba(0,0,0,.5);opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .2s,transform .2s}
+.tm-msg.show{opacity:1;transform:none}
+.tm-msg.bad{border-color:rgba(255,120,100,.5);color:#ffb2a6}
+
+/* post sheet: slides up from the bottom */
+.tm-ov{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .2s}
+.tm-ov.open{opacity:1;pointer-events:auto}
+.tm-sheet{position:relative;width:100%;max-width:560px;max-height:92dvh;overflow-y:auto;padding:10px 18px calc(20px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;background:var(--panel);border:1px solid var(--line-2);transform:translateY(24px);transition:transform .25s}
+.tm-ov.open .tm-sheet{transform:none}
+@media (prefers-reduced-motion:reduce){.tm-ov,.tm-sheet,.tm-msg{transition:none}}
+.tm-grab{width:40px;height:4px;border-radius:2px;background:var(--line-2);margin:0 auto 8px}
+.tm-x{position:absolute;top:12px;right:12px;width:36px;height:36px;border:0;border-radius:10px;background:rgba(255,255,255,.05);color:var(--silver);font-size:1.3rem;cursor:pointer}
+.tm-sheet h3{margin:6px 0 12px;font:700 1.4rem 'Barlow Condensed',sans-serif}
+.tm-lbl{display:block;margin:14px 0 6px;font-size:.8rem;font-weight:700;color:var(--silver)}
+.tm-sheet input:not([type=radio]):not([type=checkbox]),.tm-sheet select,.tm-sheet textarea{width:100%;min-height:46px;padding:10px 12px;border-radius:12px;border:1px solid var(--line-2);background:var(--panel-2);color:var(--cream);font:500 .95rem var(--font-body,'Geist',sans-serif)}
+.tm-sheet textarea{resize:vertical}
+.tm-sheet input[hidden]{display:none}
+#tm-custom{margin-top:8px}
+.tm-seg{display:flex;gap:8px}
+.tm-seg label,.tm-pick label{position:relative;cursor:pointer}
+.tm-seg label{flex:1}
+.tm-seg input,.tm-pick input{position:absolute;opacity:0;pointer-events:none}
+.tm-seg span,.tm-pick span{display:flex;align-items:center;justify-content:center;min-height:44px;padding:6px 12px;border-radius:12px;border:1px solid var(--line-2);background:var(--panel-2);font-size:.86rem;font-weight:600;text-align:center;color:var(--silver)}
+.tm-seg input:checked+span,.tm-pick input:checked+span{border-color:var(--gold);background:rgba(255,200,61,.12);color:var(--gold-l)}
+.tm-seg input:focus-visible+span,.tm-pick input:focus-visible+span{outline:2px solid var(--gold);outline-offset:2px}
+.tm-pick{display:flex;flex-wrap:wrap;gap:8px}
+.tm-fine{margin:8px 0 0;font-size:.8rem;color:var(--body)}
+.tm-fine[hidden]{display:none}
+.tm-sheet .tm-msg{position:static;opacity:1;transform:none;margin:10px 0 0;padding:0;background:none;border:0;box-shadow:none;color:#ffb2a6;font-size:.85rem}
+.tm-sheet .tm-msg:empty{display:none}
+</style>
+<link rel="stylesheet" href="/ui.css?v=26">
+</head>
+<body>
+<main id="squad-page">
+  <div class="sq-top">
+    <div class="sq-title">
+      <a class="sq-back" href="/chat/" aria-label="Back to chat"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+      <div><h1>Find teammates</h1><small id="sq-count"></small></div>
+    </div>
+    <label class="sq-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="sq-q" type="search" placeholder="Search name, IGN or role" autocomplete="off" enterkeyhint="search" aria-label="Search players"></label>
+    <div class="sq-row" role="group" aria-label="Show">
+      <button type="button" class="sq-chip" data-kind="all" aria-pressed="true">Everyone</button>
+      <button type="button" class="sq-chip" data-kind="player" aria-pressed="false">🙋 Need a squad</button>
+      <button type="button" class="sq-chip" data-kind="squad" aria-pressed="false">👥 Need a player</button>
+      <button type="button" class="sq-chip" id="sq-free" aria-pressed="false">Free only</button>
+    </div>
+    <div class="sq-row" role="group" aria-label="Role">
+      <button type="button" class="sq-chip role" data-role="rusher" aria-pressed="false">⚡ Rusher</button>
+      <button type="button" class="sq-chip role" data-role="sniper" aria-pressed="false">🎯 Sniper</button>
+      <button type="button" class="sq-chip role" data-role="supporter" aria-pressed="false">🛡 Supporter</button>
+      <button type="button" class="sq-chip role" data-role="igl" aria-pressed="false">🧠 IGL</button>
+      <button type="button" class="sq-chip role" data-role="bomber" aria-pressed="false">💣 Bomber</button>
+      <button type="button" class="sq-chip role" data-role="all-rounder" aria-pressed="false">🌟 All-rounder</button>
+    </div>
+    <div class="tm-event" id="tm-event" hidden></div>
+  </div>
+  <div class="tm-list" id="tm-list" aria-live="polite"><div class="tm-empty">Loading players…</div></div>
+  <button type="button" class="sq-fab" id="sq-fab">＋ <span>Post yourself</span></button>
+  <div class="tm-msg" id="tm-msg" role="status" aria-live="polite"></div>
+  <div class="tm-ov" id="tm-overlay"><form class="tm-sheet" id="tm-form" novalidate></form></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
+<script>
+const sb=(typeof supabase!=='undefined')?supabase.createClient('https://cnoxvqvpmgowdiyrrusv.supabase.co','sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil'):null;
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'}).catch(()=>{});
+</script>
+<script src="/teammates.js?v=3"></script>
+<script src="/ui.js?v=25" defer></script>
+<script src="/chat.js?v=35" defer></script>
+</body>
+</html>

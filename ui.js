@@ -26,7 +26,7 @@ if (window.JDApp || /JDArenaApp\//.test(navigator.userAgent)) document.documentE
   var path = location.pathname;
   var current =
     /^\/challenges/.test(path) ? 'fight' :
-    /^\/chat/.test(path) ? 'chat' :
+    /^\/(chat|squad)/.test(path) ? 'chat' :
     /^\/events/.test(path) ? 'events' :
     /^\/leaderboard/.test(path) ? 'ranks' :
     /^\/(profile|wallet)/.test(path) ? 'me' :

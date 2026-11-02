@@ -38,7 +38,7 @@
   var PAGE = document.getElementById('chat-page');
 
   var css = document.createElement('link');
-  css.rel = 'stylesheet'; css.href = '/chat.css?v=13';
+  css.rel = 'stylesheet'; css.href = '/chat.css?v=14';
   document.head.appendChild(css);
 
   var NE = false;
@@ -207,6 +207,7 @@
         '<button type="button" class="dm-ib" id="dm-gear" aria-label="Alert settings" title="Alert settings">' + ICON.gear + '</button>' +
         '<button type="button" class="dm-ib" id="dm-close" aria-label="Close">' + ICON.x + '</button></div>' +
       '<form class="dm-add" id="dm-add" autocomplete="off"><input id="dm-add-in" maxlength="40" placeholder="' + esc(T('addPh')) + '" aria-label="' + esc(T('addPh')) + '" enterkeyhint="send"><button type="submit">' + T('add') + '</button></form>' +
+      '<a class="dm-find" href="/squad/"><span aria-hidden="true">👥</span><b>Find teammates</b><small>Players looking for a squad right now</small></a>' +
       '<div class="dm-note" id="dm-note" role="status"></div>' +
       '<div class="dm-tabs" role="tablist">' +
         ['all', 'friends', 'squads', 'matches', 'requests'].map(function (k, i) {
