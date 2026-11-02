@@ -58,7 +58,8 @@ revoke all on function public._promo_reviewer() from public, anon, authenticated
 -- send a post link
 create or replace function public.promo_submit(p_url text, p_views int)
 returns text language plpgsql security definer set search_path = public as $$
-declare v_me uuid := auth.uid(); v_url text := trim(coalesce(p_url, '')); v_host text; v_plat text; v_key text; v_last timestamptz; v_admin uuid;
+declare v_me uuid := auth.uid(); v_url text := trim(coalesce(p_url, '')); v_host text; v_path text; v_query text; v_plat text; v_id text;
+  v_m text[]; v_key text; v_canon text; v_last timestamptz; v_admin uuid;
 begin
   if v_me is null then raise exception 'Please sign in first.'; end if;
   if exists(select 1 from public.banned_players where player_id = v_me) then raise exception 'Your account is banned.'; end if;
@@ -67,27 +68,51 @@ begin
   if v_url !~ '^https://[A-Za-z0-9.-]+/[A-Za-z0-9._~:/?#@!$&''()*+,;=%-]+$' or length(v_url) > 300 then
     raise exception 'Paste the full link to your post (starting with https://).';
   end if;
-  v_host := lower(substring(v_url from '^https://([A-Za-z0-9.-]+)/'));
-  v_plat := case
-    when v_host ~ '(^|\.)tiktok\.com$' then 'tiktok'
-    when v_host ~ '(^|\.)(youtube\.com|youtu\.be)$' then 'youtube'
-    when v_host ~ '(^|\.)(facebook\.com|fb\.watch|fb\.com)$' then 'facebook'
-    when v_host ~ '(^|\.)instagram\.com$' then 'instagram' end;
-  if v_plat is null then raise exception 'Use a TikTok, YouTube, Facebook or Instagram link.'; end if;
+  -- no dot segments, encoded dots/slashes or doubled slashes (paths a browser would read differently)
+  if v_url ~ '/\.{1,2}(/|\?|#|$)' or v_url ~* '%(2e|2f|5c)' or substring(v_url from 9) ~ '//' then
+    raise exception 'That link looks broken. Copy it again with the Share button.';
+  end if;
   if p_views is null or p_views < 500 then raise exception 'The post needs at least 500 views first.'; end if;
   if p_views > 100000000 then raise exception 'Check the view count.'; end if;
-  -- same post, however the link is written: the platform's own video/post ID when the link has one
-  -- (IDs are case-sensitive, so they're read from the link as typed); otherwise host+path without www/m./query
-  v_key := case v_plat
-    when 'youtube' then 'yt:' || substring(v_url from '(?:[?&]v=|youtu\.be/|/shorts/|/live/|/embed/)([A-Za-z0-9_-]{11})')
-    when 'tiktok' then 'tt:' || substring(v_url from '/(?:video|photo)/([0-9]{6,})')
-    when 'instagram' then 'ig:' || substring(v_url from '/(?:p|reel|reels|tv)/([A-Za-z0-9_-]+)')
-    when 'facebook' then 'fb:' || coalesce(substring(v_url from '/(?:videos|reel|reels)/(?:[^/?#]+/)?([0-9]{6,})'),
-                                           substring(v_url from '[?&](?:v|story_fbid|fbid)=([0-9]{6,})'))
-  end;
-  if v_key is null then
-    v_key := regexp_replace(regexp_replace(regexp_replace(lower(v_url), '^https://(www\.|m\.|web\.|vm\.|vt\.)?', ''), '[?#].*$', ''), '/+$', '');
+  v_host := lower(substring(v_url from '^https://([A-Za-z0-9.-]+)/'));
+  v_path := substring(v_url from '^https://[A-Za-z0-9.-]+(/[^?#]*)');
+  v_query := coalesce(substring(v_url from '\?([^#]*)'), '');
+  -- one post = one key: the platform's own ID, read from an exact link shape (IDs are case-sensitive).
+  -- The link we store and show to mods is rebuilt from that ID, so mods check the same post the key names.
+  if v_host in ('youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be') then
+    v_plat := 'youtube';
+    if v_host = 'youtu.be' then v_id := substring(v_path from '^/([A-Za-z0-9_-]{11})/?$');
+    elsif v_path ~ '^/watch/?$' then
+      if (select count(*) from regexp_matches(v_query, '(^|&)v=', 'g')) = 1 then
+        v_id := substring(v_query from '(?:^|&)v=([A-Za-z0-9_-]{11})(?:&|$)');
+      end if;
+    else v_id := substring(v_path from '^/(?:shorts|live|embed)/([A-Za-z0-9_-]{11})/?$');
+    end if;
+    if v_id is not null then v_key := 'yt:' || v_id; v_canon := 'https://www.youtube.com/watch?v=' || v_id; end if;
+  elsif v_host in ('tiktok.com', 'www.tiktok.com', 'm.tiktok.com') then
+    v_plat := 'tiktok';
+    v_m := regexp_match(v_path, '^/@([A-Za-z0-9._-]{1,40})/(video|photo)/([0-9]{6,25})/?$');
+    if v_m is not null then v_key := 'tt:' || v_m[3]; v_canon := 'https://www.tiktok.com/@' || v_m[1] || '/' || v_m[2] || '/' || v_m[3]; end if;
+  elsif v_host in ('vm.tiktok.com', 'vt.tiktok.com') then   -- the app's Share link: mods open it to see the video
+    v_plat := 'tiktok'; v_id := substring(v_path from '^/([A-Za-z0-9]{5,20})/?$');
+    if v_id is not null then v_key := 'tts:' || v_id; v_canon := 'https://vm.tiktok.com/' || v_id || '/'; end if;
+  elsif v_host in ('instagram.com', 'www.instagram.com') then
+    v_plat := 'instagram'; v_id := substring(v_path from '^/(?:[A-Za-z0-9._]{1,30}/)?(?:p|reel|reels|tv)/([A-Za-z0-9_-]{5,40})/?$');
+    if v_id is not null then v_key := 'ig:' || v_id; v_canon := 'https://www.instagram.com/p/' || v_id || '/'; end if;
+  elsif v_host in ('facebook.com', 'www.facebook.com', 'm.facebook.com', 'web.facebook.com') then
+    v_plat := 'facebook';
+    v_id := substring(v_path from '^/(?:[A-Za-z0-9.]{1,50}/)?(?:videos|reel|reels)/([0-9]{6,25})/?$');
+    if v_id is null and v_path ~ '^/watch/?$' and (select count(*) from regexp_matches(v_query, '(^|&)v=', 'g')) = 1 then
+      v_id := substring(v_query from '(?:^|&)v=([0-9]{6,25})(?:&|$)');
+    end if;
+    if v_id is not null then v_key := 'fb:' || v_id; v_canon := 'https://www.facebook.com/watch/?v=' || v_id; end if;
+  elsif v_host = 'fb.watch' then
+    v_plat := 'facebook'; v_id := substring(v_path from '^/([A-Za-z0-9_-]{5,20})/?$');
+    if v_id is not null then v_key := 'fbs:' || v_id; v_canon := 'https://fb.watch/' || v_id || '/'; end if;
   end if;
+  if v_plat is null then raise exception 'Use a TikTok, YouTube, Facebook or Instagram link.'; end if;
+  if v_key is null then raise exception 'Use the link to the video or post itself (tap Share > Copy link in the app).'; end if;
+  v_url := v_canon;
   if exists(select 1 from public.promo_posts where url_key = v_key and status <> 'rejected') then
     raise exception 'This post was already sent.';
   end if;
