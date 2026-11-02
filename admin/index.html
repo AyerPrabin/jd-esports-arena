@@ -2103,7 +2103,7 @@ async function waCall(body){
   if(!r.ok)throw new Error(await r.text());
   return r.json();
 }
-const WA_REASON={optimizer:'Optimizer plan',challenge_stake:'Challenge stake',challenge_win:'Challenge won',challenge_refund:'Challenge refund',prize:'Prize',load:'Loaded',entry:'Entry',effect:'Effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Refund',adjust:'Adjustment',pass:'Weekly Pass',referral:'Invite reward'};
+const WA_REASON={optimizer:'Optimizer plan',challenge_stake:'Challenge stake',challenge_win:'Challenge won',challenge_refund:'Challenge refund',prize:'Prize',load:'Loaded',entry:'Entry',effect:'Effect',withdraw:'Withdrawal',withdraw_returned:'Withdrawal returned',refund:'Refund',adjust:'Adjustment',pass:'Weekly Pass',referral:'Invite reward',teammate_pay:'Paid teammate',teammate_paid:'Teammate fee'};
 let _waTimer=null;
 function waSearch(){
   clearTimeout(_waTimer);

@@ -51,6 +51,20 @@ header,main,footer{position:relative;z-index:1}
 .fact{background:var(--panel);padding:18px 20px}
 .fact .k{font-size:.62rem;letter-spacing:.01em;color:var(--gold-l);margin-bottom:6px}
 .fact .v{color:var(--cream);font-size:.94rem;font-weight:400}
+/* paid to players */
+.paid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0 0 10px}
+@media(max-width:520px){.paid{grid-template-columns:1fr}}
+.paid div{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+.paid b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:2.6rem;line-height:1;color:var(--gold-l)}
+.paid span{display:block;margin-top:8px;color:var(--silver);font-size:.88rem}
+.note{color:var(--body);font-size:.86rem;margin:6px 0 0}
+/* what you can do */
+.feats{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.feats li{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px 16px;color:var(--body);font-size:.92rem}
+.feats li b{color:var(--cream);font-weight:600;display:block;margin-bottom:2px}
+.feats a{color:var(--gold-l)}
+.plain{color:var(--body);font-size:.95rem}.plain strong{color:var(--cream);font-weight:500}
+.plain li{margin:0 0 8px}
 /* contact */
 .sec-h{display:flex;align-items:baseline;gap:14px;margin:46px 0 22px}
 .sec-h h2{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.45rem;margin:0}
@@ -96,7 +110,44 @@ footer > div > a{display:inline-flex;align-items:center;min-height:36px}
     <div class="fact"><div class="k">Region</div><div class="v">Nepal</div></div>
     <div class="fact"><div class="k">Entry</div><div class="v">Free &amp; paid</div></div>
     <div class="fact"><div class="k">Room codes</div><div class="v">Push alert + email, instantly</div></div>
+    <div class="fact"><div class="k">Prizes</div><div class="v">Paid as points, withdraw to eSewa</div></div>
+    <div class="fact"><div class="k">Get it</div><div class="v">Website, Android app, installable web app</div></div>
   </div>
+
+  <section id="payouts">
+    <div class="sec-h"><h2>Paid to players so far</h2><span class="ln"></span></div>
+    <div class="paid">
+      <div><b id="ab-prizes">Rs 3,743</b><span id="ab-prizes-n">prize money paid into winners’ wallets (20 payouts)</span></div>
+      <div><b id="ab-out">Rs 2,189</b><span id="ab-out-n">sent to players' eSewa in 10 withdrawals</span></div>
+    </div>
+    <p class="note">Live totals from our database: every prize and withdrawal is recorded in each player's points history. Winners get the full posted prize as points (1 point = Rs 1) and can withdraw to their own eSewa at any time.</p>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>What you can do here</h2><span class="ln"></span></div>
+    <ul class="feats">
+      <li><b>🏆 Tournaments</b>Free and paid Free Fire BR squad events with fixed prizes posted before sign-up, live slot counts, check-in and a ticket with your room ID and password about 5 minutes before the match. <a href="/#tournaments">See events</a></li>
+      <li><b>👥 Find Teammates</b>Post your role (rusher, sniper, supporter, IGL, bomber, all-rounder or your own), play free or for JD points, and team up with players for any event. Your Free Fire UID and in-game name are required, so squads know who they're playing with. <a href="/#teammates">Find a teammate</a></li>
+      <li><b>💬 Chat &amp; friends</b>Add friends, message them, send photos and videos up to 25 MB (private to the two of you, kept in the app for offline viewing, not saved to your gallery), make squad chats and share room IDs. <a href="/chat/">Open chat</a></li>
+      <li><b>⚔️ Challenges</b>Squad vs squad Clash Squad matches for points, with a private chat between the two captains and results checked by our team. <a href="/challenges/">Challenges</a></li>
+      <li><b>🪙 Points wallet</b>Load points with eSewa (screenshot checked by a person), pay entries, effects and teammate fees, and withdraw to eSewa. <a href="/wallet/">Wallet</a></li>
+      <li><b>📊 Leaderboard &amp; results</b>Season standings, match-by-match results and past events. <a href="/leaderboard.html">Leaderboard</a></li>
+      <li><b>✨ Squad effects</b>Cosmetic name effects for your squad on cards and lists. No gameplay advantage.</li>
+      <li><b>🤖 ZULU</b>Our AI assistant answers questions about events, rules, your tickets and points in seconds, and brings in the JD team for bigger problems.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>How we keep it fair and safe</h2><span class="ln"></span></div>
+    <ul class="plain">
+      <li><strong>Fair play first.</strong> Cheats, hacks and mods mean a permanent ban and no prize. See the <a href="/ban-list.html" style="color:var(--gold-l)">ban list</a> and <a href="/rules/" style="color:var(--gold-l)">rules</a>.</li>
+      <li><strong>Every payment is checked by a person</strong> before points are added. A database rule stops a balance changing without a matching record.</li>
+      <li><strong>Pay teammates only in JD points</strong>, inside the app. Never send eSewa or cash between players.</li>
+      <li><strong>Your private data stays private.</strong> Your email and WhatsApp number are never shown to other players, and room IDs only go to registered squads.</li>
+      <li><strong>Report and block</strong> anyone who breaks the rules. Our moderators review reports.</li>
+    </ul>
+    <p class="note">Read the <a href="/terms.html" style="color:var(--gold-l)">Terms</a> and <a href="/privacy/" style="color:var(--gold-l)">Privacy Policy</a> for the full details.</p>
+  </section>
 
   <section>
     <div class="sec-h"><h2>Who builds it</h2><span class="ln"></span></div>
@@ -123,6 +174,17 @@ footer > div > a{display:inline-flex;align-items:center;min-height:36px}
   <div>JD Esports Arena · AyerFire — built by Prabin Ayer</div>
   <div style="margin-top:8px"><a href="/">← Back to JD Esports Arena</a></div>
 </footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
+<script>
+// live "paid to players" totals (payout_stats.sql); the numbers above are the fallback
+try{supabase.createClient('https://cnoxvqvpmgowdiyrrusv.supabase.co','sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil').rpc('payout_stats').then(function(r){
+  var d=r&&r.data;if(!d||!d.prizes)return;var f=function(n){return 'Rs '+Number(n).toLocaleString('en-IN');};
+  document.getElementById('ab-prizes').textContent=f(d.prizes);
+  document.getElementById('ab-prizes-n').textContent='prize money paid into winners’ wallets ('+d.prize_count+' payouts)';
+  document.getElementById('ab-out').textContent=f(d.withdrawn);
+  document.getElementById('ab-out-n').textContent='sent to players’ eSewa in '+d.withdraw_count+' withdrawal'+(d.withdraw_count===1?'':'s');
+});}catch(e){}
+</script>
 <script src="/ui.js?v=24" defer></script>
 </body>
 </html>

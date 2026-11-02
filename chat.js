@@ -38,7 +38,7 @@
   var PAGE = document.getElementById('chat-page');
 
   var css = document.createElement('link');
-  css.rel = 'stylesheet'; css.href = '/chat.css?v=12';
+  css.rel = 'stylesheet'; css.href = '/chat.css?v=13';
   document.head.appendChild(css);
 
   var NE = false;
@@ -320,7 +320,11 @@
   function setUser(u) {
     var id = u ? u.id : null;
     if (id === me) return;
-    if (me && !id) LS.clear();   // signed out: nothing personal stays on this device
+    if (me && !id) {   // signed out: nothing personal stays on this device (incl. offline chat photos/videos)
+      LS.clear();
+      try { caches.delete('jd-chat-media'); } catch (e) {}
+      for (var k in mediaUrl) { try { URL.revokeObjectURL(mediaUrl[k]); } catch (e) {} delete mediaUrl[k]; }
+    }
     me = id; polled = false; lastAt = 0; ov = null; th = null; cur = null; msgs = []; myCard = null; cursor = null;
     badge = { dm: 0, g: 0, m: 0, requests: 0, z: 0, jd: 0, al: 0 }; jdLast = null; zn = []; znTop = null; zf = []; zfTop = null; setBadges();
     fab.hidden = !me || !!PAGE; if (navRow) navRow.hidden = !me;
@@ -877,8 +881,55 @@
     if (!isOpen) open(); openThread({ kind: 'jd', id: 'jd' });
   }
 
+  // ── photos + videos in 1:1 chats (private bucket chat-media, teammate_finder.sql) ──
+  // A file opens through a 10-minute signed link, then a copy stays in this app's own Cache Storage so it
+  // plays again offline. It is never written to the phone's gallery or Files.
+  var MEDIA_MAX = 25 * 1024 * 1024, mediaUrl = {};
+  async function mediaSrc(path) {
+    if (mediaUrl[path]) return mediaUrl[path];
+    var key = '/__chat-media/' + path, c = null, res = null;
+    try { c = await caches.open('jd-chat-media'); res = await c.match(key); } catch (e) {}
+    if (!res) {
+      var r = await SB.storage.from('chat-media').createSignedUrl(path, 600);
+      if (r.error) throw r.error;
+      res = await fetch(r.data.signedUrl);
+      if (!res.ok) throw new Error('load failed');
+      if (c) try { await c.put(key, res.clone()); } catch (e) {}
+    }
+    return (mediaUrl[path] = URL.createObjectURL(await res.blob()));
+  }
+  function hydrateMedia(box) {
+    box.querySelectorAll('[data-media]:not([data-ok])').forEach(function (el) {
+      el.setAttribute('data-ok', '1'); el.oncontextmenu = function (e) { e.preventDefault(); };
+      mediaSrc(el.getAttribute('data-media')).then(function (u) {
+        el.innerHTML = el.getAttribute('data-mt') === 'video'
+          ? '<video src="' + u + '" controls playsinline preload="metadata" controlsList="nodownload noremoteplayback" disablepictureinpicture></video>'
+          : '<img src="' + u + '" alt="Photo" draggable="false">';
+      }).catch(function () { el.removeAttribute('data-ok'); el.innerHTML = '<span class="dm-media-err">Not loaded · tap to retry</span>'; el.onclick = function () { el.onclick = null; hydrateMedia(box); }; });
+    });
+  }
+  async function sendMedia(file) {
+    var p = cur;
+    if (!file || !p || p.kind !== 'dm' || p.friend === false) return;
+    var type = /^image\//.test(file.type) ? 'image' : /^video\//.test(file.type) ? 'video' : '';
+    if (!type) { note('Only photos and videos.', 'err'); return; }
+    if (file.size > MEDIA_MAX) { note('That file is over 25 MB.', 'err'); return; }
+    var ext = (file.name.split('.').pop() || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || (type === 'image' ? 'jpg' : 'mp4');
+    var id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2);
+    var path = me + '/' + id + '.' + ext;
+    var m = { id: 't' + (++tmp), mine: true, sender: me, kind: 'text', body: type === 'image' ? '📷 Sending photo…' : '🎬 Sending video…', created_at: new Date().toISOString(), pending: true, fresh: true };
+    msgs.push(m); renderMsgs(true);
+    var up = await SB.storage.from('chat-media').upload(path, file, { contentType: file.type, upsert: false });
+    var r = up.error ? up : await SB.rpc('send_dm_media', { p_to: p.id, p_path: path, p_type: type, p_caption: '' });
+    if (r.error) { m.pending = false; m.failed = r.error.message || 'Upload failed'; renderMsgs(false); return; }
+    msgs = msgs.filter(function (x) { return x !== m; });
+    refreshThread();
+  }
+
   function composer(ph, max) {
-    return '<form class="dm-compose" id="dm-form"><textarea id="dm-in" rows="1" maxlength="' + max + '" placeholder="' + esc(ph) + '" aria-label="' + esc(ph) + '" enterkeyhint="send"></textarea>' +
+    var att = cur && cur.kind === 'dm' && cur.friend !== false
+      ? '<label class="dm-quick dm-att" aria-label="Send a photo or video" title="Photo or video (25 MB max)">📎<input type="file" id="dm-file" accept="image/*,video/*" hidden></label>' : '';
+    return '<form class="dm-compose" id="dm-form">' + att + '<textarea id="dm-in" rows="1" maxlength="' + max + '" placeholder="' + esc(ph) + '" aria-label="' + esc(ph) + '" enterkeyhint="send"></textarea>' +
       '<button type="button" class="dm-quick" id="dm-like" aria-label="Send a thumbs up">👍</button><button type="submit" class="dm-send" id="dm-send" aria-label="Send" hidden>' + ICON.send + '</button></form>';
   }
   function openThread(p) {
@@ -912,6 +963,7 @@
       inp.addEventListener('focus', function () { setTimeout(fitKeyboard, 250); });
       $('dm-form').onsubmit = function (e) { e.preventDefault(); send(); };
       $('dm-like').onclick = function () { send('👍'); };
+      var fi = $('dm-file'); if (fi) fi.onchange = function () { var f = fi.files[0]; fi.value = ''; sendMedia(f); };
       if (wantReply) {   // opened from a notification's "Reply": typing box ready (and glowing, in case the keyboard stays down)
         wantReply = false; inp.classList.add('dm-pulse');
         setTimeout(function () { try { inp.focus(); } catch (e) {} }, 350);
@@ -1215,14 +1267,24 @@
         : (p.kind === 'zulu' || isAi) && !m.mine
           ? '<div class="dm-b"' + (m.streaming ? ' id="dm-zs"' : '') + '><span class="dm-zt">' + linkify(m.body) + '</span>' +
             (m.streaming ? '' : '<button type="button" class="dm-say" data-say="1" aria-label="Read aloud" title="Read aloud">🔊</button>') + '</div>'
-          : '<div class="dm-b">' + esc(m.body) + '</div>';
+          : m.media
+            ? '<div class="dm-b dm-media" data-media="' + esc(m.media) + '" data-mt="' + (m.media_type === 'video' ? 'video' : 'image') + '"><span class="dm-media-load">' + esc(m.body) + '</span></div>'
+            : '<div class="dm-b">' + esc(m.body) + '</div>';
       h += '<div class="' + cls + '" title="' + esc(stamp(m.created_at)) + '">' + av + bubble + '</div>';
       if (m.failed) h += '<div class="dm-err">' + esc(m.failed) + ' · <button type="button" class="dm-more" style="margin:0;padding:2px 8px" data-retry="' + esc(m.id) + '">Retry</button></div>';
       else if (i === lastMine && i === list.length - 1 && p.kind !== 'zulu') h += '<div class="dm-seen">' + seenLine(m) + '</div>';
       m.fresh = false;
     }
     if ((p.kind === 'zulu' && zuluBusy) || (zuluWait && zuluWait.key === p.kind + p.id && Date.now() < zuluWait.until)) h += '<div class="dm-line them head tail">' + zuluAv('xs') + '<div class="dm-b dm-typing"><i></i><i></i><i></i></div></div>';
+    // keep loaded photos/videos (and a video that is playing) across the redraw
+    var keep = {};
+    box.querySelectorAll('[data-media][data-ok]').forEach(function (el) { if (el.firstElementChild && /^(IMG|VIDEO)$/.test(el.firstElementChild.tagName)) keep[el.getAttribute('data-media')] = el.firstElementChild; });
     box.innerHTML = h;
+    box.querySelectorAll('[data-media]').forEach(function (el) {
+      var k = keep[el.getAttribute('data-media')];
+      if (k) { el.innerHTML = ''; el.appendChild(k); el.setAttribute('data-ok', '1'); el.oncontextmenu = function (e) { e.preventDefault(); }; }
+    });
+    hydrateMedia(box);
     if (jump || nearBottom) box.scrollTop = box.scrollHeight;
     var older = $('dm-older'); if (older) older.onclick = loadOlder;
   }

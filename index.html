@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/home.css?v=15">
+<link rel="stylesheet" href="/home.css?v=16">
 <link rel="stylesheet" href="/effects-pro.css?v=4">
 <link rel="stylesheet" href="/ui.css?v=26">
 <link rel="stylesheet" href="/broadcast.css?v=5">
@@ -76,6 +76,7 @@
       <div class="stat"><b id="stat-tournaments">0</b><span>Tournaments</span></div>
       <div class="stat"><b id="stat-squads">0</b><span>Squads Registered</span></div>
       <div class="stat"><b id="stat-players">0</b><span>Players</span></div>
+      <a class="stat" id="stat-paid-wrap" href="/about/#payouts" hidden><b id="stat-paid">0</b><span>Rs paid to players</span></a>
       <a class="stat" id="stat-ch-wrap" href="/challenges/" hidden><b id="stat-challenges">0</b><span>Challenges Played</span></a>
       <div class="stat" id="stat-logo-wrap"><b class="stat-logo"><img src="/logo.webp" alt=""></b><span>Made in Nepal</span></div>
     </div>
@@ -98,6 +99,15 @@
     <div class="streak" id="streak" hidden></div>
     <div class="arena-grid" id="arena-grid"></div>
     <div class="ev-links"><a class="ev-link" href="/events/" data-i18n="evpast">📅 Past events →</a><a class="ev-link" href="/leaderboard.html" data-i18n="evlb">🏆 Leaderboard →</a></div>
+  </section>
+
+  <section class="sec wrap reveal" id="teammates">
+    <div class="sec-h"><h2>Find Teammates</h2><span class="ln"></span><span class="tag">Squad matchup</span></div>
+    <p class="tm-sub">Rusher, sniper, supporter, IGL or all-rounder: post your role, play free or for JD points, and team up for any event. Friends you make here chat in 💬 Messages.</p>
+    <div class="tm-bar"><div class="tm-chips" id="tm-chips"></div><button type="button" class="btn-primary tm-postbtn" id="tm-post">+ Post</button></div>
+    <div class="tm-event" id="tm-event" hidden></div>
+    <div class="tm-msg" id="tm-msg" aria-live="polite"></div>
+    <div class="tm-list" id="tm-list"><div class="tm-empty">Loading players…</div></div>
   </section>
 
   <section class="sec wrap reveal" id="howto">
@@ -283,6 +293,7 @@
     <div class="row2"><button class="btn-primary" style="flex:1" id="reg-submit" onclick="submitRegister()">Register</button></div>
   </div>
 </div>
+<div class="zoverlay" id="tm-overlay"><form class="zmodal tm-modal" id="tm-form" novalidate></form></div>
 <div class="zoverlay" id="notif-overlay" onclick="if(event.target===this)notifHistClose()">
   <div class="zmodal" style="max-width:460px"><button class="fb-x" style="position:absolute;top:12px;right:14px" onclick="notifHistClose()" aria-label="close">×</button>
     <h3>Notifications</h3>
@@ -356,9 +367,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
 <script src="/ads.js?v=7" defer></script>
-<script src="/home.js?v=32"></script>
+<script src="/home.js?v=33"></script>
+<script src="/teammates.js?v=1"></script>
 <script src="/ui.js?v=24" defer></script>
-<script src="/chat.js?v=32" defer></script>
+<script src="/chat.js?v=33" defer></script>
 <script src="/fx-engine.js?v=4" defer></script>
 </body>
 </html>

@@ -397,3 +397,9 @@ html.app-gated .dm-fab,html.app-gated .dm-panel,html.app-gated .dm-banner{displa
 .dm-ver{flex:none;width:15px;height:15px;color:#3EA6FF;vertical-align:-2px}
 .dm-hello .dm-ver{width:17px;height:17px}
 .dm-row.jd .dm-name{color:var(--dm-text)}
+/* photos + videos in 1:1 chats */
+.dm-att{cursor:pointer;display:grid;place-items:center}
+.dm-b.dm-media{padding:4px;background:var(--dm-panel-2)!important;min-width:120px;min-height:80px;display:grid;place-items:center}
+.dm-media img,.dm-media video{display:block;max-width:min(260px,64vw);max-height:340px;border-radius:16px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.dm-media-load,.dm-media-err{font-size:.8rem;color:var(--dm-text);opacity:.75;padding:8px}
+.dm-media-err{cursor:pointer;text-decoration:underline}
