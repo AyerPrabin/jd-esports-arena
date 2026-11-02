@@ -1,6 +1,191 @@
 {
  "events": [
   {
+   "name": "JD Free Fire Open #12",
+   "date": "Mon, Nov 2",
+   "start": "2026-11-02T21:30:00+05:45",
+   "maps": [
+    "bermuda",
+    "kalahari",
+    "alpine"
+   ],
+   "prize": "250",
+   "winner": "Soul2Ash",
+   "kill_pts": 1,
+   "teams": [
+    {
+     "team": "Soul2Ash",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 15
+      },
+      {
+       "kills": 0,
+       "pts": 26
+      },
+      {
+       "kills": 0,
+       "pts": 31
+      }
+     ]
+    },
+    {
+     "team": "ＳＭＵＧＧＬＥＲㅤESP",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 18
+      },
+      {
+       "kills": 0,
+       "pts": 31
+      },
+      {
+       "kills": 0,
+       "pts": 8
+      }
+     ]
+    },
+    {
+     "team": "Youtz Esp",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 32
+      },
+      {
+       "kills": 0,
+       "pts": 2
+      },
+      {
+       "kills": 0,
+       "pts": 13
+      }
+     ]
+    },
+    {
+     "team": "lol",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 13
+      },
+      {
+       "kills": 0,
+       "pts": 3
+      },
+      {
+       "kills": 0,
+       "pts": 27
+      }
+     ]
+    },
+    {
+     "team": "Hell godzz",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 13
+      },
+      {
+       "kills": 0,
+       "pts": 10
+      },
+      {
+       "kills": 0,
+       "pts": 18
+      }
+     ]
+    },
+    {
+     "team": "Raila gang",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 5
+      },
+      {
+       "kills": 0,
+       "pts": 12
+      },
+      {
+       "kills": 0,
+       "pts": 13
+      }
+     ]
+    },
+    {
+     "team": "OG CLASSIC",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 13
+      },
+      {
+       "kills": 0,
+       "pts": 5
+      },
+      {
+       "kills": 0,
+       "pts": 9
+      }
+     ]
+    },
+    {
+     "team": "PRIME ESPORTS",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 14
+      },
+      {
+       "kills": 0,
+       "pts": 8
+      },
+      {
+       "kills": 0,
+       "pts": 5
+      }
+     ]
+    },
+    {
+     "team": "Xiingu Esports",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 5
+      },
+      {
+       "kills": 0,
+       "pts": 9
+      },
+      {
+       "kills": 0,
+       "pts": 2
+      }
+     ]
+    },
+    {
+     "team": "Team Volts",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 3
+      },
+      {
+       "kills": 0,
+       "pts": 3
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
    "name": "Halloween Special Event",
    "date": "Sun, Nov 1",
    "start": "2026-11-01T21:15:00+05:45",
