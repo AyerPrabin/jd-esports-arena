@@ -481,7 +481,7 @@ textarea{min-height:96px;resize:vertical}
   <section class="tab" id="tab-promo" aria-labelledby="h-promo">
     <div class="panel">
       <div class="sec-h"><h2 id="h-promo">Promo posts</h2><button type="button" class="btn alt" id="pr-reload" style="font-size:.9rem;padding:6px 12px">Refresh</button></div>
-      <p class="note" style="margin:0 0 10px">Open each link. Approve only if the post is about JD Arena, tags @ayer_fire and has both #AyerFire and #JDEsports in the caption and shows 500+ views now. Approving gives the player 2 free entries (30 days). Reject fake or bought views, reposts and someone else's video.</p>
+      <p class="note" style="margin:0 0 10px">Open each link. Approve only if the post is about JD Arena, tags @ayer_fire and has both #AyerFire and #JDEsports in the caption and shows 1,000+ views now. Approving gives the player 2 free entries (30 days). Reject fake or bought views, reposts and someone else's video.</p>
       <div id="pr-q"></div>
     </div>
   </section>
@@ -1148,7 +1148,7 @@ $('pr-q').addEventListener('click',async e=>{
   const b=e.target.closest('[data-pr]');if(!b)return;
   const it=b.closest('.pr-item'),yes=b.dataset.pr==='yes';
   let note=null;
-  if(!yes){note=await sheet({title:'Why not approved?',text:'The player sees this.',input:'text',chips:['Under 500 views','Missing @ayer_fire / #AyerFire / #JDEsports','Not about JD Arena','Fake or bought views','Not their video'],ok:'Reject'});if(note===null)return;}
+  if(!yes){note=await sheet({title:'Why not approved?',text:'The player sees this.',input:'text',chips:['Under 1,000 views','Missing @ayer_fire / #AyerFire / #JDEsports','Not about JD Arena','Fake or bought views','Not their video'],ok:'Reject'});if(note===null)return;}
   else if(!await sheet({title:'Approve this post?',text:'The player gets 2 free entries right away.',ok:'Approve'}))return;
   it.querySelectorAll('button').forEach(x=>x.disabled=true);
   const {error}=await sb.rpc('promo_review',{p_id:+it.dataset.id,p_approve:yes,p_note:note||null});

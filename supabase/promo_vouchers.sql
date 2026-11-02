@@ -1,6 +1,6 @@
 -- Promote JD Arena, earn free entries (2026-11-02).
 -- A player posts about JD Arena on TikTok / YouTube / Facebook / Instagram, tags AyerFire, and sends
--- the link once the post passes 500 views. A JD staff mod or the admin opens the link, checks the
+-- the link once the post passes 1,000 views. A JD staff mod or the admin opens the link, checks the
 -- views and the tag, and approves: the player gets 2 free-entry vouchers (one paid event each,
 -- 30 days). Vouchers are NOT points: they can't be withdrawn, moved or turned into points, so a
 -- faked view count can never become cash. One approved post per player every 30 days.
@@ -72,7 +72,7 @@ begin
   if v_url ~ '/\.{1,2}(/|\?|#|$)' or v_url ~* '%(2e|2f|5c)' or substring(v_url from 9) ~ '//' then
     raise exception 'That link looks broken. Copy it again with the Share button.';
   end if;
-  if p_views is null or p_views < 500 then raise exception 'The post needs at least 500 views first.'; end if;
+  if p_views is null or p_views < 1000 then raise exception 'The post needs at least 1,000 views first.'; end if;
   if p_views > 100000000 then raise exception 'Check the view count.'; end if;
   v_host := lower(substring(v_url from '^https://([A-Za-z0-9.-]+)/'));
   v_path := substring(v_url from '^https://[A-Za-z0-9.-]+(/[^?#]*)');
@@ -182,7 +182,7 @@ begin
   end if;
   update public.promo_posts set status = 'rejected', note = v_note, reviewed_by = v_me, reviewed_at = now() where id = p.id;
   insert into public.notifications (player_id, title, body) values (p.player_id, 'Promo post not approved',
-    left('Your ' || p.platform || ' post didn''t qualify' || coalesce(': ' || v_note, '') || '. It needs 500+ real views and must tag AyerFire. You can send another post.', 300));
+    left('Your ' || p.platform || ' post didn''t qualify' || coalesce(': ' || v_note, '') || '. It needs 1,000+ real views and must tag AyerFire. You can send another post.', 300));
   return 'rejected';
 end $$;
 

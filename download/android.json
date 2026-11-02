@@ -1,10 +1,10 @@
 {
-  "versionCode": 15,
-  "versionName": "2.0.8",
+  "versionCode": 16,
+  "versionName": "2.0.9",
   "minVersionCode": 13,
-  "url": "https://cnoxvqvpmgowdiyrrusv.supabase.co/storage/v1/object/public/app/jd-arena-2.0.8.apk",
-  "sha256": "dc056ea477ad297cca455bdbfce201f5a52f48531c621506d041698c0db56304",
+  "url": "https://cnoxvqvpmgowdiyrrusv.supabase.co/storage/v1/object/public/app/jd-arena-2.0.9.apk",
+  "sha256": "ae0a4752a866d16e40fc1d2f46672ae3581a62ce532b4e66e77b7e2ebc7c08de",
   "size": 3589489,
-  "date": "2026-10-31",
-  "notes": "Ring your squad: tap 📞 in your squad chat and your teammates' phones ring until they open it. Plus Verify your squad on your ticket."
+  "date": "2026-11-02",
+  "notes": "New: Find Teammates. Search players by role, add friends and message them in one tap. Send photos and videos in chat. Pay teammate fees with points. Free entries: post about JD Arena, tag @ayer_fire with #AyerFire and #JDEsports, reach 1,000 views and get 2 free event entries. Results now show kills."
 }

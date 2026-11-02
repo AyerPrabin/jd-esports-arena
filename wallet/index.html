@@ -214,15 +214,15 @@ input:focus{border-color:var(--gold)}
       <div class="card">
         <div class="pr-have" id="pr-have"><b id="pr-n">0</b><span>free entries<small id="pr-exp"></small></span></div>
         <h2>Post about JD Arena, play 2 events free</h2>
-        <p class="sub">Make a video or post about JD Esports Arena. When it passes 500 views, send us the link and get 2 free entries to any paid event.</p>
+        <p class="sub">Make a video or post about JD Esports Arena. When it passes 1,000 views, send us the link and get 2 free entries to any paid event.</p>
         <ol class="steps">
           <li class="step"><h3>Post it</h3><p class="sub">TikTok, YouTube, Facebook or Instagram: your match clips, a win, or why you play here. Show the app or say jdesport.co.uk.</p></li>
           <li class="step"><h3>Tag AyerFire</h3><p class="sub">Tag <b>@ayer_fire</b> and write both <b>#AyerFire</b> and <b>#JDEsports</b> in the caption, so we can find it.</p></li>
-          <li class="step"><h3>Reach 500 views</h3><p class="sub">Real views only. Bought or fake views get the post rejected and can get the account banned.</p></li>
+          <li class="step"><h3>Reach 1,000 views</h3><p class="sub">Real views only. Bought or fake views get the post rejected and can get the account banned.</p></li>
           <li class="step"><h3>Send the link</h3><p class="sub">Open your video in a browser and copy the full link (like tiktok.com/@you/video/123…). Short share links can't be checked.</p>
             <form id="pr-form" novalidate>
               <input id="pr-url" type="url" inputmode="url" placeholder="https://www.tiktok.com/@you/video/…" maxlength="300" autocomplete="off" aria-label="Link to your post">
-              <input id="pr-views" type="number" inputmode="numeric" min="500" placeholder="Views now (500 or more)" aria-label="Views now" style="margin-top:8px">
+              <input id="pr-views" type="number" inputmode="numeric" min="1000" placeholder="Views now (1,000 or more)" aria-label="Views now" style="margin-top:8px">
               <button class="btn" id="pr-send" type="submit" style="margin-top:10px">Send for a check</button>
               <p class="pr-msg" id="pr-msg" role="status"></p>
             </form>
@@ -383,7 +383,7 @@ $('pr-form').onsubmit=async e=>{
   e.preventDefault();
   const url=$('pr-url').value.trim(),views=parseInt($('pr-views').value,10),m=$('pr-msg');
   if(!/^https:\/\/\S+$/i.test(url)){m.textContent='Paste the full link to your post (starting with https://).';m.className='pr-msg err';$('pr-url').focus();return;}
-  if(!(views>=500)){m.textContent='The post needs at least 500 views first.';m.className='pr-msg err';$('pr-views').focus();return;}
+  if(!(views>=1000)){m.textContent='The post needs at least 1,000 views first.';m.className='pr-msg err';$('pr-views').focus();return;}
   $('pr-send').disabled=true;m.textContent='Sending…';m.className='pr-msg';
   const {error}=await sb.rpc('promo_submit',{p_url:url,p_views:views});
   $('pr-send').disabled=false;
