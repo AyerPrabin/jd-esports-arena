@@ -1,7 +1,7 @@
 {
   "bo3": {
-    "tournament": "Halloween Special Event",
-    "title": "Halloween Special Event – Final Standings",
+    "tournament": "JD Free Fire Open #12",
+    "title": "JD Free Fire Open #12 – Final Standings",
     "published": true,
     "kill_pts": 1,
     "teams": [
@@ -10,73 +10,73 @@
         "logo": "",
         "r": [
           {
-            "kills": 11,
-            "pts": 7
+            "kills": 0,
+            "pts": 15
           },
           {
-            "kills": 11,
-            "pts": 8
+            "kills": 0,
+            "pts": 26
           },
           {
-            "kills": 19,
-            "pts": 12
+            "kills": 0,
+            "pts": 31
           }
         ],
-        "prize_won": 167
+        "prize_won": 125
+      },
+      {
+        "team": "ＳＭＵＧＧＬＥＲㅤESP",
+        "logo": "",
+        "r": [
+          {
+            "kills": 0,
+            "pts": 18
+          },
+          {
+            "kills": 0,
+            "pts": 31
+          },
+          {
+            "kills": 0,
+            "pts": 8
+          }
+        ],
+        "prize_won": 75
       },
       {
         "team": "Youtz Esp",
         "logo": "",
         "r": [
           {
-            "kills": 7,
-            "pts": 12
+            "kills": 0,
+            "pts": 32
           },
           {
-            "kills": 18,
-            "pts": 12
+            "kills": 0,
+            "pts": 2
           },
           {
-            "kills": 3,
-            "pts": 9
+            "kills": 0,
+            "pts": 13
           }
         ],
-        "prize_won": 99
+        "prize_won": 50
       },
       {
-        "team": "PRIME ESPORTS",
+        "team": "lol",
         "logo": "",
         "r": [
           {
-            "kills": 8,
-            "pts": 8
+            "kills": 0,
+            "pts": 13
           },
           {
-            "kills": 2,
-            "pts": 9
+            "kills": 0,
+            "pts": 3
           },
           {
-            "kills": 2,
-            "pts": 7
-          }
-        ],
-        "prize_won": 67
-      },
-      {
-        "team": "THE REAL TIGER",
-        "logo": "",
-        "r": [
-          {
-            "kills": 3,
-            "pts": 6
-          },
-          {
-            "kills": 6,
-            "pts": 7
-          },
-          {
-            "kills": 3,
-            "pts": 6
+            "kills": 0,
+            "pts": 27
           }
         ]
       },
@@ -85,124 +85,88 @@
         "logo": "",
         "r": [
           {
-            "kills": 5,
+            "kills": 0,
+            "pts": 13
+          },
+          {
+            "kills": 0,
+            "pts": 10
+          },
+          {
+            "kills": 0,
+            "pts": 18
+          }
+        ]
+      },
+      {
+        "team": "Raila gang",
+        "logo": "",
+        "r": [
+          {
+            "kills": 0,
+            "pts": 5
+          },
+          {
+            "kills": 0,
+            "pts": 12
+          },
+          {
+            "kills": 0,
+            "pts": 13
+          }
+        ]
+      },
+      {
+        "team": "OG CLASSIC",
+        "logo": "",
+        "r": [
+          {
+            "kills": 0,
+            "pts": 13
+          },
+          {
+            "kills": 0,
+            "pts": 5
+          },
+          {
+            "kills": 0,
+            "pts": 9
+          }
+        ]
+      },
+      {
+        "team": "PRIME ESPORTS",
+        "logo": "",
+        "r": [
+          {
+            "kills": 0,
+            "pts": 14
+          },
+          {
+            "kills": 0,
+            "pts": 8
+          },
+          {
+            "kills": 0,
+            "pts": 5
+          }
+        ]
+      },
+      {
+        "team": "Xiingu Esports",
+        "logo": "",
+        "r": [
+          {
+            "kills": 0,
+            "pts": 5
+          },
+          {
+            "kills": 0,
             "pts": 9
           },
           {
             "kills": 0,
-            "pts": 5
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          }
-        ]
-      },
-      {
-        "team": "Dijhfaf786",
-        "logo": "",
-        "r": [
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 6
-          },
-          {
-            "kills": 2,
-            "pts": 7
-          }
-        ]
-      },
-      {
-        "team": "Team Protocol",
-        "logo": "",
-        "r": [
-          {
-            "kills": 3,
-            "pts": 5
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          }
-        ]
-      },
-      {
-        "team": "Ancient Ogs 1",
-        "logo": "",
-        "r": [
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          }
-        ]
-      },
-      {
-        "team": "Devil Era",
-        "logo": "",
-        "r": [
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          }
-        ]
-      },
-      {
-        "team": "Fox Esport",
-        "logo": "",
-        "r": [
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          }
-        ]
-      },
-      {
-        "team": "PK_zon",
-        "logo": "",
-        "r": [
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
+            "pts": 2
           }
         ]
       },
@@ -212,11 +176,11 @@
         "r": [
           {
             "kills": 0,
-            "pts": 0
+            "pts": 3
           },
           {
             "kills": 0,
-            "pts": 0
+            "pts": 3
           },
           {
             "kills": 0,
@@ -513,11 +477,12 @@
       "start": "2026-11-02T21:30:00+05:45",
       "teams": [],
       "format": "BR · 3 matches",
-      "status": "upcoming",
+      "status": "completed",
       "platform": "Mobile only",
       "registered": 0,
       "early_access": "yes",
-      "platform_mode": "mobile"
+      "platform_mode": "mobile",
+      "winner": "Soul2Ash"
     },
     {
       "map": "bermuda",
@@ -614,12 +579,11 @@
       "teams": [],
       "format": "BR · 3 matches",
       "status": "completed",
+      "winner": "Soul2Ash",
       "platform": "Mobile only",
       "registered": 0,
       "early_access": "yes",
-      "platform_mode": "mobile",
-      "winner": "Soul2Ash"
+      "platform_mode": "mobile"
     }
-  ],
-  "_published_at": "2026-11-01T16:54:44.225Z"
+  ]
 }
