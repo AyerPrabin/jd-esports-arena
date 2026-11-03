@@ -469,7 +469,8 @@ function renderSeason(){
   const medal=n=>n===1?'🥇':n===2?'🥈':n===3?'🥉':n;
   box.innerHTML=`<div class="ss-list">${rows.map((r,i)=>{
     const fx=seasonFx(r.squad_name);
-    const sub=`${r.events} event${r.events===1?'':'s'} · 🏆 ${r.wins}${r.kills!=null?` · ${r.kills} kills`:''}`;
+    const dup=r.owner&&rows.some((o,j)=>j!==i&&fxKey(o.squad_name)===fxKey(r.squad_name));
+    const sub=`${dup?esc('@'+r.owner)+' · ':''}${r.events} event${r.events===1?'':'s'} · 🏆 ${r.wins}${r.kills!=null?` · ${r.kills} kills`:''}`;
     return `<div class="ss-row${fx?fxCardCls(fx):' ss-plain'}${i<3?' ss-top':''}">${fxDeco(fx)}<span class="ss-rk">${medal(i+1)}</span>${seasonAv(r.squad_name,fx)}`+
       `<span class="ss-main"><span class="ss-nm">${fx?`<span class="fx-name">${esc(r.squad_name)}</span>`:esc(r.squad_name)}</span><small>${sub}</small></span>`+
       `${fx?`<span class="sqfx-tag">${FX_TAG[fx]}</span>`:''}<span class="ss-pts"><b>${r.points}</b><small>pts</small></span></div>`;
