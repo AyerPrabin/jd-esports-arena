@@ -1371,9 +1371,10 @@ function authUploadAvatar(input){
   const f=input.files&&input.files[0];input.value='';
   if(!f)return;
   if(!f.type.startsWith('image/')){authMsg('Please choose an image file.');return;}
-  resizeToDataUri(f,AVATAR_MAX_PX,0.85,async dataUri=>{
+  const crop=window.jdCropAvatar?jdCropAvatar(f):new Promise(r=>resizeToDataUri(f,AVATAR_MAX_PX,0.85,u=>fetch(u).then(x=>x.blob()).then(r)));
+  crop.then(async blob=>{
+    if(!blob)return;
     authMsg('Uploading…',true);
-    const blob=await (await fetch(dataUri)).blob();
     const {error}=await sb.storage.from('avatars').upload(`${_player.id}/avatar.jpg`,blob,{upsert:true,contentType:'image/jpeg'});
     if(error){authMsg(error.message);return;}
     await loadMyAvatarUrl();

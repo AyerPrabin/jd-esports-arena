@@ -2173,12 +2173,17 @@ async function walletLookup(id){
       </div>
       <div class="row" style="margin:8px 0 0">${[50,100,200,500].map(a=>`<button type="button" class="btn ghost" style="font-size:.74rem;padding:6px 12px" onclick="document.getElementById('wa-amt').value=${a}">${a}</button>`).join('')}<button class="btn" id="wa-credit" onclick="walletCredit()">➕ Add points</button><button class="btn ghost" id="wa-rf-open" onclick="refundOpen()">↩ Refund…</button></div>
       <div id="wa-refund"></div>
-      <div class="row" style="margin:10px 0 0"><button type="button" class="btn ghost" onclick="jdActivity(document.getElementById('wa-act'),waActivity)">📋 Full activity: what this player did</button></div><div id="wa-act"></div>
+      <div class="row" style="margin:10px 0 0"><button type="button" class="btn ghost" onclick="jdActivity(document.getElementById('wa-act'),waActivity,waAvatarRemove)">📋 Full activity: what this player did</button></div><div id="wa-act"></div>
       ${d.ledger.length?`<table style="width:100%;font-size:.76rem;border-collapse:collapse;margin-top:12px">${d.ledger.map(x=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 4px">${esc(new Date(x.created_at).toLocaleString())}</td><td>${esc(WA_REASON[x.reason]||x.reason)}</td><td style="text-align:right;color:${x.delta>0?'var(--green,#5EDB95)':'#ff9d9d'}">${x.delta>0?'+':''}${x.delta}</td><td style="text-align:right">${x.balance_after}</td></tr>`).join('')}</table>`:'<p class="hint" style="margin:10px 0 0">No transactions yet.</p>'}
     </div>`;
     waMsg('','');
     setTimeout(()=>{const a=document.getElementById('wa-amt');if(a)a.focus();},50);
   }catch(e){box.innerHTML='';_waPlayer=null;waMsg(e.message,'err');}
+}
+async function waAvatarRemove(why){
+  const secret=adminSecret();if(!secret||!_waPlayer)throw new Error('Enter the admin passcode first.');
+  const r=await fetch(EDGE_FN_BASE+'/mod-panel',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({action:'chat_avatar_remove',player_id:_waPlayer.id,reason:why})});
+  if(!r.ok)throw new Error(await r.text());
 }
 async function waActivity(){
   const secret=adminSecret();if(!secret||!_waPlayer)throw new Error('Enter the admin passcode first.');
@@ -3226,6 +3231,6 @@ dismissAiRecommendation=guard(dismissAiRecommendation);confirmAiRecommendation=g
   <div class="zc-sugg" id="zc-sugg"></div>
   <div class="zc-in"><button class="btn ghost zc-mic" id="zc-mic" type="button" onclick="zcMic()" aria-label="Speak" title="Speak (English or Nepali)" hidden>🎤</button><textarea id="zc-input" rows="1" placeholder="e.g. approve all loads · room code 1234567 pass jd22"></textarea><button class="btn" onclick="zcSend()">Send</button></div>
 </div>
-<script src="/activity.js?v=1"></script>
+<script src="/activity.js?v=2"></script>
 </body>
 </html>

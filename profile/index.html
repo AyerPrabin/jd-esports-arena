@@ -60,6 +60,11 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
 .hero-row{display:flex;align-items:center;gap:16px}
 .av{position:relative;flex:none;width:84px;height:84px}
 .av img{width:84px;height:84px;border-radius:22px;object-fit:cover;background:#000;border:2px solid var(--gold);box-shadow:0 10px 30px rgba(255,190,50,.3)}
+/* rank frame round the profile picture: the colour of the player's rank (Bronze to Ace) */
+.av{--rk:#cd7f32}.av img{border-color:var(--rk)!important;box-shadow:0 0 0 3px rgba(0,0,0,.5),0 0 0 5px var(--rk),0 10px 30px rgba(0,0,0,.45)!important}
+.av.rk-silver{--rk:#c9d3e1}.av.rk-gold{--rk:#FFC83D}.av.rk-platinum{--rk:#7fe0d8}.av.rk-diamond{--rk:#79b8ff}.av.rk-heroic{--rk:#ff6b4a}.av.rk-ace{--rk:#d58bff}
+.av.rk-heroic img,.av.rk-ace img{animation:rkGlow 2.6s ease-in-out infinite}
+@keyframes rkGlow{50%{box-shadow:0 0 0 3px rgba(0,0,0,.5),0 0 0 5px var(--rk),0 0 26px var(--rk)}}
 .av label{position:absolute;right:-6px;bottom:-6px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#0a0a12;cursor:pointer;font-size:.9rem;box-shadow:0 4px 10px rgba(0,0,0,.4)}
 .who{min-width:0}
 .who h1{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(1.7rem,6vw,2.3rem);line-height:1.05;overflow-wrap:anywhere}
@@ -188,7 +193,7 @@ input[type=text]:focus{border-color:var(--gold)}
   <div id="app" hidden>
     <section class="hero">
       <div class="hero-row">
-        <div class="av"><img id="av-img" src="/logo.webp" alt="Profile picture"><label title="Change profile picture">📷<input id="av-file" type="file" accept="image/*" hidden></label></div>
+        <div class="av" id="av-wrap"><img id="av-img" src="/logo.webp" alt="Profile picture"><label title="Change profile picture">📷<input id="av-file" type="file" accept="image/*" hidden></label></div>
         <div class="who">
           <h1 id="uname">…</h1>
           <div class="meta"><span class="badge tag" id="ptag"></span><span id="pver"></span><span id="pemail"></span></div>
@@ -435,6 +440,7 @@ async function loadStats(){
   let i=0;RANKS.forEach((r,k)=>{if(pts>=r[1])i=k;});
   const cur=RANKS[i],next=RANKS[i+1];
   $('rank-name').textContent=cur[2]+' '+cur[0];
+  $('av-wrap').className='av rk-'+cur[0].toLowerCase();$('av-wrap').title=cur[0]+' frame';
   $('rank-sub').textContent=next?`${pts} career points · ${next[1]-pts} to ${next[0]}`:`${pts} career points · top rank`;
   const ci=RANKS.indexOf(cur);$('ladder').innerHTML=RANKS.map((r,i)=>`<span class="${i<ci?'done':i===ci?'cur':''}" title="${r[0]} · ${r[1]}+ points">${r[2]}</span>`).join('');
   $('rank-bar').style.width=(next?Math.max(2,Math.min(100,Math.round((pts-cur[1])/(next[1]-cur[1])*100))):100)+'%';
@@ -530,10 +536,12 @@ $('sqi-reset').onclick=async()=>{
 /* avatar */
 $('av-file').onchange=e=>{
   const f=e.target.files[0];e.target.value='';if(!f)return;
-  resize(f,128,async uri=>{
-    const blob=await (await fetch(uri)).blob();
+  jdCropAvatar(f).then(async blob=>{
+    if(!blob)return;
+    toast('Uploading…');
     const {error}=await sb.storage.from('avatars').upload(`${me.id}/avatar.jpg`,blob,{upsert:true,contentType:'image/jpeg'});
     if(error){toast(error.message);return;}
+    const uri=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(blob);});
     $('av-img').src=uri;profSave({av:uri,avAt:Date.now()});toast('Profile picture updated');
   });
 };
@@ -593,5 +601,6 @@ $('ref-save').onclick=async()=>{
 </script>
 <script src="/ui.js?v=25" defer></script>
 <script src="/chat.js?v=36" defer></script>
+<script src="/avcrop.js?v=1"></script>
 </body>
 </html>

@@ -348,7 +348,7 @@ Deno.serve(async (req: Request) => {
   //    No email, phone, eSewa number or room passwords leave the server. ──
   const activityOf = async (pid: string) => {
     const lim = (q: any, n: number) => q.order('created_at', { ascending: false }).limit(n);
-    const [pl, wal, ban, led, reg, chA, chB, wd, pr, nt] = await Promise.all([
+    const [pl, wal, ban, led, reg, chA, chB, wd, pr, nt, av] = await Promise.all([
       admin.from('players').select('id, username, player_tag, squad_name, ff_uid, ff_name, created_at, last_seen_at, app_installed_at, area_city').eq('id', pid).maybeSingle(),
       admin.from('wallets').select('balance').eq('player_id', pid).maybeSingle(),
       admin.from('banned_players').select('reason, banned_at').eq('player_id', pid).maybeSingle(),
@@ -359,6 +359,7 @@ Deno.serve(async (req: Request) => {
       lim(admin.from('withdraw_requests').select('amount, payout, status, processed_at, created_at').eq('player_id', pid), 10),
       lim(admin.from('promo_posts').select('platform, views, status, note, created_at').eq('player_id', pid), 6),
       lim(admin.from('notifications').select('title, read_at, created_at').eq('player_id', pid), 25),
+      admin.storage.from('avatars').createSignedUrl(pid + '/avatar.jpg', 1800).then((r: any) => r, () => ({ data: null })),
     ]);
     if (!pl.data) return null;
     const ev: any[] = [];
@@ -374,11 +375,24 @@ Deno.serve(async (req: Request) => {
     return ({
       player: { id: u.id, name: u.username ? '@' + u.username : (u.player_tag || 'Player'), tag: u.player_tag, squad: u.squad_name,
         ff: u.ff_uid ? `${u.ff_name || ''} (${u.ff_uid})` : null, joined: u.created_at, seen: u.last_seen_at, app: !!u.app_installed_at,
-        city: u.area_city || null, balance: wal.data?.balance ?? 0, banned: ban.data ? (ban.data.reason || 'banned') : null },
+        city: u.area_city || null, avatar: av.data?.signedUrl || null, balance: wal.data?.balance ?? 0, banned: ban.data ? (ban.data.reason || 'banned') : null },
       events: ev.slice(0, 80),
     });
   };
   const pidOk = (x: unknown) => /^[0-9a-f-]{36}$/i.test(String(x || ''));
+  // remove a rude / fake profile picture (staff + admin, never host mods). The player is told why and can upload another.
+  if (action === 'chat_avatar_remove') {
+    if (!pidOk(p.player_id)) return fail('player_id required');
+    const pid = String(p.player_id), why = String(p.reason || '').trim().slice(0, 150);
+    const { data: who } = await admin.from('players').select('username, player_tag').eq('id', pid).maybeSingle();
+    if (!who) return fail('Player not found', 404);
+    const { error } = await admin.storage.from('avatars').remove([pid + '/avatar.jpg']);
+    if (error) return fail(error.message, 500);
+    await admin.from('notifications').insert({ player_id: pid, push: true, title: '[JD] Profile picture removed',
+      body: 'Your profile picture was removed by the JD team' + (why ? ': ' + why : '') + '. You can upload a new one in your profile. Please keep it respectful and your own.' });
+    await log('avatar_remove', `${who.username ? '@' + who.username : who.player_tag}${why ? ' · ' + why : ''}`);
+    return json({ ok: true });
+  }
   if (action === 'chat_player_activity') {
     if (!pidOk(p.player_id)) return fail('player_id required');
     const d = await activityOf(String(p.player_id));

@@ -982,7 +982,7 @@ function renderProfile(d){
       box.querySelector('.zbrief').textContent=r.brief;
       if(r.reply)$('cp-zulu-use').onclick=()=>{toggleProfile();$('c-in').value=r.reply;autoGrow();$('c-in').focus();};
     }catch(e){box.innerHTML='<p class="msg err">'+esc(e.message)+'</p>';}b.disabled=false;};
-  $('cp-act-b').onclick=()=>jdActivity($('cp-act'),()=>call({action:'chat_player_activity',player_id:p.id}));
+  $('cp-act-b').onclick=()=>jdActivity($('cp-act'),()=>call({action:'chat_player_activity',player_id:p.id}),why=>call({action:'chat_avatar_remove',player_id:p.id,reason:why}).then(()=>{toast('Picture removed. The player was told.');p.avatar=null;refreshChat();}));
 }
 function toggleProfile(){
   const w=$('cprof-wrap'), d=chatPid&&threads.get(chatPid);
@@ -1198,6 +1198,6 @@ $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
   }
 })();
 </script>
-<script src="/activity.js?v=1"></script>
+<script src="/activity.js?v=2"></script>
 </body>
 </html>
