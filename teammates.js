@@ -60,12 +60,13 @@
   // ── one card (same markup on both pages; the page CSS lays it out) ──
   function relBtn(p) {
     if (p.mine) return '<button type="button" class="tm-btn ghost" data-edit="' + p.id + '">✏️ Edit</button><button type="button" class="tm-btn ghost" data-del="' + p.id + '">Delete</button>' +
+      (p.kind === 'squad' && p.pay === 'paid' ? '<button type="button" class="tm-btn ghost" data-payto="' + p.id + '">🪙 Pay a teammate ' + esc(p.amount) + '</button>' : '') +
       (p.kind === 'squad' ? '<button type="button" class="tm-btn gold" data-boost="' + p.id + '">' + (armed === 'b' + p.id ? 'Tap again: pay 25 pts' : p.urgent ? '🔥 +24 h urgent' : '🔥 Make urgent · 25 pts') + '</button>' : '');
     var b = p.rel === 'friend' ? '<button type="button" class="tm-btn ghost" data-msg="' + esc(p.username) + '">💬 Message</button>'
       : p.rel === 'sent' ? '<button type="button" class="tm-btn ghost" disabled>✓ Requested</button>'
       : p.rel === 'received' ? '<button type="button" class="tm-btn" data-up="' + p.id + '">✓ Accept</button>'
       : '<button type="button" class="tm-btn" data-up="' + p.id + '">➕ Add friend</button>';
-    if (p.pay === 'paid' && p.rel === 'friend') b += '<button type="button" class="tm-btn gold" data-pay="' + p.id + '">' + (armed === p.id ? 'Tap again: pay ' + esc(p.amount) : '🪙 Pay ' + esc(p.amount)) + '</button>';
+    if (p.pay === 'paid' && p.kind === 'player' && p.rel === 'friend') b += '<button type="button" class="tm-btn gold" data-pay="' + p.id + '">' + (armed === p.id ? 'Tap again: pay ' + esc(p.amount) : '🪙 Pay ' + esc(p.amount)) + '</button>';
     return b;
   }
   function card(p) {
@@ -156,6 +157,18 @@
       if (r.data === 'sent' || r.data === 'pending') { p.rel = 'sent'; msg('Friend request sent to @' + p.username + '. You can chat once they accept.'); }
       else { p.rel = 'friend'; msg(r.data === 'accepted' ? 'You’re friends with @' + p.username + ' now. Say hi! 👋' : 'Opening your chat…'); openChat(p.username); }
       render();
+      return;
+    }
+    if ((id = +b.dataset.payto)) {
+      p = posts.find(function (x) { return x.id === id; });
+      var who = prompt('Pay the ' + (p ? p.amount : '') + '-point fee to which teammate? Type their @username (they must be your friend).');
+      if (!who || !who.trim()) return;
+      b.disabled = true;
+      var pr2 = await SB.rpc('lfg_pay_player', { p_id: id, p_to: who.trim() });
+      b.disabled = false;
+      if (pr2.error) { msg(pr2.error.message, true); return; }
+      msg('Paid ✓ Your balance: ' + pr2.data + ' pts');
+      if (typeof loadWallet === 'function') loadWallet();
       return;
     }
     if ((id = +b.dataset.boost)) {
