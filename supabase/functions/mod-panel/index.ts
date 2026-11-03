@@ -393,16 +393,18 @@ Deno.serve(async (req: Request) => {
       return json(data);
     }
     const since = new Date(Date.now() - 48 * 3600e3).toISOString();
-    const [{ data: loads, error: e1 }, { data: pays, error: e2 }] = await Promise.all([
+    const [{ data: loads, error: e1 }, { data: pays, error: e2 }, { data: skipped }] = await Promise.all([
       admin.from('wallet_load_requests').select('id, amount, screenshot, created_at, players(username, player_tag)')
         .eq('status', 'pending').order('created_at', { ascending: true }).limit(30),
       admin.from('payments_in').select('id, provider, amount, sender, raw, received_at, load_id, matched_at').gt('received_at', since)
         .order('received_at', { ascending: false }).limit(60),
+      admin.from('payments_in_skipped').select('app, why, raw, created_at').gt('created_at', since).order('created_at', { ascending: false }).limit(15),
     ]);
     if (e1 || e2) return fail((e1 || e2)!.message, 500);
     const open = (pays || []).filter((x: any) => !x.load_id && !x.matched_at);
     return json({
       payments: pays || [],
+      skipped: skipped || [],   // wallet alerts the server could not read: no amount, or not "received"
       loads: (loads || []).map((r: any) => {
         const t = new Date(r.created_at).getTime();
         const fits = open.filter((x: any) => x.amount === r.amount && new Date(x.received_at).getTime() >= t - 3 * 3600e3 && new Date(x.received_at).getTime() <= t + 30 * 60e3)

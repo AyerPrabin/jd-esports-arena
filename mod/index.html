@@ -64,7 +64,7 @@ main{position:relative;max-width:1280px;margin:0 auto;padding:16px 16px calc(var
 .tabs .tb{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px}
 .tabs button[hidden]{display:none}
 #tab-promo:not(.ok){display:none!important}
-@media (min-width:700px) and (max-width:1079px){
+@media (min-width:700px){
   .tabs{position:sticky;top:var(--top-h,112px);bottom:auto;grid-auto-columns:auto;justify-content:start;gap:6px;background:var(--bg);border:0;padding:12px max(16px,calc((100% - 1280px)/2 + 16px));backdrop-filter:none;z-index:25}
   .tabs button{height:auto;flex-direction:row;gap:7px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);font-size:.86rem}
   .tabs button[aria-selected=true]{background:rgba(255,200,61,.1);border-color:var(--gold-m)}
@@ -73,15 +73,17 @@ main{position:relative;max-width:1280px;margin:0 auto;padding:16px 16px calc(var
   .tabs .badge{position:static;margin:0}
   main{padding-bottom:32px}
 }
+/* desktop: tab strip on top, events | the open tool | chats always beside it */
 @media (min-width:1080px){
-  .tabs{display:none}
-  main{display:grid;grid-template-columns:240px minmax(0,1fr) 360px;grid-auto-flow:row dense;gap:18px;align-items:start;padding-bottom:32px}   /* dense: the right column and Help fill the space beside Squads instead of starting below it */
-  .tab{display:block}
-  #tab-events{display:block;position:sticky;top:var(--top-h,72px)}
-  .col-right{position:sticky;top:var(--top-h,72px);max-height:calc(100vh - var(--top-h,72px) - 16px);overflow:auto;overscroll-behavior:contain}
+  .top-in,.evbar,main{max-width:1440px}
+  .tabs{padding:12px max(16px,calc((100% - 1440px)/2 + 16px))}
+  .tabs [data-tab=chats]{display:none}
+  main{display:grid;grid-template-columns:250px minmax(0,1fr) 380px;gap:18px;align-items:start}
+  .col-right{display:contents}
+  .tab{grid-column:2;grid-row:1}
+  #tab-events{display:block;grid-column:1;grid-row:1;position:sticky;top:calc(var(--top-h,72px) + 64px);max-height:calc(100vh - var(--top-h,72px) - 80px);overflow:auto;overscroll-behavior:contain}
+  #tab-chats{display:block;grid-column:3;grid-row:1;position:sticky;top:calc(var(--top-h,72px) + 64px)}
   .evbar{display:none}
-  #tab-help{grid-column:1}
-  #tab-results{grid-column:2}
 }
 /* events list (desktop column) */
 .evlist{display:grid;gap:8px}
@@ -503,6 +505,7 @@ textarea{min-height:96px;resize:vertical}
       <div id="ld-q"></div>
       <h3 style="margin:16px 0 6px;font-size:1rem">Money received (48 hours)</h3>
       <div id="ld-pay"></div>
+      <div id="ld-skip"></div>
     </div>
   </section>
 
@@ -1169,6 +1172,9 @@ async function ldLoad(){
     :'<p class="note">No point loads waiting. 🎉</p>';
   $('ld-pay').innerHTML=ldData.payments.length?ldData.payments.map(x=>`<div class="ld-p${x.load_id||x.matched_at?' used':''}"><span><b>Rs ${+x.amount}</b> · ${esc(x.provider)}${x.sender?' · '+esc(x.sender):''}<small>${esc(x.raw)}</small></span><span style="white-space:nowrap">${esc(npt(x.received_at))}${x.load_id||x.matched_at?'<br>✓ used':''}</span></div>`).join('')
     :'<p class="note">Nothing received in the last 48 hours. Is the JD phone forwarding alerts?</p>';
+  const sk=ldData.skipped||[];
+  $('ld-skip').innerHTML=sk.length?'<h3 style="margin:16px 0 6px;font-size:1rem">Alerts not understood</h3><p class="note" style="margin:0 0 6px">Wallet alerts the server could not read. Never add points from these: tell the admin.</p>'+
+    sk.map(x=>`<div class="ld-p used"><span>${esc(x.why)}<small>${esc(x.raw)}</small></span><span style="white-space:nowrap">${esc(npt(x.created_at))}</span></div>`).join(''):'';
 }
 $('ld-reload')&&($('ld-reload').onclick=ldLoad);
 $('tab-loads')&&$('tab-loads').addEventListener('click',async e=>{
@@ -1182,12 +1188,14 @@ $('tab-loads')&&$('tab-loads').addEventListener('click',async e=>{
   ldLoad();
 });
 function showTab(name){
+  if(name==='chats'&&matchMedia('(min-width:1080px)').matches) name='squads';   // chats is always open beside the tool on desktop
   document.querySelectorAll('#tabs [role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===name?'true':'false'));
-  ['squads','results','chats','room','notify','promo','help'].forEach(n=>$('tab-'+n).classList.toggle('on',n===name));
+  ['squads','results','chats','room','notify','promo','loads','help'].forEach(n=>$('tab-'+n).classList.toggle('on',n===name));
   try{history.replaceState(null,'','#'+name);}catch(e){}
   window.scrollTo({top:0});
   if(name==='results') rsAutoReload();
   if(name==='promo') prLoad();
+  if(name==='loads') ldLoad();
 }
 /* ── promo review ── */
 async function prLoad(){
@@ -1232,7 +1240,7 @@ $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
     if(isHostMod()){ document.querySelector('#tabs [data-tab=chats]').hidden=true; $('tab-chats').style.display='none'; $('hev-new').hidden=false; }
     if(!me.owner){ const all=document.querySelector('input[name=aud][value=all]'); all.closest('label').remove(); }
     $('main').hidden=false; $('tabs').hidden=false;
-    const h=(location.hash||'').slice(1); if(['results','room','notify','help'].concat(isHostMod()?[]:['chats']).includes(h)) showTab(h);
+    const h=(location.hash||'').slice(1); if(['results','room','notify','help','loads'].concat(isHostMod()?[]:['chats']).includes(h)) showTab(h);
     setTopH();
     loadTournaments();
     if(!isHostMod()){ loadInbox(); startLive(); }
