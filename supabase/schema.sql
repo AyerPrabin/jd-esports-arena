@@ -7805,13 +7805,14 @@ create or replace function public.lfg_list(p_tournament text default null)
 returns jsonb language sql stable security definer set search_path = public as $$
   select coalesce(jsonb_agg(x.j order by x.mine desc, x.online desc, x.created_at desc), '[]'::jsonb) from (
     select p.created_at, p.player_id = auth.uid() as mine,
-      coalesce(pl.last_seen_at > now() - interval '3 minutes', false) as online,
+      auth.uid() is not null and coalesce(pl.last_seen_at > now() - interval '3 minutes', false) as online,
       jsonb_build_object(
       'id', p.id, 'player', pl.id, 'username', pl.username, 'logo', pl.squad_logo,
       'ign', pl.ff_name, 'uid', case when auth.uid() is not null then pl.ff_uid end,
       'kind', p.kind, 'roles', p.roles, 'pay', p.pay, 'amount', p.amount, 'tournament', p.tournament,
       'note', p.note, 'at', p.created_at, 'mine', p.player_id = auth.uid(),
-      'online', coalesce(pl.last_seen_at > now() - interval '3 minutes', false),
+      -- presence only for signed-in callers, who always pass the block check above (anonymous callers skip it)
+      'online', auth.uid() is not null and coalesce(pl.last_seen_at > now() - interval '3 minutes', false),
       'events', (select count(*) from public.registrations r where r.player_id = p.player_id and r.status in ('confirmed','approved')),
       'clash_w', (select count(*) from public.challenges c where c.winner = p.player_id and c.status = 'completed'),
       -- you and them, for the card's button: friend | sent (you asked) | received (they asked) | null
