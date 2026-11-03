@@ -379,7 +379,7 @@ h2[id]{scroll-margin-top:64px}
   <div class="dash" id="dash"><div class="dash-tile loading"><b>…</b><span>Loading</span></div></div>
 
   <nav class="adm-nav" id="adm-nav">
-    <button type="button" class="nav-pub" onclick="publishNow()">🚀 Publish</button><a href="#tournaments">🏆 Tournaments</a><a href="#history">📜 History</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#optimizer">🚀 Optimizer</a><a href="#moderators">🛡 Mods</a><a href="#mega">🏆 MEGA</a><a href="#promo" onclick="setTimeout(pvLoad,60)">🎬 Promo</a><a href="#challenges">⚔️ Challenges</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
+    <button type="button" class="nav-pub" onclick="publishNow()">🚀 Publish</button><a href="#tournaments">🏆 Tournaments</a><a href="#history">📜 History</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#optimizer">🚀 Optimizer</a><a href="#moderators">🛡 Mods</a><a href="#mega">🏆 MEGA</a><a href="#promo" onclick="setTimeout(pvLoad,60)">🎬 Promo</a><a href="#zsquad">🤝 ZULU squads</a><a href="#challenges">⚔️ Challenges</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
   </nav>
 
   <div class="f full" style="margin-bottom:8px">
@@ -663,6 +663,11 @@ h2[id]{scroll-margin-top:64px}
   <p class="hint">Players send their video link in Wallet › Free. Tap <b>Check link</b>, then <b>Give free voucher</b> only if the video is about JD Arena, tags @ayer_fire, has #AyerFire and #JDEsports, and shows 1,000+ views. Each approval gives 1 free-entry card for 30 days (Bronze Rs 5; 10,000+ views gets a lucky draw for Silver Rs 50 or Gold Rs 100), max 3 videos per player.</p>
   <div class="row"><button class="btn ghost" onclick="pvLoad()">↻ Load videos</button><div id="pv-msg" class="hint"></div></div>
   <div id="pv-list"></div>
+
+  <h2 id="zsquad">ZULU squads <span class="tag">every Saturday 6:15 PM</span></h2>
+  <p class="hint">ZULU groups players whose Find Teammates post says <b>Looking for a squad</b> and <b>Free</b>. It makes groups of 2 to 4 by language (it reads their post), opens a squad chat and writes a hello. No points or coins are involved. Nobody is grouped with someone they blocked, and each player is matched at most once a week. Preview first if you like.</p>
+  <div class="row"><button class="btn ghost" onclick="zsRun(true)">👀 Preview groups</button><button class="btn" onclick="zsRun(false)">🤝 Make squads now</button></div>
+  <div id="zs-out" class="hint"></div>
 
   <h2 id="challenges">Challenges <span class="tag">player vs player · disputes</span></h2>
   <p class="hint">When both captains claim the win, the challenge waits here. Read the chat and screenshots, then pay the winner or refund both. Everything else settles automatically.</p>
@@ -2310,6 +2315,18 @@ async function auLoad(){
     ${days.length?`<div class="au-ch"><span class="au-tip" id="au-tip">Today: ${n(days[days.length-1].n)} players</span><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Players active each day, last 30 days">${bars}</svg>
       <div class="ax"><span>${esc(fd(days[0].d))}</span><span>Players active per day (Nepal time). History starts 3 Nov 2026.</span><span>Today</span></div></div>`:''}`;
   box.querySelectorAll('rect').forEach(r=>{const x=days[+r.dataset.i];const show=()=>{document.getElementById('au-tip').textContent=fd(x.d)+': '+n(x.n)+' players';};r.onmouseenter=show;r.onclick=show;});
+}
+/* ── 🤝 ZULU squad match (zulu-squad-match edge function) ── */
+async function zsRun(dry){
+  const out=document.getElementById('zs-out'),secret=adminSecret();
+  if(!secret){out.textContent='Enter the admin passcode first.';return;}
+  if(!dry&&!confirm('Make the squad chats now? Players get a notification.'))return;
+  out.textContent=dry?'ZULU is grouping players…':'Making squads…';
+  try{const r=await fetch(EDGE_FN_BASE+'/zulu-squad-match',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({dry_run:!!dry})});
+    const d=await r.json().catch(()=>({error:'Not deployed yet'}));if(!r.ok||d.error)throw new Error(d.error||r.status);
+    if(!d.groups){out.textContent=d.note||'No groups this time.';return;}
+    out.innerHTML=`<b>${d.groups} squad${d.groups>1?'s':''}${dry?' (preview, nothing sent)':' made'}</b> from ${+d.candidates} players:`+(d.made||[]).map(g=>`<div class="card" style="margin:6px 0;padding:10px 12px"><b>${esc(g.players)}</b> <span class="tag">${esc(g.lang)}</span>${g.error?` <span style="color:#ff9d9d">${esc(g.error)}</span>`:''}${g.intro?`<div style="margin-top:4px">${esc(g.intro)}</div>`:''}</div>`).join('');
+  }catch(e){out.textContent='✗ '+e.message;}
 }
 /* ── promo videos → free vouchers (promo_vouchers.sql: promo_queue / promo_review, needs the Google sign-in) ── */
 async function pvLoad(){
