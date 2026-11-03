@@ -42,9 +42,14 @@ Deno.serve(async (req: Request) => {
   // only the wallet apps (the relay sends the package name): anything else is ignored
   if (!/esewa|f1soft|khalti|ime ?pay|imepay/i.test(app)) return Response.json({ saved: false, why: 'not from eSewa, Khalti or IME Pay' });
 
+  // OTPs, PINs and login codes are never stored, logged or shown to anyone
+  if (/\b(otp|one[- ]?time|verification|verify|security code|pin|password|mpin|login|log in|sign in|device)\b/i.test(text)) {
+    return Response.json({ saved: false, why: 'security alert ignored' });
+  }
   const skip = async (why: string) => {
-    console.log('payment-in skipped:', why, '|', app, '|', text.slice(0, 200));
-    await db.from('payments_in_skipped').insert({ app: app.slice(0, 80), why, raw: text });
+    console.log('payment-in skipped:', why, '|', app);   // no alert text in logs
+    // long digit runs (phone / account / transaction numbers) are masked before staff can see them
+    await db.from('payments_in_skipped').insert({ app: app.slice(0, 80), why, raw: text.replace(/\d{5,}/g, m => '•••' + m.slice(-2)) });
     return Response.json({ saved: false, why });
   };
   // only "received" money: skip "sent", "paid", OTPs and promos
