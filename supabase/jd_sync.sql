@@ -12,7 +12,7 @@
 begin;
 
 create or replace function public.jd_sync(p_since timestamptz default null)
-returns jsonb language plpgsql stable security definer set search_path = public as $$
+returns jsonb language plpgsql volatile security definer set search_path = public as $$
 declare v_me uuid := auth.uid(); v_since timestamptz := p_since - interval '15 seconds';
 begin
   if v_me is null then raise exception 'not signed in'; end if;

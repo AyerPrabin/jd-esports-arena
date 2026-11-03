@@ -268,6 +268,20 @@ h2[id]{scroll-margin-top:64px}
 .md-pick{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .md-pick button{border:1px solid var(--line);background:none;color:var(--silver);border-radius:999px;padding:5px 10px;font:inherit;font-size:.74rem;cursor:pointer}
 .md-pick button.on{border-color:var(--gold);color:var(--gold-l)}
+/* active users (active_users.sql) */
+.au-k{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.au-k div{padding:12px;border-radius:14px;background:var(--panel-2,#151D2E);border:1px solid var(--line,rgba(255,255,255,.08))}
+.au-k b{display:block;font-size:1.6rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.au-k span{font-size:.72rem;opacity:.75}
+.au-k small{display:block;font-size:.68rem;opacity:.6;margin-top:2px}
+.au-k .on b{color:#5EDB95}
+.au-sub{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 0 4px;font-size:.76rem;opacity:.8}
+.au-ch{position:relative;margin-top:8px;padding:10px 12px 6px;border-radius:14px;background:var(--panel-2,#151D2E);border:1px solid var(--line,rgba(255,255,255,.08))}
+.au-ch svg{display:block;width:100%;height:110px}
+.au-ch rect{fill:#FFC83D;opacity:.85}.au-ch rect.t{fill:#FFDD85;opacity:1}
+.au-ch .ax{display:flex;justify-content:space-between;font-size:.66rem;opacity:.6;margin-top:2px}
+.au-tip{position:absolute;top:6px;right:12px;font-size:.74rem;opacity:.85}
+@media(max-width:560px){.au-k{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -348,6 +362,9 @@ h2[id]{scroll-margin-top:64px}
     <a class="qa-tile" href="#teams"><span class="qa-ic">👥</span>Players</a>
   </div>
   <div id="publish-top-msg" class="hint" style="margin:6px 0 0"></div>
+
+  <div class="dash-head"><span>📈 Active users</span><button class="dash-refresh" onclick="auLoad()" title="Refresh">↻</button></div>
+  <div id="au-box" class="au"><p class="hint">Sign in with Google (top of the page) to see active users.</p></div>
 
   <div class="dash-head"><span>📥 Inbox</span><button class="dash-refresh" onclick="inboxLoad(true);loadDashboard()" title="Refresh">↻</button></div>
   <div id="inbox" class="inbox"><p class="hint">Loading point loads, withdrawals and disputes…</p></div>
@@ -1894,7 +1911,7 @@ async function mdPrizes(btn){
 }
 setInterval(()=>{if(document.getElementById('app').style.display!=='none'&&!(document.activeElement||document.body).closest('#md-box'))renderMatchDay();},60000);
 function loadLive(){
-  fetchLatestDoc().then(d=>{data={tagline:d.tagline||'JD Esports Arena · AyerFire',tournaments:d.tournaments||[],bo3:d.bo3||bo3Default()};_loadedSnapshot=d;renderAll();loadDashboard();inboxLoad(true);renderMatchDay();setTimeout(renderMatchDay,2500);msg('Loaded current tournaments.json.','ok');}).catch(()=>{if(!data.tournaments.length){addT();}_loadedSnapshot=null;renderAll();msg('No tournaments.json found — starting fresh.','');});
+  fetchLatestDoc().then(d=>{data={tagline:d.tagline||'JD Esports Arena · AyerFire',tournaments:d.tournaments||[],bo3:d.bo3||bo3Default()};_loadedSnapshot=d;renderAll();loadDashboard();auLoad();inboxLoad(true);renderMatchDay();setTimeout(renderMatchDay,2500);msg('Loaded current tournaments.json.','ok');}).catch(()=>{if(!data.tournaments.length){addT();}_loadedSnapshot=null;renderAll();msg('No tournaments.json found — starting fresh.','');});
 }
 function loadFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);data={tagline:d.tagline||'JD Esports Arena · AyerFire',tournaments:d.tournaments||[],bo3:d.bo3||bo3Default()};_loadedSnapshot=null;renderAll();msg('Loaded from file.','ok');}catch(x){msg('That file is not valid JSON.','err');}};r.readAsText(f);}
 function msg(t,c){document.getElementById('msg').innerHTML='<span class="'+(c||'')+'">'+t+'</span>';}
@@ -2268,6 +2285,26 @@ async function payPrizesNow(){
     document.getElementById('wa-prizes').innerHTML=shown.length?`<div class="card hint" style="margin:0 0 10px">${prizeReportHtml(shown)}</div>`:'';
     waMsg(shown.length?'Done.':'No unpaid prizes — everything announced so far is already paid.','ok');
   }catch(e){waMsg(e.message,'err');}
+}
+/* ── 📈 active users: DAU / WAU / MAU + 30-day trend (active_users.sql, owner + staff via Google sign-in) ── */
+setInterval(()=>{if(!document.hidden&&document.getElementById('au-k-live'))auLoad();},120000);
+async function auLoad(){
+  const box=document.getElementById('au-box');if(!box||!sb)return;
+  const {data:d,error}=await sb.rpc('admin_active_users');
+  if(error){box.innerHTML='<p class="hint">'+esc(/staff|admin/i.test(error.message)?'Sign in with Google (top of the page) to see active users.':error.message)+'</p>';return;}
+  const n=x=>(+x||0).toLocaleString(),pct=(a,b)=>b?Math.round(a/b*100)+'%':'–';
+  const days=d.days||[],max=Math.max(1,...days.map(x=>+x.n||0)),W=300,H=100,bw=W/Math.max(1,days.length);
+  const bars=days.map((x,i)=>{const h=Math.max(1,Math.round((+x.n||0)/max*(H-6)));return `<rect class="${i===days.length-1?'t':''}" x="${(i*bw+1).toFixed(1)}" y="${H-h}" width="${Math.max(1,bw-2).toFixed(1)}" height="${h}" rx="1.5" data-i="${i}"><title>${esc(x.d)}: ${n(x.n)} players</title></rect>`;}).join('');
+  const fd=s=>new Date(s+'T00:00:00').toLocaleDateString([], {day:'numeric',month:'short'});
+  box.innerHTML=`<div class="au-k" id="au-k-live">
+      <div class="on"><span>Online now</span><b>${n(d.online)}</b><small>last 3 minutes</small></div>
+      <div><span>Daily active</span><b>${n(d.dau)}</b><small>last 24 hours</small></div>
+      <div><span>Weekly active</span><b>${n(d.wau)}</b><small>last 7 days</small></div>
+      <div><span>Monthly active</span><b>${n(d.mau)}</b><small>last 30 days</small></div></div>
+    <div class="au-sub"><span>👤 ${n(d.total)} players total</span><span>🆕 ${n(d.new_1)} new today · ${n(d.new_7)} this week · ${n(d.new_30)} this month</span><span>📱 ${n(d.app)} with the app</span><span title="Daily ÷ monthly active: how many monthly players come back every day">🔁 Stickiness ${pct(d.dau,d.mau)}</span></div>
+    ${days.length?`<div class="au-ch"><span class="au-tip" id="au-tip">Today: ${n(days[days.length-1].n)} players</span><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Players active each day, last 30 days">${bars}</svg>
+      <div class="ax"><span>${esc(fd(days[0].d))}</span><span>Players active per day (Nepal time). History starts 3 Nov 2026.</span><span>Today</span></div></div>`:''}`;
+  box.querySelectorAll('rect').forEach(r=>{const x=days[+r.dataset.i];const show=()=>{document.getElementById('au-tip').textContent=fd(x.d)+': '+n(x.n)+' players';};r.onmouseenter=show;r.onclick=show;});
 }
 /* ── promo videos → free vouchers (promo_vouchers.sql: promo_queue / promo_review, needs the Google sign-in) ── */
 async function pvLoad(){
