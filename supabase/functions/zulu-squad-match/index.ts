@@ -19,6 +19,15 @@ const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...CORS, 'Content-Type': 'application/json' } });
 const parseJSON = (t: string | undefined) => { try { const m = String(t || '').match(/\{[\s\S]*\}/); return m ? JSON.parse(m[0]) : null; } catch { return null; } };
 
+// The intro is posted by ZULU, so AI text must stay a plain hello: only this group's @names, no links, numbers that
+// look like phones / IDs, money or account words. Anything else -> the fixed template.
+const BAD = /https?:|www\.|\.(com|net|org|me|ly|gg|link)\b|\d{6,}|esewa|khalti|imepay|bank|password|otp|pin\b|login|verify|\brs\.?\s?\d|\bnpr\b|rupee|paisa|points?\b|coins?\b|prize|pay|send money|diamond|top.?up|giveaway/i;
+function safeIntro(t: string, names: string[]) {
+  if (t.length < 20 || t.length > 480 || BAD.test(t)) return false;
+  const tags = (t.match(/@[A-Za-z0-9_]+/g) || []).map((x) => x.slice(1).toLowerCase());
+  return tags.every((x) => names.includes(x));
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   const cron = Deno.env.get('CRON_SECRET'), adminS = Deno.env.get('ADMIN_SECRET');
@@ -86,7 +95,7 @@ Deno.serve(async (req: Request) => {
   for (const [i, g] of groups.entries()) {
     const names = g.m.map((x) => '@' + x.username).join(', ');
     let intro = String(intros[i] || '').trim();
-    if (intro.length < 20 || intro.length > 480) intro = FALLBACK[g.lang](names);
+    if (!safeIntro(intro, g.m.map((x) => String(x.username).toLowerCase()))) intro = FALLBACK[g.lang](names);
     const name = 'ZULU Squad · ' + g.m.map((x) => String(x.username)).join(' ').slice(0, 26);
     if (dry) { out.push({ lang: g.lang, players: names, intro }); continue; }
     const { data: gid, error: e } = await db.rpc('zulu_make_squad', { p_name: name, p_members: g.m.map((x) => x.player_id), p_intro: intro, p_lang: g.lang });

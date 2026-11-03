@@ -20,7 +20,7 @@ returns table(player_id uuid, username text, ign text, roles text[], note text, 
 language sql stable security definer set search_path = public as $$
   select distinct on (p.player_id) p.player_id, pl.username, pl.ff_name, p.roles, p.note, p.tournament, pl.area_city, pl.area_country
   from public.teammate_posts p join public.players pl on pl.id = p.player_id
-  where p.kind = 'player' and p.pay = 'free' and p.expires_at > now()   -- free play only: no JD points / coins involved and pl.ff_uid is not null and pl.username is not null
+  where p.kind = 'player' and p.pay = 'free' and p.expires_at > now() and pl.ff_uid is not null and pl.username is not null   -- free play only: no JD points / coins
     and not exists(select 1 from public.banned_players b where b.player_id = p.player_id)
     and not exists(select 1 from public.squad_matches m where p.player_id = any(m.members) and m.created_at > now() - interval '7 days')
   order by p.player_id, p.created_at desc

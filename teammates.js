@@ -12,6 +12,8 @@
     st.textContent = '.tm-av{position:relative}.tm-dot{position:absolute;right:-2px;bottom:-2px;width:12px;height:12px;border-radius:50%;background:#5EDB95;border:2px solid #111827;box-shadow:0 0 0 0 rgba(94,219,149,.6);animation:tmPing 2s infinite}' +
       '@keyframes tmPing{70%{box-shadow:0 0 0 7px rgba(94,219,149,0)}100%{box-shadow:0 0 0 0 rgba(94,219,149,0)}}.tm-live{font-style:normal;color:#5EDB95;font-weight:700}' +
       '.tm-card.on{border-color:rgba(94,219,149,.45)!important}.tm-stats{display:flex;flex-wrap:wrap;gap:4px 10px;margin:6px 0 0;font-size:.72rem;opacity:.8}' +
+      '.tm-card.urgent{border-color:rgba(255,120,60,.6)!important;background:linear-gradient(180deg,rgba(255,110,40,.1),transparent 60%)}' +
+      '.tm-urgent{margin:-2px 0 8px;font-size:.74rem;font-weight:800;color:#ff9a5a;letter-spacing:.01em}' +
       '@media(prefers-reduced-motion:reduce){.tm-dot{animation:none}}';
     document.head.appendChild(st); }
   var list = document.getElementById('tm-list');
@@ -57,7 +59,8 @@
 
   // ── one card (same markup on both pages; the page CSS lays it out) ──
   function relBtn(p) {
-    if (p.mine) return '<button type="button" class="tm-btn ghost" data-edit="' + p.id + '">✏️ Edit</button><button type="button" class="tm-btn ghost" data-del="' + p.id + '">Delete</button>';
+    if (p.mine) return '<button type="button" class="tm-btn ghost" data-edit="' + p.id + '">✏️ Edit</button><button type="button" class="tm-btn ghost" data-del="' + p.id + '">Delete</button>' +
+      (p.kind === 'squad' ? '<button type="button" class="tm-btn gold" data-boost="' + p.id + '">' + (armed === 'b' + p.id ? 'Tap again: pay 25 pts' : p.urgent ? '🔥 +24 h urgent' : '🔥 Make urgent · 25 pts') + '</button>' : '');
     var b = p.rel === 'friend' ? '<button type="button" class="tm-btn ghost" data-msg="' + esc(p.username) + '">💬 Message</button>'
       : p.rel === 'sent' ? '<button type="button" class="tm-btn ghost" disabled>✓ Requested</button>'
       : p.rel === 'received' ? '<button type="button" class="tm-btn" data-up="' + p.id + '">✓ Accept</button>'
@@ -69,7 +72,8 @@
     var roles = (p.roles || []).map(function (r) { return '<span class="tm-role' + (ROLE_LBL[r] ? ' r-' + r : '') + '">' + esc(ROLE_LBL[r] || r) + '</span>'; }).join('');
     var av = p.logo ? '<img src="' + esc(p.logo) + '" alt="" loading="lazy">' : esc(String(p.username || '?').charAt(0).toUpperCase());
     var stats = [p.events ? '🏆 ' + (+p.events) + ' event' + (p.events === 1 ? '' : 's') : '🆕 New player', p.clash_w ? '⚔️ ' + (+p.clash_w) + ' clash win' + (p.clash_w === 1 ? '' : 's') : '', p.at ? '🕒 ' + ago(p.at) : ''].filter(Boolean);
-    return '<article class="tm-card' + (p.mine ? ' mine' : '') + (p.online ? ' on' : '') + '" data-id="' + p.id + '">' +
+    return '<article class="tm-card' + (p.mine ? ' mine' : '') + (p.online ? ' on' : '') + (p.urgent ? ' urgent' : '') + '" data-id="' + p.id + '">' +
+      (p.urgent ? '<div class="tm-urgent">🔥 Urgent: squad needs a player' + (p.mine && p.boost_until ? ' · until ' + esc(new Date(p.boost_until).toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' })) : '') + '</div>' : '') +
       '<div class="tm-top"><span class="tm-av">' + av + (p.online ? '<i class="tm-dot" title="Online now"></i>' : '') + '</span>' +
         '<div class="tm-who"><b>@' + esc(p.username) + (p.mine ? ' <small>(you)</small>' : '') + '</b><span>🎮 ' + esc(p.ign) + (p.online ? ' · <em class="tm-live">online</em>' : '') + '</span></div>' +
         (p.pay === 'paid' ? '<span class="tm-pay paid">🪙 ' + esc(p.amount) + ' pts</span>' : '<span class="tm-pay">Free</span>') + '</div>' +
@@ -154,6 +158,15 @@
       render();
       return;
     }
+    if ((id = +b.dataset.boost)) {
+      if (armed !== 'b' + id) { armed = 'b' + id; render(); setTimeout(function () { if (armed === 'b' + id) { armed = null; render(); } }, 4000); return; }
+      armed = null; b.disabled = true;
+      var br = await SB.rpc('lfg_boost', { p_id: id });
+      if (br.error) { msg(br.error.message, true); render(); return; }
+      msg('🔥 Your post is pinned at the top as Urgent. Balance: ' + br.data.balance + ' pts');
+      if (typeof loadWallet === 'function') loadWallet();
+      load(); return;
+    }
     if ((id = +b.dataset.pay)) {
       if (needGameId()) return;
       if (armed !== id) { armed = id; render(); setTimeout(function () { if (armed === id) { armed = null; render(); } }, 4000); return; }
@@ -199,10 +212,11 @@
       '<input id="tm-custom" maxlength="64" placeholder="Your own role, e.g. Grenade king, Flanker" value="' + esc(custom) + '">' +
       '<label class="tm-lbl" for="tm-ev">Event</label><select id="tm-ev"><option value="">Any event</option>' + evs.map(function (n) {
         return '<option value="' + esc(n) + '"' + (n === p.tournament ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select>' +
-      '<label class="tm-lbl">Play for</label><div class="tm-seg"><label><input type="radio" name="tm-pay" value="free"' + (p.pay !== 'paid' ? ' checked' : '') + '><span>Free</span></label>' +
+      '<div id="tm-paywrap"' + (p.kind === 'squad' ? '' : ' hidden') + '><label class="tm-lbl">Offer a fee to the player</label><div class="tm-seg"><label><input type="radio" name="tm-pay" value="free"' + (p.pay !== 'paid' ? ' checked' : '') + '><span>Free</span></label>' +
       '<label><input type="radio" name="tm-pay" value="paid"' + (p.pay === 'paid' ? ' checked' : '') + '><span>🪙 JD points</span></label></div>' +
       '<input id="tm-amt" type="number" inputmode="numeric" min="1" max="5000" placeholder="Fee in JD points (1-5000)" value="' + esc(p.amount || '') + '"' + (p.pay === 'paid' ? '' : ' hidden') + '>' +
-      '<p class="tm-fine" id="tm-payfine"' + (p.pay === 'paid' ? '' : ' hidden') + '>Fees are paid in JD points inside the app only, never by eSewa between players.</p>' +
+      '<p class="tm-fine" id="tm-payfine"' + (p.pay === 'paid' ? '' : ' hidden') + '>Fees are paid in JD points inside the app only, never by eSewa between players.</p></div>' +
+      '<p class="tm-fine" id="tm-urgfine"' + (p.kind === 'squad' ? '' : ' hidden') + '>Need someone fast? After posting, tap <b>🔥 Make urgent</b> (25 JD points): your post is pinned at the top for 24 hours.</p>' +
       '<label class="tm-lbl" for="tm-note">Note</label><textarea id="tm-note" maxlength="160" rows="2" placeholder="e.g. KD 3.2, mic on, free after 8pm">' + esc(p.note) + '</textarea>' +
       '<p class="tm-fine">Your card shows <b>' + esc(me.ff_name) + '</b> and UID <b>' + esc(me.ff_uid) + '</b>. It stays up for 7 days.</p>' +
       '<div class="tm-msg" id="tm-fmsg" role="status"></div><button type="submit" class="tm-btn big">' + (editing ? 'Save' : 'Post') + '</button>';
@@ -210,6 +224,12 @@
   }
   if (form) {
     form.addEventListener('change', function (e) {
+      if (e.target.name === 'tm-kind') {   // player posts are free for now: only squads can offer a fee or boost
+        var sq = e.target.value === 'squad';
+        document.getElementById('tm-paywrap').hidden = !sq; document.getElementById('tm-urgfine').hidden = !sq;
+        if (!sq) { var fr = form.querySelector('input[name="tm-pay"][value="free"]'); if (fr) fr.checked = true; document.getElementById('tm-amt').hidden = true; document.getElementById('tm-payfine').hidden = true; }
+        return;
+      }
       if (e.target.name !== 'tm-pay') return;
       var paid = e.target.value === 'paid';
       document.getElementById('tm-amt').hidden = !paid; document.getElementById('tm-payfine').hidden = !paid;
@@ -232,8 +252,9 @@
         .concat(document.getElementById('tm-custom').value.split(',').map(function (s) { return s.trim(); }).filter(Boolean));
       if (!roles.length) { m.textContent = 'Pick at least one role.'; return; }
       btn.disabled = true;
-      var r = await SB.rpc('lfg_post', { p_kind: v('tm-kind'), p_roles: roles.slice(0, 5), p_pay: v('tm-pay'),
-        p_amount: v('tm-pay') === 'paid' ? (parseInt(document.getElementById('tm-amt').value, 10) || 0) : null,
+      var kd = v('tm-kind'), py = kd === 'squad' ? v('tm-pay') : 'free';
+      var r = await SB.rpc('lfg_post', { p_kind: kd, p_roles: roles.slice(0, 5), p_pay: py,
+        p_amount: py === 'paid' ? (parseInt(document.getElementById('tm-amt').value, 10) || 0) : null,
         p_tournament: document.getElementById('tm-ev').value, p_note: document.getElementById('tm-note').value });
       btn.disabled = false;
       if (r.error) { m.textContent = r.error.message; return; }
