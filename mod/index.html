@@ -254,6 +254,12 @@ textarea{min-height:96px;resize:vertical}
 .cpchips{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:12px 0}
 .cpchips span,.cpchips button{border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:.78rem;color:var(--silver);background:var(--panel-2)}
 .cpchips button{cursor:pointer;color:var(--gold-l)}
+.ld{border:1px solid var(--line);border-radius:14px;padding:12px;margin:0 0 10px;background:var(--panel-2)}
+.ld-top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.ld-top b{font-size:1.15rem}
+.ld img{display:block;width:100%;max-height:420px;object-fit:contain;border-radius:10px;margin:8px 0;background:#000;cursor:zoom-in}
+.ld-m{display:grid;gap:6px;margin-top:6px}.ld-m button{text-align:left}
+.ld-p{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);font-size:.84rem}.ld-p.used{opacity:.5}
+.ld-p small{display:block;color:var(--body);font-size:.74rem;word-break:break-word}
 .zbrief{white-space:pre-wrap;text-align:left;font-size:.82rem;line-height:1.5;margin-top:8px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,200,61,.35);background:rgba(255,200,61,.06)}
 .cptk{display:grid;gap:6px;margin-top:6px;text-align:left}
 .cptk div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:9px 12px;background:var(--panel-2)}
@@ -354,6 +360,7 @@ textarea{min-height:96px;resize:vertical}
   <symbol id="i-squads" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c.6-3.2 3-5 6-5s5.4 1.8 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c2.6.2 4.7 1.8 5.5 4.8"/></symbol>
   <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l2.5 2.5M14 9l2 2"/></symbol>
   <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></symbol>
+  <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.5c0-1.2 1.1-2 2.5-2s2.5.7 2.5 1.8-1 1.6-2.5 1.8-2.5.7-2.5 1.8 1.1 1.8 2.5 1.8 2.5-.8 2.5-2"/></symbol>
   <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3 9a2 2 0 0 0 0 6v3h18v-3a2 2 0 0 1 0-6V6H3z"/><path d="M14 6v12" stroke-dasharray="2 2.5"/></symbol>
   <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.8c0 1.7-2.4 2.1-2.4 3.6"/><path d="M12 17h.01"/></symbol>
   <symbol id="i-wa" viewBox="0 0 24 24"><path d="M4 20l1.2-3.6A8 8 0 1 1 8 19z"/><path d="M9.2 9.3c.3 2 2.4 4.2 4.6 4.7l1.1-1.1 1.8.8"/></symbol>
@@ -387,6 +394,7 @@ textarea{min-height:96px;resize:vertical}
   <button type="button" role="tab" aria-selected="false" data-tab="chats"><span class="tb"><svg aria-hidden="true"><use href="#i-chat"/></svg><span class="badge" id="badge-chat" hidden></span>Chats</span></button>
   <button type="button" role="tab" aria-selected="false" data-tab="notify"><span class="tb"><svg aria-hidden="true"><use href="#i-bell"/></svg>Notify</span></button>
   <button type="button" role="tab" aria-selected="false" data-tab="promo" hidden><span class="tb"><svg aria-hidden="true"><use href="#i-ticket"/></svg><span class="badge" id="badge-promo" hidden></span>Promo</span></button>
+  <button type="button" role="tab" aria-selected="false" data-tab="loads" hidden><span class="tb"><svg aria-hidden="true"><use href="#i-coin"/></svg><span class="badge" id="badge-loads" hidden></span>Loads</span></button>
   <button type="button" role="tab" aria-selected="false" data-tab="help"><span class="tb"><svg aria-hidden="true"><use href="#i-help"/></svg>Help</span></button>
 </div>
 
@@ -484,6 +492,17 @@ textarea{min-height:96px;resize:vertical}
       <div class="sec-h"><h2 id="h-promo">Promo posts</h2><button type="button" class="btn alt" id="pr-reload" style="font-size:.9rem;padding:6px 12px">Refresh</button></div>
       <p class="note" style="margin:0 0 10px">Open each link. Approve only if the post is about JD Arena, tags @ayer_fire and has both #AyerFire and #JDEsports in the caption and shows 1,000+ views now. Each player can have up to 3 approved videos. Approving gives the player 1 free-entry card (30 days): Bronze Rs 5, or a lucky draw for Silver Rs 50 / Gold Rs 100 at 10,000+ views. Reject fake or bought views, reposts and someone else's video.</p>
       <div id="pr-q"></div>
+    </div>
+  </section>
+
+  <!-- point loads: match a player's screenshot to money the owner's phone received (payments_in.sql) -->
+  <section class="tab" id="tab-loads" aria-labelledby="h-loads">
+    <div class="panel">
+      <div class="sec-h"><h2 id="h-loads">Point loads</h2><button type="button" class="btn alt" id="ld-reload" style="font-size:.9rem;padding:6px 12px">Refresh</button></div>
+      <p class="note" style="margin:0 0 10px">Every "money received" alert from the JD phone appears under <b>Money received</b>. Open a player's screenshot and check the amount and time match a payment, then tap <b>Match &amp; add points</b>. You can only add points for an exact match (same amount, paid up to 3 hours before the request). Anything else, leave for the admin.</p>
+      <div id="ld-q"></div>
+      <h3 style="margin:16px 0 6px;font-size:1rem">Money received (48 hours)</h3>
+      <div id="ld-pay"></div>
     </div>
   </section>
 
@@ -1135,6 +1154,33 @@ function rsAutoReload(){ if(selected&&!rsDirty&&!document.querySelector('.sheet-
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&$('tab-results').classList.contains('on')) rsAutoReload(); });
 
 /* ── tabs (phone / tablet) ── */
+/* ── 💰 point loads ── */
+let ldData=null;
+const npt=t=>new Date(t).toLocaleString([], {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+async function ldLoad(){
+  const q=$('ld-q');if(!q)return;
+  try{ ldData=await call({action:'loads_list'}); }catch(e){ q.innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; return; }
+  const pays=new Map(ldData.payments.map(x=>[x.id,x]));
+  const b=$('badge-loads'); if(b){ b.hidden=!ldData.loads.length; b.textContent=ldData.loads.length; }
+  q.innerHTML=ldData.loads.length?ldData.loads.map(r=>`<div class="ld" data-ld="${esc(r.id)}"><div class="ld-top"><span><b>Rs ${+r.amount}</b> · ${esc(r.who)}</span><small>${esc(npt(r.at))}</small></div>`+
+    (r.shot?`<img src="${esc(r.shot)}" alt="Payment screenshot from ${esc(r.who)}" loading="lazy">`:'<p class="note">No screenshot preview.</p>')+
+    `<div class="ld-m">${r.fits.length?r.fits.map(id=>{const x=pays.get(id);return `<button type="button" class="btn" data-match="${+id}">✓ Match &amp; add ${+r.amount} points · ${esc(x.provider)} ${esc(npt(x.received_at))}${x.sender?' · '+esc(x.sender):''}</button>`;}).join('')
+      :'<p class="note" style="margin:0">No matching payment yet. Wait for the "money received" alert, or leave it for the admin.</p>'}</div></div>`).join('')
+    :'<p class="note">No point loads waiting. 🎉</p>';
+  $('ld-pay').innerHTML=ldData.payments.length?ldData.payments.map(x=>`<div class="ld-p${x.load_id?' used':''}"><span><b>Rs ${+x.amount}</b> · ${esc(x.provider)}${x.sender?' · '+esc(x.sender):''}<small>${esc(x.raw)}</small></span><span style="white-space:nowrap">${esc(npt(x.received_at))}${x.load_id?'<br>✓ used':''}</span></div>`).join('')
+    :'<p class="note">Nothing received in the last 48 hours. Is the JD phone forwarding alerts?</p>';
+}
+$('ld-reload')&&($('ld-reload').onclick=ldLoad);
+$('tab-loads')&&$('tab-loads').addEventListener('click',async e=>{
+  const im=e.target.closest('.ld img'); if(im){ window.open().document.write('<img src="'+im.src.replace(/"/g,'')+'" style="max-width:100%">'); return; }
+  const b=e.target.closest('[data-match]'); if(!b) return;
+  const card=b.closest('[data-ld]'), r=ldData.loads.find(x=>x.id===card.dataset.ld);
+  if(!await sheet({title:'Add '+r.amount+' points to '+r.who+'?',text:'Only if the screenshot shows the same amount and time as this payment. Each payment can be used once.',ok:'Add points'}))return;
+  card.querySelectorAll('button').forEach(x=>x.disabled=true);
+  try{ await call({action:'load_match',load_id:r.id,payment_id:+b.dataset.match}); toast('✓ '+r.amount+' points added to '+r.who); }
+  catch(err){ toast(err.message,null,true); }
+  ldLoad();
+});
 function showTab(name){
   document.querySelectorAll('#tabs [role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===name?'true':'false'));
   ['squads','results','chats','room','notify','promo','help'].forEach(n=>$('tab-'+n).classList.toggle('on',n===name));
@@ -1190,6 +1236,7 @@ $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
     setTopH();
     loadTournaments();
     if(!isHostMod()){ loadInbox(); startLive(); }
+    if(!isHostMod()){ document.querySelector('#tabs [data-tab=loads]').hidden=false; ldLoad(); setInterval(()=>{ if(!document.hidden) ldLoad(); },60000); }
     if(!isHostMod()) sb.rpc('promo_queue').then(r=>{ if(r.error) return; document.querySelector('#tabs [data-tab=promo]').hidden=false; $('tab-promo').classList.add('ok'); prLoad(); const n=(r.data||[]).length,bd=$('badge-promo'); bd.hidden=!n; bd.textContent=n; if(h==='promo') showTab('promo'); });
   }catch(e){
     $('gate').hidden=false;

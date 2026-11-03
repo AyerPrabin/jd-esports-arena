@@ -134,7 +134,7 @@ Deno.serve(async (req: Request) => {
 
   // ── moderator actions: require a signed-in moderator (the JD Esports chat also takes the admin secret) ──
   let email = '', role = 'staff', handle = '';
-  if (action.startsWith('chat_') && ADMIN_SECRET && adminHeader === ADMIN_SECRET) email = 'admin';
+  if ((action.startsWith('chat_') || action.startsWith('load')) && ADMIN_SECRET && adminHeader === ADMIN_SECRET) email = 'admin';
   else {
     const jwt = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
     if (!jwt) return fail('Sign in first', 401);
@@ -380,6 +380,39 @@ Deno.serve(async (req: Request) => {
     });
   };
   const pidOk = (x: unknown) => /^[0-9a-f-]{36}$/i.test(String(x || ''));
+  // ── 💰 point loads (payments_in.sql): staff mods match a player's screenshot to a payment the owner's phone
+  //    forwarded. Matching is the only money action mods have, and the database re-checks amount, time and reuse. ──
+  if (action === 'loads_list' || action === 'load_match') {
+    if (isHost) return fail('Point loads are for the JD team only.', 403);
+    if (action === 'load_match') {
+      const lid = String(p.load_id || ''), pid = Number(p.payment_id);
+      if (!/^[0-9a-f-]{36}$/i.test(lid) || !Number.isInteger(pid)) return fail('load_id and payment_id required');
+      const { data, error } = await admin.rpc('match_load_payment', { p_load: lid, p_payment: pid, p_by: email });
+      if (error) return fail(error.message);
+      await log('load_match', `load ${lid.slice(0, 8)} · payment ${pid} · Rs ${data?.amount}`);
+      return json(data);
+    }
+    const since = new Date(Date.now() - 48 * 3600e3).toISOString();
+    const [{ data: loads, error: e1 }, { data: pays, error: e2 }] = await Promise.all([
+      admin.from('wallet_load_requests').select('id, amount, screenshot, created_at, players(username, player_tag)')
+        .eq('status', 'pending').order('created_at', { ascending: true }).limit(30),
+      admin.from('payments_in').select('id, provider, amount, sender, raw, received_at, load_id').gt('received_at', since)
+        .order('received_at', { ascending: false }).limit(60),
+    ]);
+    if (e1 || e2) return fail((e1 || e2)!.message, 500);
+    const open = (pays || []).filter((x: any) => !x.load_id);
+    return json({
+      payments: pays || [],
+      loads: (loads || []).map((r: any) => {
+        const t = new Date(r.created_at).getTime();
+        const fits = open.filter((x: any) => x.amount === r.amount && new Date(x.received_at).getTime() >= t - 3 * 3600e3 && new Date(x.received_at).getTime() <= t + 30 * 60e3)
+          .map((x: any) => x.id);
+        return { id: r.id, amount: r.amount, at: r.created_at, who: r.players?.username ? '@' + r.players.username : (r.players?.player_tag || 'Player'),
+          shot: typeof r.screenshot === 'string' && /^data:image\/(jpeg|png|webp);base64,/.test(r.screenshot) && r.screenshot.length < 900000 ? r.screenshot : null, fits };
+      }),
+    });
+  }
+
   // remove a rude / fake profile picture (staff + admin, never host mods). The player is told why and can upload another.
   if (action === 'chat_avatar_remove') {
     if (!pidOk(p.player_id)) return fail('player_id required');
