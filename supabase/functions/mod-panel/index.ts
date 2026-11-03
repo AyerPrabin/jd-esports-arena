@@ -21,6 +21,7 @@
 // events ({ action: 'event_save', ... }: free entry only, never JD's prize money), and everything they send to
 // players is signed with their own @handle instead of "JD".
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { askAI } from '../_shared/ai.ts';
 
 // only the owner may notify every player on JD Arena
 const OWNER_EMAIL = (Deno.env.get('ADMIN_EMAIL') || 'ayerprabin95@gmail.com').toLowerCase();
@@ -342,6 +343,76 @@ Deno.serve(async (req: Request) => {
     } catch { /* no photos: initials */ }
     return cards;
   };
+  // ── what has this player done? (staff + admin, never host mods). One timeline for answering a player's doubt:
+  //    wallet movements, event sign-ups, challenges, withdrawals, promo videos and the alerts JD sent them.
+  //    No email, phone, eSewa number or room passwords leave the server. ──
+  const activityOf = async (pid: string) => {
+    const lim = (q: any, n: number) => q.order('created_at', { ascending: false }).limit(n);
+    const [pl, wal, ban, led, reg, chA, chB, wd, pr, nt] = await Promise.all([
+      admin.from('players').select('id, username, player_tag, squad_name, ff_uid, ff_name, created_at, last_seen_at, app_installed_at, area_city').eq('id', pid).maybeSingle(),
+      admin.from('wallets').select('balance').eq('player_id', pid).maybeSingle(),
+      admin.from('banned_players').select('reason, banned_at').eq('player_id', pid).maybeSingle(),
+      lim(admin.from('wallet_ledger').select('delta, balance_after, reason, note, created_at').eq('player_id', pid), 40),
+      lim(admin.from('registrations').select('tournament_slug, squad_name, status, paid_points, verified_at, checked_in_at, created_at').eq('player_id', pid), 20),
+      lim(admin.from('challenges').select('mode, stake, status, winner, resolution, creator, created_at').eq('creator', pid), 15),
+      lim(admin.from('challenges').select('mode, stake, status, winner, resolution, creator, created_at').eq('opponent', pid), 15),
+      lim(admin.from('withdraw_requests').select('amount, payout, status, processed_at, created_at').eq('player_id', pid), 10),
+      lim(admin.from('promo_posts').select('platform, views, status, note, created_at').eq('player_id', pid), 6),
+      lim(admin.from('notifications').select('title, read_at, created_at').eq('player_id', pid), 25),
+    ]);
+    if (!pl.data) return null;
+    const ev: any[] = [];
+    const add = (at: string, kind: string, text: string, amt?: number) => ev.push({ at, kind, text: String(text).slice(0, 200), amt });
+    for (const x of led.data || []) add(x.created_at, 'money', `${x.reason}${x.note ? ': ' + x.note : ''} · balance ${x.balance_after}`, x.delta);
+    for (const x of reg.data || []) add(x.created_at, 'event', `${x.tournament_slug} as ${x.squad_name} · ${x.status}${x.paid_points ? ' · paid ' + x.paid_points : ''}${x.verified_at ? ' · lineup verified' : ''}${x.checked_in_at ? ' · checked in' : ''}`);
+    for (const x of [...(chA.data || []), ...(chB.data || [])]) add(x.created_at, 'challenge', `${x.mode} for ${x.stake} · ${x.creator === pid ? 'created' : 'accepted'} · ${x.status}${x.winner ? (x.winner === pid ? ' · WON' : ' · lost') : ''}${x.resolution ? ' (' + x.resolution + ')' : ''}`);
+    for (const x of wd.data || []) add(x.created_at, 'withdraw', `withdraw ${x.amount}${x.payout ? ' (gets Rs ' + x.payout + ')' : ''} · ${x.status}`, -x.amount);
+    for (const x of pr.data || []) add(x.created_at, 'promo', `${x.platform} video, ${x.views} views · ${x.status}${x.note ? ': ' + x.note : ''}`);
+    for (const x of nt.data || []) add(x.created_at, 'alert', `${x.title}${x.read_at ? '' : ' (unread)'}`);
+    ev.sort((a, b) => (a.at < b.at ? 1 : -1));
+    const u = pl.data;
+    return ({
+      player: { id: u.id, name: u.username ? '@' + u.username : (u.player_tag || 'Player'), tag: u.player_tag, squad: u.squad_name,
+        ff: u.ff_uid ? `${u.ff_name || ''} (${u.ff_uid})` : null, joined: u.created_at, seen: u.last_seen_at, app: !!u.app_installed_at,
+        city: u.area_city || null, balance: wal.data?.balance ?? 0, banned: ban.data ? (ban.data.reason || 'banned') : null },
+      events: ev.slice(0, 80),
+    });
+  };
+  const pidOk = (x: unknown) => /^[0-9a-f-]{36}$/i.test(String(x || ''));
+  if (action === 'chat_player_activity') {
+    if (!pidOk(p.player_id)) return fail('player_id required');
+    const d = await activityOf(String(p.player_id));
+    return d ? json(d) : fail('Player not found', 404);
+  }
+  // ZULU brief: reads the player's last messages + their activity and tells staff what is going on and what to reply.
+  // Only facts from the timeline; the suggestion fills the message box, staff still press Send.
+  if (action === 'chat_zulu_brief') {
+    if (!pidOk(p.player_id)) return fail('player_id required');
+    const pid = String(p.player_id);
+    const [d, { data: msgs }] = await Promise.all([activityOf(pid), admin.from('jd_messages').select('from_staff, body, created_at')
+      .eq('player_id', pid).eq('channel', 'jd').order('id', { ascending: false }).limit(15)]);
+    if (!d) return fail('Player not found', 404);
+    const NL = String.fromCharCode(10);
+    const chat = (msgs || []).reverse().map((m: any) => `${m.from_staff ? 'JD' : 'PLAYER'} (${m.created_at.slice(0, 16)}): ${String(m.body).slice(0, 300)}`).join(NL);
+    const tl = d.events.slice(0, 50).map((e: any) => `${e.at.slice(0, 16)} [${e.kind}] ${e.text}${e.amt ? ' (' + e.amt + ')' : ''}`).join(NL);
+    const system = [
+      'You are ZULU, head of support at JD Arena (Free Fire tournaments in Nepal, wallet points, challenges, withdrawals to eSewa/Khalti).',
+      'A staff member is answering this player. Use ONLY the facts below, never invent payments or results. Reply in this exact shape:',
+      'WHAT IS GOING ON: 1-3 short lines. If it needs an admin action (refund, credit, payout), say so here.',
+      'FACTS: up to 4 bullet lines with dates and amounts from the timeline that matter for the question.',
+      'SUGGESTED REPLY: one friendly message to the player, in the language they write in (English, Nepali or Roman Nepali), under 400 characters.',
+    ].join(NL);
+    const user = [`Player ${d.player.name}, squad ${d.player.squad || '-'}, balance ${d.player.balance}${d.player.banned ? ', BANNED: ' + d.player.banned : ''}.`,
+      '', 'CHAT:', chat || '(no messages)', '', 'TIMELINE (newest first):', tl || '(nothing)'].join(NL);
+    const r = await askAI([{ role: 'system', content: system }, { role: 'user', content: user }]);
+    if (!r?.text) return fail('ZULU is busy right now. Try again in a minute.', 503);
+    const text = r.text.trim().slice(0, 2500);
+    const cut = text.search(/SUGGESTED REPLY:/i);
+    const reply = cut < 0 ? '' : text.slice(cut).replace(/^SUGGESTED REPLY:/i, '').trim().replace(/^["']|["']$/g, '').slice(0, 600);
+    await log('zulu_brief', d.player.name);
+    return json({ brief: text, reply });
+  }
+
   if (action === 'chat_inbox') {
     // newest conversations first; unread = player replies nobody on the team has opened yet
     const { data, error } = await admin.from('jd_messages')
