@@ -1345,7 +1345,7 @@ function zcDescribe(a){
       return {title:'📣 Announcement',html:li('To',aud)+li('Title',a.title)+`<li>Message: <b>${esc(a.message)}</b></li>`,err:''};}
     case 'publish_results':{if(a.err)return {title:'🏆 Publish results',html:'',err:a.err};
       const i=zcFindEvent(a.event);if(i<0)return {title:'🏆 Publish results',html:'',err:'No event matches "'+a.event+'".'};
-      const rows=(a.teams||[]).map((t,k)=>`<li>${k+1}. <b>${esc(t.team)}</b> · ${+t.pts||0} pts · ${+t.kills||0} kills${t.prize_won?` · <b>Rs ${+t.prize_won}</b>`:''}${t.owner?' · your squad, not paid':''}</li>`).join('');
+      const rows=(a.teams||[]).map((t,k)=>`<li>${k+1}. <b>${esc(t.team)}</b> <span class="hint" style="margin:0">(slot ${+t.slot||'?'}, matched by ${esc(t.via||'?')})</span> · ${+t.pts||0} pts · ${+t.kills||0} kills${t.prize_won?` · <b>Rs ${+t.prize_won}</b>`:''}${t.owner?' · your squad, not paid':''}</li>`).join('');
       return {title:'🏆 Results · '+data.tournaments[i].name,html:rows+li('Prize pool','Rs '+(+a.pool||0)+' · 50 / 30 / 20 %')+'<li>On Confirm: finishes the event, publishes the board, saves the season stats and pays the prizes into wallets (never twice)</li>',err:(a.teams||[]).length?'':'No squads.'};}
     case 'publish':return {title:'🚀 Publish changes',html:'<li>Pushes your edits to the live site</li>',err:''};
     case 'pay_prizes':return {title:'🏆 Pay prizes',html:'<li>Pays any unpaid announced prizes into winners\' wallets (never pays twice)</li>',err:''};

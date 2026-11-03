@@ -165,23 +165,39 @@ async function enrichResults(a: Json): Promise<Json> {
   if (error) return fail('Could not read the registrations: ' + error.message);
   const R = (regs || []) as any[];
   const ownerEmail = (Deno.env.get('ADMIN_EMAIL') || 'ayerprabin95@gmail.com').toLowerCase();
-  const find = (row: any) => {
-    if (row.slot) return R[row.slot - 1];
+  // Names are typed by players, so a loose match must never silently pick one of several squads (prize money follows
+  // this). Exact squad name first; a lineup IGN or part of a name only counts when exactly ONE squad matches it.
+  // Anything ambiguous is refused, so the organiser uses the slot number or the exact squad name.
+  const find = (row: any): { reg?: any; via?: string; err?: string } => {
+    if (row.slot) return R[row.slot - 1] ? { reg: R[row.slot - 1], via: 'slot ' + row.slot } : {};
     const k = keyOf(row.squad);
-    return R.find((r) => keyOf(r.squad_name) === k) ||
-      R.find((r) => Array.isArray(r.lineup) && r.lineup.some((p: any) => keyOf(p?.name) === k)) ||
-      R.find((r) => k.length >= 4 && keyOf(r.squad_name).includes(k));
+    if (!k) return {};
+    const tiers: [string, any[]][] = [
+      ['squad name', R.filter((r) => keyOf(r.squad_name) === k)],
+      ['player IGN', R.filter((r) => Array.isArray(r.lineup) && r.lineup.some((p: any) => keyOf(p?.name) === k))],
+      ['part of name', k.length >= 4 ? R.filter((r) => keyOf(r.squad_name).includes(k)) : []],
+    ];
+    const all = new Set(tiers.flatMap(([, list]) => list));
+    for (const [via, list] of tiers) {
+      if (!list.length) continue;
+      if (list.length > 1 || (via !== 'squad name' && all.size > 1))
+        return { err: `"${row.squad}" matches more than one squad (${[...all].map((r) => r.squad_name).join(', ')}). Use the slot number.` };
+      return { reg: list[0], via };
+    }
+    return {};
   };
   const seen = new Set<string>(), missing: string[] = [], teams: any[] = [];
   for (const row of a.rows as any[]) {
-    const reg = find(row);
+    const hit = find(row);
+    if (hit.err) return fail(hit.err);
+    const reg = hit.reg;
     const label = row.slot ? 'slot ' + row.slot : '"' + row.squad + '"';
     if (!reg) { missing.push(label); continue; }
     if (seen.has(reg.squad_name)) return fail(`${label} points at ${reg.squad_name}, which is already in the list twice.`);
     seen.add(reg.squad_name);
     const r = row.m.map((x: any) => ({ pts: x.pts ?? (x.pos >= 1 && x.pos <= 10 ? PLACE_PTS[x.pos - 1] : 0), kills: x.kills }));
     while (r.length < 3) r.push({ pts: 0, kills: 0 });
-    teams.push({ team: reg.squad_name, r, owner: String(reg.players?.email || '').toLowerCase() === ownerEmail });
+    teams.push({ team: reg.squad_name, slot: R.indexOf(reg) + 1, via: hit.via, r, owner: String(reg.players?.email || '').toLowerCase() === ownerEmail });
   }
   if (missing.length) return fail(`Not found in ${event}: ${missing.join(', ')}. Use the slot number or the exact squad name.`);
   const scored = teams.map((x) => {
@@ -194,7 +210,7 @@ async function enrichResults(a: Json): Promise<Json> {
   for (const s of scored) { s.prize_won = !s.owner && k < 3 && pool > 0 ? prizes[k++] : 0; }
   return {
     type: 'publish_results', event, pool, kill_pts: 1,
-    teams: scored.map((s) => ({ team: s.team, r: s.r, prize_won: s.prize_won, pts: s.pts, kills: s.kills, owner: s.owner })),
+    teams: scored.map((s) => ({ team: s.team, slot: s.slot, via: s.via, r: s.r, prize_won: s.prize_won, pts: s.pts, kills: s.kills, owner: s.owner })),
   };
 }
 
