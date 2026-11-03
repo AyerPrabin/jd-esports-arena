@@ -3397,4 +3397,18 @@ document.getElementById('fb-input').addEventListener('keydown',function(e){if(e.
 zChrome();
 setTimeout(showNudge,13000);
 // "Rs paid to players": prize money credited to players' wallets so far (payout_stats.sql, totals only)
-if(sb)sb.rpc('payout_stats').then(r=>{const d=r&&r.data;if(!d||!d.prizes)return;const b=document.getElementById('stat-paid');if(!b)return;b.textContent=Number(d.prizes).toLocaleString('en-IN');document.getElementById('stat-paid-wrap').hidden=false;});
+// Live: re-checked every 60 s while the page is open, so it climbs as soon as results are published and
+// prizes land in wallets; the number counts up to the new total and flashes "+Rs N".
+(function(){
+  if(!sb)return;let shown=0;
+  const fmt=n=>Number(n).toLocaleString('en-IN');
+  const countTo=(b,to)=>{const from=shown,t0=performance.now(),D=from?900:1400;shown=to;
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches){b.textContent=fmt(to);return;}
+    const step=t=>{const k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);b.textContent=fmt(Math.round(from+(to-from)*e));if(k<1)requestAnimationFrame(step);};requestAnimationFrame(step);};
+  const load=()=>{if(document.hidden)return;sb.rpc('payout_stats').then(r=>{const d=r&&r.data;if(!d||!d.prizes)return;
+    const b=document.getElementById('stat-paid'),w=document.getElementById('stat-paid-wrap');if(!b||!w)return;
+    const to=Number(d.prizes);if(to===shown)return;const up=shown&&to>shown?to-shown:0;
+    w.hidden=false;countTo(b,to);
+    if(up){w.classList.remove('paid-up');void w.offsetWidth;w.dataset.up='+Rs '+fmt(up);w.classList.add('paid-up');}});};
+  load();setInterval(load,60000);document.addEventListener('visibilitychange',load);
+})();
