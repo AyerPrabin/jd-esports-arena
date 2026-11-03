@@ -39,6 +39,16 @@ Deno.serve(async (req: Request) => {
     if (!count) await pushStaff('🧪 JD Pay Relay connected', 'Test from the JD phone worked. eSewa "money received" alerts will now show in Mod > Loads.');
     return Response.json({ saved: false, test: true, pushed: !count });
   }
+  // JD Admin app update check: admin-tools/relay.json (private bucket) + a 1-hour download link for that APK
+  if (app === 'jd-relay-update') {
+    const { data: f } = await db.storage.from('admin-tools').download('relay.json');
+    if (!f) return Response.json({ versionCode: 0 });
+    let v: any; try { v = JSON.parse(await f.text()); } catch { return Response.json({ versionCode: 0 }); }
+    const file = String(v.file || '');
+    if (!/^jd-pay-relay-[\d.]+\.apk$/.test(file)) return Response.json({ versionCode: 0 });
+    const { data: s } = await db.storage.from('admin-tools').createSignedUrl(file, 3600);
+    return Response.json({ versionCode: +v.versionCode || 0, versionName: String(v.versionName || ''), notes: String(v.notes || '').slice(0, 200), url: s?.signedUrl || '' });
+  }
   // only the wallet apps (the relay sends the package name): anything else is ignored
   if (!/esewa|f1soft|khalti|ime ?pay|imepay/i.test(app)) return Response.json({ saved: false, why: 'not from eSewa, Khalti or IME Pay' });
 
