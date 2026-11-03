@@ -561,7 +561,7 @@ function toast(text,undo,err){
 }
 
 /* ── host mods: their own events (free entry, signed with their @handle) ── */
-const MAPS=[['bermuda','Bermuda'],['purgatory','Purgatory'],['kalahari','Kalahari'],['alpine','Alpine'],['nexterra','NeXTerra']];
+const MAPS=[['bermuda','Bermuda'],['purgatory','Purgatory'],['kalahari','Kalahari'],['nexterra','NeXTerra'],['solara','Solara']]   // Alpine left the FF map pool in OB54
 function hostEventForm(t){
   const ed=!!t, st=t&&t.start?String(t.start).slice(0,16):'', m=t?(String(t.format||'').match(/(\d+)\s*match/i)||[])[1]||'3':'3';
   const opt=(list,v)=>list.map(([k,l])=>`<option value="${k}"${k===v?' selected':''}>${l}</option>`).join('');

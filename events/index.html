@@ -99,7 +99,7 @@ function status(t){
 }
 function mapOf(t){const m=String(t.map||'').toLowerCase();return MAPS.find(x=>m.includes(x))||'bermuda';}
 // best of 3 (from 28 Oct 2026): map / map2 / map3, each a map or 'random' (same fields as the homepage cards)
-const MAP_NAME={bermuda:'Bermuda',purgatory:'Purgatory',kalahari:'Kalahari',alpine:'Alpine',nexterra:'NeXTerra'};
+const MAP_NAME={bermuda:'Bermuda',purgatory:'Purgatory',kalahari:'Kalahari',alpine:'Alpine',nexterra:'NeXTerra',solara:'Solara'};
 const isBo3=t=>!t.image&&(t.map2||t.map3);
 const bo3Keys=t=>[t.map,t.map2,t.map3].map(k=>String(k||'random').toLowerCase());
 function mapsHtml(t){

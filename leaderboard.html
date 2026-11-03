@@ -944,7 +944,7 @@ const RV_AUTO=location.hash==='#replay';   // /leaderboard.html#replay opens it 
 let TOURNAMENT_ARCHIVE=null;               // {events:[{name,date,maps,kill_pts,teams:[{team,r:[{kills,pts}]}]}]}
 const RV_PLACE={12:1,9:2,8:3,7:4,6:5,5:6,4:7,3:8,2:9,1:10};
 const RV_SKULL='<svg class="rv-sk" viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M12 2C6.9 2 3 5.6 3 10.4c0 2.7 1.2 4.6 3 5.8V19c0 .6.4 1 1 1h1.5v-2h1.5v2h4v-2h1.5v2H17c.6 0 1-.4 1-1v-2.8c1.8-1.2 3-3.1 3-5.8C21 5.6 17.1 2 12 2z"/><circle cx="8.6" cy="11" r="2.3" fill="#111"/><circle cx="15.4" cy="11" r="2.3" fill="#111"/><path fill="#111" d="M12 13.6l-1.3 2.4h2.6z"/></svg>';
-const RV_MAP={bermuda:'Bermuda',purgatory:'Purgatory',kalahari:'Kalahari',alpine:'Alpine',nexterra:'NeXTerra'};
+const RV_MAP={bermuda:'Bermuda',purgatory:'Purgatory',kalahari:'Kalahari',alpine:'Alpine',nexterra:'NeXTerra',solara:'Solara'};
 const rvOrd=n=>n+(n%10===1&&n%100!==11?'st':n%10===2&&n%100!==12?'nd':n%10===3&&n%100!==13?'rd':'th');
 const $rv=id=>document.getElementById(id);
 function rvWait(ms,g){

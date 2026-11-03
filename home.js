@@ -626,7 +626,7 @@ function teamsFor(t){
 /* Map image per event (maps/ff-*.jpg — the real Free Fire top-down maps, from the Free Fire
    wiki; © Garena). The admin picks the map; events saved before the field existed show Bermuda,
    the main battle royale map. A custom t.image still wins. */
-const MAP_ART={bermuda:'Bermuda',purgatory:'Purgatory',kalahari:'Kalahari',alpine:'Alpine',nexterra:'NeXTerra'};
+const MAP_ART={bermuda:'Bermuda',purgatory:'Purgatory',kalahari:'Kalahari',alpine:'Alpine',nexterra:'NeXTerra',solara:'Solara'};
 function mapOf(t){const k=String(t.map||'').toLowerCase();return MAP_ART[k]?k:'bermuda';}
 /* Best of 3 (map2 / map3 set): one map per match, 'random' = picked when the room is made. */
 /* Card picture for a best of 3: the three maps side by side, labelled M1 / M2 / M3 (🎲 tile for Random). */

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="JD Arena">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#07090F">
+<link rel="icon" type="image/png" href="/favicon-64.png">
+<link rel="manifest" href="/manifest.json">
+<title>FF Guide — JD Esports Arena</title>
+<meta name="description" content="Free Fire characters, skills, guns and the current map pool in one quick guide on JD Esports Arena.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090F;--panel:#111827;--panel-2:#0D1320;--line:rgba(255,200,80,.14);--line-2:rgba(255,255,255,.08);
+  --gold:#FFC83D;--gold-l:#FFDD85;--gold-m:rgba(255,200,80,.42);
+  --cream:#FFFFFF;--silver:#A6AFC2;--body:#8A94A8;--green:#5EDB95;--red:#FF8A8A;--blue:#79b8ff;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:'Geist',system-ui,sans-serif;line-height:1.45;-webkit-tap-highlight-color:transparent}
+a{color:inherit;text-decoration:none}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.ff-pg{max-width:760px;margin:0 auto;padding:0 16px 120px}
+.ff-top{position:sticky;top:0;z-index:20;margin:0 -16px;padding:calc(10px + env(safe-area-inset-top)) 16px 8px;background:linear-gradient(var(--bg) 84%,rgba(7,9,15,0))}
+.ff-ttl{display:flex;align-items:center;gap:10px;min-height:44px}
+.ff-back{width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:12px;border:1px solid var(--line-2);color:var(--silver)}
+.ff-ttl h1{margin:0;font:700 1.6rem/1 'Barlow Condensed',sans-serif}
+.ff-ttl small{display:block;font-size:.74rem;color:var(--body);margin-top:3px}
+.ff-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:10px;padding:4px;border-radius:14px;background:var(--panel);border:1px solid var(--line-2)}
+.ff-tabs button{height:40px;border:0;border-radius:10px;background:none;font-weight:700;font-size:.88rem;color:var(--silver);cursor:pointer}
+.ff-tabs button[aria-selected=true]{background:linear-gradient(100deg,var(--gold),#FFAE00);color:#0a0a12}
+.ff-tabs b{font-weight:600;opacity:.7;font-size:.74rem;margin-left:3px}
+.ff-search{position:relative;margin-top:8px}
+.ff-search input{width:100%;height:44px;padding:0 14px 0 40px;border-radius:12px;border:1px solid var(--line-2);background:var(--panel);font-size:.92rem}
+.ff-search input:focus{border-color:var(--gold-m);outline:none}
+.ff-search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:17px;height:17px;stroke:var(--body);fill:none;stroke-width:2}
+.ff-chips{display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px;scrollbar-width:none}
+.ff-chips::-webkit-scrollbar{display:none}
+.ff-chips button{flex:none;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line-2);background:none;font-size:.78rem;font-weight:600;color:var(--silver);cursor:pointer}
+.ff-chips button[aria-pressed=true]{border-color:var(--gold-m);background:rgba(255,200,61,.12);color:var(--gold-l)}
+.ff-count{font-size:.74rem;color:var(--body);margin:6px 0 8px}
+
+/* characters: a monogram instead of artwork */
+.ff-ch-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
+.ff-ch{display:grid;grid-template-columns:46px minmax(0,1fr);gap:12px;padding:12px 14px;border-radius:16px;background:var(--panel);border:1px solid var(--line-2)}
+.ff-mono{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font:700 1.25rem 'Barlow Condensed',sans-serif;background:rgba(255,200,61,.1);color:var(--gold-l);border:1px solid var(--line)}
+.ff-ch.passive .ff-mono{background:rgba(121,184,255,.1);color:var(--blue);border-color:rgba(121,184,255,.25)}
+.ff-ch h3{margin:0;font-size:.98rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ff-ch .ff-sk{font-size:.8rem;color:var(--gold-l);font-weight:600}
+.ff-ch.passive .ff-sk{color:var(--blue)}
+.ff-ch p{margin:3px 0 0;font-size:.8rem;color:var(--silver)}
+.ff-pill{font-size:.64rem;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--silver);text-transform:capitalize}
+.ff-pill.active{background:rgba(255,200,61,.14);color:var(--gold-l)}.ff-pill.passive{background:rgba(121,184,255,.14);color:var(--blue)}
+
+/* guns: four rating meters */
+.ff-gn-list{display:grid;gap:6px}
+.ff-gn{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,2fr);gap:12px;align-items:center;padding:11px 14px;border-radius:14px;background:var(--panel);border:1px solid var(--line-2)}
+.ff-gn h3{margin:0;font-size:.95rem}
+.ff-gn h3 small{font-size:.66rem;font-weight:700;color:var(--body);margin-left:6px}
+.ff-gn p{margin:2px 0 0;font-size:.74rem;color:var(--silver)}
+.ff-meters{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ff-mt span{display:block;font-size:.62rem;color:var(--body);margin-bottom:3px}
+.ff-mt i{display:flex;gap:2px}
+.ff-mt i b{flex:1;height:6px;border-radius:2px;background:rgba(255,255,255,.08)}
+.ff-mt i b.on{background:var(--gold)}
+@media(max-width:520px){.ff-gn{grid-template-columns:1fr;gap:8px}}
+
+/* maps */
+.ff-mp-list{display:grid;gap:8px}
+.ff-mp{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border-radius:16px;background:var(--panel);border:1px solid var(--line-2)}
+.ff-mp .ff-ic{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:1.6rem;background:rgba(255,255,255,.04)}
+.ff-mp h3{margin:0;font-size:1rem}.ff-mp p{margin:2px 0 0;font-size:.8rem;color:var(--silver)}
+.ff-mp.ff-off{opacity:.55}.ff-mp.ff-off h3{text-decoration:line-through}
+.ff-st{font-size:.68rem;font-weight:700;padding:4px 9px;border-radius:999px;background:rgba(94,219,149,.12);color:var(--green);white-space:nowrap}
+.ff-mp.ff-off .ff-st{background:rgba(255,138,138,.12);color:var(--red)}
+.ff-note{margin:14px 0 0;font-size:.74rem;color:var(--body)}
+.ff-empty{padding:30px 10px;text-align:center;color:var(--body);font-size:.86rem}
+</style>
+<link rel="stylesheet" href="/ui.css?v=26">
+</head>
+<body class="pg-ff">
+<main class="ff-pg">
+  <div class="ff-top">
+    <div class="ff-ttl"><a class="ff-back" href="/" aria-label="Back to JD Arena">←</a><div><h1>FF Guide</h1><small>Characters, guns and maps · updated <span id="upd"></span></small></div></div>
+    <div class="ff-tabs" role="tablist">
+      <button role="tab" data-tab="ch" aria-selected="true">Characters<b id="n-ch"></b></button>
+      <button role="tab" data-tab="gn" aria-selected="false">Guns<b id="n-gn"></b></button>
+      <button role="tab" data-tab="mp" aria-selected="false">Maps<b id="n-mp"></b></button>
+    </div>
+    <label class="ff-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="q" type="search" placeholder="Search a character, skill or gun" autocomplete="off" aria-label="Search"></label>
+    <div class="ff-chips" id="chips"></div>
+  </div>
+  <div class="ff-count" id="count"></div>
+  <div id="out"></div>
+  <p class="ff-note" id="note"></p>
+</main>
+<script src="/ff-data.js?v=1"></script>
+<script>
+(function(){
+  const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const D=window.FF;$('upd').textContent=D.updated;
+  $('n-ch').textContent=D.characters.length;$('n-gn').textContent=D.guns.length;$('n-mp').textContent=D.liveMaps.length;
+  const CH_F=[['all','All'],['active','Active skill'],['passive','Passive skill'],['rusher','⚡ Rusher'],['sniper','🎯 Sniper'],['support','💚 Support'],['defence','🛡 Defence'],['scout','👁 Scout'],['stealth','🌿 Stealth']];
+  const GN_F=[['all','All'],...[...new Set(D.guns.map(g=>g.c))].map(c=>[c,c])];
+  let tab=(location.hash.slice(1)||'ch'),f='all',q='';
+  if(!['ch','gn','mp'].includes(tab))tab='ch';
+  const has=(o,keys)=>!q||q.split(/\s+/).every(w=>keys.some(k=>String(o[k]||'').toLowerCase().includes(w)));
+  const meter=(l,v)=>`<div class="ff-mt"><span>${l}</span><i aria-label="${l} ${v} of 5">${[1,2,3,4,5].map(n=>`<b class="${n<=v?'on':''}"></b>`).join('')}</i></div>`;
+  function render(){
+    document.querySelectorAll('.ff-tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===tab)));
+    const F=tab==='ch'?CH_F:tab==='gn'?GN_F:[];
+    $('chips').hidden=!F.length;
+    $('chips').innerHTML=F.map(([k,l])=>`<button type="button" data-f="${esc(k)}" aria-pressed="${k===f}">${esc(l)}</button>`).join('');
+    $('q').closest('.ff-search').hidden=tab==='mp';
+    let html='',n=0;
+    if(tab==='ch'){
+      const L=D.characters.filter(c=>(f==='all'||c.t===f||c.r===f)&&has(c,['n','s','d','r']));n=L.length;
+      html=L.length?`<div class="ff-ch-list">${L.map(c=>`<article class="ff-ch ${esc(c.t)}"><span class="ff-mono" aria-hidden="true">${esc(c.n.slice(0,2))}</span><div><h3>${esc(c.n)}<span class="ff-pill ${esc(c.t)}">${esc(c.t)}</span><span class="ff-pill">${esc(c.r)}</span></h3><div class="ff-sk">${esc(c.s)}</div><p>${esc(c.d)}</p></div></article>`).join('')}</div>`:'';
+      $('note').textContent='Short guides in our words. Skill numbers change with updates, so check the in-game character screen for exact values. In JD custom rooms, "Skills on/off" decides whether these work.';
+    }else if(tab==='gn'){
+      const L=D.guns.filter(g=>(f==='all'||g.c===f)&&has(g,['n','c','use']));n=L.length;
+      html=L.length?`<div class="ff-gn-list">${L.map(g=>`<article class="ff-gn"><div><h3>${esc(g.n)}<small>${esc(g.c)}</small></h3><p>${esc(g.use)}</p></div><div class="ff-meters">${meter('Damage',g.dmg)}${meter('Fire rate',g.rof)}${meter('Range',g.rng)}${meter('Control',g.ctl)}</div></article>`).join('')}</div>`:'';
+      $('note').textContent='Ratings are 1 to 5 compared with the other guns, not in-game numbers (those change every update and with attachments). Check the in-game Armory for exact stats.';
+    }else{
+      n=D.liveMaps.length;
+      html=`<div class="ff-mp-list">${D.maps.map(m=>`<article class="ff-mp${m.live?'':' ff-off'}"><span class="ff-ic" aria-hidden="true">${m.ic}</span><div><h3>${esc(m.name)}</h3><p>${esc(m.size)} · ${esc(m.note)}</p></div><span class="ff-st">${m.live?'In the pool':'Removed'}</span></article>`).join('')}</div>`;
+      $('note').textContent='Alpine and Bermuda 2.0 left the battle royale map pool in OB54; Solara is the newest map. JD events and challenges only offer maps that are in the pool.';
+    }
+    $('count').textContent=tab==='mp'?n+' maps in the pool now':n+(tab==='ch'?' characters':' guns')+(q||f!=='all'?' match':'');
+    $('out').innerHTML=html||`<div class="ff-empty">Nothing matches "${esc(q)}".</div>`;
+  }
+  document.querySelector('.ff-tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(!b)return;tab=b.dataset.tab;f='all';history.replaceState(null,'','#'+tab);render();scrollTo({top:0});};
+  $('chips').onclick=e=>{const b=e.target.closest('[data-f]');if(!b)return;f=b.dataset.f;render();};
+  $('q').oninput=()=>{q=$('q').value.trim().toLowerCase();render();};
+  render();
+})();
+</script>
+<script src="/ui.js?v=25" defer></script>
+</body>
+</html>
