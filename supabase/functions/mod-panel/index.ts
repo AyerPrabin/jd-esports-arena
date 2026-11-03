@@ -396,11 +396,11 @@ Deno.serve(async (req: Request) => {
     const [{ data: loads, error: e1 }, { data: pays, error: e2 }] = await Promise.all([
       admin.from('wallet_load_requests').select('id, amount, screenshot, created_at, players(username, player_tag)')
         .eq('status', 'pending').order('created_at', { ascending: true }).limit(30),
-      admin.from('payments_in').select('id, provider, amount, sender, raw, received_at, load_id').gt('received_at', since)
+      admin.from('payments_in').select('id, provider, amount, sender, raw, received_at, load_id, matched_at').gt('received_at', since)
         .order('received_at', { ascending: false }).limit(60),
     ]);
     if (e1 || e2) return fail((e1 || e2)!.message, 500);
-    const open = (pays || []).filter((x: any) => !x.load_id);
+    const open = (pays || []).filter((x: any) => !x.load_id && !x.matched_at);
     return json({
       payments: pays || [],
       loads: (loads || []).map((r: any) => {

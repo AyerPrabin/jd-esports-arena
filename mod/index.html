@@ -1167,7 +1167,7 @@ async function ldLoad(){
     `<div class="ld-m">${r.fits.length?r.fits.map(id=>{const x=pays.get(id);return `<button type="button" class="btn" data-match="${+id}">✓ Match &amp; add ${+r.amount} points · ${esc(x.provider)} ${esc(npt(x.received_at))}${x.sender?' · '+esc(x.sender):''}</button>`;}).join('')
       :'<p class="note" style="margin:0">No matching payment yet. Wait for the "money received" alert, or leave it for the admin.</p>'}</div></div>`).join('')
     :'<p class="note">No point loads waiting. 🎉</p>';
-  $('ld-pay').innerHTML=ldData.payments.length?ldData.payments.map(x=>`<div class="ld-p${x.load_id?' used':''}"><span><b>Rs ${+x.amount}</b> · ${esc(x.provider)}${x.sender?' · '+esc(x.sender):''}<small>${esc(x.raw)}</small></span><span style="white-space:nowrap">${esc(npt(x.received_at))}${x.load_id?'<br>✓ used':''}</span></div>`).join('')
+  $('ld-pay').innerHTML=ldData.payments.length?ldData.payments.map(x=>`<div class="ld-p${x.load_id||x.matched_at?' used':''}"><span><b>Rs ${+x.amount}</b> · ${esc(x.provider)}${x.sender?' · '+esc(x.sender):''}<small>${esc(x.raw)}</small></span><span style="white-space:nowrap">${esc(npt(x.received_at))}${x.load_id||x.matched_at?'<br>✓ used':''}</span></div>`).join('')
     :'<p class="note">Nothing received in the last 48 hours. Is the JD phone forwarding alerts?</p>';
 }
 $('ld-reload')&&($('ld-reload').onclick=ldLoad);

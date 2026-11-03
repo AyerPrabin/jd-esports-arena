@@ -22,6 +22,8 @@ Deno.serve(async (req: Request) => {
   let text = raw, app = '';
   try { const j = JSON.parse(raw); text = [j.title, j.text].filter(Boolean).join(' · '); app = String(j.app || ''); } catch { /* plain text */ }
   text = String(text || '').replace(/\s+/g, ' ').trim().slice(0, 600);
+  // only the wallet apps (MacroDroid sends the app name or package): anything else is ignored
+  if (!/esewa|f1soft|khalti|ime ?pay|imepay/i.test(app)) return Response.json({ saved: false, why: 'not from eSewa, Khalti or IME Pay' });
   // only "received" money: skip "sent", "paid", OTPs and promos
   if (!/receiv|credited|प्राप्त|aayo|jamma/i.test(text) || /\b(sent|paid to|otp|cashback offer)\b/i.test(text)) {
     return Response.json({ saved: false, why: 'not a money-received notification' });
@@ -30,7 +32,7 @@ Deno.serve(async (req: Request) => {
   const amount = m ? Math.round(parseFloat(m[1].replace(/,/g, ''))) : 0;
   if (!(amount >= 1 && amount <= 100000)) return Response.json({ saved: false, why: 'no amount found' });
   const sender = (text.match(/from\s+([A-Za-z][A-Za-z .'-]{1,40}?)(?=\s*(?:[.,(·]|on |at |rs|npr|$))/i) || [])[1] || null;
-  const provider = /khalti/i.test(text + ' ' + app) ? 'khalti' : /ime/i.test(text + ' ' + app) ? 'imepay' : 'esewa';
+  const provider = /khalti/i.test(app) ? 'khalti' : /ime/i.test(app) ? 'imepay' : 'esewa';
 
   const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
   // the same notification can fire twice: skip a repeat within 2 minutes
