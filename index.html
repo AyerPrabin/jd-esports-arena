@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/home.css?v=18">
+<link rel="stylesheet" href="/home.css?v=19">
 <link rel="stylesheet" href="/effects-pro.css?v=4">
 <link rel="stylesheet" href="/ui.css?v=26">
 <link rel="stylesheet" href="/broadcast.css?v=5">
@@ -294,11 +294,14 @@
   </div>
 </div>
 <div class="zoverlay" id="notif-overlay" onclick="if(event.target===this)notifHistClose()">
-  <div class="zmodal" style="max-width:460px"><button class="fb-x" style="position:absolute;top:12px;right:14px" onclick="notifHistClose()" aria-label="close">×</button>
-    <h3>Notifications</h3>
-    <p class="sub">Tickets, room details, challenges, wallet and friends, newest first. <button type="button" class="notif-gear" id="notif-gear" onclick="notifSettings()" hidden>⚙️ Alert settings</button></p>
-    <div id="notif-push" class="notif-push" hidden></div>
+  <div class="zmodal nf-sheet" role="dialog" aria-modal="true" aria-labelledby="nf-title">
+    <div class="nf-head">
+      <h3 id="nf-title">Notifications <span class="nf-count" id="nf-count" hidden></span></h3>
+      <button type="button" class="nf-ib" id="notif-gear" onclick="notifSettings()" aria-label="Alert settings" title="Alert settings" hidden>⚙️</button>
+      <button type="button" class="nf-ib" onclick="notifHistClose()" aria-label="Close">×</button>
+    </div>
     <div class="notif-chips" id="notif-chips" role="tablist" aria-label="Filter notifications"></div>
+    <div id="notif-push" class="notif-push" hidden></div>
     <div id="notif-list"></div>
   </div>
 </div>
@@ -366,7 +369,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
 <script src="/ads.js?v=7" defer></script>
-<script src="/home.js?v=35"></script>
+<script src="/home.js?v=36"></script>
 <script src="/teammates.js?v=3"></script>
 <script src="/ui.js?v=25" defer></script>
 <script src="/chat.js?v=36" defer></script>

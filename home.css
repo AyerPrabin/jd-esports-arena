@@ -1264,3 +1264,70 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 .arena-stats .paid-up::after{content:attr(data-up);position:absolute;left:50%;top:6px;transform:translateX(-50%);font:700 .8rem var(--font-body,sans-serif);color:#5EDB95;white-space:nowrap;animation:paidUp 2.4s ease-out forwards;pointer-events:none}
 @keyframes paidUp{0%{opacity:0;transform:translate(-50%,8px)}15%{opacity:1;transform:translate(-50%,0)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-10px)}}
 @media (prefers-reduced-motion:reduce){.arena-stats .paid-up::after{animation:none;opacity:0}}
+/* ── notifications sheet (2026-11-03 redesign): fixed header + filters, one scrolling list,
+   compact rows, a "Room is open" card on top while a room code is fresh. Phones get the full screen. ── */
+#notif-overlay .nf-sheet{display:flex;flex-direction:column;padding:0;width:min(480px,100%);height:min(780px,calc(100vh - 40px));overflow:hidden}
+.nf-head{display:flex;align-items:center;gap:8px;padding:18px 14px 12px 20px}
+.nf-head h3{flex:1;min-width:0;margin:0;display:flex;align-items:center;gap:10px;font-size:1.3rem}
+.nf-count{font:700 .72rem var(--font-body);padding:3px 9px;border-radius:999px;background:var(--gold);color:#0a0a12;letter-spacing:0}
+.nf-count[hidden],.nf-ib[hidden],#notif-overlay .notif-chips[hidden]{display:none}
+.nf-ib{flex:none;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--cream);font-size:1.1rem;line-height:1;display:grid;place-items:center;cursor:pointer}
+.nf-ib:hover{background:rgba(255,255,255,.08)}
+.nf-ib:focus-visible,.nf-tile:focus-visible,#notif-overlay .notif-item:focus-visible,.nf-cta:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+#notif-overlay .notif-chips{flex:none;margin:0;padding:0 16px 12px;border-bottom:1px solid var(--line)}
+#notif-overlay .notif-push{flex:none;margin:12px 16px 0}
+#notif-list{flex:1;min-height:0;max-height:none;overflow-y:auto;padding:0 10px 28px;-webkit-overflow-scrolling:touch}
+#notif-overlay .notif-day{position:sticky;top:0;z-index:2;margin:0 -10px;padding:14px 20px 6px;font-size:.78rem;letter-spacing:0;text-transform:none;color:var(--silver);
+  background:linear-gradient(var(--pm-bg,#0A0F1C) 75%,rgba(10,15,28,0))}
+#notif-overlay .notif-item,#notif-overlay .notif-item[class*=" k-"]{display:flex;align-items:flex-start;gap:12px;border:0;border-radius:14px;padding:11px 10px;margin:0 0 2px}
+#notif-overlay .notif-item.unread{background:rgba(255,200,61,.06)}
+#notif-overlay .notif-item.unread::after{display:none}
+#notif-overlay .notif-item .ni-ic{position:relative;left:auto;top:auto;flex:none;width:44px;height:44px;border-radius:14px;font-size:1.25rem}
+#notif-overlay .notif-item.unread .ni-ic::after{content:'';position:absolute;top:-3px;right:-3px;width:11px;height:11px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 2px var(--pm-bg,#0A0F1C)}
+#notif-overlay .notif-item.go,#notif-overlay .notif-item[onclick]{cursor:pointer}
+#notif-overlay .notif-item.go:active,#notif-overlay .notif-item[onclick]:active{background:rgba(255,255,255,.06)}
+@media(hover:hover){#notif-overlay .notif-item.go:hover{background:rgba(255,255,255,.04)}}
+.ni-main{flex:1;min-width:0}
+.ni-top{display:flex;align-items:baseline;gap:10px}
+#notif-overlay .notif-item .t{flex:1;min-width:0;margin:0;font-size:.9rem;line-height:1.3}
+#notif-overlay .notif-item .ts{flex:none;margin:0;font-size:.72rem;color:var(--silver);font-variant-numeric:tabular-nums}
+#notif-overlay .notif-item.unread .ts{color:var(--gold-l);font-weight:700}
+#notif-overlay .notif-item .b{margin-top:3px;font-size:.83rem;line-height:1.42;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#notif-overlay .notif-item.open .b{display:block;white-space:pre-line}
+#notif-overlay .notif-item .rc{margin-top:8px;padding:7px 8px 7px 10px;font-size:.82rem}
+#notif-overlay .notif-item .ni-go{margin-top:8px;padding:5px 11px;font-size:.74rem;pointer-events:none}
+.nf-tk{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:6px}
+.nf-tk code{font:700 .82rem/1 ui-monospace,Consolas,monospace;letter-spacing:.04em;color:var(--cream);padding:6px 8px;border-radius:8px;background:rgba(255,255,255,.06)}
+.nf-st{font-size:.72rem;font-weight:700;padding:4px 9px;border-radius:999px}
+.nf-st.ok{color:#5EDB95;background:rgba(94,219,149,.12)}
+.nf-st.warn{color:var(--warm-l);background:rgba(255,150,80,.12)}
+.nf-st.off{color:var(--silver);background:rgba(255,255,255,.06)}
+.nf-meta{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:6px;font-size:.74rem;color:var(--silver)}
+/* the one loud thing in the panel: a live room */
+.nf-hero{margin:12px 2px 6px;padding:16px;border-radius:20px;border:1px solid rgba(94,219,149,.45);
+  background:radial-gradient(120% 100% at 0 0,rgba(94,219,149,.18),transparent 60%),linear-gradient(160deg,#0f241c,#0c1424)}
+.nf-hero-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.nf-live{display:inline-flex;align-items:center;gap:8px;font-size:.8rem;font-weight:700;color:#5EDB95}
+.nf-live::before{content:'';width:8px;height:8px;border-radius:50%;background:#5EDB95;animation:nfPulse 1.8s ease-out infinite}
+@keyframes nfPulse{0%{box-shadow:0 0 0 0 rgba(94,219,149,.6)}70%,100%{box-shadow:0 0 0 9px rgba(94,219,149,0)}}
+.nf-hero .ts{font-size:.72rem;color:var(--silver)}
+.nf-hero-ev{margin:6px 0 12px;font:700 1.12rem/1.25 var(--font-display,inherit);color:var(--cream);overflow-wrap:anywhere}
+.nf-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.nf-tile{text-align:left;min-height:86px;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.3);color:var(--cream);font:inherit;cursor:pointer;transition:transform .12s,border-color .2s}
+.nf-tile:active{transform:scale(.97)}
+.nf-tile span{display:block;font-size:.72rem;color:var(--silver)}
+.nf-tile b{display:block;margin:4px 0 3px;font:800 1.45rem/1.1 ui-monospace,Consolas,monospace;letter-spacing:.05em;overflow-wrap:anywhere}
+.nf-tile em{font-style:normal;font-size:.72rem;color:#5EDB95}
+.nf-tile em.ok,.nf-tile.done em{display:none}
+.nf-tile.done em.ok{display:inline}
+.nf-tile.done{border-color:#5EDB95}
+.nf-hero-b{margin:12px 0 0;font-size:.8rem;line-height:1.45;color:var(--body)}
+#notif-overlay .notif-empty{padding:64px 24px}
+#notif-overlay .notif-empty span{font-size:2.2rem}
+.nf-cta{margin-top:16px;height:40px;padding:0 18px;border-radius:999px;border:1px solid var(--gold-m);background:rgba(255,200,61,.1);color:var(--gold-l);font:inherit;font-size:.82rem;font-weight:700;cursor:pointer}
+@media(prefers-reduced-motion:reduce){.nf-live::before{animation:none}.nf-tile{transition:none}}
+@media(max-width:640px){
+  #notif-overlay{padding:0;align-items:stretch}
+  #notif-overlay .nf-sheet{width:100%;max-width:none;height:100%;max-height:none;border:0;border-radius:0;padding-top:env(safe-area-inset-top)}
+  #notif-list{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+}

@@ -2706,62 +2706,80 @@ function notifTicketHtml(n,unreadClass){
   const ticket=parts[1]||'—',status=parts[2]||'confirmed',pending=status==='pending',waitlisted=status==='waitlisted';
   const t=((_lastData||ARENA_SAMPLE).tournaments||[]).find(x=>x.name===n.tournament_slug)||{};
   const paid=isPaidTournament(t);
-  const prizeRow=t.prize?`<div class="rs-row"><span class="rs-lbl">💰 Prize Pool</span><span class="rs-val">${esc(t.prize)}</span></div>`:'';
   const cur=_myRegs.get(n.tournament_slug);
   const withdrawn=_myRegsLoaded&&(!cur||regTicketCode(cur)!==ticket);
-  const statusText=withdrawn?'Withdrawn':(waitlisted?'Waitlisted 🕒':(pending?'Pending verification':'Registered ✓'));
-  return `<div class="notif-item${unreadClass}"><div class="t">${esc(n.title)}</div><div class="rs-table" style="margin:8px 0 0">`
-    +`<div class="rs-row"><span class="rs-lbl">🪪 Ticket</span><span class="rs-val">${esc(ticket)}</span></div>`
-    +prizeRow
-    +`<div class="rs-row"><span class="rs-lbl">🎫 Entry</span><span class="rs-val${paid?'':' ok'}">${paid?esc(t.entry||''):'FREE'}</span></div>`
-    +`<div class="rs-row"><span class="rs-lbl">📱 Platform</span><span class="rs-val">${esc(platText(t))}</span></div>`
-    +`<div class="rs-row"><span class="rs-lbl">🛡 Status</span><span class="rs-val${withdrawn?'':(waitlisted||pending?' warn':' ok')}">${statusText}</span></div>`
-    +`</div>${notifTimeHtml(n.created_at)}</div>`;
+  const [st,cls]=withdrawn?['Withdrawn','off']:waitlisted?['Waitlisted','warn']:pending?['Pending check','warn']:['Registered','ok'];
+  const meta=[t.prize?'💰 '+t.prize:'',paid?(t.entry?'🎫 '+t.entry:''):'🎫 Free',t.name?'📱 '+platText(t):''].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('');
+  return `<div class="notif-item k-tour nf-ticket${unreadClass}"><span class="ni-ic" aria-hidden="true">🎟️</span><div class="ni-main"><div class="ni-top"><div class="t">${esc(notifTitle(n.title))}</div>${notifTimeHtml(n.created_at)}</div>`
+    +`<div class="nf-tk"><code>${esc(ticket)}</code><span class="nf-st ${cls}">${st}</span></div>${meta?`<div class="nf-meta">${meta}</div>`:''}</div></div>`;
 }
 function notifTimeHtml(iso){
-  const d=new Date(iso),s=(Date.now()-d)/1000;
-  const rel=s<60?'just now':s<3600?Math.floor(s/60)+'m ago':s<86400?Math.floor(s/3600)+'h ago':s<604800?Math.floor(s/86400)+'d ago':d.toLocaleDateString();
-  return `<div class="ts" title="${esc(d.toLocaleString())}">${esc(rel)}</div>`;
+  const d=new Date(iso),s=(Date.now()-d)/1000;if(isNaN(s))return '';
+  const rel=s<60?'now':s<3600?Math.floor(s/60)+'m':s<86400?Math.floor(s/3600)+'h':s<604800?Math.floor(s/86400)+'d':d.toLocaleDateString(undefined,{day:'numeric',month:'short'});
+  return `<time class="ts" datetime="${esc(d.toISOString())}" title="${esc(d.toLocaleString())}">${esc(rel)}</time>`;
 }
+// titles already start with an emoji that the icon tile shows, so drop it from the text
+function notifTitle(t){return String(t||'').replace(/^(?:\p{Extended_Pictographic}|️|‍)+\s*/u,'');}
 function copyRoom(btn,id,pass){
   const text='Room ID: '+id+(pass?'\nPassword: '+pass:'');
   (navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject()).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done');},1400);}).catch(()=>{btn.textContent='Copy failed';});
+}
+function copyOne(btn,val){
+  (navigator.clipboard?navigator.clipboard.writeText(val):Promise.reject()).then(()=>{
+    btn.classList.add('done');setTimeout(()=>btn.classList.remove('done'),1600);
+    try{if(JD_APP&&JD_APP.haptic)JD_APP.haptic('success');}catch(e){}
+  }).catch(()=>{});
 }
 /* Which bucket a notification belongs to, where tapping it goes, and its icon. Keep these
    patterns in step with linkFor() in supabase/functions/push-notifications (push alerts use
    the same buckets for ⚙️ alert settings). */
 function notifKind(n){
   const t=(n.title||'')+' '+(n.body||'');
-  if(/squad chat|friend request|now your friend/i.test(t))return {k:'social',ic:/squad chat/i.test(t)?'👥':'🤝',go:'chat',lbl:'💬 Open Messages'};
-  if(/challenge/i.test(t))return {k:'challenge',ic:'⚔️',go:'/challenges/',lbl:'⚔️ Open challenges'};
-  if(/wallet|points added|withdraw/i.test(t))return {k:'wallet',ic:'🪙',go:'/wallet/',lbl:'🪙 Open wallet'};
-  if(n.tournament_slug||String(n.body||'').startsWith('TICKET::'))return {k:'tour',ic:n.room_id?'🎮':'🏆',go:'',lbl:''};
+  if(/squad chat|friend request|now your friend/i.test(t))return {k:'social',ic:/squad chat/i.test(t)?'👥':'🤝',go:'chat',lbl:'Open Messages'};
+  if(/challenge/i.test(t))return {k:'challenge',ic:'⚔️',go:'/challenges/',lbl:'Open challenges'};
+  if(/wallet|points added|withdraw/i.test(t))return {k:'wallet',ic:'🪙',go:'/wallet/',lbl:'Open wallet'};
+  if(n.tournament_slug||String(n.body||'').startsWith('TICKET::'))return {k:'tour',ic:n.room_id?'🎮':/^results are in/i.test(n.title||'')?'🏅':'🏆',go:'',lbl:''};
   return {k:'other',ic:'🔔',go:'',lbl:''};
 }
 function notifGo(where){notifHistClose();if(where==='chat'){if(window.jdChat)jdChat.open();return;}location.href=where;}
 function notifSettings(){notifHistClose();if(window.jdChat&&jdChat.settings)jdChat.settings();}
 let _notifRows=[],_notifFilter='all';
 const NOTIF_TABS=[['all','All'],['tour','🏆 Tournaments'],['challenge','⚔️ Challenges'],['wallet','🪙 Wallet'],['social','🤝 Friends']];
+/* "Right now" card: a room code sent in the last 3 hours sits on top with big tap-to-copy tiles,
+   so nobody scrolls the inbox while the lobby is filling. */
+const NOTIF_HERO_MS=3*3600e3;
+function notifHeroHtml(n){
+  const tile=(lbl,v)=>`<button type="button" class="nf-tile" data-v="${esc(v)}" onclick="copyOne(this,this.dataset.v)" aria-label="Copy ${lbl}"><span>${lbl}</span><b>${esc(v)}</b><em>Tap to copy</em><em class="ok">Copied ✓</em></button>`;
+  return `<section class="nf-hero" aria-label="Your match room"><div class="nf-hero-top"><span class="nf-live">Room is open</span>${notifTimeHtml(n.created_at)}</div>`
+    +`<div class="nf-hero-ev">${esc(n.tournament_slug||notifTitle(n.title))}</div><div class="nf-tiles">${tile('Room ID',n.room_id)}${n.room_pass?tile('Password',n.room_pass):''}</div>`
+    +`${n.body?`<p class="nf-hero-b">${esc(n.body)}</p>`:''}</section>`;
+}
 function renderNotifList(){
   const list=document.getElementById('notif-list'),chips=document.getElementById('notif-chips');if(!list)return;
   const rows=_notifRows,kinds=rows.map(notifKind);
   const shown=NOTIF_TABS.filter(([k])=>k==='all'||kinds.some(x=>x.k===k));
-  if(chips){chips.innerHTML=rows.length&&shown.length>2?shown.map(([k,l])=>{const un=rows.filter((r,i)=>!r.read_at&&(k==='all'||kinds[i].k===k)).length;return `<button type="button" role="tab" aria-selected="${_notifFilter===k}" onclick="_notifFilter='${k}';renderNotifList()">${l}${un?`<b>${un}</b>`:''}</button>`;}).join(''):'';}
+  if(chips){chips.innerHTML=rows.length&&shown.length>2?shown.map(([k,l])=>{const un=rows.filter((r,i)=>!r.read_at&&(k==='all'||kinds[i].k===k)).length;return `<button type="button" role="tab" aria-selected="${_notifFilter===k}" onclick="_notifFilter='${k}';renderNotifList()">${l}${un?`<b>${un}</b>`:''}</button>`;}).join(''):'';chips.hidden=!chips.innerHTML;}
   if(!shown.some(([k])=>k===_notifFilter))_notifFilter='all';
+  const cnt=document.getElementById('nf-count'),un=rows.filter(r=>!r.read_at).length;
+  if(cnt){cnt.hidden=!un;cnt.textContent=un+' new';}
+  const hero=rows.find(r=>r.room_id&&Date.now()-new Date(r.created_at)<NOTIF_HERO_MS);
   const day=d=>{const x=new Date(d),n=new Date(),y=new Date();y.setDate(n.getDate()-1);return x.toDateString()===n.toDateString()?'Today':x.toDateString()===y.toDateString()?'Yesterday':(n-x<7*864e5?'This week':'Earlier');};
-  let last='',h='';
-  rows.forEach((r,i)=>{if(_notifFilter!=='all'&&kinds[i].k!==_notifFilter)return;const d=day(r.created_at);if(d!==last){h+=`<div class="notif-day">${d}</div>`;last=d;}h+=notifItemHtml(r);});
-  list.innerHTML=h||(rows.length?'<div class="notif-empty"><span>🗂️</span><b>Nothing here</b><p>No notifications of this type yet.</p></div>':'<div class="notif-empty"><span>🔕</span><b>No notifications yet</b><p>Tickets, check-in reminders, room details, challenges and results will appear here.</p></div>');
+  let last='',h=hero&&(_notifFilter==='all'||_notifFilter==='tour')?notifHeroHtml(hero):'';
+  rows.forEach((r,i)=>{if(r===hero||(_notifFilter!=='all'&&kinds[i].k!==_notifFilter))return;const d=day(r.created_at);if(d!==last){h+=`<div class="notif-day">${d}</div>`;last=d;}h+=notifItemHtml(r);});
+  list.innerHTML=h||(rows.length?'<div class="notif-empty"><span>🗂️</span><b>Nothing here yet</b><p>No notifications of this type. Switch to All to see everything.</p></div>'
+    :'<div class="notif-empty"><span>🔔</span><b>You\'re all caught up</b><p>Join an event and your ticket, room ID and results land here.</p><button type="button" class="nf-cta" onclick="notifHistClose()">See events</button></div>');
   const g=document.getElementById('notif-gear');if(g)g.hidden=!(window.jdChat&&jdChat.settings);
 }
 function notifItemHtml(n){
   const unreadClass=n.read_at?'':' unread';
   if(n.body&&n.body.startsWith('TICKET::'))return notifTicketHtml(n,unreadClass);
-  const kd=notifKind(n);
-  const rc=n.room_id?`<div class="rc"><span>Room ID: <b>${esc(n.room_id)}</b>${n.room_pass?' · Pass: <b>'+esc(n.room_pass)+'</b>':''}</span><button type="button" class="rc-copy" data-id="${esc(n.room_id)}" data-pass="${esc(n.room_pass||'')}" onclick="copyRoom(this,this.dataset.id,this.dataset.pass)">Copy</button></div>`:'';
-  // friend requests/accepts (schema.sql "friends + direct messages") open the 💬 Messages panel (chat.js)
-  const fr=kd.go&&(kd.go!=='chat'||window.jdChat)?`<button type="button" class="ni-go" onclick="notifGo('${kd.go}')">${kd.lbl} →</button>`:'';
-  return `<div class="notif-item k-${kd.k}${unreadClass}"><span class="ni-ic" aria-hidden="true">${kd.ic}</span><div class="t">${esc(n.title)}</div>${n.body?`<div class="b">${esc(n.body)}</div>`:''}${rc}${fr}${notifTimeHtml(n.created_at)}</div>`;
+  const kd=notifKind(n),go=kd.go&&(kd.go!=='chat'||window.jdChat)?kd.go:'';
+  const rc=n.room_id?`<div class="rc"><span>ID <b>${esc(n.room_id)}</b>${n.room_pass?' &nbsp;Pass <b>'+esc(n.room_pass)+'</b>':''}</span><button type="button" class="rc-copy" data-id="${esc(n.room_id)}" data-pass="${esc(n.room_pass||'')}" onclick="event.stopPropagation();copyRoom(this,this.dataset.id,this.dataset.pass)">Copy</button></div>`:'';
+  // kd.go is one of the fixed values in notifKind(), never notification text
+  const act=go?` role="button" tabindex="0" onclick="notifGo('${go}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();notifGo('${go}')}"`
+    :(n.body&&n.body.length>80?` onclick="this.classList.toggle('open')"`:'');
+  return `<div class="notif-item k-${kd.k}${unreadClass}${go?' go':''}"${act}><span class="ni-ic" aria-hidden="true">${kd.ic}</span><div class="ni-main"><div class="ni-top"><div class="t">${esc(notifTitle(n.title))}</div>${notifTimeHtml(n.created_at)}</div>`
+    +`${n.body?`<div class="b">${esc(n.body)}</div>`:''}${rc}${go?`<span class="ni-go">${kd.lbl}</span>`:''}</div></div>`;
 }
 /* ── chime: 'notify' plays the real notify.mp3 file; 'install' (and 'notify' if the
    file ever fails to play — blocked autoplay, missing file, etc.) falls back to a
