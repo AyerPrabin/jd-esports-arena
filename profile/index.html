@@ -141,6 +141,32 @@ input[type=text]:focus{border-color:var(--gold)}
 .gate p{color:var(--body);margin:0 0 18px}
 .toast{position:fixed;left:50%;bottom:22px;z-index:60;transform:translate(-50%,20px);opacity:0;padding:11px 18px;border-radius:999px;background:#1d2638;border:1px solid var(--gold-m);font-size:.84rem;font-weight:600;transition:.25s;pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+/* 2026-11-03: rank ladder, quick actions, clash record, free-entry cards */
+.ladder{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px}
+.ladder span{display:grid;place-items:center;height:30px;border-radius:9px;font-size:.95rem;background:rgba(255,255,255,.04);border:1px solid var(--line-2);filter:grayscale(1);opacity:.45}
+.ladder span.done{filter:none;opacity:.8}
+.ladder span.cur{filter:none;opacity:1;border-color:var(--gold);background:rgba(255,200,61,.14);box-shadow:0 0 0 3px rgba(255,200,61,.12)}
+.qa{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.qa a{display:grid;justify-items:center;gap:4px;padding:10px 4px;border-radius:14px;background:rgba(0,0,0,.28);border:1px solid var(--line-2);font-size:.72rem;font-weight:600;color:var(--silver);text-align:center}
+.qa a i{font-style:normal;font-size:1.25rem}
+.qa a:hover{border-color:var(--gold-m);color:var(--cream)}
+.clash{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
+.ring{--p:0;width:92px;height:92px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--green) calc(var(--p)*1%),rgba(255,138,138,.35) 0)}
+.ring div{width:72px;height:72px;border-radius:50%;background:var(--panel);display:grid;place-items:center;text-align:center;line-height:1}
+.ring b{font-family:var(--display);font-size:1.5rem}.ring small{display:block;font-size:.62rem;color:var(--silver);margin-top:2px}
+.clash .wl{display:flex;gap:14px;font-family:var(--display);font-size:1.5rem}
+.clash .wl .w{color:var(--green)}.clash .wl .l{color:var(--red)}
+.clash .wl small{display:block;font-family:var(--font-body);font-size:.68rem;color:var(--silver)}
+.form{display:flex;gap:4px;margin-top:8px}.form i{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-style:normal;font-size:.66rem;font-weight:800}
+.form i.w{background:rgba(94,219,149,.16);color:var(--green)}.form i.l{background:rgba(255,138,138,.14);color:var(--red)}
+.cards{display:flex;flex-wrap:wrap;gap:8px}
+.fcard{position:relative;min-width:118px;padding:12px 14px;border-radius:14px;border:1px solid rgba(205,127,50,.55);background:linear-gradient(135deg,rgba(205,127,50,.22),rgba(205,127,50,.04));overflow:hidden}
+.fcard b{display:block;font-family:var(--display);font-size:1.2rem}.fcard small{font-size:.7rem;color:var(--silver)}
+.fcard.silver{border-color:rgba(200,210,225,.6);background:linear-gradient(135deg,rgba(200,210,225,.24),rgba(200,210,225,.04))}
+.fcard.gold{border-color:var(--gold);background:linear-gradient(135deg,rgba(255,200,61,.3),rgba(255,200,61,.05))}
+.fcard::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 40%,rgba(255,255,255,.14) 50%,transparent 60%);transform:translateX(-100%);animation:shine 3.2s ease-in-out infinite}
+@keyframes shine{60%,100%{transform:translateX(100%)}}
+@media(max-width:380px){.qa a{font-size:.66rem}.ring{width:80px;height:80px}.ring div{width:62px;height:62px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <link rel="stylesheet" href="/ui.css?v=26">
@@ -171,7 +197,14 @@ input[type=text]:focus{border-color:var(--gold)}
       <div class="rank">
         <div class="rank-top"><b id="rank-name">Bronze</b><span id="rank-sub">0 career points</span></div>
         <div class="bar"><i id="rank-bar" style="width:2%"></i></div>
+        <div class="ladder" id="ladder" aria-hidden="true"></div>
       </div>
+      <nav class="qa" aria-label="Quick actions">
+        <a href="/#tournaments"><i>🎮</i>Join event</a>
+        <a href="/challenges/"><i>⚔️</i>Clash</a>
+        <a href="/squad/"><i>👥</i>Teammates</a>
+        <a href="/wallet/#promo"><i>🎟️</i>Free entry</a>
+      </nav>
     </section>
 
     <div class="grid2">
@@ -209,6 +242,18 @@ input[type=text]:focus{border-color:var(--gold)}
     </div>
 
     <div class="stack" style="margin-top:12px">
+      <section class="card" id="clash-card" hidden>
+        <h2>Clash record <a href="/challenges/">Play a clash →</a></h2>
+        <div class="clash"><div class="ring" id="cl-ring"><div><span><b id="cl-rate">0%</b><small>win rate</small></span></div></div>
+          <div><div class="wl"><span class="w"><span id="cl-w">0</span><small>won</small></span><span class="l"><span id="cl-l">0</span><small>lost</small></span><span><span id="cl-net">0</span><small>points net</small></span></div>
+          <div class="form" id="cl-form" aria-label="Last results"></div></div></div>
+      </section>
+
+      <section class="card" id="fc-card" hidden>
+        <h2>Free-entry cards <a href="/wallet/#promo">Earn more →</a></h2>
+        <div class="cards" id="fc-list"></div>
+      </section>
+
       <section class="card">
         <h2>My squad</h2>
         <div class="squad"><span id="sq-logo"></span><div><b id="sq-name">No squad saved yet</b><small>Used automatically every time you join a tournament.</small></div></div>
@@ -391,7 +436,25 @@ async function loadStats(){
   const cur=RANKS[i],next=RANKS[i+1];
   $('rank-name').textContent=cur[2]+' '+cur[0];
   $('rank-sub').textContent=next?`${pts} career points · ${next[1]-pts} to ${next[0]}`:`${pts} career points · top rank`;
+  const ci=RANKS.indexOf(cur);$('ladder').innerHTML=RANKS.map((r,i)=>`<span class="${i<ci?'done':i===ci?'cur':''}" title="${r[0]} · ${r[1]}+ points">${r[2]}</span>`).join('');
   $('rank-bar').style.width=(next?Math.max(2,Math.min(100,Math.round((pts-cur[1])/(next[1]-cur[1])*100))):100)+'%';
+}
+// Clash record: the player's own finished challenges (RLS: players read challenges they are in)
+async function loadClash(){
+  const {data}=await sb.from('challenges').select('winner, stake, resolved_at').eq('status','completed').or(`creator.eq.${me.id},opponent.eq.${me.id}`).order('resolved_at',{ascending:false}).limit(200);
+  const rows=data||[];if(!rows.length)return;
+  const w=rows.filter(r=>r.winner===me.id).length,l=rows.length-w,rate=Math.round(w/rows.length*100);
+  const net=rows.reduce((a,r)=>a+(r.winner===me.id?r.stake-2:-r.stake),0);
+  $('cl-w').textContent=w;$('cl-l').textContent=l;$('cl-rate').textContent=rate+'%';$('cl-ring').style.setProperty('--p',rate);
+  $('cl-net').textContent=(net>0?'+':'')+net;$('cl-net').parentElement.style.color=net>=0?'var(--gold-l)':'var(--red)';
+  $('cl-form').innerHTML=rows.slice(0,8).reverse().map(r=>r.winner===me.id?'<i class="w">W</i>':'<i class="l">L</i>').join('');
+  $('clash-card').hidden=false;
+}
+async function loadCards(){
+  const {data}=await sb.rpc('promo_mine');const c=(data&&data.cards)||[];if(!c.length)return;
+  const T={bronze:'🥉 Bronze',silver:'🥈 Silver',gold:'🥇 Gold',any:'🎟️ Free entry'};
+  $('fc-list').innerHTML=c.map(x=>`<div class="fcard ${esc(x.tier)}"><b>${T[x.tier]||T.any}</b><small>${x.max_npr?'Any event up to Rs '+(+x.max_npr):'Any paid event'} · ends ${esc(fmtDate(x.expires_at))}</small></div>`).join('');
+  $('fc-card').hidden=false;
 }
 async function loadTournaments(){
   const [{data:regs},site]=await Promise.all([
@@ -524,7 +587,7 @@ $('ref-save').onclick=async()=>{
   profFromCache();
   $('app').hidden=false;
   // all at once - only the career stats need the player tag from the profile row
-  await Promise.all([loadProfile().then(loadStats),loadWallet(),loadTournaments(),loadFx(),loadInvite(),loadOptHistory().catch(()=>{})]);
+  await Promise.all([loadProfile().then(loadStats),loadWallet(),loadTournaments(),loadFx(),loadInvite(),loadClash().catch(()=>{}),loadCards().catch(()=>{}),loadOptHistory().catch(()=>{})]);
   setInterval(()=>{if(!document.hidden)loadWallet();},20000);
 })();
 </script>

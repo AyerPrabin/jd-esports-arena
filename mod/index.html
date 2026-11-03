@@ -978,7 +978,7 @@ function renderProfile(d){
   $('cprof-close').onclick=toggleProfile;
   $('cp-zulu-b').onclick=async()=>{const b=$('cp-zulu-b'),box=$('cp-zulu');b.disabled=true;box.innerHTML='<p class="note">ZULU is reading the chat and activity…</p>';
     try{const r=await call({action:'chat_zulu_brief',player_id:p.id});
-      box.innerHTML=`<div class="zbrief"></div>${r.reply?'<button type="button" class="ghost" id="cp-zulu-use" style="width:100%;margin-top:6px">Use this reply</button>':''}`;
+      box.innerHTML=`<div class="zbrief"></div><p class="note" style="margin:4px 0 0">AI summary from the player's own messages. Check money in 📋 activity before any refund or credit.</p>${r.reply?'<button type="button" class="ghost" id="cp-zulu-use" style="width:100%;margin-top:6px">Use this reply</button>':''}`;
       box.querySelector('.zbrief').textContent=r.brief;
       if(r.reply)$('cp-zulu-use').onclick=()=>{toggleProfile();$('c-in').value=r.reply;autoGrow();$('c-in').focus();};
     }catch(e){box.innerHTML='<p class="msg err">'+esc(e.message)+'</p>';}b.disabled=false;};

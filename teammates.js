@@ -8,6 +8,12 @@
   var SB = typeof sb !== 'undefined' ? sb : null;
   if (!root) return;
   if (!SB) { if (HOME) HOME.hidden = true; return; }
+  if (!document.getElementById('tm-v2-css')) { var st = document.createElement('style'); st.id = 'tm-v2-css';
+    st.textContent = '.tm-av{position:relative}.tm-dot{position:absolute;right:-2px;bottom:-2px;width:12px;height:12px;border-radius:50%;background:#5EDB95;border:2px solid #111827;box-shadow:0 0 0 0 rgba(94,219,149,.6);animation:tmPing 2s infinite}' +
+      '@keyframes tmPing{70%{box-shadow:0 0 0 7px rgba(94,219,149,0)}100%{box-shadow:0 0 0 0 rgba(94,219,149,0)}}.tm-live{font-style:normal;color:#5EDB95;font-weight:700}' +
+      '.tm-card.on{border-color:rgba(94,219,149,.45)!important}.tm-stats{display:flex;flex-wrap:wrap;gap:4px 10px;margin:6px 0 0;font-size:.72rem;opacity:.8}' +
+      '@media(prefers-reduced-motion:reduce){.tm-dot{animation:none}}';
+    document.head.appendChild(st); }
   var list = document.getElementById('tm-list');
   var ROLES = [['rusher', '⚡ Rusher'], ['sniper', '🎯 Sniper'], ['supporter', '🛡 Supporter'], ['igl', '🧠 IGL'], ['bomber', '💣 Bomber'], ['all-rounder', '🌟 All-rounder']];
   var ROLE_LBL = {}; ROLES.forEach(function (r) { ROLE_LBL[r[0]] = r[1]; });
@@ -38,11 +44,16 @@
     return tourList;
   }
 
+  var CK = 'jd_lfg_' + (event || 'all');
   async function load() {
+    if (!posts.length) { try { var c = JSON.parse(localStorage.getItem(CK) || 'null'); if (c && Date.now() - c.t < 6e5) { posts = c.p; render(); } } catch (x) {} }
     var r = await SB.rpc('lfg_list', { p_tournament: event });
+    if (r.error && posts.length) return;   // offline: keep what is showing
     posts = r.error ? [] : (r.data || []);
+    try { localStorage.setItem(CK, JSON.stringify({ t: Date.now(), p: posts.map(function (p) { var q = Object.assign({}, p); if (q.logo && q.logo.length > 2000) q.logo = null; return q; }) })); } catch (x) {}
     render();
   }
+  function ago(t) { var m = Math.round((Date.now() - Date.parse(t)) / 60000); return m < 1 ? 'just now' : m < 60 ? m + 'm ago' : m < 1440 ? Math.floor(m / 60) + 'h ago' : Math.floor(m / 1440) + 'd ago'; }
 
   // ── one card (same markup on both pages; the page CSS lays it out) ──
   function relBtn(p) {
@@ -57,12 +68,13 @@
   function card(p) {
     var roles = (p.roles || []).map(function (r) { return '<span class="tm-role' + (ROLE_LBL[r] ? ' r-' + r : '') + '">' + esc(ROLE_LBL[r] || r) + '</span>'; }).join('');
     var av = p.logo ? '<img src="' + esc(p.logo) + '" alt="" loading="lazy">' : esc(String(p.username || '?').charAt(0).toUpperCase());
-    return '<article class="tm-card' + (p.mine ? ' mine' : '') + '" data-id="' + p.id + '">' +
-      '<div class="tm-top"><span class="tm-av">' + av + '</span>' +
-        '<div class="tm-who"><b>@' + esc(p.username) + (p.mine ? ' <small>(you)</small>' : '') + '</b><span>🎮 ' + esc(p.ign) + '</span></div>' +
+    var stats = [p.events ? '🏆 ' + (+p.events) + ' event' + (p.events === 1 ? '' : 's') : '🆕 New player', p.clash_w ? '⚔️ ' + (+p.clash_w) + ' clash win' + (p.clash_w === 1 ? '' : 's') : '', p.at ? '🕒 ' + ago(p.at) : ''].filter(Boolean);
+    return '<article class="tm-card' + (p.mine ? ' mine' : '') + (p.online ? ' on' : '') + '" data-id="' + p.id + '">' +
+      '<div class="tm-top"><span class="tm-av">' + av + (p.online ? '<i class="tm-dot" title="Online now"></i>' : '') + '</span>' +
+        '<div class="tm-who"><b>@' + esc(p.username) + (p.mine ? ' <small>(you)</small>' : '') + '</b><span>🎮 ' + esc(p.ign) + (p.online ? ' · <em class="tm-live">online</em>' : '') + '</span></div>' +
         (p.pay === 'paid' ? '<span class="tm-pay paid">🪙 ' + esc(p.amount) + ' pts</span>' : '<span class="tm-pay">Free</span>') + '</div>' +
       '<div class="tm-kind ' + esc(p.kind) + '">' + (p.kind === 'player' ? '🙋 Looking for a squad' : '👥 Squad needs a player') + ' · ' + (p.tournament ? esc(p.tournament) : 'Any event') + '</div>' +
-      '<div class="tm-roles">' + roles + '</div>' + (p.note ? '<p class="tm-note">' + esc(p.note) + '</p>' : '') +
+      '<div class="tm-roles">' + roles + '</div>' + '<div class="tm-stats">' + stats.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('') + '</div>' + (p.note ? '<p class="tm-note">' + esc(p.note) + '</p>' : '') +
       (p.uid ? '<button type="button" class="tm-uid" data-copy="' + esc(p.uid) + '">UID ' + esc(p.uid) + ' <span>⧉ Copy</span></button>' : '') +
       '<div class="tm-acts">' + relBtn(p) + '</div></article>';
   }
@@ -78,7 +90,8 @@
   }
   function render() {
     if (PAGE) {
-      document.getElementById('sq-count').textContent = posts.length ? posts.filter(function (p) { return !p.mine; }).length + ' looking now' : '';
+      var others = posts.filter(function (p) { return !p.mine; }), live = others.filter(function (p) { return p.online; }).length;
+      document.getElementById('sq-count').textContent = others.length ? others.length + ' looking' + (live ? ' · ' + live + ' online now' : '') : '';
       var ev = document.getElementById('tm-event');
       ev.hidden = !event;
       ev.innerHTML = event ? '🏆 <b>' + esc(event) + '</b> <button type="button" data-clear="1" aria-label="Show every event">✕</button>' : '';
