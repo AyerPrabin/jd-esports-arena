@@ -1337,6 +1337,10 @@ function zcDescribe(a){
       return {title:'🔑 Room code · '+data.tournaments[i].name,html:li('Room ID',a.room_id)+li('Password',a.room_pass||'(none)')+li('When',a.when==='stage'?'automatically ~5 min before start':'right now, to every registered player'),err:''};}
     case 'announce':{let aud='Everyone on the site';if(a.audience&&a.audience!=='everyone'){const i=zcFindEvent(a.audience);aud=i>=0?'Teams in '+data.tournaments[i].name:'Everyone on the site';}
       return {title:'📣 Announcement',html:li('To',aud)+li('Title',a.title)+`<li>Message: <b>${esc(a.message)}</b></li>`,err:''};}
+    case 'publish_results':{if(a.err)return {title:'🏆 Publish results',html:'',err:a.err};
+      const i=zcFindEvent(a.event);if(i<0)return {title:'🏆 Publish results',html:'',err:'No event matches "'+a.event+'".'};
+      const rows=(a.teams||[]).map((t,k)=>`<li>${k+1}. <b>${esc(t.team)}</b> · ${+t.pts||0} pts · ${+t.kills||0} kills${t.prize_won?` · <b>Rs ${+t.prize_won}</b>`:''}${t.owner?' · your squad, not paid':''}</li>`).join('');
+      return {title:'🏆 Results · '+data.tournaments[i].name,html:rows+li('Prize pool','Rs '+(+a.pool||0)+' · 50 / 30 / 20 %')+'<li>On Confirm: finishes the event, publishes the board, saves the season stats and pays the prizes into wallets (never twice)</li>',err:(a.teams||[]).length?'':'No squads.'};}
     case 'publish':return {title:'🚀 Publish changes',html:'<li>Pushes your edits to the live site</li>',err:''};
     case 'pay_prizes':return {title:'🏆 Pay prizes',html:'<li>Pays any unpaid announced prizes into winners\' wallets (never pays twice)</li>',err:''};
     case 'open':return {title:'🔎 Open '+a.section,html:'',err:''};
@@ -1391,6 +1395,17 @@ async function zcRun(id){
         const c=window.confirm;window.confirm=()=>true;try{await sendAnnouncement();}finally{window.confirm=c;}
         const m=zcText('an-msg');(/fail|could not|nobody|write/i.test(m)?bad:ok)(m);break;}
       case 'publish':{await publishNow();const m=zcText('publish-top-msg');(/fail/i.test(m)?bad:ok)(m||'Published.');break;}
+      case 'publish_results':{if(a.err)return bad(a.err);const i=zcFindEvent(a.event);if(i<0)return bad('Event not found.');
+        const name=data.tournaments[i].name,secret=adminSecret();
+        if(!secret)return bad('Enter the admin passcode first (top of the page), then Confirm again.');
+        const logos=new Map(((data.bo3&&data.bo3.tournament===name&&data.bo3.teams)||[]).map(x=>[x.team,x.logo||'']));
+        data.bo3={kill_pts:1,tournament:name,title:name+' – Final Standings',published:true,
+          teams:(a.teams||[]).map(t=>({team:t.team,logo:logos.get(t.team)||'',r:(t.r||[]).map(x=>({pts:+x.pts||0,kills:+x.kills||0})),...(t.prize_won?{prize_won:+t.prize_won}:{})}))};
+        data.tournaments[i].winner=a.teams[0].team;markFinished(i);renderBo3();
+        await publishNow();const pm=zcText('publish-top-msg');if(/fail|error/i.test(pm))return bad('Publishing failed: '+pm);
+        const r=await fetch(EDGE_FN_BASE+'/archive-results',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({tournament_slug:name,results:bo3FinalStandings(data.bo3)})});
+        if(!r.ok)return bad('The board is live, but saving the results failed: '+(await r.text()).slice(0,160));
+        await payPrizesNow();ok('Results for '+name+' are live. '+(zcText('wa-msg')||''));break;}
       case 'pay_prizes':{await payPrizesNow();ok(zcText('wa-msg')||'Done.');break;}
       case 'open':{const sec=document.getElementById(a.section);if(sec){if(innerWidth<641)zcClose();sec.scrollIntoView({behavior:'smooth',block:'start'});}ok('Opened.');break;}
       case 'approve_load':{await waCall({action:'resolve_load',id:a.id,approve:true,amount:a.amount||null,note:null});_zcLoads.delete(a.id);ok('Approved - points added and the player notified.');break;}
@@ -2625,7 +2640,7 @@ function renderTeamsAdmin(){
     if(r.device_type)bits.push(r.device_type==='emulator'?'🖥 Emulator':'📱 Mobile');
     if(r.checked_in_at)bits.push('✓ checked in '+esc(new Date(r.checked_in_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})));
     bits.push('joined '+esc(new Date(r.created_at).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})));
-    return `<div class="card tm-card${cls}">${logo}<div class="tm-main"><div class="tm-top">${slotOf.has(r.id)?`<span class="tm-slot" title="Slot number">#${slotOf.get(r.id)}</span>`:''}<span class="tm-name">${esc(r.squad_name||'(no squad name)')}</span><span class="tm-code" title="Click to copy" onclick="copyTicket(this,'${tc}')">${tc}</span><span class="tm-pill ${esc(r.status)}">${esc(String(r.status).replace('_','-'))}</span></div><div class="tm-meta">${bits.join(' · ')}</div>${tmLineup(r)}</div><div class="tm-actions"><button class="tm-btn${isVer?' ok-on':''}" onclick="tmToggleVerified('${r.id}',this)" title="${isVer?'Verified '+esc(new Date(r.verified_at).toLocaleString())+' — click to undo':'Saved permanently; the player sees a Verified badge'}">${isVer?'✓ Verified':'Mark verified'}</button>${slotOf.has(r.id)?`<button class="tm-btn${_swapFrom===r.id?' swap-on':''}" onclick="tmSwap('${r.id}')" title="Swap this squad's slot number with another squad">${_swapFrom===r.id?'Cancel swap':_swapFrom?'⇄ Swap here':'⇄ Swap slot'}</button>`:''}<button class="tm-btn" onclick="messageTeam('${r.id}')">📣 Message</button><button class="tm-btn danger" onclick="removeTeamAdmin('${r.id}')">✕ Remove</button></div></div>`;
+    return `<div class="card tm-card${cls}">${logo}<div class="tm-main"><div class="tm-top">${slotOf.has(r.id)?`<span class="tm-slot" title="Slot number">#${slotOf.get(r.id)}</span>`:''}<span class="tm-name">${esc(r.squad_name||'(no squad name)')}</span>${r.players&&r.players.squad_name&&String(r.players.squad_name).trim().toLowerCase()!==String(r.squad_name||'').trim().toLowerCase()?`<span class="hint" style="margin:0 0 0 6px">now called ${esc(r.players.squad_name)}</span>`:''}<span class="tm-code" title="Click to copy" onclick="copyTicket(this,'${tc}')">${tc}</span><span class="tm-pill ${esc(r.status)}">${esc(String(r.status).replace('_','-'))}</span></div><div class="tm-meta">${bits.join(' · ')}</div>${tmLineup(r)}</div><div class="tm-actions"><button class="tm-btn${isVer?' ok-on':''}" onclick="tmToggleVerified('${r.id}',this)" title="${isVer?'Verified '+esc(new Date(r.verified_at).toLocaleString())+' — click to undo':'Saved permanently; the player sees a Verified badge'}">${isVer?'✓ Verified':'Mark verified'}</button>${slotOf.has(r.id)?`<button class="tm-btn${_swapFrom===r.id?' swap-on':''}" onclick="tmSwap('${r.id}')" title="Swap this squad's slot number with another squad">${_swapFrom===r.id?'Cancel swap':_swapFrom?'⇄ Swap here':'⇄ Swap slot'}</button>`:''}<button class="tm-btn" onclick="messageTeam('${r.id}')">📣 Message</button><button class="tm-btn danger" onclick="removeTeamAdmin('${r.id}')">✕ Remove</button></div></div>`;
   }).join(''):`<p class="hint">${_teams.length?'No teams with that status.':'No registrations loaded — pick an event and click "↻ Load teams".'}</p>`;
 }
 /* Players can leave a WhatsApp number when registering (optional, this event only).

@@ -83,6 +83,8 @@ function cleanAction(a: Json): Json | null {
       if (!title || !message) return null;
       return { type, title, message, audience };
     }
+    case 'publish_results':
+      return cleanResults(a);
     case 'publish':
     case 'pay_prizes':
       return { type };
@@ -116,6 +118,84 @@ function cleanAction(a: Json): Json | null {
     default:
       return null;
   }
+}
+
+// ── publish_results (2026-11-03): the organiser pastes results ("slot 3: 1st 8 kills, 4th 3 kills, 2nd 6 kills" or squad /
+// player names) and ZULU returns ONE fully worked-out board: squads matched to the real registrations (slot number = Nth
+// confirmed entry by slot_key, or squad name, or a lineup player's Free Fire name), points = placement points + kills,
+// official tie-break, and the prize pool split 50 / 30 / 20 % for 1st / 2nd / 3rd. Rule 10: the owner's own squad is never
+// paid, so its prize goes to the next squad down. Everything is computed HERE from the database, never by the AI, and the
+// admin page still shows it as a card that only runs on Confirm.
+const PLACE_PTS = [12, 9, 8, 7, 6, 5, 4, 3, 2, 1];
+// spaces + invisible characters (zero-width, Hangul fillers, no-break space, private-use U+F8FF), built from code points
+const INVISIBLE = new RegExp('[' + [[0x09, 0x0d], [0x20], [0x85], [0xa0], [0xad], [0x34f], [0x115f, 0x1160], [0x180e], [0x200b, 0x200f], [0x2028, 0x202f],
+  [0x205f, 0x206f], [0x3000], [0x3164], [0xfeff], [0xffa0], [0xf8ff]].map(([a, b]) => String.fromCharCode(a) + (b ? '-' + String.fromCharCode(b) : '')).join('') + ']+', 'g');
+const keyOf = (s: unknown) => String(s ?? '').normalize('NFKC').toLowerCase()
+  .replace(INVISIBLE, '');
+
+function cleanResults(a: Json): Json | null {
+  const event = str(a.event, 80);
+  const rows = (Array.isArray(a.rows) ? a.rows : []).slice(0, 60).map((r: any) => {
+    const slot = num(r?.slot, 1, 100), squad = str(r?.squad, 60);
+    const m = (Array.isArray(r?.m) ? r.m : []).slice(0, 6).map((x: any) => ({ pos: num(x?.pos, 0, 60) ?? 0, ...(num(x?.pts, 0, 12) !== undefined ? { pts: num(x?.pts, 0, 12) } : {}), kills: num(x?.kills, 0, 99) ?? 0 }));
+    return (slot || squad) && m.length ? { ...(slot ? { slot } : {}), ...(squad ? { squad } : {}), m } : null;
+  }).filter(Boolean);
+  return event && rows.length ? { type: 'publish_results', event, rows } : null;
+}
+
+function splitPrize(pool: number): number[] {
+  const second = Math.floor(pool * 0.3), third = Math.round(pool * 0.2);
+  return [pool - second - third, second, third];
+}
+
+async function enrichResults(a: Json): Promise<Json> {
+  const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+  const fail = (err: string) => ({ ...a, err });
+  const { data: doc } = await sb.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
+  const list: Json[] = ((doc?.content as Json)?.tournaments as Json[]) || [];
+  const ref = String(a.event).trim().toLowerCase(), numRef = ref.match(/#?\s*(\d+)\s*$/);
+  const t = list.find((x) => String(x.name).trim().toLowerCase() === ref) ||
+    (numRef ? [...list].reverse().find((x) => (String(x.name).match(/#\s*(\d+)\s*$/) || [])[1] === numRef[1]) : undefined);
+  if (!t) return fail(`No event matches "${a.event}".`);
+  const event = String(t.name);
+  const pool = Number(String(t.prize ?? '').replace(/,/g, '').match(/\d+/)?.[0] || 0);
+  const { data: regs, error } = await sb.from('registrations')
+    .select('squad_name, slot_key, status, lineup, player_id, players(email)')
+    .eq('tournament_slug', event).in('status', ['confirmed', 'approved']).order('slot_key', { ascending: true });
+  if (error) return fail('Could not read the registrations: ' + error.message);
+  const R = (regs || []) as any[];
+  const ownerEmail = (Deno.env.get('ADMIN_EMAIL') || 'ayerprabin95@gmail.com').toLowerCase();
+  const find = (row: any) => {
+    if (row.slot) return R[row.slot - 1];
+    const k = keyOf(row.squad);
+    return R.find((r) => keyOf(r.squad_name) === k) ||
+      R.find((r) => Array.isArray(r.lineup) && r.lineup.some((p: any) => keyOf(p?.name) === k)) ||
+      R.find((r) => k.length >= 4 && keyOf(r.squad_name).includes(k));
+  };
+  const seen = new Set<string>(), missing: string[] = [], teams: any[] = [];
+  for (const row of a.rows as any[]) {
+    const reg = find(row);
+    const label = row.slot ? 'slot ' + row.slot : '"' + row.squad + '"';
+    if (!reg) { missing.push(label); continue; }
+    if (seen.has(reg.squad_name)) return fail(`${label} points at ${reg.squad_name}, which is already in the list twice.`);
+    seen.add(reg.squad_name);
+    const r = row.m.map((x: any) => ({ pts: x.pts ?? (x.pos >= 1 && x.pos <= 10 ? PLACE_PTS[x.pos - 1] : 0), kills: x.kills }));
+    while (r.length < 3) r.push({ pts: 0, kills: 0 });
+    teams.push({ team: reg.squad_name, r, owner: String(reg.players?.email || '').toLowerCase() === ownerEmail });
+  }
+  if (missing.length) return fail(`Not found in ${event}: ${missing.join(', ')}. Use the slot number or the exact squad name.`);
+  const scored = teams.map((x) => {
+    let pts = 0, kills = 0, boo = 0, last = 0;
+    for (const m of x.r) { pts += m.pts + m.kills; kills += m.kills; boo += m.pts === 12 ? 1 : 0; last = m.pts; }
+    return { ...x, pts, kills, boo, last };
+  }).sort((p, q) => q.pts - p.pts || q.boo - p.boo || q.kills - p.kills || q.last - p.last || p.team.localeCompare(q.team));
+  const prizes = splitPrize(pool);
+  let k = 0;
+  for (const s of scored) { s.prize_won = !s.owner && k < 3 && pool > 0 ? prizes[k++] : 0; }
+  return {
+    type: 'publish_results', event, pool, kill_pts: 1,
+    teams: scored.map((s) => ({ team: s.team, r: s.r, prize_won: s.prize_won, pts: s.pts, kills: s.kills, owner: s.owner })),
+  };
 }
 
 function extractJson(text: string): Json | null {
@@ -177,6 +257,8 @@ Allowed actions (use exactly these fields; omit fields the organiser didn't give
 - {"type":"room_code","event":"...","room_id":"digits","room_pass":"...","when":"now|stage"}   (stage = released automatically ~5 min before start)
 - {"type":"announce","title":"...","message":"...","audience":"everyone or an event name"}
 - {"type":"publish"}
+- {"type":"publish_results","event":"...","rows":[{"slot":3,"m":[{"pos":1,"kills":8},{"pos":4,"kills":3},{"pos":2,"kills":6}]},{"squad":"squad or player name as written","m":[{"pts":9,"kills":2}]}]}
+  (one row per squad; one m entry per match, in match order. pos = finishing place 1-12, OR pts = placement points if the organiser gave points instead of places; kills = that squad's kills. Use slot when they write "slot N". The server matches squads, adds up points, ranks them and splits the prize 50/30/20 % for 1st/2nd/3rd - never calculate points or prizes yourself. It finishes the event, publishes the board, saves results and pays the prizes after Confirm.)
 - {"type":"pay_prizes"}   (pays any unpaid announced prizes into winners' wallets)
 - {"type":"open","section":"${SECTIONS.join('|')}"}
 - {"type":"approve_load","id":"<id from pending_loads>","amount":optional number if the screenshot showed a different amount}
@@ -227,7 +309,7 @@ Deno.serve(async (req: Request) => {
   } catch {
     return new Response('Bad JSON', { status: 400, headers: CORS_HEADERS });
   }
-  const message = str(payload.message, 800);
+  const message = str(payload.message, 4000);
   if (!message) return new Response('message is required', { status: 400, headers: CORS_HEADERS });
   const context = str(payload.context, 6000); // event list + "now" built by the admin page
   const history: AIMessage[] = (Array.isArray(payload.history) ? payload.history : [])
@@ -244,7 +326,8 @@ Deno.serve(async (req: Request) => {
   const result = await askAI(messages, undefined, { geminiModels: ['gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-2.5-flash-lite'], timeoutMs: 25000 });
   const json = result ? extractJson(result.text) : null;
   const rawActions = json && Array.isArray(json.actions) ? (json.actions as Json[]) : [];
-  const actions = rawActions.slice(0, 12).map(cleanAction).filter(Boolean);
+  const actions = await Promise.all(rawActions.slice(0, 12).map(cleanAction).filter(Boolean)
+    .map((x) => (x!.type === 'publish_results' ? enrichResults(x!) : x)));
   const reply = (json && str(json.reply, 900)) ||
     (result ? 'I could not turn that into an action - try saying it a bit differently.' : 'No AI provider answered right now - try again in a minute.');
   return new Response(JSON.stringify({ reply, actions, provider: result?.provider ?? null }), {

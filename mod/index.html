@@ -761,7 +761,7 @@ function renderSquads(){
       (wait&&free?`<button type="button" class="abtn" data-act="give" data-id="${esc(r.id)}" data-sq="${esc(name)}">Give slot</button>`:'')+
       `<button type="button" class="abtn rm" data-act="rm" data-id="${esc(r.id)}" data-sq="${esc(name)}"><svg aria-hidden="true"><use href="#i-x"/></svg>Remove</button>`;
     return `<div class="slot${on?'':' off'}${wait?' wait':''}"><span class="no" aria-label="${on?'Slot '+no:wait?'Waitlist '+wn:''}">${on?no:wait?'W'+wn:'–'}</span>`+
-      `<div class="nm"><b translate="no">${esc(name)}</b><small>${esc(r.captain||'')}${r.whatsapp?' · '+esc(r.whatsapp):''}${r.pro?' · ⭐ Pro pass':''}${on&&r.promoted_at?' · 🎟 from waitlist'+(freshUp(r)?' (confirming…)':''):''}</small>${lineupHtml(r)}</div>`+
+      `<div class="nm"><b translate="no">${esc(name)}</b>${r.now_name&&r.now_name.trim().toLowerCase()!==String(name).trim().toLowerCase()?`<small translate="no">Now called ${esc(r.now_name)}</small>`:''}<small>${esc(r.captain||'')}${r.whatsapp?' · '+esc(r.whatsapp):''}${r.pro?' · ⭐ Pro pass':''}${on&&r.promoted_at?' · 🎟 from waitlist'+(freshUp(r)?' (confirming…)':''):''}</small>${lineupHtml(r)}</div>`+
       play+`<div class="acts">${acts}</div></div>`;
   }).join('')+'</div>';
 }
@@ -1039,7 +1039,7 @@ async function loadResults(keepMsg){
     const have=new Set(fromBoard.map(r=>r.team.trim().toLowerCase()));
     rsRows=fromBoard.concat(d.squads.filter(q=>!have.has(q.toLowerCase())).map(q=>({team:q,pts:Array(d.matches).fill(0),kills:Array(d.matches).fill(0)})));
     if(!rsRows.length) rsRows=[{team:'',pts:Array(d.matches).fill(0),kills:Array(d.matches).fill(0)}];
-    const left=Math.max(0,d.pool-(d.paid||[]).reduce((a,p)=>a+p.amount,0)); rsPrize=[left,0,0]; renderResults();
+    const left=Math.max(0,d.pool-(d.paid||[]).reduce((a,p)=>a+p.amount,0)); rsPrize=(d.paid||[]).length?[left,0,0]:[d.pool-Math.floor(d.pool*.3)-Math.round(d.pool*.2),Math.floor(d.pool*.3),Math.round(d.pool*.2)]; /* JD rule: 50 / 30 / 20 % */ renderResults();
   }catch(e){ $('rs-body').innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; }
 }
 function rsMeta(){

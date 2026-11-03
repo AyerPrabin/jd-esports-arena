@@ -181,12 +181,12 @@ Deno.serve(async (req: Request) => {
     if (!slug) return fail('slug required');
     if (!await canEvent(slug)) return notYours();
     const { data, error } = await admin.from('registrations')
-      .select('id, player_id, squad_name, status, whatsapp, checked_in_at, verified_at, lineup, lineup_at, created_at, promoted_at, players(username, player_tag, ff_uid, ff_name)')
+      .select('id, player_id, squad_name, status, whatsapp, checked_in_at, verified_at, lineup, lineup_at, created_at, promoted_at, players(username, player_tag, ff_uid, ff_name, squad_name)')
       .eq('tournament_slug', slug).order('slot_key', { ascending: true });
     if (error) return fail(error.message, 500);
     const wlOrder = await waitOrder((data || []).filter((r: any) => r.status === 'waitlisted'));
     return json((data || []).map((r: any) => ({
-      id: r.id, squad_name: r.squad_name, status: r.status, whatsapp: r.whatsapp || null,
+      id: r.id, squad_name: r.squad_name, now_name: r.players?.squad_name || null, status: r.status, whatsapp: r.whatsapp || null,
       checked_in: !!r.checked_in_at, verified: !!r.verified_at,
       wl: wlOrder.get(r.id) || null, pro: wlOrder.has(r.id) ? proSet.has(r.player_id) : undefined,
       promoted_at: r.promoted_at || null,
@@ -511,7 +511,7 @@ Deno.serve(async (req: Request) => {
     if (final) {
       const ar = await fetch(`${URL_}/functions/v1/archive-results`, { method: 'POST', headers: H, body: JSON.stringify({
         tournament_slug: slug,
-        results: ranked.map((x, i) => ({ squad_name: x.team, placement: i + 1, kills: 0, points: total(x), prize_won: prizes[x.team] || 0 })),
+        results: ranked.map((x, i) => ({ squad_name: x.team, placement: i + 1, kills: killSum(x), points: total(x), prize_won: prizes[x.team] || 0 })),
       }) });
       if (!ar.ok) return fail('Standings are live, but saving to the leaderboard failed: ' + (await ar.text()), 502);
       // what's really in the wallets now (publish + archive both pay once per squad)
