@@ -1141,7 +1141,7 @@ async function prLoad(){
   const q=data||[];const bd=$('badge-promo');if(bd){bd.hidden=!q.length;bd.textContent=q.length;}
   box.innerHTML=q.length?q.map(p=>`<div class="pr-item" data-id="${p.id}"><a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"><span class="cap">${esc(p.platform)}</span> · ${(+p.views).toLocaleString()} views claimed</a>
     <p class="note" style="margin:4px 0 8px">@${esc(p.username||'?')}${p.ign?' · 🎮 '+esc(p.ign):''} · ${esc(new Date(p.at).toLocaleString())}${p.approved_before?' · approved '+p.approved_before+'× before':''}</p>
-    <div class="rs-acts"><button type="button" class="btn alt" data-pr="no">Reject</button><button type="button" class="btn" data-pr="yes">Approve · 2 free entries</button></div></div>`).join(''):'<p class="note">No posts waiting.</p>';
+    <div class="rs-acts">${/^https:[/][/]/i.test(p.url)?`<a class="btn alt" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">🔗 Check link</a>`:''}<button type="button" class="btn alt" data-pr="no">Reject</button><button type="button" class="btn" data-pr="yes">🎟️ Give free voucher</button></div></div>`).join(''):'<p class="note">No posts waiting.</p>';
 }
 $('pr-reload').onclick=prLoad;
 $('pr-q').addEventListener('click',async e=>{
