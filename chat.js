@@ -885,7 +885,24 @@
   // ── photos + videos in 1:1 chats (private bucket chat-media, teammate_finder.sql) ──
   // A file opens through a 10-minute signed link, then a copy stays in this app's own Cache Storage so it
   // plays again offline. It is never written to the phone's gallery or Files.
-  var MEDIA_MAX = 25 * 1024 * 1024, mediaUrl = {};
+  // Photos are shrunk here first (longest side 1280 px, WebP or JPEG), so most send at 100-300 KB.
+  // Videos go as they are: 15 MB max, 3 kept per player; every file is deleted 30 days after sending.
+  var MEDIA_MAX = 15 * 1024 * 1024, PHOTO_IN_MAX = 30 * 1024 * 1024, mediaUrl = {};
+  function shrinkPhoto(file) {
+    if (/gif$/.test(file.type) && file.size <= 3 * 1024 * 1024) return Promise.resolve(file);   // keep small GIFs animated
+    return new Promise(function (ok) {
+      var u = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var k = Math.min(1, 1280 / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.naturalWidth * k)); c.height = Math.max(1, Math.round(img.naturalHeight * k));
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u);
+        var done = function (b) { ok(b && b.size < file.size ? b : (file.size <= MEDIA_MAX ? file : null)); };
+        c.toBlob(function (b) { if (b && b.type === 'image/webp') done(b); else c.toBlob(done, 'image/jpeg', 0.78); }, 'image/webp', 0.75);
+      };
+      img.onerror = function () { URL.revokeObjectURL(u); ok(file.size <= MEDIA_MAX ? file : null); };
+      img.src = u;
+    });
+  }
   async function mediaSrc(path) {
     if (mediaUrl[path]) return mediaUrl[path];
     var key = '/__chat-media/' + path, c = null, res = null;
@@ -914,8 +931,14 @@
     if (!file || !p || p.kind !== 'dm' || p.friend === false) return;
     var type = /^image\//.test(file.type) ? 'image' : /^video\//.test(file.type) ? 'video' : '';
     if (!type) { note('Only photos and videos.', 'err'); return; }
-    if (file.size > MEDIA_MAX) { note('That file is over 25 MB.', 'err'); return; }
-    var ext = (file.name.split('.').pop() || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || (type === 'image' ? 'jpg' : 'mp4');
+    if (type === 'video' && file.size > MEDIA_MAX) { note('Videos can be up to 15 MB. Trim it or send a shorter clip.', 'err'); return; }
+    if (type === 'image') {
+      if (file.size > PHOTO_IN_MAX) { note('That photo is too big.', 'err'); return; }
+      file = await shrinkPhoto(file);
+      if (!file) { note('That photo is too big.', 'err'); return; }
+    }
+    var ext = type === 'image' ? ({ 'image/webp': 'webp', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif' }[file.type] || 'jpg')
+      : ((file.name.split('.').pop() || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'mp4');
     var id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2);
     var path = me + '/' + id + '.' + ext;
     var m = { id: 't' + (++tmp), mine: true, sender: me, kind: 'text', body: type === 'image' ? '📷 Sending photo…' : '🎬 Sending video…', created_at: new Date().toISOString(), pending: true, fresh: true };
@@ -929,7 +952,7 @@
 
   function composer(ph, max) {
     var att = cur && cur.kind === 'dm' && cur.friend !== false
-      ? '<label class="dm-quick dm-att" aria-label="Send a photo or video" title="Photo or video (25 MB max)">📎<input type="file" id="dm-file" accept="image/*,video/*" hidden></label>' : '';
+      ? '<label class="dm-quick dm-att" aria-label="Send a photo or video" title="Photo or video (videos up to 15 MB). Deleted after 30 days.">📎<input type="file" id="dm-file" accept="image/*,video/*" hidden></label>' : '';
     return '<form class="dm-compose" id="dm-form">' + att + '<textarea id="dm-in" rows="1" maxlength="' + max + '" placeholder="' + esc(ph) + '" aria-label="' + esc(ph) + '" enterkeyhint="send"></textarea>' +
       '<button type="button" class="dm-quick" id="dm-like" aria-label="Send a thumbs up">👍</button><button type="submit" class="dm-send" id="dm-send" aria-label="Send" hidden>' + ICON.send + '</button></form>';
   }

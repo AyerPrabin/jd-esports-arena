@@ -3,7 +3,7 @@
 -- the link once the post passes 1,000 views. A JD staff mod or the admin opens the link, checks the
 -- views and the tag, and approves: the player gets 2 free-entry vouchers (one paid event each,
 -- 30 days). Vouchers are NOT points: they can't be withdrawn, moved or turned into points, so a
--- faked view count can never become cash. One approved post per player every 30 days.
+-- faked view count can never become cash. Up to 3 approved videos per player in total.
 -- Safe to run again. Rollback for register_for_tournament: promo_vouchers_rollback.sql
 begin;
 
@@ -121,10 +121,9 @@ begin
   if (select count(*) from public.promo_posts where player_id = v_me and created_at > now() - interval '1 day') >= 5 then
     raise exception 'Too many posts today. Try again tomorrow.';
   end if;
-  select max(reviewed_at) into v_last from public.promo_posts where player_id = v_me and status = 'approved';
-  if v_last > now() - interval '30 days' then
-    raise exception 'You got free entries on %. Your next post can earn more from %.',
-      to_char(v_last at time zone 'Asia/Kathmandu', 'DD Mon'), to_char((v_last + interval '30 days') at time zone 'Asia/Kathmandu', 'DD Mon');
+  -- up to 3 rewarded videos per player, ever (2026-11-02, owner's rule); pending ones count so a 4th can't queue
+  if (select count(*) from public.promo_posts where player_id = v_me and status in ('approved', 'pending')) >= 3 then
+    raise exception 'You have used all 3 promo videos. Each player can earn free entries from up to 3 videos.';
   end if;
   insert into public.promo_posts (player_id, url, url_key, platform, views) values (v_me, v_url, v_key, v_plat, p_views);
   select id into v_admin from public.players where lower(email) = 'ayerprabin95@gmail.com' limit 1;
@@ -169,9 +168,8 @@ begin
   if p.player_id = v_me then raise exception 'You can''t check your own post.'; end if;
   if p_approve then
     perform pg_advisory_xact_lock(hashtext('promo:' || p.player_id));
-    if exists(select 1 from public.promo_posts where player_id = p.player_id and status = 'approved'
-              and reviewed_at > now() - interval '30 days') then
-      raise exception 'This player already got free entries in the last 30 days. Reject this one.';
+    if (select count(*) from public.promo_posts where player_id = p.player_id and status = 'approved') >= 3 then
+      raise exception 'This player already has 3 approved videos (the most allowed). Reject this one.';
     end if;
     update public.promo_posts set status = 'approved', note = v_note, reviewed_by = v_me, reviewed_at = now() where id = p.id;
     insert into public.entry_vouchers (player_id, promo_id, expires_at)
