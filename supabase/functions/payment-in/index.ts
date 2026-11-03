@@ -1,7 +1,7 @@
 // Money received on the owner's phone -> JD Arena (payments_in.sql). An Android automation app (MacroDroid) posts
 // every eSewa / Khalti "you received Rs X" notification here; JD staff mods get a push and can match it to a
 // player's load request in /mod/. Deploy with --no-verify-jwt (the phone has no Supabase login).
-// Auth: header x-pay-token (or ?t=) must equal the PAYMENT_HOOK_TOKEN secret.
+// Auth: header x-pay-token must equal the PAYMENT_HOOK_TOKEN secret.
 // Body: JSON { text, title?, app? } or plain text. Only notifications that contain an amount are saved.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -15,8 +15,7 @@ const same = (a: string, b: string) => {   // constant-time compare
 Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') return new Response('POST only', { status: 405 });
   const TOKEN = Deno.env.get('PAYMENT_HOOK_TOKEN') || '';
-  const url = new URL(req.url);
-  const got = req.headers.get('x-pay-token') || url.searchParams.get('t') || '';
+  const got = req.headers.get('x-pay-token') || '';   // header only: a token in the URL ends up in logs
   if (TOKEN.length < 24 || !same(got, TOKEN)) return new Response('Unauthorized', { status: 401 });
 
   const raw = await req.text();
