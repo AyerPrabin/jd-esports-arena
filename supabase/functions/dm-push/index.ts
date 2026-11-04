@@ -70,16 +70,21 @@ Deno.serve(async (req: Request) => {
       for (const m of ring ? [...jr].reverse() : jr) {   // a ring quotes the player's newest message
         const p: any = who.get(m.player_id) || {};
         const name = p.username ? '@' + p.username : (p.player_tag || 'A player');
-        if (ring) {   // ZULU handed this player to the team: phones ring (jd-ring tag: ringtone until opened), once per player
+        if (ring) {   // ZULU handed this player to the team: one alert per player, and it RINGS (jd-ring tag)
           if (rung.has(m.player_id)) continue;
           rung.add(m.player_id);
-          sent += await sendPush(db, staff.filter((id) => id !== m.player_id), {
-            title: `🔔 ${name} needs a mod`,
-            body: `People need you! ZULU passed this chat to the JD team: "${String(m.body || '').slice(0, 140)}"`,
-            url: `${SITE}/mod/#chats`,
-            tag: 'jd-ring-mod-' + String(m.player_id).slice(0, 8),
-          });
-          continue;
+          // at most one ring per player every 10 minutes; inside that window the mods get the normal chat alert
+          const { data: last } = await db.from('mod_ring_log').select('rung_at').eq('player_id', m.player_id).maybeSingle();
+          if (!last || Date.now() - Date.parse(last.rung_at) >= 10 * 60000) {
+            await db.from('mod_ring_log').upsert({ player_id: m.player_id, rung_at: new Date().toISOString() });
+            sent += await sendPush(db, staff.filter((id) => id !== m.player_id), {
+              title: `🔔 ${name} needs a mod`,
+              body: `People need you! ZULU passed this chat to the JD team: "${String(m.body || '').slice(0, 140)}"`,
+              url: `${SITE}/mod/#chats`,
+              tag: 'jd-ring-mod-' + String(m.player_id).slice(0, 8),
+            });
+            continue;
+          }
         }
         sent += await sendPush(db, staff.filter((id) => id !== m.player_id), {
           title: `💬 New JD Esports chat · ${name}`,

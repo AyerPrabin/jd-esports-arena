@@ -98,6 +98,26 @@ end; $$;
 revoke all on function public.request_withdrawal(integer, text, text) from public, anon, authenticated;
 grant execute on function public.request_withdrawal(integer, text, text) to authenticated;
 
+-- staff spending points must not reach other players as withdrawable winnings: no challenges from a staff wallet
+create or replace function public._challenge_player_ok(p_player uuid)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if (select adult_confirmed_at from public.players where id = p_player) is null then
+    raise exception 'Challenges are 18+. Please confirm your age first.';
+  end if;
+  if exists(select 1 from public.banned_players where player_id = p_player) then
+    raise exception 'Your account is banned.';
+  end if;
+  if exists(select 1 from public.wallets where player_id = p_player and unlimited) then
+    raise exception 'The admin wallet can''t be used for challenges.';
+  end if;
+  if exists(select 1 from public.wallets where player_id = p_player and staff) then
+    raise exception 'Staff wallets can''t be used for challenges: their points are for JD Arena spending only.';
+  end if;
+end;
+$$;
+revoke all on function public._challenge_player_ok(uuid) from public, anon, authenticated;
+
 -- ── 2) unanswered win claims go to a mod ──
 -- the JD team (owner + staff mods) hears about every challenge that needs a decision
 create or replace function public._challenge_tell_staff(p_title text, p_body text)
@@ -303,4 +323,13 @@ begin
 end $$;
 revoke all on function public.chat_media_forget(text[]) from public, anon, authenticated;
 grant execute on function public.chat_media_forget(text[]) to service_role;
+commit;
+
+-- ── 5) ZULU hand-off rings the mods (dm-push): at most once per player every 10 minutes ──
+begin;
+create table if not exists public.mod_ring_log (
+  player_id uuid primary key references public.players(id) on delete cascade,
+  rung_at timestamptz not null default now()
+);
+alter table public.mod_ring_log enable row level security;   -- no policies: service role only
 commit;

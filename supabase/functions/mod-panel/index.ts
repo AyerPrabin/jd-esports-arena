@@ -385,11 +385,15 @@ Deno.serve(async (req: Request) => {
   //    links) and pay the winner or refund both. Never host mods. ──
   if (action === 'challenges_list' || action === 'challenge_resolve') {
     if (isHost) return fail('Challenges are for the JD team only.', 403);
+    // a mod never decides a challenge they play in (the owner signing in with the admin secret has no player row)
+    const { data: meRow } = email === 'admin' ? { data: null } : await admin.from('players').select('id').ilike('email', email.replace(/[\\%_]/g, '\\$&')).limit(1).maybeSingle();
+    const myId: string | null = (meRow as any)?.id || null;
     if (action === 'challenge_resolve') {
       const cid = String(p.id || ''), outcome = String(p.outcome || '');
       if (!/^[0-9a-f-]{36}$/i.test(cid) || !['creator', 'opponent', 'refund'].includes(outcome)) return fail('id and outcome required');
-      const { data: c } = await admin.from('challenges').select('status, mode, stake').eq('id', cid).maybeSingle();
+      const { data: c } = await admin.from('challenges').select('status, mode, stake, creator, opponent').eq('id', cid).maybeSingle();
       if (!c || c.status !== 'disputed') return fail('This challenge is not waiting for a decision any more. Refresh.');
+      if (myId && (c.creator === myId || c.opponent === myId)) return fail('You play in this challenge, so another mod has to decide it.', 403);
       const { error } = await admin.rpc('admin_resolve_challenge', { p_id: cid, p_outcome: outcome });
       if (error) return fail(error.message);
       await log('challenge_resolve', `${c.mode} · ${c.stake * 2} pts · ${outcome} · ${cid.slice(0, 8)}`);
@@ -414,7 +418,7 @@ Deno.serve(async (req: Request) => {
       for (const u of urls || []) if (u.signedUrl && u.path) signed.set(u.path, u.signedUrl);
     }
     return json({
-      disputed: (list || []).map((c: any) => ({
+      disputed: (list || []).filter((c: any) => !myId || (c.creator !== myId && c.opponent !== myId)).map((c: any) => ({
         id: c.id, mode: c.mode, stake: c.stake, pot: c.stake * 2, note: c.note, resolution: c.resolution,
         claim_at: c.claim_at, created_at: c.created_at,
         creator: { name: nameOf(c.creator), ign: (who.get(c.creator) as any)?.ff_name || null, uid: (who.get(c.creator) as any)?.ff_uid || null, claim: c.creator_claim },
