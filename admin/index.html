@@ -2254,6 +2254,7 @@ async function loadMoney(){
       <div class="row" style="gap:18px;flex-wrap:wrap;margin:0 0 12px">
         <span class="hint" style="margin:0">💵 Cash on eSewa (all-time loads − paid out): <b style="color:${m.cash_on_esewa>=0?'var(--gold-l)':'#ff8a8a'}">${fmtRs(m.cash_on_esewa)}</b></span>
         <span class="hint" style="margin:0">👥 Owed to players (could be withdrawn): <b>${fmtRs(m.owed_points)}</b></span>
+        ${m.staff_points?`<span class="hint" style="margin:0">🛠 Staff spending points (not cash, can't be withdrawn): <b>${(m.staff_points||0).toLocaleString()} pts</b></span>`:''}
       </div>
       <div style="overflow:auto"><table><thead><tr><th>Period</th><th>In (loads)</th><th>Out (paid)</th><th>Pending out</th><th>Fees kept</th><th>Prizes</th><th>Comp</th><th>Earned</th></tr></thead>
       <tbody>
@@ -2261,7 +2262,7 @@ async function loadMoney(){
         <tr><td>This month</td>${col(m.month)}</tr>
         <tr><td>Today</td>${col(m.today)}</tr>
       </tbody></table></div>
-      <p class="hint" style="margin:8px 0 0">“In” = points loaded via eSewa · “Out” = net sent to players’ eSewa (after the 1% fee) · “Earned” = points kept from entries, effects, optimizer and challenges · “Comp” = manual adjustments · the owner’s unlimited wallet is excluded.</p>
+      <p class="hint" style="margin:8px 0 0">“In” = points loaded via eSewa · “Out” = net sent to players’ eSewa (after the 1% fee) · “Earned” = points kept from entries, effects, optimizer and challenges · “Comp” = manual adjustments · the owner’s unlimited wallet and staff spending wallets (mods) are excluded.</p>
     </div>`;
     waMsg('Money summary loaded.','ok');
   }catch(e){waMsg(e.message,'err');}
@@ -2271,7 +2272,7 @@ async function loadBalances(){
   try{
     const d=await waCall({action:'balances'});
     _balRows=d.rows||[];
-    const held=_balRows.filter(r=>!r.unlimited).reduce((a,r)=>a+r.balance,0),withPts=_balRows.filter(r=>!r.unlimited&&r.balance>0).length;
+    const held=_balRows.filter(r=>!r.unlimited&&!r.staff).reduce((a,r)=>a+r.balance,0),withPts=_balRows.filter(r=>!r.unlimited&&!r.staff&&r.balance>0).length;
     box.innerHTML=`<div class="card"><div class="row" style="margin:0 0 10px;gap:14px;flex-wrap:wrap"><span class="hint" style="margin:0">Points held by players: <b style="color:var(--gold-l)">${held.toLocaleString()}</b> (Rs ${held.toLocaleString()}) · ${withPts} player(s) with points · Pending withdrawals: <b>Rs ${(d.pending_withdrawals||0).toLocaleString()}</b></span></div><input id="bal-q" placeholder="Filter by name, tag or email" oninput="renderBalances()" style="margin-bottom:8px"><div id="bal-table"></div></div>`;
     renderBalances();
     waMsg(_balRows.length+' player(s).','ok');

@@ -261,6 +261,10 @@ textarea{min-height:96px;resize:vertical}
 .ld img{display:block;width:100%;max-height:420px;object-fit:contain;border-radius:10px;margin:8px 0;background:#000;cursor:zoom-in}
 .ld-m{display:grid;gap:6px;margin-top:6px}.ld-m button{text-align:left}
 .ld-p{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);font-size:.84rem}.ld-p.used{opacity:.5}
+.cq-chat{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px;margin:8px 0;background:var(--bg,#0d0d10)}
+.cq-m{margin:0 0 6px;font-size:.86rem}.cq-m b{font-size:.78rem}.cq-m.creator b{color:#7cc4ff}.cq-m.opponent b{color:#ffb37c}.cq-m small{color:var(--body);font-size:.7rem;margin-left:4px}
+.cq-m img{display:block;max-width:100%;max-height:300px;border-radius:8px;margin-top:4px;cursor:zoom-in;background:#000}
+.cq-sides{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.cq-side{border:1px solid var(--line);border-radius:10px;padding:8px;font-size:.84rem}
 .ld-p small{display:block;color:var(--body);font-size:.74rem;word-break:break-word}
 .zbrief{white-space:pre-wrap;text-align:left;font-size:.82rem;line-height:1.5;margin-top:8px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,200,61,.35);background:rgba(255,200,61,.06)}
 .cptk{display:grid;gap:6px;margin-top:6px;text-align:left}
@@ -397,6 +401,7 @@ textarea{min-height:96px;resize:vertical}
   <button type="button" role="tab" aria-selected="false" data-tab="notify"><span class="tb"><svg aria-hidden="true"><use href="#i-bell"/></svg>Notify</span></button>
   <button type="button" role="tab" aria-selected="false" data-tab="promo" hidden><span class="tb"><svg aria-hidden="true"><use href="#i-ticket"/></svg><span class="badge" id="badge-promo" hidden></span>Promo</span></button>
   <button type="button" role="tab" aria-selected="false" data-tab="loads" hidden><span class="tb"><svg aria-hidden="true"><use href="#i-coin"/></svg><span class="badge" id="badge-loads" hidden></span>Loads</span></button>
+  <button type="button" role="tab" aria-selected="false" data-tab="challenges" hidden><span class="tb"><svg aria-hidden="true"><use href="#i-trophy"/></svg><span class="badge" id="badge-cq" hidden></span>Challenges</span></button>
   <button type="button" role="tab" aria-selected="false" data-tab="help"><span class="tb"><svg aria-hidden="true"><use href="#i-help"/></svg>Help</span></button>
 </div>
 
@@ -506,6 +511,15 @@ textarea{min-height:96px;resize:vertical}
       <h3 style="margin:16px 0 6px;font-size:1rem">Money received (48 hours)</h3>
       <div id="ld-pay"></div>
       <div id="ld-skip"></div>
+    </div>
+  </section>
+
+  <!-- Clash Squad challenges waiting for a mod decision (money_review_free_game.sql) -->
+  <section class="tab" id="tab-challenges" aria-labelledby="h-cq">
+    <div class="panel">
+      <div class="sec-h"><h2 id="h-cq">Challenges to decide</h2><button type="button" class="btn alt" id="cq-reload" style="font-size:.9rem;padding:6px 12px">Refresh</button></div>
+      <p class="note" style="margin:0 0 10px">A challenge lands here when both captains say they won, or one says "won" and the other never answers. Read the chat and open the result screenshots. Pay the side the screenshot shows as the winner. If nobody shows proof, refund both. The decision is final and moves real points, so take your time.</p>
+      <div id="cq-list"></div>
     </div>
   </section>
 
@@ -1187,15 +1201,42 @@ $('tab-loads')&&$('tab-loads').addEventListener('click',async e=>{
   catch(err){ toast(err.message,null,true); }
   ldLoad();
 });
+/* ── ⚖️ challenges to decide ── */
+let cqData=null;
+async function cqLoad(){
+  const box=$('cq-list');if(!box)return;
+  try{ cqData=await call({action:'challenges_list'}); }catch(e){ box.innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; return; }
+  const list=cqData.disputed||[], b=$('badge-cq'); if(b){ b.hidden=!list.length; b.textContent=list.length; }
+  const side=(s,label)=>`<div class="cq-side"><b>${esc(label)}</b> ${esc(s.name)}<br><span class="note" style="margin:0">${s.ign?'In game: '+esc(s.ign):'No game name saved'}${s.uid?' · UID '+esc(s.uid):''}</span><br>Says: <b>${s.claim==='won'?'🏆 We won':s.claim==='lost'?'We lost':'no answer'}</b></div>`;
+  box.innerHTML=list.length?list.map(c=>`<div class="ld" data-cq="${esc(c.id)}"><div class="ld-top"><span><b>${esc(c.mode)} · ${+c.pot} pts</b> (${+c.stake} each)</span><small>${esc(npt(c.claim_at||c.created_at))}</small></div>`+
+    (c.resolution?`<p class="note" style="margin:4px 0 0">${esc(c.resolution)}</p>`:'')+
+    `<div class="cq-sides">${side(c.creator,'Creator')}${side(c.opponent,'Opponent')}</div>`+
+    `<div class="cq-chat">${c.chat.length?c.chat.map(m=>`<div class="cq-m ${m.who}"><b>${m.who==='creator'?esc(c.creator.name):m.who==='opponent'?esc(c.opponent.name):esc(m.who)}</b><small>${esc(npt(m.at))}</small><br>${esc(m.body)}${m.img?`<img src="${esc(m.img)}" alt="Photo in the match chat" loading="lazy">`:''}</div>`).join(''):'<p class="note" style="margin:0">Nothing in the match chat. Message both captains and ask for the result screenshot.</p>'}</div>`+
+    `<div class="ld-m"><button type="button" class="btn" data-cq-out="creator">🏆 ${esc(c.creator.name)} won</button><button type="button" class="btn" data-cq-out="opponent">🏆 ${esc(c.opponent.name)} won</button><button type="button" class="btn alt" data-cq-out="refund">↩ Refund both (${+c.stake} each)</button></div></div>`).join('')
+    :'<p class="note">No challenges waiting for a decision. 🎉</p>';
+}
+$('cq-reload')&&($('cq-reload').onclick=cqLoad);
+$('tab-challenges')&&$('tab-challenges').addEventListener('click',async e=>{
+  const im=e.target.closest('.cq-m img'); if(im){ window.open(im.src,'_blank','noopener'); return; }
+  const b=e.target.closest('[data-cq-out]'); if(!b) return;
+  const card=b.closest('[data-cq]'), c=(cqData.disputed||[]).find(x=>x.id===card.dataset.cq), out=b.dataset.cqOut;
+  const what=out==='refund'?'Refund both captains '+c.stake+' points?':'Pay '+(out==='creator'?c.creator.name:c.opponent.name)+' the pot?';
+  if(!await sheet({title:what,text:'This is final and moves real points. Only decide from the chat and screenshots.',ok:out==='refund'?'Refund both':'Pay winner'}))return;
+  card.querySelectorAll('button').forEach(x=>x.disabled=true);
+  try{ await call({action:'challenge_resolve',id:c.id,outcome:out}); toast(out==='refund'?'↩ Both refunded':'🏆 Winner paid'); }
+  catch(err){ toast(err.message,null,true); }
+  cqLoad();
+});
 function showTab(name){
   if(name==='chats'&&matchMedia('(min-width:1080px)').matches) name='squads';   // chats is always open beside the tool on desktop
   document.querySelectorAll('#tabs [role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===name?'true':'false'));
-  ['squads','results','chats','room','notify','promo','loads','help'].forEach(n=>$('tab-'+n).classList.toggle('on',n===name));
+  ['squads','results','chats','room','notify','promo','loads','challenges','help'].forEach(n=>$('tab-'+n).classList.toggle('on',n===name));
   try{history.replaceState(null,'','#'+name);}catch(e){}
   window.scrollTo({top:0});
   if(name==='results') rsAutoReload();
   if(name==='promo') prLoad();
   if(name==='loads') ldLoad();
+  if(name==='challenges') cqLoad();
 }
 /* ── promo review ── */
 async function prLoad(){
@@ -1240,11 +1281,12 @@ $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
     if(isHostMod()){ document.querySelector('#tabs [data-tab=chats]').hidden=true; $('tab-chats').style.display='none'; $('hev-new').hidden=false; }
     if(!me.owner){ const all=document.querySelector('input[name=aud][value=all]'); all.closest('label').remove(); }
     $('main').hidden=false; $('tabs').hidden=false;
-    const h=(location.hash||'').slice(1); if(['results','room','notify','help','loads'].concat(isHostMod()?[]:['chats']).includes(h)) showTab(h);
+    const h=(location.hash||'').slice(1); if(['results','room','notify','help','loads','challenges'].concat(isHostMod()?[]:['chats']).includes(h)) showTab(h);
     setTopH();
     loadTournaments();
     if(!isHostMod()){ loadInbox(); startLive(); }
-    if(!isHostMod()){ document.querySelector('#tabs [data-tab=loads]').hidden=false; ldLoad(); setInterval(()=>{ if(!document.hidden) ldLoad(); },60000); }
+    if(!isHostMod()){ document.querySelector('#tabs [data-tab=loads]').hidden=false; ldLoad(); setInterval(()=>{ if(!document.hidden) ldLoad(); },60000);
+      document.querySelector('#tabs [data-tab=challenges]').hidden=false; cqLoad(); setInterval(()=>{ if(!document.hidden) cqLoad(); },120000); }
     if(!isHostMod()) sb.rpc('promo_queue').then(r=>{ if(r.error) return; document.querySelector('#tabs [data-tab=promo]').hidden=false; $('tab-promo').classList.add('ok'); prLoad(); const n=(r.data||[]).length,bd=$('badge-promo'); bd.hidden=!n; bd.textContent=n; if(h==='promo') showTab('promo'); });
   }catch(e){
     $('gate').hidden=false;

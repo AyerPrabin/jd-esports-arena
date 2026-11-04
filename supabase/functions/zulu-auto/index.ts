@@ -70,11 +70,11 @@ async function answer(db: any, pid: string, day: Date, used: number): Promise<bo
   const human = msgs.filter((m: any) => m.from_staff && !String(m.staff_email || '').startsWith('zulu'));
   if (human.length && Date.now() - new Date(human[human.length - 1].created_at).getTime() < HUMAN_QUIET_MS) return false;
 
-  // flagged: player messages stay unread in /mod/ and the moderators get a push (dm-push kind 'staff');
+  // flagged: player messages stay unread in /mod/ and the moderators' phones RING (dm-push kind 'staff', ring);
   // handled by ZULU: marked read, so the team's inbox only lights up for the big issues
   const flag = () => fetch(Deno.env.get('SUPABASE_URL') + '/functions/v1/dm-push', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'x-cron-secret': Deno.env.get('CRON_SECRET')! },
-    body: JSON.stringify({ kind: 'staff', ids: msgs.filter((m: any) => !m.from_staff).map((m: any) => m.id) }),
+    body: JSON.stringify({ kind: 'staff', ring: true, ids: msgs.filter((m: any) => !m.from_staff).map((m: any) => m.id) }),
   }).catch((e) => console.error('zulu-auto flag', e));
   const handled = () => db.from('jd_messages').update({ read_at: new Date().toISOString() })
     .eq('player_id', pid).eq('channel', 'jd').eq('from_staff', false).is('read_at', null);

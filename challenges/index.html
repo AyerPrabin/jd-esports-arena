@@ -111,6 +111,10 @@ input:focus,textarea:focus{border-color:var(--gold)}
 .bubble small{display:block;font-size:.66rem;color:var(--body);margin-top:2px}
 .bubble.ai{background:linear-gradient(150deg,rgba(124,92,255,.2),rgba(34,211,238,.1));border:1px solid rgba(124,92,255,.3)}
 .chat-in{display:flex;gap:6px;margin-top:8px}
+.chat-in .ph{flex:0 0 auto;padding:0 12px;font-size:1.1rem}
+.bubble .shot{display:block;margin-top:4px;min-height:60px;min-width:120px;border-radius:10px;overflow:hidden;background:#000;cursor:zoom-in}
+.bubble .shot img{display:block;max-width:100%;max-height:260px}
+.bubble .shot span{display:block;padding:20px 10px;font-size:.75rem;color:var(--body)}
 .chat-in input{flex:1;min-width:0}
 @media(max-width:640px){.chat-in input{font-size:16px}.chat{height:300px}}
 .room-share{display:flex;gap:8px;margin-top:8px}
@@ -135,6 +139,11 @@ input:focus,textarea:focus{border-color:var(--gold)}
 .sets{margin-top:10px;border-radius:14px;border:1px solid var(--line-2);background:var(--bg-2);padding:2px 12px}
 .set{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0}
 .set+.set{border-top:1px solid var(--line-2)}
+.skx{display:flex;gap:6px;margin:6px 0 0;flex-wrap:wrap}.skx figure{margin:0;position:relative;width:40px;text-align:center}
+.skx img{width:40px;height:40px;border-radius:50%;border:1px solid var(--line-2);background:#000;display:block;transition:filter .2s,opacity .2s}
+.skx figcaption{font-size:.58rem;color:var(--body);margin-top:2px}
+.skx.off img{filter:grayscale(1);opacity:.45}.skx.off figure::after{content:"";position:absolute;left:4px;right:4px;top:19px;height:2px;background:var(--red,#ff5d5d);transform:rotate(-35deg);border-radius:2px}
+.rc img{width:13px;height:13px;border-radius:50%;vertical-align:-3px;margin-right:3px}
 .set b{display:block;font-size:.86rem}
 .set small{display:block;font-size:.7rem;color:var(--body);line-height:1.3}
 .seg{flex:none;display:inline-flex;padding:3px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line-2)}
@@ -257,7 +266,7 @@ input:focus,textarea:focus{border-color:var(--gold)}
         <label>Room settings</label>
         <div class="presets" id="presets"></div>
         <div class="sets">
-          <div class="set"><span><b>Character skills</b><small>Active &amp; passive character abilities</small></span><div class="seg" data-k="skill"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
+          <div class="set"><span><b>Character skills</b><small id="sk-hint">Active &amp; passive character abilities</small><span class="skx" id="skx" aria-hidden="true"><figure><img src="/characters/alok-skill.webp" alt="" loading="lazy" width="40" height="40"><figcaption>Alok</figcaption></figure><figure><img src="/characters/orion-skill.webp" alt="" loading="lazy" width="40" height="40"><figcaption>Orion</figcaption></figure><figure><img src="/characters/sonia-skill.webp" alt="" loading="lazy" width="40" height="40"><figcaption>Sonia</figcaption></figure><figure><img src="/characters/dimitri-skill.webp" alt="" loading="lazy" width="40" height="40"><figcaption>Dimitri</figcaption></figure><figure><img src="/characters/ryden-skill.webp" alt="" loading="lazy" width="40" height="40"><figcaption>Ryden</figcaption></figure></span></span><div class="seg" data-k="skill"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
           <div class="set"><span><b>Gun attributes</b><small>Gun skin stat bonuses (damage, rate of fire…)</small></span><div class="seg" data-k="gun"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
           <div class="set"><span><b>Ammo</b><small>Limited = normal reloads and pickups</small></span><div class="seg" data-k="ammo"><button type="button" data-v="limited">Limited</button><button type="button" data-v="unlimited">Unlimited</button></div></div>
           <div class="set"><span><b>Gloo walls</b><small>Unlimited = throw as many walls as you want</small></span><div class="seg" data-k="gloo"><button type="button" data-v="limited">Limited</button><button type="button" data-v="unlimited">Unlimited</button></div></div>
@@ -292,8 +301,8 @@ input:focus,textarea:focus{border-color:var(--gold)}
       <b>How results work</b>
       <ul>
         <li>After the match, both captains tap <b>We won</b> or <b>We lost</b>. Tapping <b>We lost</b> pays the other side straight away.</li>
-        <li>If one side says they won and the other doesn't answer within <b>2 hours</b>, the winner is paid automatically.</li>
-        <li>If both sides say they won, the admin decides — share screenshots in the challenge chat.</li>
+        <li>If one side says they won and the other doesn't answer within <b>2 hours</b>, a JD mod decides — nobody is paid just for staying quiet.</li>
+        <li>If both sides say they won, a JD mod decides. Tap <b>📷</b> in the chat and send your result screenshot.</li>
         <li>No one accepts within 2 hours, or nobody reports within 3 hours of accepting: stakes are refunded.</li><li>Got a challenge you don't want? Tap <b>Decline</b> and the sender gets their points back. Already accepted but can't play? Either side taps <b>Cancel match</b>; once the other agrees, both stakes come back.</li>
         <li>The winner gets both stakes minus a 1-point platform fee per player (e.g. 50 each → winner gets 98). Cancelled, expired or refunded challenges have no fee.</li>
         <li>Play with the <b>room settings shown on the challenge</b> (skills, gun attributes, ammo, gloo walls, rounds, map). If the room doesn't match, say so in the chat before the first round — playing on means you accept it.</li>
@@ -341,7 +350,7 @@ function rulesText(c){return `Skills ${c.char_skill!==false?'on':'off'} · Gun a
 // rule chips for a challenge (lobby card, room)
 function ruleChips(c){
   const sk=c.char_skill!==false,gu=!!c.gun_attr;
-  return `<div class="rcs"><span class="rc ${sk?'y':'n'}">Skills ${sk?'on':'off'}</span><span class="rc ${gu?'y':'n'}">Gun attr ${gu?'on':'off'}</span><span class="rc">${c.ammo==='unlimited'?'∞ Unlimited ammo':'Limited ammo'}</span><span class="rc">${c.gloo_wall==='unlimited'?'🧱 Unlimited gloo walls':'Limited gloo walls'}</span><span class="rc">First to ${c.rounds===13?7:4}</span>${c.map?`<span class="rc">🗺 ${esc(c.map)}</span>`:''}</div>`;
+  return `<div class="rcs"><span class="rc ${sk?'y':'n'}"><img src="/characters/alok-skill.webp" alt="" loading="lazy">Skills ${sk?'on':'off'}</span><span class="rc ${gu?'y':'n'}">Gun attr ${gu?'on':'off'}</span><span class="rc">${c.ammo==='unlimited'?'∞ Unlimited ammo':'Limited ammo'}</span><span class="rc">${c.gloo_wall==='unlimited'?'🧱 Unlimited gloo walls':'Limited gloo walls'}</span><span class="rc">First to ${c.rounds===13?7:4}</span>${c.map?`<span class="rc">🗺 ${esc(c.map)}</span>`:''}</div>`;
 }
 // "how many coins at the end": stakes in, fee out, what the winner receives
 function payBox(st){
@@ -400,6 +409,7 @@ function renderCreate(){
   $('stakes').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{stake=+c.dataset.a;$('stake-custom').value='';renderCreate();});
   $('pay').innerHTML=payBox(stake);
   document.querySelectorAll('.seg').forEach(g=>{const k=g.dataset.k,cur=k==='skill'||k==='gun'?(rs[k]?'1':'0'):String(rs[k]);g.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===cur));});
+  const skx=$('skx'),skh=$('sk-hint');if(skx){skx.classList.toggle('off',!rs.skill);skh.textContent=rs.skill?'On: every character skill works, like Alok, Orion and Dimitri':'Off: nobody can use a character skill, pure gunplay';}
   $('presets').innerHTML=PRESETS.map(p=>{const on=Object.keys(p.v).every(k=>p.v[k]===rs[k]);return `<button type="button" class="preset${on?' on':''}" data-p="${p.id}">${p.t}<small>${p.d}</small></button>`;}).join('');
   $('presets').querySelectorAll('.preset').forEach(b=>b.onclick=()=>{rs={...PRESETS.find(p=>p.id===b.dataset.p).v};renderCreate();});
 }
@@ -488,18 +498,18 @@ async function renderRoom(quiet){
     action=isCreator?`<p style="color:var(--silver);font-size:.86rem">Waiting for ${c.invited?nm(c.invited):'someone in the lobby'} to accept. Your ${c.stake} points are held safely.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${c.invited?'':'<button class="btn" id="r-share" type="button">📤 Share link</button>'}<button class="btn ghost" id="r-cancel" type="button"${c.invited?' style="grid-column:1/-1"':''}>Cancel &amp; refund</button></div>`
       :`<div style="display:grid;grid-template-columns:2fr 1fr;gap:8px"><button class="btn" id="r-accept" type="button">Accept for ${c.stake} points</button>${c.invited===me.id?'<button class="btn ghost" id="r-decline" type="button">Decline</button>':''}</div>`;
   }else if(c.status==='accepted'){
-    action=myClaim?`<p style="color:var(--gold-l);font-size:.88rem;margin:0">You reported: <b>${myClaim==='won'?'We won':'We lost'}</b>. ${theirClaim?'':'Waiting for your opponent — if they don\'t answer within 2 hours, the result stands.'}</p>`
-      :`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn green" id="r-won" type="button">🏆 We won</button><button class="btn red" id="r-lost" type="button">We lost</button></div>${!theirClaim?(c.cancel_by===me.id?'<p class="cxl">You asked to cancel. Waiting for your opponent to agree, then both stakes come back.</p>':c.cancel_by?`<div class="cxl in"><span>${nm(other)} wants to cancel. Agree and both of you get ${c.stake} points back.</span><button class="btn ghost" id="r-cxl" type="button">Agree &amp; refund</button></div>`:'<button class="btn ghost cxl-b" id="r-cxl" type="button">Can't play? Cancel match &amp; refund both</button>'):''}${theirClaim==='won'?'<p style="color:var(--red);font-size:.82rem;margin:8px 0 0">Your opponent says they won. Confirm with "We lost", or tap "We won" to send it to the admin.</p>':''}`;
+    action=myClaim?`<p style="color:var(--gold-l);font-size:.88rem;margin:0">You reported: <b>${myClaim==='won'?'We won':'We lost'}</b>. ${theirClaim?'':'Waiting for your opponent. If they don\'t answer within 2 hours, a JD mod decides, so send your result screenshot with 📷 below.'}</p>`
+      :`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn green" id="r-won" type="button">🏆 We won</button><button class="btn red" id="r-lost" type="button">We lost</button></div>${!theirClaim?(c.cancel_by===me.id?'<p class="cxl">You asked to cancel. Waiting for your opponent to agree, then both stakes come back.</p>':c.cancel_by?`<div class="cxl in"><span>${nm(other)} wants to cancel. Agree and both of you get ${c.stake} points back.</span><button class="btn ghost" id="r-cxl" type="button">Agree &amp; refund</button></div>`:'<button class="btn ghost cxl-b" id="r-cxl" type="button">Can’t play? Cancel match &amp; refund both</button>'):''}${theirClaim==='won'?'<p style="color:var(--red);font-size:.82rem;margin:8px 0 0">Your opponent says they won. Confirm with "We lost", or tap "We won" and send your screenshot with 📷 so a JD mod can decide.</p>':''}`;
   }else if(c.status==='disputed'){
-    action='<p style="color:var(--red);font-size:.88rem;margin:0">Both sides said they won, so the admin will decide. Post your screenshots in the chat below.</p>';
+    action=`<p style="color:var(--red);font-size:.88rem;margin:0">${c.creator_claim&&c.opponent_claim?'Both sides said they won':'Nobody answered the result in time'}, so a JD mod will decide. Tap 📷 in the chat below and send your result screenshot.</p>`;
   }else if(c.status==='completed'){
     action=`<p style="font-size:1rem;margin:0;font-weight:700;color:${c.winner===me.id?'var(--green)':'var(--silver)'}">${c.winner===me.id?`🏆 You won! +${pot(c.stake).toLocaleString()} coins added to your wallet`:`This one went to your opponent · −${c.stake.toLocaleString()} coins`}</p><p style="margin:4px 0 0;font-size:.8rem;color:var(--body)">${c.winner===me.id?`That's +${(pot(c.stake)-c.stake).toLocaleString()} profit on your ${c.stake} stake (pot ${c.stake*2} − ${2*FEE} fee).`:`Your opponent got ${pot(c.stake).toLocaleString()} (pot ${c.stake*2} − ${2*FEE} fee). Win it back with a rematch.`}</p><button class="btn" id="r-rematch" type="button" style="margin-top:10px">🔁 Rematch · ${c.stake} points</button>`;
   }else{action=`<p style="color:var(--silver);font-size:.88rem;margin:0">${esc(l)}${c.resolution?' — '+esc(c.resolution):''}.</p>`;}
   const timer=c.status==='open'?`⏳ Expires in ${left(c.created_at,2)} if nobody accepts — stakes are refunded`
-    :c.status==='accepted'&&c.claim_at&&!(myClaim&&theirClaim)?`⏳ ${myClaim?'Your opponent has':'You have'} ${left(c.claim_at,2)} to answer — after that the reported result stands`
+    :c.status==='accepted'&&c.claim_at&&!(myClaim&&theirClaim)?`⏳ ${myClaim?'Your opponent has':'You have'} ${left(c.claim_at,2)} to answer — after that a JD mod decides`
     :c.status==='accepted'&&c.accepted_at&&!c.claim_at?`⏳ Report the result within ${left(c.accepted_at,3)} or both stakes are refunded`:'';
   const roomBlock=(c.status==='accepted'||c.status==='disputed')?`<label>Room (shared only with your opponent)</label>${c.room_id?`<div class="roombox"><button class="copy" type="button" data-copy="${esc(c.room_id)}"><span>Room ID · tap to copy</span><b>${esc(c.room_id)}</b></button><button class="copy" type="button" data-copy="${esc(c.room_pass||'')}"><span>Password · tap to copy</span><b>${esc(c.room_pass||'—')}</b></button></div>`:'<p style="color:var(--body);font-size:.84rem;margin:0">No room yet — whoever makes the custom room, add it here.</p>'}${c.room_id&&window.jdChat?`<div class="room-share"><button class="btn ghost" id="r-share" type="button">📣 Share room to my squad chat</button></div>`:''}${c.status==='accepted'?`<div class="chat-in" style="margin-top:8px"><input id="r-rid" placeholder="Room ID" maxlength="30" value="${esc(c.room_id||'')}"><input id="r-rpw" placeholder="Password" maxlength="30" value="${esc(c.room_pass||'')}"><button class="btn ghost" id="r-setroom" type="button">Save</button></div>`:''}`:'';
-  const chatBlock=['accepted','disputed','completed'].includes(c.status)?`<label>Chat</label><div class="chat" id="chat"></div>${c.status!=='completed'?`<div class="chat-in"><input id="chat-in" maxlength="300" placeholder="Message your opponent · @zulu asks AI" autocomplete="off"><button class="btn" id="chat-send" type="button">Send</button></div>`:''}`:'';
+  const chatBlock=['accepted','disputed','completed'].includes(c.status)?`<label>Chat</label><div class="chat" id="chat"></div>${c.status!=='completed'?`<div class="chat-in"><button class="btn ghost ph" id="chat-ph" type="button" aria-label="Send a result screenshot" title="Send a screenshot">📷</button><input id="chat-in" maxlength="300" placeholder="Message your opponent · @zulu asks AI" autocomplete="off"><button class="btn" id="chat-send" type="button">Send</button><input type="file" id="chat-file" accept="image/*" hidden></div>`:''}`:'';
   const typing=document.activeElement&&['chat-in','r-rid','r-rpw'].includes(document.activeElement.id);
   if(!(quiet&&typing)){
     $('room').innerHTML=`<div class="room-head"><h2 style="margin:0">${esc(c.mode)} Clash Squad</h2><span class="st ${cls}">${esc(l)}</span></div>
@@ -525,10 +535,10 @@ function bindRoom(c){
   });
   on('r-accept',async()=>{if(!await confirmBox(`Accept for ${c.stake} points?`,`The winner gets ${pot(c.stake)}.`,'Accept'))return;const {error}=await sb.rpc('accept_challenge',{p_id:c.id});if(error){toast(error.message);return;}await loadBalance();renderRoom();});
   const report=async r=>{
-    const txt=r==='won'?'Report that your side WON? If your opponent agrees (or doesn\'t answer in 2 hours) you get the pot. Lying means losing your stake and a ban.':`Report that your side LOST? ${pot(c.stake)} points go to your opponent straight away.`;
+    const txt=r==='won'?'Report that your side WON? If your opponent agrees you get the pot; if they don\'t answer in 2 hours a JD mod decides from your screenshot. Lying means losing your stake and a ban.':`Report that your side LOST? ${pot(c.stake)} points go to your opponent straight away.`;
     if(!await confirmBox(r==='won'?'We won':'We lost',txt,'Confirm'))return;
     const {data,error}=await sb.rpc('report_challenge',{p_id:c.id,p_result:r});if(error){toast(error.message);return;}
-    toast(data==='completed'?'Result settled':data==='disputed'?'Sent to the admin':'Waiting for your opponent');await loadBalance();renderRoom();
+    toast(data==='completed'?'Result settled':data==='disputed'?'Sent to a JD mod: send your screenshot':'Waiting for your opponent');await loadBalance();renderRoom();
   };
   on('r-won',()=>report('won'));on('r-lost',()=>report('lost'));
   on('r-setroom',async()=>{const {error}=await sb.rpc('set_challenge_room',{p_id:c.id,p_room_id:$('r-rid').value,p_room_pass:$('r-rpw').value});if(error){toast(error.message);return;}toast('Room saved');renderRoom();});
@@ -543,6 +553,8 @@ function bindRoom(c){
     toast('Rematch sent to '+nmv);await loadBalance();openRoom(data);
   });
   on('chat-send',sendChat);
+  on('chat-ph',()=>{const f=$('chat-file');if(f)f.click();});
+  const cf=$('chat-file');if(cf)cf.onchange=()=>{const f=cf.files&&cf.files[0];cf.value='';if(f)sendPhoto(f);};
   on('r-share',()=>{const o=c.creator===me.id?c.opponent:c.creator;jdChat.shareRoom({id:c.room_id,pass:c.room_pass,label:c.mode+' vs '+((names.get(o)||{}).name||'opponent')});});
   const ci=$('chat-in');if(ci)ci.onkeydown=e=>{if(e.key==='Enter')sendChat();};
   document.querySelectorAll('#room .copy').forEach(b=>b.onclick=()=>{(navigator.clipboard?navigator.clipboard.writeText(b.dataset.copy):Promise.reject()).then(()=>toast('Copied')).catch(()=>{});});
@@ -550,14 +562,56 @@ function bindRoom(c){
 let _lastMsgCount=-1;
 async function loadChat(c){
   const box=$('chat');if(!box)return;
-  const {data}=await sb.from('challenge_messages').select('sender, kind, body, created_at').eq('challenge_id',c.id).order('id').limit(200);
+  const {data}=await sb.from('challenge_messages').select('sender, kind, body, media, created_at').eq('challenge_id',c.id).order('id').limit(200);
   const rows=data||[];
   const atBottom=box.scrollTop+box.clientHeight>=box.scrollHeight-30;
-  box.innerHTML=rows.length?rows.map(m=>`<div class="bubble${m.sender===me.id?' me':''}${m.kind==='ai'?' ai':''}">${esc(m.body)}<small>${m.sender===me.id?'You':m.kind==='ai'?'🤖 ZULU · AI':esc((names.get(m.sender)||{}).name||'Opponent')} · ${ago(m.created_at)}</small></div>`).join(''):'<div class="empty" style="padding:10px">Say hi and share the room details 👋</div>';
+  box.innerHTML=rows.length?rows.map(m=>`<div class="bubble${m.sender===me.id?' me':''}${m.kind==='ai'?' ai':''}">${m.media?(m.body.length>2&&m.body!=='📷 Photo'?esc(m.body.replace(/^📷 /,''))+'<br>':'')+`<span class="shot" data-shot="${esc(m.media)}">${shotUrl[m.media]?`<img src="${shotUrl[m.media]}" alt="Screenshot">`:'<span>📷 Loading photo…</span>'}</span>`:esc(m.body)}<small>${m.sender===me.id?'You':m.kind==='ai'?'🤖 ZULU · AI':esc((names.get(m.sender)||{}).name||'Opponent')} · ${ago(m.created_at)}</small></div>`).join(''):'<div class="empty" style="padding:10px">Say hi and share the room details 👋</div>';
   if(atBottom||rows.length!==_lastMsgCount)box.scrollTop=box.scrollHeight;
+  box.querySelectorAll('[data-shot]').forEach(el=>{const pth=el.dataset.shot;
+    el.onclick=()=>{if(shotUrl[pth])window.open(shotUrl[pth],'_blank','noopener');};
+    if(!shotUrl[pth])shotSrc(pth).then(u=>{el.innerHTML=`<img src="${u}" alt="Screenshot">`;if(atBottom)box.scrollTop=box.scrollHeight;}).catch(()=>{el.innerHTML='<span>Photo not available</span>';});});
   // tell Messages (unread badge) and chat-push (skip the push) that you've seen these
   if(rows.length!==_lastMsgCount&&rows.some(m=>m.sender!==me.id))sb.rpc('challenge_mark_read',{p_id:c.id}).then(()=>{},()=>{});
   _lastMsgCount=rows.length;
+}
+/* result screenshots in the match chat: shrunk here (longest side 1280 px), stored in the private chat-media
+   bucket, opened through 10-minute signed links. Mods see them when they decide a dispute. */
+const shotUrl={},shotWait={};
+function shotSrc(path){
+  if(shotWait[path])return shotWait[path];
+  return shotWait[path]=(async()=>{
+    const r=await sb.storage.from('chat-media').createSignedUrl(path,600);if(r.error)throw r.error;
+    const res=await fetch(r.data.signedUrl);if(!res.ok)throw new Error('load failed');
+    return shotUrl[path]=URL.createObjectURL(await res.blob());
+  })().catch(e=>{delete shotWait[path];throw e;});
+}
+function shrinkShot(file){
+  return new Promise(ok=>{
+    const u=URL.createObjectURL(file),img=new Image();
+    img.onload=()=>{const k=Math.min(1,1280/Math.max(img.naturalWidth,img.naturalHeight)),cv=document.createElement('canvas');
+      cv.width=Math.max(1,Math.round(img.naturalWidth*k));cv.height=Math.max(1,Math.round(img.naturalHeight*k));
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);URL.revokeObjectURL(u);
+      cv.toBlob(b=>{if(b&&b.type==='image/webp')ok(b);else cv.toBlob(ok,'image/jpeg',0.8);},'image/webp',0.78);};
+    img.onerror=()=>{URL.revokeObjectURL(u);ok(null);};
+    img.src=u;
+  });
+}
+async function sendPhoto(file){
+  if(!/^image\//.test(file.type)){toast('Pick a photo or screenshot');return;}
+  if(file.size>30*1024*1024){toast('That photo is too big');return;}
+  const btn=$('chat-ph');if(btn)btn.disabled=true;toast('Sending photo…');
+  try{
+    const blob=await shrinkShot(file);if(!blob)throw new Error('Could not read that photo');
+    const ext=blob.type==='image/webp'?'webp':'jpg',path=`${me.id}/cs-${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const up=await sb.storage.from('chat-media').upload(path,blob,{contentType:blob.type,upsert:false});
+    if(up.error)throw up.error;
+    const cap=($('chat-in')||{}).value||'';
+    const {error}=await sb.rpc('send_challenge_image',{p_id:roomId,p_path:path,p_caption:cap.trim()});
+    if(error)throw error;
+    if($('chat-in'))$('chat-in').value='';
+    toast('📷 Photo sent');renderRoom(true);
+  }catch(e){toast(e.message||'Photo not sent');}
+  finally{if(btn)btn.disabled=false;}
 }
 async function sendChat(){
   const inp=$('chat-in');if(!inp)return;const v=inp.value.trim();if(!v)return;
@@ -615,7 +669,7 @@ const TUT=[
   {tab:'create',el:'#modes',t:'2 · Or create your own',b:'Pick <b>1v1 to 4v4</b> and your stake (10–500 points). Your opponent puts in the same amount — the box at the bottom shows exactly how many coins the winner gets.'},
   {tab:'create',el:'.sets',t:'3 · Set the room rules',b:'Skills on/off, gun attributes on/off, limited or unlimited ammo and gloo walls, rounds and map. Use a preset like <b>Pure aim</b>, or set each one. Both sides must play with these.'},
   {tab:'create',el:'#c-btn',t:'4 · Post it',b:'Everyone gets an alert — or choose <b>A specific player</b> to challenge a friend. Cancel before anyone accepts and you get your points back.'},
-  {tab:'mine',el:'.tab[data-tab="mine"]',t:'5 · Play and report',b:'Once accepted you get a <b>private room with chat</b>: share the room ID, play, then both tap <b>We won</b> or <b>We lost</b>. No answer in 2 hours = the result stands. Both say they won = the admin decides from screenshots.'},
+  {tab:'mine',el:'.tab[data-tab="mine"]',t:'5 · Play and report',b:'Once accepted you get a <b>private room with chat</b>: share the room ID, play, then both tap <b>We won</b> or <b>We lost</b>. No answer in 2 hours or both say they won = a JD mod decides from the screenshots you send with 📷.'},
   {tab:'lobby',el:()=>$('alerts').hidden?document.querySelector('.dtog'):$('alerts'),t:'6 · Never miss a challenge',b:'Turn on alerts to hear when someone challenges you, accepts or reports a result — even when JD Arena is closed.'}];
 let tutI=-1;
 const tutKey=()=>'jd_ch_tour_'+(me?me.id:'');

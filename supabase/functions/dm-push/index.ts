@@ -15,11 +15,12 @@ const SITE = 'https://jdesport.co.uk';
 Deno.serve(async (req: Request) => {
   const CRON_SECRET = Deno.env.get('CRON_SECRET');
   if (!CRON_SECRET || req.headers.get('x-cron-secret') !== CRON_SECRET) return new Response('Unauthorized', { status: 401 });
-  let ids: number[] = [], kind = 'dm';
+  let ids: number[] = [], kind = 'dm', ring = false;
   try {
     const j = await req.json();
     ids = (j.ids || []).map(Number).filter((x: number) => Number.isFinite(x)).slice(0, 200);
     kind = j.kind === 'jd' ? 'jd' : j.kind === 'staff' ? 'staff' : 'dm';
+    ring = kind === 'staff' && j.ring === true;   // zulu-auto hand-off: ring the mods' phones
   } catch { /* empty */ }
   if (!ids.length) return Response.json({ sent: 0 });
   // Give an open chat a moment to mark the message read (chat.js refreshes every 2.5s), so a
@@ -65,9 +66,21 @@ Deno.serve(async (req: Request) => {
       const pids = [...new Set(jr.map((m: any) => m.player_id))];
       const { data: ps } = await db.from('players').select('id, username, player_tag').in('id', pids);
       const who = new Map((ps || []).map((p: any) => [p.id, p]));
-      for (const m of jr) {
+      const rung = new Set<string>();
+      for (const m of ring ? [...jr].reverse() : jr) {   // a ring quotes the player's newest message
         const p: any = who.get(m.player_id) || {};
         const name = p.username ? '@' + p.username : (p.player_tag || 'A player');
+        if (ring) {   // ZULU handed this player to the team: phones ring (jd-ring tag: ringtone until opened), once per player
+          if (rung.has(m.player_id)) continue;
+          rung.add(m.player_id);
+          sent += await sendPush(db, staff.filter((id) => id !== m.player_id), {
+            title: `🔔 ${name} needs a mod`,
+            body: `People need you! ZULU passed this chat to the JD team: "${String(m.body || '').slice(0, 140)}"`,
+            url: `${SITE}/mod/#chats`,
+            tag: 'jd-ring-mod-' + String(m.player_id).slice(0, 8),
+          });
+          continue;
+        }
         sent += await sendPush(db, staff.filter((id) => id !== m.player_id), {
           title: `💬 New JD Esports chat · ${name}`,
           body: String(m.body || '').slice(0, 200),

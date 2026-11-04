@@ -137,12 +137,12 @@ Deno.serve(async (req: Request) => {
 
   if (p.action === 'balances') {
     const { data, error } = await supabase.from('players')
-      .select('id, username, player_tag, email, wallets(balance, unlimited, updated_at)');
+      .select('id, username, player_tag, email, wallets(balance, unlimited, staff, updated_at)');
     if (error) return fail(error.message, 500);
     const rows = (data || []).map((x: any) => {
       const w = Array.isArray(x.wallets) ? x.wallets[0] : x.wallets;
       return { id: x.id, username: x.username, player_tag: x.player_tag, email: x.email,
-        balance: w?.balance ?? 0, unlimited: !!w?.unlimited, updated_at: w?.updated_at ?? null };
+        balance: w?.balance ?? 0, unlimited: !!w?.unlimited, staff: !!w?.staff, updated_at: w?.updated_at ?? null };
     }).sort((a: any, b: any) => (b.unlimited ? 1 : 0) - (a.unlimited ? 1 : 0) || b.balance - a.balance);
     const { data: pend } = await supabase.from('withdraw_requests').select('amount, payout').eq('status', 'pending');
     return json({ rows, pending_withdrawals: (pend || []).reduce((s: number, r: any) => s + (r.payout ?? r.amount), 0) });

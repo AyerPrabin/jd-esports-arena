@@ -380,6 +380,53 @@ Deno.serve(async (req: Request) => {
     });
   };
   const pidOk = (x: unknown) => /^[0-9a-f-]{36}$/i.test(String(x || ''));
+  // ── ⚖️ Clash Squad challenges that need a decision (money_review_free_game.sql): both sides said "won", or one
+  //    side said "won" and the other never answered. Staff mods read the match chat (photos through 1-hour signed
+  //    links) and pay the winner or refund both. Never host mods. ──
+  if (action === 'challenges_list' || action === 'challenge_resolve') {
+    if (isHost) return fail('Challenges are for the JD team only.', 403);
+    if (action === 'challenge_resolve') {
+      const cid = String(p.id || ''), outcome = String(p.outcome || '');
+      if (!/^[0-9a-f-]{36}$/i.test(cid) || !['creator', 'opponent', 'refund'].includes(outcome)) return fail('id and outcome required');
+      const { data: c } = await admin.from('challenges').select('status, mode, stake').eq('id', cid).maybeSingle();
+      if (!c || c.status !== 'disputed') return fail('This challenge is not waiting for a decision any more. Refresh.');
+      const { error } = await admin.rpc('admin_resolve_challenge', { p_id: cid, p_outcome: outcome });
+      if (error) return fail(error.message);
+      await log('challenge_resolve', `${c.mode} · ${c.stake * 2} pts · ${outcome} · ${cid.slice(0, 8)}`);
+      return json({ ok: true });
+    }
+    const cols = 'id, mode, stake, status, note, room_id, creator, opponent, creator_claim, opponent_claim, claim_at, resolution, created_at, accepted_at';
+    const { data: list, error } = await admin.from('challenges').select(cols).eq('status', 'disputed').order('claim_at', { ascending: true }).limit(20);
+    if (error) return fail(error.message, 500);
+    const ids = (list || []).map((c: any) => c.id);
+    const pids = [...new Set((list || []).flatMap((c: any) => [c.creator, c.opponent]).filter(Boolean))];
+    const [{ data: msgs }, { data: ps }] = await Promise.all([
+      ids.length ? admin.from('challenge_messages').select('challenge_id, sender, kind, body, media, created_at').in('challenge_id', ids).order('id').limit(600)
+        : Promise.resolve({ data: [] as any[] }),
+      pids.length ? admin.from('players').select('id, username, player_tag, ff_name, ff_uid').in('id', pids) : Promise.resolve({ data: [] as any[] }),
+    ]);
+    const who = new Map((ps || []).map((x: any) => [x.id, x]));
+    const nameOf = (id: string) => { const x: any = who.get(id); return x ? (x.username ? '@' + x.username : x.player_tag || 'Player') : 'Player'; };
+    const media = [...new Set((msgs || []).map((m: any) => m.media).filter(Boolean))];
+    const signed = new Map<string, string>();
+    if (media.length) {
+      const { data: urls } = await admin.storage.from('chat-media').createSignedUrls(media, 3600);
+      for (const u of urls || []) if (u.signedUrl && u.path) signed.set(u.path, u.signedUrl);
+    }
+    return json({
+      disputed: (list || []).map((c: any) => ({
+        id: c.id, mode: c.mode, stake: c.stake, pot: c.stake * 2, note: c.note, resolution: c.resolution,
+        claim_at: c.claim_at, created_at: c.created_at,
+        creator: { name: nameOf(c.creator), ign: (who.get(c.creator) as any)?.ff_name || null, uid: (who.get(c.creator) as any)?.ff_uid || null, claim: c.creator_claim },
+        opponent: { name: nameOf(c.opponent), ign: (who.get(c.opponent) as any)?.ff_name || null, uid: (who.get(c.opponent) as any)?.ff_uid || null, claim: c.opponent_claim },
+        chat: (msgs || []).filter((m: any) => m.challenge_id === c.id).map((m: any) => ({
+          who: m.kind === 'ai' ? 'ZULU' : m.sender === c.creator ? 'creator' : m.sender === c.opponent ? 'opponent' : 'JD',
+          body: m.body, at: m.created_at, img: m.media ? signed.get(m.media) || null : null,
+        })),
+      })),
+    });
+  }
+
   // ── 💰 point loads (payments_in.sql): staff mods match a player's screenshot to a payment the owner's phone
   //    forwarded. Matching is the only money action mods have, and the database re-checks amount, time and reuse. ──
   if (action === 'loads_list' || action === 'load_match') {

@@ -129,7 +129,8 @@ self.addEventListener("push", e => {
     : chat ? "msg" : "";
   const STYLE = {
     msg: { icon: "/notif-msg.png", pre: "💬 ", vibrate: [90, 60, 90] },
-    ring: { icon: "/notif-msg.png", pre: "", vibrate: [1000, 400, 1000, 400, 1000, 400, 1000, 400, 1000], sticky: true, action: "📞 Open squad chat" },
+    ring: { icon: "/notif-msg.png", pre: "", vibrate: [1000, 400, 1000, 400, 1000, 400, 1000, 400, 1000], sticky: true,
+      action: /^jd-ring-mod/.test(tag) ? "🔔 Open mod chat" : "📞 Open squad chat" },
     roomcode: { icon: "/notif-room.png", pre: "🔑 ", vibrate: [600, 200, 600, 200, 600], sticky: true, action: "🔑 Show Room ID" },
     // a waitlist slot opened: it must be confirmed, so it stays until tapped
     slot: { icon: "/icon-192.png", pre: "🎟 ", vibrate: [300, 120, 300, 120, 600], sticky: true, action: "🎟 Open my ticket" },
