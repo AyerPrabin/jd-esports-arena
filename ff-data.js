@@ -1,9 +1,10 @@
 /* Free Fire reference data for JD Arena (FF Guide page, challenge + event map pickers).
-   Facts only (names, skill type, map pool), described in our own words. No Garena artwork.
+   Facts only (names, skill type, map pool), described in our own words. Pictures come from ff.garena.com
+   (see ff-art.js, which lists the files in /characters, /weapons and /pets).
    Exact skill numbers and gun stats change every update, so guns use 1-5 relative ratings, not in-game numbers.
    Updated 2026-11-03: OB54 took Alpine and Bermuda 2.0 out of the map pool and added Solara. */
 window.FF = {
-  updated: '3 Nov 2026',
+  updated: '4 Nov 2026',
   // map pool. live:false = no longer in Free Fire's pool (kept so old events still show their map name)
   maps: [
     { k: 'bermuda', name: 'Bermuda', ic: '🌴', live: true, size: 'Large', note: 'The classic island. Mixed towns, open fields and hills, good for every play style.' },
@@ -59,6 +60,28 @@ window.FF = {
     { n: 'Dasha', s: 'Partying On', t: 'passive', r: 'rusher', d: 'Less recoil and less fall damage.' },
     { n: 'Nikita', s: 'Firearms Expert', t: 'passive', r: 'rusher', d: 'Reloads faster.' },
     { n: 'Sonia', s: 'Nano Energy Barrier', t: 'passive', r: 'defence', d: 'Survives a finishing hit once with a short shield, then can heal.' },
+    // added 4 Nov 2026 from the character list on ff.garena.com (descriptions in our own words)
+    { n: 'Ryden', s: 'Spider Trap', t: 'active', r: 'rusher', d: 'Sends an exploding spider that slows a nearby enemy and makes them bleed.' },
+    { n: 'Misha', s: 'Afterburner', t: 'passive', r: 'rusher', d: 'Drives faster, takes less damage in vehicles and is harder to hit while driving.' },
+    { n: 'Alvaro', s: 'Split Blitz', t: 'passive', r: 'rusher', d: 'Grenades split into three smaller grenades just before they blow up.' },
+    { n: 'Shirou', s: 'Damage Delivered', t: 'passive', r: 'rusher', d: 'Whoever shoots you gets marked for you, and your first shot on them pierces more armour.' },
+    { n: 'Nairi', s: 'Ice Iron', t: 'passive', r: 'defence', d: 'Your gloo walls repair themselves and heal teammates standing next to them.' },
+    { n: 'J.Biebs', s: 'Silent Sentinel', t: 'active', r: 'support', d: 'You and your team can block damage with EP, and the EP teammates spend is added to yours.' },
+    { n: 'Iris', s: 'Wall Brawl', t: 'active', r: 'rusher', d: 'For a short time, shooting a gloo wall marks enemies behind it and your shots go through at lower damage.' },
+    { n: 'A-Patroa', s: 'Open skill slot', t: 'passive', r: 'support', d: 'No skill of her own: her special slot takes any skill you own, and she unlocks your other skill slots.' },
+    { n: 'Luna', s: 'Fight-or-Flight', t: 'passive', r: 'rusher', d: 'Fires slightly faster, and landing hits turns some of that fire rate into running speed.' },
+    { n: 'Santino', s: 'Shape Splitter', t: 'active', r: 'scout', d: 'Throws a mannequin ahead, then teleports to it when you use the skill again.' },
+    { n: 'Suzy', s: 'Money Mark', t: 'passive', r: 'support', d: 'Enemies you mark carry a bounty, so your team earns extra in-match money for taking them out.' },
+    { n: 'Ignis', s: 'Flame Mirage', t: 'active', r: 'rusher', d: 'Pushes a wall of fire forward that burns enemies and gloo walls it touches. Uses can be saved up.' },
+    { n: 'Kairos', s: 'Defense Breaker', t: 'passive', r: 'rusher', d: 'Builds up EP, then spends it on extra damage to enemy armour and shields.' },
+    { n: 'Kassie', s: 'Electro Therapy', t: 'active', r: 'support', d: 'Links to a teammate to slowly heal you both; use it again for a big heal on them.' },
+    { n: 'Lila', s: 'Gloo Strike', t: 'passive', r: 'rusher', d: 'Rifle hits slow enemies and vehicles; knocking down a slowed enemy freezes them and gives you a gloo wall.' },
+    { n: 'Koda', s: 'Aurora Vision', t: 'active', r: 'scout', d: 'For a few seconds you run faster and see enemies behind nearby cover (not crouching or prone ones).' },
+    { n: 'Jai', s: 'Raging Reload', t: 'passive', r: 'rusher', d: 'Knocking down an enemy refills your magazine at once (ARs, pistols, SMGs and shotguns).' },
+    { n: 'Oscar', s: 'Valiant Dash', t: 'active', r: 'rusher', d: 'Dashes forward, breaking gloo walls and hurting and knocking back enemies in the way.' },
+    { n: 'Rin', s: 'Gale of Kunai', t: 'passive', r: 'rusher', d: 'Collects up to three kunai that fly at the enemies and gloo walls you hit, and wreck walls.' },
+    { n: 'Nero', s: 'Cryo Mind', t: 'active', r: 'rusher', d: 'Throws a flying plush toy that chases the nearest enemy and opens a dream zone around them.' },
+    { n: 'Morse', s: 'Stealth Bytes', t: 'active', r: 'stealth', d: 'Goes into stealth: hard to see from beyond 12 m, faster and shielded, but you can’t shoot.' },
   ],
   // ratings are 1-5 compared with other guns: dmg damage, rof fire rate, rng range, ctl control (low recoil)
   guns: [
