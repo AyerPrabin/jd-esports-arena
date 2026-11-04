@@ -1,6 +1,208 @@
 {
  "events": [
   {
+   "name": "JD Free Fire Open #13",
+   "date": "Wed, Nov 4",
+   "start": "2026-11-04T21:30:00+05:45",
+   "maps": [
+    "bermuda",
+    "purgatory",
+    "kalahari"
+   ],
+   "prize": "200",
+   "winner": "Youtz Esp",
+   "kill_pts": 1,
+   "teams": [
+    {
+     "team": "Youtz Esp",
+     "r": [
+      {
+       "kills": 17,
+       "pts": 12
+      },
+      {
+       "kills": 15,
+       "pts": 12
+      },
+      {
+       "kills": 6,
+       "pts": 12
+      }
+     ]
+    },
+    {
+     "team": "™ㅤSᴍɢ",
+     "r": [
+      {
+       "kills": 8,
+       "pts": 6
+      },
+      {
+       "kills": 1,
+       "pts": 7
+      },
+      {
+       "kills": 7,
+       "pts": 8
+      }
+     ]
+    },
+    {
+     "team": "lol",
+     "r": [
+      {
+       "kills": 1,
+       "pts": 5
+      },
+      {
+       "kills": 4,
+       "pts": 5
+      },
+      {
+       "kills": 10,
+       "pts": 9
+      }
+     ]
+    },
+    {
+     "team": "THE REAL TIGER",
+     "r": [
+      {
+       "kills": 3,
+       "pts": 8
+      },
+      {
+       "kills": 4,
+       "pts": 6
+      },
+      {
+       "kills": 6,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "PRIME ESPORTS",
+     "r": [
+      {
+       "kills": 1,
+       "pts": 9
+      },
+      {
+       "kills": 5,
+       "pts": 8
+      },
+      {
+       "kills": 5,
+       "pts": 6
+      }
+     ]
+    },
+    {
+     "team": "Soul2Ash",
+     "r": [
+      {
+       "kills": 2,
+       "pts": 7
+      },
+      {
+       "kills": 7,
+       "pts": 9
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "GG ESP",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 3
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Ancient Ogs 1",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Infernal Legacy",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Noob Gang",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Raila gang",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
    "name": "JD Free Fire Open #12",
    "date": "Mon, Nov 2",
    "start": "2026-11-02T21:30:00+05:45",
