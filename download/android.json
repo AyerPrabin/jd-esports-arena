@@ -1,10 +1,10 @@
 {
-  "versionCode": 17,
-  "versionName": "2.1.0",
+  "versionCode": 18,
+  "versionName": "2.1.1",
   "minVersionCode": 13,
-  "url": "https://cnoxvqvpmgowdiyrrusv.supabase.co/storage/v1/object/public/app/jd-arena-2.1.0.apk",
-  "sha256": "bf1eb525d33621af16e34de556f3efb824eb73ff3d74a6b50faa83da6d49e4e8",
-  "size": 3589489,
-  "date": "2026-11-03",
-  "notes": "Fixes the Update popup that kept coming back after you updated. Plus: Find Teammates, photos and videos in chat, and free entries for posting a video about JD Arena."
+  "url": "https://cnoxvqvpmgowdiyrrusv.supabase.co/storage/v1/object/public/app/jd-arena-2.1.1.apk",
+  "sha256": "58930fae778add7b0ba59e3b2cb3aec5e7a72f092be323d4b901690b3fd77b7d",
+  "size": 3638921,
+  "date": "2026-11-04",
+  "notes": "New FF Guide shortcut (long-press the app icon) with every Free Fire character, gun and pet. Plus: send result screenshots in challenge chats, gun and skill pictures in challenge settings, and your first game free."
 }
