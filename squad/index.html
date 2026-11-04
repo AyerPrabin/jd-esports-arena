@@ -77,6 +77,7 @@ button{font:inherit;color:inherit}
 .tm-btn.big{width:100%;min-height:50px;font-size:1rem;margin-top:6px}
 .tm-empty{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:40px 18px;border-radius:20px;border:1px dashed var(--line-2);color:var(--body)}
 .tm-empty b{color:var(--cream);font-size:1.05rem}
+.tm-pic{display:block;height:96px;width:auto;margin:0 auto;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5))}
 .tm-empty .tm-btn{flex:none;padding:0 22px}
 
 /* post button: thumb reach, above the app's bottom tab bar */
@@ -149,7 +150,7 @@ button{font:inherit;color:inherit}
 const sb=(typeof supabase!=='undefined')?supabase.createClient('https://cnoxvqvpmgowdiyrrusv.supabase.co','sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil'):null;
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'}).catch(()=>{});
 </script>
-<script src="/teammates.js?v=6"></script>
+<script src="/teammates.js?v=7"></script>
 <script src="/ui.js?v=25" defer></script>
 <script src="/chat.js?v=36" defer></script>
 </body>

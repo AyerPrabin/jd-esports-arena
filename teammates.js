@@ -108,11 +108,11 @@
       var shown = posts.filter(match);
       list.innerHTML = shown.length ? shown.map(card).join('')
         : posts.length ? '<div class="tm-empty">No one matches that.<button type="button" class="tm-btn ghost" data-reset="1">Clear filters</button></div>'
-        : '<div class="tm-empty"><b>No one is looking yet.</b>Post your role and squads will find you.<button type="button" class="tm-btn" data-post="1">＋ Post yourself</button></div>';
+        : '<div class="tm-empty"><img class="tm-pic" src="/characters/sonia.webp" alt="" width="240" height="349" loading="lazy"><b>No one is looking yet.</b>Post your role and squads will find you.<button type="button" class="tm-btn" data-post="1">＋ Post yourself</button></div>';
     } else {
       var top = posts.slice(0, 8);
       list.innerHTML = top.length ? top.map(card).join('') + '<a class="tm-more" href="/squad/">See all<br><b>' + posts.length + '</b> players →</a>'
-        : '<div class="tm-empty">No one here yet. <a href="/squad/#post">Post your role</a> and squads will find you.</div>';
+        : '<div class="tm-empty"><img class="tm-pic" src="/characters/sonia.webp" alt="" width="240" height="349" loading="lazy">No one here yet. <a href="/squad/#post">Post your role</a> and squads will find you.</div>';
     }
   }
   var toastT;

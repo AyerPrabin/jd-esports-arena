@@ -132,6 +132,8 @@ input[type=text]:focus{border-color:var(--gold)}
 .pill.bad{background:rgba(255,138,138,.12);color:var(--red)}
 .code{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--gold-l)}
 .empty{text-align:center;padding:20px 10px;color:var(--body);font-size:.84rem}
+.empty .pic-empty{display:block;margin:0 auto 8px;height:96px;width:auto;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5))}
+.empty a{color:var(--gold-l);font-weight:700}
 #fx b{color:var(--cream)}
 
 /* settings list */
@@ -473,7 +475,7 @@ async function loadTournaments(){
     const t=tmap.get(r.tournament_slug)||{};const [lbl,cls]=STATUS[r.status]||[r.status,''];
     const done=t.status==='completed';const icon=t.status==='live'?'🔴':(done?'🏁':'⚔️');
     return `<a class="trow" href="/#tournaments"><span class="ic">${icon}</span><span class="t"><b>${esc(r.tournament_slug)}</b><small>${esc(r.squad_name||'')}${t.date&&t.date!=='TBA'?' · '+esc(t.date):''} · <span class="code">${ticket(r.id)}</span>${r.paid_points?` · paid ${r.paid_points} pts`:''}</small></span><span class="pill ${r.checked_in_at?'ok':cls}">${r.checked_in_at&&(r.status==='confirmed'||r.status==='approved')?'Checked in':(done&&t.winner&&t.winner.toLowerCase()===String(r.squad_name||'').toLowerCase()?'🏆 Winner':lbl)}</span></a>`;
-  }).join(''):'<div class="empty">You haven\'t joined a tournament yet.</div>';
+  }).join(''):'<div class="empty"><img class="pic-empty" src="/characters/ryden.webp" alt="" width="240" height="349" loading="lazy">You haven\'t joined a tournament yet. <a href="/#tournaments">See tournaments</a></div>';
 }
 async function loadFx(){
   const {data}=await sb.from('effect_passes').select('tier, effect, starts_at, expires_at').eq('player_id',me.id).gt('expires_at',new Date().toISOString()).order('starts_at');

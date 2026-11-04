@@ -37,6 +37,14 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
 .coin{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3c4,#ffc83d 45%,#c98a00);color:#5a3d00;font-family:var(--display);font-size:.72rem}
 .pill b{font-family:var(--display);font-size:1.2rem;color:var(--gold-l)}
 .hero{margin:12px 0 16px;padding:20px;border-radius:22px;border:1px solid rgba(255,90,106,.35);background:radial-gradient(120% 140% at 100% 0%,rgba(255,90,106,.18),transparent 55%),linear-gradient(150deg,#1a1116,#0f1320 65%)}
+.hero{position:relative;overflow:hidden}
+.hero h1,.hero p{position:relative;z-index:1}
+.hero-art{position:absolute;right:-6px;bottom:-4px;display:flex;align-items:flex-end;pointer-events:none}
+.hero-art img{height:152px;width:auto;filter:drop-shadow(0 8px 18px rgba(0,0,0,.55))}
+.hero-art img+img{margin-left:-46px;height:138px;transform:scaleX(-1)}
+.hero{padding-right:180px}
+@media (max-width:640px){.hero{padding-right:20px}.hero-art{opacity:.28;right:-20px}.hero-art img{height:150px}.hero-art img+img{height:130px}}
+.pic-empty{display:block;margin:0 auto 6px;height:96px;width:auto;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5))}
 .hero h1{margin:0;font-family:var(--display);font-size:clamp(2rem,7vw,2.8rem);line-height:1}
 .hero p{margin:8px 0 0;color:var(--silver);font-size:.9rem;max-width:560px}
 .card{border-radius:20px;background:var(--panel);border:1px solid var(--line-2);padding:18px}
@@ -222,6 +230,7 @@ input:focus,textarea:focus{border-color:var(--gold)}
 
   <section class="hero">
     <h1>⚔️ Clash Squad challenges</h1>
+    <span class="hero-art" aria-hidden="true"><img src="/characters/ryden.webp" alt="" width="240" height="349"><img src="/characters/alok.webp" alt="" width="240" height="349"></span>
     <p>Challenge anyone to 1v1, 2v2, 3v3 or 4v4 Clash Squad. Both sides put in the same points — <b>the winner takes the pot</b> (just a 1-point platform fee per player). No waiting for the next Battle Royale.</p>
   </section>
 
@@ -388,7 +397,7 @@ function renderLobby(){
   $('filters').innerHTML=all.length?['all','1v1','2v2','3v3','4v4'].map(m=>`<button type="button" class="chip${m===lobbyMode?' on':''}" data-f="${m}">${m==='all'?'All':m} · ${count(m)}</button>`).join(''):'';
   $('filters').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{lobbyMode=b.dataset.f;renderLobby();});
   const data=all.filter(c=>lobbyMode==='all'||c.mode===lobbyMode||c.for_me);
-  $('lobby').innerHTML=data.length?data.map(c=>`<div class="ch${c.for_me?' for-me':''}${fxCls(c.creator_effect)}" data-id="${esc(c.id)}" data-mine="${c.mine?1:0}" data-stake="${c.stake}" data-mode="${esc(c.mode)}" data-by="${esc(c.creator_name)}">${FXTAG[c.creator_effect]?fxDeco():''}<div class="mode">${esc(c.mode)}</div><div class="t"><b>${c.for_me?'⚔️ Challenge for you · ':''}<span class="fx-name">${esc(c.creator_name)}</span></b><small>${c.note?esc(c.note)+' · ':''}${ago(c.created_at)} · expires in ${left(c.created_at,2)}</small><span class="st ${c.mine?'wait':'live'}">${c.mine?'Yours · waiting':'Tap to accept'}</span>${FXTAG[c.creator_effect]?` <span class="fxt">✨ ${FXTAG[c.creator_effect]}</span>`:''}${ruleChips(c)}</div><div class="pot"><b>${pot(c.stake).toLocaleString()}</b><small>to win · ${c.stake} each</small></div></div>`).join(''):(all.length?`<div class="empty"><span>🔎</span>No ${esc(lobbyMode)} challenges right now.<br><button class="btn" type="button" data-go="create">＋ Create a ${esc(lobbyMode)} challenge</button></div>`:'<div class="empty"><span>⚔️</span>No open challenges right now — be the first.<br><button class="btn" type="button" data-go="create">＋ Create a challenge</button></div>');
+  $('lobby').innerHTML=data.length?data.map(c=>`<div class="ch${c.for_me?' for-me':''}${fxCls(c.creator_effect)}" data-id="${esc(c.id)}" data-mine="${c.mine?1:0}" data-stake="${c.stake}" data-mode="${esc(c.mode)}" data-by="${esc(c.creator_name)}">${FXTAG[c.creator_effect]?fxDeco():''}<div class="mode">${esc(c.mode)}</div><div class="t"><b>${c.for_me?'⚔️ Challenge for you · ':''}<span class="fx-name">${esc(c.creator_name)}</span></b><small>${c.note?esc(c.note)+' · ':''}${ago(c.created_at)} · expires in ${left(c.created_at,2)}</small><span class="st ${c.mine?'wait':'live'}">${c.mine?'Yours · waiting':'Tap to accept'}</span>${FXTAG[c.creator_effect]?` <span class="fxt">✨ ${FXTAG[c.creator_effect]}</span>`:''}${ruleChips(c)}</div><div class="pot"><b>${pot(c.stake).toLocaleString()}</b><small>to win · ${c.stake} each</small></div></div>`).join(''):(all.length?`<div class="empty"><span>🔎</span>No ${esc(lobbyMode)} challenges right now.<br><button class="btn" type="button" data-go="create">＋ Create a ${esc(lobbyMode)} challenge</button></div>`:'<div class="empty"><img class="pic-empty" src="/characters/orion.webp" alt="" width="213" height="360" loading="lazy">No open challenges right now — be the first.<br><button class="btn" type="button" data-go="create">＋ Create a challenge</button></div>');
   $('lobby').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{if(lobbyMode!=='all')mode=lobbyMode;renderCreate();setTab('create');});
   $('lobby').querySelectorAll('.ch').forEach(el=>el.onclick=async()=>{
     if(el.dataset.mine==='1'){openRoom(el.dataset.id);return;}
@@ -447,7 +456,7 @@ async function loadMine(){
   $('rec').innerHTML=`<div><b>${done.length}</b><small>Played</small></div><div><b class="pos">${w.length}</b><small>Won</small></div><div><b>${done.length?Math.round(w.length/done.length*100):0}%</b><small>Win rate</small></div><div><b class="${net>0?'pos':net<0?'neg':''}">${net>0?'+':''}${net.toLocaleString()}</b><small>Points net</small></div><p style="grid-column:1/-1;margin:0;font-size:.68rem;color:var(--body);text-align:right">Your last 40 challenges</p>`;
   const vsName=c=>{const o=c.creator===me.id?(c.opponent||c.invited):c.creator;return o?((names.get(o)||{}).name||'Opponent'):'';};
   $('mine').innerHTML=(data||[]).length?data.map(c=>{const [l,cls]=STATUS[c.status]||[c.status,''];const res=c.status==='completed'?(c.winner===me.id?'🏆 You won':'You lost'):l;
-    return `<div class="ch" data-id="${esc(c.id)}"><div class="mode">${esc(c.mode)}</div><div class="t"><b>${vsName(c)?'vs <span class="fx-name">'+esc(vsName(c))+'</span>':'Open to anyone'}</b><small>${c.creator===me.id?'You created':'You joined'} · ${ago(c.created_at)}</small><span class="st ${c.status==='completed'?(c.winner===me.id?'live':''):cls}">${esc(res)}</span>${ruleChips(c)}</div><div class="pot"><b>${pot(c.stake).toLocaleString()}</b><small>to win</small></div></div>`;}).join(''):'<div class="empty"><span>🎮</span>No challenges yet. Create one or accept one from the lobby.</div>';
+    return `<div class="ch" data-id="${esc(c.id)}"><div class="mode">${esc(c.mode)}</div><div class="t"><b>${vsName(c)?'vs <span class="fx-name">'+esc(vsName(c))+'</span>':'Open to anyone'}</b><small>${c.creator===me.id?'You created':'You joined'} · ${ago(c.created_at)}</small><span class="st ${c.status==='completed'?(c.winner===me.id?'live':''):cls}">${esc(res)}</span>${ruleChips(c)}</div><div class="pot"><b>${pot(c.stake).toLocaleString()}</b><small>to win</small></div></div>`;}).join(''):'<div class="empty"><img class="pic-empty" src="/characters/dimitri.webp" alt="" width="240" height="349" loading="lazy">No challenges yet. Create one or accept one from the lobby.</div>';
   $('mine').querySelectorAll('.ch').forEach(el=>el.onclick=()=>openRoom(el.dataset.id));
 }
 

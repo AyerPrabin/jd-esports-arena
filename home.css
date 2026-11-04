@@ -1259,6 +1259,7 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 .tm-more{scroll-snap-align:start;display:grid;place-content:center;text-align:center;gap:4px;min-height:160px;border-radius:18px;border:1px dashed var(--gold-m);color:var(--gold-l);text-decoration:none;font-size:.86rem}
 .tm-more b{font:700 2rem 'Barlow Condensed',sans-serif}
 .tm-empty a{color:var(--gold-l);font-weight:700}
+.tm-pic{display:block;height:84px;width:auto;margin:0 auto 8px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5))}
 
 .arena-stats a.stat{position:relative}
 .arena-stats .paid-up::after{content:attr(data-up);position:absolute;left:50%;top:6px;transform:translateX(-50%);font:700 .8rem var(--font-body,sans-serif);color:#5EDB95;white-space:nowrap;animation:paidUp 2.4s ease-out forwards;pointer-events:none}
