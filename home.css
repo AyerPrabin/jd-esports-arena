@@ -1148,6 +1148,7 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
 .step{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
 .step .snum{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-2));color:#07090F;font-weight:700;font-family:'Barlow Condensed',sans-serif;font-weight:700;margin-bottom:12px}
+.wstrip{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:10px}.wstrip img{height:22px;width:auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
 .step b{display:block;color:var(--gold-l);font-size:1rem;margin-bottom:6px;font-weight:600}
 .step span{color:var(--body);font-size:.86rem;line-height:1.5}
 .pos-h{color:var(--cream);font-size:1.1rem;margin:26px 0 6px}

@@ -152,6 +152,9 @@ input:focus,textarea:focus{border-color:var(--gold)}
 .skx figcaption{font-size:.58rem;color:var(--body);margin-top:2px}
 .skx.off img{filter:grayscale(1);opacity:.45}.skx.off figure::after{content:"";position:absolute;left:4px;right:4px;top:19px;height:2px;background:var(--red,#ff5d5d);transform:rotate(-35deg);border-radius:2px}
 .rc img{width:13px;height:13px;border-radius:50%;vertical-align:-3px;margin-right:3px}
+.rc img.w{width:auto;height:11px;border-radius:0;vertical-align:-2px}
+.wpx{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:8px 0 0}.wpx img{height:20px;width:auto;transition:filter .2s,opacity .2s;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}.wpx.off img{filter:grayscale(1) brightness(.85);opacity:.45}
+.set-ic{height:18px;width:auto;vertical-align:-3px;margin-right:6px}
 .set b{display:block;font-size:.86rem}
 .set small{display:block;font-size:.7rem;color:var(--body);line-height:1.3}
 .seg{flex:none;display:inline-flex;padding:3px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line-2)}
@@ -276,9 +279,9 @@ input:focus,textarea:focus{border-color:var(--gold)}
         <div class="presets" id="presets"></div>
         <div class="sets">
           <div class="set"><span><b>Character skills</b><small id="sk-hint">Active &amp; passive character abilities</small><span class="skx" id="skx" aria-hidden="true"><figure><img src="/characters/alok-skill.webp" alt="" loading="lazy" width="40" height="40"><figcaption>Alok</figcaption></figure><figure><img src="/characters/orion-skill.webp" alt="" loading="lazy" width="40" height="40"><figcaption>Orion</figcaption></figure><figure><img src="/characters/sonia-skill.webp" alt="" loading="lazy" width="40" height="40"><figcaption>Sonia</figcaption></figure><figure><img src="/characters/dimitri-skill.webp" alt="" loading="lazy" width="40" height="40"><figcaption>Dimitri</figcaption></figure><figure><img src="/characters/ryden-skill.webp" alt="" loading="lazy" width="40" height="40"><figcaption>Ryden</figcaption></figure></span></span><div class="seg" data-k="skill"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
-          <div class="set"><span><b>Gun attributes</b><small>Gun skin stat bonuses (damage, rate of fire…)</small></span><div class="seg" data-k="gun"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
+          <div class="set"><span><b>Gun attributes</b><small id="gun-hint">Gun skin stat bonuses (damage, rate of fire…)</small><span class="wpx" id="wpx" aria-hidden="true"><img src="/weapons/ak47.webp" alt="" loading="lazy" height="22"><img src="/weapons/m1887.webp" alt="" loading="lazy" height="22"><img src="/weapons/mp40.webp" alt="" loading="lazy" height="22"><img src="/weapons/groza.webp" alt="" loading="lazy" height="22"></span></span><div class="seg" data-k="gun"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div></div>
           <div class="set"><span><b>Ammo</b><small>Limited = normal reloads and pickups</small></span><div class="seg" data-k="ammo"><button type="button" data-v="limited">Limited</button><button type="button" data-v="unlimited">Unlimited</button></div></div>
-          <div class="set"><span><b>Gloo walls</b><small>Unlimited = throw as many walls as you want</small></span><div class="seg" data-k="gloo"><button type="button" data-v="limited">Limited</button><button type="button" data-v="unlimited">Unlimited</button></div></div>
+          <div class="set"><span><b><img class="set-ic" src="/weapons/gloo-wall.webp" alt="" loading="lazy" height="18">Gloo walls</b><small>Unlimited = throw as many walls as you want</small></span><div class="seg" data-k="gloo"><button type="button" data-v="limited">Limited</button><button type="button" data-v="unlimited">Unlimited</button></div></div>
           <div class="set"><span><b>Rounds</b><small>First side to win this many rounds</small></span><div class="seg" data-k="rounds"><button type="button" data-v="7">First to 4</button><button type="button" data-v="13">First to 7</button></div></div>
           <div class="set"><span><b>Map</b><small>Whoever makes the room uses this map</small></span><select id="map"><option value="">Any map</option><option>Bermuda</option><option>Purgatory</option><option>Kalahari</option><option>NeXTerra</option><option>Solara</option></select></div>
         </div>
@@ -360,7 +363,7 @@ function rulesText(c){return `Skills ${c.char_skill!==false?'on':'off'} · Gun a
 // rule chips for a challenge (lobby card, room)
 function ruleChips(c){
   const sk=c.char_skill!==false,gu=!!c.gun_attr;
-  return `<div class="rcs"><span class="rc ${sk?'y':'n'}"><img src="/characters/alok-skill.webp" alt="" loading="lazy">Skills ${sk?'on':'off'}</span><span class="rc ${gu?'y':'n'}">Gun attr ${gu?'on':'off'}</span><span class="rc">${c.ammo==='unlimited'?'∞ Unlimited ammo':'Limited ammo'}</span><span class="rc">${c.gloo_wall==='unlimited'?'🧱 Unlimited gloo walls':'Limited gloo walls'}</span><span class="rc">First to ${c.rounds===13?7:4}</span>${c.map?`<span class="rc">🗺 ${esc(c.map)}</span>`:''}</div>`;
+  return `<div class="rcs"><span class="rc ${sk?'y':'n'}"><img src="/characters/alok-skill.webp" alt="" loading="lazy">Skills ${sk?'on':'off'}</span><span class="rc ${gu?'y':'n'}"><img class="w" src="/weapons/ak47.webp" alt="" loading="lazy">Gun attr ${gu?'on':'off'}</span><span class="rc">${c.ammo==='unlimited'?'∞ Unlimited ammo':'Limited ammo'}</span><span class="rc"><img class="w" src="/weapons/gloo-wall.webp" alt="" loading="lazy">${c.gloo_wall==='unlimited'?'Unlimited gloo walls':'Limited gloo walls'}</span><span class="rc">First to ${c.rounds===13?7:4}</span>${c.map?`<span class="rc">🗺 ${esc(c.map)}</span>`:''}</div>`;
 }
 // "how many coins at the end": stakes in, fee out, what the winner receives
 function payBox(st){
@@ -419,6 +422,7 @@ function renderCreate(){
   $('stakes').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{stake=+c.dataset.a;$('stake-custom').value='';renderCreate();});
   $('pay').innerHTML=payBox(stake);
   document.querySelectorAll('.seg').forEach(g=>{const k=g.dataset.k,cur=k==='skill'||k==='gun'?(rs[k]?'1':'0'):String(rs[k]);g.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===cur));});
+  const wpx=$('wpx'),gh=$('gun-hint');if(wpx){wpx.classList.toggle('off',!rs.gun);gh.textContent=rs.gun?'On: gun skins add their stat bonuses (damage, rate of fire…)':'Off: every gun uses its base stats, whatever skin you have';}
   const skx=$('skx'),skh=$('sk-hint');if(skx){skx.classList.toggle('off',!rs.skill);skh.textContent=rs.skill?'On: every character skill works, like Alok, Orion and Dimitri':'Off: nobody can use a character skill, pure gunplay';}
   $('presets').innerHTML=PRESETS.map(p=>{const on=Object.keys(p.v).every(k=>p.v[k]===rs[k]);return `<button type="button" class="preset${on?' on':''}" data-p="${p.id}">${p.t}<small>${p.d}</small></button>`;}).join('');
   $('presets').querySelectorAll('.preset').forEach(b=>b.onclick=()=>{rs={...PRESETS.find(p=>p.id===b.dataset.p).v};renderCreate();});
