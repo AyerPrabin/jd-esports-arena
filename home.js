@@ -1786,7 +1786,12 @@ async function registerInApp(name){
       .then(ok=>{if(ok)goWallet('load');});
     return;
   }
-  if(!paid&&!_myRegs.has(name)&&_freeOk===false){confirmBox('🎟️ You need a free card',`Free tournaments need a free card.\n\n1. Repost our latest TikTok video (@ayer_fire)\n2. Comment on it\n3. Post about JD Arena and say how to download it\n\nThen send your post link. A mod checks it and you get your card.`,'Get my card','Later').then(ok=>{if(ok)location.href='/wallet/#promo';});return;}
+  _regPayPts=false;
+  if(!paid&&!_myRegs.has(name)&&_freeOk===false){
+    if(!await confirmBox('🎟️ Join this free tournament',`Pick one:\n\n🪙 Pay 5 points and join now. You get them back if you withdraw 24 hours or more before the start.\n\n🎟️ Or get a free card: post about JD Arena, or follow @ayer_fire and like, comment on and repost our latest video. A mod checks it, then your card joins one free tournament.`,'Pay 5 points','Get a free card')){location.href='/wallet/#promo';return;}
+    if(!canAfford(5)){confirmBox('🪙 Load points to join',`You need 5 points and you have ${walletLabel()}.`,'Load points','Later').then(ok=>{if(ok)goWallet('load');});return;}
+    _regPayPts=true;
+  }
   /* free events: 3 rewarded ads first when the ad gate is on (ads.js + ad_gate.sql; Weekly Pass skips it) */
   if(!paid&&!_myRegs.has(name)&&window.jdAds&&!(await jdAds.gate(sb,name)))return;
   _regTarget=name;_regLogoData=null;_regPayData=null;
@@ -1971,11 +1976,11 @@ async function submitRegister(){
   // server-side, so a rush of joins right at capacity can't over-subscribe the tournament
   // the way a client-only check (registerInApp's early gate above) could.
   const deviceType=(document.getElementById('reg-device')||{}).value||'mobile';
-  const {data:reg,error}=await sb.rpc('register_for_tournament',{p_tournament_slug:name,p_squad_name:squad,p_squad_logo:_regLogoData,p_status:status,p_payment_screenshot:_regPayData,p_device_type:deviceType});
+  const {data:reg,error}=await sb.rpc('register_for_tournament',{p_tournament_slug:name,p_squad_name:squad,p_squad_logo:_regLogoData,p_status:status,p_payment_screenshot:_regPayData,p_device_type:deviceType,...(_regPayPts?{p_pay_points:true}:{})});
   if(error){
     if(/duplicate/i.test(error.message))msg.textContent="You're already registered for this one.";
     else if(/tournament full/i.test(error.message))msg.textContent='This tournament just filled up — all squad slots are taken.';
-    else if(/FREE_CARD_NEEDED/.test(error.message)){msg.innerHTML=esc(error.message.replace(/^.*FREE_CARD_NEEDED:\s*/,''))+' <a href="/wallet/#promo" style="color:var(--gold-l);font-weight:700">Get my card</a>';msg.className='msg err';return;}
+    else if(/FREE_CARD_NEEDED/.test(error.message)){msg.innerHTML=esc(error.message.replace(/^.*FREE_CARD_NEEDED:\s*/,''))+' <a href="/wallet/#promo" style="color:var(--gold-l);font-weight:700">Get my card</a> or tap Join again to pay 5 points.';msg.className='msg err';return;}
     else if(/ADS_NEEDED/.test(error.message)){msg.textContent=error.message.replace(/^.*ADS_NEEDED:\s*/,'');msg.className='msg err';if(window.jdAds)jdAds.gate(sb,name,true).then(ok=>{if(ok)submitRegister();});return;}
     else if(/weekly pass/i.test(error.message)){msg.innerHTML=esc(error.message.replace(/\s*Get it at jdesport\.co\.uk\/pass\.?$/,''))+' <a href="/pass/" style="color:var(--gold-l);font-weight:700;text-decoration:underline">Get a Weekly Pass →</a>';}
     else msg.textContent=error.message; // covers the ban / mobile-only / emulator-only messages raised server-side, already human-readable
@@ -2494,7 +2499,7 @@ async function checkLock(){
 }
 setTimeout(renderFxShow,600);
 function goWallet(tab){location.href='/wallet/'+(tab?'#'+tab:'');}
-let _freeOk,_wallet=0,_walletLoaded=false,_walletUnlimited=false,_vouchers=0,_cards=[];
+let _freeOk,_regPayPts=false,_wallet=0,_walletLoaded=false,_walletUnlimited=false,_vouchers=0,_cards=[];
 const vFit=price=>_cards.filter(c=>!c.max_npr||c.max_npr>=price).length;   /* free-entry cards that cover this fee (promo_cards.sql) */   /* _vouchers: free-entry vouchers from promoting JD Arena (promo_vouchers.sql) */
 function canAfford(n){return _walletUnlimited||_wallet>=n;}
 function walletLabel(){return _walletUnlimited?'100B':String(_wallet);}
@@ -3064,7 +3069,7 @@ var Z={
   greetn:"Welcome back, {x}! \uD83D\uDC4B I'm ZULU. Ask me about tournaments, joining, rules, or contact.",
   nameset:"Nice to meet you, {x}! I'll remember that. Now \u2014 ask me anything about JD Arena.",
   secret:"That part's private to Prabin \u2014 I only handle JD Arena: tournaments, how to join, the rules, and contact. Ask me any of those! \uD83C\uDFAE",
-  wpass:"🎟 The Weekly Pass is switched off for now - nothing to buy, nothing taken from your points or prizes. Free JD tournaments stay free to join (watch 3 short ads in the app), prizes are paid in full, and JD Frag Engine only needs an Optimizer plan. Invite friends: you both get +40 when they win their first prize.",
+  wpass:"🎟 The Weekly Pass is switched off for now - nothing to buy, nothing taken from your points or prizes. Free JD tournaments join with a free card or 5 points, there are no ads, prizes are paid in full, and JD Frag Engine only needs an Optimizer plan. Invite friends: you both get +40 when they win their first prize.",
   howjoin:"Easy \u2014 5 steps:\n1. Sign up (your squad name is saved for next time).\n2. Load points: in your wallet, pay the eSewa QR and upload the payment screenshot.\n3. Tap Join on a tournament. Free ones confirm instantly; paid ones are paid from your points.\n4. Tap \"Confirm you're playing\" on the event. The confirm window opens 48 hours before start and closes 24 hours before \u2014 squads not confirmed by then lose their seat (entry points refunded).\n5. The Room ID + password appear on your ticket about 5 minutes before the match.",
   wallet:"Your JD points wallet: 1 point = Rs 1. Points are the only way to pay for paid entries and squad effects.\nTo load: open the wallet (the coin at the top) \u2192 Load \u2192 pay the eSewa QR with your username in the remarks, then upload the payment screenshot. No screenshot, no points. Points arrive once it's verified.",
   withdrawpts:"To cash out: open your wallet (the coin at the top) \u2192 Withdraw \u2192 enter the points, your eSewa ID and account name. The points leave your wallet now and the money is sent to your eSewa by hand, usually within a day.",

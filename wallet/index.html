@@ -215,11 +215,16 @@ input:focus{border-color:var(--gold)}
       <div class="card">
         <div class="pr-have" id="pr-have"><b id="pr-n">0</b><span>free-entry cards<small id="pr-exp"></small></span></div><div class="pr-cards" id="pr-cards"></div>
         <h2>Get a free card for free tournaments</h2>
-        <p class="sub">Free tournaments need a free card. Do all three, then send your post link. A JD mod checks them and gives you one card for one free tournament.</p>
+        <p class="sub">Every free tournament asks for a free card. Do one of these two. A JD mod checks it and gives you one card for one free tournament. Don't want to? You can pay 5 points when you join instead.</p>
         <ol class="steps">
-          <li class="step"><h3>Repost our video</h3><p class="sub">Repost the latest video on <a href="https://www.tiktok.com/@ayer_fire" target="_blank" rel="noopener noreferrer">TikTok @ayer_fire</a> from your own account.</p></li>
-          <li class="step"><h3>Comment on it</h3><p class="sub">Leave a real comment on that video from the same account.</p></li>
-          <li class="step"><h3>Post about JD Arena</h3><p class="sub">Make your own post and say how to download the app: <b>jdesport.co.uk/download</b>. Keep it public so the mod can see it.</p>
+          <li class="step"><h3>Follow, like, comment, repost</h3><p class="sub">From your TikTok, follow <a href="https://www.tiktok.com/@ayer_fire" target="_blank" rel="noopener noreferrer">@ayer_fire</a>, then like, comment on and repost our latest video. Send your TikTok username.</p>
+            <form id="pe-form" novalidate>
+              <input id="pe-handle" type="text" placeholder="@yourname" maxlength="60" autocomplete="off" autocapitalize="none" aria-label="Your TikTok username">
+              <button class="btn" id="pe-send" type="submit" style="margin-top:10px">Send for a check</button>
+              <p class="pr-msg" id="pe-msg" role="status"></p>
+            </form>
+          </li>
+          <li class="step"><h3>Or post about JD Arena</h3><p class="sub">Make your own public post and say how to download the app: <b>jdesport.co.uk/download</b>. Send the link to your post.</p>
             <form id="pf-form" novalidate>
               <input id="pf-url" type="url" inputmode="url" placeholder="https://www.tiktok.com/@you/video/…" maxlength="300" autocomplete="off" aria-label="Link to your post">
               <button class="btn" id="pf-send" type="submit" style="margin-top:10px">Send for a check</button>
@@ -397,8 +402,19 @@ async function loadPromo(){
   $('pr-cards').innerHTML=(data.cards||[]).map(c=>{const t=TIER[c.tier]||TIER.any;return `<span class="pr-card ${esc(c.tier)}">${t[0]} ${t[1]}<b>${c.tier==='free'?'one free tournament':c.max_npr?'up to Rs '+(+c.max_npr):'any paid event'}</b><small>ends ${esc(new Date(c.expires_at).toLocaleDateString(undefined,{day:'numeric',month:'short'}))}</small></span>`;}).join('');
   $('pr-exp').textContent=data.next_expiry?' · next ends '+new Date(data.next_expiry).toLocaleDateString(undefined,{day:'numeric',month:'short'}):'';
   const posts=data.posts||[];$('pr-list-card').hidden=!posts.length;
-  $('pr-list').innerHTML=posts.map(p=>{const st=PR_ST[p.status]||['',''];return `<div class="pr-row ${esc(p.status)}"><span class="pr-ic">${st[0]}</span><div><a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"><span class="cap">${esc(p.platform)}</span> · ${p.kind==='repost'?'free card post':(+p.views).toLocaleString()+' views'}</a><small>${st[1]}${p.note?' · '+esc(p.note):''}</small></div></div>`;}).join('');
+  $('pr-list').innerHTML=posts.map(p=>{const st=PR_ST[p.status]||['',''];return `<div class="pr-row ${esc(p.status)}"><span class="pr-ic">${st[0]}</span><div><a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"><span class="cap">${esc(p.platform)}</span> · ${p.kind==='engage'?'free card follow':p.kind==='repost'?'free card post':(+p.views).toLocaleString()+' views'}</a><small>${st[1]}${p.note?' · '+esc(p.note):''}</small></div></div>`;}).join('');
 }
+$('pe-form').onsubmit=async e=>{
+  e.preventDefault();
+  const h=$('pe-handle').value.trim(),m=$('pe-msg');
+  if(!h){m.textContent='Type your TikTok username, like @yourname.';m.className='pr-msg err';$('pe-handle').focus();return;}
+  $('pe-send').disabled=true;m.textContent='Sending…';m.className='pr-msg';
+  const {error}=await sb.rpc('promo_submit_engage',{p_handle:h});
+  $('pe-send').disabled=false;
+  if(error){m.textContent=error.message;m.className='pr-msg err';return;}
+  m.textContent='Sent. A JD mod will check it, and you’ll get a notification.';m.className='pr-msg ok';
+  $('pe-handle').value='';loadPromo();
+};
 $('pf-form').onsubmit=async e=>{
   e.preventDefault();
   const url=$('pf-url').value.trim(),m=$('pf-msg');
