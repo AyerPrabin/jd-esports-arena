@@ -22,6 +22,7 @@ function linkFor(n: any): { url: string; tag: string; category?: string } {
   // result deadlines and disputes can cost a stake if missed: always pushed
   if (/confirm your challenge result|challenge disputed|challenge under review/i.test(t)) return { url: `${SITE}/challenges/`, tag: 'jd-challenge-result' };
   if (/challenge/i.test(t)) return { url: `${SITE}/challenges/`, tag: 'jd-challenge', category: 'challenges' };
+  if (/free card|looking for mods/i.test(t)) return { url: `${SITE}/wallet/#promo`, tag: 'jd-free-card' };
   if (/wallet|points added/i.test(t)) return { url: `${SITE}/wallet/`, tag: 'jd-wallet', category: 'wallet' };
   if (/Admin →/.test(t)) return { url: `${SITE}/admin/`, tag: 'jd-admin' };
   // tournament alerts open that event's ticket on the homepage (home.js ?ticket=)

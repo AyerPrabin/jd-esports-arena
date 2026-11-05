@@ -461,8 +461,8 @@ async function loadClash(){
 }
 async function loadCards(){
   const {data}=await sb.rpc('promo_mine');const c=(data&&data.cards)||[];if(!c.length)return;
-  const T={bronze:'🥉 Bronze',silver:'🥈 Silver',gold:'🥇 Gold',any:'🎟️ Free entry'};
-  $('fc-list').innerHTML=c.map(x=>`<div class="fcard ${esc(x.tier)}"><b>${T[x.tier]||T.any}</b><small>${x.max_npr?'Any event up to Rs '+(+x.max_npr):'Any paid event'} · ends ${esc(fmtDate(x.expires_at))}</small></div>`).join('');
+  const T={free:'🎟️ Free card',bronze:'🥉 Bronze',silver:'🥈 Silver',gold:'🥇 Gold',any:'🎟️ Free entry'};
+  $('fc-list').innerHTML=c.map(x=>`<div class="fcard ${esc(x.tier)}"><b>${T[x.tier]||T.any}</b><small>${x.tier==='free'?'One free tournament':x.max_npr?'Any event up to Rs '+(+x.max_npr):'Any paid event'} · ends ${esc(fmtDate(x.expires_at))}</small></div>`).join('');
   $('fc-card').hidden=false;
 }
 async function loadTournaments(){
@@ -602,7 +602,7 @@ $('ref-save').onclick=async()=>{
   setInterval(()=>{if(!document.hidden)loadWallet();},20000);
 })();
 </script>
-<script src="/ui.js?v=25" defer></script>
+<script src="/ui.js?v=26" defer></script>
 <script src="/chat.js?v=36" defer></script>
 <script src="/avcrop.js?v=1"></script>
 </body>

@@ -347,7 +347,8 @@ function isIosDevice(){return /iP(hone|od|ad)/.test(navigator.userAgent)||(navig
    opens a plain URL in a new tab, so Android's android-app:// referrer counts too (version unknown: -1).
    Kept in sessionStorage, never localStorage: the app shares Chrome's storage, so ordinary Chrome tabs
    would think they're the app. */
-const JD_TWA=(()=>{try{const m=/[?&]source=twa&av=(\d+)/.exec(location.search);
+const JD_TWA=(()=>{try{const a=/JDArenaApp\/(\d+)/.exec(navigator.userAgent);if(a)return +a[1]; /* app 2.0+ says so itself, also on shortcut / widget / notification links that have no av= */
+  const m=/[?&]source=twa&av=(\d+)/.exec(location.search);
   if(m)sessionStorage.setItem('jd_twa',m[1]);
   else if(/^android-app:\/\/uk\.co\.jdesport\.arena/.test(document.referrer)&&!sessionStorage.getItem('jd_twa'))sessionStorage.setItem('jd_twa','-1');
   return +(sessionStorage.getItem('jd_twa')||0);}catch(e){return 0;}})();
@@ -1785,6 +1786,7 @@ async function registerInApp(name){
       .then(ok=>{if(ok)goWallet('load');});
     return;
   }
+  if(!paid&&!_myRegs.has(name)&&_freeOk===false){confirmBox('🎟️ You need a free card',`Free tournaments need a free card.\n\n1. Repost our latest TikTok video (@ayer_fire)\n2. Comment on it\n3. Post about JD Arena and say how to download it\n\nThen send your post link. A mod checks it and you get your card.`,'Get my card','Later').then(ok=>{if(ok)location.href='/wallet/#promo';});return;}
   /* free events: 3 rewarded ads first when the ad gate is on (ads.js + ad_gate.sql; Weekly Pass skips it) */
   if(!paid&&!_myRegs.has(name)&&window.jdAds&&!(await jdAds.gate(sb,name)))return;
   _regTarget=name;_regLogoData=null;_regPayData=null;
@@ -1973,6 +1975,7 @@ async function submitRegister(){
   if(error){
     if(/duplicate/i.test(error.message))msg.textContent="You're already registered for this one.";
     else if(/tournament full/i.test(error.message))msg.textContent='This tournament just filled up — all squad slots are taken.';
+    else if(/FREE_CARD_NEEDED/.test(error.message)){msg.innerHTML=esc(error.message.replace(/^.*FREE_CARD_NEEDED:\s*/,''))+' <a href="/wallet/#promo" style="color:var(--gold-l);font-weight:700">Get my card</a>';msg.className='msg err';return;}
     else if(/ADS_NEEDED/.test(error.message)){msg.textContent=error.message.replace(/^.*ADS_NEEDED:\s*/,'');msg.className='msg err';if(window.jdAds)jdAds.gate(sb,name,true).then(ok=>{if(ok)submitRegister();});return;}
     else if(/weekly pass/i.test(error.message)){msg.innerHTML=esc(error.message.replace(/\s*Get it at jdesport\.co\.uk\/pass\.?$/,''))+' <a href="/pass/" style="color:var(--gold-l);font-weight:700;text-decoration:underline">Get a Weekly Pass →</a>';}
     else msg.textContent=error.message; // covers the ban / mobile-only / emulator-only messages raised server-side, already human-readable
@@ -1984,6 +1987,7 @@ async function submitRegister(){
   _player.squad_name=squad;if(_regLogoData)_player.squad_logo=_regLogoData;
   // optional WhatsApp reminder number — a failure here never undoes the registration
   if(wa&&reg&&reg.id){try{await sb.rpc('set_registration_whatsapp',{p_reg_id:reg.id,p_whatsapp:wa});_myContact=Object.assign({},_myContact||{},{whatsapp:wa,device_type:deviceType});}catch(e){}}
+  if(!paid)loadWallet(); // a free card may just have been used
   // Paid: entry is paid in points only — taken straight away when the wallet covers it.
   let codeErr='';
   const useV=paid&&vFit(entryAmount(t))>0&&(!canAfford(entryAmount(t))||((document.getElementById('reg-use-v')||{}).checked));
@@ -2490,14 +2494,14 @@ async function checkLock(){
 }
 setTimeout(renderFxShow,600);
 function goWallet(tab){location.href='/wallet/'+(tab?'#'+tab:'');}
-let _wallet=0,_walletLoaded=false,_walletUnlimited=false,_vouchers=0,_cards=[];
+let _freeOk,_wallet=0,_walletLoaded=false,_walletUnlimited=false,_vouchers=0,_cards=[];
 const vFit=price=>_cards.filter(c=>!c.max_npr||c.max_npr>=price).length;   /* free-entry cards that cover this fee (promo_cards.sql) */   /* _vouchers: free-entry vouchers from promoting JD Arena (promo_vouchers.sql) */
 function canAfford(n){return _walletUnlimited||_wallet>=n;}
 function walletLabel(){return _walletUnlimited?'100B':String(_wallet);}
 async function loadWallet(){
   if(!sb||!_player){_wallet=0;return;}
   const [{data},vr]=await Promise.all([sb.from('wallets').select('balance, unlimited').eq('player_id',_player.id).maybeSingle(),sb.rpc('promo_mine').then(r=>r,()=>null)]);
-  _vouchers=(vr&&vr.data&&vr.data.vouchers)||0;_cards=(vr&&vr.data&&vr.data.cards)||[];
+  _vouchers=(vr&&vr.data&&vr.data.vouchers)||0;_cards=(vr&&vr.data&&vr.data.cards)||[];_freeOk=vr&&vr.data?vr.data.free_ok:undefined;
   const prev=_wallet;_wallet=(data&&data.balance)||0;_walletUnlimited=!!(data&&data.unlimited);_walletLoaded=true;
   const el=document.getElementById('pts-bal');if(el)el.textContent=walletLabel();
   const nb=document.getElementById('nav-pts-bal');if(nb)nb.textContent=walletLabel();

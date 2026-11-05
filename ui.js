@@ -165,7 +165,12 @@ if (window.JDApp || /JDArenaApp\//.test(navigator.userAgent)) document.documentE
   var standalone = mm('(display-mode: standalone)') || mm('(display-mode: fullscreen)') || mm('(display-mode: minimal-ui)') || navigator.standalone === true;
   var path = location.pathname;
   // JD Arena app 2.0+ is a real app (its own WebView, window.JDApp) - never gate it (its UA looks like an in-app browser)
-  if (window.JDApp || /JDArenaApp\//.test(ua)) return;
+  if (window.JDApp || /JDArenaApp\//.test(ua)) {
+    var hide = document.createElement('style');
+    hide.textContent = '.no-in-app{display:none!important}'; // "download the app" links, inside the app
+    document.documentElement.appendChild(hide);
+    return;
+  }
   var exempt = /^\/(privacy|terms|reset-password|admin|about|download|app-auth)/.test(path) ||
     /confirm_delete=1|type=recovery/.test(location.search + location.hash) ||
     /bot|crawl|spider|slurp|lighthouse|inspectiontool|headless/i.test(ua);
