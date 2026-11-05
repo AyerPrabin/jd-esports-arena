@@ -396,17 +396,37 @@
       "registered": 0
     },
     {
-      "name": "JD Free Fire Open #17",
-      "game": "Free Fire BR · Squad",
-      "date": "Mon, Nov 9",
-      "time": "9:30 PM NPT",
-      "start": "2026-11-09T21:30:00+05:45",
-      "status": "upcoming",
       "map": "purgatory",
+      "date": "Mon, Nov 9",
+      "game": "Free Fire BR · Squad",
+      "map2": "random",
+      "map3": "random",
+      "name": "JD Free Fire Open #17",
+      "time": "9:30 PM NPT",
+      "entry": "Free",
+      "prize": "200",
+      "slots": 12,
+      "start": "2026-11-09T21:30:00+05:45",
+      "format": "BR · Best of 3",
+      "status": "upcoming",
+      "platform": "Mix Device",
+      "early_access": "yes",
+      "platform_mode": "mixed",
+      "teams": [],
+      "registered": 0
+    },
+    {
+      "name": "JD Free Fire Open #18",
+      "game": "Free Fire BR · Squad",
+      "date": "Sun, Nov 8",
+      "time": "9:30 PM NPT",
+      "start": "2026-11-08T21:30:00+05:45",
+      "status": "upcoming",
+      "map": "kalahari",
       "prize": "200",
       "entry": "Free",
-      "platform": "Mix Device",
-      "platform_mode": "mixed",
+      "platform": "Mobile only",
+      "platform_mode": "mobile",
       "slots": 12,
       "format": "BR · Best of 3",
       "map2": "random",
@@ -622,5 +642,5 @@
       }
     ]
   },
-  "_published_at": "2026-11-04T19:16:58.915Z"
+  "_published_at": "2026-11-05T14:14:51.498Z"
 }
