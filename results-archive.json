@@ -1,6 +1,157 @@
 {
  "events": [
   {
+   "name": "JD Free Fire Open #16",
+   "date": "Thu, Nov 5",
+   "start": "2026-11-05T21:30:00+05:45",
+   "maps": [
+    "purgatory",
+    "kalahari",
+    "bermuda"
+   ],
+   "prize": "200",
+   "winner": "KTM ESP.",
+   "kill_pts": 1,
+   "teams": [
+    {
+     "team": "KTM ESP.",
+     "r": [
+      {
+       "kills": 19,
+       "pts": 12
+      },
+      {
+       "kills": 2,
+       "pts": 8
+      },
+      {
+       "kills": 10,
+       "pts": 9
+      }
+     ]
+    },
+    {
+     "team": "OG CLASSIC",
+     "r": [
+      {
+       "kills": 6,
+       "pts": 4
+      },
+      {
+       "kills": 0,
+       "pts": 6
+      },
+      {
+       "kills": 17,
+       "pts": 12
+      }
+     ]
+    },
+    {
+     "team": "Ancient Ogs 1",
+     "r": [
+      {
+       "kills": 3,
+       "pts": 9
+      },
+      {
+       "kills": 10,
+       "pts": 12
+      },
+      {
+       "kills": 4,
+       "pts": 6
+      }
+     ]
+    },
+    {
+     "team": "Youtz Esp",
+     "r": [
+      {
+       "kills": 2,
+       "pts": 5
+      },
+      {
+       "kills": 11,
+       "pts": 7
+      },
+      {
+       "kills": 9,
+       "pts": 8
+      }
+     ]
+    },
+    {
+     "team": "TeamㅤSᴍɢ",
+     "r": [
+      {
+       "kills": 1,
+       "pts": 6
+      },
+      {
+       "kills": 4,
+       "pts": 9
+      },
+      {
+       "kills": 0,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "Noob Gang",
+     "r": [
+      {
+       "kills": 13,
+       "pts": 7
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "SXP E-SPROT",
+     "r": [
+      {
+       "kills": 2,
+       "pts": 8
+      },
+      {
+       "kills": 0,
+       "pts": 4
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "PRIME ESPORTS",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
    "name": "JD Free Fire Open #13",
    "date": "Wed, Nov 4",
    "start": "2026-11-04T21:30:00+05:45",
