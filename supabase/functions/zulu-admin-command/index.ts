@@ -266,7 +266,7 @@ Reply with ONLY one JSON object, no markdown, in this shape:
 {"reply": "1-3 short sentences", "actions": [ ... ]}
 
 Allowed actions (use exactly these fields; omit fields the organiser didn't give - the page fills sensible defaults from the last event):
-- {"type":"create_event","name":"optional, leave out to auto-number","date":"YYYY-MM-DD","time":"HH:MM 24h Nepal time","prize":500,"entry_points":0,"slots":12,"matches":3,"device":"mobile|mixed|emulator","map":"bermuda|purgatory|kalahari|alpine|nexterra","publish":true}
+- {"type":"create_event","name":"optional, leave out to auto-number","date":"YYYY-MM-DD","time":"HH:MM 24h Nepal time","prize":180,"entry_points":0,"slots":12,"matches":3,"device":"mobile|mixed|emulator","map":"bermuda|purgatory|kalahari|alpine|nexterra","publish":true} (a free event is always prize 180; only paid events get a bigger prize)
 - {"type":"edit_event","event":"event name or #number","set":{same fields as create_event except name},"publish":true}
 - {"type":"finish_event","event":"...","winner":"optional squad name","publish":true}
 - {"type":"cancel_event","event":"...","publish":true}
