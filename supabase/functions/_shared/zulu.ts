@@ -63,10 +63,8 @@ export async function teamAnswers(question: string, exclude?: string): Promise<s
     const clean = (t: string) => String(t || '').replace(/\S+@\S+\.\S+/g, '[email]').replace(/https?:\/\/\S+/g, '[link]')
       .replace(/@[\w.]+/g, '@player').replace(/\d[\d\s-]{4,}\d/g, '[number]').replace(/\s+/g, ' ').trim();
     return '\n\nHOW THE JD TEAM ANSWERED SIMILAR QUESTIONS (other players\' support chats, learned so you answer the same way: copy the policy, the fix and the tone, never mention those players or their details; the facts above and the live data win if they disagree):\n' +
-      'If two answers disagree, the newest one is right. An answer marked CORRECTED fixed something you said: follow it and never repeat your old answer.
-' +
-      data.map((r: any) => `- Player: "${clean(r.q)}" -> JD team${r.corrected ? ' (CORRECTED)' : ''}, ${r.days ? r.days + ' days ago' : 'today'}: "${clean(r.a)}"`).join('
-');
+      'If two answers disagree, the newest one is right. An answer marked CORRECTED fixed something you said: follow it and never repeat your old answer.\n' +
+      data.map((r: any) => `- Player: "${clean(r.q)}" -> JD team${r.corrected ? ' (CORRECTED)' : ''}, ${r.days ? r.days + ' days ago' : 'today'}: "${clean(r.a)}"`).join('\n');
   } catch { return ''; }
 }
 
