@@ -2138,6 +2138,13 @@ function renderPendingPayments(){
 }
 /* ── points wallets (wallet-admin Edge Function) ── */
 let _waPlayer=null;
+async function waResetPin(){
+  if(!_waPlayer)return;
+  const who=_waPlayer.username?'@'+_waPlayer.username:(_waPlayer.player_tag||'this player');
+  if(!confirm(`Reset the wallet PIN of ${who}? Do this only after checking it is really them, because whoever holds this account can then set a new PIN.`))return;
+  try{const d=await waCall({action:'reset_pin',player_id:_waPlayer.id});waMsg(d.ok?`PIN reset. ${who} was told to create a new one.`:`${who} has no wallet PIN.`,d.ok?'ok':'');}
+  catch(e){waMsg(e.message,'err');}
+}
 function waMsg(t,c){const el=document.getElementById('wa-msg');if(el){el.textContent=t;el.className='hint '+(c||'');}}
 async function waCall(body){
   const secret=adminSecret();
@@ -2178,6 +2185,7 @@ async function walletLookup(id){
       </div>
       <div class="row" style="margin:8px 0 0">${[50,100,200,500].map(a=>`<button type="button" class="btn ghost" style="font-size:.74rem;padding:6px 12px" onclick="document.getElementById('wa-amt').value=${a}">${a}</button>`).join('')}<button class="btn" id="wa-credit" onclick="walletCredit()">➕ Add points</button><button class="btn ghost" id="wa-rf-open" onclick="refundOpen()">↩ Refund…</button></div>
       <div id="wa-refund"></div>
+      <div class="row" style="margin:10px 0 0"><button type="button" class="btn ghost" onclick="waResetPin()">🔒 Reset wallet PIN</button></div>
       <div class="row" style="margin:10px 0 0"><button type="button" class="btn ghost" onclick="jdActivity(document.getElementById('wa-act'),waActivity,waAvatarRemove)">📋 Full activity: what this player did</button></div><div id="wa-act"></div>
       ${d.ledger.length?`<table style="width:100%;font-size:.76rem;border-collapse:collapse;margin-top:12px">${d.ledger.map(x=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 4px">${esc(new Date(x.created_at).toLocaleString())}</td><td>${esc(WA_REASON[x.reason]||x.reason)}</td><td style="text-align:right;color:${x.delta>0?'var(--green,#5EDB95)':'#ff9d9d'}">${x.delta>0?'+':''}${x.delta}</td><td style="text-align:right">${x.balance_after}</td></tr>`).join('')}</table>`:'<p class="hint" style="margin:10px 0 0">No transactions yet.</p>'}
     </div>`;

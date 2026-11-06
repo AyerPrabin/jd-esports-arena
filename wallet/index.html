@@ -166,6 +166,17 @@ input:focus{border-color:var(--gold)}
 .modal h3{margin:0 0 8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.6rem;letter-spacing:.04em}
 .modal p{margin:0 0 18px;font-size:.86rem;color:var(--silver);white-space:pre-line}
 .modal .two{display:flex;gap:8px}
+.pin-modal input{display:block;width:100%;margin:0 0 10px;text-align:center;font-size:1.3rem;letter-spacing:.3em}
+.pin-modal input::placeholder{font-size:.9rem;letter-spacing:normal}
+.pin-modal input[hidden]{display:none}
+.pin-modal .msg{min-height:1.2em;margin:0 0 12px}
+.pin-forgot{display:block;margin-top:14px;font-size:.8rem;color:var(--gold-l);text-decoration:underline;text-underline-offset:3px}
+.pin-forgot[hidden]{display:none}
+.pin-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 0;padding:10px 12px 10px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03);font-size:.82rem;color:var(--silver)}
+.pin-bar[hidden]{display:none}
+.pin-bar.need{border-color:var(--gold-m);background:rgba(255,200,61,.08);color:var(--gold-l);font-weight:700}
+.pin-bar button{flex:none;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--gold-m);background:transparent;color:var(--gold-l);font:inherit;font-size:.78rem;font-weight:800;cursor:pointer}
+.pin-bar.need button{background:var(--gold);border-color:var(--gold);color:#0a0a12}
 .toast{position:fixed;left:50%;bottom:22px;z-index:60;transform:translate(-50%,20px);opacity:0;padding:11px 18px;border-radius:999px;background:#1d2638;border:1px solid var(--gold-m);font-size:.84rem;font-weight:600;transition:.25s;pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .skel{height:14px;border-radius:7px;background:linear-gradient(90deg,rgba(255,255,255,.04),rgba(255,255,255,.09),rgba(255,255,255,.04));background-size:200% 100%;animation:sk 1.2s linear infinite}
@@ -202,6 +213,8 @@ input:focus{border-color:var(--gold)}
       </div>
       <div class="pending-note" id="pend-note" hidden></div>
     </section>
+
+    <div class="pin-bar" id="pin-bar" hidden><span id="pin-bar-t"></span><button type="button" id="pin-bar-go"></button></div>
 
     <nav class="tabs" role="tablist">
       <button class="tab" data-tab="load" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Load</button>
@@ -350,6 +363,7 @@ input:focus{border-color:var(--gold)}
   </div>
 </div>
 
+<div class="ov" id="pin-ov"><form class="modal pin-modal" id="pin-form" autocomplete="off"><h3 id="pin-t"></h3><p id="pin-b"></p><input id="pin-1" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off"><input id="pin-2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off"><input id="pin-3" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off"><div class="msg" id="pin-msg" role="alert"></div><div class="two"><button class="btn ghost" id="pin-no" type="button">Cancel</button><button class="btn" id="pin-yes" type="submit">Continue</button></div><a class="pin-forgot" id="pin-forgot" href="https://wa.me/9779868813682?text=I%20forgot%20my%20JD%20wallet%20PIN" target="_blank" rel="noopener noreferrer">Forgot your PIN? Ask JD support</a></form></div>
 <div class="ov" id="ov"><div class="modal"><h3 id="ov-t"></h3><p id="ov-b"></p><div class="two"><button class="btn ghost" id="ov-no" type="button">Cancel</button><button class="btn" id="ov-yes" type="button">Confirm</button></div></div></div>
 <div class="toast" id="toast"></div>
 
@@ -441,6 +455,74 @@ $('pr-form').onsubmit=async e=>{
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 window.addEventListener('hashchange',()=>setTab(location.hash.slice(1)));
 
+
+/* ── wallet PIN (wallet_pin.sql): the server checks it, this only asks ── */
+let pinSet=null;
+const pinClean=m=>String(m||'').replace(/^PIN_REQUIRED:\s*/,'');
+function renderPinBar(){
+  $('pin-bar').hidden=pinSet===null;
+  $('pin-bar').classList.toggle('need',pinSet===false);
+  $('pin-bar-t').textContent=pinSet?'🔒 Wallet PIN is on':'🔒 Create your wallet PIN. You need it to load or withdraw.';
+  $('pin-bar-go').textContent=pinSet?'Change PIN':'Create PIN';
+}
+async function pinStatus(){
+  const {data,error}=await sb.rpc('wallet_pin_status');
+  if(error)throw error;
+  pinSet=!!data.has_pin;renderPinBar();
+  return pinSet;
+}
+function pinFail(d){
+  if(d.locked_until)return `Too many wrong tries. Your PIN is locked until ${new Date(d.locked_until).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}.`;
+  if(d.no_pin)return 'You have no wallet PIN yet. Close this and create one.';
+  return `Wrong PIN. ${d.left} ${d.left===1?'try':'tries'} left.`;
+}
+/* mode: create | enter | change. Gives a one-use token (create, enter), true (change) or null (cancelled). */
+function pinDialog(mode){
+  const M={create:['Create your wallet PIN','Pick 6 numbers you will remember. You need this PIN every time you load or withdraw. Never share it, not even with JD staff.',['New PIN','Type it again'],'Create PIN'],
+    enter:['Enter your wallet PIN','Type your 6-number PIN to continue.',['Wallet PIN'],'Continue'],
+    change:['Change your wallet PIN','Type your current PIN, then your new one.',['Current PIN','New PIN','Type it again'],'Change PIN']}[mode];
+  return new Promise(res=>{
+    const ins=['pin-1','pin-2','pin-3'].map($),msg=$('pin-msg');
+    $('pin-t').textContent=M[0];$('pin-b').textContent=M[1];$('pin-yes').textContent=M[3];
+    $('pin-yes').disabled=false;msg.className='msg';msg.textContent='';
+    ins.forEach((el,i)=>{el.value='';el.hidden=!M[2][i];el.placeholder=M[2][i]||'';el.setAttribute('aria-label',M[2][i]||'');});
+    $('pin-forgot').hidden=mode==='create';
+    $('pin-ov').classList.add('open');ins[0].focus();
+    const done=v=>{$('pin-ov').classList.remove('open');ins.forEach(el=>{el.value='';});$('pin-form').onsubmit=$('pin-no').onclick=null;res(v);};
+    const bad=t=>{msg.className='msg err';msg.textContent=t;$('pin-yes').disabled=false;};
+    $('pin-no').onclick=()=>done(null);
+    $('pin-form').onsubmit=async e=>{
+      e.preventDefault();
+      const [a,b,c]=ins.map(el=>el.value.trim());
+      const six=/^[0-9]{6}$/;
+      if(!six.test(a))return bad('Your PIN must be exactly 6 numbers.');
+      if(mode==='create'&&a!==b)return bad('The two PINs are different. Try again.');
+      if(mode==='change'&&(!six.test(b)||b!==c))return bad('Type the same 6-number new PIN twice.');
+      $('pin-yes').disabled=true;msg.className='msg';msg.textContent='Checking…';
+      if(mode==='change'){
+        const {data,error}=await sb.rpc('wallet_pin_change',{p_old:a,p_new:b});
+        if(error)return bad(error.message);
+        if(!data.ok)return bad(pinFail(data));
+        toast('Wallet PIN changed');return done(true);
+      }
+      if(mode==='create'){
+        const {error}=await sb.rpc('wallet_pin_create',{p_pin:a});
+        if(error)return bad(error.message);
+        pinSet=true;renderPinBar();toast('Wallet PIN created');
+      }
+      const {data,error}=await sb.rpc('wallet_pin_verify',{p_pin:a});
+      if(error)return bad(error.message);
+      if(!data.ok)return bad(pinFail(data));
+      done(data.token);
+    };
+  });
+}
+async function needPin(msg){
+  try{return await pinDialog((pinSet===null?await pinStatus():pinSet)?'enter':'create');}
+  catch(e){msg.className='msg err';msg.textContent='Could not check your wallet PIN. Check your connection and try again.';return null;}
+}
+$('pin-bar-go').onclick=()=>pinDialog(pinSet?'change':'create');
+
 /* ── load ── */
 function renderLoad(){
   $('amt-chips').innerHTML=LOAD_AMOUNTS.map(a=>`<button type="button" class="chip${a===loadAmt?' on':''}" data-a="${a}">Rs ${a}</button>`).join('');
@@ -491,10 +573,12 @@ $('load-btn').onclick=async()=>{
   const msg=$('load-msg');msg.className='msg';msg.textContent='';
   if(!(loadAmt>0)){msg.className='msg err';msg.textContent='Choose the amount you paid.';return;}
   if(!shotData){msg.className='msg err';msg.textContent='Upload your eSewa payment screenshot first.';return;}
+  const pinToken=await needPin(msg);
+  if(!pinToken)return;
   $('load-btn').disabled=true;msg.textContent='Uploading…';
-  const {error}=await sb.rpc('request_wallet_load',{p_amount:loadAmt,p_screenshot:shotData});
+  const {error}=await sb.rpc('request_wallet_load',{p_amount:loadAmt,p_screenshot:shotData,p_pin_token:pinToken});
   $('load-btn').disabled=false;
-  if(error){msg.className='msg err';msg.textContent=error.message;return;}
+  if(error){msg.className='msg err';msg.textContent=pinClean(error.message);return;}
   msg.className='msg ok';msg.textContent=`Sent! We'll check your Rs ${loadAmt.toLocaleString()} payment and add the points.`;
   shotData=null;$('shot-file').value='';$('shot-prev').hidden=true;$('shot-pick').classList.remove('has');
   $('shot-txt').innerHTML='<b>📷 Choose screenshot</b><small>PNG or JPG from your gallery</small>';
@@ -533,10 +617,12 @@ $('wd-btn').onclick=async()=>{
   if(receive<1){msg.className='msg err';msg.textContent='Withdraw at least 2 points (a 1% fee, min 1 point, applies).';return;}
   const ok=await confirmBox(`Withdraw ${n} points?`,`Rs ${receive} will be sent to ${id} (${name}) after a ${fee}-point platform fee (1%, min 1).\n\nThe ${n} points leave your wallet now. If we can't send it, they come back in full.`,'Request withdrawal');
   if(!ok)return;
+  const pinToken=await needPin(msg);
+  if(!pinToken)return;
   $('wd-btn').disabled=true;msg.textContent='Sending request…';
-  const {error}=await sb.rpc('request_withdrawal',{p_amount:n,p_esewa_id:id,p_esewa_name:name});
+  const {error}=await sb.rpc('request_withdrawal',{p_amount:n,p_esewa_id:id,p_esewa_name:name,p_pin_token:pinToken});
   $('wd-btn').disabled=false;
-  if(error){msg.className='msg err';msg.textContent=error.message;return;}
+  if(error){msg.className='msg err';msg.textContent=pinClean(error.message);return;}
   try{localStorage.setItem('jd_esewa',JSON.stringify({id,name}));}catch(e){}
   msg.className='msg ok';msg.textContent='Request sent. You will get a notification when the money is on its way.';
   $('wd-amt').value='';
@@ -595,6 +681,7 @@ async function refresh(){
   renderLoad();
   await refresh();
   setTab(location.hash.slice(1)||'load');
+  pinStatus().then(has=>{if(!has&&location.hash!=='#promo')pinDialog('create');}).catch(()=>{});
   setInterval(()=>{if(!document.hidden)refresh();},15000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
 })();
