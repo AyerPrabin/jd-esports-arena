@@ -12,10 +12,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#05080f;--panel:#0e1424;--panel-2:#0a0f1c;--line:#1c2840;--gold:#c9a84c;--gold-l:#e2c97e;--gold-m:#7e6630;--cream:#f4efe6;--silver:#aab4cc;--body:#7e8eb0;--cta:#FFC83D;--cta-2:#FFAE00;--ok:#5EDB95;--warn:#ff9f1c;--bad:#ff6b6b;--tabh:64px}
+:root{--bg:#05080f;--panel:#0e1424;--panel-2:#0a0f1c;--line:#1c2840;--gold:#c9a84c;--gold-l:#e2c97e;--gold-m:#7e6630;--cream:#f4efe6;--silver:#aab4cc;--body:#93a2c4;--cta:#FFC83D;--cta-2:#FFAE00;--ok:#5EDB95;--warn:#ff9f1c;--bad:#ff6b6b;--tabh:62px}
 *{box-sizing:border-box}
 html{-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--cream);font-family:'Geist',system-ui,sans-serif;font-weight:300;line-height:1.55;min-height:100vh;touch-action:manipulation}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:'Geist',system-ui,sans-serif;font-weight:400;line-height:1.5;min-height:100vh;touch-action:manipulation}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(900px 480px at 70% -10%,rgba(201,168,76,.10),transparent 60%);pointer-events:none}
 [hidden]{display:none!important}
 a{color:var(--gold-l)}
@@ -56,18 +56,19 @@ main{position:relative;max-width:1280px;margin:0 auto;padding:16px 16px calc(var
 
 #tab-events{display:none}
 /* tabs: bottom bar on phones, top strip on tablets, gone on desktop (everything is visible there) */
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);background:rgba(10,14,26,.97);border-top:1px solid var(--line);padding:0 0 env(safe-area-inset-bottom);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.tabs button{min-width:0;height:var(--tabh);border:0;background:none;color:var(--body);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font-size:.74rem;font-weight:500}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain;background:rgba(10,14,26,.97);border-top:1px solid var(--line);padding:0 0 env(safe-area-inset-bottom);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:1 0 76px;height:var(--tabh);border:0;background:none;color:var(--body);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font-size:.74rem;font-weight:500}
 .tabs svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.tabs button[aria-selected=true]{color:var(--cta)}
-.tabs .badge{position:absolute;margin:-18px 0 0 22px;min-width:18px;height:18px;border-radius:9px;background:var(--warn);color:#1a0d00;font-size:.68rem;font-weight:700;display:grid;place-items:center;padding:0 4px}
+.tabs button[aria-selected=true]{color:var(--cta);box-shadow:inset 0 2px 0 var(--cta)}
+.tabs .badge{position:absolute;top:-6px;left:50%;margin:0 0 0 5px;min-width:18px;height:18px;border-radius:9px;background:var(--warn);color:#1a0d00;font-size:.68rem;font-weight:700;display:grid;place-items:center;padding:0 4px}
 .tabs .tb{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px}
 .tabs button[hidden]{display:none}
 #tab-promo:not(.ok){display:none!important}
 @media (min-width:700px){
-  .tabs{position:sticky;top:var(--top-h,112px);bottom:auto;grid-auto-columns:auto;justify-content:start;gap:6px;background:var(--bg);border:0;padding:12px max(16px,calc((100% - 1280px)/2 + 16px));backdrop-filter:none;z-index:25}
-  .tabs button{height:auto;flex-direction:row;gap:7px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);font-size:.86rem}
-  .tabs button[aria-selected=true]{background:rgba(255,200,61,.1);border-color:var(--gold-m)}
+  .tabs{position:sticky;top:var(--top-h,112px);bottom:auto;gap:6px;background:var(--bg);border:0;padding:12px max(16px,calc((100% - 1280px)/2 + 16px));backdrop-filter:none;z-index:25}
+  .tabs button{flex:none;height:auto;flex-direction:row;gap:7px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);font-size:.86rem}
+  .tabs button[aria-selected=true]{background:rgba(255,200,61,.1);border-color:var(--gold-m);box-shadow:none}
   .tabs svg{width:18px;height:18px}
   .tabs .tb{flex-direction:row;gap:7px}
   .tabs .badge{position:static;margin:0}
@@ -92,7 +93,7 @@ main{position:relative;max-width:1280px;margin:0 auto;padding:16px 16px calc(var
 .evpast-h{margin:10px 2px 0;font-size:.74rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--silver)}
 .evpast-h span{text-transform:none;letter-spacing:0;font-weight:400;color:var(--body)}
 .evlist .evpill{width:100%;flex-direction:row;align-items:center;justify-content:space-between;padding:10px 12px}
-.evlist .evpill span{display:flex;flex-direction:column;min-width:0}
+.evlist .evpill>span{display:flex;flex-direction:column;min-width:0}
 .evlist .evpill b{overflow:hidden;text-overflow:ellipsis}
 
 /* ── squads ── */
@@ -358,6 +359,53 @@ textarea{min-height:96px;resize:vertical}
 .toast.err{border-color:var(--bad)}
 @media (min-width:700px){.toast{bottom:24px}}
 @media (prefers-reduced-motion:reduce){*,.sheet-bg,.sheet{transition:none!important}}
+/* ── match-night board ── the slot numbers are the status: green = playing, amber = not confirmed */
+.sec-h h2{font-size:1.55rem;line-height:1.1}
+.sec-h .btn.alt{margin-left:auto}
+.evpill[aria-pressed=true]{background:var(--gold-l);border-color:var(--gold-l);color:#07090F}
+.evpill[aria-pressed=true]:hover{border-color:var(--cta)}
+.evpill[aria-pressed=true] small,.evpill[aria-pressed=true] small span{color:#3a2f12!important}
+.evpill[aria-pressed=true] .live{font-weight:700}
+.evpast-h{text-transform:none;letter-spacing:0;font-size:.82rem}
+
+.sum{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px 12px;padding:0 16px}
+.sum::-webkit-scrollbar{display:none}
+.fil{flex:none;min-width:78px;border-radius:12px;padding:8px 12px;text-align:left;line-height:1.2;font-size:.76rem}
+.fil b{display:block;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.5rem;line-height:1.1}
+.fil[aria-pressed=true]{background:rgba(255,200,61,.08)}
+
+.slots{gap:6px}
+.slot{border-left:3px solid var(--line);transition:border-color .15s}
+.slot .no{background:#141c30;color:var(--silver);font-size:1.3rem;transition:background-color .15s,color .15s}
+.slot:has(.y[aria-pressed=true]){border-left-color:var(--ok)}
+.slot:has(.y[aria-pressed=true]) .no{background:var(--ok);color:#06140c}
+.slot:has(.n[aria-pressed=true]){border-left-color:var(--warn)}
+.slot:has(.n[aria-pressed=true]) .no{background:rgba(255,159,28,.14);color:var(--warn)}
+.slot.wait{border-left-style:dashed;border-left-color:var(--gold-m)}
+.slot .nm b{font-size:1.02rem}
+.play button{min-height:40px}
+.abtn{min-height:40px}
+.abtn.rm{color:#ff9d9d}
+
+#rc-id,#rc-pass{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:1.5rem;letter-spacing:.03em;font-variant-numeric:tabular-nums}
+#rc-id::placeholder,#rc-pass::placeholder{font-family:'Geist',system-ui,sans-serif;font-weight:400;font-size:.95rem;letter-spacing:0}
+
+.howto{margin:0 0 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel-2)}
+.howto summary{cursor:pointer;padding:10px 12px;font-weight:500;font-size:.88rem;color:var(--gold-l)}
+.howto p{margin:0;padding:0 12px 12px;font-size:.86rem;color:var(--silver);max-width:68ch}
+.ld{border-radius:12px}
+.empty{background:var(--panel-2)}
+
+@media (max-width:640px){
+  /* phones: no box around the boxes; the squads and queue items are the cards */
+  main{padding-left:12px;padding-right:12px}
+  main .panel{background:none;border:0;border-radius:0;padding:4px 0;margin:0}
+  .sum{margin:0 -12px 12px;padding:0 12px}
+  .acts .abtn{min-height:38px}
+  .play button{min-height:38px}
+  .brand>span>span{display:none}
+}
+@media (min-width:1080px){.sum{flex-wrap:wrap;overflow:visible;margin:0 0 12px;padding:0}}
 </style>
 </head>
 <body>
@@ -497,7 +545,7 @@ textarea{min-height:96px;resize:vertical}
   <section class="tab" id="tab-promo" aria-labelledby="h-promo">
     <div class="panel">
       <div class="sec-h"><h2 id="h-promo">Promo posts</h2><button type="button" class="btn alt" id="pr-reload" style="font-size:.9rem;padding:6px 12px">Refresh</button></div>
-      <p class="note" style="margin:0 0 10px">Open each link. Approve only if the post is about JD Arena, tags @ayer_fire and has both #AyerFire and #JDEsports in the caption and shows 1,000+ views now. Each player can have up to 3 approved videos. Approving gives the player 1 free-entry card (30 days): Bronze Rs 5, or a lucky draw for Silver Rs 50 / Gold Rs 100 at 10,000+ views. Reject fake or bought views, reposts and someone else's video.</p>
+      <details class="howto"><summary>What to check before approving</summary><p>Open each link. Approve only if the post is about JD Arena, tags @ayer_fire and has both #AyerFire and #JDEsports in the caption and shows 1,000+ views now. Each player can have up to 3 approved videos. Approving gives the player 1 free-entry card (30 days): Bronze Rs 5, or a lucky draw for Silver Rs 50 / Gold Rs 100 at 10,000+ views. Reject fake or bought views, reposts and someone else's video.</p></details>
       <div id="pr-q"></div>
     </div>
   </section>
@@ -506,7 +554,7 @@ textarea{min-height:96px;resize:vertical}
   <section class="tab" id="tab-loads" aria-labelledby="h-loads">
     <div class="panel">
       <div class="sec-h"><h2 id="h-loads">Point loads</h2><button type="button" class="btn alt" id="ld-reload" style="font-size:.9rem;padding:6px 12px">Refresh</button></div>
-      <p class="note" style="margin:0 0 10px">Every "money received" alert from the JD phone appears under <b>Money received</b>. Open a player's screenshot and check the amount and time match a payment, then tap <b>Match &amp; add points</b>. You can only add points for an exact match (same amount, paid up to 3 hours before the request). Anything else, leave for the admin.</p>
+      <details class="howto"><summary>How to match a load</summary><p>Every "money received" alert from the JD phone appears under <b>Money received</b>. Open a player's screenshot and check the amount and time match a payment, then tap <b>Match &amp; add points</b>. You can only add points for an exact match (same amount, paid up to 3 hours before the request). Anything else, leave for the admin.</p></details>
       <div id="ld-q"></div>
       <h3 style="margin:16px 0 6px;font-size:1rem">Money received (48 hours)</h3>
       <div id="ld-pay"></div>
@@ -518,7 +566,7 @@ textarea{min-height:96px;resize:vertical}
   <section class="tab" id="tab-challenges" aria-labelledby="h-cq">
     <div class="panel">
       <div class="sec-h"><h2 id="h-cq">Challenges to decide</h2><button type="button" class="btn alt" id="cq-reload" style="font-size:.9rem;padding:6px 12px">Refresh</button></div>
-      <p class="note" style="margin:0 0 10px">A challenge lands here when both captains say they won, or one says "won" and the other never answers. Read the chat and open the result screenshots. Pay the side the screenshot shows as the winner. If nobody shows proof, refund both. The decision is final and moves real points, so take your time.</p>
+      <details class="howto"><summary>How to decide a challenge</summary><p>A challenge lands here when both captains say they won, or one says "won" and the other never answers. Read the chat and open the result screenshots. Pay the side the screenshot shows as the winner. If nobody shows proof, refund both. The decision is final and moves real points, so take your time.</p></details>
       <div id="cq-list"></div>
     </div>
   </section>
@@ -1227,9 +1275,11 @@ $('tab-challenges')&&$('tab-challenges').addEventListener('click',async e=>{
   catch(err){ toast(err.message,null,true); }
   cqLoad();
 });
+function centerTab(){const t=$('tabs'),b=t.querySelector('[aria-selected=true]');if(b)t.scrollLeft=b.offsetLeft-(t.clientWidth-b.offsetWidth)/2;}
 function showTab(name){
   if(name==='chats'&&matchMedia('(min-width:1080px)').matches) name='squads';   // chats is always open beside the tool on desktop
   document.querySelectorAll('#tabs [role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===name?'true':'false'));
+  centerTab();
   ['squads','results','chats','room','notify','promo','loads','challenges','help'].forEach(n=>$('tab-'+n).classList.toggle('on',n===name));
   try{history.replaceState(null,'','#'+name);}catch(e){}
   window.scrollTo({top:0});
@@ -1286,8 +1336,8 @@ $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
     loadTournaments();
     if(!isHostMod()){ loadInbox(); startLive(); }
     if(!isHostMod()){ document.querySelector('#tabs [data-tab=loads]').hidden=false; ldLoad(); setInterval(()=>{ if(!document.hidden) ldLoad(); },60000);
-      document.querySelector('#tabs [data-tab=challenges]').hidden=false; cqLoad(); setInterval(()=>{ if(!document.hidden) cqLoad(); },120000); }
-    if(!isHostMod()) sb.rpc('promo_queue').then(r=>{ if(r.error) return; document.querySelector('#tabs [data-tab=promo]').hidden=false; $('tab-promo').classList.add('ok'); prLoad(); const n=(r.data||[]).length,bd=$('badge-promo'); bd.hidden=!n; bd.textContent=n; if(h==='promo') showTab('promo'); });
+      document.querySelector('#tabs [data-tab=challenges]').hidden=false; centerTab(); cqLoad(); setInterval(()=>{ if(!document.hidden) cqLoad(); },120000); }
+    if(!isHostMod()) sb.rpc('promo_queue').then(r=>{ if(r.error) return; document.querySelector('#tabs [data-tab=promo]').hidden=false; $('tab-promo').classList.add('ok'); centerTab(); prLoad(); const n=(r.data||[]).length,bd=$('badge-promo'); bd.hidden=!n; bd.textContent=n; if(h==='promo') showTab('promo'); });
   }catch(e){
     $('gate').hidden=false;
     $('gate-note').textContent=/not a moderator/i.test(e.message)?'Signed in as '+(session.user.email||'')+', but that account is not a moderator yet. Ask the JD admin to add you.':e.message;
