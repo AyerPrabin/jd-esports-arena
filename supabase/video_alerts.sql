@@ -9,7 +9,7 @@ alter table public.notifications add constraint notifications_link_check check (
 
 create table if not exists public.tiktok_watch (
   id int primary key default 1 check (id = 1),
-  video_count int,
+  last_video_id text,
   checked_at timestamptz,
   last_error text
 );
