@@ -170,7 +170,9 @@ Deno.serve(async (req: Request) => {
   }
 
   const role = await roleP;
-  const systemPrompt = (await promptP) + (await learnedP) + (role ? ROLE_GUIDE[role] : '');
+  // the team's answers help but never hold a reply up
+  const learned = await Promise.race([learnedP, new Promise<string>((r) => setTimeout(() => r(''), 500))]);
+  const systemPrompt = (await promptP) + learned + (role ? ROLE_GUIDE[role] : '');
 
   const messages: AIMessage[] = [
     { role: 'system', content: systemPrompt + (account ? `
