@@ -123,7 +123,8 @@ function geminiBody(messages: AIMessage[], inlineSystem = false): string {
 export async function streamGemini(messages: AIMessage[], models: string[], onText: (t: string) => void, timeoutMs = 25000): Promise<{ text: string; model: string } | null> {
   const key = Deno.env.get('GEMINI_API_KEY');
   if (!key) return null;
-  const body = geminiBody(messages);
+  // chat answers don't need the model's slow thinking step
+  const body = JSON.stringify({ ...JSON.parse(geminiBody(messages)), generationConfig: { thinkingConfig: { thinkingBudget: 0 } } });
   for (const model of models) {
     const res = await post(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`, {
       method: 'POST',
