@@ -2757,6 +2757,7 @@ function copyOne(btn,val){
    the same buckets for ⚙️ alert settings). */
 function notifKind(n){
   const t=(n.title||'')+' '+(n.body||'');
+  if(/^\/watch\/(\?v=\d{6,25})?$/.test(n.link||''))return {k:'other',ic:'🎬',go:n.link,lbl:'Watch on TikTok'};
   if(/squad chat|friend request|now your friend/i.test(t))return {k:'social',ic:/squad chat/i.test(t)?'👥':'🤝',go:'chat',lbl:'Open Messages'};
   if(/challenge/i.test(t))return {k:'challenge',ic:'⚔️',go:'/challenges/',lbl:'Open challenges'};
   if(/wallet|points added|withdraw/i.test(t))return {k:'wallet',ic:'🪙',go:'/wallet/',lbl:'Open wallet'};
@@ -2797,7 +2798,7 @@ function notifItemHtml(n){
   if(n.body&&n.body.startsWith('TICKET::'))return notifTicketHtml(n,unreadClass);
   const kd=notifKind(n),go=kd.go&&(kd.go!=='chat'||window.jdChat)?kd.go:'';
   const rc=n.room_id?`<div class="rc"><span>ID <b>${esc(n.room_id)}</b>${n.room_pass?' &nbsp;Pass <b>'+esc(n.room_pass)+'</b>':''}</span><button type="button" class="rc-copy" data-id="${esc(n.room_id)}" data-pass="${esc(n.room_pass||'')}" onclick="event.stopPropagation();copyRoom(this,this.dataset.id,this.dataset.pass)">Copy</button></div>`:'';
-  // kd.go is one of the fixed values in notifKind(), never notification text
+  // kd.go is a fixed value from notifKind() or a /watch/ path with a digits-only id, never notification text
   const act=go?` role="button" tabindex="0" onclick="notifGo('${go}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();notifGo('${go}')}"`
     :(n.body&&n.body.length>80?` onclick="this.classList.toggle('open')"`:'');
   return `<div class="notif-item k-${kd.k}${unreadClass}${go?' go':''}"${act}><span class="ni-ic" aria-hidden="true">${kd.ic}</span><div class="ni-main"><div class="ni-top"><div class="t">${esc(notifTitle(n.title))}</div>${notifTimeHtml(n.created_at)}</div>`

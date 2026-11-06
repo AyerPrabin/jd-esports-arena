@@ -1818,6 +1818,7 @@
     ['match', '⚔️', 'Match chats', 'The other captain writes in your challenge chat'],
     ['challenges', '🎯', 'Challenge invites & results', 'Someone challenges you or accepts, and win/loss/refund results. "Confirm your result" deadlines and disputes always alert'],
     ['lobby', '🔥', 'New open challenges', 'Someone posts a challenge anyone can accept'],
+    ['videos', '🎬', 'New JD videos', 'JD posts a new TikTok video'],
     ['friends', '🤝', 'Friend requests & squad invites', 'Someone adds you or puts you in a squad chat'],
     ['wallet', '🪙', 'Wallet', 'Points loaded, withdrawals paid, prizes'],
     ['mega', '🏆', 'MEGA daily update', 'Once a day: how many squads are in the MEGA event and slots left']

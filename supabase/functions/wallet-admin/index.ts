@@ -2,6 +2,7 @@
 //   { action: 'lookup', q }                                  -> player (tag / username / email) + balance
 //   { action: 'credit', player_id, amount, ref, note? }      -> add verified eSewa payment as points
 //   { action: 'reset_pin', player_id }                       -> clear a forgotten wallet PIN (wallet_pin.sql)
+//   { action: 'history', player_id }                        -> every point added or taken, newest first, with totals
 //   { action: 'refundables', player_id }                    -> recent charges + how much is left to refund
 //   { action: 'refund', player_id, ledger_id?, amount?, reason? } -> refund a charge (or a custom amount)
 //   { action: 'withdrawals' }                                 -> pending withdrawal requests
@@ -136,6 +137,22 @@ Deno.serve(async (req: Request) => {
     return json(data);
   }
 
+  if (p.action === 'history') {
+    if (!p.player_id) return fail('Pick a player');
+    const { data: who } = await supabase.from('players').select('username, player_tag').eq('id', p.player_id).maybeSingle();
+    if (!who) return fail('Player not found', 404);
+    const { data: w } = await supabase.from('wallets').select('balance, unlimited').eq('player_id', p.player_id).maybeSingle();
+    const rows: any[] = [];
+    for (let page = 0; page < 5; page++) {   // the API returns 1,000 rows at a time
+      const { data, error } = await supabase.from('wallet_ledger').select('delta, balance_after, reason, ref, note, created_at')
+        .eq('player_id', p.player_id).order('created_at', { ascending: false }).range(page * 1000, page * 1000 + 999);
+      if (error) return fail(error.message, 500);
+      rows.push(...(data || []));
+      if ((data || []).length < 1000) break;
+    }
+    return json({ player: who, balance: w?.balance ?? 0, unlimited: !!w?.unlimited, rows,
+      added: rows.reduce((s, r) => s + Math.max(r.delta, 0), 0), taken: rows.reduce((s, r) => s + Math.max(-r.delta, 0), 0) });
+  }
   if (p.action === 'balances') {
     const { data, error } = await supabase.from('players')
       .select('id, username, player_tag, email, wallets(balance, unlimited, staff, updated_at)');

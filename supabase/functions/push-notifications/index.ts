@@ -14,20 +14,26 @@ const SITE = 'https://jdesport.co.uk';
 // tournament and admin alerts have none, so they always push.
 function linkFor(n: any): { url: string; tag: string; category?: string } {
   const t = `${n.title || ''} ${n.body || ''}`;
+  // a new video: /watch/ hands over to TikTok
+  if (typeof n.link === 'string' && /^\/watch\/(\?v=\d{6,25})?$/.test(n.link)) return { url: SITE + n.link, tag: 'jd-video', category: 'videos' };
+  // staff alerts open the tool that handles them, before any word in them can match a player route
+  if (/Mod panel (→|>) Promo/.test(t)) return { url: `${SITE}/mod/#promo`, tag: 'jd-mod-promo' };
+  if (/New withdrawal request|Payment screenshot to check|Admin → (Points|Wallet)/.test(t)) return { url: `${SITE}/admin/#wallets`, tag: 'jd-admin-wallet' };
   if (/squad chat|friend request|now your friend/i.test(t)) return { url: `${SITE}/chat/`, tag: 'jd-chat', category: 'friends' };
   // staff alerts: a challenge waiting for a mod decision opens the mod panel's Challenges tab
-  if (/Mod panel →/.test(t)) return { url: `${SITE}/mod/#challenges`, tag: 'jd-mod-challenge' };
+  if (/Mod panel (→|>)/.test(t)) return { url: `${SITE}/mod/#challenges`, tag: 'jd-mod-challenge' };
   // daily reminder: daily_challenge_alert already decides whether the row exists, so no category
   if (/daily challenge time/i.test(t)) return { url: `${SITE}/challenges/`, tag: 'jd-challenge-daily' };
   // result deadlines and disputes can cost a stake if missed: always pushed
   if (/confirm your challenge result|challenge disputed|challenge under review/i.test(t)) return { url: `${SITE}/challenges/`, tag: 'jd-challenge-result' };
   if (/challenge/i.test(t)) return { url: `${SITE}/challenges/`, tag: 'jd-challenge', category: 'challenges' };
   if (/free card|looking for mods/i.test(t)) return { url: `${SITE}/wallet/#promo`, tag: 'jd-free-card' };
-  if (/wallet|points added/i.test(t)) return { url: `${SITE}/wallet/`, tag: 'jd-wallet', category: 'wallet' };
+  if (/wallet|points added|withdrawal/i.test(t)) return { url: `${SITE}/wallet/`, tag: 'jd-wallet', category: 'wallet' };
   if (/Admin →/.test(t)) return { url: `${SITE}/admin/`, tag: 'jd-admin' };
+  if (/^results are in/i.test(n.title || '')) return { url: `${SITE}/leaderboard.html`, tag: 'jd-results' };
   // tournament alerts open that event's ticket on the homepage (home.js ?ticket=)
   if (n.tournament_slug) return { url: `${SITE}/?ticket=${encodeURIComponent(n.tournament_slug)}#tournaments`, tag: 'jd-t-' + String(n.tournament_slug).slice(0, 40) };
-  return { url: `${SITE}/`, tag: 'jd-arena' };
+  return { url: `${SITE}/chat/?alerts=1`, tag: 'jd-arena' };   // announcements open Alerts
 }
 
 // Reliable delivery (push_reliable.sql, 2026-10-30): pg_net only waits a few seconds, so the work runs in the
@@ -38,14 +44,14 @@ async function deliver(db: any, ids: string[]): Promise<number> {
   // in chunks: hundreds of ids in one .in() make the request URL too long and the read comes back empty
   const rows: any[] = [];
   for (let i = 0; i < ids.length; i += 100) {
-    const { data, error } = await db.from('notifications').select('id, player_id, tournament_slug, title, body')
+    const { data, error } = await db.from('notifications').select('id, player_id, tournament_slug, title, body, link')
       .in('id', ids.slice(i, i + 100)).is('pushed_at', null);
     if (error) console.error('push-notifications read', error.message);
     rows.push(...(data || []));
   }
   const groups = new Map<string, any[]>();
   for (const n of rows) {
-    const k = `${n.title}\u0000${n.body}\u0000${n.tournament_slug || ''}`;
+    const k = `${n.title}\u0000${n.body}\u0000${n.tournament_slug || ''}\u0000${n.link || ''}`;
     if (!groups.has(k)) groups.set(k, []);
     groups.get(k)!.push(n);
   }

@@ -128,7 +128,7 @@ Deno.serve(async (req: Request) => {
 
   // ── push (native Web Push to every saved device of the targets) ──
   let pushed = 0;
-  pushed = await sendPush(supabase, targets.map((t) => t.id), { title, body, url: 'https://jdesport.co.uk/', tag: 'jd-announce' });
+  pushed = await sendPush(supabase, targets.map((t) => t.id), { title, body, url: 'https://jdesport.co.uk/chat/?alerts=1', tag: 'jd-announce' });
 
   // ── Discord DM — only players who ran !link on the bot have a discord_user_id set ──
   let discorded = 0;

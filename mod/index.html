@@ -1244,7 +1244,7 @@ async function prLoad(){
   const {data,error}=await sb.rpc('promo_queue');
   if(error){box.innerHTML='<p class="note">'+esc(error.message)+'</p>';return;}
   const q=data||[];const bd=$('badge-promo');if(bd){bd.hidden=!q.length;bd.textContent=q.length;}
-  box.innerHTML=q.length?q.map(p=>`<div class="pr-item" data-id="${p.id}"><a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"><span class="cap">${esc(p.platform)}</span> · ${p.kind==='engage'?'FREE CARD: check this account follows @ayer_fire and liked, commented on and reposted our latest video':p.kind==='repost'?'FREE CARD: check this is a video about JD Arena and says how to download':(+p.views).toLocaleString()+' views claimed'}</a>
+  box.innerHTML=q.length?q.map(p=>`<div class="pr-item" data-id="${p.id}"><a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"><span class="cap">${esc(p.platform)}</span> · ${p.kind==='engage'?'FREE CARD (one time only): check this account follows @ayer_fire and liked and reposted our latest video, and its comment has the JD username above':p.kind==='repost'?'FREE CARD: check this is a video about JD Arena and says how to download':(+p.views).toLocaleString()+' views claimed'}</a>
     <p class="note" style="margin:4px 0 8px">@${esc(p.username||'?')}${p.ign?' · 🎮 '+esc(p.ign):''} · ${esc(new Date(p.at).toLocaleString())}${p.approved_before?' · approved '+p.approved_before+'× before':''}</p>
     <div class="rs-acts">${/^https:[/][/]/i.test(p.url)?`<a class="btn alt" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">🔗 Check link</a>`:''}<button type="button" class="btn alt" data-pr="no">Reject</button><button type="button" class="btn" data-pr="yes">🎟️ Give free voucher</button></div></div>`).join(''):'<p class="note">No posts waiting.</p>';
 }
@@ -1253,7 +1253,7 @@ $('pr-q').addEventListener('click',async e=>{
   const b=e.target.closest('[data-pr]');if(!b)return;
   const it=b.closest('.pr-item'),yes=b.dataset.pr==='yes';
   let note=null;
-  if(!yes){note=await sheet({title:'Why not approved?',text:'The player sees this.',input:'text',chips:['Not following @ayer_fire','No like, comment or repost on our latest video','Not a video','Video does not say how to download','Under 1,000 views','Missing @ayer_fire / #AyerFire / #JDEsports','Not about JD Arena','Fake or bought views','Not their video'],ok:'Reject'});if(note===null)return;}
+  if(!yes){note=await sheet({title:'Why not approved?',text:'The player sees this.',input:'text',chips:['Not following @ayer_fire','No like, comment or repost on our latest video','Comment has no JD username','Not a video','Video does not say how to download','Under 1,000 views','Missing @ayer_fire / #AyerFire / #JDEsports','Not about JD Arena','Fake or bought views','Not their video'],ok:'Reject'});if(note===null)return;}
   else if(!await sheet({title:'Approve this post?',text:'The player gets 1 card right away. Free card: check what the line above says first. Views post: Bronze Rs 5; 10,000+ views gets a lucky draw.',ok:'Approve'}))return;
   it.querySelectorAll('button').forEach(x=>x.disabled=true);
   const {error}=await sb.rpc('promo_review',{p_id:+it.dataset.id,p_approve:yes,p_note:note||null});
@@ -1281,7 +1281,7 @@ $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
     if(isHostMod()){ document.querySelector('#tabs [data-tab=chats]').hidden=true; $('tab-chats').style.display='none'; $('hev-new').hidden=false; }
     if(!me.owner){ const all=document.querySelector('input[name=aud][value=all]'); all.closest('label').remove(); }
     $('main').hidden=false; $('tabs').hidden=false;
-    const h=(location.hash||'').slice(1); if(['results','room','notify','help','loads','challenges'].concat(isHostMod()?[]:['chats']).includes(h)) showTab(h);
+    const h=(location.hash||'').slice(1); if(['results','room','notify','help','loads','challenges','promo'].concat(isHostMod()?[]:['chats']).includes(h)) showTab(h);
     setTopH();
     loadTournaments();
     if(!isHostMod()){ loadInbox(); startLive(); }
