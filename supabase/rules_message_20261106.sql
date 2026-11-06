@@ -5,7 +5,7 @@ update public.site_content set updated_at = now(), content = jsonb_set(content, 
     from jsonb_array_elements(content->'tournaments') with ordinality x(t, o)))
   where key = 'tournaments';
 insert into public.notifications (player_id, title, body)
-  select p.id, '📢 New JD rules', 'Free tournaments: a free card or 15 points (no more 5 points). Open tournaments #14, #15, #17 and #18 now have a Rs 180 prize pool; big prizes are only in big paid tournaments. Every prize pool pays 50% to 1st, 30% to 2nd and 20% to 3rd. New for your safety: create a 6-number wallet PIN in your wallet. You need it to load or withdraw.'
+  select p.id, '📢 New JD rules', 'Free tournaments: a free card or 15 points (no more 5 points). Open tournaments #14, #15, #17 and #18 now have a Rs 180 prize pool; big prizes are only in big paid tournaments. Every prize pool pays 50% to 1st, 30% to 2nd and 20% to 3rd. Free waitlist: a place costs 20 points, and an unconfirmed or newest squad loses its place, so confirm early. Squads with an effect get the top slots. New for your safety: create a 6-number wallet PIN in your wallet. You need it to load or withdraw.'
   from public.players p
   where not exists(select 1 from public.banned_players b where b.player_id = p.id)
     and not exists(select 1 from public.notifications n where n.player_id = p.id and n.title = '📢 New JD rules');
