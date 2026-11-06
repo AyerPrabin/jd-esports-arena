@@ -287,10 +287,6 @@ async function shareMyResult(){
 }
 const FEEDBACK_WEBHOOK=''; /* \u26a0 KEEP EMPTY on a public deploy: a webhook URL here is visible in page source and anyone could spam your Discord. Use the server /feedback route or the email fallback instead. */
 const FEEDBACK_EMAIL='prabinayer7@gmail.com';
-const ADMIN_EMAIL='ayerprabin95@gmail.com'; /* logged-in account that reveals the Admin link in the nav. This is
-   NOT a password gate — jd-admin-970f8094.html still requires its own passcode, this only decides who *sees*
-   the shortcut. Page source is public either way, so treat the admin passcode (not this email match) as the
-   real boundary. */
 const ZULU_PUBLIC_URL=''; /* was a temporary trycloudflare tunnel to the desktop zulu_server.py: it died whenever the PC was off, and every chat then fell back to canned answers. ZULU now answers online via the zulu-ai-reply Edge Function. */ /* OPTIONAL: if you host zulu_server.py publicly, put its base URL here (e.g. https://yourserver.com) and ZULU answers with the smart public brain via /public. Leave '' to use the built-in answers. The /public endpoint NEVER sees your private plan. NOTE: this is a cloudflared quick-tunnel URL — it changes every time zulu_server.py/cloudflared restart on Prabin's PC. If ZULU stops answering live questions, re-run cloudflared and paste the new URL here. */
 const SUPABASE_URL='https://cnoxvqvpmgowdiyrrusv.supabase.co'; /* Supabase Project URL (Settings → API). */
 const SUPABASE_ANON_KEY='sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil'; /* Supabase publishable key (Settings → API). Safe to expose here — it's protected by Row Level Security (see supabase/schema.sql). NEVER put the secret key in this file. */
@@ -1653,7 +1649,7 @@ async function claimInvite(){
   if(!error&&data&&data.inviter)showMsg('Invite accepted 🤝',`You joined with ${data.inviter}'s invite. When your squad wins its first prize, you both get +40 points.`);
 }
 function updateAcctBtn(){
-  const su=document.getElementById('signup-btn'),ac=document.getElementById('acct-btn'),ad=document.getElementById('admin-btn'),st=document.getElementById('settings-btn');
+  const su=document.getElementById('signup-btn'),ac=document.getElementById('acct-btn'),st=document.getElementById('settings-btn');
   if(typeof window.jdTabbarMe==='function')window.jdTabbarMe(_player?{avatar:_player.avatar||'',name:_player.username||'',at:Date.now()}:null);
   if(!ac)return;
   document.body.classList.toggle('signed-in',!!_player);
@@ -1667,8 +1663,6 @@ function updateAcctBtn(){
     ac.classList.add('acct-btn-signed');
     ac.innerHTML=`<img class="acct-avatar-mini" src="${esc(_player.avatar||'/logo.webp')}" alt="">${esc(_player.username||'Account')}${_player.app?' <span class="app-badge" title="JD Arena app user">📱</span>':''}`;
     ac.onclick=()=>{location.href='/profile/';}; // profile has its own page; account settings stay reachable via /?account=1
-    if(ad)ad.style.display=((_player.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase())?'':'none';
-    {const zb=document.getElementById('zulu-admin-btn');if(zb&&ad)zb.style.display=ad.style.display;}
     const md=document.getElementById('mod-btn');
     if(md){ md.style.display='none'; if(typeof sb!=='undefined'&&sb) sb.rpc('is_moderator').then(r=>{ md.style.display=r.data?'':'none'; }).catch(()=>{}); }
   }else{
@@ -1676,8 +1670,6 @@ function updateAcctBtn(){
     ac.classList.remove('acct-btn-signed');
     ac.textContent='Login';
     ac.onclick=()=>authOpen('login');
-    if(ad)ad.style.display='none';
-    {const zb=document.getElementById('zulu-admin-btn');if(zb)zb.style.display='none';}
     const md=document.getElementById('mod-btn'); if(md)md.style.display='none';
   }
 }
