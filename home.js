@@ -1799,7 +1799,7 @@ async function registerInApp(name){
   }
   _regPayPts=false;
   if(!paid&&!full&&!_myRegs.has(name)&&_freeOk===false){
-    if(!await confirmBox('🎟️ Join this free tournament',`Pick one:\n\n🪙 Pay 15 points and join now. You get them back if you withdraw 24 hours or more before the start.\n\n🎟️ Or get a free card: post about JD Arena, or follow @ayer_fire and like, comment on and repost our latest video. A mod checks it, then your card joins one free tournament.`,'Pay 15 points','Get a free card')){location.href='/wallet/#promo';return;}
+    if(!await confirmBox('🎟️ Join this free tournament',`Pick one:\n\n🪙 Pay 15 points and join now. You get them back if you withdraw 24 hours or more before the start.\n\n🎟️ Or get a free card: follow @ayer_fire and like, comment on and repost our latest video (one time only). After that, make a video about JD Arena for each new card. A mod checks it, then your card joins one free tournament.`,'Pay 15 points','Get a free card')){location.href='/wallet/#promo';return;}
     if(!canAfford(15)){confirmBox('🪙 Load points to join',`You need 15 points and you have ${walletLabel()}.`,'Load points','Later').then(ok=>{if(ok)goWallet('load');});return;}
     _regPayPts=true;
   }
