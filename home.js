@@ -1108,6 +1108,7 @@ function authRender(){
       <label>Username</label><input id="au-username" autocomplete="off" maxlength="20" placeholder="3-20 letters, numbers, underscore" value="${esc(_player.username||'')}">
       <div class="msg" id="au-uname-msg"></div>
       ${gameIdFieldsHtml(_player.ff_uid,_player.ff_name)}
+      ${_googleFirstRun?refFieldHtml():''}
       ${_googleFirstRun?'<label class="tc-check"><input type="checkbox" id="au-tc-accept"><span>I am 13 or older (under 18: my parent or guardian agrees) and I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a></span></label>':''}
       <div class="msg" id="au-msg"></div>
       <div class="row2"><button class="btn-primary" style="flex:1" onclick="authSetUsername()">Save</button></div>
@@ -1209,6 +1210,7 @@ function authRender(){
       <label>Username</label><input id="au-username" autocomplete="off" maxlength="20" placeholder="3-20 letters, numbers, underscore">
       <div class="msg" id="au-uname-msg"></div>
       ${gameIdFieldsHtml('','')}
+      ${refFieldHtml()}
       <label class="tc-check"><input type="checkbox" id="au-tc-accept"><span>I am 13 or older (under 18: my parent or guardian agrees) and I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a></span></label>
       <label>Email</label><input id="au-email" type="email" autocomplete="email">
       <label>Password</label><input id="au-pass" type="password" autocomplete="new-password" placeholder="At least 6 characters">
@@ -1358,7 +1360,9 @@ async function authSetUsername(){
     if(error){authMsg(/duplicate|unique|taken|constraint/i.test(error.message)?'That username is taken — try another.':error.message);return;}
   }
   if(tc)await sb.rpc('accept_terms');
+  refFieldKeep();
   await authRefreshPlayer();
+  claimInvite();
   authMsg('Saved!',true);
   _authView='login';
   setTimeout(authClose,900);
@@ -1403,6 +1407,7 @@ async function authSignup(){
   authMsg('Checking username…',true);
   const {data:taken}=await sb.rpc('is_username_taken',{check_username:uname});
   if(taken){authMsg('That username is taken — try another.');return;}
+  refFieldKeep();
   authMsg('Creating account…',true);
   const {data:signUpData,error}=await sb.auth.signUp({email,password:pass,options:{data:Object.assign({username:uname},g?{ff_uid:g.uid,ff_name:g.name}:{}),emailRedirectTo:location.href.split('#')[0]}});
   if(error){authMsg(/duplicate|unique|taken|constraint|saving new user/i.test(error.message)?'That username was just taken — try another.':error.message);return;}
@@ -1412,6 +1417,7 @@ async function authSignup(){
     await sb.rpc('accept_terms');
     await authRefreshPlayer();
     authClose();
+    claimInvite();
     maybeAskPush();
     return;
   }
@@ -1683,7 +1689,17 @@ async function claimInvite(){
   if(!code||!sb||!_player)return;
   try{localStorage.removeItem('jd_ref');}catch(e){}
   const {data,error}=await sb.rpc('set_referrer',{p_code:code});
-  if(!error&&data&&data.inviter)showMsg('Invite accepted 🤝',`You joined with ${data.inviter}'s invite. When your squad wins its first prize, you both get +40 points.`);
+  if(!error&&data&&data.inviter)showMsg('Invite accepted',`You joined with ${data.inviter}'s invite. When your squad wins its first prize, they get a free entry card.`);
+  else if(error&&!/already joined/i.test(error.message))showMsg('Invite code not used',error.message);
+}
+function refFieldHtml(){
+  let v='';try{v=localStorage.getItem('jd_ref')||'';}catch(e){}
+  return `<label>Friend's invite code <span style="opacity:.6;font-weight:400">(optional)</span></label><input id="au-ref" autocomplete="off" maxlength="30" placeholder="Their JD tag or username" value="${esc(v)}">`;
+}
+function refFieldKeep(){
+  const f=document.getElementById('au-ref'),v=f?f.value.trim():'';
+  if(!f)return;
+  try{if(/^[A-Za-z0-9_@-]{3,30}$/.test(v))localStorage.setItem('jd_ref',v);else localStorage.removeItem('jd_ref');}catch(e){}
 }
 function updateAcctBtn(){
   const su=document.getElementById('signup-btn'),ac=document.getElementById('acct-btn'),st=document.getElementById('settings-btn');
@@ -3130,7 +3146,7 @@ var Z={
   nameset:"Nice to meet you, {x}! I'll remember that. Now \u2014 ask me anything about JD Arena.",
   secret:"That part's private to Prabin \u2014 I only handle JD Arena: tournaments, how to join, the rules, and contact. Ask me any of those! \uD83C\uDFAE",
   prizesplit:"🏆 Every JD tournament splits its prize pool the same way: 50% to 1st, 30% to 2nd, 20% to 3rd. Example: Rs 180 pays Rs 90, Rs 54 and Rs 36. Prizes are paid into the winners' JD wallets when results are published. Free tournaments have a Rs 180 prize; the big prizes are in paid tournaments. A partner host's event is paid by that host.",
-  wpass:"🎟 The Weekly Pass is switched off for now - nothing to buy, nothing taken from your points or prizes. Free JD tournaments join with a free card or 15 points, there are no ads, prizes are paid in full, and JD Frag Engine only needs an Optimizer plan. Invite friends: you both get +40 when they win their first prize.",
+  wpass:"🎟 The Weekly Pass is switched off for now - nothing to buy, nothing taken from your points or prizes. Free JD tournaments join with a free card or 15 points, there are no ads, prizes are paid in full, and JD Frag Engine only needs an Optimizer plan. Invite up to 3 friends: when one wins their first prize, you get a free entry card.",
   howjoin:"Easy \u2014 5 steps:\n1. Sign up (your squad name is saved for next time).\n2. Load points: in your wallet, pay the eSewa QR and upload the payment screenshot.\n3. Tap Join on a tournament. Free ones confirm instantly; paid ones are paid from your points.\n4. Tap \"Confirm you're playing\" on the event. The confirm window opens 48 hours before start and closes 24 hours before \u2014 squads not confirmed by then lose their seat (entry points refunded).\n5. The Room ID + password appear on your ticket about 5 minutes before the match.",
   wallet:"Your JD points wallet: 1 point = Rs 1. Points are the only way to pay for paid entries and squad effects.\nTo load: open the wallet (the coin at the top) \u2192 Load \u2192 pay the eSewa QR with your username in the remarks, then upload the payment screenshot. No screenshot, no points. Points arrive once it's verified. You need your 6-number wallet PIN to load or withdraw.",
   withdrawpts:"To cash out: open your wallet (the coin at the top) \u2192 Withdraw \u2192 enter the points, your eSewa ID and account name. The points leave your wallet now and the money is sent to your eSewa by hand, usually within a day.",
