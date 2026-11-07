@@ -12,7 +12,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { askAI, type AIMessage } from '../_shared/ai.ts';
 import { safeReply, teamAnswers, zuluSystemPrompt } from '../_shared/zulu.ts';
 
-const HUMAN_GRACE_MS = 2 * 60000;   // keep under the edge function's 150 s wall clock: this worker sleeps through it
+const MOD_HOLD_MS = 12 * 3600000;   // owner, 7 Nov 2026: once a mod replies in person, ZULU steps back from that chat for 12 hours
 const PER_PLAYER_DAILY = 25;
 const GLOBAL_DAILY = 400;
 const GEMINI_MODELS = (Deno.env.get('ZULU_CHAT_GEMINI_MODELS') || 'gemini-flash-lite-latest,gemini-flash-latest,gemini-2.5-flash-lite')
@@ -70,11 +70,15 @@ async function answer(db: any, pid: string, day: Date, used: number, ids: number
   const last = msgs[msgs.length - 1];
   if (last.from_staff) return false;                                            // already answered
   if (!ids.includes(last.id)) return false;                                     // a newer message has its own worker: one answer, not two
-  const human = msgs.filter((m: any) => m.from_staff && !String(m.staff_email || '').startsWith('zulu'));
-  const wait = human.length ? HUMAN_GRACE_MS - (Date.now() - new Date(human[human.length - 1].created_at).getTime()) : 0;
-  if (wait > 0) {   // the moderator may still be typing: look again when their 2 minutes are up
-    await new Promise((r) => setTimeout(r, wait + 500));
-    return answer(db, pid, day, used, ids);
+  // a mod is handling this chat: ZULU stays quiet and the mods get a normal chat alert (no ring), message left unread for them
+  const { data: mod } = await db.from('jd_messages').select('created_at').eq('player_id', pid).eq('channel', 'jd').eq('from_staff', true)
+    .or('staff_email.is.null,staff_email.not.like.zulu*').order('id', { ascending: false }).limit(1).maybeSingle();
+  if (mod && Date.now() - new Date(mod.created_at).getTime() < MOD_HOLD_MS) {
+    await fetch(Deno.env.get('SUPABASE_URL') + '/functions/v1/dm-push', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-cron-secret': Deno.env.get('CRON_SECRET')! },
+      body: JSON.stringify({ kind: 'staff', ids: msgs.filter((m: any) => !m.from_staff && ids.includes(m.id)).map((m: any) => m.id) }),
+    }).catch((e) => console.error('zulu-auto hold', e));
+    return false;
   }
 
   // flagged: player messages stay unread in /mod/ and the moderators' phones RING (dm-push kind 'staff', ring);
