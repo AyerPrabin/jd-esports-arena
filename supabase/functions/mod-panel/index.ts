@@ -708,10 +708,11 @@ Deno.serve(async (req: Request) => {
     const title = edit ? '' : (low.startsWith(tag) ? typed.slice(tag.length) : low.startsWith(handle) ? typed.slice(handle.length) : typed).replace(/^[\s\-·:]+/, '');
     if (!edit && /\bjd\b|jd ?esports?/i.test(title)) return fail('Use your own name for the event, not JD.');
     if (!edit && title.includes('@')) return fail('Only your own TikTok ID goes on the event, and JD adds that for you.');
-    if ([title, String(p.prize || '')].some((x) => /\d{7,}|https?:|www\./i.test(x))) return fail('No phone numbers or links in the event name or prize.');
+    const prizeText = String(p.prize || '').normalize('NFKC').trim().replace(/\s+/g, ' ');
+    if ([title, prizeText].some((x) => /\p{Nd}{7,}/u.test(x.replace(/[\s.\-+,]/g, '')) || /https?:|www\.|[\p{L}\p{N}-]+\.\p{L}{2,}/iu.test(x))) return fail('No phone numbers or links in the event name or prize.');
     // both reach every player's alerts, emails and pages: plain text only
     if (!/^[\p{L}\p{N}\p{M} #.\-]*$/u.test(title)) return fail('Use only letters, numbers, spaces and # . - in the event name.');
-    if (!/^[\p{L}\p{N}\p{M} #.,+\-]*$/u.test(String(p.prize || ''))) return fail('Use only letters, numbers, spaces and # . , + - in the prize.');
+    if (!/^[\p{L}\p{N}\p{M} #.,+\-]*$/u.test(prizeText)) return fail('Use only letters, numbers, spaces and # . , + - in the prize.');
     const m = String(p.start || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
     if (!m) return fail('Pick a day and a time.');
     const [, y, mo, d, h, mi] = m;
@@ -728,7 +729,7 @@ Deno.serve(async (req: Request) => {
     const fields = {
       date: new Date(Date.UTC(+y, +mo - 1, +d)).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }),
       time: `${hh}:${mi} ${+h < 12 ? 'AM' : 'PM'} NPT`, start, status,
-      prize: String(p.prize || '').trim().slice(0, 40),
+      prize: prizeText.slice(0, 40),
       entry: 'Free', platform: DEV[device], platform_mode: device,
       slots: Math.min(12, Math.max(2, Math.round(Number(p.slots) || 12))),   // one room holds 12 squads; bigger events need groups
       format: matches === 3 ? 'BR · Best of 3' : 'BR · ' + matches + (matches === 1 ? ' match' : ' matches'),
