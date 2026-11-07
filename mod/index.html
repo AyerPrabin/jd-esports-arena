@@ -504,7 +504,7 @@ textarea{min-height:96px;resize:vertical}
       <div class="sec-h"><h2 id="h-squads">Squads</h2><span class="sp"></span><span class="updated" id="updated" aria-live="polite"></span></div>
       <p class="lead" id="ev-line"></p>
       <dl class="money" id="ev-money" hidden></dl>
-      <div id="ev-groups" hidden style="margin:0 0 12px"><button type="button" class="btn sm" id="ev-draw" style="width:100%">🎲 Draw groups</button><p class="note" id="ev-groups-t" style="margin:6px 0 0"></p></div>
+      <div id="ev-groups" hidden style="margin:0 0 12px"><button type="button" class="btn sm" id="ev-draw" style="width:100%">🎲 Draw groups now</button><p class="note" id="ev-groups-t" style="margin:6px 0 0"></p></div>
       <div class="sum" id="sum"></div>
       <div id="reg-body"><p class="note">Pick an event to see its squads.</p></div>
       <div id="removed-box"></div>
@@ -758,7 +758,7 @@ function hostEventForm(t){
   bg.addEventListener('click',e=>{ if(e.target===bg||e.target.closest('[data-x]')) close(); });
   const roomHint=()=>{ const q=id=>bg.querySelector('#'+id), mode=q('hev-mode').value, cap=ROOM[mode], n=+q('hev-slots').value||0;
     q('hev-slots').max=cap*4; q('hev-slots-l').textContent={squad:'Squads',duo:'Duos',solo:'Players'}[mode];
-    q('hev-room').textContent=n>cap?`One room holds ${cap}. Over that, tap Draw groups when registration closes: it splits them into groups and a Final.`:`Fits one room (up to ${cap}).`; };
+    q('hev-room').textContent=n>cap?`One room holds ${cap}. If more join, JD draws groups and stages by itself 2 hours before the start.`:`Fits one room (up to ${cap}).`; };
   bg.querySelector('#hev-mode').addEventListener('change',()=>{ bg.querySelector('#hev-slots').value=ROOM[bg.querySelector('#hev-mode').value]; roomHint(); });
   bg.querySelector('#hev-slots').addEventListener('input',roomHint); roomHint();
   const save=async(status)=>{
@@ -814,6 +814,7 @@ function fmtWhen(t){ return [t.date,t.time].filter(Boolean).join(' · ') || (t.s
 function isLive(t){ return t.start && Math.abs(new Date(t.start)-Date.now())<3*3600*1000; }
 const ROOM={solo:48,duo:24,squad:12};   // teams one room holds: a room is 48 players
 const modeOf=t=>{const m=String(t&&t.mode||'').toLowerCase();return m==='solo'||m==='duo'?m:'squad';};
+const stageNoPrize=t=>t.stage==='group'||t.stage==='semi';
 const unitOf=t=>({solo:'players',duo:'duos',squad:'squads'}[modeOf(t)]);
 // entry / prize in words. Display only: the stored text is what the server parses.
 const prizeNum=t=>{const s=String(t.prize||'').trim();return /^(rs\.?\s*)?\d[\d,]*$/i.test(s)?+s.replace(/\D/g,''):null;};
@@ -822,8 +823,8 @@ const isFreeEntry=t=>{const e=String(t.entry||'').trim();return !e||/^free$/i.te
 const entryTxt=t=>{const e=String(t.entry||'').trim();return isFreeEntry(t)?'Free card or 15 points':/^\d+$/.test(e)?e+' points':e;};
 function moneyHtml(t){
   const n=prizeNum(t), b=Math.floor((n||0)*.3), c=Math.round((n||0)*.2), host=!!String(t.host||'').trim();
-  const who=t.group?'The whole prize is played for in the Final':host?'The host pays the winners directly':t.mega?'Paid by JD':n?`1st Rs ${n-b-c} · 2nd Rs ${b} · 3rd Rs ${c}`:'Ask the admin to set it';
-  return `<div><dt>Prize pool</dt><dd>${esc(t.group?'None in this group':prizeTxt(t))}<small>${who}</small></dd></div>`+
+  const who=stageNoPrize(t)?'The whole prize is played for in the Grand Final':host?'The host pays the winners directly':t.mega?'Paid by JD':n?`1st Rs ${n-b-c} · 2nd Rs ${b} · 3rd Rs ${c}`:'Ask the admin to set it';
+  return `<div><dt>Prize pool</dt><dd>${esc(stageNoPrize(t)?'None in this stage':prizeTxt(t))}<small>${who}</small></dd></div>`+
     `<div><dt>Entry fee</dt><dd>${esc(entryTxt(t))}<small>${t.parent?'Paid when they joined, nothing more to pay':host?'Each squad pays JD, not the host':'Each squad pays this to join'}</small></dd></div>`;
 }
 function evPill(t,i){
@@ -933,14 +934,17 @@ function lineupHtml(r){
 }
 function groupsBar(n){
   const t=selected, cap=t?ROOM[modeOf(t)]:0, box=$('ev-groups');
-  const show=t&&!t.parent&&!t.mega&&!isDone(t)&&n>cap; box.hidden=!show; if(!show) return;
-  const g=Math.ceil(n/cap), up=Math.max(1,Math.floor(cap/g));
-  $('ev-groups-t').textContent=`${n} ${unitOf(t)} won't fit one room (${cap}). Draw when registration closes: ${g} random groups, top ${up} of each reach the Final. It can't be undone.`;
+  const show=t&&!t.parent&&!t.mega&&!isDone(t)&&(n>cap||+t.slots>cap); box.hidden=!show; if(!show) return;
+  const g=Math.ceil(n/cap), semi=g>=4, up=Math.max(1,Math.floor((semi?cap*2:cap)/g));
+  $('ev-groups-t').textContent=n>cap?`${n} ${unitOf(t)} won't fit one room (${cap}). 2 hours before the start, JD draws ${g} random groups by itself. Top ${up} of each go to the ${semi?'Semi-finals, then the Grand Final':'Grand Final'}.`
+    :`If more than ${cap} ${unitOf(t)} join, JD draws groups by itself 2 hours before the start. If not, it stays one room.`;
+  const soon=t.start&&new Date(t.start)-Date.now()<=864e5;
+  $('ev-draw').hidden=!(n>cap&&soon&&(isHostMod()||ME.owner));
 }
 document.addEventListener('click',async e=>{
   if(!e.target.closest('#ev-draw')||!selected) return;
-  if(!await sheet({title:'Draw groups for '+selected.name+'?',text:'Squads are split at random and told their group and time. The whole prize moves to the Final. This can\'t be undone.',ok:'Draw groups'})) return;
-  try{ const r=await call({action:'groups_draw',slug:selected.name}); toast(`${r.groups} groups drawn. Top ${r.advance} of each reach the Final.`); selected={name:r.names[0]}; await loadTournaments(); }catch(err){ toast(err.message,null,true); }
+  if(!await sheet({title:'Draw groups now for '+selected.name+'?',text:"Squads are split at random and told their group and time. The whole prize moves to the Grand Final. New squads can't join after this, and it can't be undone.",ok:'Draw groups'})) return;
+  try{ const r=await call({action:'groups_draw',slug:selected.name}); toast(`${r.groups} groups drawn. Top ${r.advance} of each go through.`); selected={name:r.names[0]}; await loadTournaments(); }catch(err){ toast(err.message,null,true); }
 });
 function renderSquads(){
   const unv=rows.filter(r=>(active(r)||r.status==='waitlisted')&&!r.lineup).length;
@@ -1335,7 +1339,7 @@ $('rs-body').addEventListener('click',async e=>{
   if(!ok) return;
   const btn=fin||pub, label=btn.textContent; btn.disabled=true; btn.textContent=fin?'Finishing…':'Publishing…'; msg.textContent=''; msg.className='msg';
   try{
-    const r=await call({action:'results_publish',slug:rs.event,teams,final:!!fin,prizes}); if((r.advanced||[]).length) toast(r.advanced.length+' squads moved to the Final.');
+    const r=await call({action:'results_publish',slug:rs.event,teams,final:!!fin,prizes}); if((r.advanced||[]).length) toast(r.advanced.length+' squads moved to the next stage.');
     if(fin){
       const pd=r.prizes.filter(x=>x.status==='paid'), un=r.prizes.filter(x=>x.status!=='paid');
       msg.textContent=`Finished. Winner: ${r.winner}.`+(pd.length?' Paid: '+pd.map(x=>`${x.squad} ${x.amount}`).join(', ')+'.':'')+(un.length?' Not paid (no matching registered squad): '+un.map(x=>x.squad).join(', ')+'.':'');

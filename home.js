@@ -2322,7 +2322,7 @@ function earlyAccess(t){
   return Date.now()<open-864e5?'closed':'app-only';
 }
 function fmtOpen(iso){const d=new Date(iso);return isNaN(d)?'soon':d.toLocaleString([],{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}
-function inAppRegBtn(t,st,full){
+function inAppRegBtn(t,st,full){if(t&&t.parent)return '';
   if(st==='cancelled')return _myRegs.has(t.name)?`<div class="inapp-reg-done rejected"><span>✕ This tournament was cancelled — sorry for the mix-up, watch Discord for the reschedule</span></div>`:'';
   if(st==='completed')return sb?`<div class="review-summary" data-review-summary="${esc(t.name)}"></div>`:'';
   if(!sb)return '';

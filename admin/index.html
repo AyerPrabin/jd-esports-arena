@@ -938,7 +938,7 @@ window.fetch=async function(input,init){
   if(adminSecret()){document.getElementById('gate').style.display='none';document.getElementById('app').style.display='';loadLive();loadSecurity();loadLoads();return;}
   tryGoogleSession();
 })();
-const TF=[['name','Name','text'],['game','Game / mode','text'],['date','Date (display)','text'],['time','Time','text'],['start','Start (ISO, for countdown)','text'],['prize','Prize pool (Rs the winners share, e.g. 500)','text'],['entry','Entry fee (each squad pays, e.g. 50 points, or Free)','text'],['slots','Slots (max squads, one room holds 12)','number'],['format','Format','text'],['register_url','Register URL','text'],['winner','Winner (if done)','text'],['host','Host mod handle (only that host mod sees this event in /mod/)','text']];
+const TF=[['name','Name','text'],['game','Game / mode','text'],['date','Date (display)','text'],['time','Time','text'],['start','Start (ISO, for countdown)','text'],['prize','Prize pool (Rs the winners share, e.g. 500)','text'],['entry','Entry fee (each squad pays, e.g. 50 points, or Free)','text'],['slots','Slots (max squads, one room holds 12)','number'],['mode','Mode (squad, duo or solo)','text'],['format','Format','text'],['register_url','Register URL','text'],['winner','Winner (if done)','text'],['host','Host mod handle (only that host mod sees this event in /mod/)','text']];
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 // only real image data URIs / https images may reach an <img src> (squad logos are player-uploaded)
@@ -1220,7 +1220,7 @@ function newEventRender(){
   const nevCap=NEV_ROOM[NEV.mode],nevUnit={solo:'players',duo:'duos',squad:'squads'}[NEV.mode];
   chipRow('nev-modes',[['squad','Squad'],['duo','Duo'],['solo','Solo']],NEV.mode,v=>{NEV.mode=v;NEV.slots=String(NEV_ROOM[v]);});
   chipRow('nev-slots',[1,2,4].map(k=>[String(nevCap*k),nevCap*k+' '+nevUnit]),NEV.slots,v=>{NEV.slots=v;});
-  document.getElementById('nev-room-tag').textContent='one room holds '+nevCap+', over that use Draw groups';
+  document.getElementById('nev-room-tag').textContent='one room holds '+nevCap+', more join = automatic groups and stages';
   chipRow('nev-matches',[['1','1 match'],['3','3 matches'],['4','4 matches'],['6','6 matches']],NEV.matches,v=>{NEV.matches=v;});
   chipRow('nev-devices',PLATFORM_MODES.map(([v,l])=>[v,l.replace(' (any device)','')]),NEV.device,v=>{NEV.device=v;});
   chipRow('nev-maps',MAPS,NEV.map,v=>{NEV.map=v;});

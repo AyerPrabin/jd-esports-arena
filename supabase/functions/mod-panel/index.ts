@@ -22,6 +22,7 @@
 // players is signed with their own @handle instead of "JD".
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { askAI } from '../_shared/ai.ts';
+import { drawEvent, modeOf, nextStage, ROOM, unfinishedBefore } from '../_shared/stages.ts';
 
 // only the owner may notify every player on JD Arena
 const OWNER_EMAIL = (Deno.env.get('ADMIN_EMAIL') || 'ayerprabin95@gmail.com').toLowerCase();
@@ -179,9 +180,6 @@ Deno.serve(async (req: Request) => {
     agreedAt = mod.agreed_at || null;
   }
   const isHost = role === 'host';
-  // teams one room holds: a room is 48 players
-  const ROOM: Record<string, number> = { solo: 48, duo: 24, squad: 12 };
-  const modeOf = (t: any) => { const m = String(t?.mode || '').toLowerCase(); return m === 'solo' || m === 'duo' ? m : 'squad'; };
   const isOwner = email === 'admin' || email === OWNER_EMAIL;
 
   // host mods: only the events whose "host" field is their handle (live site_content, same doc the site shows)
@@ -258,6 +256,9 @@ Deno.serve(async (req: Request) => {
     if (!slug) return fail('Pick the tournament first');
     if (!room_id) return fail('Enter the Room ID');
     if (!await canEvent(slug)) return notYours();
+    const { data: scR } = await admin.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
+    const docR: any = scR?.content, early = unfinishedBefore(docR, docR?.tournaments?.find((x: any) => x.name === slug));
+    if (early.length) return fail(`Finish ${early[0].name} first: its top squads play in this stage.`, 409);
     // hand off to the admin-only room-code sender (service creds stay server-side).
     // No player_tags -> it goes to that tournament's confirmed/approved squads only.
     const r = await fetch(`${URL_}/functions/v1/send-room-code`, {
@@ -741,7 +742,7 @@ Deno.serve(async (req: Request) => {
     const final = !!p.final;
     const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
     const regSet = new Set(squads.map(norm));
-    const inTeams: any[] = Array.isArray(p.teams) ? p.teams.slice(0, 40) : [];
+    const inTeams: any[] = Array.isArray(p.teams) ? p.teams.slice(0, ROOM.solo) : [];
     const teams = inTeams.map((x: any) => ({
       team: String(x.team || '').trim().slice(0, 60),
       pts: (Array.isArray(x.pts) ? x.pts : []).slice(0, matches).map((v: any) => Math.max(0, Math.min(300, Math.round(Number(v) || 0)))),
@@ -760,6 +761,8 @@ Deno.serve(async (req: Request) => {
     const ranked = [...teams].sort((a, b) => total(b) - total(a) || boo(b) - boo(a) || killSum(b) - killSum(a) ||
       lastPl(b) - lastPl(a) || a.team.localeCompare(b.team));
     const prizes: Record<string, number> = {};
+    const earlier = unfinishedBefore(doc, t);
+    if (final && earlier.length) return fail(`Finish ${earlier[0].name} first: its top squads play in this stage.`, 409);
     if (final && !isOwner && (t.winner || String(t.status || '').toLowerCase() === 'completed'))
       return fail('This event is already finished. Ask the JD admin to correct it.', 409);
     if (final) {
@@ -822,16 +825,17 @@ Deno.serve(async (req: Request) => {
       const { data: nowPaid } = await admin.from('wallet_ledger').select('ref, delta').eq('reason', 'prize').like('ref', `prize:${slug}:%`);
       const got = new Map((nowPaid || []).map((x: any) => [norm(String(x.ref).split(':').slice(2).join(':')), x.delta]));
       if (!isHost) paidOut = Object.entries(prizes).map(([k, v]) => ({ squad: k, amount: got.get(norm(k)) ?? v, status: got.has(norm(k)) ? 'paid' : 'unmatched' }));
-      // a group just finished: its top squads move to the Final, seats and payments unchanged
-      if (t.group && t.parent) {
-        const finalName = `${t.parent} · Final`, by = new Map((regs || []).map((r: any) => [norm(String(r.squad_name || '')), r]));
-        const up = ranked.slice(0, Number(t.advance) || 1).map((x) => by.get(norm(x.team))).filter(Boolean);
+      // a stage just finished: its top squads move on, seats and payments unchanged
+      if (t.parent && t.advance_to?.length) {
+        const by = new Map((regs || []).map((r: any) => [norm(String(r.squad_name || '')), r]));
+        const up = ranked.slice(0, Number(t.advance) || 1).map((x, i) => ({ r: by.get(norm(x.team)) as any, to: nextStage(t, i) })).filter((x) => x.r && x.to);
         if (up.length) {
-          const { error: mv } = await admin.rpc('event_move_regs', { p_moves: up.map((r: any) => ({ id: r.id, from: slug, to: finalName })) });
-          if (mv) return fail('Results are saved, but moving squads to the Final failed: ' + mv.message, 500);
-          await admin.from('notifications').insert(up.map((r: any) => ({ player_id: r.player_id, push: true, tournament_slug: finalName,
-            title: tagT(`🔥 You reached the Final: ${t.parent}`).slice(0, 120), body: `${r.squad_name} is through. Your ticket is now for ${finalName}, nothing more to pay.` })));
-          advanced = up.map((r: any) => r.squad_name);
+          const { error: mv } = await admin.rpc('event_draw_apply', { p_moves: up.map((x) => ({ id: x.r.id, from: slug, to: x.to })), p_stages: [] });
+          if (mv) return fail('Results are saved, but moving squads on failed: ' + mv.message, 500);
+          await admin.from('notifications').insert(up.map((x) => { const e = doc.tournaments.find((d: any) => d.name === x.to);
+            return { player_id: x.r.player_id, push: true, tournament_slug: x.to, title: tagT(`🔥 You're through: ${e?.stage_label || 'next stage'}`).slice(0, 120),
+              body: `${x.r.squad_name} is through to ${x.to}${e ? `, ${e.date} ${e.time}` : ''}. Nothing more to pay.` }; }));
+          advanced = up.map((x) => x.r.squad_name);
         }
       }
       if (isHost) {   // the host's own result push: everyone in the event, winners told who pays them
@@ -850,57 +854,22 @@ Deno.serve(async (req: Request) => {
       prizes: paidOut.map((x: any) => ({ squad: x.squad, status: x.status, amount: x.amount })) });
   }
 
-  // ── groups: more teams than one room holds. Draw splits them at random into Group A, B… and a Final. Groups play
-  // one after another (the site has one standings board). The whole prize moves to the Final; groups have none.
+  // ── stages: groups-auto draws by itself 2 hours before the start. The owner or the event's host can draw
+  // sooner, but only inside the last 24 hours, once the confirm sweep has removed squads that didn't confirm.
   if (action === 'groups_draw') {
     const slug = String(p.slug || '').trim();
     if (!slug || !await canEvent(slug)) return notYours();
+    if (!isHost && !isOwner) return fail('Groups draw by themselves 2 hours before the start.', 403);
     const { data: sc } = await admin.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
     const doc: any = sc?.content, t = doc?.tournaments?.find((x: any) => x.name === slug);
     if (!t) return fail('That event is not on the site.', 404);
-    if (t.parent || t.winner || ['completed', 'cancelled'].includes(String(t.status || '').toLowerCase())) return fail('This event can\'t be drawn.', 409);
-    if (t.mega) return fail('MEGA events have their own stages.', 409);
-    const { data: codes } = await admin.from('tournament_room_codes').select('tournament_slug').eq('tournament_slug', slug).not('sent_at', 'is', null).limit(1);
-    if (codes?.length) return fail('The room code is already out, so this event plays as one room.', 409);
-    const { data: regs, error: re } = await admin.from('registrations').select('id, player_id, squad_name').eq('tournament_slug', slug).in('status', ['confirmed', 'approved']);
-    if (re) return fail(re.message, 500);
-    const list = [...(regs || [])], cap = ROOM[modeOf(t)];
-    if (list.length <= cap) return fail(`${list.length} joined, and one room holds ${cap}. No groups needed.`);
-    const groups = Math.ceil(list.length / cap);
-    if (groups > 8) return fail('That is more than 8 groups. Ask the JD admin.');
-    const advance = Math.max(1, Math.floor(cap / groups));
-    for (let i = list.length - 1; i > 0; i--) {   // a fair shuffle: nobody picks their group
-      const j = crypto.getRandomValues(new Uint32Array(1))[0] % (i + 1); [list[i], list[j]] = [list[j], list[i]];
-    }
-    const matches = Math.min(6, Math.max(1, Number(String(t.format || '').match(/(\d+)\s*match/i)?.[1] || 3)));
-    const gap = matches * 30 * 60000, at0 = Date.parse(t.start) || Date.now() + 3600000;
-    const when = (ms: number) => { const d = new Date(ms + 345 * 60000), hh = d.getUTCHours();   // Nepal time
-      return { date: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }),
-        time: `${hh % 12 || 12}:${String(d.getUTCMinutes()).padStart(2, '0')} ${hh < 12 ? 'AM' : 'PM'} NPT`,
-        start: new Date(ms + 345 * 60000).toISOString().slice(0, 19) + '+05:45' }; };
-    const base = { ...t }; delete base.teams; delete base.winner;
-    const letters = 'ABCDEFGH', names = Array.from({ length: groups }, (_, i) => `${slug} · Group ${letters[i]}`), finalName = `${slug} · Final`;
-    if (doc.tournaments.some((x: any) => names.includes(x.name) || x.name === finalName)) return fail('These groups already exist.', 409);
-    const moves = list.map((r: any, i: number) => ({ id: r.id, from: slug, to: names[i % groups] }));
-    const kids = names.map((name, i) => ({ ...base, ...when(at0 + i * gap), name, prize: '', parent: slug, group: letters[i], advance, winner: '', teams: [], status: 'upcoming',
-      slots: moves.filter((m) => m.to === name).length }));
-    const fin = { ...base, ...when(at0 + groups * gap), name: finalName, parent: slug, winner: '', teams: [], status: 'upcoming', slots: advance * groups };
-    const at = doc.tournaments.indexOf(t);
-    const { error: mv } = await admin.rpc('event_move_regs', { p_moves: moves });
-    if (mv) return fail('Nothing was moved: ' + mv.message, 500);
-    doc.tournaments.splice(at, 1, ...kids, fin);   // waitlisted squads stay on the old name: the deposit sweep refunds them
-    doc._published_at = new Date().toISOString();
+    if ((Date.parse(t.start) || 0) - Date.now() > 24 * 3600000) return fail('Groups can be drawn from 24 hours before the start, once unconfirmed squads are out.', 409);
     const H = { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET, 'Authorization': `Bearer ${SERVICE}`, 'apikey': SERVICE };
-    const pub = await fetch(`${URL_}/functions/v1/publish-tournaments`, { method: 'POST', headers: H, body: JSON.stringify({ content: JSON.stringify(doc, null, 2) }) });
-    if (!pub.ok) {
-      await admin.rpc('event_move_regs', { p_moves: moves.map((m) => ({ id: m.id, from: m.to, to: m.from })) });
-      return fail('Could not publish, so nothing changed: ' + (await pub.text()), 502);
-    }
-    await admin.from('notifications').insert(moves.map((m) => { const r: any = list.find((x: any) => x.id === m.id), k = kids.find((x) => x.name === m.to)!;
-      return { player_id: r.player_id, push: true, tournament_slug: m.to, title: tagT(`🎲 ${r.squad_name}: Group ${k.group}`).slice(0, 120),
-        body: `${slug} is drawn. You play ${k.date} ${k.time}. The top ${advance} reach the Final. Nothing more to pay.` }; }));
-    await log('groups_draw', `${slug} · ${list.length} into ${groups} groups, top ${advance} advance`);
-    return json({ ok: true, groups, advance, names, final: finalName });
+    try {
+      const r = await drawEvent(admin, doc, t, async (d) => { const x = await fetch(`${URL_}/functions/v1/publish-tournaments`, { method: 'POST', headers: H, body: JSON.stringify({ content: JSON.stringify(d, null, 2) }) }); return x.ok ? null : await x.text(); }, tagT);
+      await log('groups_draw', `${slug} · ${r.teams} into ${r.groups} groups, top ${r.advance}${r.semis ? ' to semi-finals' : ' to the Grand Final'}`);
+      return json({ ok: true, ...r });
+    } catch (e) { return fail(String((e as Error).message || e), 409); }
   }
 
   // ── host mods: create / edit their OWN events (free entry; JD never pays prizes for them) ──
@@ -951,7 +920,7 @@ Deno.serve(async (req: Request) => {
     const name = edit ? ex.name : `${tag} ${title || 'Scrim #' + (mine.length + 1)}`.slice(0, 60);
     if (!edit && same(name)) return fail('You already have an event with that name. Pick another name.', 409);
     if (ex && (ex.winner || String(ex.status).toLowerCase() === 'completed')) return fail("That event is finished and can't be changed.", 409);
-    if (ex?.parent) return fail("A drawn group or Final can't be edited.", 409);
+    if (ex?.parent) return fail("A drawn stage can't be edited.", 409);
     if (ex && modeOf(ex) !== mode) {
       const { count } = await admin.from('registrations').select('id', { count: 'exact', head: true }).eq('tournament_slug', ex.name).neq('status', 'rejected');
       if (count) return fail('Squads already joined, so the mode can\'t change now.', 409);

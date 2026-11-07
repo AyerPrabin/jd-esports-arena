@@ -1,6 +1,6 @@
 -- Solo, duo and squad events, and big events split into groups plus a Final (owner's OK 7 Nov 2026).
 -- An event's "mode" lives in tournaments.json: 'solo' | 'duo' | 'squad' (no value = squad).
--- A drawn group or Final carries "parent": nobody registers on one directly, mod-panel moves squads in.
+-- A drawn stage (group, semi-final, Grand Final) carries "parent": nobody registers on one directly, squads are moved in.
 -- Moving a registration keeps its paid_points, card and line-up, so nobody pays twice.
 -- Undo: event_modes_groups_rollback.sql
 
@@ -33,6 +33,10 @@ begin
   if not found then raise exception 'Join this tournament first, then verify your squad.'; end if;
   if exists(select 1 from public.tournament_room_codes where tournament_slug = p_slug and sent_at is not null) then
     raise exception 'The room details are already out, so the line-up is locked. Contact JD support if something is wrong.';
+  end if;
+  -- a squad that moved on keeps the line-up it played with: no swapping in stronger players between stages
+  if coalesce(public.tournament_field(p_slug, 'parent'), '') <> '' then
+    raise exception 'Your line-up is locked once groups are drawn. Contact JD support if something is wrong.';
   end if;
 
   if char_length(v_squad) > 30 then raise exception 'Squad name can be up to 30 characters.'; end if;
@@ -113,7 +117,7 @@ create or replace function public._reg_no_group_join() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
   if coalesce(public.tournament_field(new.tournament_slug, 'parent'), '') <> '' then
-    raise exception 'Groups are already drawn for this event, so it can''t be joined now.';
+    raise exception 'This stage only has squads that were drawn or moved up, so it can''t be joined.';
   end if;
   return new;
 end $$;
@@ -121,11 +125,14 @@ revoke all on function public._reg_no_group_join() from public, anon, authentica
 drop trigger if exists reg_no_group_join on public.registrations;
 create trigger reg_no_group_join before insert on public.registrations for each row execute function public._reg_no_group_join();
 
--- mod-panel only: all the moves of one draw or one group's top squads succeed together or not at all
-create or replace function public.event_move_regs(p_moves jsonb) returns int
+-- All the moves of one draw, or one stage's top squads, succeed together or not at all. p_stages are new events
+-- with their squads already confirmed: the 24-hour sweep must not treat them as new and remove anyone.
+create or replace function public.event_draw_apply(p_moves jsonb, p_stages text[]) returns int
 language plpgsql security definer set search_path = public as $$
 declare m jsonb; v_n int := 0; v_done int;
 begin
+  insert into public.jd_confirm_reminders (tournament_slug) select unnest(p_stages) on conflict do nothing;
+  insert into public.jd_confirm_sweeps (tournament_slug) select unnest(p_stages) on conflict do nothing;
   for m in select * from jsonb_array_elements(p_moves) loop
     update public.registrations set tournament_slug = m->>'to'
      where id = (m->>'id')::uuid and tournament_slug = m->>'from';
@@ -135,5 +142,36 @@ begin
   end loop;
   return v_n;
 end $$;
-revoke all on function public.event_move_regs(jsonb) from public, anon, authenticated;
-grant execute on function public.event_move_regs(jsonb) to service_role;
+revoke all on function public.event_draw_apply(jsonb, text[]) from public, anon, authenticated;
+grant execute on function public.event_draw_apply(jsonb, text[]) to service_role;
+
+-- After a draw the old event is gone: whoever is still on it (waitlist, or joined in the seconds of the draw)
+-- gets their points back and the ticket is removed, which also returns a free card (_voucher_back).
+-- The capacity row goes first, so promote_from_waitlist can't move anyone up while this runs.
+create or replace function public.event_end_waitlist(p_slug text) returns int
+language plpgsql security definer set search_path = public as $$
+declare r record; v_n int := 0;
+begin
+  delete from public.tournament_capacity where tournament_slug = p_slug;
+  for r in select * from public.registrations where tournament_slug = p_slug for update loop
+    if coalesce(r.paid_points, 0) > 0 and not exists(select 1 from public.wallet_ledger where reason = 'refund' and ref = 'wl_refund:' || r.id::text) then
+      perform public._wallet_apply(r.player_id, r.paid_points, 'refund', 'wl_refund:' || r.id::text, p_slug);
+    end if;
+    delete from public.registrations where id = r.id;
+    insert into public.notifications (player_id, tournament_slug, title, body)
+    values (r.player_id, p_slug, 'No seat in ' || p_slug,
+      'Groups are drawn and your squad had no seat.' || case when coalesce(r.paid_points, 0) > 0 then ' Your ' || r.paid_points || ' points are back in your wallet.' else '' end);
+    v_n := v_n + 1;
+  end loop;
+  return v_n;
+end $$;
+revoke all on function public.event_end_waitlist(text) from public, anon, authenticated;
+grant execute on function public.event_end_waitlist(text) to service_role;
+
+-- draws by itself 2 hours before the start (functions/groups-auto)
+select cron.schedule('groups-auto', '*/10 * * * *', $cron$
+  select net.http_post(
+    url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/groups-auto',
+    headers := jsonb_build_object('Content-Type', 'application/json', 'x-cron-secret', (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret')),
+    body := '{}'::jsonb)
+$cron$);

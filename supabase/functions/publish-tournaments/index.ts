@@ -134,7 +134,7 @@ Deno.serve(async (req: Request) => {
     for (const t of (JSON.parse(content).tournaments || []) as any[]) {
       if (!t?.name) continue;
       const o = old.get(t.name);
-      if (!o) { if (before) rows.push({ tournament: t.name, what: `new event${t.host ? ' hosted by @' + t.host : ''}: ${t.date || 'TBA'} ${t.time || ''}, prize ${t.prize || '-'}, entry ${t.entry || 'Free'}, ${t.slots || '?'} squads` }); continue; }
+      if (!o) { if (before && !t.parent) rows.push({ tournament: t.name, what: `new event${t.host ? ' hosted by @' + t.host : ''}: ${t.date || 'TBA'} ${t.time || ''}, prize ${t.prize || '-'}, entry ${t.entry || 'Free'}, ${t.slots || '?'} squads` }); continue; }
       const diffs = FIELDS.filter(([k]) => String(o[k] ?? '').trim() !== String(t[k] ?? '').trim())
         .map(([k, label]) => `${label} ${String(o[k] ?? '').trim() || '(none)'} -> ${String(t[k] ?? '').trim() || '(none)'}`);
       if (diffs.length) rows.push({ tournament: t.name, what: diffs.join('; ').slice(0, 400) });
@@ -186,7 +186,7 @@ Deno.serve(async (req: Request) => {
   try {
     const parsed = JSON.parse(content);
     const fresh = (Array.isArray(parsed?.tournaments) ? parsed.tournaments : []).filter((t: any) =>
-      t && typeof t.name === 'string' && !t.host && !['completed', 'cancelled'].includes(String(t.status || '').toLowerCase()) &&
+      t && typeof t.name === 'string' && !t.host && !t.parent && !['completed', 'cancelled'].includes(String(t.status || '').toLowerCase()) &&
       (!t.start || Date.parse(t.start) > Date.now()));
     if (fresh.length) {
       const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
