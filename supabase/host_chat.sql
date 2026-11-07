@@ -22,9 +22,11 @@ grant select, insert, update on public.host_messages to service_role;
 -- Keeps chats on JD Arena: no links from anyone, no phone numbers from a host.
 -- Players may send a number, because a host pays prizes directly and may need their eSewa or Khalti number.
 create or replace function public._host_chat_filter() returns trigger
-language plpgsql set search_path = public as $$
+language plpgsql security definer set search_path = public as $$
 declare v text := translate(new.body, '०१२३४५६७८९', '0123456789');
 begin
+  -- _chat_respect trusts from_staff, but a host isn't JD staff: hide their rude words too (no strike, the JD team decides)
+  if new.from_staff then select r.masked into new.body from public.jd_mask_rude(new.body) r; end if;
   if v ~* '(https?:|www\.|[[:alnum:]-]+\.(com|net|org|np|me|gg|link|ly|co|io|app|xyz|in)([^[:alnum:]]|$))' then
     raise exception 'Links can''t be sent in host chat.';
   end if;
