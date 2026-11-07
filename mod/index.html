@@ -54,6 +54,12 @@ main{position:relative;max-width:1280px;margin:0 auto;padding:16px 16px calc(var
 .sec-h h2{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.3rem;margin:0;text-wrap:balance}
 .sec-h .sp{flex:1}
 .lead{color:var(--silver);font-size:.86rem;margin:-6px 0 12px;max-width:60ch}
+.money{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
+.money[hidden]{display:none}
+.money div{min-width:0;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel-2)}
+.money dt{font-size:.74rem;font-weight:600;color:var(--silver)}
+.money dd{margin:1px 0 0;font-size:1.05rem;font-weight:700;color:var(--gold);overflow-wrap:anywhere}
+.money small{display:block;margin-top:2px;font-size:.74rem;font-weight:400;color:var(--silver)}
 .tab{display:none}
 .tab.on{display:block}
 
@@ -99,6 +105,7 @@ main{position:relative;max-width:1280px;margin:0 auto;padding:16px 16px calc(var
 .evlist .evpill{width:100%;flex-direction:row;align-items:center;justify-content:space-between;padding:10px 12px}
 .evlist .evpill>span{display:flex;flex-direction:column;min-width:0}
 .evlist .evpill b{overflow:hidden;text-overflow:ellipsis}
+.evlist .evpill small{white-space:normal}
 
 /* ── squads ── */
 .sum{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
@@ -497,6 +504,7 @@ textarea{min-height:96px;resize:vertical}
       <div id="hev-m" hidden><button type="button" class="btn sm" id="hev-new-m">+ New event</button><button type="button" class="ghost" id="hev-edit-m" hidden>Edit this event</button></div>
       <div class="sec-h"><h2 id="h-squads">Squads</h2><span class="sp"></span><span class="updated" id="updated" aria-live="polite"></span></div>
       <p class="lead" id="ev-line"></p>
+      <dl class="money" id="ev-money" hidden></dl>
       <div class="sum" id="sum"></div>
       <div id="reg-body"><p class="note">Pick an event to see its squads.</p></div>
       <div id="removed-box"></div>
@@ -736,7 +744,8 @@ function hostEventForm(t){
     `<p>It runs under your TikTok ID, and players see it hosted by <b>@${esc(ME.handle)}</b>. Squads join like any JD free event, with a free card or 15 points. You pay your own prizes; JD doesn't.</p>`+
     (ed?'':`<label class="f" for="hev-name">Event name, after <b>@${esc(ME.handle)}</b></label><input id="hev-name" maxlength="28" placeholder="e.g. Night Scrim (optional)" autocomplete="off">`)+
     `<label class="f" for="hev-start">Day and time (Nepal)</label><input id="hev-start" type="datetime-local" required value="${esc(st)}">`+
-    `<label class="f" for="hev-prize">Prize (shown on the card)</label><input id="hev-prize" maxlength="40" placeholder="e.g. Rs 500 from @${esc(ME.handle)}" value="${esc(t?t.prize||'':'')}">`+
+    `<label class="f" for="hev-prize">Prize pool: the total you pay the winners</label><input id="hev-prize" maxlength="40" placeholder="e.g. Rs 500" value="${esc(t?t.prize||'':'')}">`+
+    `<label class="f" for="hev-fee">Entry fee: each squad pays JD, not you</label><input id="hev-fee" value="Free card or 15 points" disabled>`+
     `<div class="row2"><div><label class="f" for="hev-slots">Squads</label><input id="hev-slots" type="number" min="2" max="12" value="${esc(t?t.slots||12:12)}"></div>`+
     `<div><label class="f" for="hev-m">Matches</label><select id="hev-m">${opt([['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6']],m)}</select></div></div>`+
     `<div class="row2"><div><label class="f" for="hev-map">Map</label><select id="hev-map">${opt(MAPS,t?t.map||'bermuda':'bermuda')}</select></div>`+
@@ -797,9 +806,20 @@ function isRecentPast(t){
 let showPast=false;
 function fmtWhen(t){ return [t.date,t.time].filter(Boolean).join(' · ') || (t.start?new Date(t.start).toLocaleString():''); }
 function isLive(t){ return t.start && Math.abs(new Date(t.start)-Date.now())<3*3600*1000; }
+// entry / prize in words. Display only: the stored text is what the server parses.
+const prizeNum=t=>{const s=String(t.prize||'').trim();return /^(rs\.?\s*)?\d[\d,]*$/i.test(s)?+s.replace(/\D/g,''):null;};
+const prizeTxt=t=>{const n=prizeNum(t);return n!=null?'Rs '+n.toLocaleString('en-IN'):String(t.prize||'').trim()||'Not set';};
+const isFreeEntry=t=>{const e=String(t.entry||'').trim();return !e||/^free$/i.test(e);};
+const entryTxt=t=>{const e=String(t.entry||'').trim();return isFreeEntry(t)?'Free card or 15 points':/^\d+$/.test(e)?e+' points':e;};
+function moneyHtml(t){
+  const n=prizeNum(t), b=Math.floor((n||0)*.3), c=Math.round((n||0)*.2), host=!!String(t.host||'').trim();
+  const who=host?'The host pays the winners directly':t.mega?'Paid by JD':n?`1st Rs ${n-b-c} · 2nd Rs ${b} · 3rd Rs ${c}`:'Ask the admin to set it';
+  return `<div><dt>Prize pool</dt><dd>${esc(prizeTxt(t))}<small>${who}</small></dd></div>`+
+    `<div><dt>Entry fee</dt><dd>${esc(entryTxt(t))}<small>${host?'Each squad pays JD, not the host':'Each squad pays this to join'}</small></dd></div>`;
+}
 function evPill(t,i){
   return `<button type="button" class="evpill" data-ev="${i}" aria-pressed="${selected===t}"><span><b>${esc(t.name)}</b>`+
-    `<small>${isDone(t)?'<span style="color:var(--ok)">Finished · </span>':isLive(t)?'<span class="live">Tonight · </span>':''}${esc(fmtWhen(t))}${t.entry?' · '+esc(t.entry):''}</small></span></button>`;
+    `<small>${isDone(t)?'<span style="color:var(--ok)">Finished · </span>':isLive(t)?'<span class="live">Tonight · </span>':''}${esc(fmtWhen(t))}</small><small>Prize ${esc(prizeTxt(t))} · Entry ${esc(entryTxt(t).replace(/^Free card or /,'Card or ').replace(/ points$/,' pts'))}</small></span></button>`;
 }
 function renderEvents(){
   const up=[], past=[];
@@ -827,7 +847,8 @@ function selectEvent(t,scroll){
   if(isHostMod()) $('hev-edit').hidden=$('hev-edit-m').hidden=!(t&&!isDone(t));
   renderEvents();
   $('rc-ev').textContent=t?t.name:'this event';
-  $('ev-line').textContent=t?`${t.name} · ${fmtWhen(t)}${t.entry?' · '+t.entry:''}`:'';
+  $('ev-line').textContent=t?`${t.name} · ${fmtWhen(t)}`:'';
+  $('ev-money').hidden=!t; $('ev-money').innerHTML=t?moneyHtml(t):'';
   renderTemplates();
   rs=null; loadResults();
   rows=[]; filter='all';
@@ -1228,7 +1249,7 @@ async function loadResults(keepMsg){
 }
 function rsMeta(){
   const d=rs, done=(d.status||'').toLowerCase()==='completed'||!!d.winner;
-  $('rs-meta').innerHTML=`<span>${esc(d.event)}</span><span>Prize pool: ${d.pool?d.pool+' points':'none set'}</span><span>${d.matches} match${d.matches>1?'es':''}</span>`+
+  $('rs-meta').innerHTML=`<span>${esc(d.event)}</span><span>Prize pool: ${d.pool?'Rs '+d.pool.toLocaleString('en-IN')+(isHostMod()?', you pay it':' = '+d.pool.toLocaleString('en-IN')+' points'):'not set'}</span>${selected?`<span>Entry fee: ${esc(entryTxt(selected))}</span>`:''}<span>${d.matches} match${d.matches>1?'es':''}</span>`+
     (done?`<span class="done">Finished · winner ${esc(d.winner||'')}</span>`:'<span>Not finished</span>')+(d.board&&d.board.published?'<span>Standings live</span>':'');
 }
 function renderResults(){
@@ -1243,7 +1264,7 @@ function renderResults(){
       `<span class="tot">${rsTotal(r)}</span></div>`; }).join('');
   $('rs-body').innerHTML=`<div class="rs">${head}${body}</div>`+
     `<button type="button" class="ghost rs-add" id="rs-add">+ Add squad</button>`+
-    `<div class="prz"><h3>${isHostMod()?'Prizes you pay (Rs)':'Prizes (paid when you finish)'}</h3><p class="note" style="margin:0">${isHostMod()?'You pay your winners yourself. JD Arena tells them the amount and that it comes from you. No JD points move.':"Points go straight into the winners' JD wallets. Prizes follow 50/30/20 for 1st, 2nd and 3rd, and each squad is paid once."}</p><div id="rs-prz"></div><div class="prz-sum" id="prz-sum"></div></div>`+
+    `<div class="prz"><h3>${isHostMod()?'Prizes you pay (Rs)':'Prizes (paid when you finish)'}</h3><p class="note" style="margin:0">${isHostMod()?'You pay your winners yourself. JD Arena tells them the amount and that it comes from you. No JD points move.':"Points go straight into the winners' JD wallets. 1 point = Rs 1. Prizes follow 50/30/20 for 1st, 2nd and 3rd, and each squad is paid once."}</p><div id="rs-prz"></div><div class="prz-sum" id="prz-sum"></div></div>`+
     `<div class="rs-acts"><button type="button" class="btn alt" id="rs-pub">Publish standings</button><button type="button" class="btn" id="rs-fin">${isHostMod()?'Finish event':'Finish &amp; pay prizes'}</button></div>`+
     `<p class="note">Per match: <b>Pos</b> = placement points (1st 12, 2nd 9, 3rd 8 … 10th 1), <b>K</b> = kills (+${rsKp()} point each). Publish standings after each match: the leaderboard on the site updates for everyone. Finish when the last match is done: it sets the winner, marks the event finished, saves the all-time leaderboard and pays the prizes.</p>`;
   renderPrizes();

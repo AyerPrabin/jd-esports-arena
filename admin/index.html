@@ -404,11 +404,11 @@ h2[id]{scroll-margin-top:64px}
       <span class="row-l">TIME (NEPAL)</span>
       <div class="chips" id="nev-times"></div>
       <input type="datetime-local" id="nev-start" aria-label="Exact start (Nepal time)">
-      <span class="row-l">PRIZE (RS)</span>
+      <span class="row-l">PRIZE POOL (RS) <span class="tag">winners share this</span></span>
       <div class="chips" id="nev-prizes"></div>
-      <span class="row-l">ENTRY</span>
+      <span class="row-l">ENTRY FEE <span class="tag">each squad pays</span></span>
       <div class="chips" id="nev-entries"></div>
-      <span class="row-l">SQUADS · MATCHES</span>
+      <span class="row-l">SQUADS · MATCHES <span class="tag">one room holds 12</span></span>
       <div class="chips" id="nev-slots"></div>
       <div class="chips" id="nev-matches" style="margin-top:8px"></div>
       <span class="row-l">DEVICE · MAP</span>
@@ -936,7 +936,7 @@ window.fetch=async function(input,init){
   if(adminSecret()){document.getElementById('gate').style.display='none';document.getElementById('app').style.display='';loadLive();loadSecurity();loadLoads();return;}
   tryGoogleSession();
 })();
-const TF=[['name','Name','text'],['game','Game / mode','text'],['date','Date (display)','text'],['time','Time','text'],['start','Start (ISO, for countdown)','text'],['prize','Prize pool','text'],['entry','Entry fee','text'],['slots','Slots (max squads)','number'],['format','Format','text'],['register_url','Register URL','text'],['winner','Winner (if done)','text'],['host','Host mod handle (only that host mod sees this event in /mod/)','text']];
+const TF=[['name','Name','text'],['game','Game / mode','text'],['date','Date (display)','text'],['time','Time','text'],['start','Start (ISO, for countdown)','text'],['prize','Prize pool (Rs the winners share, e.g. 500)','text'],['entry','Entry fee (each squad pays, e.g. 50 points, or Free)','text'],['slots','Slots (max squads, one room holds 12)','number'],['format','Format','text'],['register_url','Register URL','text'],['winner','Winner (if done)','text'],['host','Host mod handle (only that host mod sees this event in /mod/)','text']];
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 // only real image data URIs / https images may reach an <img src> (squad logos are player-uploaded)
@@ -1149,14 +1149,18 @@ function evEdit(i){_openEdit.add(data.tournaments[i]);renderT();evScrollTo(i);}
 function evClose(i){_openEdit.delete(data.tournaments[i]);renderT();evScrollTo(i);}
 function evScrollTo(i){const el=[...document.querySelectorAll('#tlist .card')].find(x=>x.dataset.ev===String(i)||x.querySelector('[data-i="'+i+'"]'));if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
 function rsText(v){const s=String(v??'').trim();return /^\d[\d,]*$/.test(s)?'Rs '+s:(s||'—');}
+// entry fee in words. Display only: the stored text is what the server parses.
+function feeText(v){const s=String(v??'').trim();return !s||/^free$/i.test(s)?'Free card or 15 points':/^\d+$/.test(s)?s+' points':s;}
+// a paid event that can't cover its own prize even when full
+function feeWarn(prize,entry,slots){const p=+String(prize||'').replace(/[^\d]/g,''),e=+String(entry||'').replace(/[^\d]/g,''),n=e*(+slots||0);return e&&p>n?`<span class="ev-warn">⚠️ Full, it collects ${n} points but pays Rs ${p}. JD covers Rs ${p-n}.</span>`:'';}
 function evMiniHtml(t,i){
   const ms=tStartMs(t);
   const when=ms===null?'<span class="ev-warn">⚠️ no start time — tap Edit</span>':`<b>${esc(t.date||'')}</b> ${esc(t.time||'')}`;
   const live=_liveCounts.get(t.name)||0;
   const pill=ms===null?tStatus(t):(ms>Date.now()?tStatus(t)+' · in '+inText(ms):tStatus(t)+' · started '+agoText(ms)+' ago');
   return `<div class="card ev-mini" data-ev="${i}"><div class="ev-top"><b>${esc(t.name||'Untitled event')}</b><span class="pill">${esc(pill)}</span></div>`+
-    `<div class="ev-facts"><span>📅 ${when}</span><span>🏆 <b>${esc(rsText(t.prize))}</b></span><span>🎟 <b>${esc(t.entry||'Free')}</b></span>`+
-    `<span>👥 <b>${live}${t.slots?'/'+esc(t.slots):''}</b> squads</span><span>📱 ${esc(DEVICE_LABEL[t.platform_mode||'mixed'])}</span><span>🗺 ${esc(t.format||'')}</span></div>`+
+    `<div class="ev-facts"><span>📅 ${when}</span><span>🏆 Prize pool <b>${esc(rsText(t.prize))}</b></span><span>🎟 Entry fee <b>${esc(feeText(t.entry))}</b></span>`+
+    `<span>👥 <b>${live}${t.slots?'/'+esc(t.slots):''}</b> squads</span><span>📱 ${esc(DEVICE_LABEL[t.platform_mode||'mixed'])}</span><span>🗺 ${esc(t.format||'')}</span>${t.mega||t.host?'':feeWarn(t.prize,t.entry,t.slots)}</div>`+
     `<div class="ev-acts"><button class="btn ghost" onclick="evEdit(${i})">✏️ Edit</button>`+
     `<button class="btn ghost" onclick="jumpToRoomCode(${i})">🔑 Room code</button>`+
     `<button class="btn ghost" onclick="markFinished(${i})">✓ Finish</button></div></div>`;
@@ -1193,7 +1197,7 @@ function newEventOpen(){
     name:nextEventName(),day:addDays(nptToday(),1),time:hm,
     prize:String(base.prize||'300').replace(/[^\d]/g,'')||'300',
     entry:/^\s*free\s*$/i.test(base.entry||'Free')?'0':String(base.entry).replace(/[^\d]/g,'')||'0',
-    slots:String(base.slots||12),matches:m?(m[1]||m[2]):'3',
+    slots:String(Math.min(+base.slots||12,12)),matches:m?(m[1]||m[2]):'3',
     device:deviceOf(base),map:base.map||'bermuda',base
   });
   document.getElementById('nev-name').value=NEV.name;
@@ -1209,16 +1213,19 @@ function newEventRender(){
   chipRow('nev-times',[['20:00','8 PM'],['21:00','9 PM'],['21:30','9:30 PM'],['22:00','10 PM'],['22:30','10:30 PM']],NEV.time,v=>{NEV.time=v;});
   document.getElementById('nev-start').value=NEV.day&&NEV.time?NEV.day+'T'+NEV.time:'';
   chipRow('nev-prizes',[['180','180 (free)'],['200','200'],['300','300'],['400','400'],['500','500'],['1000','1000']],NEV.prize,v=>{NEV.prize=v;});
-  chipRow('nev-entries',[['0','Free'],['20','20 pts'],['50','50 pts'],['100','100 pts']],NEV.entry,v=>{NEV.entry=v;});
-  chipRow('nev-slots',[['12','12 squads'],['24','24 squads'],['48','48 squads']],NEV.slots,v=>{NEV.slots=v;});
+  chipRow('nev-entries',[['0','Free card or 15 pts'],['20','20 pts'],['50','50 pts'],['100','100 pts']],NEV.entry,v=>{NEV.entry=v;});
+  chipRow('nev-slots',[['12','12 squads']],NEV.slots,v=>{NEV.slots=v;});
   chipRow('nev-matches',[['1','1 match'],['3','3 matches'],['4','4 matches'],['6','6 matches']],NEV.matches,v=>{NEV.matches=v;});
   chipRow('nev-devices',PLATFORM_MODES.map(([v,l])=>[v,l.replace(' (any device)','')]),NEV.device,v=>{NEV.device=v;});
   chipRow('nev-maps',MAPS,NEV.map,v=>{NEV.map=v;});
   const f=startFieldsFromLocal(document.getElementById('nev-start').value);
-  const entry=+NEV.entry?NEV.entry+' points':'Free';
+  const entry=feeText(+NEV.entry?NEV.entry+' points':'Free'),pn=+NEV.prize||0,p2=Math.floor(pn*.3),p3=Math.round(pn*.2);
   document.getElementById('nev-sum').innerHTML=`<b>${esc(document.getElementById('nev-name').value)}</b><br>`+
     `📅 ${f?esc(f.date+' · '+f.time):'<span class="ev-warn">pick a day and time</span>'}<br>`+
-    `🏆 Prize <b>Rs ${esc(NEV.prize)}</b> · 🎟 Entry <b>${esc(entry)}</b> · 👥 <b>${esc(NEV.slots)}</b> squads · <b>${esc(NEV.matches)}</b> matches`;
+    `🏆 Prize pool <b>Rs ${esc(NEV.prize)}</b> (1st ${pn-p2-p3} · 2nd ${p2} · 3rd ${p3})<br>`+
+    `🎟 Entry fee <b>${esc(entry)}</b>, each squad pays<br>`+
+    `👥 <b>${esc(NEV.slots)}</b> squads · <b>${esc(NEV.matches)}</b> matches`+
+    (feeWarn(NEV.prize,NEV.entry,NEV.slots)?'<br>'+feeWarn(NEV.prize,NEV.entry,NEV.slots):'');
 }
 document.addEventListener('input',e=>{
   if(e.target.id==='nev-name')newEventRender();
@@ -1877,7 +1884,7 @@ async function renderMatchDay(){
   box.innerHTML=`<div class="md">
     ${evs.length>1?`<div class="md-pick">${evs.map(x=>`<button type="button" class="${x===cur?'on':''}" data-md="${esc(x.t.name)}">${esc(x.t.name)}</button>`).join('')}</div>`:''}
     <h3>${started?'🔴 ':''}${esc(t.name)}</h3>
-    <p class="sub">${esc(t.date||'')} ${esc(t.time||'')} · ${when} · prize ${esc(t.prize||'-')} · ${esc(t.entry||'Free')}</p>
+    <p class="sub">${esc(t.date||'')} ${esc(t.time||'')} · ${when} · prize pool ${esc(rsText(t.prize))} · entry fee ${esc(feeText(t.entry))}</p>
     ${step(1,squads?'ok':'now','Squads',`${squads}${t.slots?' of '+esc(t.slots):''} squads confirmed.`,`<button class="btn ghost" onclick="mdTeams()">👥 See squads</button>`)}
     ${step(2,'','Room code',started?'Send it now if players are still waiting.':'Send it now, or stage it to go out by itself about 5 minutes before kickoff.',
       `<div class="ib-row"><input id="md-rid" inputmode="numeric" placeholder="Room ID"><input id="md-rpw" placeholder="Password"></div>
