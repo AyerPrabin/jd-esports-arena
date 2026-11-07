@@ -109,7 +109,7 @@ Deno.serve(async (req: Request) => {
   if (['mod_list', 'mod_add', 'mod_remove'].includes(action)) {
     if (!ADMIN_SECRET || adminHeader !== ADMIN_SECRET) return fail('Unauthorized', 401);
     if (action === 'mod_list') {
-      const { data, error } = await admin.from('moderators').select('email, note, role, handle, added_at').order('added_at', { ascending: false });
+      const { data, error } = await admin.from('moderators').select('email, note, role, handle, added_at, commission_pct, agreed_at').order('added_at', { ascending: false });
       if (error) return fail(error.message, 500);
       return json(data || []);
     }
@@ -119,8 +119,13 @@ Deno.serve(async (req: Request) => {
       const role = p.role === 'host' ? 'host' : 'staff';
       const handle = normHandle(p.handle);
       if (role === 'host' && !/^[a-z0-9._]{2,30}$/.test(handle)) return fail('A host mod needs a handle, e.g. their TikTok name: goats.esp');
+      // commission (staff only): empty = none. A new rate must be accepted again in /mod/.
+      const raw = p.commission_pct;
+      const pct = role === 'host' || raw === '' || raw == null ? null : Math.round(Number(raw));
+      if (pct !== null && !(pct >= 0 && pct <= 100)) return fail('Commission must be 0 to 100 percent.');
+      const { data: cur } = await admin.from('moderators').select('commission_pct').eq('email', email).maybeSingle();
       const { error } = await admin.from('moderators').upsert({ email, note: String(p.note || '').slice(0, 120) || null,
-        role, handle: handle || null });
+        role, handle: handle || null, commission_pct: pct, ...(cur?.commission_pct !== pct ? { agreed_at: null } : {}) });
       if (error) return fail(/moderators_handle_key|duplicate/i.test(error.message) ? 'Another mod already uses that handle.' : error.message, 500);
       return json({ ok: true, email, role, handle: handle || null });
     }
@@ -132,8 +137,33 @@ Deno.serve(async (req: Request) => {
     }
   }
 
+  if (['commission_list', 'commission_settle', 'commission_assign', 'referrals_list'].includes(action)) {
+    if (!ADMIN_SECRET || adminHeader !== ADMIN_SECRET) return fail('Unauthorized', 401);
+    if (action === 'referrals_list') {
+      const { data, error } = await admin.rpc('referrals_report');
+      return error ? fail(error.message, 500) : json(data);
+    }
+    if (action === 'commission_list') {
+      const { data, error } = await admin.rpc('commission_report', {});
+      return error ? fail(error.message, 500) : json(data);
+    }
+    const slug = String(p.slug || '');
+    if (action === 'commission_settle') {
+      if (!['paid', 'void'].includes(p.status)) return fail('status must be paid or void');
+      const { data, error } = await admin.rpc('commission_settle', { p_slug: slug, p_status: p.status });
+      return error ? fail(error.message) : json(data);
+    }
+    const to = String(p.email || '').trim().toLowerCase();
+    const { data: m } = await admin.from('moderators').select('email').eq('email', to).eq('role', 'staff').maybeSingle();
+    if (!m) return fail('That email is not a staff mod.');
+    const { data: done } = await admin.from('commission_settled').select('slug').eq('slug', slug).maybeSingle();
+    if (done) return fail('That event is already settled.');
+    const { error } = await admin.from('event_runs').upsert({ slug, mod_email: to, set_by: 'admin' });
+    return error ? fail(error.message, 500) : json({ ok: true });
+  }
+
   // ── moderator actions: require a signed-in moderator (the JD Esports chat also takes the admin secret) ──
-  let email = '', role = 'staff', handle = '';
+  let email = '', role = 'staff', handle = '', pct: number | null = null, agreedAt: string | null = null;
   if ((action.startsWith('chat_') || action.startsWith('load')) && ADMIN_SECRET && adminHeader === ADMIN_SECRET) email = 'admin';
   else {
     const jwt = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
@@ -141,10 +171,12 @@ Deno.serve(async (req: Request) => {
     const { data: { user }, error: uErr } = await admin.auth.getUser(jwt);
     email = user?.email?.toLowerCase() || '';
     if (uErr || !email) return fail('Sign in first', 401);
-    const { data: mod } = await admin.from('moderators').select('email, role, handle').eq('email', email).maybeSingle();
+    const { data: mod } = await admin.from('moderators').select('email, role, handle, commission_pct, agreed_at').eq('email', email).maybeSingle();
     if (!mod) return fail('Your account is not a moderator. Ask the JD admin to add you.', 403);
     role = mod.role === 'host' ? 'host' : 'staff';
     handle = normHandle(mod.handle);
+    pct = mod.commission_pct ?? null;
+    agreedAt = mod.agreed_at || null;
   }
   const isHost = role === 'host';
   const isOwner = email === 'admin' || email === OWNER_EMAIL;
@@ -163,7 +195,24 @@ Deno.serve(async (req: Request) => {
   const tagT = (t: string) => (isHost ? `[@${handle}] ${t}` : `[JD] ${t}`).slice(0, 120);   // who the player sees it from
 
   if (action === 'whoami') return json({ ok: true, email, role, handle: handle || null, owner: isOwner,
-    events: isHost ? [...await myEvents()] : null });
+    events: isHost ? [...await myEvents()] : null, commission_pct: pct, agreed_at: agreedAt });
+  // the mod's own player account: a mod never rules on their own money
+  const myPlayerId = async (): Promise<string | null> => {
+    if (email === 'admin') return null;
+    const { data } = await admin.from('players').select('id').ilike('email', email.replace(/[\\%_]/g, '\\$&')).limit(1).maybeSingle();
+    return (data as any)?.id || null;
+  };
+  if (action === 'agree') {
+    if (pct === null) return fail('The JD admin has not set commission terms for you.');
+    const { error } = await admin.from('moderators').update({ agreed_at: new Date().toISOString() }).eq('email', email);
+    if (error) return fail(error.message, 500);
+    await admin.from('mod_actions').insert({ mod_email: email, action: 'agree', detail: `Accepted the mod agreement at ${pct}%` });
+    return json({ ok: true });
+  }
+  if (action === 'my_earnings') {
+    const { data, error } = await admin.rpc('commission_report', { p_email: email });
+    return error ? fail(error.message, 500) : json({ pct, agreed_at: agreedAt, rows: data });
+  }
   if (isHost && action.startsWith('chat_')) return fail('The JD Esports chat is for the JD team only. Use Message on a squad to send them a notification.', 403);
 
   // The waitlist order the database trigger uses (promote_from_waitlist): Pro pass holders first, then sign-up time.
@@ -197,6 +246,8 @@ Deno.serve(async (req: Request) => {
     })));
   }
 
+  const log = (what: string, detail: string) =>
+    admin.from('mod_actions').insert({ mod_email: email, action: what, detail: detail.slice(0, 500) }).then(() => {}, () => {});
   if (action === 'room_code') {
     const slug = String(p.slug || '').trim();
     const room_id = String(p.room_id || '').trim();
@@ -215,11 +266,11 @@ Deno.serve(async (req: Request) => {
     const text = await r.text();
     if (!r.ok) return fail('Could not send room code: ' + text, 502);
     let out: any; try { out = JSON.parse(text); } catch { out = {}; }
+    await log('room_code', slug);
+    if (!isHost && !isOwner) await admin.rpc('commission_claim', { p_slug: slug, p_email: email }).then(() => {}, () => {});
     return json({ ok: true, sent_to: out.sent ?? 0, unresolved: out.unresolved || [] });
   }
 
-  const log = (what: string, detail: string) =>
-    admin.from('mod_actions').insert({ mod_email: email, action: what, detail: detail.slice(0, 500) }).then(() => {}, () => {});
   const regById = async (id: string) => {
     if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
     const { data } = await admin.from('registrations')
@@ -242,20 +293,20 @@ Deno.serve(async (req: Request) => {
     const r = await regById(String(p.id || ''));
     if (!r) return fail('Squad not found');
     const reason = String(p.reason || '').trim().slice(0, 200);
+    const { data: rm, error } = await admin.rpc('staff_remove_reg', { p_id: r.id });   // trg_promote_from_waitlist moves the next squad up
+    if (error) return fail(error.message, 500);
     await admin.from('notifications').insert({
       player_id: r.player_id, push: true, tournament_slug: r.tournament_slug,
       title: `Removed from ${r.tournament_slug}`.slice(0, 120),
       body: `Your squad "${r.squad_name}" was removed from ${r.tournament_slug} by ${isHost ? '@' + handle + ' (event host)' : 'a JD moderator'}.` +
-            (reason ? ` Reason: ${reason}.` : '') + ' You can join the next event from the Events page.',
+            (reason ? ` Reason: ${reason}.` : '') + (rm?.refund ? ` Your ${rm.refund} points are back in your wallet.` : '') + ' You can join the next event from the Events page.',
     });
-    const { error } = await admin.from('registrations').delete().eq('id', r.id);   // trg_promote_from_waitlist moves the next squad up
-    if (error) return fail(error.message, 500);
-    await log('remove', `${r.squad_name} · ${r.tournament_slug}${reason ? ' · ' + reason : ''}`);
+    await log('remove', `${r.squad_name} · ${r.tournament_slug}${rm?.refund ? ' · refunded ' + rm.refund : ''}${reason ? ' · ' + reason : ''}`);
     // the removed squad must not keep the room details
     await admin.from('notifications').delete()
       .eq('player_id', r.player_id).eq('tournament_slug', r.tournament_slug).not('room_id', 'is', null);
     const { data: rc } = await admin.from('tournament_room_codes').select('sent_at').eq('tournament_slug', r.tournament_slug).maybeSingle();
-    return json({ ok: true, room_code_was_sent: !!rc?.sent_at });
+    return json({ ok: true, refund: rm?.refund || 0, room_code_was_sent: !!rc?.sent_at });
   }
 
   // waitlist tools (2026-10-25). trg_promote_from_waitlist fills a freed slot with the next waitlisted squad (Pro pass
@@ -275,12 +326,12 @@ Deno.serve(async (req: Request) => {
     if (!out.length) return json({ ok: true, removed: [], promoted: [] });
     const reason = String(p.reason || 'Did not confirm before the match').trim().slice(0, 200);
     for (const r of out) {
+      const { data: rm } = await admin.rpc('staff_remove_reg', { p_id: r.id });   // trigger moves the next waitlisted squad up
       await admin.from('notifications').insert({
         player_id: r.player_id, push: true, tournament_slug: slug,
         title: `Removed from ${slug}`.slice(0, 120),
-        body: `Your squad "${r.squad_name}" didn't confirm, so its slot in ${slug} went to the next squad on the waitlist. Reason: ${reason}. You can join the next event from the Events page.`,
+        body: `Your squad "${r.squad_name}" didn't confirm, so it lost its slot in ${slug}. Reason: ${reason}.${rm?.refund ? ` Your ${rm.refund} points are back in your wallet.` : ''} You can join the next event from the Events page.`,
       });
-      await admin.from('registrations').delete().eq('id', r.id);   // trigger promotes the next waitlisted squad
       await admin.from('notifications').delete().eq('player_id', r.player_id).eq('tournament_slug', slug).not('room_id', 'is', null);
     }
     const { data: after } = await admin.from('registrations').select('id, squad_name, status').in('id', all.filter((r: any) => r.status === 'waitlisted').map((r: any) => r.id));
@@ -299,6 +350,15 @@ Deno.serve(async (req: Request) => {
       .eq('tournament_slug', r.tournament_slug).in('status', ['confirmed', 'approved']);
     if (cap?.slots && (count || 0) >= cap.slots)
       return fail(`All ${cap.slots} slots are taken. Remove a squad that didn't confirm first - the waitlist #1 moves up by itself.`, 409);
+    const { data: isDep } = await admin.rpc('_waitlist_deposit_event', { p_slug: r.tournament_slug });
+    if (isDep) {   // deposit events: the player pays the other half, like any promotion (the database tells them)
+      const { data: took, error: te } = await admin.rpc('waitlist_give_slot', { p_id: r.id });
+      if (te) return fail(te.message);
+      if (!took?.ok) return fail(`${r.squad_name} doesn't have enough points for the rest of the entry.`, 409);
+      await log('give_slot', `${r.squad_name} · ${r.tournament_slug}`);
+      return json({ ok: true });
+    }
+    if (!isOwner) return fail('In JD free events a place from the waitlist costs the player 20 points. They tap Pay 20 points on their ticket.', 403);
     const { error } = await admin.from('registrations').update({ status: 'confirmed', promoted_at: new Date().toISOString() }).eq('id', r.id).eq('status', 'waitlisted');
     if (error) return fail(error.message, 500);
     await admin.from('notifications').insert({
@@ -438,6 +498,10 @@ Deno.serve(async (req: Request) => {
     if (action === 'load_match') {
       const lid = String(p.load_id || ''), pid = Number(p.payment_id);
       if (!/^[0-9a-f-]{36}$/i.test(lid) || !Number.isInteger(pid)) return fail('load_id and payment_id required');
+      if (!isOwner) {
+        const [{ data: lr }, mine] = await Promise.all([admin.from('wallet_load_requests').select('player_id').eq('id', lid).maybeSingle(), myPlayerId()]);
+        if (lr && mine && lr.player_id === mine) return fail('This is your own load, so another mod or the admin has to match it.', 403);
+      }
       const { data, error } = await admin.rpc('match_load_payment', { p_load: lid, p_payment: pid, p_by: email });
       if (error) return fail(error.message);
       await log('load_match', `load ${lid.slice(0, 8)} · payment ${pid} · Rs ${data?.amount}`);
@@ -610,7 +674,7 @@ Deno.serve(async (req: Request) => {
     if (!t) return fail('That event is not on the site.', 404);
     const pool = Number(String(t.prize || '').replace(/,/g, '').match(/\d+/)?.[0] || 0);
     const matches = Math.min(6, Math.max(1, Number(String(t.format || '').match(/(\d+)\s*match/i)?.[1] || 3)));
-    const { data: regs } = await admin.from('registrations').select('squad_name, status, created_at')
+    const { data: regs } = await admin.from('registrations').select('squad_name, status, created_at, player_id')
       .eq('tournament_slug', slug).in('status', ['confirmed', 'approved']).order('slot_key');
     const squads = [...new Set((regs || []).map((r: any) => String(r.squad_name || '').trim()).filter(Boolean))];
     const board = doc?.bo3?.tournament === slug ? doc.bo3 : null;
@@ -644,16 +708,28 @@ Deno.serve(async (req: Request) => {
     const ranked = [...teams].sort((a, b) => total(b) - total(a) || boo(b) - boo(a) || killSum(b) - killSum(a) ||
       lastPl(b) - lastPl(a) || a.team.localeCompare(b.team));
     const prizes: Record<string, number> = {};
+    if (final && !isOwner && (t.winner || String(t.status || '').toLowerCase() === 'completed'))
+      return fail('This event is already finished. Ask the JD admin to correct it.', 409);
     if (final) {
+      const mine = isOwner ? null : await myPlayerId();
+      const split = [pool - Math.floor(pool * .3) - Math.round(pool * .2), Math.floor(pool * .3), Math.round(pool * .2)];
       for (const [k, v] of Object.entries(p.prizes || {})) {
         const amt = Math.round(Number(v) || 0);
         if (amt <= 0) continue;
-        if (isHost) return fail('Prize points are paid by the JD team. Finish without prizes; the admin pays the winners.', 403);
+        if (amt > 1000000) return fail('Check the prize amount.');
         const tm = teams.find((x) => norm(x.team) === norm(k));
         if (!tm) return fail(`${k} isn't in the standings.`);
         if (!regSet.has(norm(tm.team))) return fail(`${tm.team} isn't a registered squad in ${slug}, so it can't be paid.`);
+        if (!isHost && !isOwner) {   // JD's points: only the published 50/30/20, and never to the mod's own squad
+          const place = ranked.indexOf(tm as any);
+          const ownSquad = (regs || []).some((r: any) => r.player_id === mine && norm(String(r.squad_name || '')) === norm(tm.team));
+          if (ownSquad) return fail(`${tm.team} is your own squad, so the JD admin has to pay this prize.`, 403);
+          if (place < 0 || place > 2 || amt > split[place]) return fail(`${tm.team} can get at most ${place >= 0 && place <= 2 ? split[place] : 0} points: prizes follow the 50/30/20 split for 1st, 2nd and 3rd.`, 403);
+        }
         prizes[tm.team] = amt;
       }
+    }
+    if (final && !isHost) {
       // a squad that was already paid is never paid again, so only new payouts count against the pool
       const paidSet = new Set((paid || []).map((x: any) => norm(String(x.ref).split(':').slice(2).join(':'))));
       const sum = Object.entries(prizes).filter(([k]) => !paidSet.has(norm(k))).reduce((a, [, v]) => a + v, 0);
@@ -672,7 +748,10 @@ Deno.serve(async (req: Request) => {
     doc.bo3 = {
       tournament: slug, title: `${slug} – ${final ? 'Final Standings' : 'Standings'}`, published: true, kill_pts: killPts,
       teams: ranked.map((x) => ({ team: x.team, logo: prevLogos.get(norm(x.team)) || '',
-        r: x.pts.map((v: number, k: number) => ({ kills: x.kills[k] || 0, pts: v })), ...(final && prizes[x.team] ? { prize_won: prizes[x.team] } : {}) })),
+        r: x.pts.map((v: number, k: number) => ({ kills: x.kills[k] || 0, pts: v })),
+        // a host's prize is shown, never paid from JD wallets: award_prizes only reads prize_won
+        ...(final && prizes[x.team] ? (isHost ? { host_prize: prizes[x.team] } : { prize_won: prizes[x.team] }) : {}) })),
+      ...(isHost ? { prize_by: handle } : {}),
     };
     if (final) { t.winner = ranked[0].team; t.status = 'completed'; }
     doc._published_at = new Date().toISOString();
@@ -684,13 +763,21 @@ Deno.serve(async (req: Request) => {
     if (final) {
       const ar = await fetch(`${URL_}/functions/v1/archive-results`, { method: 'POST', headers: H, body: JSON.stringify({
         tournament_slug: slug,
-        results: ranked.map((x, i) => ({ squad_name: x.team, placement: i + 1, kills: killSum(x), points: total(x), prize_won: prizes[x.team] || 0 })),
+        results: ranked.map((x, i) => ({ squad_name: x.team, placement: i + 1, kills: killSum(x), points: total(x), prize_won: isHost ? 0 : prizes[x.team] || 0 })),
       }) });
       if (!ar.ok) return fail('Standings are live, but saving to the leaderboard failed: ' + (await ar.text()), 502);
       // what's really in the wallets now (publish + archive both pay once per squad)
       const { data: nowPaid } = await admin.from('wallet_ledger').select('ref, delta').eq('reason', 'prize').like('ref', `prize:${slug}:%`);
       const got = new Map((nowPaid || []).map((x: any) => [norm(String(x.ref).split(':').slice(2).join(':')), x.delta]));
-      paidOut = Object.entries(prizes).map(([k, v]) => ({ squad: k, amount: got.get(norm(k)) ?? v, status: got.has(norm(k)) ? 'paid' : 'unmatched' }));
+      if (!isHost) paidOut = Object.entries(prizes).map(([k, v]) => ({ squad: k, amount: got.get(norm(k)) ?? v, status: got.has(norm(k)) ? 'paid' : 'unmatched' }));
+      if (isHost) {   // the host's own result push: everyone in the event, winners told who pays them
+        const by = new Map((regs || []).map((r: any) => [norm(String(r.squad_name || '')), r.player_id]));
+        const rows = ranked.map((x, i) => ({ id: by.get(norm(x.team)), i, team: x.team })).filter((x) => x.id).map((x) => ({
+          player_id: x.id, push: true, tournament_slug: slug, title: tagT(`🏁 ${slug}: you finished #${x.i + 1}`),
+          body: `${ranked[0].team} won ${slug}.` + (prizes[x.team] ? ` Your prize is Rs ${prizes[x.team]}. @${handle} pays it to you directly, not JD Arena.` : ''),
+        }));
+        if (rows.length) await admin.from('notifications').insert(rows);
+      }
     }
     await log(final ? 'results_final' : 'results', `${slug} · #1 ${ranked[0].team} (${total(ranked[0])})` +
       (final ? ' · prizes ' + (Object.entries(prizes).map(([k, v]) => `${k} ${v}`).join(', ') || 'none') : ''));
@@ -755,6 +842,26 @@ Deno.serve(async (req: Request) => {
     return json({ ok: true, created: !ex, name });
   }
 
+  // one fixed-wording push per host event to players active in the last 30 days (the database enforces once per event, one a day)
+  if (action === 'event_invite') {
+    if (!isHost && !isOwner) return fail('Invites are for host events.', 403);
+    const slug = String(p.slug || '');
+    if (!slug || !await canEvent(slug)) return notYours();
+    const { data: sc } = await admin.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
+    const t = (sc?.content as any)?.tournaments?.find((x: any) => x.name === slug);
+    if (!t || !normHandle(t.host)) return fail('That is not a host event.');
+    if (String(t.status || 'upcoming').toLowerCase() !== 'upcoming' || Date.parse(t.start) <= Date.now()) return fail('That event is not open any more.');
+    const { count } = await admin.from('registrations').select('id', { count: 'exact', head: true }).eq('tournament_slug', slug).in('status', ['confirmed', 'approved']);
+    const left = Math.max(0, (+t.slots || 0) - (count || 0));
+    const { data: n, error } = await admin.rpc('host_event_invite', { p_slug: slug, p_by: email,
+      p_title: `[@${normHandle(t.host)}] 🎮 ${slug}`.slice(0, 120),
+      p_body: `${t.date} ${t.time}. Prize: ${t.prize || 'set by the host'}, paid by @${normHandle(t.host)}. ` +
+        (left ? `${left} slot${left === 1 ? '' : 's'} left. ` : 'Full now: the waitlist costs half the entry, and you get it back if no slot opens. ') + 'Open JD Arena to join.' });
+    if (error) return fail(error.message, 409);
+    await log('event_invite', `${slug} · ${n} players`);
+    return json({ ok: true, sent_to: n });
+  }
+
   if (action === 'notify') {
     const title = String(p.title || '').trim();
     const body = String(p.body || '').trim();
@@ -765,7 +872,7 @@ Deno.serve(async (req: Request) => {
     if (p.slug) {
       const { data } = await admin.from('registrations')
         .select('players(player_tag)').eq('tournament_slug', String(p.slug))
-        .in('status', ['confirmed', 'approved']); // only active squads — not no_show/pending/rejected
+        .in('status', p.aud === 'waitlist' ? ['waitlisted'] : ['confirmed', 'approved']); // only active squads — not no_show/pending/rejected
       player_tags = [...new Set((data || []).map((r: any) => r.players?.player_tag).filter(Boolean))];
       if (!player_tags.length) return fail('No registered players found for that tournament.');
     }

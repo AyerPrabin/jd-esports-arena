@@ -750,7 +750,7 @@ function render(d){
     // Free tournaments waitlist via inAppRegBtn's "Join Waitlist" button below — don't also
     // show a static "Squads full" label right next to an actual clickable CTA that contradicts
     // it. Paid tournaments (no waitlist yet) and non-Supabase deploys still show it plainly.
-    else if(full)btn=(sb&&!isPaidTournament(t))?'':`<span class="tbtn done">Squads full</span>`;
+    else if(full)btn=(sb&&(!isPaidTournament(t)||wlDeposit(t)))?'':`<span class="tbtn done">Squads full</span>`;
     else{const r=regLink(t);
       if(r){var lbl=st==='live'?tr('join'):(t.register_type==='discord'?tr('regdc'):(t.register_type==='url'?tr('reg'):((typeof WHATSAPP_NUMBER==='string'&&WHATSAPP_NUMBER)?tr('regwa'):tr('reg'))));btn=`<a class="tbtn" href="${esc(r)}" target="_blank" rel="noopener">${lbl}</a>`;}
       // No WhatsApp/Discord/URL link configured. If in-app registration (Supabase) is
@@ -761,7 +761,7 @@ function render(d){
       else btn=`<span class="tbtn done">${st==='live'?tr('livenow'):tr('soon')}</span>`;}
     const left=slots?Math.max(0,slots-reg):null;
     const open=st==='upcoming'||st==='live';
-    const urgency=(open&&slots&&!_myRegs.has(t.name))?(left===0?`<span class="tm-urg full">Full${(sb&&!isPaidTournament(t))?' · waitlist open':''}</span>`:(left<=3?`<span class="tm-urg hot">🔥 ${left} slot${left===1?'':'s'} left</span>`:'')):'';
+    const urgency=(open&&slots&&!_myRegs.has(t.name))?(left===0?`<span class="tm-urg full">Full${(sb&&(!isPaidTournament(t)||wlDeposit(t)))?' · waitlist open':''}</span>`:(left<=3?`<span class="tm-urg hot">🔥 ${left} slot${left===1?'':'s'} left</span>`:'')):'';
     const prizeTxt=fmtPrize(t.prize),entryTxt=String(t.entry||'Free');
     const host=String(t.host||'').replace(/^@+/,'').trim();
     const org=host?`<span class="tm-org host" title="Run by partner host @${esc(host)}"><i>${esc(host.charAt(0).toUpperCase())}</i>Hosted by @${esc(host)}</span>`
@@ -1788,6 +1788,14 @@ if(sb){
    reminders, and results notifications all skip pending/rejected registrations. */
 const REG_LOGO_MAX_PX=128;
 const PAY_SCREENSHOT_MAX_PX=640;
+/* Full paid and partner-host events: half the entry to wait, back if no slot opens (mod_commission_waitlist.sql). MEGA and JD free events have their own rules. */
+function wlDeposit(t){if(!t||t.mega)return 0;const e=isPaidTournament(t)?entryAmount(t):(t.host?15:0);return e?Math.ceil(e/2):0;}
+async function wlAsk(t,dep){
+  const need=isPaidTournament(t)?entryAmount(t):dep;   // paid events: the server wants the whole entry ready, half now and half when a slot opens
+  if(!canAfford(need)){confirmBox('🪙 Load points to join',need>dep?`You need the full ${need} points ready to join this waitlist: ${dep} now and the rest when a slot opens. You have ${walletLabel()}.`:`The waitlist costs ${dep} points and you have ${walletLabel()}.`,'Load points','Later').then(ok=>{if(ok)goWallet('load');});return false;}
+  const ok=await confirmBox('⏳ This event is full',`Join the waitlist for ${dep} points, half the entry.\n\nIf a slot opens, you move up automatically and the rest of the entry is taken from your wallet.\n\nIf no slot opens, or you leave the waitlist, all ${dep} points come back.`,`Pay ${dep} points`,'Not now');
+  if(ok)_regWlDep=dep;return ok;
+}
 function isPaidTournament(t){const e=String((t&&t.entry)||'').trim().toLowerCase();return !!e&&e!=='free';}
 let _myRegsLoaded=false;
 let _myPass=null,_myPassEnd=null; // current effect pass (effect_passes row) and when the last stacked pass ends
@@ -1820,7 +1828,7 @@ async function registerInApp(name){
   // Paid tournaments still hard-reject when full — there's no paid waitlist yet (see
   // register_for_tournament() in schema.sql). Free ones let the modal open; the RPC
   // waitlists automatically and auto-promotes the moment a confirmed slot frees up.
-  if(full&&paid){showMsg('Tournament full',"All "+slots+" squad slots are taken.",true);return;}
+  if(full&&paid&&!wlDeposit(t)){showMsg('Tournament full',"All "+slots+" squad slots are taken.",true);return;}
   /* no points, no registration: straight to Load points (the server refuses it too - register_for_tournament) */
   if(paid&&!canAfford(entryAmount(t))&&!vFit(entryAmount(t))){
     const need=entryAmount(t)-(+_wallet||0);
@@ -1828,7 +1836,8 @@ async function registerInApp(name){
       .then(ok=>{if(ok)goWallet('load');});
     return;
   }
-  _regPayPts=false;
+  _regPayPts=false;_regWlDep=0;
+  if(full&&wlDeposit(t)&&!_myRegs.has(name)&&(paid||_freeOk!==true)&&!(await wlAsk(t,wlDeposit(t))))return;
   if(!paid&&!full&&!_myRegs.has(name)&&_freeOk===false){
     if(!await confirmBox('🎟️ Join this free tournament',`Pick one:\n\n🪙 Pay 15 points and join now. You get them back if you withdraw 24 hours or more before the start.\n\n🎟️ Or get a free card: follow @ayer_fire, then comment on and repost 3 of our videos with your JD username in each comment (one time only). After that, make a video about JD Arena for each new card. A mod checks it, then your card joins one free tournament.`,'Pay 15 points','Get a free card')){location.href='/wallet/#promo';return;}
     if(!canAfford(15)){confirmBox('🪙 Load points to join',`You need 15 points and you have ${walletLabel()}.`,'Load points','Later').then(ok=>{if(ok)goWallet('load');});return;}
@@ -1861,7 +1870,7 @@ async function registerInApp(name){
   const ppv=document.getElementById('reg-pay-preview');if(ppv){ppv.style.display='none';ppv.src='';}
   const msg=document.getElementById('reg-msg');
   if(msg){
-    if(full){msg.textContent="This tournament is full — you'll join the waitlist and be confirmed automatically if a slot opens up.";msg.className='msg warn';}
+    if(full){msg.textContent=_regWlDep?`This event is full. Joining takes ${_regWlDep} points now and the rest when a slot opens. All ${_regWlDep} come back if no slot opens.`:"This tournament is full — you'll join the waitlist and be confirmed automatically if a slot opens up.";msg.className='msg warn';}
     else{msg.textContent='';msg.className='msg';}
   }
   document.getElementById('reg-overlay').classList.add('open');
@@ -2018,10 +2027,15 @@ async function submitRegister(){
   // server-side, so a rush of joins right at capacity can't over-subscribe the tournament
   // the way a client-only check (registerInApp's early gate above) could.
   const deviceType=(document.getElementById('reg-device')||{}).value||'mobile';
-  const {data:reg,error}=await sb.rpc('register_for_tournament',{p_tournament_slug:name,p_squad_name:squad,p_squad_logo:_regLogoData,p_status:status,p_payment_screenshot:_regPayData,p_device_type:deviceType,...(_regPayPts?{p_pay_points:true,p_price_seen:15}:{})});
+  const {data:reg,error}=await sb.rpc('register_for_tournament',{p_tournament_slug:name,p_squad_name:squad,p_squad_logo:_regLogoData,p_status:status,p_payment_screenshot:_regPayData,p_device_type:deviceType,...(_regWlDep?{p_pay_points:true,p_price_seen:_regWlDep}:_regPayPts?{p_pay_points:true,p_price_seen:15}:{})});
   if(error){
     if(/duplicate/i.test(error.message))msg.textContent="You're already registered for this one.";
     else if(/tournament full/i.test(error.message))msg.textContent='This tournament just filled up — all squad slots are taken.';
+    else if(/WAITLIST_FEE:(\d+)/.test(error.message)){   // it filled up, or the fee changed: the player sees the number first
+      const fee=+error.message.match(/WAITLIST_FEE:(\d+)/)[1],ev=((_lastData||ARENA_SAMPLE).tournaments||[]).find(x=>x.name===name)||{};
+      if(await wlAsk(ev,fee))return submitRegister();
+      msg.textContent='You did not join. No points were taken.';msg.className='msg';return;
+    }
     else if(/FREE_CARD_NEEDED/.test(error.message)){msg.innerHTML=esc(error.message.replace(/^.*FREE_CARD_NEEDED:\s*/,''))+' <a href="/wallet/#promo" style="color:var(--gold-l);font-weight:700">Get my card</a> or tap Join again to pay 15 points.';msg.className='msg err';return;}
     else if(/ADS_NEEDED/.test(error.message)){msg.textContent=error.message.replace(/^.*ADS_NEEDED:\s*/,'');msg.className='msg err';if(window.jdAds)jdAds.gate(sb,name,true).then(ok=>{if(ok)submitRegister();});return;}
     else if(/weekly pass/i.test(error.message)){msg.innerHTML=esc(error.message.replace(/\s*Get it at jdesport\.co\.uk\/pass\.?$/,''))+' <a href="/pass/" style="color:var(--gold-l);font-weight:700;text-decoration:underline">Get a Weekly Pass →</a>';}
@@ -2034,7 +2048,7 @@ async function submitRegister(){
   _player.squad_name=squad;if(_regLogoData)_player.squad_logo=_regLogoData;
   // optional WhatsApp reminder number — a failure here never undoes the registration
   if(wa&&reg&&reg.id){try{await sb.rpc('set_registration_whatsapp',{p_reg_id:reg.id,p_whatsapp:wa});_myContact=Object.assign({},_myContact||{},{whatsapp:wa,device_type:deviceType});}catch(e){}}
-  if(!paid)loadWallet(); // a free card may just have been used
+  if(!paid||_regWlDep)loadWallet(); // a free card or a waitlist deposit may just have been used
   // Paid: entry is paid in points only — taken straight away when the wallet covers it.
   let codeErr='';
   const useV=paid&&vFit(entryAmount(t))>0&&(!canAfford(entryAmount(t))||((document.getElementById('reg-use-v')||{}).checked));
@@ -2045,7 +2059,7 @@ async function submitRegister(){
     const rr=await sb.rpc('pay_entry_with_points',{p_tournament_slug:name});
     if(rr.error)codeErr=rr.error.message;else{effectiveStatus='approved';loadWallet();}
   }
-  _myRegs.set(name,{id:reg&&reg.id,squad_name:squad,squad_logo:_regLogoData||_player.squad_logo||"",status:effectiveStatus,checked_in_at:null,paid_points:effectiveStatus==='approved'&&paid?entryAmount(t):0});
+  _myRegs.set(name,{id:reg&&reg.id,squad_name:squad,squad_logo:_regLogoData||_player.squad_logo||"",status:effectiveStatus,checked_in_at:null,paid_points:effectiveStatus==='waitlisted'?(reg&&reg.paid_points)||0:effectiveStatus==='approved'&&paid?entryAmount(t):0});
   megaCredit(name);
   regClose();
   regSuccessOpen(t,effectiveStatus,reg);
@@ -2125,7 +2139,7 @@ function regSuccessOpen(t,status,reg){
   document.getElementById('rs-title').textContent=waitlisted?"You're on the waitlist":(pending?'Place held — pay with points':'Registration successful');
   document.getElementById('rs-name').textContent=t.name;
   document.getElementById('rs-note').innerHTML=waitlisted
-    ?(isPaidTournament(t)?"All squad slots are taken right now — you'll be <b>automatically confirmed</b> the moment one opens up, no need to do anything else.":"All squad slots are taken right now. Tap <b>Pay 20 points for a place</b> on your ticket to get in.")
+    ?(wlDeposit(t)?"All squad slots are taken right now. If one opens you move up <b>automatically</b> and the rest of the entry is taken from your wallet, so keep the points ready. If none opens, your deposit comes back.":"All squad slots are taken right now. Tap <b>Pay 20 points for a place</b> on your ticket to get in.")
     :(pending
       ?"Your place is held. Load points in your <a href=\"/wallet/\">JD wallet</a> (pay the eSewa QR, then upload the payment screenshot), then tap <b>Pay</b> on your ticket to confirm your slot."
       :"Your <b>Room ID and Password</b> will appear in Notification History once released by the host. Please arrive 15 minutes before the match starts.");
@@ -2311,7 +2325,7 @@ function inAppRegBtn(t,st,full){
   if(!sb)return '';
   if(_myRegs.has(t.name)){
     const r=_myRegs.get(t.name);
-    if(r.status==='waitlisted')return `<div class="inapp-reg-done pending"><span>🕒 Waitlisted${r.squad_name?' as '+esc(r.squad_name):''}${isPaidTournament(t)?" — we'll confirm you automatically if a slot opens":''} · Ticket ${esc(regTicketCode(r))}</span></div>${isPaidTournament(t)?'':`<button type="button" class="pts-btn" data-wbuy="${esc(t.name)}">🎟 Pay 20 points for a place</button>`}${r.wpos?`<div class="mt-wpos"><b>${r.wpos===1?"You're next in line":'#'+r.wpos+' in line'}</b><span>${r.wtotal} squad${r.wtotal===1?'':'s'} waiting${r.wpro?' · ⭐ your Pro pass puts you ahead':' · Pro pass holders move up first'}. Squads that don't confirm lose their slot, so keep alerts on.</span></div>`:''}${sqvTicketHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
+    if(r.status==='waitlisted')return `<div class="inapp-reg-done pending"><span>🕒 Waitlisted${r.squad_name?' as '+esc(r.squad_name):''}${wlDeposit(t)?" — we'll move you up automatically if a slot opens":''} · Ticket ${esc(regTicketCode(r))}</span></div>${wlDeposit(t)?'':`<button type="button" class="pts-btn" data-wbuy="${esc(t.name)}">🎟 Pay 20 points for a place</button>`}${r.wpos?`<div class="mt-wpos"><b>${r.wpos===1?"You're next in line":'#'+r.wpos+' in line'}</b><span>${r.wtotal} squad${r.wtotal===1?'':'s'} waiting${r.wpro?' · ⭐ your Pro pass puts you ahead':' · Pro pass holders move up first'}. Squads that don't confirm lose their slot, so keep alerts on.</span></div>`:''}${sqvTicketHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
     if(r.status==='pending')return `<div class="inapp-reg-done pending">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>${r.squad_name?esc(r.squad_name)+' · ':''}Ticket ${esc(regTicketCode(r))}</span></div>${entryCodeBoxHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
     if(r.status==='rejected')return `<div class="inapp-reg-done rejected"><span>✕ Payment could not be verified — please contact the organiser on Discord</span></div>`;
     if(r.status==='no_show')return `<div class="inapp-reg-done rejected"><span>✕ Check-in was missed, so this slot was released</span></div>`;
@@ -2329,7 +2343,7 @@ function inAppRegBtn(t,st,full){
   if(ea==='closed')return `<button class="inapp-reg" disabled>Opens ${esc(fmtOpen(t.reg_opens))}</button><div class="ea-note">⚡ App users can join 24 hours earlier</div>`;
   if(ea==='app-only'&&!(_player&&_player.app))return `<button class="inapp-reg" disabled>📱 App early access until ${esc(fmtOpen(t.reg_opens))}</button><div class="ea-note">Install the JD Arena app on your phone to join now</div>`;
   if(ea==='app-only')return `<button class="inapp-reg" data-reg="${esc(t.name)}">⚡ Join early (app)</button>`;
-  if(full)return isPaidTournament(t)?`<button class="inapp-reg" disabled>Squads full</button>`:`<button class="inapp-reg" data-reg="${esc(t.name)}">Join Waitlist</button>`;
+  if(full)return isPaidTournament(t)&&!wlDeposit(t)?`<button class="inapp-reg" disabled>Squads full</button>`:`<button class="inapp-reg" data-reg="${esc(t.name)}">Join Waitlist</button>`;
   return `<button class="inapp-reg" data-reg="${esc(t.name)}">Join</button>`;
 }
 
@@ -2541,7 +2555,7 @@ async function checkLock(){
 }
 setTimeout(renderFxShow,600);
 function goWallet(tab){location.href='/wallet/'+(tab?'#'+tab:'');}
-let _freeOk,_regPayPts=false,_wallet=0,_walletLoaded=false,_walletUnlimited=false,_vouchers=0,_cards=[];
+let _freeOk,_regWlDep=0,_regPayPts=false,_wallet=0,_walletLoaded=false,_walletUnlimited=false,_vouchers=0,_cards=[];
 const vFit=price=>_cards.filter(c=>!c.max_npr||c.max_npr>=price).length;   /* free-entry cards that cover this fee (promo_cards.sql) */   /* _vouchers: free-entry vouchers from promoting JD Arena (promo_vouchers.sql) */
 function canAfford(n){return _walletUnlimited||_wallet>=n;}
 function walletLabel(){return _walletUnlimited?'100B':String(_wallet);}
@@ -2710,7 +2724,7 @@ async function withdrawSquad(name){
   const isPaid=isPaidTournament(t);
   const rf=refundInfo(t),code=regTicketCode(r);
   const back=r.paid_points>0?(rf.late?Math.floor(r.paid_points*0.1):r.paid_points):0;
-  const fee=!isPaid&&!(r.paid_points>0)?'This was a free entry, so there is nothing to refund.'
+  const fee=r.status==='waitlisted'&&r.paid_points>0?`Your ${r.paid_points} point deposit goes back to your wallet straight away.`:!isPaid&&!(r.paid_points>0)?'This was a free entry, so there is nothing to refund.'
     :r.paid_points>0
       ?(rf.late
         ?`Late cancellation: the match starts within 24 hours, so ${back} of your ${r.paid_points} points (10%) go back to your wallet.`

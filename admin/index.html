@@ -638,12 +638,23 @@ h2[id]{scroll-margin-top:64px}
   <p class="hint">Mods sign in at <a href="/mod/" target="_blank">/mod/</a> with their JD account (add them by that email). <b>Staff</b> = your own mods: every event, JD Esports chat, prize payouts. <b>Host</b> = an invited scrim host: creates and runs only their own free events (or ones whose "Host mod handle" you set) – squads, room code, notifications to those squads, results. Everything they send is signed with their @handle; JD never pays their prizes. No JD Esports chat. Only you can notify all players. Nobody can touch bans, plans or balances.</p>
   <div class="grid">
     <div class="f"><label>Add moderator email</label><input id="mod-email" placeholder="name@example.com" autocomplete="off"></div>
-    <div class="f"><label>Role</label><select id="mod-role" onchange="document.getElementById('mod-handle-f').style.display=this.value==='host'?'':'none'"><option value="staff">Staff (my mod)</option><option value="host">Host (invited scrim host)</option></select></div>
+    <div class="f"><label>Role</label><select id="mod-role" onchange="document.getElementById('mod-handle-f').style.display=this.value==='host'?'':'none';document.getElementById('mod-pct-f').style.display=this.value==='host'?'none':''"><option value="staff">Staff (my mod)</option><option value="host">Host (invited scrim host)</option></select></div>
     <div class="f" id="mod-handle-f" style="display:none"><label>TikTok ID <span class="tag">their events run under this name</span></label><input id="mod-handle" placeholder="e.g. goats.esp" autocomplete="off"></div>
+    <div class="f" id="mod-pct-f"><label>Commission % <span class="tag">staff · empty = none</span></label><input id="mod-pct" type="number" min="0" max="100" placeholder="e.g. 10"></div>
     <div class="f"><label>Note <span class="tag">optional</span></label><input id="mod-note" placeholder="e.g. Ramesh - reminders"></div>
   </div>
   <div class="row" style="margin:8px 0 0"><button class="btn" onclick="modAdd()">➕ Add moderator</button><button class="btn ghost" onclick="modList()">🔄 Refresh list</button><div id="mod-msg" class="hint"></div></div>
   <div id="mod-list"></div>
+
+  <h2 id="commission">Mod commission <span class="tag">per event · no salary</span></h2>
+  <p class="hint">The first staff mod with a commission rate to send an event's room code is put on that event. They earn their % of the entry points squads actually paid, once the event has a winner and they accepted the agreement in /mod/. Nothing moves by itself: pay them, then tap Mark paid.</p>
+  <div class="row" style="margin:8px 0 0"><button class="btn ghost" onclick="commList()">🔄 Refresh</button><div id="comm-msg" class="hint"></div></div>
+  <div id="comm-list"></div>
+
+  <h2 id="referrals">Invite tracking <span class="tag">refer and earn</span></h2>
+  <p class="hint">Who invited whom. Both get +40 points when the invited player wins a prize of 30 points or more. Same Free Fire UID never earns it. Same WhatsApp is only a warning: check it before trusting a payout.</p>
+  <div class="row" style="margin:8px 0 0"><button class="btn ghost" onclick="refList()">🔄 Refresh</button><div id="ref-msg" class="hint"></div></div>
+  <div id="ref-list"></div>
 
   <h2 id="mega">🏆 MEGA event <span class="tag">big paid event · refund if it doesn't fill</span></h2>
   <p class="hint">One huge event (e.g. 1,500 squads, 200 points entry, Rs 3,00,000). Players join and pay like any event. If fewer than <b>Min squads</b> have paid when registration closes, everyone is refunded automatically and it's called off; otherwise it's confirmed and invite rewards are paid (host mods per squad they brought, players per squad they invited). Every day at 7 PM players who haven't joined get a progress alert (they can turn it off). The page is <a href="/mega/" target="_blank">/mega/</a>. Set the start date later in Tournaments; qualifier groups are drawn when registration closes.</p>
@@ -2421,17 +2432,44 @@ async function modList(){
   const box=document.getElementById('mod-list'); modMsg('Loading…','');
   try{
     const rows=await modCall({action:'mod_list'});
-    box.innerHTML=rows.length?`<table style="width:100%;font-size:.8rem;border-collapse:collapse;margin-top:10px">${rows.map(m=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px"><b>${esc(m.email)}</b> <span class="tag">${m.role==='host'?'host @'+esc(m.handle||''):'staff'}</span>${m.note?' <span class="hint">· '+esc(m.note)+'</span>':''}</td><td style="padding:6px 4px;text-align:right"><button class="btn ghost" style="font-size:.7rem;padding:4px 10px" data-e="${esc(m.email)}">Remove</button></td></tr>`).join('')}</table>`:'<p class="hint">No moderators yet.</p>';
+    box.innerHTML=rows.length?`<table style="width:100%;font-size:.8rem;border-collapse:collapse;margin-top:10px">${rows.map(m=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px"><b>${esc(m.email)}</b> <span class="tag">${m.role==='host'?'host @'+esc(m.handle||''):'staff'}</span>${m.commission_pct!=null?` <span class="tag">${+m.commission_pct}% · ${m.agreed_at?'accepted':'not accepted yet'}</span>`:''}${m.note?' <span class="hint">· '+esc(m.note)+'</span>':''}</td><td style="padding:6px 4px;text-align:right"><button class="btn ghost" style="font-size:.7rem;padding:4px 10px" data-e="${esc(m.email)}">Remove</button></td></tr>`).join('')}</table>`:'<p class="hint">No moderators yet.</p>';
     box.querySelectorAll('button[data-e]').forEach(b=>b.onclick=()=>modRemove(b.dataset.e));
     modMsg('','');
   }catch(e){modMsg(e.message,'err');}
 }
+function cmMsg(id,t,c){const el=document.getElementById(id);if(el){el.textContent=t;el.className='hint '+(c||'');}}
+async function commList(){
+  const box=document.getElementById('comm-list'); cmMsg('comm-msg','Loading…');
+  try{
+    const rows=await modCall({action:'commission_list'});
+    box.innerHTML=rows.length?`<table style="width:100%;font-size:.8rem;border-collapse:collapse;margin-top:10px">${rows.map(r=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px"><b>${esc(r.slug)}</b><br><span class="hint">${esc(r.mod_email)} · ${+r.pct||0}% · ${+r.squads} squads · ${+r.collected} points paid${r.agreed?'':' · agreement not accepted'}${r.winner?'':' · not finished'}</span></td><td style="padding:6px 4px;text-align:right;white-space:nowrap">${r.settled?`<span class="tag">${r.settled==='paid'?'Paid '+(+r.settled_amount):'Not owed'}</span>`:`<b>${+r.amount}</b> <button class="btn" style="font-size:.7rem;padding:4px 10px" data-cs="paid" data-s="${esc(r.slug)}"${r.amount>0?'':' disabled'}>Mark paid</button> <button class="btn ghost" style="font-size:.7rem;padding:4px 10px" data-cs="void" data-s="${esc(r.slug)}">Not owed</button> <button class="btn ghost" style="font-size:.7rem;padding:4px 10px" data-ca="${esc(r.slug)}">Change mod</button>`}</td></tr>`).join('')}</table>`:'<p class="hint">No events yet. One appears when a mod with a rate sends a room code.</p>';
+    box.querySelectorAll('[data-cs]').forEach(b=>b.onclick=async()=>{
+      if(!confirm((b.dataset.cs==='paid'?'Mark this as paid for ':'Mark nothing owed for ')+b.dataset.s+'? This can\'t be changed.'))return;
+      try{ await modCall({action:'commission_settle',slug:b.dataset.s,status:b.dataset.cs}); commList(); }catch(e){cmMsg('comm-msg',e.message,'err');}
+    });
+    box.querySelectorAll('[data-ca]').forEach(b=>b.onclick=async()=>{
+      const email=prompt('Email of the staff mod who ran '+b.dataset.ca+':'); if(!email)return;
+      try{ await modCall({action:'commission_assign',slug:b.dataset.ca,email}); commList(); }catch(e){cmMsg('comm-msg',e.message,'err');}
+    });
+    cmMsg('comm-msg','');
+  }catch(e){cmMsg('comm-msg',e.message,'err');}
+}
+async function refList(){
+  const box=document.getElementById('ref-list'); cmMsg('ref-msg','Loading…');
+  try{
+    const rows=await modCall({action:'referrals_list'});
+    const paid=rows.filter(r=>r.bonus_at).length;
+    box.innerHTML=`<p class="hint" style="margin-top:10px">${rows.length} invited · ${paid} bonuses paid · ${paid*80} points given</p>`+(rows.length?`<table style="width:100%;font-size:.8rem;border-collapse:collapse">${rows.map(r=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px"><b>${esc(r.inviter||'?')}</b> invited <b>${esc(r.invited||'?')}</b><br><span class="hint">${esc(String(r.joined||'').slice(0,10))} · ${+r.events} events${r.first_prize?' · first prize '+esc(String(r.first_prize).slice(0,10)):' · no prize yet'}</span></td><td style="padding:6px 4px;text-align:right">${r.same_ff?'<span class="tag">🚩 same Free Fire UID</span> ':''}${r.same_phone?'<span class="tag">🚩 same WhatsApp</span> ':''}<span class="tag">${r.bonus_at?'+40 each paid':'waiting'}</span></td></tr>`).join('')}</table>`:'');
+    cmMsg('ref-msg','');
+  }catch(e){cmMsg('ref-msg',e.message,'err');}
+}
+if(/^#(commission|referrals)$/.test(location.hash))addEventListener('load',()=>setTimeout(()=>{if(adminSecret()){commList();refList();}},800));
 async function modAdd(){
   const email=document.getElementById('mod-email').value.trim(),note=document.getElementById('mod-note').value.trim();
   const role=document.getElementById('mod-role').value,handle=document.getElementById('mod-handle').value.trim().replace(/^@+/,'');
   if(!email){modMsg('Enter an email.','err');return;}
   if(role==='host'&&!handle){modMsg('Enter their TikTok ID (e.g. goats.esp).','err');return;}
-  try{ await modCall({action:'mod_add',email,note,role,handle}); ['mod-email','mod-note','mod-handle'].forEach(id=>document.getElementById(id).value=''); modMsg('Added '+email+(role==='host'?' as host @'+handle+'. They can make events now.':' as staff.'),'ok'); modList(); }
+  try{ await modCall({action:'mod_add',email,note,role,handle,commission_pct:document.getElementById('mod-pct').value}); ['mod-email','mod-note','mod-handle','mod-pct'].forEach(id=>document.getElementById(id).value=''); modMsg('Added '+email+(role==='host'?' as host @'+handle+'. They can make events now.':' as staff.'),'ok'); modList(); }
   catch(e){modMsg(e.message,'err');}
 }
 async function modRemove(email){

@@ -49,6 +49,19 @@ Deno.serve(async (req: Request) => {
     const { data: s } = await db.storage.from('admin-tools').createSignedUrl(file, 3600);
     return Response.json({ versionCode: +v.versionCode || 0, versionName: String(v.versionName || ''), notes: String(v.notes || '').slice(0, 200), url: s?.signedUrl || '' });
   }
+  // JD Admin's "Needs you" card: counts only, no names or amounts
+  if (app === 'jd-relay-stats') {
+    const c = (q: any) => q.then((r: any) => r.count ?? 0, () => 0);
+    const n = (t: string) => db.from(t).select('*', { count: 'exact', head: true });
+    const [loads, withdraws, challenges, promos, chats, report] = await Promise.all([
+      c(n('wallet_load_requests').eq('status', 'pending')), c(n('withdraw_requests').eq('status', 'pending')),
+      c(n('challenges').eq('status', 'disputed')), c(n('promo_posts').eq('status', 'pending')),
+      c(n('jd_messages').eq('channel', 'jd').eq('from_staff', false).is('read_at', null)),
+      db.rpc('commission_report', {}).then((r: any) => r.data || [], () => []),
+    ]);
+    const commission = report.filter((x: any) => !x.settled && x.amount > 0).length;
+    return Response.json({ loads, withdraws, challenges, promos, chats, commission });
+  }
   // only the wallet apps (the relay sends the package name): anything else is ignored
   if (!/esewa|f1soft|khalti|ime ?pay|imepay/i.test(app)) return Response.json({ saved: false, why: 'not from eSewa, Khalti or IME Pay' });
 
