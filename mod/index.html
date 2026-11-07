@@ -406,6 +406,23 @@ textarea{min-height:96px;resize:vertical}
   .brand>span>span{display:none}
 }
 @media (min-width:1080px){.sum{flex-wrap:wrap;overflow:visible;margin:0 0 12px;padding:0}}
+/* phones: four tools always in reach, the rest behind the burger */
+.more-btn{display:none!important}
+.menu-bg{position:fixed;inset:0;z-index:55;background:rgba(3,5,10,.66);display:flex;align-items:flex-end}
+.menu-bg[hidden]{display:none}
+.menu{width:100%;background:var(--panel);border-top:1px solid var(--line);border-radius:18px 18px 0 0;padding:14px 12px calc(var(--tabh) + 14px + env(safe-area-inset-bottom))}
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.menu-grid button{position:relative;display:flex;align-items:center;gap:10px;min-height:58px;padding:10px 12px;text-align:left;font:inherit;font-weight:500;font-size:.95rem;color:var(--silver);background:var(--panel-2);border:1px solid var(--line);border-radius:12px;cursor:pointer}
+.menu-grid button[aria-current=true]{border-color:var(--gold-m);color:var(--gold-l)}
+.menu-grid svg{flex:none;width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.menu-grid .n{margin-left:auto;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--warn);color:#1a0d00;font-size:.75rem;font-weight:700;display:grid;place-items:center}
+@media (max-width:640px){
+  .tabs{overflow:visible}
+  .tabs button{flex:1 1 0;min-width:0}
+  .tabs button.in-more{display:none}
+  .more-btn{display:flex!important}
+  .tabs button.more-btn[aria-current=true]{color:var(--cta);box-shadow:inset 0 2px 0 var(--cta)}
+}
 </style>
 </head>
 <body>
@@ -416,6 +433,7 @@ textarea{min-height:96px;resize:vertical}
   <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></symbol>
   <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.5c0-1.2 1.1-2 2.5-2s2.5.7 2.5 1.8-1 1.6-2.5 1.8-2.5.7-2.5 1.8 1.1 1.8 2.5 1.8 2.5-.8 2.5-2"/></symbol>
   <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3 9a2 2 0 0 0 0 6v3h18v-3a2 2 0 0 1 0-6V6H3z"/><path d="M14 6v12" stroke-dasharray="2 2.5"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
   <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.8c0 1.7-2.4 2.1-2.4 3.6"/><path d="M12 17h.01"/></symbol>
   <symbol id="i-wa" viewBox="0 0 24 24"><path d="M4 20l1.2-3.6A8 8 0 1 1 8 19z"/><path d="M9.2 9.3c.3 2 2.4 4.2 4.6 4.7l1.1-1.1 1.8.8"/></symbol>
   <symbol id="i-msg" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
@@ -446,11 +464,16 @@ textarea{min-height:96px;resize:vertical}
   <button type="button" role="tab" aria-selected="false" data-tab="room"><span class="tb"><svg aria-hidden="true"><use href="#i-key"/></svg>Room</span></button>
   <button type="button" role="tab" aria-selected="false" data-tab="results"><span class="tb"><svg aria-hidden="true"><use href="#i-trophy"/></svg>Results</span></button>
   <button type="button" role="tab" aria-selected="false" data-tab="chats"><span class="tb"><svg aria-hidden="true"><use href="#i-chat"/></svg><span class="badge" id="badge-chat" hidden></span>Chats</span></button>
-  <button type="button" role="tab" aria-selected="false" data-tab="notify"><span class="tb"><svg aria-hidden="true"><use href="#i-bell"/></svg>Notify</span></button>
-  <button type="button" role="tab" aria-selected="false" data-tab="promo" hidden><span class="tb"><svg aria-hidden="true"><use href="#i-ticket"/></svg><span class="badge" id="badge-promo" hidden></span>Promo</span></button>
-  <button type="button" role="tab" aria-selected="false" data-tab="loads" hidden><span class="tb"><svg aria-hidden="true"><use href="#i-coin"/></svg><span class="badge" id="badge-loads" hidden></span>Loads</span></button>
-  <button type="button" role="tab" aria-selected="false" data-tab="challenges" hidden><span class="tb"><svg aria-hidden="true"><use href="#i-trophy"/></svg><span class="badge" id="badge-cq" hidden></span>Challenges</span></button>
-  <button type="button" role="tab" aria-selected="false" data-tab="help"><span class="tb"><svg aria-hidden="true"><use href="#i-help"/></svg>Help</span></button>
+  <button type="button" class="in-more" role="tab" aria-selected="false" data-tab="notify"><span class="tb"><svg aria-hidden="true"><use href="#i-bell"/></svg>Notify</span></button>
+  <button type="button" class="in-more" role="tab" aria-selected="false" data-tab="promo" hidden><span class="tb"><svg aria-hidden="true"><use href="#i-ticket"/></svg><span class="badge" id="badge-promo" hidden></span>Promo</span></button>
+  <button type="button" class="in-more" role="tab" aria-selected="false" data-tab="loads" hidden><span class="tb"><svg aria-hidden="true"><use href="#i-coin"/></svg><span class="badge" id="badge-loads" hidden></span>Loads</span></button>
+  <button type="button" class="in-more" role="tab" aria-selected="false" data-tab="challenges" hidden><span class="tb"><svg aria-hidden="true"><use href="#i-trophy"/></svg><span class="badge" id="badge-cq" hidden></span>Challenges</span></button>
+  <button type="button" class="in-more" role="tab" aria-selected="false" data-tab="help"><span class="tb"><svg aria-hidden="true"><use href="#i-help"/></svg>Help</span></button>
+  <button type="button" class="more-btn" id="more-btn" aria-haspopup="dialog" aria-expanded="false"><span class="tb"><svg aria-hidden="true"><use href="#i-menu"/></svg><span class="badge" id="badge-more" hidden></span>Menu</span></button>
+</div>
+
+<div class="menu-bg" id="menu" hidden>
+  <nav class="menu" role="dialog" aria-modal="true" aria-label="All moderator tools"><div class="menu-grid" id="menu-grid"></div></nav>
 </div>
 
 <main id="main" hidden>
@@ -576,7 +599,7 @@ textarea{min-height:96px;resize:vertical}
     <div class="panel">
       <div class="sec-h"><h2 id="h-help">How it works</h2></div>
       <h3>Match night</h3>
-      <p>Pick tonight's event. In Squads, set Playing to Yes for squads that confirmed. Tap WhatsApp to send a ready reminder to the ones that haven't. Remove squads that never confirm – the waitlist moves up by itself.</p>
+      <p>Pick tonight's event. In Squads, set Playing to Yes for squads that confirmed. Tap WhatsApp to send a ready reminder to the ones that haven't. Remove squads that never confirm. In JD free events the first on the waitlist is told a slot is open and pays 20 points for it.</p>
       <h3>Room code</h3>
       <p>Type the Room ID and password and send it about 5 minutes before the start. Only squads in a slot get it. If you remove a squad after sending, change the room password and send the new one.</p>
       <h3>Host mods</h3>
@@ -832,7 +855,7 @@ function renderSquads(){
     filter==='all'?true:filter==='yes'?on&&r.checked_in:filter==='no'?on&&!r.checked_in:filter==='unv'?(on||r.status==='waitlisted')&&!r.lineup:r.status==='waitlisted');
   if(!shown.length){ $('reg-body').innerHTML='<div class="empty">Nothing here – every squad in this list is done.</div>'; return; }
   const free=selected&&+selected.slots?Math.max(0,+selected.slots-act.length):0, unconf=act.filter(r=>!r.checked_in&&!freshUp(r)).length;
-  const tools=(wait&&unconf)?`<div class="wl-tools"><button type="button" class="btn alt" data-act="replace">Replace ${Math.min(unconf,wait)} unconfirmed with the waitlist</button><span class="note">Squads that didn't tap Yes lose their slot; waitlist W1, W2… move up in order and get a notification.</span></div>`:'';
+  const tools=(wait&&unconf)?`<div class="wl-tools"><button type="button" class="btn alt" data-act="replace">Replace ${Math.min(unconf,wait)} unconfirmed with the waitlist</button><span class="note">Squads that didn't tap Yes lose their slot and the waitlist is told. In JD free events a squad pays 20 points for the place.</span></div>`:'';
   $('reg-body').innerHTML=tools+'<div class="slots">'+shown.map(({r,on,no,wl:wn})=>{
     const wait=r.status==='waitlisted', name=r.squad_name||'(squad)';
     const wl=r.whatsapp?waLink(r.whatsapp,waTemplate(name,selected)):null;
@@ -862,7 +885,7 @@ $('reg-body').addEventListener('click',async e=>{
   const b=e.target.closest('button[data-act]'); if(!b) return;
   if(b.dataset.act==='replace'){
     const unconf=rows.filter(r=>active(r)&&!r.checked_in&&!freshUp(r)).length, wait=rows.filter(r=>r.status==='waitlisted').length, n=Math.min(unconf,wait);
-    const ok=await sheet({title:`Replace ${n} unconfirmed squad${n>1?'s':''}?`,text:`The ${n} most recent sign-ups that didn't tap Yes lose their slot in ${selected.name} and get a notification. Waitlist W1${n>1?'–W'+n:''} move up in order and are told to confirm.`,ok:'Replace',danger:true});
+    const ok=await sheet({title:`Replace ${n} unconfirmed squad${n>1?'s':''}?`,text:`The ${n} most recent sign-ups that didn't tap Yes lose their slot in ${selected.name} and get a notification. The waitlist is told. In JD free events a squad pays 20 points for the open place.`,ok:'Replace',danger:true});
     if(!ok) return;
     b.disabled=true;
     try{
@@ -1310,6 +1333,23 @@ $('pr-q').addEventListener('click',async e=>{
   if(error){toast(error.message,null,true);it.querySelectorAll('button').forEach(x=>x.disabled=false);return;}
   toast(yes?'Approved: card sent.':'Rejected.');prLoad();
 });
+function moreTabs(){return [...document.querySelectorAll('#tabs [role=tab].in-more:not([hidden])')];}
+function moreSync(){   // the burger shows the sum of its tools' badges, and lights up when one of them is open
+  const n=moreTabs().reduce((a,b)=>{const d=b.querySelector('.badge');return a+(d&&!d.hidden?(+d.textContent||0):0);},0), bd=$('badge-more');
+  bd.hidden=!n; bd.textContent=n;
+  $('more-btn').setAttribute('aria-current',moreTabs().some(b=>b.getAttribute('aria-selected')==='true')?'true':'false');
+}
+function menuClose(){const m=$('menu');if(m.hidden)return;m.hidden=true;$('more-btn').setAttribute('aria-expanded','false');$('more-btn').focus();}
+function menuOpen(){
+  $('menu-grid').innerHTML=moreTabs().map(b=>{const d=b.querySelector('.badge'),n=d&&!d.hidden?+d.textContent||0:0,on=b.getAttribute('aria-selected')==='true';
+    return `<button type="button" data-go="${b.dataset.tab}"${on?' aria-current="true"':''}>${b.querySelector('svg').outerHTML}<span>${esc(b.textContent.replace(/[0-9]/g,'').trim())}</span>${n?`<span class="n">${n}</span>`:''}</button>`;}).join('');
+  $('menu').hidden=false;$('more-btn').setAttribute('aria-expanded','true');
+  const f=$('menu-grid').querySelector('button');if(f)f.focus();
+}
+$('more-btn').onclick=e=>{e.stopPropagation();$('menu').hidden?menuOpen():menuClose();};
+$('menu').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)showTab(b.dataset.go);if(b||e.target===$('menu'))menuClose();});
+addEventListener('keydown',e=>{if(e.key==='Escape')menuClose();});
+new MutationObserver(moreSync).observe($('tabs'),{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['hidden','aria-selected']});
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)showTab(b.dataset.tab);});
 $('tabs').addEventListener('keydown',e=>{
   if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
@@ -1328,7 +1368,7 @@ $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
   try{
     const me=await call({action:'whoami'}); ME=me;
     $('who').textContent=me.email+(isHostMod()?' · host @'+me.handle:''); $('who-wrap').hidden=false;
-    if(isHostMod()){ document.querySelector('#tabs [data-tab=chats]').hidden=true; $('tab-chats').style.display='none'; $('hev-new').hidden=false; }
+    if(isHostMod()){ document.querySelector('#tabs [data-tab=chats]').hidden=true; $('tab-chats').style.display='none'; $('hev-new').hidden=false; document.querySelector('#tabs [data-tab=notify]').classList.remove('in-more'); }
     if(!me.owner){ const all=document.querySelector('input[name=aud][value=all]'); all.closest('label').remove(); }
     $('main').hidden=false; $('tabs').hidden=false;
     const h=(location.hash||'').slice(1); if(['results','room','notify','help','loads','challenges','promo'].concat(isHostMod()?[]:['chats']).includes(h)) showTab(h);
