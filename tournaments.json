@@ -336,18 +336,18 @@
       "registered": 0
     },
     {
-      "map": "bermuda",
+      "map": "kalahari",
       "date": "Sat, Nov 7",
       "game": "Free Fire BR · Squad",
       "map2": "nexterra",
-      "map3": "bermuda",
+      "map3": "purgatory",
       "name": "JD Free Fire Open #15",
       "time": "9:30 PM NPT",
       "entry": "Free",
       "prize": "180",
       "slots": 12,
       "start": "2026-11-07T21:30:00+05:45",
-      "format": "BR · 4 matches",
+      "format": "BR · 3 matches",
       "status": "upcoming",
       "platform": "Mobile only",
       "early_access": "yes",
@@ -650,5 +650,5 @@
       }
     ]
   },
-  "_published_at": "2026-11-07T02:43:48.694Z"
+  "_published_at": "2026-11-07T13:27:10.983Z"
 }
