@@ -142,7 +142,7 @@
   function matchAv(size) { return '<span class="dm-av' + (size ? ' ' + size : '') + ' mt" aria-hidden="true">' + ICON.swords + '</span>'; }
   function jdAv(size) { return '<span class="dm-av' + (size ? ' ' + size : '') + ' jd" aria-hidden="true"><img src="/logo.webp" alt=""></span>'; }
   var VERIFIED = '<svg class="dm-ver" viewBox="0 0 24 24" role="img" aria-label="Verified"><path fill="currentColor" d="M12 1.6l2.6 1.9 3.2-.1 1 3 2.6 1.9-1 3.1 1 3.1-2.6 1.9-1 3-3.2-.1L12 22.4l-2.6-1.9-3.2.1-1-3L2.6 15.7l1-3.1-1-3.1 2.6-1.9 1-3 3.2.1z"/><path fill="none" stroke="#0B1020" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.6 12.3l3 3 5.8-6"/></svg>';
-  function alAv(size) { return '<span class="dm-av' + (size ? ' ' + size : '') + ' al" aria-hidden="true">🔔</span>'; }
+  function alAv(size) { return '<span class="dm-av' + (size ? ' ' + size : '') + ' al" aria-hidden="true"><i class=ji-bell aria-hidden=true></i></span>'; }
   // "[@goats.esp] Title" = from that event's host mod, "[JD] Title" = from the JD team
   function alFrom(t) { var m = /^\[(@[\w.]+|JD)\]\s*/.exec(String(t || '')); return m ? { from: m[1] === 'JD' ? 'JD Esports' : m[1], title: String(t).slice(m[0].length) } : { from: '', title: String(t || '') }; }
   function zuluAv(size) { return '<span class="dm-av' + (size ? ' ' + size : '') + ' zu" aria-hidden="true">' + ICON.spark + '</span>'; }
@@ -207,7 +207,7 @@
         '<button type="button" class="dm-ib" id="dm-gear" aria-label="Alert settings" title="Alert settings">' + ICON.gear + '</button>' +
         '<button type="button" class="dm-ib" id="dm-close" aria-label="Close">' + ICON.x + '</button></div>' +
       '<form class="dm-add" id="dm-add" autocomplete="off"><input id="dm-add-in" maxlength="40" placeholder="' + esc(T('addPh')) + '" aria-label="' + esc(T('addPh')) + '" enterkeyhint="send"><button type="submit">' + T('add') + '</button></form>' +
-      '<a class="dm-find" href="/squad/"><span aria-hidden="true">👥</span><b>Find teammates</b><small>Players looking for a squad right now</small></a>' +
+      '<a class="dm-find" href="/squad/"><span aria-hidden="true"><i class=ji-users aria-hidden=true></i></span><b>Find teammates</b><small>Players looking for a squad right now</small></a>' +
       '<div class="dm-note" id="dm-note" role="status"></div>' +
       '<div class="dm-tabs" role="tablist">' +
         ['all', 'friends', 'squads', 'matches', 'requests'].map(function (k, i) {
@@ -217,7 +217,7 @@
       '<div class="dm-mytag" id="dm-mytag" hidden></div>' +
     '</div>' +
     '<div class="dm-view" id="dm-thread">' +
-      '<div class="dm-thead"><button type="button" class="dm-ib" id="dm-back" aria-label="Back">' + ICON.back + '</button><span id="dm-th-av"></span><button type="button" class="dm-who" id="dm-who"><b id="dm-th-name"></b><small id="dm-th-st"></small></button><button type="button" class="dm-ib" id="dm-ring" aria-label="Ring squad" title="Ring squad: their phones ring" hidden>📞</button><button type="button" class="dm-ib" id="dm-menu" aria-label="Options">' + ICON.dots + '</button><button type="button" class="dm-ib" id="dm-close2" aria-label="Close">' + ICON.x + '</button></div>' +
+      '<div class="dm-thead"><button type="button" class="dm-ib" id="dm-back" aria-label="Back">' + ICON.back + '</button><span id="dm-th-av"></span><button type="button" class="dm-who" id="dm-who"><b id="dm-th-name"></b><small id="dm-th-st"></small></button><button type="button" class="dm-ib" id="dm-ring" aria-label="Ring squad" title="Ring squad: their phones ring" hidden><i class=ji-call aria-hidden=true></i></button><button type="button" class="dm-ib" id="dm-menu" aria-label="Options">' + ICON.dots + '</button><button type="button" class="dm-ib" id="dm-close2" aria-label="Close">' + ICON.x + '</button></div>' +
       '<div id="dm-pin"></div>' +
       '<div class="dm-msgs" id="dm-msgs" aria-live="polite"></div>' +
       '<div id="dm-chips"></div>' +
@@ -232,13 +232,13 @@
   banner.type = 'button'; banner.className = 'dm-banner'; banner.setAttribute('aria-live', 'polite');
   document.body.appendChild(banner);
 
-  // homepage drawer: a "💬 Messages" row next to Notifications
+  // homepage drawer: a "Messages" row next to Notifications
   var navRow = null;
   var notifRow = $('nav-notif');
   if (notifRow) {
     navRow = document.createElement('button');
     navRow.type = 'button'; navRow.className = 'lang-btn nav-m'; navRow.id = 'nav-dm'; navRow.hidden = true;
-    navRow.innerHTML = '<span>💬 ' + T('messages') + '</span><b id="nav-dm-count" hidden>0</b>';
+    navRow.innerHTML = '<span>' + T('messages') + '</span><b id="nav-dm-count" hidden>0</b>';
     navRow.onclick = function () { open(); };
     notifRow.insertAdjacentElement('afterend', navRow);
   }
@@ -519,7 +519,7 @@
     pop(); buzz(); bump();
     var who = { id: m.from, username: (m.name || '').replace(/^@/, '') };
     var av = m.kind === 'group' ? groupAv({ id: m.key }, 'sm') : m.kind === 'match' ? matchAv('sm') : avatar(who, 'sm');
-    var title = m.kind === 'group' ? '👥 ' + (m.title || 'Squad chat') : m.kind === 'match' ? '⚔️ ' + (m.title || 'Challenge') : (m.name || 'New message');
+    var title = m.kind === 'group' ? '' + (m.title || 'Squad chat') : m.kind === 'match' ? '' + (m.title || 'Challenge') : (m.name || 'New message');
     var body = (m.kind === 'dm' || !m.kind ? '' : (m.name || '') + ': ') + (m.body || '');
     banner.innerHTML = av + '<span class="dm-bt"><b>' + esc(title) + '</b><small>' + esc(body) + '</small></span><span class="dm-bk">Reply</span>';
     banner.onclick = function () {
@@ -617,10 +617,10 @@
     recAt = Date.now();
     var out = [], online = ov.friends.filter(function (f) { return f.online; });
     th.matches.filter(function (m) { return m.status === 'accepted' && !m.room_id; }).slice(0, 1).forEach(function (m) {
-      out.push({ ic: '⚔️', t: 'Post the room for ' + m.mode + ' vs ' + nameOf(m.other), s: 'Your match is on — share the room ID', go: function () { openMatch(m.id); } });
+      out.push({ ic: '<i class=ji-swords aria-hidden=true></i>', t: 'Post the room for ' + m.mode + ' vs ' + nameOf(m.other), s: 'Your match is on — share the room ID', go: function () { openMatch(m.id); } });
     });
     th.matches.filter(function (m) { return m.unread; }).slice(0, 1).forEach(function (m) {
-      out.push({ ic: '💬', t: nameOf(m.other) + ' wrote in your match chat', s: m.last_body || '', go: function () { openMatch(m.id); } });
+      out.push({ ic: '<i class=ji-chat aria-hidden=true></i>', t: nameOf(m.other) + ' wrote in your match chat', s: m.last_body || '', go: function () { openMatch(m.id); } });
     });
     try {
       if (!tourCache) { var r = await fetch('/tournaments.json', { cache: 'no-store' }); tourCache = r.ok ? await r.json() : { tournaments: [] }; }
@@ -628,19 +628,19 @@
         var st = String(t.status || 'upcoming').toLowerCase(), ms = Date.parse(t.start);
         return (st === 'upcoming' || st === 'live') && !String(t.winner || '').trim() && (!isFinite(ms) || ms > Date.now() - 3 * 3600e3);
       }).sort(function (a, b) { return (Date.parse(a.start) || 9e15) - (Date.parse(b.start) || 9e15); })[0];
-      if (next) out.push({ ic: '🏆', t: next.name, s: [next.date, next.time, next.prize ? 'Prize ' + next.prize : '', next.entry].filter(Boolean).join(' · '), href: '/events/' });
+      if (next) out.push({ ic: '<i class=ji-trophy aria-hidden=true></i>', t: next.name, s: [next.date, next.time, next.prize ? 'Prize ' + next.prize : '', next.entry].filter(Boolean).join(' · '), href: '/events/' });
     } catch (e) {}
     try {
       var oc = await SB.rpc('get_open_challenges');
       var open = (oc.data || []).filter(function (c) { return !c.mine; });
       var forMe = open.filter(function (c) { return c.for_me; });
-      if (forMe.length) out.unshift({ ic: '🎯', t: forMe[0].creator_name + ' challenged you', s: forMe[0].mode + ' · ' + forMe[0].stake + ' pts each', href: '/challenges/' });
-      else if (open.length) out.push({ ic: '🔥', t: open.length + ' open challenge' + (open.length > 1 ? 's' : '') + ' in the lobby', s: 'Accept one and win JD points', href: '/challenges/' });
+      if (forMe.length) out.unshift({ ic: '<i class=ji-target aria-hidden=true></i>', t: forMe[0].creator_name + ' challenged you', s: forMe[0].mode + ' · ' + forMe[0].stake + ' pts each', href: '/challenges/' });
+      else if (open.length) out.push({ ic: '<i class=ji-flame aria-hidden=true></i>', t: open.length + ' open challenge' + (open.length > 1 ? 's' : '') + ' in the lobby', s: 'Accept one and win JD points', href: '/challenges/' });
     } catch (e) {}
-    if (online.length) { var f = online[0]; out.push({ ic: '🟢', t: nameOf(f) + ' is online', s: 'Challenge them to a 1v1', href: '/challenges/?invite=' + encodeURIComponent(f.username || '') }); }
-    if (!ov.friends.length) out.push({ ic: '🤝', t: 'Add your teammates', s: 'Search their username above', go: function () { $('dm-add-in').focus(); } });
-    else if (!th.groups.length) out.push({ ic: '👥', t: 'Make a squad chat', s: 'Plan matches with your Clash Squad team', go: function () { newSquadSheet(); } });
-    out.push({ ic: '✨', t: 'Ask ZULU anything', s: 'Tournaments, rules, points, tips', go: openZulu });
+    if (online.length) { var f = online[0]; out.push({ ic: '<i class=ji-dot-green aria-hidden=true></i>', t: nameOf(f) + ' is online', s: 'Challenge them to a 1v1', href: '/challenges/?invite=' + encodeURIComponent(f.username || '') }); }
+    if (!ov.friends.length) out.push({ ic: '<i class=ji-heart aria-hidden=true></i>', t: 'Add your teammates', s: 'Search their username above', go: function () { $('dm-add-in').focus(); } });
+    else if (!th.groups.length) out.push({ ic: '<i class=ji-users aria-hidden=true></i>', t: 'Make a squad chat', s: 'Plan matches with your Clash Squad team', go: function () { newSquadSheet(); } });
+    out.push({ ic: '<i class=ji-spark aria-hidden=true></i>', t: 'Ask ZULU anything', s: 'Tournaments, rules, points, tips', go: openZulu });
     recs = out.slice(0, 5);
     if (isOpen && (!cur || wide())) renderOverview();
   }
@@ -655,7 +655,7 @@
   // one inbox row per conversation
   function rowFor(it) {
     var active = cur && cur.kind === it.kind && cur.id === it.id ? ' active' : '';
-    var right = it.unread ? '<span class="dm-dot' + (it.muted ? ' mute' : '') + '">' + (it.unread > 9 ? '9+' : it.unread) + '</span>' : (it.muted ? '<span class="dm-mute" title="Muted">🔕</span>' : '');
+    var right = it.unread ? '<span class="dm-dot' + (it.muted ? ' mute' : '') + '">' + (it.unread > 9 ? '9+' : it.unread) + '</span>' : (it.muted ? '<span class="dm-mute" title="Muted"><i class=ji-bell-off aria-hidden=true></i></span>' : '');
     return '<button type="button" class="dm-row' + (it.unread && !it.muted ? ' unread' : '') + active + '" data-k="' + it.kind + '" data-open="' + esc(it.id) + '">' + it.av +
       '<span class="dm-mid"><span class="dm-name">' + it.title + '</span>' +
       '<span class="dm-prev"><span>' + esc(it.prev) + '</span>' + (it.at ? '<span>· ' + short(it.at) + '</span>' : '') + '</span></span>' + right + '</button>';
@@ -664,8 +664,8 @@
     var out = [];
     (ov ? ov.friends : []).forEach(function (f) {
       out.push({ kind: 'dm', id: f.id, at: f.last_at, unread: f.unread, av: avatar(f), search: (f.username || '') + ' ' + (f.tag || '') + ' ' + (f.squad || ''),
-        title: esc(nameOf(f)) + (f.app ? ' <span class="dm-badge" title="Uses the app">📱</span>' : ''),
-        prev: f.last_body ? (f.last_mine ? T('you') + ': ' : '') + f.last_body : 'Say hi 👋' });
+        title: esc(nameOf(f)) + (f.app ? ' <span class="dm-badge" title="Uses the app"><i class=ji-phone aria-hidden=true></i></span>' : ''),
+        prev: f.last_body ? (f.last_mine ? T('you') + ': ' : '') + f.last_body : 'Say hi' });
     });
     (th ? th.groups : []).forEach(function (g) {
       out.push({ kind: 'group', id: g.id, at: g.last_at, unread: g.unread, muted: g.muted, av: groupAv(g), search: g.name,
@@ -676,14 +676,14 @@
       var st = m.status === 'completed' ? 'Finished' : m.status === 'disputed' ? 'Disputed' : 'Live';
       out.push({ kind: 'match', id: m.id, at: m.last_at, unread: m.unread, av: matchAv(), search: m.mode + ' ' + nameOf(m.other),
         title: '<span class="dm-tag mt ' + m.status + '">' + st + '</span>' + esc(m.mode) + ' vs ' + esc(nameOf(m.other)),
-        prev: m.last_body ? (m.last_mine ? T('you') + ': ' : '') + m.last_body : (m.room_id ? '🎮 Room ' + m.room_id : 'Share the room details here') });
+        prev: m.last_body ? (m.last_mine ? T('you') + ': ' : '') + m.last_body : (m.room_id ? 'Room ' + m.room_id : 'Share the room details here') });
     });
     return out;
   }
   // Website and app: the JD Esports chat and ZULU are one chat - ZULU (AI) answers (zulu-auto), a JD team member
   // joins only when ZULU flags a big issue (ZULU stays quiet 20 min after a moderator writes). One chat for fast replies.
   var MERGED = true;
-  var HUMAN_ASK = '🙋 I want to talk to a person from the JD team, please.';
+  var HUMAN_ASK = 'I want to talk to a person from the JD team, please.';
   function jdRow() {
     var l = jdLast, active = cur && cur.kind === 'jd' ? ' active' : '', un = badge.jd + (MERGED ? badge.z : 0);
     var prev = l ? (l.mine ? T('you') + ': ' : '') + l.body
@@ -731,11 +731,11 @@
     if (tab === 'requests') {
       if (ov.incoming.length) h += '<div class="dm-sec">Friend requests</div>' + ov.incoming.map(function (p) {
         return '<div class="dm-row">' + avatar(p) + '<span class="dm-mid"><span class="dm-name">' + esc(nameOf(p)) + '</span><span class="dm-prev"><span>' + (p.squad ? esc(p.squad) + ' · ' : '') + short(p.at) + '</span></span></span>' +
-          '<span class="dm-acts"><button type="button" class="dm-btn ghost" data-chat="' + esc(p.id) + '" aria-label="Open chat with ' + esc(nameOf(p)) + '">💬</button><button type="button" class="dm-btn" data-accept="' + esc(p.id) + '">' + T('accept') + '</button><button type="button" class="dm-btn ghost" data-decline="' + esc(p.id) + '" aria-label="' + T('decline') + ' ' + esc(nameOf(p)) + '">✕</button></span></div>';
+          '<span class="dm-acts"><button type="button" class="dm-btn ghost" data-chat="' + esc(p.id) + '" aria-label="Open chat with ' + esc(nameOf(p)) + '"><i class=ji-chat aria-hidden=true></i></button><button type="button" class="dm-btn" data-accept="' + esc(p.id) + '">' + T('accept') + '</button><button type="button" class="dm-btn ghost" data-decline="' + esc(p.id) + '" aria-label="' + T('decline') + ' ' + esc(nameOf(p)) + '">✕</button></span></div>';
       }).join('');
       if (ov.outgoing.length) h += '<div class="dm-sec">Sent · waiting</div>' + ov.outgoing.map(function (p) {
         return '<div class="dm-row">' + avatar(p) + '<span class="dm-mid"><span class="dm-name">' + esc(nameOf(p)) + '</span><span class="dm-prev"><span>Request sent ' + short(p.at) + '</span></span></span>' +
-          '<span class="dm-acts"><button type="button" class="dm-btn ghost" data-chat="' + esc(p.id) + '">💬 Message</button><button type="button" class="dm-btn ghost" data-remove="' + esc(p.id) + '">' + T('cancel') + '</button></span></div>';
+          '<span class="dm-acts"><button type="button" class="dm-btn ghost" data-chat="' + esc(p.id) + '">Message</button><button type="button" class="dm-btn ghost" data-remove="' + esc(p.id) + '">' + T('cancel') + '</button></span></div>';
       }).join('');
       if (ov.blocked.length) h += '<div class="dm-sec">Blocked</div>' + ov.blocked.map(function (p) {
         return '<div class="dm-row">' + avatar(p) + '<span class="dm-mid"><span class="dm-name">' + esc(nameOf(p)) + '</span></span>' +
@@ -794,7 +794,7 @@
     else if ((id = b.dataset.remove)) r = await SB.rpc('remove_friend', { p_who: id });
     else if ((id = b.dataset.unblock)) r = await SB.rpc('unblock_player', { p_who: id });
     if (r && r.error) { note(r.error.message, 'err'); b.disabled = false; return; }
-    if (b.dataset.accept) { note('You\'re friends now — say hi! 👋', 'ok'); tab = 'friends'; }
+    if (b.dataset.accept) { note('You\'re friends now — say hi!', 'ok'); tab = 'friends'; }
     await loadOverview(); poll();
   });
   function openKind(k, id) {
@@ -834,7 +834,7 @@
     inp.value = ''; filter = '';
     var who = v.replace(/^@/, '');
     note({ sent: 'Request sent to ' + who + '. You can chat once they accept.', pending: 'Already sent — waiting for ' + who + ' to accept.',
-      already: 'You and ' + who + ' are already friends.', accepted: 'They had already added you — you\'re friends now! 🎉' }[r.data] || 'Done.', 'ok');
+      already: 'You and ' + who + ' are already friends.', accepted: 'They had already added you — you\'re friends now!' }[r.data] || 'Done.', 'ok');
     tab = (r.data === 'sent' || r.data === 'pending') ? 'requests' : 'friends';
     await loadOverview(); poll();
     await openWith(v);
@@ -872,7 +872,7 @@
     if (r.error) { note(r.error.message, 'err'); return; }
     await loadOverview();
     openGroup(r.data.group_id);
-    if (r.data.joined) setTimeout(function () { note('You joined ' + (r.data.name || 'the squad chat') + ' 👋 Say hi to your squad!', 'ok'); }, 400);
+    if (r.data.joined) setTimeout(function () { note('You joined ' + (r.data.name || 'the squad chat') + 'Say hi to your squad!', 'ok'); }, 400);
   }
   async function openMatch(id) {
     if (!me) { pendingDeepLink = function () { openMatch(id); }; return; }
@@ -952,7 +952,7 @@
       : ((file.name.split('.').pop() || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'mp4');
     var id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2);
     var path = me + '/' + id + '.' + ext;
-    var m = { id: 't' + (++tmp), mine: true, sender: me, kind: 'text', body: type === 'image' ? '📷 Sending photo…' : '🎬 Sending video…', created_at: new Date().toISOString(), pending: true, fresh: true };
+    var m = { id: 't' + (++tmp), mine: true, sender: me, kind: 'text', body: type === 'image' ? 'Sending photo…' : 'Sending video…', created_at: new Date().toISOString(), pending: true, fresh: true };
     msgs.push(m); renderMsgs(true);
     var up = await SB.storage.from('chat-media').upload(path, file, { contentType: file.type, upsert: false });
     var r = up.error ? up : await SB.rpc('send_dm_media', { p_to: p.id, p_path: path, p_type: type, p_caption: '' });
@@ -963,9 +963,9 @@
 
   function composer(ph, max) {
     var att = cur && cur.kind === 'dm' && cur.friend !== false
-      ? '<label class="dm-quick dm-att" aria-label="Send a photo or video" title="Photo or video (videos up to 15 MB). Deleted after 30 days.">📎<input type="file" id="dm-file" accept="image/*,video/*" hidden></label>' : '';
+      ? '<label class="dm-quick dm-att" aria-label="Send a photo or video" title="Photo or video (videos up to 15 MB). Deleted after 30 days."><i class=ji-clip aria-hidden=true></i><input type="file" id="dm-file" accept="image/*,video/*" hidden></label>' : '';
     return '<form class="dm-compose" id="dm-form">' + att + '<textarea id="dm-in" rows="1" maxlength="' + max + '" placeholder="' + esc(ph) + '" aria-label="' + esc(ph) + '" enterkeyhint="send"></textarea>' +
-      '<button type="button" class="dm-quick" id="dm-like" aria-label="Send a thumbs up">👍</button><button type="submit" class="dm-send" id="dm-send" aria-label="Send" hidden>' + ICON.send + '</button></form>';
+      '<button type="button" class="dm-quick" id="dm-like" aria-label="Send a thumbs up"><i class=ji-thumb aria-hidden=true></i></button><button type="submit" class="dm-send" id="dm-send" aria-label="Send" hidden>' + ICON.send + '</button></form>';
   }
   function openThread(p) {
     if (PAGE && !wide() && !cur) { try { history.pushState({ jdThread: 1 }, ''); } catch (e) {} }
@@ -987,7 +987,7 @@
     else foot = composer(T('typePh'), 500);
     $('dm-foot').innerHTML = foot;
     chipFor = null;
-    if (p.kind === 'zulu') chips(['👋 Hey ZULU!', '🪙 How many points do I have?', '🎮 When is my next match?', '🏆 Next tournament?', '🎯 Free Fire tips', '😂 Tell me a gaming joke']);
+    if (p.kind === 'zulu') chips(['Hey ZULU!', 'How many points do I have?', 'When is my next match?', 'Next tournament?', 'Free Fire tips', 'Tell me a gaming joke']);
     var inp = $('dm-in');
     if (inp) {
       var sync = function () {
@@ -1035,21 +1035,21 @@
   function chips(list, extra) {
     setChips('<div class="dm-chips">' + (extra || '') + list.map(function (t) { return '<button type="button">' + esc(t) + '</button>'; }).join('') + '</div>');
   }
-  // quick replies that fit the last message you got (instant, no AI), then ✨ for AI ideas
+  // quick replies that fit the last message you got (instant, no AI), then for AI ideas
   function smartReplies(last, kind) {
     var b = String(last || '').toLowerCase(), out = [];
     var add = function () { for (var i = 0; i < arguments.length; i++) if (out.indexOf(arguments[i]) < 0) out.push(arguments[i]); };
-    if (/(room|\bid\b|pass)/.test(b)) add('Room ready ✅', 'Making it now ⏳');
-    if (/(\bgg\b|good game|well played|\bwp\b)/.test(b)) add('GG 🤝', 'Rematch? ⚔️');
-    if (/(won|win|lost|lose|jit|hara)/.test(b)) add('GG, well played 🤝', 'Rematch? ⚔️');
-    if (/(when|what time|kati baje|kahile|kun time)/.test(b)) add('Now 🔥', 'In 10 min ⏳', 'Tonight 9pm?');
-    if (/(ready|start|join|aau|aija)/.test(b)) add('Ready ✅', 'Joining now 🏃', 'Wait 2 min ⏳');
-    if (/(^|\s)(hi|hello|hey|yo|namaste|k cha|k xa|kxa)(\s|!|$)/.test(b)) add('Hey! 👋', 'K cha bro? 😄');
-    if (/(screenshot|proof|ss\b)/.test(b)) add('Sending screenshot 📸');
-    if (/\?\s*$/.test(b)) add('Yes ✅', 'No ❌', 'Not sure 🤔');
+    if (/(room|\bid\b|pass)/.test(b)) add('Room ready', 'Making it now');
+    if (/(\bgg\b|good game|well played|\bwp\b)/.test(b)) add('GG', 'Rematch?');
+    if (/(won|win|lost|lose|jit|hara)/.test(b)) add('GG, well played', 'Rematch?');
+    if (/(when|what time|kati baje|kahile|kun time)/.test(b)) add('Now', 'In 10 min', 'Tonight 9pm?');
+    if (/(ready|start|join|aau|aija)/.test(b)) add('Ready', 'Joining now', 'Wait 2 min');
+    if (/(^|\s)(hi|hello|hey|yo|namaste|k cha|k xa|kxa)(\s|!|$)/.test(b)) add('Hey!', 'K cha bro?');
+    if (/(screenshot|proof|ss\b)/.test(b)) add('Sending screenshot');
+    if (/\?\s*$/.test(b)) add('Yes', 'No', 'Not sure');
     if (!out.length) {
-      if (kind === 'match') add('Room ready ✅', 'Joining now 🏃', 'Wait 2 min ⏳', 'Start? 🔥', 'GG 🤝');
-      else if (b) add('😂', '🔥 Let\'s go', '👍 Okay');
+      if (kind === 'match') add('Room ready', 'Joining now', 'Wait 2 min', 'Start?', 'GG');
+      else if (b) add('', 'Let\'s go', 'Okay');
     }
     return out.slice(0, 5);
   }
@@ -1058,10 +1058,10 @@
     if (p.kind === 'host') { setChips(''); return; }
     if (p.kind === 'jd') {
       if (MERGED) {   // ZULU answers; it brings in the JD team itself when the issue is big (zulu-auto [FLAG])
-        if (msgs.length) setChips(''); else chips(['🏆 Next tournament?', '🪙 How many points do I have?', 'Room ID problem 🎮', 'Our squad is ready ✅']);
+        if (msgs.length) setChips(''); else chips(['Next tournament?', 'How many points do I have?', 'Room ID problem', 'Our squad is ready']);
         return;
       }
-      if (msgs.length) $('dm-chips').innerHTML = ''; else chips(['Hi JD team 👋', 'Our squad is ready ✅', 'I need help with points 🪙', 'Room ID problem 🎮']);
+      if (msgs.length) $('dm-chips').innerHTML = ''; else chips(['Hi JD team', 'Our squad is ready', 'I need help with points', 'Room ID problem']);
       return;
     }
     if (p.kind === 'match' && p.status === 'completed') { $('dm-chips').innerHTML = ''; return; }
@@ -1073,19 +1073,19 @@
     if (!force && $('dm-chips').querySelector('[data-fill]')) return; // keep AI ideas until used
     chipFor = key;
     var theirs = last && !last.mine && last.kind !== 'ai' ? last.body : '';
-    var extra = '<button type="button" class="ai" data-ai="1">✨ ' + (NE ? 'AI सुझाव' : 'Ideas') + '</button>' +
-      (p.kind !== 'dm' ? '<button type="button" class="ai" data-zulu="1">🤖 @zulu</button>' : '');
+    var extra = '<button type="button" class="ai" data-ai="1">' + (NE ? 'AI सुझाव' : 'Ideas') + '</button>' +
+      (p.kind !== 'dm' ? '<button type="button" class="ai" data-zulu="1">@zulu</button>' : '');
     chips(smartReplies(theirs, p.kind), extra);
   }
   async function aiIdeas(btn) {
     var p = cur; if (!p) return;
-    btn.disabled = true; btn.textContent = '✨ ' + (NE ? 'सोच्दै…' : 'Thinking…');
+    btn.disabled = true; btn.textContent = '' + (NE ? 'सोच्दै…' : 'Thinking…');
     var r = null;
     try { r = await SB.functions.invoke('chat-assist', { body: { kind: p.kind, id: p.id } }); } catch (e) {}
     if (cur !== p) return;
     var list = (r && r.data && r.data.replies) || [];
-    if (!list.length) { btn.textContent = '😴 ' + ((r && r.data && r.data.note) || 'No ideas right now'); setTimeout(function () { if (cur === p) smartChips(true); }, 2200); return; }
-    setChips('<div class="dm-chips">' + list.map(function (t) { return '<button type="button" class="ai" data-fill="1">✨ ' + esc(t) + '</button>'; }).join('') +
+    if (!list.length) { btn.textContent = '' + ((r && r.data && r.data.note) || 'No ideas right now'); setTimeout(function () { if (cur === p) smartChips(true); }, 2200); return; }
+    setChips('<div class="dm-chips">' + list.map(function (t) { return '<button type="button" class="ai" data-fill="1">' + esc(t) + '</button>'; }).join('') +
       '<button type="button" data-back="1" aria-label="Back to quick replies">✕</button></div>');
   }
   $('dm-chips').addEventListener('click', function (e) {
@@ -1112,7 +1112,7 @@
     else if (p.kind === 'group') {
       av = groupAv(p, 'sm'); name = p.name;
       var mem = ginfo ? ginfo.members : null, onl = mem ? mem.filter(function (m) { return m.online && !m.me; }).length : 0;
-      st = mem ? mem.length + ' ' + T('members') + (onl ? ' · ' + onl + ' online' : '') + (ginfo.muted ? ' · 🔕' : '') : (p.count ? p.count + ' ' + T('members') : '');
+      st = mem ? mem.length + ' ' + T('members') + (onl ? ' · ' + onl + ' online' : '') + (ginfo.muted ? ' ·' : '') : (p.count ? p.count + ' ' + T('members') : '');
       on = onl > 0;
     } else if (p.kind === 'match') {
       av = matchAv('sm'); name = (p.mode || 'Match') + (p.other ? ' vs ' + nameOf(p.other) : '');
@@ -1250,7 +1250,7 @@
       : '<span class="dm-pin-wait">No room yet — whoever makes the custom room, post it in the challenge.</span>';
     $('dm-pin').innerHTML = '<div class="dm-pin"><div class="dm-pin-top"><span>' + esc(rules) + '</span><a href="/challenges/?c=' + encodeURIComponent(p.id) + '">' + T('openMatch') + ' →</a></div>' +
       '<div class="dm-pin-room">' + room + '</div>' +
-      (p.room_id && p.status !== 'completed' ? '<button type="button" class="dm-pin-share" id="dm-share-room">📣 ' + T('shareRoom') + '</button>' : '') + '</div>';
+      (p.room_id && p.status !== 'completed' ? '<button type="button" class="dm-pin-share" id="dm-share-room">' + T('shareRoom') + '</button>' : '') + '</div>';
     var sh = $('dm-share-room');
     if (sh) sh.onclick = function () { shareRoom({ id: p.room_id, pass: p.room_pass, label: p.mode + ' vs ' + nameOf(p.other) }); };
   }
@@ -1305,12 +1305,12 @@
       if (head && !m.mine && (p.kind === 'group' || isAi)) h += '<div class="dm-from' + (isAi ? ' ai' : '') + '">' + (isAi ? 'ZULU · AI' : esc(nameOf(who))) + '</div>';
       var av = m.mine ? '' : (p.kind === 'zulu' || isAi ? zuluAv('xs') : p.kind === 'jd' ? jdAv('xs') : avatar(who, 'xs'));
       var bubble = room
-        ? '<div class="dm-b dm-room"><span class="dm-room-h">🎮 ' + esc(room.label || 'Custom room') + '</span>' +
+        ? '<div class="dm-b dm-room"><span class="dm-room-h">' + esc(room.label || 'Custom room') + '</span>' +
           '<span class="dm-room-r"><button type="button" class="dm-copy" data-copy="' + esc(room.id) + '"><small>Room ID</small><b>' + esc(room.id) + '</b></button>' +
           '<button type="button" class="dm-copy" data-copy="' + esc(room.pass) + '"><small>Password</small><b>' + esc(room.pass || '—') + '</b></button></span></div>'
         : (p.kind === 'zulu' || isAi) && !m.mine
           ? '<div class="dm-b"' + (m.streaming ? ' id="dm-zs"' : '') + '><span class="dm-zt">' + linkify(m.body) + '</span>' +
-            (m.streaming ? '' : '<button type="button" class="dm-say" data-say="1" aria-label="Read aloud" title="Read aloud">🔊</button>') + '</div>'
+            (m.streaming ? '' : '<button type="button" class="dm-say" data-say="1" aria-label="Read aloud" title="Read aloud"><i class=ji-speaker aria-hidden=true></i></button>') + '</div>'
           : m.media
             ? '<div class="dm-b dm-media" data-media="' + esc(m.media) + '" data-mt="' + (m.media_type === 'video' ? 'video' : 'image') + '"><span class="dm-media-load">' + esc(m.body) + '</span></div>'
             : '<div class="dm-b">' + esc(m.body) + '</div>';
@@ -1337,7 +1337,7 @@
     var n = m.n, af = alFrom(n.title), room = n.room_id ? '<span class="dm-room-r"><button type="button" class="dm-copy" data-copy="' + esc(n.room_id) + '"><small>Room ID</small><b>' + esc(n.room_id) + '</b></button>' +
       '<button type="button" class="dm-copy" data-copy="' + esc(n.room_pass || '') + '"><small>Password</small><b>' + esc(n.room_pass || '—') + '</b></button></span>' : '';
     return '<div class="dm-line them head tail' + (m.fresh && !reduced() ? ' new' : '') + '" title="' + esc(stamp(m.created_at)) + '">' + alAv('xs') +
-      '<div class="dm-b dm-zn' + (room ? ' dm-room' : '') + '"><span class="dm-zn-k">' + (af.from ? esc(af.from) : '🔔 Alert') + (n.tournament_slug ? ' · ' + esc(n.tournament_slug) : '') + '</span><b>' + esc(af.title) + '</b>' +
+      '<div class="dm-b dm-zn' + (room ? ' dm-room' : '') + '"><span class="dm-zn-k">' + (af.from ? esc(af.from) : 'Alert') + (n.tournament_slug ? ' · ' + esc(n.tournament_slug) : '') + '</span><b>' + esc(af.title) + '</b>' +
       (n.body ? '<span class="dm-zn-t">' + linkify(n.body) + '</span>' : '') + room + '</div></div>';
   }
   function seenLine(m) {
@@ -1350,9 +1350,9 @@
     return 'Sent';
   }
   // ZULU ends replies with site paths for the next step; each becomes a tap button.
-  var PATHS = { '/challenges/': '⚔️ Challenges', '/wallet/': '🪙 Wallet', '/wallet/#load': '💰 Load points', '/events/': '📅 Join a tournament',
-    '/leaderboard.html': '🏆 Leaderboard', '/profile/': '👤 Profile', '/chat/': '💬 Chat', '/privacy/': 'Privacy', '/ban-list.html': '🚫 Ban list',
-    '/download/': '📲 Get the app', '/pass/': '🎟 Weekly Pass', '/rules/': '📜 Rules', '/optimizer/': '🚀 PC Optimizer' };
+  var PATHS = { '/challenges/': 'Challenges', '/wallet/': 'Wallet', '/wallet/#load': 'Load points', '/events/': 'Join a tournament',
+    '/leaderboard.html': 'Leaderboard', '/profile/': 'Profile', '/chat/': 'Chat', '/privacy/': 'Privacy', '/ban-list.html': 'Ban list',
+    '/download/': 'Get the app', '/pass/': 'Weekly Pass', '/rules/': 'Rules', '/optimizer/': 'PC Optimizer' };
   function linkify(s) {
     return esc(s).replace(/\*\*([^*\n]{1,80})\*\*/g, '<b>$1</b>')
       .replace(/(?:https?:\/\/)?(?:www\.)?jdesport\.co\.uk(\/[a-z-]*\/?(?:[a-z-]+\.html)?(?:#[a-z]+)?)/g, function (m, path) { return path; })
@@ -1363,7 +1363,7 @@
   }
   window.zuluRender = linkify;
 
-  // 🔊 Read a ZULU reply aloud with the device's own voices (speechSynthesis, on tap only).
+  // Read a ZULU reply aloud with the device's own voices (speechSynthesis, on tap only).
   // Devanagari needs a Nepali (ne) or Hindi (hi) voice - phones usually have one, many PCs don't.
   // Picks the most natural voice the device has (the first "en" voice is often a robotic desktop one), speaks
   // sentence by sentence (Chrome stops a single long utterance after ~15 s) and never reads symbols like → or ·.
@@ -1390,7 +1390,7 @@
     if (!ss || typeof SpeechSynthesisUtterance === 'undefined') return 'This browser can\'t read aloud.';
     if (ss.speaking || ss.pending || sayBtn) { sayRun++; ss.cancel(); var was = sayBtn; if (sayBtn) sayBtn.classList.remove('on'); sayBtn = null; if (was === btn) return ''; }
     var clean = String(text || '').replace(/(^|\s)\/[a-z-]+\/?(?:[a-z-]+\.html)?(?:#[a-z]+)?(?=\s|$)/g, ' ')
-      .replace(/https?:\/\/\S+/g, ' ').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, '')
+      .replace(/https?:\/\/\S+/g, ' ').replace(/[-\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, '')
       .replace(/\s[·•|—–]\s/g, ', ').replace(/[*_#`~>]+/g, ' ').replace(/\bRs\.?\s?(?=\d)/g, 'rupees ')
       .replace(/\s+/g, ' ').trim();
     if (!clean) return '';
@@ -1464,12 +1464,12 @@
   function zuluFollowups(q, a) {
     var t = (q + ' ' + a).toLowerCase(), out = [];
     var add = function () { for (var i = 0; i < arguments.length; i++) if (out.indexOf(arguments[i]) < 0 && arguments[i].toLowerCase().indexOf(q.toLowerCase()) < 0) out.push(arguments[i]); };
-    if (/(point|wallet|esewa|balance|withdraw|load)/.test(t)) add('💰 How do I load points?', '🏧 How do I withdraw?');
-    if (/(challenge|clash|1v1|2v2|pot|stake)/.test(t)) add('⚔️ How does the pot work?', '🏳️ What if both say they won?');
-    if (/(tournament|register|join|room)/.test(t)) add('📝 How do I join?', '🎮 When do I get the room ID?');
-    if (/(rank|leaderboard|points work|placement|kill)/.test(t)) add('🏆 How do points work?');
-    if (/(cheat|hack|report|ban)/.test(t)) add('🚩 How do I report a cheater?');
-    add('🏆 Next tournament?', '🎯 Free Fire tips');
+    if (/(point|wallet|esewa|balance|withdraw|load)/.test(t)) add('How do I load points?', 'How do I withdraw?');
+    if (/(challenge|clash|1v1|2v2|pot|stake)/.test(t)) add('How does the pot work?', 'What if both say they won?');
+    if (/(tournament|register|join|room)/.test(t)) add('How do I join?', 'When do I get the room ID?');
+    if (/(rank|leaderboard|points work|placement|kill)/.test(t)) add('How do points work?');
+    if (/(cheat|hack|report|ban)/.test(t)) add('How do I report a cheater?');
+    add('Next tournament?', 'Free Fire tips');
     return out.slice(0, 4);
   }
   // a short summary of the player's own account for ZULU (only the ZULU chat sends it)
@@ -1685,7 +1685,7 @@
     if (!ov) await loadOverview();
     if (!isOpen) open();
     var def = (myCard && myCard.squad_name) || '';
-    sheet('<h3>👥 ' + T('newSquad') + '</h3><p>Pick up to 7 friends — your Clash Squad team. Everyone can chat, share room IDs and add their own friends.</p>' +
+    sheet('<h3>' + T('newSquad') + '</h3><p>Pick up to 7 friends — your Clash Squad team. Everyone can chat, share room IDs and add their own friends.</p>' +
       '<input class="dm-field" id="dm-gname" maxlength="40" placeholder="Squad chat name" value="' + esc(def) + '">' +
       friendPicker([], 7) + '<div class="dm-sheet-note" id="dm-sheet-note"></div>' +
       '<div class="dm-row2">' + cancelBtn() + '<button type="button" class="dm-btn" data-a="create-group">' + T('create') + '</button></div>');
@@ -1696,47 +1696,47 @@
     if (p.kind === 'dm') {
       var n = esc(nameOf(p));
       sheet('<h3>' + n + '</h3>' +
-        (p.username ? '<button type="button" class="dm-opt" data-a="challenge">⚔️ Challenge ' + n + ' to a match</button>' : '') +
-        '<button type="button" class="dm-opt" data-a="squad-with">👥 Start a squad chat with ' + n + '</button>' +
-        '<button type="button" class="dm-opt" data-a="remove">👋 Remove friend</button>' +
-        '<button type="button" class="dm-opt red" data-a="block">⛔ Block ' + n + '</button>' +
-        '<button type="button" class="dm-opt red" data-a="report">🚩 Report ' + n + '</button>' +
+        (p.username ? '<button type="button" class="dm-opt" data-a="challenge">Challenge ' + n + ' to a match</button>' : '') +
+        '<button type="button" class="dm-opt" data-a="squad-with">Start a squad chat with ' + n + '</button>' +
+        '<button type="button" class="dm-opt" data-a="remove">Remove friend</button>' +
+        '<button type="button" class="dm-opt red" data-a="block">Block ' + n + '</button>' +
+        '<button type="button" class="dm-opt red" data-a="report">Report ' + n + '</button>' +
         '<button type="button" class="dm-opt" data-a="close">' + T('cancel') + '</button>');
     } else if (p.kind === 'host') {
-      sheet('<h3>@' + esc(p.id) + '</h3><a class="dm-opt" href="/events/">🏆 Events and your tickets</a><button type="button" class="dm-opt" data-a="close">' + T('cancel') + '</button>');
+      sheet('<h3>@' + esc(p.id) + '</h3><a class="dm-opt" href="/events/">Events and your tickets</a><button type="button" class="dm-opt" data-a="close">' + T('cancel') + '</button>');
     } else if (p.kind === 'jd') {
       sheet('<h3>JD Esports ' + VERIFIED + '</h3>' +
-        '<a class="dm-opt" href="/events/">🏆 Events and your tickets</a>' +
-        '<a class="dm-opt" href="/wallet/">🪙 Wallet · load points</a>' +
-        '<a class="dm-opt" href="/rules/">📜 Tournament rules</a>' +
+        '<a class="dm-opt" href="/events/">Events and your tickets</a>' +
+        '<a class="dm-opt" href="/wallet/">Wallet · load points</a>' +
+        '<a class="dm-opt" href="/rules/">Tournament rules</a>' +
         '<button type="button" class="dm-opt" data-a="close">' + T('cancel') + '</button>');
     } else if (p.kind === 'group') {
       sheet('<h3>' + esc(p.name) + '</h3>' +
-        '<button type="button" class="dm-opt" data-a="members">👥 Members' + (ginfo ? ' (' + ginfo.members.length + ')' : '') + '</button>' +
-        '<button type="button" class="dm-opt" data-a="add-members">➕ Add friends</button>' +
-        '<button type="button" class="dm-opt" data-a="rename">✏️ Rename</button>' +
-        '<button type="button" class="dm-opt" data-a="mute">' + (ginfo && ginfo.muted ? '🔔 Unmute notifications' : '🔕 Mute notifications') + '</button>' +
-        '<button type="button" class="dm-opt" data-a="challenge-any">⚔️ Make a Clash Squad challenge</button>' +
-        '<button type="button" class="dm-opt red" data-a="leave">🚪 Leave squad chat</button>' +
+        '<button type="button" class="dm-opt" data-a="members">Members' + (ginfo ? ' (' + ginfo.members.length + ')' : '') + '</button>' +
+        '<button type="button" class="dm-opt" data-a="add-members">Add friends</button>' +
+        '<button type="button" class="dm-opt" data-a="rename">Rename</button>' +
+        '<button type="button" class="dm-opt" data-a="mute">' + (ginfo && ginfo.muted ? 'Unmute notifications' : 'Mute notifications') + '</button>' +
+        '<button type="button" class="dm-opt" data-a="challenge-any">Make a Clash Squad challenge</button>' +
+        '<button type="button" class="dm-opt red" data-a="leave">Leave squad chat</button>' +
         '<button type="button" class="dm-opt" data-a="close">' + T('cancel') + '</button>');
     } else if (p.kind === 'match') {
       var o = p.other ? esc(nameOf(p.other)) : 'opponent';
       sheet('<h3>' + esc((p.mode || '') + ' vs ') + o + '</h3>' +
-        '<a class="dm-opt" href="/challenges/?c=' + encodeURIComponent(p.id) + '">⚔️ ' + T('openMatch') + ' (report result, room)</a>' +
-        (p.room_id ? '<button type="button" class="dm-opt" data-a="share-room">📣 ' + T('shareRoom') + '</button>' : '') +
-        (p.other && p.other.username ? '<button type="button" class="dm-opt" data-a="connect">💬 Message or add ' + o + ' as a friend</button>' : '') +
+        '<a class="dm-opt" href="/challenges/?c=' + encodeURIComponent(p.id) + '">' + T('openMatch') + ' (report result, room)</a>' +
+        (p.room_id ? '<button type="button" class="dm-opt" data-a="share-room">' + T('shareRoom') + '</button>' : '') +
+        (p.other && p.other.username ? '<button type="button" class="dm-opt" data-a="connect">Message or add ' + o + ' as a friend</button>' : '') +
         '<button type="button" class="dm-opt" data-a="close">' + T('cancel') + '</button>');
     } else {
       sheet('<h3>ZULU</h3><p>ZULU is an AI assistant; answers can be wrong. Your ZULU chat is stored only on this device. Messages you send it go to our AI providers (see /privacy/).</p>' +
-        '<button type="button" class="dm-opt red" data-a="zulu-clear">🧹 Clear ZULU chat</button><button type="button" class="dm-opt" data-a="close">' + T('cancel') + '</button>');
+        '<button type="button" class="dm-opt red" data-a="zulu-clear">Clear ZULU chat</button><button type="button" class="dm-opt" data-a="close">' + T('cancel') + '</button>');
     }
   };
-  // 📞 ring everyone in this squad chat (squad-ring): their phones ring until they open it. Tap twice (no
+  // ring everyone in this squad chat (squad-ring): their phones ring until they open it. Tap twice (no
   // confirm() - app WebViews can swallow it): the first tap asks, a second tap within 4 s rings.
   var ringArm = 0;
   $('dm-ring').onclick = async function () {
     var p = cur, b = this; if (!p || p.kind !== 'group' || b.disabled) return;
-    if (Date.now() - ringArm > 4000) { ringArm = Date.now(); note(NE ? '📞 पूरै squad लाई ring गर्न फेरि थिच्नुहोस्' : '📞 Tap again to ring your whole squad'); return; }
+    if (Date.now() - ringArm > 4000) { ringArm = Date.now(); note(NE ? 'पूरै squad लाई ring गर्न फेरि थिच्नुहोस्' : 'Tap again to ring your whole squad'); return; }
     ringArm = 0; b.disabled = true;
     var r = null, err = '';
     try { r = await SB.functions.invoke('squad-ring', { body: { group_id: p.id } }); } catch (e) {}
@@ -1744,7 +1744,7 @@
     b.disabled = false;
     if (cur !== p) return;
     var d = r && r.data;
-    if (d && d.ok) { note('📞 Ringing ' + d.members + ' teammate' + (d.members === 1 ? '' : 's') + '…'); if (navigator.vibrate) navigator.vibrate(60); refreshThread(); }
+    if (d && d.ok) { note('Ringing ' + d.members + ' teammate' + (d.members === 1 ? '' : 's') + '…'); if (navigator.vibrate) navigator.vibrate(60); refreshThread(); }
     else note(err || 'Could not ring right now. Try again.', 'err');
     setTimeout(function () { if (cur === p) note(''); }, 5000);
   };
@@ -1780,7 +1780,7 @@
       return sheet('<h3>Members · ' + ginfo.members.length + '/8</h3><div class="dm-pickl">' + ginfo.members.map(function (m) {
         var act = m.me ? '<span class="dm-prev">' + T('you') + '</span>' : m.friend ? '<button type="button" class="dm-btn ghost" data-a="dm-member" data-id="' + esc(m.id) + '">Message</button>' : (m.username ? '<button type="button" class="dm-btn ghost" data-a="friend-member" data-u="' + esc(m.username) + '">Add friend</button>' : '');
         return '<div class="dm-pk">' + avatar(m, 'sm') + '<span class="dm-mid"><span class="dm-name">' + esc(nameOf(m)) + '</span><span class="dm-prev"><span>' + esc(m.online ? T('now') : (m.squad || '')) + '</span></span></span>' + act + '</div>';
-      }).join('') + '</div><div class="dm-row2"><button type="button" class="dm-btn ghost" data-a="add-members">➕ Add friends</button><button type="button" class="dm-btn" data-a="close">Done</button></div>');
+      }).join('') + '</div><div class="dm-row2"><button type="button" class="dm-btn ghost" data-a="add-members">Add friends</button><button type="button" class="dm-btn" data-a="close">Done</button></div>');
     }
     if (a === 'dm-member') { closeSheet(); openWith(b.dataset.id); return; }
     if (a === 'friend-member') { closeSheet(); connect(b.dataset.u); return; }
@@ -1788,7 +1788,7 @@
       if (!ginfo) return;
       var left = 8 - ginfo.members.length;
       if (left < 1) return sheet('<h3>Squad chat is full</h3><p>A squad chat can have up to 8 players.</p><div class="dm-row2"><button type="button" class="dm-btn" data-a="close">OK</button></div>');
-      return sheet('<h3>➕ Add friends to ' + esc(p.name) + '</h3>' + friendPicker(ginfo.members.map(function (m) { return m.id; }), left) +
+      return sheet('<h3>Add friends to ' + esc(p.name) + '</h3>' + friendPicker(ginfo.members.map(function (m) { return m.id; }), left) +
         '<div class="dm-sheet-note" id="dm-sheet-note"></div><div class="dm-row2">' + cancelBtn() + '<button type="button" class="dm-btn" data-a="add-yes">' + T('add') + '</button></div>');
     }
     if (a === 'add-yes') {
@@ -1798,7 +1798,7 @@
       if (r.error) { b.disabled = false; $('dm-sheet-note').textContent = r.error.message; return; }
       closeSheet(); await loadMeta(p); refreshThread(); return;
     }
-    if (a === 'rename') return sheet('<h3>✏️ Rename</h3><input class="dm-field" id="dm-rn" maxlength="40" value="' + esc(p.name) + '"><div class="dm-sheet-note" id="dm-sheet-note"></div><div class="dm-row2">' + cancelBtn() + '<button type="button" class="dm-btn" data-a="rename-yes">Save</button></div>');
+    if (a === 'rename') return sheet('<h3>Rename</h3><input class="dm-field" id="dm-rn" maxlength="40" value="' + esc(p.name) + '"><div class="dm-sheet-note" id="dm-sheet-note"></div><div class="dm-row2">' + cancelBtn() + '<button type="button" class="dm-btn" data-a="rename-yes">Save</button></div>');
     if (a === 'rename-yes') {
       b.disabled = true;
       r = await SB.rpc('rename_group_chat', { p_group: p.id, p_name: $('dm-rn').value });
@@ -1834,36 +1834,36 @@
     showHome(); poll();
   });
 
-  // ── ⚙️ alert settings: which phone alerts you get (push_prefs; history is unaffected) ──
+  // ── alert settings: which phone alerts you get (push_prefs; history is unaffected) ──
   var PREFS = [
-    ['dm', '💬', 'Direct messages', 'When a friend messages you'],
-    ['squad', '👥', 'Squad chats', 'New messages in your squad chats (mute one chat from its ⋯ menu)'],
-    ['match', '⚔️', 'Match chats', 'The other captain writes in your challenge chat'],
-    ['challenges', '🎯', 'Challenge invites & results', 'Someone challenges you or accepts, and win/loss/refund results. "Confirm your result" deadlines and disputes always alert'],
-    ['lobby', '🔥', 'New open challenges', 'Someone posts a challenge anyone can accept'],
-    ['videos', '🎬', 'New JD videos', 'JD posts a new TikTok video'],
-    ['friends', '🤝', 'Friend requests & squad invites', 'Someone adds you or puts you in a squad chat'],
-    ['wallet', '🪙', 'Wallet', 'Points loaded, withdrawals paid, prizes'],
-    ['mega', '🏆', 'MEGA daily update', 'Once a day: how many squads are in the MEGA event and slots left']
+    ['dm', '<i class=ji-chat aria-hidden=true></i>', 'Direct messages', 'When a friend messages you'],
+    ['squad', '<i class=ji-users aria-hidden=true></i>', 'Squad chats', 'New messages in your squad chats (mute one chat from its ⋯ menu)'],
+    ['match', '<i class=ji-swords aria-hidden=true></i>', 'Match chats', 'The other captain writes in your challenge chat'],
+    ['challenges', '<i class=ji-target aria-hidden=true></i>', 'Challenge invites & results', 'Someone challenges you or accepts, and win/loss/refund results. "Confirm your result" deadlines and disputes always alert'],
+    ['lobby', '<i class=ji-flame aria-hidden=true></i>', 'New open challenges', 'Someone posts a challenge anyone can accept'],
+    ['videos', '<i class=ji-film aria-hidden=true></i>', 'New JD videos', 'JD posts a new TikTok video'],
+    ['friends', '<i class=ji-heart aria-hidden=true></i>', 'Friend requests & squad invites', 'Someone adds you or puts you in a squad chat'],
+    ['wallet', '<i class=ji-coin aria-hidden=true></i>', 'Wallet', 'Points loaded, withdrawals paid, prizes'],
+    ['mega', '<i class=ji-trophy aria-hidden=true></i>', 'MEGA daily update', 'Once a day: how many squads are in the MEGA event and slots left']
   ];
   async function settingsSheet() {
     if (!me) return;
     if (!isOpen) open();
-    sheet('<h3>🔔 Alert settings</h3><div class="dm-skel"><i></i><i></i></div>');
+    sheet('<h3>Alert settings</h3><div class="dm-skel"><i></i><i></i></div>');
     var r = await SB.rpc('get_push_prefs');
     var off = (r.data && r.data.off) || [], daily = !(r.data && r.data.daily_challenge_alert === false);
     var perm = window.JDApp ? JDApp.notifPermission() : typeof Notification === 'function' ? Notification.permission : 'unsupported';   // app 2.0: Android's own permission
     var sw = function (k, on, label) { return '<span class="dm-sw"><input type="checkbox" data-pref="' + k + '"' + (on ? ' checked' : '') + ' aria-label="' + esc(label) + '"><i aria-hidden="true"></i></span>'; };
     var warn = perm === 'granted' ? '' : '<p class="dm-warn">' + (perm === 'denied'
-      ? '🚫 Alerts are blocked for this site in your browser or phone settings. Allow notifications there to get them.'
-      : '📲 Alerts aren&#39;t on for this device yet. Open 🔔 Notifications on the homepage and tap Turn on.') + '</p>';
-    sheet('<h3>🔔 Alert settings</h3>' + warn +
+      ? 'Alerts are blocked for this site in your browser or phone settings. Allow notifications there to get them.'
+      : 'Alerts aren&#39;t on for this device yet. Open Notifications on the homepage and tap Turn on.') + '</p>';
+    sheet('<h3>Alert settings</h3>' + warn +
       '<p>Choose which phone alerts you get. Switched-off alerts still show in your notifications and chats.</p>' +
       '<div class="dm-prefs">' + PREFS.map(function (x) {
         return '<label class="dm-pref"><span class="dm-pref-ic" aria-hidden="true">' + x[1] + '</span><span class="dm-mid"><b>' + x[2] + '</b><small>' + x[3] + '</small></span>' + sw(x[0], off.indexOf(x[0]) < 0, x[2]) + '</label>';
       }).join('') +
-      '<label class="dm-pref"><span class="dm-pref-ic" aria-hidden="true">⏰</span><span class="dm-mid"><b>Daily challenge reminder</b><small>One alert a day at 6 pm with the open challenges</small></span>' + sw('daily', daily, 'Daily challenge reminder') + '</label>' +
-      '<div class="dm-pref locked"><span class="dm-pref-ic" aria-hidden="true">🏆</span><span class="dm-mid"><b>Tournaments & account</b><small>Match reminders, room ID and password, results and security alerts are always on, so you never miss your match.</small></span><span class="dm-on">Always on</span></div>' +
+      '<label class="dm-pref"><span class="dm-pref-ic" aria-hidden="true"><i class=ji-clock aria-hidden=true></i></span><span class="dm-mid"><b>Daily challenge reminder</b><small>One alert a day at 6 pm with the open challenges</small></span>' + sw('daily', daily, 'Daily challenge reminder') + '</label>' +
+      '<div class="dm-pref locked"><span class="dm-pref-ic" aria-hidden="true"><i class=ji-trophy aria-hidden=true></i></span><span class="dm-mid"><b>Tournaments & account</b><small>Match reminders, room ID and password, results and security alerts are always on, so you never miss your match.</small></span><span class="dm-on">Always on</span></div>' +
       '</div><div class="dm-sheet-note" id="dm-sheet-note"></div><div class="dm-row2"><button type="button" class="dm-btn" data-a="close">Done</button></div>');
   }
   $('dm-sheet-in').addEventListener('change', async function (e) {
@@ -1884,10 +1884,10 @@
     if (!isOpen) open();
     if (!th) await loadOverview();
     var gs = (th && th.groups) || [];
-    sheet('<h3>📣 ' + T('shareRoom') + '</h3><p>Post room <b>' + esc(o.id) + '</b> to a squad chat so your teammates can copy the ID and password.</p>' +
+    sheet('<h3>' + T('shareRoom') + '</h3><p>Post room <b>' + esc(o.id) + '</b> to a squad chat so your teammates can copy the ID and password.</p>' +
       (gs.length ? '<div class="dm-pickl">' + gs.map(function (g) {
         return '<button type="button" class="dm-pk" data-a="room-to" data-g="' + esc(g.id) + '">' + groupAv(g, 'sm') + '<span class="dm-mid"><span class="dm-name">' + esc(g.name) + '</span><span class="dm-prev"><span>' + g.count + ' ' + T('members') + '</span></span></span><span class="dm-btn">Send</span></button>';
-      }).join('') + '</div>' : '<p>You don\'t have a squad chat yet.</p><div class="dm-row2"><button type="button" class="dm-btn" data-a="new-from-share">👥 ' + T('newSquad') + '</button></div>') +
+      }).join('') + '</div>' : '<p>You don\'t have a squad chat yet.</p><div class="dm-row2"><button type="button" class="dm-btn" data-a="new-from-share">' + T('newSquad') + '</button></div>') +
       '<div class="dm-sheet-note" id="dm-sheet-note"></div><div class="dm-row2">' + cancelBtn() + '</div>');
   }
 
@@ -1929,7 +1929,7 @@
     if (cur) showHome();
     open();
     if (q.error) { note(q.error.message, 'err'); return; }
-    if (q.data === 'accepted') { note('You\'re friends now — say hi! 👋', 'ok'); if (r.data) { r.data.friend = true; openThread(Object.assign({ kind: 'dm' }, r.data)); } return; }
+    if (q.data === 'accepted') { note('You\'re friends now — say hi!', 'ok'); if (r.data) { r.data.friend = true; openThread(Object.assign({ kind: 'dm' }, r.data)); } return; }
     note(q.data === 'pending' ? 'Request already sent — waiting for @' + who + '.' : 'Friend request sent to @' + who + '. You can chat once they accept.', 'ok');
     tab = 'requests'; loadOverview();
   }

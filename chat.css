@@ -1,5 +1,5 @@
 /* ── JD Arena Messages (markup + logic in /chat.js) ──
-   One inbox for friends, squad chats, match chats and ZULU: the round 💬 bubble (bottom
+   One inbox for friends, squad chats, match chats and ZULU: the round bubble (bottom
    right, above the phone tab bar and the homepage's Ask ZULU button), the Messages panel
    (full screen on phones, two panes on laptops ≥1024px), and the Messenger-style banner
    that slides in with a new message. Self-contained tokens so it looks the same on every

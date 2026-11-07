@@ -176,14 +176,15 @@ input[type=text]:focus{border-color:var(--gold)}
 @media(max-width:380px){.qa a{font-size:.66rem}.ring{width:80px;height:80px}.ring div{width:62px;height:62px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
-<link rel="stylesheet" href="/ui.css?v=26">
-<link rel="stylesheet" href="/broadcast.css?v=5">
+<link rel="stylesheet" href="/ui.css?v=27">
+<link rel="stylesheet" href="/broadcast.css?v=6">
+<link rel="stylesheet" href="/icons.css?v=1">
 </head>
 <body class="pg-profile">
 <div class="wrap">
   <div class="top">
     <a class="back" href="/"><img src="/logo.webp" alt="">← Back to Arena</a>
-    <div class="top-links"><a class="chip-link" href="/challenges/">⚔️ Challenges</a><a class="chip-link" href="/wallet/">Wallet</a><a class="chip-link" href="/leaderboard.html">Leaderboard</a></div>
+    <div class="top-links"><a class="chip-link" href="/challenges/">Challenges</a><a class="chip-link" href="/wallet/">Wallet</a><a class="chip-link" href="/leaderboard.html">Leaderboard</a></div>
   </div>
 
   <div id="gate" class="card gate" hidden>
@@ -195,7 +196,7 @@ input[type=text]:focus{border-color:var(--gold)}
   <div id="app" hidden>
     <section class="hero">
       <div class="hero-row">
-        <div class="av" id="av-wrap"><img id="av-img" src="/logo.webp" alt="Profile picture"><label title="Change profile picture">📷<input id="av-file" type="file" accept="image/*" hidden></label></div>
+        <div class="av" id="av-wrap"><img id="av-img" src="/logo.webp" alt="Profile picture"><label title="Change profile picture"><i class=ji-camera aria-hidden=true></i><input id="av-file" type="file" accept="image/*" hidden></label></div>
         <div class="who">
           <h1 id="uname">…</h1>
           <div class="meta"><span class="badge tag" id="ptag"></span><span id="pver"></span><span id="pemail"></span></div>
@@ -207,10 +208,10 @@ input[type=text]:focus{border-color:var(--gold)}
         <div class="ladder" id="ladder" aria-hidden="true"></div>
       </div>
       <nav class="qa" aria-label="Quick actions">
-        <a href="/#tournaments"><i>🎮</i>Join event</a>
-        <a href="/challenges/"><i>⚔️</i>Clash</a>
-        <a href="/squad/"><i>👥</i>Teammates</a>
-        <a href="/wallet/#promo"><i>🎟️</i>Free entry</a>
+        <a href="/#tournaments"><i><i class=ji-game aria-hidden=true></i></i>Join event</a>
+        <a href="/challenges/"><i><i class=ji-swords aria-hidden=true></i></i>Clash</a>
+        <a href="/squad/"><i><i class=ji-users aria-hidden=true></i></i>Teammates</a>
+        <a href="/wallet/#promo"><i><i class=ji-ticket aria-hidden=true></i></i>Free entry</a>
       </nav>
     </section>
 
@@ -273,7 +274,7 @@ input[type=text]:focus{border-color:var(--gold)}
         </div>
         <div class="msg" id="sq-msg"></div>
         <div class="sq-inv">
-          <b>👥 Squad chat</b>
+          <b>Squad chat</b>
           <small id="sqi-info">Invite your squad members with one link - they join your squad chat and you can all talk in the app.</small>
           <div class="row">
             <button class="btn" id="sqi-share" type="button">Invite squad members</button>
@@ -287,7 +288,7 @@ input[type=text]:focus{border-color:var(--gold)}
       <section class="card" id="invite">
         <h2>Invite friends</h2>
         <p style="margin:0 0 10px;font-size:.84rem;color:var(--silver)">Share your code. When a friend you invited wins their first prize, you get <b style="color:var(--gold-l)">a free entry card</b>. Invite up to 3 friends, so up to 3 free cards.</p>
-        <div class="squad"><span style="font-size:1.6rem">🤝</span><div><b id="ref-code">…</b><small id="ref-stats">Loading…</small></div></div>
+        <div class="squad"><span style="font-size:1.6rem"><i class=ji-heart aria-hidden=true></i></span><div><b id="ref-code">…</b><small id="ref-stats">Loading…</small></div></div>
         <div class="row">
           <button class="btn" id="ref-share" type="button">Share invite link</button>
           <button class="btn ghost" id="ref-copy" type="button">Copy code</button>
@@ -313,11 +314,11 @@ input[type=text]:focus{border-color:var(--gold)}
       <section class="card">
         <h2>Account</h2>
         <div class="set">
-          <a href="/wallet/#withdraw">💸 Withdraw points<span class="s">To eSewa ›</span></a>
-          <button type="button" id="chg-user">✏️ Change username<span class="s" id="chg-user-s"></span></button>
-          <a href="/?account=1">🔔 Notifications, Discord &amp; app<span class="s">Open on main site</span></a>
-          <a href="/ff/">📖 FF Guide<span class="s">Characters, guns, maps ›</span></a>
-          <a href="/terms.html">📄 Terms &amp; conditions<span class="s">›</span></a>
+          <a href="/wallet/#withdraw">Withdraw points<span class="s">To eSewa ›</span></a>
+          <button type="button" id="chg-user">Change username<span class="s" id="chg-user-s"></span></button>
+          <a href="/?account=1">Notifications, Discord &amp; app<span class="s">Open on main site</span></a>
+          <a href="/ff/">FF Guide<span class="s">Characters, guns, maps ›</span></a>
+          <a href="/terms.html">Terms &amp; conditions<span class="s">›</span></a>
           <button type="button" id="logout">↩ Log out</button>
           <a href="/?account=1" class="red">Delete account<span class="s">Account management</span></a>
         </div>
@@ -342,7 +343,7 @@ const SUPABASE_ANON_KEY='sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const RANKS=[['Bronze',0,'🥉'],['Silver',20,'🥈'],['Gold',50,'🥇'],['Platinum',100,'💠'],['Diamond',200,'💎'],['Heroic',350,'🔥'],['Ace',550,'👑']];
+const RANKS=[['Bronze',0,'<i class=ji-medal3 aria-hidden=true></i>'],['Silver',20,'<i class=ji-medal2 aria-hidden=true></i>'],['Gold',50,'<i class=ji-medal1 aria-hidden=true></i>'],['Platinum',100,'<i class=ji-gem aria-hidden=true></i>'],['Diamond',200,'<i class=ji-gem aria-hidden=true></i>'],['Heroic',350,'<i class=ji-flame aria-hidden=true></i>'],['Ace',550,'<i class=ji-crown aria-hidden=true></i>']];
 const FX={glow:'Glow',steel:'Steel',gold:'Champion',fire:'On fire',ice:'Frozen',neon:'Neon',rainbow:'Prism',galaxy:'Galaxy',thunder:'Thunder',legend:'Legend',bullets:'Bullet Storm',blade:'Blade',skeuo:'Metal Plate',soft:'Soft Touch',glass:'Frosted',clay:'Clay',brutal:'Brutal',mono:'Mono',maximal:'Overload',liquid:'Liquid Glass',bento:'Bento',spatial:'Spatial 3D'};
 const STATUS={confirmed:['Registered','ok'],approved:['Confirmed','ok'],pending:['Place held','wait'],waitlisted:['Waitlist','wait'],rejected:['Not verified','bad'],no_show:['Missed check-in','bad']};
 let me=null;
@@ -380,8 +381,8 @@ async function loadProfile(){
 }
 function renderProfile(p){
   $('uname').textContent=me.username?'@'+me.username:'Player';
-  if(p&&p.app_installed_at&&!$('app-badge')){const ab=document.createElement('span');ab.id='app-badge';ab.title='JD Arena app user';ab.textContent=' 📱';$('uname').after(ab);}
-  $('ptag').textContent=me.ff_uid?'🎮 '+(me.ff_name?me.ff_name+' · ':'')+'UID '+me.ff_uid:'';$('ptag').hidden=!me.ff_uid;   // Free Fire details (no player tag)
+  if(p&&p.app_installed_at&&!$('app-badge')){const ab=document.createElement('span');ab.id='app-badge';ab.title='JD Arena app user';ab.textContent='';$('uname').after(ab);}
+  $('ptag').textContent=me.ff_uid?''+(me.ff_name?me.ff_name+' · ':'')+'UID '+me.ff_uid:'';$('ptag').hidden=!me.ff_uid;   // Free Fire details (no player tag)
   $('pver').innerHTML=me.verified?'<span class="badge ok">✓ Verified</span>':'';
   $('pemail').textContent=me.email||'';
   $('chg-user-s').textContent=me.username?'@'+me.username:'';
@@ -429,7 +430,7 @@ async function loadOptHistory(){
 }
 async function loadStats(){
   // daily check-in streak (daily_checkin.sql): badge only
-  sb.rpc('my_streak').then(({data})=>{ if(!data)return; $('s-streak').textContent=(data.streak||0)+(data.streak?' 🔥':''); $('s-best').textContent=(data.best||0)+(data.best===1?' day':' days'); },()=>{});
+  sb.rpc('my_streak').then(({data})=>{ if(!data)return; $('s-streak').textContent=(data.streak||0)+(data.streak?'':''); $('s-best').textContent=(data.best||0)+(data.best===1?' day':' days'); },()=>{});
   if(!me.player_tag)return;
   const {data}=await sb.rpc('get_player_career_stats',{p_player_tag:me.player_tag});
   const s=(data&&data[0])||{};
@@ -461,7 +462,7 @@ async function loadClash(){
 }
 async function loadCards(){
   const {data}=await sb.rpc('promo_mine');const c=(data&&data.cards)||[];if(!c.length)return;
-  const T={free:'🎟️ Free card',bronze:'🥉 Bronze',silver:'🥈 Silver',gold:'🥇 Gold',any:'🎟️ Free entry'};
+  const T={free:'Free card',bronze:'Bronze',silver:'Silver',gold:'Gold',any:'Free entry'};
   $('fc-list').innerHTML=c.map(x=>`<div class="fcard ${esc(x.tier)}"><b>${T[x.tier]||T.any}</b><small>${x.tier==='free'?'One free tournament':x.max_npr?'Any event up to Rs '+(+x.max_npr):'Any paid event'} · ends ${esc(fmtDate(x.expires_at))}</small></div>`).join('');
   $('fc-card').hidden=false;
 }
@@ -473,15 +474,15 @@ async function loadTournaments(){
   const tmap=new Map((((site.data||{}).content||{}).tournaments||[]).map(t=>[t.name,t]));
   $('tlist').innerHTML=(regs||[]).length?regs.map(r=>{
     const t=tmap.get(r.tournament_slug)||{};const [lbl,cls]=STATUS[r.status]||[r.status,''];
-    const done=t.status==='completed';const icon=t.status==='live'?'🔴':(done?'🏁':'⚔️');
-    return `<a class="trow" href="/#tournaments"><span class="ic">${icon}</span><span class="t"><b>${esc(r.tournament_slug)}</b><small>${esc(r.squad_name||'')}${t.date&&t.date!=='TBA'?' · '+esc(t.date):''} · <span class="code">${ticket(r.id)}</span>${r.paid_points?` · paid ${r.paid_points} pts`:''}</small></span><span class="pill ${r.checked_in_at?'ok':cls}">${r.checked_in_at&&(r.status==='confirmed'||r.status==='approved')?'Checked in':(done&&t.winner&&t.winner.toLowerCase()===String(r.squad_name||'').toLowerCase()?'🏆 Winner':lbl)}</span></a>`;
+    const done=t.status==='completed';const icon=t.status==='live'?'<i class=ji-dot-red aria-hidden=true></i>':(done?'<i class=ji-flag aria-hidden=true></i>':'<i class=ji-swords aria-hidden=true></i>');
+    return `<a class="trow" href="/#tournaments"><span class="ic">${icon}</span><span class="t"><b>${esc(r.tournament_slug)}</b><small>${esc(r.squad_name||'')}${t.date&&t.date!=='TBA'?' · '+esc(t.date):''} · <span class="code">${ticket(r.id)}</span>${r.paid_points?` · paid ${r.paid_points} pts`:''}</small></span><span class="pill ${r.checked_in_at?'ok':cls}">${r.checked_in_at&&(r.status==='confirmed'||r.status==='approved')?'Checked in':(done&&t.winner&&t.winner.toLowerCase()===String(r.squad_name||'').toLowerCase()?'Winner':lbl)}</span></a>`;
   }).join(''):'<div class="empty"><img class="pic-empty" src="/characters/ryden.webp" alt="" width="240" height="349" loading="lazy">You haven\'t joined a tournament yet. <a href="/#tournaments">See tournaments</a></div>';
 }
 async function loadFx(){
   const {data}=await sb.from('effect_passes').select('tier, effect, starts_at, expires_at').eq('player_id',me.id).gt('expires_at',new Date().toISOString()).order('starts_at');
   const now=Date.now(),cur=(data||[]).find(x=>Date.parse(x.starts_at)<=now);
   $('fx').innerHTML=cur
-    ?`<div class="trow" style="border:none"><span class="ic">✨</span><span class="t"><b>${esc(FX[cur.effect]||cur.effect)} · ${cur.tier==='pro'?'Pro':'Lite'} pass</b><small>Shows on every tournament you join until ${fmtDate(data[data.length-1].expires_at)}. <a href="/?shop=1" style="color:var(--gold-l);text-decoration:underline">Change effect</a></small></span></div>`
+    ?`<div class="trow" style="border:none"><span class="ic"><i class=ji-spark aria-hidden=true></i></span><span class="t"><b>${esc(FX[cur.effect]||cur.effect)} · ${cur.tier==='pro'?'Pro':'Lite'} pass</b><small>Shows on every tournament you join until ${fmtDate(data[data.length-1].expires_at)}. <a href="/?shop=1" style="color:var(--gold-l);text-decoration:underline">Change effect</a></small></span></div>`
     :`<p style="margin:0;font-size:.84rem;color:var(--body)">No active pass. Make your squad stand out from Rs 2 per match, or Rs 10/week and Rs 30/month for every effect — <a href="/?shop=1" style="color:var(--gold-l);text-decoration:underline">open the effects shop</a>.</p>`;
 }
 
@@ -602,8 +603,8 @@ $('ref-save').onclick=async()=>{
   setInterval(()=>{if(!document.hidden)loadWallet();},20000);
 })();
 </script>
-<script src="/ui.js?v=27" defer></script>
-<script src="/chat.js?v=38" defer></script>
+<script src="/ui.js?v=28" defer></script>
+<script src="/chat.js?v=39" defer></script>
 <script src="/avcrop.js?v=1"></script>
 </body>
 </html>

@@ -211,8 +211,8 @@ input:focus,textarea:focus{border-color:var(--gold)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 </style>
 <link rel="stylesheet" href="/effects-pro.css?v=4">
-<link rel="stylesheet" href="/ui.css?v=26">
-<link rel="stylesheet" href="/broadcast.css?v=5">
+<link rel="stylesheet" href="/ui.css?v=27">
+<link rel="stylesheet" href="/broadcast.css?v=6">
 <link rel="stylesheet" href="/effects-styles.css?v=2">
 <link rel="canonical" href="https://jdesport.co.uk/challenges/">
 <meta property="og:url" content="https://jdesport.co.uk/challenges/">
@@ -223,6 +223,7 @@ input:focus,textarea:focus{border-color:var(--gold)}
 <meta property="og:image" content="https://jdesport.co.uk/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
 <script defer src="/analytics.js?v=2"></script>
+<link rel="stylesheet" href="/icons.css?v=1">
 </head>
 <body>
 <div class="wrap">
@@ -232,7 +233,7 @@ input:focus,textarea:focus{border-color:var(--gold)}
   </div>
 
   <section class="hero">
-    <h1>⚔️ Clash Squad challenges</h1>
+    <h1>Clash Squad challenges</h1>
     <span class="hero-art" aria-hidden="true"><img src="/characters/ryden.webp" alt="" width="240" height="349"><img src="/characters/alok.webp" alt="" width="240" height="349"></span>
     <p>Challenge anyone to 1v1, 2v2, 3v3 or 4v4 Clash Squad. Both sides put in the same points — <b>the winner takes the pot</b> (just a 1-point platform fee per player). No waiting for the next Battle Royale.</p>
   </section>
@@ -251,7 +252,7 @@ input:focus,textarea:focus{border-color:var(--gold)}
   </div>
 
   <div id="app" hidden>
-    <div class="alerts" id="alerts" hidden><span class="ic" id="alerts-ic">🔔</span><span id="alerts-t"></span><button class="btn" id="alerts-btn" type="button">Turn on</button></div>
+    <div class="alerts" id="alerts" hidden><span class="ic" id="alerts-ic"><i class=ji-bell aria-hidden=true></i></span><span id="alerts-t"></span><button class="btn" id="alerts-btn" type="button">Turn on</button></div>
     <nav class="tabs">
       <button class="tab" data-tab="lobby" type="button">Lobby</button>
       <button class="tab" data-tab="create" type="button">＋ Create</button>
@@ -292,7 +293,7 @@ input:focus,textarea:focus{border-color:var(--gold)}
         <input id="note" maxlength="120" placeholder="e.g. No grenades, M1887 only, 8 PM">
         <div class="pay" id="pay"></div>
         <div class="msg" id="c-msg"></div>
-        <button class="btn wide" id="c-btn" type="button" style="margin-top:6px">⚔️ Create challenge</button>
+        <button class="btn wide" id="c-btn" type="button" style="margin-top:6px">Create challenge</button>
         <p style="font-size:.74rem;color:var(--body);margin:10px 0 0">Your stake is held safely until the result. Cancel any time before someone accepts for a full refund. 2v2–4v4 are captain vs captain — you represent your squad.</p>
       </div>
     </section>
@@ -314,7 +315,7 @@ input:focus,textarea:focus{border-color:var(--gold)}
       <ul>
         <li>After the match, both captains tap <b>We won</b> or <b>We lost</b>. Tapping <b>We lost</b> pays the other side straight away.</li>
         <li>If one side says they won and the other doesn't answer within <b>2 hours</b>, a JD mod decides — nobody is paid just for staying quiet.</li>
-        <li>If both sides say they won, a JD mod decides. Tap <b>📷</b> in the chat and send your result screenshot.</li>
+        <li>If both sides say they won, a JD mod decides. Tap <b><i class=ji-camera aria-hidden=true></i></b> in the chat and send your result screenshot.</li>
         <li>If no mod has decided within <b>24 hours</b>, both stakes are refunded in full.</li>
         <li>No one accepts within 2 hours, or nobody reports within 3 hours of accepting: stakes are refunded.</li><li>Got a challenge you don't want? Tap <b>Decline</b> and the sender gets their points back. Already accepted but can't play? Either side taps <b>Cancel match</b>; once the other agrees, both stakes come back.</li>
         <li>The winner gets both stakes minus a 1-point platform fee per player (e.g. 50 each → winner gets 98). Cancelled, expired or refunded challenges have no fee.</li>
@@ -363,12 +364,12 @@ function rulesText(c){return `Skills ${c.char_skill!==false?'on':'off'} · Gun a
 // rule chips for a challenge (lobby card, room)
 function ruleChips(c){
   const sk=c.char_skill!==false,gu=!!c.gun_attr;
-  return `<div class="rcs"><span class="rc ${sk?'y':'n'}"><img src="/characters/alok-skill.webp" alt="" loading="lazy">Skills ${sk?'on':'off'}</span><span class="rc ${gu?'y':'n'}"><img class="w" src="/weapons/ak47.webp" alt="" loading="lazy">Gun attr ${gu?'on':'off'}</span><span class="rc">${c.ammo==='unlimited'?'∞ Unlimited ammo':'Limited ammo'}</span><span class="rc"><img class="w" src="/weapons/gloo-wall.webp" alt="" loading="lazy">${c.gloo_wall==='unlimited'?'Unlimited gloo walls':'Limited gloo walls'}</span><span class="rc">First to ${c.rounds===13?7:4}</span>${c.map?`<span class="rc">🗺 ${esc(c.map)}</span>`:''}</div>`;
+  return `<div class="rcs"><span class="rc ${sk?'y':'n'}"><img src="/characters/alok-skill.webp" alt="" loading="lazy">Skills ${sk?'on':'off'}</span><span class="rc ${gu?'y':'n'}"><img class="w" src="/weapons/ak47.webp" alt="" loading="lazy">Gun attr ${gu?'on':'off'}</span><span class="rc">${c.ammo==='unlimited'?'∞ Unlimited ammo':'Limited ammo'}</span><span class="rc"><img class="w" src="/weapons/gloo-wall.webp" alt="" loading="lazy">${c.gloo_wall==='unlimited'?'Unlimited gloo walls':'Limited gloo walls'}</span><span class="rc">First to ${c.rounds===13?7:4}</span>${c.map?`<span class="rc">${esc(c.map)}</span>`:''}</div>`;
 }
 // "how many coins at the end": stakes in, fee out, what the winner receives
 function payBox(st){
   const n=v=>Number(v).toLocaleString();
-  return `<div class="row"><span>You put in</span><b>${n(st)}</b></div><div class="row"><span>Opponent puts in</span><b>${n(st)}</b></div><div class="row"><span>Total pot</span><b>${n(st*2)}</b></div><div class="row fee"><span>Platform fee (${FEE} per player)</span><b>−${n(2*FEE)}</b></div><div class="win"><span>🏆 Winner gets<small>+${n(pot(st)-st)} profit on your ${n(st)}</small></span><b><span class="coin" style="vertical-align:middle;margin-right:6px">JD</span>${n(pot(st))}</b></div>`;
+  return `<div class="row"><span>You put in</span><b>${n(st)}</b></div><div class="row"><span>Opponent puts in</span><b>${n(st)}</b></div><div class="row"><span>Total pot</span><b>${n(st*2)}</b></div><div class="row fee"><span>Platform fee (${FEE} per player)</span><b>−${n(2*FEE)}</b></div><div class="win"><span>Winner gets<small>+${n(pot(st)-st)} profit on your ${n(st)}</small></span><b><span class="coin" style="vertical-align:middle;margin-right:6px">JD</span>${n(pot(st))}</b></div>`;
 }
 function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2000);}
 function confirmBox(title,body,yes){return new Promise(res=>{$('ov-t').textContent=title;$('ov-b').textContent=body;$('ov-yes').textContent=yes||'Confirm';$('ov').classList.add('open');const done=v=>{$('ov').classList.remove('open');res(v);};$('ov-yes').onclick=()=>done(true);$('ov-no').onclick=()=>done(false);});}
@@ -392,7 +393,7 @@ async function loadLobby(){
   const {data,error}=await sb.rpc('get_open_challenges');
   if(error){$('lobby').innerHTML=`<div class="empty">${esc(error.message)}</div>`;return;}
   const ids=new Set((data||[]).filter(c=>!c.mine).map(c=>c.id));
-  if(_seenLobby&&[...ids].some(x=>!_seenLobby.has(x))){alertNew();toast('⚔️ New challenge in the lobby');}
+  if(_seenLobby&&[...ids].some(x=>!_seenLobby.has(x))){alertNew();toast('New challenge in the lobby');}
   _seenLobby=ids;_lobbyRows=data||[];renderLobby();
 }
 function renderLobby(){
@@ -400,7 +401,7 @@ function renderLobby(){
   $('filters').innerHTML=all.length?['all','1v1','2v2','3v3','4v4'].map(m=>`<button type="button" class="chip${m===lobbyMode?' on':''}" data-f="${m}">${m==='all'?'All':m} · ${count(m)}</button>`).join(''):'';
   $('filters').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{lobbyMode=b.dataset.f;renderLobby();});
   const data=all.filter(c=>lobbyMode==='all'||c.mode===lobbyMode||c.for_me);
-  $('lobby').innerHTML=data.length?data.map(c=>`<div class="ch${c.for_me?' for-me':''}${fxCls(c.creator_effect)}" data-id="${esc(c.id)}" data-mine="${c.mine?1:0}" data-stake="${c.stake}" data-mode="${esc(c.mode)}" data-by="${esc(c.creator_name)}">${FXTAG[c.creator_effect]?fxDeco():''}<div class="mode">${esc(c.mode)}</div><div class="t"><b>${c.for_me?'⚔️ Challenge for you · ':''}<span class="fx-name">${esc(c.creator_name)}</span></b><small>${c.note?esc(c.note)+' · ':''}${ago(c.created_at)} · expires in ${left(c.created_at,2)}</small><span class="st ${c.mine?'wait':'live'}">${c.mine?'Yours · waiting':'Tap to accept'}</span>${FXTAG[c.creator_effect]?` <span class="fxt">✨ ${FXTAG[c.creator_effect]}</span>`:''}${ruleChips(c)}</div><div class="pot"><b>${pot(c.stake).toLocaleString()}</b><small>to win · ${c.stake} each</small></div></div>`).join(''):(all.length?`<div class="empty"><span>🔎</span>No ${esc(lobbyMode)} challenges right now.<br><button class="btn" type="button" data-go="create">＋ Create a ${esc(lobbyMode)} challenge</button></div>`:'<div class="empty"><img class="pic-empty" src="/characters/orion.webp" alt="" width="213" height="360" loading="lazy">No open challenges right now — be the first.<br><button class="btn" type="button" data-go="create">＋ Create a challenge</button></div>');
+  $('lobby').innerHTML=data.length?data.map(c=>`<div class="ch${c.for_me?' for-me':''}${fxCls(c.creator_effect)}" data-id="${esc(c.id)}" data-mine="${c.mine?1:0}" data-stake="${c.stake}" data-mode="${esc(c.mode)}" data-by="${esc(c.creator_name)}">${FXTAG[c.creator_effect]?fxDeco():''}<div class="mode">${esc(c.mode)}</div><div class="t"><b>${c.for_me?'Challenge for you · ':''}<span class="fx-name">${esc(c.creator_name)}</span></b><small>${c.note?esc(c.note)+' · ':''}${ago(c.created_at)} · expires in ${left(c.created_at,2)}</small><span class="st ${c.mine?'wait':'live'}">${c.mine?'Yours · waiting':'Tap to accept'}</span>${FXTAG[c.creator_effect]?` <span class="fxt">${FXTAG[c.creator_effect]}</span>`:''}${ruleChips(c)}</div><div class="pot"><b>${pot(c.stake).toLocaleString()}</b><small>to win · ${c.stake} each</small></div></div>`).join(''):(all.length?`<div class="empty"><span><i class=ji-search aria-hidden=true></i></span>No ${esc(lobbyMode)} challenges right now.<br><button class="btn" type="button" data-go="create">＋ Create a ${esc(lobbyMode)} challenge</button></div>`:'<div class="empty"><img class="pic-empty" src="/characters/orion.webp" alt="" width="213" height="360" loading="lazy">No open challenges right now — be the first.<br><button class="btn" type="button" data-go="create">＋ Create a challenge</button></div>');
   $('lobby').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{if(lobbyMode!=='all')mode=lobbyMode;renderCreate();setTab('create');});
   $('lobby').querySelectorAll('.ch').forEach(el=>el.onclick=async()=>{
     if(el.dataset.mine==='1'){openRoom(el.dataset.id);return;}
@@ -459,7 +460,7 @@ async function loadMine(){
   $('rec').hidden=!done.length;
   $('rec').innerHTML=`<div><b>${done.length}</b><small>Played</small></div><div><b class="pos">${w.length}</b><small>Won</small></div><div><b>${done.length?Math.round(w.length/done.length*100):0}%</b><small>Win rate</small></div><div><b class="${net>0?'pos':net<0?'neg':''}">${net>0?'+':''}${net.toLocaleString()}</b><small>Points net</small></div><p style="grid-column:1/-1;margin:0;font-size:.68rem;color:var(--body);text-align:right">Your last 40 challenges</p>`;
   const vsName=c=>{const o=c.creator===me.id?(c.opponent||c.invited):c.creator;return o?((names.get(o)||{}).name||'Opponent'):'';};
-  $('mine').innerHTML=(data||[]).length?data.map(c=>{const [l,cls]=STATUS[c.status]||[c.status,''];const res=c.status==='completed'?(c.winner===me.id?'🏆 You won':'You lost'):l;
+  $('mine').innerHTML=(data||[]).length?data.map(c=>{const [l,cls]=STATUS[c.status]||[c.status,''];const res=c.status==='completed'?(c.winner===me.id?'You won':'You lost'):l;
     return `<div class="ch" data-id="${esc(c.id)}"><div class="mode">${esc(c.mode)}</div><div class="t"><b>${vsName(c)?'vs <span class="fx-name">'+esc(vsName(c))+'</span>':'Open to anyone'}</b><small>${c.creator===me.id?'You created':'You joined'} · ${ago(c.created_at)}</small><span class="st ${c.status==='completed'?(c.winner===me.id?'live':''):cls}">${esc(res)}</span>${ruleChips(c)}</div><div class="pot"><b>${pot(c.stake).toLocaleString()}</b><small>to win</small></div></div>`;}).join(''):'<div class="empty"><img class="pic-empty" src="/characters/dimitri.webp" alt="" width="240" height="349" loading="lazy">No challenges yet. Create one or accept one from the lobby.</div>';
   $('mine').querySelectorAll('.ch').forEach(el=>el.onclick=()=>openRoom(el.dataset.id));
 }
@@ -479,20 +480,20 @@ async function openRoom(id){
   clearInterval(chatTimer);chatTimer=setInterval(()=>{if(!document.hidden&&roomId===id)renderRoom(true);},4000);
   window.scrollTo({top:0,behavior:'smooth'});
 }
-// "Add friend / message" for the other player (💬 Messages, /chat.js)
+// "Add friend / message" for the other player (Messages, /chat.js)
 function friendBtn(c,isCreator){
   const other=isCreator?c.opponent:c.creator;
   if(!other||!window.jdChat)return '';
   const raw=String((names.get(other)||{}).name||'').replace(/^@/,'').split(/\s/)[0].replace(/[^A-Za-z0-9_-]/g,'');
   if(!raw)return '';
-  return `<button class="btn ghost" type="button" style="margin:0 0 10px;width:100%" onclick="jdChat.connect('${raw}')">💬 Message or add @${esc(raw)} as a friend</button>`;
+  return `<button class="btn ghost" type="button" style="margin:0 0 10px;width:100%" onclick="jdChat.connect('${raw}')">Message or add @${esc(raw)} as a friend</button>`;
 }
 async function renderRoom(quiet){
   const {data:c}=await sb.from('challenges').select('*').eq('id',roomId).maybeSingle();
   if(!c){
     if(!_lobbyRows.length)await loadLobby();
     const o=_lobbyRows.find(x=>x.id===roomId);
-    if(!o){$('room').innerHTML=`<div class="empty"><span>🔎</span>This challenge isn't open any more.<br><button class="btn" type="button" onclick="setTab('lobby')">See open challenges</button></div>`;return;}
+    if(!o){$('room').innerHTML=`<div class="empty"><span><i class=ji-search aria-hidden=true></i></span>This challenge isn't open any more.<br><button class="btn" type="button" onclick="setTab('lobby')">See open challenges</button></div>`;return;}
     $('room').innerHTML=`<div class="room-head"><h2 style="margin:0">${esc(o.mode)} Clash Squad</h2><span class="st wait">Waiting for opponent</span></div><div class="vs"><div class="side"><span class="nm">${esc(o.creator_name)}</span></div><div class="x">VS</div><div class="side me">You?</div></div><div class="sum" style="margin:0 0 8px"><span>${o.stake} points each${o.note?' · '+esc(o.note):''}</span><span style="text-align:right">Winner gets<br><b>${pot(o.stake).toLocaleString()}</b></span></div><div class="room-rules">${ruleChips(o)}</div><button class="btn wide" id="r-accept" type="button">Accept for ${o.stake} points</button><button class="btn ghost" type="button" style="margin-top:10px" onclick="setTab('lobby')">← Lobby</button>`;
     $('r-accept').onclick=async()=>{
       if(bal<o.stake){if(await confirmBox('Not enough points',`This challenge needs ${o.stake} points and you have ${bal}. Load points first?`,'Load points'))location.href='/wallet/#load';return;}
@@ -505,25 +506,25 @@ async function renderRoom(quiet){
   const isCreator=c.creator===me.id,other=isCreator?c.opponent:c.creator;
   const myClaim=isCreator?c.creator_claim:c.opponent_claim,theirClaim=isCreator?c.opponent_claim:c.creator_claim;
   const nm=id=>esc(id===me.id?'You':((names.get(id)||{}).name||'Opponent'));
-  const side=(id,label,mine)=>{const e=(names.get(id)||{}).effect;return `<div class="side${mine?' me':''}${fxCls(e)}">${FXTAG[e]?fxDeco():''}<span class="nm fx-name">${label}</span>${FXTAG[e]?`<span class="fxt">✨ ${FXTAG[e]}</span>`:''}</div>`;};
+  const side=(id,label,mine)=>{const e=(names.get(id)||{}).effect;return `<div class="side${mine?' me':''}${fxCls(e)}">${FXTAG[e]?fxDeco():''}<span class="nm fx-name">${label}</span>${FXTAG[e]?`<span class="fxt">${FXTAG[e]}</span>`:''}</div>`;};
   const [l,cls]=STATUS[c.status]||[c.status,''];
   let action='';
   if(c.status==='open'){
-    action=isCreator?`<p style="color:var(--silver);font-size:.86rem">Waiting for ${c.invited?nm(c.invited):'someone in the lobby'} to accept. Your ${c.stake} points are held safely.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${c.invited?'':'<button class="btn" id="r-share" type="button">📤 Share link</button>'}<button class="btn ghost" id="r-cancel" type="button"${c.invited?' style="grid-column:1/-1"':''}>Cancel &amp; refund</button></div>`
+    action=isCreator?`<p style="color:var(--silver);font-size:.86rem">Waiting for ${c.invited?nm(c.invited):'someone in the lobby'} to accept. Your ${c.stake} points are held safely.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${c.invited?'':'<button class="btn" id="r-share" type="button">Share link</button>'}<button class="btn ghost" id="r-cancel" type="button"${c.invited?' style="grid-column:1/-1"':''}>Cancel &amp; refund</button></div>`
       :`<div style="display:grid;grid-template-columns:2fr 1fr;gap:8px"><button class="btn" id="r-accept" type="button">Accept for ${c.stake} points</button>${c.invited===me.id?'<button class="btn ghost" id="r-decline" type="button">Decline</button>':''}</div>`;
   }else if(c.status==='accepted'){
-    action=myClaim?`<p style="color:var(--gold-l);font-size:.88rem;margin:0">You reported: <b>${myClaim==='won'?'We won':'We lost'}</b>. ${theirClaim?'':'Waiting for your opponent. If they don\'t answer within 2 hours, a JD mod decides, so send your result screenshot with 📷 below.'}</p>`
-      :`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn green" id="r-won" type="button">🏆 We won</button><button class="btn red" id="r-lost" type="button">We lost</button></div>${!theirClaim?(c.cancel_by===me.id?'<p class="cxl">You asked to cancel. Waiting for your opponent to agree, then both stakes come back.</p>':c.cancel_by?`<div class="cxl in"><span>${nm(other)} wants to cancel. Agree and both of you get ${c.stake} points back.</span><button class="btn ghost" id="r-cxl" type="button">Agree &amp; refund</button></div>`:'<button class="btn ghost cxl-b" id="r-cxl" type="button">Can’t play? Cancel match &amp; refund both</button>'):''}${theirClaim==='won'?'<p style="color:var(--red);font-size:.82rem;margin:8px 0 0">Your opponent says they won. Confirm with "We lost", or tap "We won" and send your screenshot with 📷 so a JD mod can decide.</p>':''}`;
+    action=myClaim?`<p style="color:var(--gold-l);font-size:.88rem;margin:0">You reported: <b>${myClaim==='won'?'We won':'We lost'}</b>. ${theirClaim?'':'Waiting for your opponent. If they don\'t answer within 2 hours, a JD mod decides, so send your result screenshot with below.'}</p>`
+      :`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn green" id="r-won" type="button">We won</button><button class="btn red" id="r-lost" type="button">We lost</button></div>${!theirClaim?(c.cancel_by===me.id?'<p class="cxl">You asked to cancel. Waiting for your opponent to agree, then both stakes come back.</p>':c.cancel_by?`<div class="cxl in"><span>${nm(other)} wants to cancel. Agree and both of you get ${c.stake} points back.</span><button class="btn ghost" id="r-cxl" type="button">Agree &amp; refund</button></div>`:'<button class="btn ghost cxl-b" id="r-cxl" type="button">Can’t play? Cancel match &amp; refund both</button>'):''}${theirClaim==='won'?'<p style="color:var(--red);font-size:.82rem;margin:8px 0 0">Your opponent says they won. Confirm with "We lost", or tap "We won" and send your screenshot with so a JD mod can decide.</p>':''}`;
   }else if(c.status==='disputed'){
-    action=`<p style="color:var(--red);font-size:.88rem;margin:0">${c.creator_claim&&c.opponent_claim?'Both sides said they won':'Nobody answered the result in time'}, so a JD mod will decide. Tap 📷 in the chat below and send your result screenshot. No decision within 24 hours = both stakes refunded.</p>`;
+    action=`<p style="color:var(--red);font-size:.88rem;margin:0">${c.creator_claim&&c.opponent_claim?'Both sides said they won':'Nobody answered the result in time'}, so a JD mod will decide. Tap in the chat below and send your result screenshot. No decision within 24 hours = both stakes refunded.</p>`;
   }else if(c.status==='completed'){
-    action=`<p style="font-size:1rem;margin:0;font-weight:700;color:${c.winner===me.id?'var(--green)':'var(--silver)'}">${c.winner===me.id?`🏆 You won! +${pot(c.stake).toLocaleString()} coins added to your wallet`:`This one went to your opponent · −${c.stake.toLocaleString()} coins`}</p><p style="margin:4px 0 0;font-size:.8rem;color:var(--body)">${c.winner===me.id?`That's +${(pot(c.stake)-c.stake).toLocaleString()} profit on your ${c.stake} stake (pot ${c.stake*2} − ${2*FEE} fee).`:`Your opponent got ${pot(c.stake).toLocaleString()} (pot ${c.stake*2} − ${2*FEE} fee). Win it back with a rematch.`}</p><button class="btn" id="r-rematch" type="button" style="margin-top:10px">🔁 Rematch · ${c.stake} points</button>`;
+    action=`<p style="font-size:1rem;margin:0;font-weight:700;color:${c.winner===me.id?'var(--green)':'var(--silver)'}">${c.winner===me.id?`You won! +${pot(c.stake).toLocaleString()} coins added to your wallet`:`This one went to your opponent · −${c.stake.toLocaleString()} coins`}</p><p style="margin:4px 0 0;font-size:.8rem;color:var(--body)">${c.winner===me.id?`That's +${(pot(c.stake)-c.stake).toLocaleString()} profit on your ${c.stake} stake (pot ${c.stake*2} − ${2*FEE} fee).`:`Your opponent got ${pot(c.stake).toLocaleString()} (pot ${c.stake*2} − ${2*FEE} fee). Win it back with a rematch.`}</p><button class="btn" id="r-rematch" type="button" style="margin-top:10px">Rematch · ${c.stake} points</button>`;
   }else{action=`<p style="color:var(--silver);font-size:.88rem;margin:0">${esc(l)}${c.resolution?' — '+esc(c.resolution):''}.</p>`;}
-  const timer=c.status==='open'?`⏳ Expires in ${left(c.created_at,2)} if nobody accepts — stakes are refunded`
-    :c.status==='accepted'&&c.claim_at&&!(myClaim&&theirClaim)?`⏳ ${myClaim?'Your opponent has':'You have'} ${left(c.claim_at,2)} to answer — after that a JD mod decides`
-    :c.status==='accepted'&&c.accepted_at&&!c.claim_at?`⏳ Report the result within ${left(c.accepted_at,3)} or both stakes are refunded`:'';
-  const roomBlock=(c.status==='accepted'||c.status==='disputed')?`<label>Room (shared only with your opponent)</label>${c.room_id?`<div class="roombox"><button class="copy" type="button" data-copy="${esc(c.room_id)}"><span>Room ID · tap to copy</span><b>${esc(c.room_id)}</b></button><button class="copy" type="button" data-copy="${esc(c.room_pass||'')}"><span>Password · tap to copy</span><b>${esc(c.room_pass||'—')}</b></button></div>`:'<p style="color:var(--body);font-size:.84rem;margin:0">No room yet — whoever makes the custom room, add it here.</p>'}${c.room_id&&window.jdChat?`<div class="room-share"><button class="btn ghost" id="r-share" type="button">📣 Share room to my squad chat</button></div>`:''}${c.status==='accepted'?`<div class="chat-in" style="margin-top:8px"><input id="r-rid" placeholder="Room ID" maxlength="30" value="${esc(c.room_id||'')}"><input id="r-rpw" placeholder="Password" maxlength="30" value="${esc(c.room_pass||'')}"><button class="btn ghost" id="r-setroom" type="button">Save</button></div>`:''}`:'';
-  const chatBlock=['accepted','disputed','completed'].includes(c.status)?`<label>Chat</label><div class="chat" id="chat"></div>${c.status!=='completed'?`<div class="chat-in"><button class="btn ghost ph" id="chat-ph" type="button" aria-label="Send a result screenshot" title="Send a screenshot">📷</button><input id="chat-in" maxlength="300" placeholder="Message your opponent · @zulu asks AI" autocomplete="off"><button class="btn" id="chat-send" type="button">Send</button><input type="file" id="chat-file" accept="image/*" hidden></div>`:''}`:'';
+  const timer=c.status==='open'?`Expires in ${left(c.created_at,2)} if nobody accepts — stakes are refunded`
+    :c.status==='accepted'&&c.claim_at&&!(myClaim&&theirClaim)?`${myClaim?'Your opponent has':'You have'} ${left(c.claim_at,2)} to answer — after that a JD mod decides`
+    :c.status==='accepted'&&c.accepted_at&&!c.claim_at?`Report the result within ${left(c.accepted_at,3)} or both stakes are refunded`:'';
+  const roomBlock=(c.status==='accepted'||c.status==='disputed')?`<label>Room (shared only with your opponent)</label>${c.room_id?`<div class="roombox"><button class="copy" type="button" data-copy="${esc(c.room_id)}"><span>Room ID · tap to copy</span><b>${esc(c.room_id)}</b></button><button class="copy" type="button" data-copy="${esc(c.room_pass||'')}"><span>Password · tap to copy</span><b>${esc(c.room_pass||'—')}</b></button></div>`:'<p style="color:var(--body);font-size:.84rem;margin:0">No room yet — whoever makes the custom room, add it here.</p>'}${c.room_id&&window.jdChat?`<div class="room-share"><button class="btn ghost" id="r-share" type="button">Share room to my squad chat</button></div>`:''}${c.status==='accepted'?`<div class="chat-in" style="margin-top:8px"><input id="r-rid" placeholder="Room ID" maxlength="30" value="${esc(c.room_id||'')}"><input id="r-rpw" placeholder="Password" maxlength="30" value="${esc(c.room_pass||'')}"><button class="btn ghost" id="r-setroom" type="button">Save</button></div>`:''}`:'';
+  const chatBlock=['accepted','disputed','completed'].includes(c.status)?`<label>Chat</label><div class="chat" id="chat"></div>${c.status!=='completed'?`<div class="chat-in"><button class="btn ghost ph" id="chat-ph" type="button" aria-label="Send a result screenshot" title="Send a screenshot"><i class=ji-camera aria-hidden=true></i></button><input id="chat-in" maxlength="300" placeholder="Message your opponent · @zulu asks AI" autocomplete="off"><button class="btn" id="chat-send" type="button">Send</button><input type="file" id="chat-file" accept="image/*" hidden></div>`:''}`:'';
   const typing=document.activeElement&&['chat-in','r-rid','r-rpw'].includes(document.activeElement.id);
   if(!(quiet&&typing)){
     $('room').innerHTML=`<div class="room-head"><h2 style="margin:0">${esc(c.mode)} Clash Squad</h2><span class="st ${cls}">${esc(l)}</span></div>
@@ -543,7 +544,7 @@ function bindRoom(c){
   on('r-decline',async()=>{if(!await confirmBox('Decline this challenge?',`${(names.get(c.creator)||{}).name||'The sender'} gets their ${c.stake} points back.`,'Decline'))return;const {error}=await sb.rpc('decline_challenge',{p_id:c.id});if(error){toast(error.message);return;}toast('Declined');setTab('lobby');});
   on('r-cxl',async()=>{const agree=!!c.cancel_by;if(!await confirmBox(agree?'Agree to cancel?':'Cancel this match?',agree?`Both of you get ${c.stake} points back now.`:`Your opponent is asked to agree. When they do, both stakes (${c.stake} points each) come back.`,agree?'Agree & refund':'Ask to cancel'))return;const {data,error}=await sb.rpc('request_challenge_cancel',{p_id:c.id});if(error){toast(error.message);return;}toast(data==='cancelled'?'Cancelled, points refunded':'Cancel request sent');await loadBalance();renderRoom();});
   on('r-share',async()=>{
-    const url=location.origin+'/challenges/?c='+c.id,text=`⚔️ ${c.mode} Clash Squad for ${c.stake} points each — winner gets ${pot(c.stake)}. Accept on JD Arena:`;
+    const url=location.origin+'/challenges/?c='+c.id,text=`${c.mode} Clash Squad for ${c.stake} points each — winner gets ${pot(c.stake)}. Accept on JD Arena:`;
     try{if(navigator.share){await navigator.share({title:'JD Arena challenge',text,url});return;}}catch(e){return;}
     (navigator.clipboard?navigator.clipboard.writeText(text+' '+url):Promise.reject()).then(()=>toast('Link copied — paste it in your squad chat')).catch(()=>toast(url));
   });
@@ -579,7 +580,7 @@ async function loadChat(c){
   const {data}=await sb.from('challenge_messages').select('sender, kind, body, media, created_at').eq('challenge_id',c.id).order('id').limit(200);
   const rows=data||[];
   const atBottom=box.scrollTop+box.clientHeight>=box.scrollHeight-30;
-  box.innerHTML=rows.length?rows.map(m=>`<div class="bubble${m.sender===me.id?' me':''}${m.kind==='ai'?' ai':''}">${m.media?(m.body.length>2&&m.body!=='📷 Photo'?esc(m.body.replace(/^📷 /,''))+'<br>':'')+`<span class="shot" data-shot="${esc(m.media)}">${shotUrl[m.media]?`<img src="${shotUrl[m.media]}" alt="Screenshot">`:'<span>📷 Loading photo…</span>'}</span>`:esc(m.body)}<small>${m.sender===me.id?'You':m.kind==='ai'?'🤖 ZULU · AI':esc((names.get(m.sender)||{}).name||'Opponent')} · ${ago(m.created_at)}</small></div>`).join(''):'<div class="empty" style="padding:10px">Say hi and share the room details 👋</div>';
+  box.innerHTML=rows.length?rows.map(m=>`<div class="bubble${m.sender===me.id?' me':''}${m.kind==='ai'?' ai':''}">${m.media?(m.body.length>2&&m.body!=='Photo'?esc(m.body.replace(/^/,''))+'<br>':'')+`<span class="shot" data-shot="${esc(m.media)}">${shotUrl[m.media]?`<img src="${shotUrl[m.media]}" alt="Screenshot">`:'<span>Loading photo…</span>'}</span>`:esc(m.body)}<small>${m.sender===me.id?'You':m.kind==='ai'?'ZULU · AI':esc((names.get(m.sender)||{}).name||'Opponent')} · ${ago(m.created_at)}</small></div>`).join(''):'<div class="empty" style="padding:10px">Say hi and share the room details</div>';
   if(atBottom||rows.length!==_lastMsgCount)box.scrollTop=box.scrollHeight;
   box.querySelectorAll('[data-shot]').forEach(el=>{const pth=el.dataset.shot;
     el.onclick=()=>{if(shotUrl[pth])window.open(shotUrl[pth],'_blank','noopener');};
@@ -623,7 +624,7 @@ async function sendPhoto(file){
     const {error}=await sb.rpc('send_challenge_image',{p_id:roomId,p_path:path,p_caption:cap.trim()});
     if(error)throw error;
     if($('chat-in'))$('chat-in').value='';
-    toast('📷 Photo sent');renderRoom(true);
+    toast('Photo sent');renderRoom(true);
   }catch(e){toast(e.message||'Photo not sent');}
   finally{if(btn)btn.disabled=false;}
 }
@@ -658,14 +659,14 @@ async function subscribePush(){
 function showAlerts(ic,t,btn,warn,fn){const a=$('alerts');a.hidden=false;a.classList.toggle('warn',!!warn);$('alerts-ic').textContent=ic;$('alerts-t').textContent=t;$('alerts-btn').hidden=!btn;$('alerts-btn').textContent=btn||'';$('alerts-btn').onclick=fn||null;}
 async function setupAlerts(){
   $('alerts').hidden=true;
-  if(isIos()&&!isApp()){showAlerts('📲','On iPhone/iPad, alerts only work in the installed app: tap Share → Add to Home Screen, then open JD Arena from there.');return;}
+  if(isIos()&&!isApp()){showAlerts('<i class=ji-phone aria-hidden=true></i>','On iPhone/iPad, alerts only work in the installed app: tap Share → Add to Home Screen, then open JD Arena from there.');return;}
   if(!pushOk())return;
-  if(Notification.permission==='denied'){showAlerts('🚫',"Alerts are blocked for this site. Allow notifications in your browser's site settings (icon next to the address bar), then reload.",'',true);return;}
-  if(Notification.permission==='granted'){if(!await subscribePush())showAlerts('⚠️','Alerts couldn\'t start on this browser. On Brave: Settings → Privacy → turn on "Use Google services for push messaging", then reload.','Try again',true,setupAlerts);return;}
+  if(Notification.permission==='denied'){showAlerts('<i class=ji-ban aria-hidden=true></i>',"Alerts are blocked for this site. Allow notifications in your browser's site settings (icon next to the address bar), then reload.",'',true);return;}
+  if(Notification.permission==='granted'){if(!await subscribePush())showAlerts('<i class=ji-warn aria-hidden=true></i>','Alerts couldn\'t start on this browser. On Brave: Settings → Privacy → turn on "Use Google services for push messaging", then reload.','Try again',true,setupAlerts);return;}
   // ask only from a tap — browsers ignore permission prompts that aren't
-  showAlerts('🔔','Get an alert on your phone when someone challenges you, accepts or reports a result — even when JD Arena is closed.','Turn on',false,async()=>{
+  showAlerts('<i class=ji-bell aria-hidden=true></i>','Get an alert on your phone when someone challenges you, accepts or reports a result — even when JD Arena is closed.','Turn on',false,async()=>{
     let p='default';try{p=await Notification.requestPermission();}catch(e){}
-    if(p==='granted'&&await subscribePush()){$('alerts').hidden=true;toast('🔔 Alerts on for this device');}else setupAlerts();
+    if(p==='granted'&&await subscribePush()){$('alerts').hidden=true;toast('Alerts on for this device');}else setupAlerts();
   });
 }
 async function setupDaily(){
@@ -678,12 +679,12 @@ async function setupDaily(){
 /* ── first-visit tour: step cards at the bottom, the part being explained is lit up.
    Shown once per account on this device; the ? button at the top replays it. ── */
 const TUT=[
-  {tab:'lobby',t:'⚔️ Welcome to Challenges',b:'Play <b>Clash Squad</b> against anyone, any time. Both sides put in the same points and <b>the winner takes the pot</b>. Here’s how it works in 30 seconds.'},
+  {tab:'lobby',t:'Welcome to Challenges',b:'Play <b>Clash Squad</b> against anyone, any time. Both sides put in the same points and <b>the winner takes the pot</b>. Here’s how it works in 30 seconds.'},
   {tab:'lobby',el:'.tab[data-tab="lobby"]',t:'1 · Find a match in the Lobby',b:'Every open challenge shows the mode, <b>what you win</b> and the room rules. Tap one to accept — your stake is held safely until the result.'},
   {tab:'create',el:'#modes',t:'2 · Or create your own',b:'Pick <b>1v1 to 4v4</b> and your stake (10–500 points). Your opponent puts in the same amount — the box at the bottom shows exactly how many coins the winner gets.'},
   {tab:'create',el:'.sets',t:'3 · Set the room rules',b:'Skills on/off, gun attributes on/off, limited or unlimited ammo and gloo walls, rounds and map. Use a preset like <b>Pure aim</b>, or set each one. Both sides must play with these.'},
   {tab:'create',el:'#c-btn',t:'4 · Post it',b:'Everyone gets an alert — or choose <b>A specific player</b> to challenge a friend. Cancel before anyone accepts and you get your points back.'},
-  {tab:'mine',el:'.tab[data-tab="mine"]',t:'5 · Play and report',b:'Once accepted you get a <b>private room with chat</b>: share the room ID, play, then both tap <b>We won</b> or <b>We lost</b>. No answer in 2 hours or both say they won = a JD mod decides from the screenshots you send with 📷.'},
+  {tab:'mine',el:'.tab[data-tab="mine"]',t:'5 · Play and report',b:'Once accepted you get a <b>private room with chat</b>: share the room ID, play, then both tap <b>We won</b> or <b>We lost</b>. No answer in 2 hours or both say they won = a JD mod decides from the screenshots you send with .'},
   {tab:'lobby',el:()=>$('alerts').hidden?document.querySelector('.dtog'):$('alerts'),t:'6 · Never miss a challenge',b:'Turn on alerts to hear when someone challenges you, accepts or reports a result — even when JD Arena is closed.'}];
 let tutI=-1;
 const tutKey=()=>'jd_ch_tour_'+(me?me.id:'');
@@ -695,7 +696,7 @@ function tutShow(i){
   if(el&&el.offsetParent){el.classList.add('tut-hl');el.scrollIntoView({block:'center'});}else window.scrollTo(0,0);
   $('tut-dots').innerHTML=TUT.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('');
   $('tut-t').textContent=st.t;$('tut-b').innerHTML=st.b;
-  $('tut-back').hidden=i===0;$('tut-next').textContent=i===TUT.length-1?"Let's play ⚔️":'Next';
+  $('tut-back').hidden=i===0;$('tut-next').textContent=i===TUT.length-1?"Let's play":'Next';
   $('tut').classList.add('open');$('tut-next').focus({preventScroll:true});
 }
 function tutEnd(){
@@ -726,7 +727,7 @@ async function start(){
   $('app').hidden=false;renderCreate();setupAlerts();setupDaily();await loadBalance();
   const deep=new URLSearchParams(location.search).get('c');
   $('help-btn').hidden=false;
-  const inv=new URLSearchParams(location.search).get('invite'); // "Challenge" from a 💬 Messages chat
+  const inv=new URLSearchParams(location.search).get('invite'); // "Challenge" from a Messages chat
   if(deep)openRoom(deep);
   else if(inv){setTab('create');const ch=$('who').querySelector('.chip[data-w="direct"]');if(ch)ch.click();$('invite').value=inv.replace(/[^A-Za-z0-9_-]/g,'');}
   else{setTab('lobby');tutMaybe();}
@@ -742,8 +743,8 @@ async function start(){
   start();
 })();
 </script>
-<script src="/ui.js?v=27" defer></script>
-<script src="/chat.js?v=38" defer></script>
+<script src="/ui.js?v=28" defer></script>
+<script src="/chat.js?v=39" defer></script>
 <script src="/fx-engine.js?v=4" defer></script>
 </body>
 </html>

@@ -45,19 +45,20 @@ main{flex:1;min-height:0;width:100%;max-width:1120px;margin:0 auto;padding:16px 
   main{padding:0}
 }
 </style>
-<link rel="stylesheet" href="/ui.css?v=26">
-<link rel="stylesheet" href="/broadcast.css?v=5">
+<link rel="stylesheet" href="/ui.css?v=27">
+<link rel="stylesheet" href="/broadcast.css?v=6">
+<link rel="stylesheet" href="/icons.css?v=1">
 </head>
 <body class="chat-page">
 <header>
   <div class="bar">
     <a class="brand" href="/"><img class="jdlogo" src="/logo.webp" alt="JD Esports Arena" width="34" height="34"><span>JD Esports Arena</span></a>
-    <nav class="links" aria-label="Site"><a href="/">Home</a><a href="/challenges/">⚔️ Challenges</a><a href="/leaderboard.html">🏆 Leaderboard</a></nav>
+    <nav class="links" aria-label="Site"><a href="/">Home</a><a href="/challenges/">Challenges</a><a href="/leaderboard.html">Leaderboard</a></nav>
   </div>
 </header>
 <main id="chat-page">
   <div class="cp-signin" id="cp-signin" hidden>
-    <div class="ic" aria-hidden="true">💬</div>
+    <div class="ic" aria-hidden="true"><i class=ji-chat aria-hidden=true></i></div>
     <h1>Sign in to chat</h1>
     <p>Message your friends, make a squad chat for your Clash Squad team, talk to the other captain of your challenge and ask ZULU, the JD Arena AI.</p>
     <a href="/?signin=1">Sign in</a>
@@ -71,7 +72,7 @@ if(sb)sb.auth.getSession().then(r=>{if(!(r&&r.data&&r.data.session))document.get
 else document.getElementById('cp-signin').hidden=false;
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'}).catch(()=>{});
 </script>
-<script src="/ui.js?v=27" defer></script>
-<script src="/chat.js?v=38" defer></script>
+<script src="/ui.js?v=28" defer></script>
+<script src="/chat.js?v=39" defer></script>
 </body>
 </html>

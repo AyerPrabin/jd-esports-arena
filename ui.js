@@ -206,7 +206,7 @@ if (window.JDApp || /JDArenaApp\//.test(navigator.userAgent)) document.documentE
   }
   // signup confirmation links open in the phone browser, even for people who signed up in the app
   if (/type=signup/.test(location.search + location.hash)) {
-    steps = '<p class="ag-ok">✅ Email confirmed! Open <b>JD Arena</b> from your home screen and log in.</p><p class="ag-lead">Not installed yet?</p>' + steps;
+    steps = '<p class="ag-ok">Email confirmed! Open <b>JD Arena</b> from your home screen and log in.</p><p class="ag-lead">Not installed yet?</p>' + steps;
   }
   var g = document.createElement('div');
   g.className = 'app-gate';
@@ -215,9 +215,9 @@ if (window.JDApp || /JDArenaApp\//.test(navigator.userAgent)) document.documentE
   g.setAttribute('aria-labelledby', 'ag-t');
   g.innerHTML = '<div class="ag-card"><img src="/logo.webp" alt="" width="64" height="64"><h1 id="ag-t">Get the JD Arena app</h1>' +
     '<p class="ag-lead">' + (android && !inApp ? 'On Android, JD Arena is a free app - it takes a minute to install.' : 'On phones, JD Arena runs as an app. It takes 10 seconds, it is free, and there is no app store.') + '</p>' + steps +
-    '<ul class="ag-perks"><li>🔔 Room IDs and check-in alerts straight to your phone</li><li>✨ A free 7-day squad effect</li>' +
-    '<li>📱 App badge on your username</li><li>⚡ Join selected events 24 hours early</li></ul>' +
-    '<p class="ag-installed" id="ag-installed" hidden>✅ Already installed? Open <b>JD Arena</b> from your home screen.</p>' +
+    '<ul class="ag-perks"><li>Room IDs and check-in alerts straight to your phone</li><li>A free 7-day squad effect</li>' +
+    '<li>App badge on your username</li><li>Join selected events 24 hours early</li></ul>' +
+    '<p class="ag-installed" id="ag-installed" hidden>Already installed? Open <b>JD Arena</b> from your home screen.</p>' +
     '<p class="ag-foot"><a href="/privacy/">Privacy</a> · <a href="/terms.html">Terms</a></p></div>';
   document.documentElement.classList.add('app-gated');
   var mount = function () { document.body.appendChild(g); var b = g.querySelector('a.ag-btn,button:not([hidden])'); if (b) b.focus(); };

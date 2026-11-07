@@ -8,7 +8,7 @@
      buttons, tabs and chips stay in normal case. Uppercase/letter-spacing for English only
      (Nepali sets <html lang="ne">; letter-spacing breaks Devanagari conjuncts).
    Selectors are scoped to page sections (dialogs reuse .btn-primary / .lang-btn), never
-   touch 💬 Messages (.dm-*) or the squad effects themselves (.sqfx). */
+   touch Messages (.dm-*) or the squad effects themselves (.sqfx). */
 :root{
   --bc-gold:#FFC83D;--bc-gold-2:#F5B32A;
   --bc-live:#E5484D;

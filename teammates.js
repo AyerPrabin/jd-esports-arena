@@ -17,7 +17,7 @@
       '@media(prefers-reduced-motion:reduce){.tm-dot{animation:none}}';
     document.head.appendChild(st); }
   var list = document.getElementById('tm-list');
-  var ROLES = [['rusher', '⚡ Rusher'], ['sniper', '🎯 Sniper'], ['supporter', '🛡 Supporter'], ['igl', '🧠 IGL'], ['bomber', '💣 Bomber'], ['all-rounder', '🌟 All-rounder']];
+  var ROLES = [['rusher', 'Rusher'], ['sniper', 'Sniper'], ['supporter', 'Supporter'], ['igl', 'IGL'], ['bomber', 'Bomber'], ['all-rounder', 'All-rounder']];
   var ROLE_LBL = {}; ROLES.forEach(function (r) { ROLE_LBL[r[0]] = r[1]; });
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
   var qs = new URLSearchParams(location.search);
@@ -59,26 +59,26 @@
 
   // ── one card (same markup on both pages; the page CSS lays it out) ──
   function relBtn(p) {
-    if (p.mine) return '<button type="button" class="tm-btn ghost" data-edit="' + p.id + '">✏️ Edit</button><button type="button" class="tm-btn ghost" data-del="' + p.id + '">Delete</button>' +
-      (p.kind === 'squad' && p.pay === 'paid' ? '<button type="button" class="tm-btn ghost" data-payto="' + p.id + '">🪙 Pay a teammate ' + esc(p.amount) + '</button>' : '') +
-      (p.kind === 'squad' ? '<button type="button" class="tm-btn gold" data-boost="' + p.id + '">' + (armed === 'b' + p.id ? 'Tap again: pay 25 pts' : p.urgent ? '🔥 +24 h urgent' : '🔥 Make urgent · 25 pts') + '</button>' : '');
-    var b = p.rel === 'friend' ? '<button type="button" class="tm-btn ghost" data-msg="' + esc(p.username) + '">💬 Message</button>'
+    if (p.mine) return '<button type="button" class="tm-btn ghost" data-edit="' + p.id + '">Edit</button><button type="button" class="tm-btn ghost" data-del="' + p.id + '">Delete</button>' +
+      (p.kind === 'squad' && p.pay === 'paid' ? '<button type="button" class="tm-btn ghost" data-payto="' + p.id + '">Pay a teammate ' + esc(p.amount) + '</button>' : '') +
+      (p.kind === 'squad' ? '<button type="button" class="tm-btn gold" data-boost="' + p.id + '">' + (armed === 'b' + p.id ? 'Tap again: pay 25 pts' : p.urgent ? '+24 h urgent' : 'Make urgent · 25 pts') + '</button>' : '');
+    var b = p.rel === 'friend' ? '<button type="button" class="tm-btn ghost" data-msg="' + esc(p.username) + '">Message</button>'
       : p.rel === 'sent' ? '<button type="button" class="tm-btn ghost" disabled>✓ Requested</button>'
       : p.rel === 'received' ? '<button type="button" class="tm-btn" data-up="' + p.id + '">✓ Accept</button>'
-      : '<button type="button" class="tm-btn" data-up="' + p.id + '">➕ Add friend</button>';
-    if (p.pay === 'paid' && p.kind === 'player' && p.rel === 'friend') b += '<button type="button" class="tm-btn gold" data-pay="' + p.id + '">' + (armed === p.id ? 'Tap again: pay ' + esc(p.amount) : '🪙 Pay ' + esc(p.amount)) + '</button>';
+      : '<button type="button" class="tm-btn" data-up="' + p.id + '">Add friend</button>';
+    if (p.pay === 'paid' && p.kind === 'player' && p.rel === 'friend') b += '<button type="button" class="tm-btn gold" data-pay="' + p.id + '">' + (armed === p.id ? 'Tap again: pay ' + esc(p.amount) : 'Pay ' + esc(p.amount)) + '</button>';
     return b;
   }
   function card(p) {
     var roles = (p.roles || []).map(function (r) { return '<span class="tm-role' + (ROLE_LBL[r] ? ' r-' + r : '') + '">' + esc(ROLE_LBL[r] || r) + '</span>'; }).join('');
     var av = p.logo ? '<img src="' + esc(p.logo) + '" alt="" loading="lazy">' : esc(String(p.username || '?').charAt(0).toUpperCase());
-    var stats = [p.events ? '🏆 ' + (+p.events) + ' event' + (p.events === 1 ? '' : 's') : '🆕 New player', p.clash_w ? '⚔️ ' + (+p.clash_w) + ' clash win' + (p.clash_w === 1 ? '' : 's') : '', p.at ? '🕒 ' + ago(p.at) : ''].filter(Boolean);
+    var stats = [p.events ? '' + (+p.events) + ' event' + (p.events === 1 ? '' : 's') : 'New player', p.clash_w ? '' + (+p.clash_w) + ' clash win' + (p.clash_w === 1 ? '' : 's') : '', p.at ? '' + ago(p.at) : ''].filter(Boolean);
     return '<article class="tm-card' + (p.mine ? ' mine' : '') + (p.online ? ' on' : '') + (p.urgent ? ' urgent' : '') + '" data-id="' + p.id + '">' +
-      (p.urgent ? '<div class="tm-urgent">🔥 Urgent: squad needs a player' + (p.mine && p.boost_until ? ' · until ' + esc(new Date(p.boost_until).toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' })) : '') + '</div>' : '') +
+      (p.urgent ? '<div class="tm-urgent">Urgent: squad needs a player' + (p.mine && p.boost_until ? ' · until ' + esc(new Date(p.boost_until).toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' })) : '') + '</div>' : '') +
       '<div class="tm-top"><span class="tm-av">' + av + (p.online ? '<i class="tm-dot" title="Online now"></i>' : '') + '</span>' +
-        '<div class="tm-who"><b>@' + esc(p.username) + (p.mine ? ' <small>(you)</small>' : '') + '</b><span>🎮 ' + esc(p.ign) + (p.online ? ' · <em class="tm-live">online</em>' : '') + '</span></div>' +
-        (p.pay === 'paid' ? '<span class="tm-pay paid">🪙 ' + esc(p.amount) + ' pts</span>' : '<span class="tm-pay">Free</span>') + '</div>' +
-      '<div class="tm-kind ' + esc(p.kind) + '">' + (p.kind === 'player' ? '🙋 Looking for a squad' : '👥 Squad needs a player') + ' · ' + (p.tournament ? esc(p.tournament) : 'Any event') + '</div>' +
+        '<div class="tm-who"><b>@' + esc(p.username) + (p.mine ? ' <small>(you)</small>' : '') + '</b><span>' + esc(p.ign) + (p.online ? ' · <em class="tm-live">online</em>' : '') + '</span></div>' +
+        (p.pay === 'paid' ? '<span class="tm-pay paid">' + esc(p.amount) + ' pts</span>' : '<span class="tm-pay">Free</span>') + '</div>' +
+      '<div class="tm-kind ' + esc(p.kind) + '">' + (p.kind === 'player' ? 'Looking for a squad' : 'Squad needs a player') + ' · ' + (p.tournament ? esc(p.tournament) : 'Any event') + '</div>' +
       '<div class="tm-roles">' + roles + '</div>' + '<div class="tm-stats">' + stats.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('') + '</div>' + (p.note ? '<p class="tm-note">' + esc(p.note) + '</p>' : '') +
       (p.uid ? '<button type="button" class="tm-uid" data-copy="' + esc(p.uid) + '">UID ' + esc(p.uid) + ' <span>⧉ Copy</span></button>' : '') +
       '<div class="tm-acts">' + relBtn(p) + '</div></article>';
@@ -99,12 +99,12 @@
       document.getElementById('sq-count').textContent = others.length ? others.length + ' looking' + (live ? ' · ' + live + ' online now' : '') : '';
       var ev = document.getElementById('tm-event');
       ev.hidden = !event;
-      ev.innerHTML = event ? '🏆 <b>' + esc(event) + '</b> <button type="button" data-clear="1" aria-label="Show every event">✕</button>' : '';
+      ev.innerHTML = event ? '<b>' + esc(event) + '</b> <button type="button" data-clear="1" aria-label="Show every event">✕</button>' : '';
       document.querySelectorAll('[data-kind]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.kind === kind)); });
       document.querySelectorAll('[data-role]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.role === role)); });
       document.getElementById('sq-free').setAttribute('aria-pressed', String(freeOnly));
       var mine = posts.find(function (p) { return p.mine; });
-      document.getElementById('sq-fab').innerHTML = mine ? '✏️ <span>Edit my post</span>' : '＋ <span>Post yourself</span>';
+      document.getElementById('sq-fab').innerHTML = mine ? '<span>Edit my post</span>' : '＋ <span>Post yourself</span>';
       var shown = posts.filter(match);
       list.innerHTML = shown.length ? shown.map(card).join('')
         : posts.length ? '<div class="tm-empty">No one matches that.<button type="button" class="tm-btn ghost" data-reset="1">Clear filters</button></div>'
@@ -155,7 +155,7 @@
       if (r.error) { msg(r.error.message, true); return; }
       p = posts.find(function (x) { return x.id === id; });
       if (r.data === 'sent' || r.data === 'pending') { p.rel = 'sent'; msg('Friend request sent to @' + p.username + '. You can chat once they accept.'); }
-      else { p.rel = 'friend'; msg(r.data === 'accepted' ? 'You’re friends with @' + p.username + ' now. Say hi! 👋' : 'Opening your chat…'); openChat(p.username); }
+      else { p.rel = 'friend'; msg(r.data === 'accepted' ? 'You’re friends with @' + p.username + ' now. Say hi!' : 'Opening your chat…'); openChat(p.username); }
       render();
       return;
     }
@@ -176,7 +176,7 @@
       armed = null; b.disabled = true;
       var br = await SB.rpc('lfg_boost', { p_id: id });
       if (br.error) { msg(br.error.message, true); render(); return; }
-      msg('🔥 Your post is pinned at the top as Urgent. Balance: ' + br.data.balance + ' pts');
+      msg('Your post is pinned at the top as Urgent. Balance: ' + br.data.balance + ' pts');
       if (typeof loadWallet === 'function') loadWallet();
       load(); return;
     }
@@ -217,8 +217,8 @@
     if (p.tournament && evs.indexOf(p.tournament) < 0) evs.unshift(p.tournament);
     form.innerHTML = '<div class="tm-grab" aria-hidden="true"></div><button type="button" class="tm-x" data-x="1" aria-label="Close">×</button>' +
       '<h3>' + (editing ? 'Edit your post' : 'Find a teammate') + '</h3>' +
-      '<div class="tm-seg"><label><input type="radio" name="tm-kind" value="player"' + (p.kind === 'player' ? ' checked' : '') + '><span>🙋 I need a squad</span></label>' +
-      '<label><input type="radio" name="tm-kind" value="squad"' + (p.kind === 'squad' ? ' checked' : '') + '><span>👥 My squad needs a player</span></label></div>' +
+      '<div class="tm-seg"><label><input type="radio" name="tm-kind" value="player"' + (p.kind === 'player' ? ' checked' : '') + '><span>I need a squad</span></label>' +
+      '<label><input type="radio" name="tm-kind" value="squad"' + (p.kind === 'squad' ? ' checked' : '') + '><span>My squad needs a player</span></label></div>' +
       '<label class="tm-lbl">Your role (pick any)</label><div class="tm-pick">' + ROLES.map(function (r) {
         return '<label><input type="checkbox" name="tm-role" value="' + r[0] + '"' + ((p.roles || []).indexOf(r[0]) >= 0 ? ' checked' : '') + '><span>' + r[1] + '</span></label>';
       }).join('') + '</div>' +
@@ -226,10 +226,10 @@
       '<label class="tm-lbl" for="tm-ev">Event</label><select id="tm-ev"><option value="">Any event</option>' + evs.map(function (n) {
         return '<option value="' + esc(n) + '"' + (n === p.tournament ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select>' +
       '<div id="tm-paywrap"' + (p.kind === 'squad' ? '' : ' hidden') + '><label class="tm-lbl">Offer a fee to the player</label><div class="tm-seg"><label><input type="radio" name="tm-pay" value="free"' + (p.pay !== 'paid' ? ' checked' : '') + '><span>Free</span></label>' +
-      '<label><input type="radio" name="tm-pay" value="paid"' + (p.pay === 'paid' ? ' checked' : '') + '><span>🪙 JD points</span></label></div>' +
+      '<label><input type="radio" name="tm-pay" value="paid"' + (p.pay === 'paid' ? ' checked' : '') + '><span>JD points</span></label></div>' +
       '<input id="tm-amt" type="number" inputmode="numeric" min="1" max="5000" placeholder="Fee in JD points (1-5000)" value="' + esc(p.amount || '') + '"' + (p.pay === 'paid' ? '' : ' hidden') + '>' +
       '<p class="tm-fine" id="tm-payfine"' + (p.pay === 'paid' ? '' : ' hidden') + '>Fees are paid in JD points inside the app only, never by eSewa between players.</p></div>' +
-      '<p class="tm-fine" id="tm-urgfine"' + (p.kind === 'squad' ? '' : ' hidden') + '>Need someone fast? After posting, tap <b>🔥 Make urgent</b> (25 JD points): your post is pinned at the top for 24 hours.</p>' +
+      '<p class="tm-fine" id="tm-urgfine"' + (p.kind === 'squad' ? '' : ' hidden') + '>Need someone fast? After posting, tap <b>Make urgent</b> (25 JD points): your post is pinned at the top for 24 hours.</p>' +
       '<label class="tm-lbl" for="tm-note">Note</label><textarea id="tm-note" maxlength="160" rows="2" placeholder="e.g. KD 3.2, mic on, free after 8pm">' + esc(p.note) + '</textarea>' +
       '<p class="tm-fine">Your card shows <b>' + esc(me.ff_name) + '</b> and UID <b>' + esc(me.ff_uid) + '</b>. It stays up for 7 days.</p>' +
       '<div class="tm-msg" id="tm-fmsg" role="status"></div><button type="submit" class="tm-btn big">' + (editing ? 'Save' : 'Post') + '</button>';
@@ -278,7 +278,7 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') ov.classList.remove('open'); });
   }
 
-  // 👥 on a home event card: that event's players, on the full page
+  // on a home event card: that event's players, on the full page
   window.tmFor = function (name) { location.href = '/squad/' + (name ? '?event=' + encodeURIComponent(name) : ''); };
   loadMe().then(function () {
     load().then(function () { if (PAGE && (location.hash === '#post' || /[?&]post=1/.test(location.search))) { history.replaceState(null, '', location.pathname + location.search.replace(/[?&]post=1/, '').replace(/^&/, '?')); compose(posts.find(function (x) { return x.mine; })); } });

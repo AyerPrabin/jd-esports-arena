@@ -760,7 +760,7 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
   .bar-right .pts-pill[hidden]{display:none}
   /* the rules above set display on bar items at a higher specificity than [hidden] and
      .nav-m, which let hidden items (and the phone drawer's wallet / notifications /
-     messages rows, already covered by the points pill, bell and 💬 bubble) show here */
+     messages rows, already covered by the points pill, bell and bubble) show here */
   .bar-right [hidden],.bar-nav .nav-m{display:none!important}
   .bar-right .lang-btn,.bar-right .pts-pill{white-space:nowrap}
 }
@@ -885,7 +885,7 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 .ban-ch img{display:block;width:100%;height:170px;object-fit:contain;object-position:center bottom;filter:grayscale(.35)}
 .ban-ch figcaption{padding:8px 10px 10px;font-size:.78rem;line-height:1.4;color:var(--body)}
 .ban-ch figcaption b{display:block;color:var(--cream);font-size:.92rem}
-.ban-ch figcaption b::before{content:'🚫 '}
+.ban-ch figcaption b::before{content:''}
 .ban-ch figcaption i{display:block;font-style:normal;color:var(--gold-l);margin:1px 0 4px}
 .reg-rules-link{display:inline-block;margin:8px 0 0;color:var(--gold-l);text-decoration:underline;font-weight:600}
 .reg-ch{display:flex;gap:6px;margin:6px 0 0}
@@ -1248,7 +1248,7 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 /* promote JD Arena → free entries (wallet/#promo) */
 .promo-strip{display:flex;align-items:center;gap:12px;margin:8px 0 0;padding:12px 14px;border-radius:16px;border:1px dashed rgba(255,200,61,.5);background:rgba(255,200,61,.06);color:inherit;text-decoration:none}
 .promo-strip:hover{background:rgba(255,200,61,.1)}
-.promo-strip .ps-tk{font-size:1.5rem;line-height:1}
+.promo-strip .ps-tk{font-size:1.5rem;line-height:1;color:var(--gold-l,#ffd36b);display:flex}
 .promo-strip b{display:block;font-size:.92rem;color:var(--gold-l,#FFDD85)}
 .promo-strip small{display:block;font-size:.78rem;opacity:.8;margin-top:2px}
 .promo-strip .ps-go{margin-left:auto;flex:none;padding:8px 12px;border-radius:10px;background:linear-gradient(100deg,#FFC83D,#FFAE00);color:#0a0a12;font-weight:800;font-size:.8rem}
