@@ -438,11 +438,11 @@
       "registered": 0
     },
     {
-      "map": "kalahari",
+      "map": "purgatory",
       "date": "Tue, Nov 10",
       "game": "Free Fire BR · Squad",
-      "map2": "random",
-      "map3": "random",
+      "map2": "kalahari",
+      "map3": "nexterra",
       "name": "JD Free Fire Open #19",
       "time": "9:30 PM NPT",
       "entry": "Free",
@@ -650,5 +650,5 @@
       }
     ]
   },
-  "_published_at": "2026-11-07T02:43:22.461Z"
+  "_published_at": "2026-11-07T02:43:30.742Z"
 }
