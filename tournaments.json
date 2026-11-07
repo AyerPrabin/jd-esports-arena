@@ -1,212 +1,212 @@
 {
   "bo3": {
-    "tournament": "JD Free Fire Open #15",
-    "title": "JD Free Fire Open #15 – Final Standings",
-    "published": true,
-    "kill_pts": 1,
     "teams": [
       {
-        "team": "Youtz Esp",
-        "logo": "",
         "r": [
           {
-            "kills": 16,
-            "pts": 8
+            "pts": 8,
+            "kills": 16
           },
           {
-            "kills": 19,
-            "pts": 9
+            "pts": 9,
+            "kills": 19
           },
           {
-            "kills": 20,
-            "pts": 12
+            "pts": 12,
+            "kills": 20
           }
         ],
+        "logo": "",
+        "team": "Youtz Esp",
         "prize_won": 90
       },
       {
-        "team": "Ancient Ogs 1",
-        "logo": "",
         "r": [
           {
-            "kills": 12,
-            "pts": 9
+            "pts": 9,
+            "kills": 12
           },
           {
-            "kills": 16,
-            "pts": 12
+            "pts": 12,
+            "kills": 16
           },
           {
-            "kills": 9,
-            "pts": 9
+            "pts": 9,
+            "kills": 9
           }
         ],
+        "logo": "",
+        "team": "Ancient Ogs 1",
         "prize_won": 54
       },
       {
-        "team": "Raila gang",
-        "logo": "",
         "r": [
           {
-            "kills": 13,
-            "pts": 12
+            "pts": 12,
+            "kills": 13
           },
           {
-            "kills": 0,
-            "pts": 1
+            "pts": 1,
+            "kills": 0
           },
           {
-            "kills": 10,
-            "pts": 7
+            "pts": 7,
+            "kills": 10
           }
         ],
+        "logo": "",
+        "team": "Raila gang",
         "prize_won": 36
       },
       {
-        "team": "DLK ESP.",
-        "logo": "",
         "r": [
           {
-            "kills": 4,
-            "pts": 3
+            "pts": 3,
+            "kills": 4
           },
           {
-            "kills": 11,
-            "pts": 5
+            "pts": 5,
+            "kills": 11
           },
           {
-            "kills": 12,
-            "pts": 4
+            "pts": 4,
+            "kills": 12
           }
-        ]
+        ],
+        "logo": "",
+        "team": "DLK ESP."
       },
       {
-        "team": "SXP E-SPROT",
-        "logo": "",
         "r": [
           {
-            "kills": 6,
-            "pts": 6
+            "pts": 6,
+            "kills": 6
           },
           {
-            "kills": 0,
-            "pts": 6
+            "pts": 6,
+            "kills": 0
           },
           {
-            "kills": 9,
-            "pts": 6
+            "pts": 6,
+            "kills": 9
           }
-        ]
+        ],
+        "logo": "",
+        "team": "SXP E-SPROT"
       },
       {
-        "team": "T1h esp",
-        "logo": "",
         "r": [
           {
-            "kills": 4,
-            "pts": 5
+            "pts": 5,
+            "kills": 4
           },
           {
-            "kills": 4,
-            "pts": 8
+            "pts": 8,
+            "kills": 4
           },
           {
-            "kills": 1,
-            "pts": 8
+            "pts": 8,
+            "kills": 1
           }
-        ]
+        ],
+        "logo": "",
+        "team": "T1h esp"
       },
       {
-        "team": "TNT",
-        "logo": "",
         "r": [
           {
-            "kills": 0,
-            "pts": 0
+            "pts": 0,
+            "kills": 0
           },
           {
-            "kills": 15,
-            "pts": 7
+            "pts": 7,
+            "kills": 15
           },
           {
-            "kills": 0,
-            "pts": 0
+            "pts": 0,
+            "kills": 0
           }
-        ]
+        ],
+        "logo": "",
+        "team": "TNT"
       },
       {
-        "team": "TeamㅤSᴍɢ",
-        "logo": "",
         "r": [
           {
-            "kills": 5,
-            "pts": 4
+            "pts": 4,
+            "kills": 5
           },
           {
-            "kills": 2,
-            "pts": 2
+            "pts": 2,
+            "kills": 2
           },
           {
-            "kills": 3,
-            "pts": 5
+            "pts": 5,
+            "kills": 3
           }
-        ]
+        ],
+        "logo": "",
+        "team": "TeamㅤSᴍɢ"
       },
       {
-        "team": "DAMAN ESP",
-        "logo": "",
         "r": [
           {
-            "kills": 10,
-            "pts": 2
+            "pts": 2,
+            "kills": 10
           },
           {
-            "kills": 0,
-            "pts": 0
+            "pts": 0,
+            "kills": 0
           },
           {
-            "kills": 0,
-            "pts": 0
+            "pts": 0,
+            "kills": 0
           }
-        ]
+        ],
+        "logo": "",
+        "team": "DAMAN ESP"
       },
       {
-        "team": "PRIME FORCE",
-        "logo": "",
         "r": [
           {
-            "kills": 1,
-            "pts": 1
+            "pts": 1,
+            "kills": 1
           },
           {
-            "kills": 4,
-            "pts": 3
+            "pts": 3,
+            "kills": 4
           },
           {
-            "kills": 1,
-            "pts": 2
+            "pts": 2,
+            "kills": 1
           }
-        ]
+        ],
+        "logo": "",
+        "team": "PRIME FORCE"
       },
       {
-        "team": "MALVORAK",
-        "logo": "",
         "r": [
           {
-            "kills": 0,
-            "pts": 0
+            "pts": 0,
+            "kills": 0
           },
           {
-            "kills": 2,
-            "pts": 4
+            "pts": 4,
+            "kills": 2
           },
           {
-            "kills": 0,
-            "pts": 3
+            "pts": 3,
+            "kills": 0
           }
-        ]
+        ],
+        "logo": "",
+        "team": "MALVORAK"
       }
-    ]
+    ],
+    "title": "JD Free Fire Open #15 – Final Standings",
+    "kill_pts": 1,
+    "published": true,
+    "tournament": "JD Free Fire Open #15"
   },
   "tagline": "JD Esports Arena · AyerFire",
   "tournaments": [
@@ -559,11 +559,11 @@
       "teams": [],
       "format": "BR · 3 matches",
       "status": "completed",
+      "winner": "Youtz Esp",
       "platform": "Mobile only",
       "registered": 0,
       "early_access": "yes",
-      "platform_mode": "mobile",
-      "winner": "Youtz Esp"
+      "platform_mode": "mobile"
     },
     {
       "map": "purgatory",
@@ -706,7 +706,25 @@
       "registered": 0,
       "early_access": "yes",
       "platform_mode": "mobile"
+    },
+    {
+      "name": "@bs.gaming Bs gaming",
+      "game": "Free Fire BR · Squad",
+      "date": "Mon, Nov 9",
+      "time": "8:00 PM NPT",
+      "start": "2026-11-09T20:00:00+05:45",
+      "status": "upcoming",
+      "prize": "10",
+      "entry": "Free",
+      "platform": "Mobile only",
+      "platform_mode": "mobile",
+      "slots": 12,
+      "format": "BR · 2 matches",
+      "map": "bermuda",
+      "host": "bs.gaming",
+      "winner": "",
+      "teams": []
     }
   ],
-  "_published_at": "2026-11-07T17:35:14.299Z"
+  "_published_at": "2026-11-07T18:22:53.045Z"
 }
