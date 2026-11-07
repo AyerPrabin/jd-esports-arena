@@ -1,6 +1,208 @@
 {
  "events": [
   {
+   "name": "JD Free Fire Open #15",
+   "date": "Sat, Nov 7",
+   "start": "2026-11-07T21:30:00+05:45",
+   "maps": [
+    "kalahari",
+    "nexterra",
+    "purgatory"
+   ],
+   "prize": "180",
+   "winner": "Youtz Esp",
+   "kill_pts": 1,
+   "teams": [
+    {
+     "team": "Youtz Esp",
+     "r": [
+      {
+       "kills": 16,
+       "pts": 8
+      },
+      {
+       "kills": 19,
+       "pts": 9
+      },
+      {
+       "kills": 20,
+       "pts": 12
+      }
+     ]
+    },
+    {
+     "team": "Ancient Ogs 1",
+     "r": [
+      {
+       "kills": 12,
+       "pts": 9
+      },
+      {
+       "kills": 16,
+       "pts": 12
+      },
+      {
+       "kills": 9,
+       "pts": 9
+      }
+     ]
+    },
+    {
+     "team": "Raila gang",
+     "r": [
+      {
+       "kills": 13,
+       "pts": 12
+      },
+      {
+       "kills": 0,
+       "pts": 1
+      },
+      {
+       "kills": 10,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "DLK ESP.",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 3
+      },
+      {
+       "kills": 11,
+       "pts": 5
+      },
+      {
+       "kills": 12,
+       "pts": 4
+      }
+     ]
+    },
+    {
+     "team": "SXP E-SPROT",
+     "r": [
+      {
+       "kills": 6,
+       "pts": 6
+      },
+      {
+       "kills": 0,
+       "pts": 6
+      },
+      {
+       "kills": 9,
+       "pts": 6
+      }
+     ]
+    },
+    {
+     "team": "T1h esp",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 5
+      },
+      {
+       "kills": 4,
+       "pts": 8
+      },
+      {
+       "kills": 1,
+       "pts": 8
+      }
+     ]
+    },
+    {
+     "team": "TNT",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 15,
+       "pts": 7
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "TeamㅤSᴍɢ",
+     "r": [
+      {
+       "kills": 5,
+       "pts": 4
+      },
+      {
+       "kills": 2,
+       "pts": 2
+      },
+      {
+       "kills": 3,
+       "pts": 5
+      }
+     ]
+    },
+    {
+     "team": "DAMAN ESP",
+     "r": [
+      {
+       "kills": 10,
+       "pts": 2
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "PRIME FORCE",
+     "r": [
+      {
+       "kills": 1,
+       "pts": 1
+      },
+      {
+       "kills": 4,
+       "pts": 3
+      },
+      {
+       "kills": 1,
+       "pts": 2
+      }
+     ]
+    },
+    {
+     "team": "MALVORAK",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 2,
+       "pts": 4
+      },
+      {
+       "kills": 0,
+       "pts": 3
+      }
+     ]
+    }
+   ]
+  },
+  {
    "name": "JD Free Fire Open #14",
    "date": "Fri, Nov 6",
    "start": "2026-11-06T21:30:00+05:45",
