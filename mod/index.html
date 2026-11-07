@@ -1336,8 +1336,10 @@ $('pr-q').addEventListener('click',async e=>{
 function moreTabs(){return [...document.querySelectorAll('#tabs [role=tab].in-more:not([hidden])')];}
 function moreSync(){   // the burger shows the sum of its tools' badges, and lights up when one of them is open
   const n=moreTabs().reduce((a,b)=>{const d=b.querySelector('.badge');return a+(d&&!d.hidden?(+d.textContent||0):0);},0), bd=$('badge-more');
-  bd.hidden=!n; bd.textContent=n;
-  $('more-btn').setAttribute('aria-current',moreTabs().some(b=>b.getAttribute('aria-selected')==='true')?'true':'false');
+  // write only on a real change: this runs from a MutationObserver on the same bar, so any write would call it again
+  if(bd.hidden!==!n) bd.hidden=!n; if(bd.textContent!==String(n)) bd.textContent=n;
+  const cur=moreTabs().some(b=>b.getAttribute('aria-selected')==='true')?'true':'false';
+  if($('more-btn').getAttribute('aria-current')!==cur) $('more-btn').setAttribute('aria-current',cur);
 }
 function menuClose(){const m=$('menu');if(m.hidden)return;m.hidden=true;$('more-btn').setAttribute('aria-expanded','false');$('more-btn').focus();}
 function menuOpen(){
