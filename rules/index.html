@@ -75,10 +75,18 @@ footer > div > a{display:inline-flex;align-items:center;min-height:36px}
 .rule h3 .n{flex:none;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(227,107,107,.16);border:1px solid rgba(227,107,107,.6);color:#E36B6B;font-size:.95rem}
 .rule>p{color:var(--body);margin:0 0 12px}
 .rule>p strong{color:var(--cream);font-weight:500}
-.chars{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.chars{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px}
+.quick{list-style:none;margin:0 0 26px;padding:0;display:grid;gap:8px}
+.quick a{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--panel);border:1px solid var(--line);color:var(--cream);text-decoration:none;font-size:.95rem;line-height:1.35}
+.quick a:hover,.quick a:focus-visible{border-color:var(--gold-l)}
+.quick .ic{flex:none;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(227,107,107,.14);color:#E36B6B;font-size:1.05rem}
+.quick .ic.ok{background:rgba(110,200,140,.12);color:#6ec88c}
+.quick small{display:block;color:var(--body);font-size:.8rem;margin-top:2px}
+.steps{margin:8px 0 10px;padding-left:22px;color:var(--body)}
+.steps li{margin:0 0 6px}.steps li strong{color:var(--cream);font-weight:500}
 .ch{margin:0;border:1px solid rgba(227,107,107,.45);border-radius:12px;overflow:hidden;background:linear-gradient(180deg,rgba(227,107,107,.14),rgba(255,255,255,.02));position:relative}
 .ch>img{display:block;width:100%;height:180px;object-fit:contain;object-position:center bottom;filter:grayscale(.35)}
-.ch .x{position:absolute;top:8px;right:8px;font-size:1.3rem}
+.ch .x{position:absolute;top:8px;right:8px;font-size:1.3rem;color:#E36B6B}
 .ch figcaption{padding:8px 10px 12px;font-size:.8rem;line-height:1.45;color:var(--body)}
 .ch figcaption b{display:block;color:var(--cream);font-size:.98rem}
 .sk{display:flex;align-items:center;gap:6px;color:var(--gold-l);margin:2px 0 4px}
@@ -122,9 +130,21 @@ footer > div > a{display:inline-flex;align-items:center;min-height:36px}
   <section class="hero">
     <div class="eye">Tournament rules</div>
     <h1>Play fair. Play together.</h1>
-    <div class="role">Every squad agrees to these rules before getting a slot. Solo and duo events use the same rules with 1 or 2 players. Events over one room run in stages like pro tournaments: random groups, then semi-finals for the biggest events, then a Grand Final, where the whole prize is played for. Only squad events count on the leaderboard.</div>
-    <p>These rules apply to <strong>every JD Esports Arena tournament</strong>. Breaking one can get your squad <strong>disqualified</strong> from the match and <strong>banned</strong> from future tournaments.</p>
+    <div class="role">Every squad agrees to these rules before getting a slot. They apply to solo, duo and squad events.</div>
+    <p>Breaking a rule can get your squad <strong>disqualified</strong> from the match and <strong>banned</strong> from future tournaments.</p>
   </section>
+
+  <div class="sec-h"><h2>The rules in 30 seconds</h2><span class="ln"></span></div>
+  <ul class="quick">
+    <li><a href="#full-squad"><span class="ic"><i class=ji-users aria-hidden=true></i></span><span>Join the room with your full squad<small>Alone in the room = removed</small></span></a></li>
+    <li><a href="#banned-characters"><span class="ic"><i class=ji-ban aria-hidden=true></i></span><span>No Orion, Sonia, Dimitri or Ryden skills<small>And no two squad-mates with the same active skill</small></span></a></li>
+    <li><a href="#zone-pusher"><span class="ic"><i class=ji-map aria-hidden=true></i></span><span>No zone pusher<small>Move in with the circle like everyone else</small></span></a></li>
+    <li><a href="#room-entry"><span class="ic"><i class=ji-clock aria-hidden=true></i></span><span>Be in the room within 10 minutes<small>Sit in the slot the app gives you</small></span></a></li>
+    <li><a href="#no-shows"><span class="ic"><i class=ji-flag aria-hidden=true></i></span><span>3 no-shows = banned for 1 month<small>Register only if you will play</small></span></a></li>
+    <li><a href="#respect"><span class="ic"><i class=ji-chat aria-hidden=true></i></span><span>No rude language<small>In the room, in chat, anywhere</small></span></a></li>
+    <li><a href="#prize-split"><span class="ic ok"><i class=ji-trophy aria-hidden=true></i></span><span>Prizes: 50% 1st, 30% 2nd, 20% 3rd<small>Big events play groups, then a Grand Final for the whole prize</small></span></a></li>
+    <li><a href="#free-card"><span class="ic ok"><i class=ji-ticket aria-hidden=true></i></span><span>Free events need a free card or 15 points<small>Invite friends to earn more cards</small></span></a></li>
+  </ul>
 
   <p style="margin:0 0 14px"><a href="/#tour">New here? Take the 1-minute tour</a></p>
   <div class="sec-h"><h2>The rules</h2><span class="ln"></span></div>
@@ -133,7 +153,7 @@ footer > div > a{display:inline-flex;align-items:center;min-height:36px}
     <h3><span class="n">1</span>Full squad only</h3>
     <p><strong>Entering the room without your squad is banned.</strong> Join the custom room together with your registered squad. A player who enters alone, without the squad, will be removed.</p>
     <div class="ok-bad">
-      <div class="good"><b>Allowed</b><div class="squad"></div>Your registered squad joins the room together.</div>
+      <div class="good"><b>Allowed</b><div class="squad"><i class=ji-users aria-hidden=true></i></div>Your registered squad joins the room together.</div>
       <div class="bad"><b>Not allowed</b><div class="squad"><i class=ji-user aria-hidden=true></i></div>One player enters the room alone, without the squad.</div>
     </div>
   </article>
@@ -213,7 +233,13 @@ footer > div > a{display:inline-flex;align-items:center;min-height:36px}
 
   <article class="rule" id="free-card">
     <h3><span class="n">11</span>Free tournaments: a free card or 15 points</h3>
-    <p><strong>Every free tournament asks for a free card. To get your first one, follow @ayer_fire, then comment on and repost 3 of our videos with your JD username in each comment. That works one time only. After that, every free card needs a video about JD Arena that says how to download it.</strong> Send it in Wallet &rarr; Free entry. A mod checks it and gives you one card, which joins one free tournament. Don't want to? Pay 15 points when you join instead. Without a card or points, you can't stay in a free tournament.</p>
+    <p><strong>Every free tournament needs one free card, or 15 points when you join.</strong> Without a card or points, you can't stay in a free tournament.</p>
+    <ol class="steps">
+      <li><strong>First card (one time only):</strong> follow @ayer_fire, then comment on and repost 3 of our videos with your JD username in each comment.</li>
+      <li><strong>Every card after that:</strong> make a video about JD Arena that says how to download it.</li>
+      <li>Send it in Wallet &rarr; Free entry. A mod checks it and gives you one card. One card joins one free tournament.</li>
+      <li><strong>Or invite friends:</strong> when a friend you invited wins their first prize, you get a free card. Up to 3 friends.</li>
+    </ol>
     <p><strong>We are looking for mods.</strong> Our best promoters get a chance to become a JD mod.</p>
     <a class="back" href="/wallet/#promo" style="display:inline-block;margin-top:6px">Get my free card</a>
   </article>
@@ -234,6 +260,13 @@ footer > div > a{display:inline-flex;align-items:center;min-height:36px}
     <p><strong>Squads with a bought effect get the top slots.</strong> Other squads move down, keep their place in the event and get a message with their new slot.</p>
     <p><strong>In free tournaments, a place from the waitlist costs 20 points.</strong> If the event is full, a squad that hasn't confirmed, or else the newest squad, loses its place and gets its points or card back. So confirm early.</p>
     <p><strong>Paid events and partner-host events have a paid waitlist.</strong> When one is full, joining the waitlist costs half the entry. If a slot opens you move up automatically and the rest is taken from your wallet. If you don't have the points, the slot goes to the next squad. If no slot opens, or you leave the waitlist, your whole deposit comes back.</p>
+  </article>
+
+  <article class="rule" id="invites">
+    <h3><span class="n">15</span>Invite friends</h3>
+    <p><strong>Share your invite code from your profile.</strong> A new player types it when they create their account, or opens your invite link. When their squad wins its first prize (30 points or more), you get one free entry card. It joins one free event and lasts 30 days.</p>
+    <p>You can invite <strong>up to 3 friends</strong>. Your own second account doesn't count: the same Free Fire UID never earns a card. Invites no longer pay points.</p>
+    <a class="back" href="/profile/#invite" style="display:inline-block;margin-top:6px">Get my invite code</a>
   </article>
 
   <div class="sec-h"><h2>Also remember</h2><span class="ln"></span></div>
