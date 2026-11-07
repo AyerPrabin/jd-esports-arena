@@ -50,6 +50,13 @@ Deno.serve(async (req: Request) => {
   if (!rows.length) return new Response('No valid rows (each needs a squad_name and placement)', { status: 400, headers: CORS_HEADERS });
 
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+  // owner's rule: only squad events count on the leaderboard, and a group stage doesn't (its Final does).
+  // Prizes are paid by publish-tournaments, so skipping here never touches a prize.
+  const { data: sc } = await supabase.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
+  const ev = ((sc?.content as any)?.tournaments || []).find((x: any) => x.name === tournament_slug);
+  if (ev && (ev.group || ['solo', 'duo'].includes(String(ev.mode || '').toLowerCase()))) {
+    return new Response(JSON.stringify({ ok: true, skipped: 'not counted on the leaderboard' }), { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
+  }
   const { error } = await supabase
     .from('tournament_results')
     .upsert(rows, { onConflict: 'tournament_slug,squad_name' });

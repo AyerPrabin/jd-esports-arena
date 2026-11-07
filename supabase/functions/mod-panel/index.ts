@@ -179,6 +179,9 @@ Deno.serve(async (req: Request) => {
     agreedAt = mod.agreed_at || null;
   }
   const isHost = role === 'host';
+  // teams one room holds: a room is 48 players
+  const ROOM: Record<string, number> = { solo: 48, duo: 24, squad: 12 };
+  const modeOf = (t: any) => { const m = String(t?.mode || '').toLowerCase(); return m === 'solo' || m === 'duo' ? m : 'squad'; };
   const isOwner = email === 'admin' || email === OWNER_EMAIL;
 
   // host mods: only the events whose "host" field is their handle (live site_content, same doc the site shows)
@@ -723,7 +726,7 @@ Deno.serve(async (req: Request) => {
     if (!t) return fail('That event is not on the site.', 404);
     const pool = Number(String(t.prize || '').replace(/,/g, '').match(/\d+/)?.[0] || 0);
     const matches = Math.min(6, Math.max(1, Number(String(t.format || '').match(/(\d+)\s*match/i)?.[1] || 3)));
-    const { data: regs } = await admin.from('registrations').select('squad_name, status, created_at, player_id')
+    const { data: regs } = await admin.from('registrations').select('id, squad_name, status, created_at, player_id')
       .eq('tournament_slug', slug).in('status', ['confirmed', 'approved']).order('slot_key');
     const squads = [...new Set((regs || []).map((r: any) => String(r.squad_name || '').trim()).filter(Boolean))];
     const board = doc?.bo3?.tournament === slug ? doc.bo3 : null;
@@ -808,7 +811,7 @@ Deno.serve(async (req: Request) => {
     const H = { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET, 'Authorization': `Bearer ${SERVICE}`, 'apikey': SERVICE };
     const pub = await fetch(`${URL_}/functions/v1/publish-tournaments`, { method: 'POST', headers: H, body: JSON.stringify({ content: JSON.stringify(doc, null, 2) }) });
     if (!pub.ok) return fail('Could not publish: ' + (await pub.text()), 502);
-    let paidOut: any[] = [];
+    let paidOut: any[] = [], advanced: string[] = [];
     if (final) {
       const ar = await fetch(`${URL_}/functions/v1/archive-results`, { method: 'POST', headers: H, body: JSON.stringify({
         tournament_slug: slug,
@@ -819,6 +822,18 @@ Deno.serve(async (req: Request) => {
       const { data: nowPaid } = await admin.from('wallet_ledger').select('ref, delta').eq('reason', 'prize').like('ref', `prize:${slug}:%`);
       const got = new Map((nowPaid || []).map((x: any) => [norm(String(x.ref).split(':').slice(2).join(':')), x.delta]));
       if (!isHost) paidOut = Object.entries(prizes).map(([k, v]) => ({ squad: k, amount: got.get(norm(k)) ?? v, status: got.has(norm(k)) ? 'paid' : 'unmatched' }));
+      // a group just finished: its top squads move to the Final, seats and payments unchanged
+      if (t.group && t.parent) {
+        const finalName = `${t.parent} · Final`, by = new Map((regs || []).map((r: any) => [norm(String(r.squad_name || '')), r]));
+        const up = ranked.slice(0, Number(t.advance) || 1).map((x) => by.get(norm(x.team))).filter(Boolean);
+        if (up.length) {
+          const { error: mv } = await admin.rpc('event_move_regs', { p_moves: up.map((r: any) => ({ id: r.id, from: slug, to: finalName })) });
+          if (mv) return fail('Results are saved, but moving squads to the Final failed: ' + mv.message, 500);
+          await admin.from('notifications').insert(up.map((r: any) => ({ player_id: r.player_id, push: true, tournament_slug: finalName,
+            title: tagT(`🔥 You reached the Final: ${t.parent}`).slice(0, 120), body: `${r.squad_name} is through. Your ticket is now for ${finalName}, nothing more to pay.` })));
+          advanced = up.map((r: any) => r.squad_name);
+        }
+      }
       if (isHost) {   // the host's own result push: everyone in the event, winners told who pays them
         const by = new Map((regs || []).map((r: any) => [norm(String(r.squad_name || '')), r.player_id]));
         const rows = ranked.map((x, i) => ({ id: by.get(norm(x.team)), i, team: x.team })).filter((x) => x.id).map((x) => ({
@@ -830,9 +845,62 @@ Deno.serve(async (req: Request) => {
     }
     await log(final ? 'results_final' : 'results', `${slug} · #1 ${ranked[0].team} (${total(ranked[0])})` +
       (final ? ' · prizes ' + (Object.entries(prizes).map(([k, v]) => `${k} ${v}`).join(', ') || 'none') : ''));
-    return json({ ok: true, final, winner: ranked[0].team,
+    return json({ ok: true, final, winner: ranked[0].team, advanced,
       standings: ranked.map((x, i) => ({ place: i + 1, team: x.team, total: total(x) })),
       prizes: paidOut.map((x: any) => ({ squad: x.squad, status: x.status, amount: x.amount })) });
+  }
+
+  // ── groups: more teams than one room holds. Draw splits them at random into Group A, B… and a Final. Groups play
+  // one after another (the site has one standings board). The whole prize moves to the Final; groups have none.
+  if (action === 'groups_draw') {
+    const slug = String(p.slug || '').trim();
+    if (!slug || !await canEvent(slug)) return notYours();
+    const { data: sc } = await admin.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
+    const doc: any = sc?.content, t = doc?.tournaments?.find((x: any) => x.name === slug);
+    if (!t) return fail('That event is not on the site.', 404);
+    if (t.parent || t.winner || ['completed', 'cancelled'].includes(String(t.status || '').toLowerCase())) return fail('This event can\'t be drawn.', 409);
+    if (t.mega) return fail('MEGA events have their own stages.', 409);
+    const { data: codes } = await admin.from('tournament_room_codes').select('tournament_slug').eq('tournament_slug', slug).not('sent_at', 'is', null).limit(1);
+    if (codes?.length) return fail('The room code is already out, so this event plays as one room.', 409);
+    const { data: regs, error: re } = await admin.from('registrations').select('id, player_id, squad_name').eq('tournament_slug', slug).in('status', ['confirmed', 'approved']);
+    if (re) return fail(re.message, 500);
+    const list = [...(regs || [])], cap = ROOM[modeOf(t)];
+    if (list.length <= cap) return fail(`${list.length} joined, and one room holds ${cap}. No groups needed.`);
+    const groups = Math.ceil(list.length / cap);
+    if (groups > 8) return fail('That is more than 8 groups. Ask the JD admin.');
+    const advance = Math.max(1, Math.floor(cap / groups));
+    for (let i = list.length - 1; i > 0; i--) {   // a fair shuffle: nobody picks their group
+      const j = crypto.getRandomValues(new Uint32Array(1))[0] % (i + 1); [list[i], list[j]] = [list[j], list[i]];
+    }
+    const matches = Math.min(6, Math.max(1, Number(String(t.format || '').match(/(\d+)\s*match/i)?.[1] || 3)));
+    const gap = matches * 30 * 60000, at0 = Date.parse(t.start) || Date.now() + 3600000;
+    const when = (ms: number) => { const d = new Date(ms + 345 * 60000), hh = d.getUTCHours();   // Nepal time
+      return { date: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }),
+        time: `${hh % 12 || 12}:${String(d.getUTCMinutes()).padStart(2, '0')} ${hh < 12 ? 'AM' : 'PM'} NPT`,
+        start: new Date(ms + 345 * 60000).toISOString().slice(0, 19) + '+05:45' }; };
+    const base = { ...t }; delete base.teams; delete base.winner;
+    const letters = 'ABCDEFGH', names = Array.from({ length: groups }, (_, i) => `${slug} · Group ${letters[i]}`), finalName = `${slug} · Final`;
+    if (doc.tournaments.some((x: any) => names.includes(x.name) || x.name === finalName)) return fail('These groups already exist.', 409);
+    const moves = list.map((r: any, i: number) => ({ id: r.id, from: slug, to: names[i % groups] }));
+    const kids = names.map((name, i) => ({ ...base, ...when(at0 + i * gap), name, prize: '', parent: slug, group: letters[i], advance, winner: '', teams: [], status: 'upcoming',
+      slots: moves.filter((m) => m.to === name).length }));
+    const fin = { ...base, ...when(at0 + groups * gap), name: finalName, parent: slug, winner: '', teams: [], status: 'upcoming', slots: advance * groups };
+    const at = doc.tournaments.indexOf(t);
+    const { error: mv } = await admin.rpc('event_move_regs', { p_moves: moves });
+    if (mv) return fail('Nothing was moved: ' + mv.message, 500);
+    doc.tournaments.splice(at, 1, ...kids, fin);   // waitlisted squads stay on the old name: the deposit sweep refunds them
+    doc._published_at = new Date().toISOString();
+    const H = { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET, 'Authorization': `Bearer ${SERVICE}`, 'apikey': SERVICE };
+    const pub = await fetch(`${URL_}/functions/v1/publish-tournaments`, { method: 'POST', headers: H, body: JSON.stringify({ content: JSON.stringify(doc, null, 2) }) });
+    if (!pub.ok) {
+      await admin.rpc('event_move_regs', { p_moves: moves.map((m) => ({ id: m.id, from: m.to, to: m.from })) });
+      return fail('Could not publish, so nothing changed: ' + (await pub.text()), 502);
+    }
+    await admin.from('notifications').insert(moves.map((m) => { const r: any = list.find((x: any) => x.id === m.id), k = kids.find((x) => x.name === m.to)!;
+      return { player_id: r.player_id, push: true, tournament_slug: m.to, title: tagT(`🎲 ${r.squad_name}: Group ${k.group}`).slice(0, 120),
+        body: `${slug} is drawn. You play ${k.date} ${k.time}. The top ${advance} reach the Final. Nothing more to pay.` }; }));
+    await log('groups_draw', `${slug} · ${list.length} into ${groups} groups, top ${advance} advance`);
+    return json({ ok: true, groups, advance, names, final: finalName });
   }
 
   // ── host mods: create / edit their OWN events (free entry; JD never pays prizes for them) ──
@@ -861,13 +929,15 @@ Deno.serve(async (req: Request) => {
     const DEV: Record<string, string> = { mobile: 'Mobile only', mixed: 'Mix Device', emulator: 'Emulator only' };
     const device = DEV[p.device] ? String(p.device) : 'mobile';
     const matches = Math.min(6, Math.max(1, Math.round(Number(p.matches) || 3)));
+    const mode = modeOf(p);
     const hh = +h % 12 || 12;
     const fields = {
       date: new Date(Date.UTC(+y, +mo - 1, +d)).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }),
       time: `${hh}:${mi} ${+h < 12 ? 'AM' : 'PM'} NPT`, start, status,
       prize: prizeText.slice(0, 40),
       entry: 'Free', platform: DEV[device], platform_mode: device,
-      slots: Math.min(12, Math.max(2, Math.round(Number(p.slots) || 12))),   // one room holds 12 squads; bigger events need groups
+      mode, game: `Free Fire BR · ${mode === 'solo' ? 'Solo' : mode === 'duo' ? 'Duo' : 'Squad'}`,
+      slots: Math.min(ROOM[mode] * 4, Math.max(2, Math.round(Number(p.slots) || ROOM[mode]))),   // over one room: Draw groups splits it
       format: matches === 3 ? 'BR · Best of 3' : 'BR · ' + matches + (matches === 1 ? ' match' : ' matches'),
       map: MAPS.includes(p.map) ? p.map : 'bermuda', host: handle,
     };
@@ -881,8 +951,13 @@ Deno.serve(async (req: Request) => {
     const name = edit ? ex.name : `${tag} ${title || 'Scrim #' + (mine.length + 1)}`.slice(0, 60);
     if (!edit && same(name)) return fail('You already have an event with that name. Pick another name.', 409);
     if (ex && (ex.winner || String(ex.status).toLowerCase() === 'completed')) return fail("That event is finished and can't be changed.", 409);
+    if (ex?.parent) return fail("A drawn group or Final can't be edited.", 409);
+    if (ex && modeOf(ex) !== mode) {
+      const { count } = await admin.from('registrations').select('id', { count: 'exact', head: true }).eq('tournament_slug', ex.name).neq('status', 'rejected');
+      if (count) return fail('Squads already joined, so the mode can\'t change now.', 409);
+    }
     if (ex) Object.assign(ex, fields);
-    else doc.tournaments.push({ name, game: 'Free Fire BR · Squad', ...fields, winner: '', teams: [] });
+    else doc.tournaments.push({ name, ...fields, winner: '', teams: [] });
     doc._published_at = new Date().toISOString();
     const H = { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET, 'Authorization': `Bearer ${SERVICE}`, 'apikey': SERVICE };
     const pub = await fetch(`${URL_}/functions/v1/publish-tournaments`, { method: 'POST', headers: H, body: JSON.stringify({ content: JSON.stringify(doc, null, 2) }) });

@@ -408,7 +408,9 @@ h2[id]{scroll-margin-top:64px}
       <div class="chips" id="nev-prizes"></div>
       <span class="row-l">ENTRY FEE <span class="tag">each squad pays</span></span>
       <div class="chips" id="nev-entries"></div>
-      <span class="row-l">SQUADS · MATCHES <span class="tag">one room holds 12</span></span>
+      <span class="row-l">MODE</span>
+      <div class="chips" id="nev-modes"></div>
+      <span class="row-l">TEAMS · MATCHES <span class="tag" id="nev-room-tag"></span></span>
       <div class="chips" id="nev-slots"></div>
       <div class="chips" id="nev-matches" style="margin-top:8px"></div>
       <span class="row-l">DEVICE · MAP</span>
@@ -1189,6 +1191,7 @@ function chipRow(id,options,cur,onPick){
   box.innerHTML=options.map(([v,l])=>`<button type="button" class="chip${String(v)===String(cur)?' on':''}" data-v="${esc(v)}">${esc(l)}</button>`).join('');
   box.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{onPick(c.dataset.v);newEventRender();});
 }
+const NEV_ROOM={solo:48,duo:24,squad:12};   // teams one room holds: a room is 48 players
 function newEventOpen(){
   const base=latestEvent()||{};
   const hm=(isoToLocalInputValue(base.start).slice(11,16))||'22:00';
@@ -1197,7 +1200,7 @@ function newEventOpen(){
     name:nextEventName(),day:addDays(nptToday(),1),time:hm,
     prize:String(base.prize||'300').replace(/[^\d]/g,'')||'300',
     entry:/^\s*free\s*$/i.test(base.entry||'Free')?'0':String(base.entry).replace(/[^\d]/g,'')||'0',
-    slots:String(Math.min(+base.slots||12,12)),matches:m?(m[1]||m[2]):'3',
+    mode:['solo','duo'].includes(base.mode)?base.mode:'squad',slots:String(Math.min(+base.slots||12,NEV_ROOM[['solo','duo'].includes(base.mode)?base.mode:'squad'])),matches:m?(m[1]||m[2]):'3',
     device:deviceOf(base),map:base.map||'bermuda',base
   });
   document.getElementById('nev-name').value=NEV.name;
@@ -1214,7 +1217,10 @@ function newEventRender(){
   document.getElementById('nev-start').value=NEV.day&&NEV.time?NEV.day+'T'+NEV.time:'';
   chipRow('nev-prizes',[['180','180 (free)'],['200','200'],['300','300'],['400','400'],['500','500'],['1000','1000']],NEV.prize,v=>{NEV.prize=v;});
   chipRow('nev-entries',[['0','Free card or 15 pts'],['20','20 pts'],['50','50 pts'],['100','100 pts']],NEV.entry,v=>{NEV.entry=v;});
-  chipRow('nev-slots',[['12','12 squads']],NEV.slots,v=>{NEV.slots=v;});
+  const nevCap=NEV_ROOM[NEV.mode],nevUnit={solo:'players',duo:'duos',squad:'squads'}[NEV.mode];
+  chipRow('nev-modes',[['squad','Squad'],['duo','Duo'],['solo','Solo']],NEV.mode,v=>{NEV.mode=v;NEV.slots=String(NEV_ROOM[v]);});
+  chipRow('nev-slots',[1,2,4].map(k=>[String(nevCap*k),nevCap*k+' '+nevUnit]),NEV.slots,v=>{NEV.slots=v;});
+  document.getElementById('nev-room-tag').textContent='one room holds '+nevCap+', over that use Draw groups';
   chipRow('nev-matches',[['1','1 match'],['3','3 matches'],['4','4 matches'],['6','6 matches']],NEV.matches,v=>{NEV.matches=v;});
   chipRow('nev-devices',PLATFORM_MODES.map(([v,l])=>[v,l.replace(' (any device)','')]),NEV.device,v=>{NEV.device=v;});
   chipRow('nev-maps',MAPS,NEV.map,v=>{NEV.map=v;});
@@ -1224,7 +1230,8 @@ function newEventRender(){
     `📅 ${f?esc(f.date+' · '+f.time):'<span class="ev-warn">pick a day and time</span>'}<br>`+
     `🏆 Prize pool <b>Rs ${esc(NEV.prize)}</b> (1st ${pn-p2-p3} · 2nd ${p2} · 3rd ${p3})<br>`+
     `🎟 Entry fee <b>${esc(entry)}</b>, each squad pays<br>`+
-    `👥 <b>${esc(NEV.slots)}</b> squads · <b>${esc(NEV.matches)}</b> matches`+
+    `👥 <b>${esc(NEV.slots)}</b> ${nevUnit} · <b>${esc(NEV.matches)}</b> matches`+
+    (pn/(+NEV.slots||1)<5?'<br><span class="ev-warn">⚠️ Rs '+pn+' shared by '+esc(NEV.slots)+' '+nevUnit+' looks low.</span>':'')+
     (feeWarn(NEV.prize,NEV.entry,NEV.slots)?'<br>'+feeWarn(NEV.prize,NEV.entry,NEV.slots):'');
 }
 document.addEventListener('input',e=>{
@@ -1241,8 +1248,8 @@ async function newEventCreate(publish){
   if(!f){out.textContent='Pick a day and a time.';return;}
   if(Date.parse(f.start)<=Date.now()){out.textContent='That time is in the past.';return;}
   const b=NEV.base||{};
-  const t={name,game:b.game||'Free Fire BR · Squad',date:f.date,time:f.time,start:f.start,status:'upcoming',
-    map:NEV.map,prize:NEV.prize,entry:+NEV.entry?NEV.entry+' points':'Free',
+  const t={name,game:'Free Fire BR · '+({solo:'Solo',duo:'Duo',squad:'Squad'}[NEV.mode]),date:f.date,time:f.time,start:f.start,status:'upcoming',
+    map:NEV.map,prize:NEV.prize,entry:+NEV.entry?NEV.entry+' points':'Free',mode:NEV.mode,
     platform:DEVICE_TEXT[NEV.device]||b.platform||'Mobile only',platform_mode:NEV.device,
     slots:+NEV.slots||12,format:NEV.matches==='3'?'BR · Best of 3':'BR · '+NEV.matches+(NEV.matches==='1'?' match':' matches'),map2:'random',map3:'random',
     register_type:b.register_type||'whatsapp',register_url:b.register_url||'',winner:'',teams:[]};

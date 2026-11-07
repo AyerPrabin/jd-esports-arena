@@ -504,6 +504,7 @@ textarea{min-height:96px;resize:vertical}
       <div class="sec-h"><h2 id="h-squads">Squads</h2><span class="sp"></span><span class="updated" id="updated" aria-live="polite"></span></div>
       <p class="lead" id="ev-line"></p>
       <dl class="money" id="ev-money" hidden></dl>
+      <div id="ev-groups" hidden style="margin:0 0 12px"><button type="button" class="btn sm" id="ev-draw" style="width:100%">🎲 Draw groups</button><p class="note" id="ev-groups-t" style="margin:6px 0 0"></p></div>
       <div class="sum" id="sum"></div>
       <div id="reg-body"><p class="note">Pick an event to see its squads.</p></div>
       <div id="removed-box"></div>
@@ -745,20 +746,26 @@ function hostEventForm(t){
     `<label class="f" for="hev-start">Day and time (Nepal)</label><input id="hev-start" type="datetime-local" required value="${esc(st)}">`+
     `<label class="f" for="hev-prize">Prize pool: the total you pay the winners</label><input id="hev-prize" maxlength="40" placeholder="e.g. Rs 500" value="${esc(t?t.prize||'':'')}">`+
     `<label class="f" for="hev-fee">Entry fee: each squad pays JD, not you</label><input id="hev-fee" value="Free card or 15 points" disabled>`+
-    `<div class="row2"><div><label class="f" for="hev-slots">Squads</label><input id="hev-slots" type="number" min="2" max="12" value="${esc(t?t.slots||12:12)}"></div>`+
+    `<label class="f" for="hev-mode">Mode</label><select id="hev-mode">${opt([['squad','Squad (4 players)'],['duo','Duo (2 players)'],['solo','Solo']],t&&t.mode||'squad')}</select>`+
+    `<div class="row2"><div><label class="f" for="hev-slots" id="hev-slots-l">Teams</label><input id="hev-slots" type="number" min="2" value="${esc(t?t.slots||12:12)}"></div>`+
     `<div><label class="f" for="hev-m">Matches</label><select id="hev-m">${opt([['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6']],m)}</select></div></div>`+
     `<div class="row2"><div><label class="f" for="hev-map">Map</label><select id="hev-map">${opt(MAPS,t?t.map||'bermuda':'bermuda')}</select></div>`+
     `<div><label class="f" for="hev-dev">Device</label><select id="hev-dev">${opt([['mobile','Mobile only'],['mixed','Mix device'],['emulator','Emulator only']],t?t.platform_mode||'mixed':'mobile')}</select></div></div>`+
-    `<div class="msg" id="hev-msg" role="status"></div>`+
+    `<p class="note" id="hev-room" style="margin:8px 0 0"></p><div class="msg" id="hev-msg" role="status"></div>`+
     `<div class="row2">${ed?'<button type="button" class="ghost" data-cancel-ev>Cancel event</button>':'<button type="button" class="ghost" data-x>Close</button>'}<button type="submit" class="btn sm">${ed?'Save &amp; publish':'Create &amp; publish'}</button></div></form>`;
   document.body.appendChild(bg); document.body.style.overflow='hidden'; requestAnimationFrame(()=>bg.classList.add('open'));
   const close=()=>{bg.classList.remove('open');document.body.style.overflow='';setTimeout(()=>bg.remove(),200);};
   bg.addEventListener('click',e=>{ if(e.target===bg||e.target.closest('[data-x]')) close(); });
+  const roomHint=()=>{ const q=id=>bg.querySelector('#'+id), mode=q('hev-mode').value, cap=ROOM[mode], n=+q('hev-slots').value||0;
+    q('hev-slots').max=cap*4; q('hev-slots-l').textContent={squad:'Squads',duo:'Duos',solo:'Players'}[mode];
+    q('hev-room').textContent=n>cap?`One room holds ${cap}. Over that, tap Draw groups when registration closes: it splits them into groups and a Final.`:`Fits one room (up to ${cap}).`; };
+  bg.querySelector('#hev-mode').addEventListener('change',()=>{ bg.querySelector('#hev-slots').value=ROOM[bg.querySelector('#hev-mode').value]; roomHint(); });
+  bg.querySelector('#hev-slots').addEventListener('input',roomHint); roomHint();
   const save=async(status)=>{
     const q=id=>bg.querySelector('#'+id), msg=q('hev-msg'), name=ed?t.name:q('hev-name').value.trim();
     msg.textContent=status==='cancelled'?'Cancelling…':'Publishing…'; msg.className='msg';
     try{
-      const r=await call({action:'event_save',edit:ed,name,start:q('hev-start').value,prize:q('hev-prize').value,slots:+q('hev-slots').value,
+      const r=await call({action:'event_save',edit:ed,name,start:q('hev-start').value,prize:q('hev-prize').value,mode:q('hev-mode').value,slots:+q('hev-slots').value,
         matches:+q('hev-m').value,map:q('hev-map').value,device:q('hev-dev').value,status});
       close(); toast(status==='cancelled'?r.name+' cancelled.':(r.created?r.name+' is live.':r.name+' updated.'));
       selected={name:r.name}; await loadTournaments();
@@ -805,6 +812,9 @@ function isRecentPast(t){
 let showPast=false;
 function fmtWhen(t){ return [t.date,t.time].filter(Boolean).join(' · ') || (t.start?new Date(t.start).toLocaleString():''); }
 function isLive(t){ return t.start && Math.abs(new Date(t.start)-Date.now())<3*3600*1000; }
+const ROOM={solo:48,duo:24,squad:12};   // teams one room holds: a room is 48 players
+const modeOf=t=>{const m=String(t&&t.mode||'').toLowerCase();return m==='solo'||m==='duo'?m:'squad';};
+const unitOf=t=>({solo:'players',duo:'duos',squad:'squads'}[modeOf(t)]);
 // entry / prize in words. Display only: the stored text is what the server parses.
 const prizeNum=t=>{const s=String(t.prize||'').trim();return /^(rs\.?\s*)?\d[\d,]*$/i.test(s)?+s.replace(/\D/g,''):null;};
 const prizeTxt=t=>{const n=prizeNum(t);return n!=null?'Rs '+n.toLocaleString('en-IN'):String(t.prize||'').trim()||'Not set';};
@@ -812,9 +822,9 @@ const isFreeEntry=t=>{const e=String(t.entry||'').trim();return !e||/^free$/i.te
 const entryTxt=t=>{const e=String(t.entry||'').trim();return isFreeEntry(t)?'Free card or 15 points':/^\d+$/.test(e)?e+' points':e;};
 function moneyHtml(t){
   const n=prizeNum(t), b=Math.floor((n||0)*.3), c=Math.round((n||0)*.2), host=!!String(t.host||'').trim();
-  const who=host?'The host pays the winners directly':t.mega?'Paid by JD':n?`1st Rs ${n-b-c} · 2nd Rs ${b} · 3rd Rs ${c}`:'Ask the admin to set it';
-  return `<div><dt>Prize pool</dt><dd>${esc(prizeTxt(t))}<small>${who}</small></dd></div>`+
-    `<div><dt>Entry fee</dt><dd>${esc(entryTxt(t))}<small>${host?'Each squad pays JD, not the host':'Each squad pays this to join'}</small></dd></div>`;
+  const who=t.group?'The whole prize is played for in the Final':host?'The host pays the winners directly':t.mega?'Paid by JD':n?`1st Rs ${n-b-c} · 2nd Rs ${b} · 3rd Rs ${c}`:'Ask the admin to set it';
+  return `<div><dt>Prize pool</dt><dd>${esc(t.group?'None in this group':prizeTxt(t))}<small>${who}</small></dd></div>`+
+    `<div><dt>Entry fee</dt><dd>${esc(entryTxt(t))}<small>${t.parent?'Paid when they joined, nothing more to pay':host?'Each squad pays JD, not the host':'Each squad pays this to join'}</small></dd></div>`;
 }
 function evPill(t,i){
   return `<button type="button" class="evpill" data-ev="${i}" aria-pressed="${selected===t}"><span><b>${esc(t.name)}</b>`+
@@ -921,11 +931,23 @@ function lineupHtml(r){
     r.lineup.map((m,i)=>`<div translate="no">${i<4?i+1:'Sub'} · ${esc(m.name)} · <span class="uid" data-copy="${esc(m.uid)}" title="Tap to copy">${esc(m.uid)}</span></div>`).join('')+
     `<small>Saved ${esc(new Date(r.lineup_at).toLocaleString([], {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))}</small></details>`;
 }
+function groupsBar(n){
+  const t=selected, cap=t?ROOM[modeOf(t)]:0, box=$('ev-groups');
+  const show=t&&!t.parent&&!t.mega&&!isDone(t)&&n>cap; box.hidden=!show; if(!show) return;
+  const g=Math.ceil(n/cap), up=Math.max(1,Math.floor(cap/g));
+  $('ev-groups-t').textContent=`${n} ${unitOf(t)} won't fit one room (${cap}). Draw when registration closes: ${g} random groups, top ${up} of each reach the Final. It can't be undone.`;
+}
+document.addEventListener('click',async e=>{
+  if(!e.target.closest('#ev-draw')||!selected) return;
+  if(!await sheet({title:'Draw groups for '+selected.name+'?',text:'Squads are split at random and told their group and time. The whole prize moves to the Final. This can\'t be undone.',ok:'Draw groups'})) return;
+  try{ const r=await call({action:'groups_draw',slug:selected.name}); toast(`${r.groups} groups drawn. Top ${r.advance} of each reach the Final.`); selected={name:r.names[0]}; await loadTournaments(); }catch(err){ toast(err.message,null,true); }
+});
 function renderSquads(){
   const unv=rows.filter(r=>(active(r)||r.status==='waitlisted')&&!r.lineup).length;
   const act=rows.filter(active), yes=act.filter(r=>r.checked_in).length, wait=rows.filter(r=>r.status==='waitlisted').length, no=act.length-yes;
   const badge=$('badge-unconf'); badge.hidden=!no; badge.textContent=no;
   const fil=(k,label,n,cls)=>`<button type="button" class="fil${cls?' '+cls:''}" data-fil="${k}" aria-pressed="${filter===k}"><b>${n}</b> ${label}</button>`;
+  groupsBar(act.length);
   $('sum').innerHTML=fil('all','in slots',act.length)+fil('yes','playing',yes)+fil('no','not confirmed',no,no?'warn':'')+fil('wait','waitlist',wait)+fil('unv','squad not verified',unv,unv?'warn':'');
   if(!rows.length){ $('reg-body').innerHTML='<div class="empty">No squads have registered yet.</div>'; return; }
   let slotNo=0, wlNo=0;   // W numbers come from the server (Pro pass first, then sign-up time - same as the auto move-up)
@@ -1313,7 +1335,7 @@ $('rs-body').addEventListener('click',async e=>{
   if(!ok) return;
   const btn=fin||pub, label=btn.textContent; btn.disabled=true; btn.textContent=fin?'Finishing…':'Publishing…'; msg.textContent=''; msg.className='msg';
   try{
-    const r=await call({action:'results_publish',slug:rs.event,teams,final:!!fin,prizes});
+    const r=await call({action:'results_publish',slug:rs.event,teams,final:!!fin,prizes}); if((r.advanced||[]).length) toast(r.advanced.length+' squads moved to the Final.');
     if(fin){
       const pd=r.prizes.filter(x=>x.status==='paid'), un=r.prizes.filter(x=>x.status!=='paid');
       msg.textContent=`Finished. Winner: ${r.winner}.`+(pd.length?' Paid: '+pd.map(x=>`${x.squad} ${x.amount}`).join(', ')+'.':'')+(un.length?' Not paid (no matching registered squad): '+un.map(x=>x.squad).join(', ')+'.':'');

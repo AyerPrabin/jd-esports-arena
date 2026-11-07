@@ -2074,10 +2074,12 @@ async function submitRegister(){
 /* Verify your squad (squad_verify.sql): after joining, the captain gives the squad's real name and the
    4 players (+ up to 2 subs) with Free Fire names and UIDs. verify_my_squad() checks it (no "abc"/"test"
    names, no UID in two squads) and saves it on the registration; locked once the room details are out. */
+// players a line-up needs, and how many subs: solo 1 + 0, duo 2 + 1, squad 4 + 2 (same limits in verify_my_squad)
+function teamSize(t){const m=String(t&&t.mode||'').toLowerCase();return m==='solo'?[1,0]:m==='duo'?[2,1]:[4,2];}
 function sqvTicketHtml(t,r){
   if(!r||!r.id||_roomCodes.has(t.name))return r&&r.lineup_at?`<div class="mt-next">🛡️ <b>Squad verified</b> · ${(r.lineup||[]).length} players</div>`:'';
   if(r.lineup_at)return `<div class="mt-next">🛡️ <b>Squad verified</b> · ${(r.lineup||[]).map(m=>esc(m.name)).join(', ')} <button type="button" class="link" data-sqv="${esc(t.name)}" style="background:none;border:none;color:var(--gold-l);text-decoration:underline;cursor:pointer;font:inherit">Edit</button></div>`;
-  return `<button type="button" class="inapp-reg mt-checkin mt-sqv-btn" data-sqv="${esc(t.name)}">🛡️ Verify your squad</button><div class="mt-next warn">Add your real squad name and your 4 players' Free Fire names + UIDs. Random names like "abc" or "test" aren't accepted.</div>`;
+  return `<button type="button" class="inapp-reg mt-checkin mt-sqv-btn" data-sqv="${esc(t.name)}">🛡️ Verify your squad</button><div class="mt-next warn">Add your real ${teamSize(t)[0]===1?'player':'team'} name and ${teamSize(t)[0]===1?'your':'your '+teamSize(t)[0]+' players\''} Free Fire name${teamSize(t)[0]===1?'':'s'} + UID${teamSize(t)[0]===1?'':'s'}. Random names like "abc" or "test" aren't accepted.</div>`;
 }
 function sqvEnsure(){
   if(document.getElementById('sqv-overlay'))return;
@@ -2094,15 +2096,16 @@ function sqvEnsure(){
     <button type="button" class="btn-primary" id="sqv-save" style="margin-top:14px;width:100%" onclick="sqvSave()">✅ Verify squad</button></div>`;
   document.body.appendChild(d);
 }
-let _sqvTarget=null;
+let _sqvTarget=null,_sqvNeed=4;
 function sqvOpen(name){
   const r=_myRegs.get(name);if(!sb||!_player||!r)return;
   sqvEnsure();_sqvTarget=name;
   document.getElementById('sqv-tname').textContent=name;
   document.getElementById('sqv-squad').value=r.squad_name||_player.squad_name||'';
   const have=Array.isArray(r.lineup)&&r.lineup.length?r.lineup:[{name:_player.ff_name||'',uid:_player.ff_uid||''}];
-  const rows=[];for(let i=0;i<6;i++){const m=have[i]||{};
-    rows.push(`<label>${i<4?'Player '+(i+1)+(i===0?' (you)':'')+' <span style="color:var(--gold-l)">*</span>':'Sub '+(i-3)+' (optional)'}</label><div style="display:flex;gap:8px"><input class="sqv-n" maxlength="30" placeholder="In-game name" value="${esc(m.name||'')}"><input class="sqv-u" inputmode="numeric" maxlength="13" placeholder="UID" value="${esc(m.uid||'')}" style="max-width:42%"></div>`);}
+  const [need,subs]=teamSize((_lastData&&_lastData.tournaments||[]).find(x=>x.name===name));_sqvNeed=need;
+  const rows=[];for(let i=0;i<need+subs;i++){const m=have[i]||{};
+    rows.push(`<label>${i<need?'Player '+(i+1)+(i===0?' (you)':'')+' <span style="color:var(--gold-l)">*</span>':'Sub '+(i-need+1)+' (optional)'}</label><div style="display:flex;gap:8px"><input class="sqv-n" maxlength="30" placeholder="In-game name" value="${esc(m.name||'')}"><input class="sqv-u" inputmode="numeric" maxlength="13" placeholder="UID" value="${esc(m.uid||'')}" style="max-width:42%"></div>`);}
   document.getElementById('sqv-rows').innerHTML=rows.join('');
   const msg=document.getElementById('sqv-msg');msg.textContent='';msg.className='msg';
   document.getElementById('sqv-overlay').classList.add('open');
@@ -2113,7 +2116,7 @@ async function sqvSave(){
   const ns=[...document.querySelectorAll('#sqv-rows .sqv-n')],us=[...document.querySelectorAll('#sqv-rows .sqv-u')];
   const members=[];
   for(let i=0;i<ns.length;i++){const n=ns[i].value.trim(),u=us[i].value.replace(/\s/g,'');
-    if(!n&&!u){if(i<4){msg.textContent=`Player ${i+1} is missing. Add all 4 players.`;msg.className='msg err';return;}continue;}
+    if(!n&&!u){if(i<_sqvNeed){msg.textContent=`Player ${i+1} is missing. Add all ${_sqvNeed} players.`;msg.className='msg err';return;}continue;}
     if(!n||!/^[0-9]{6,13}$/.test(u)){msg.textContent=`Player ${i+1}: add the in-game name and a 6-13 digit UID.`;msg.className='msg err';return;}
     members.push({name:n,uid:u});}
   btn.disabled=true;
@@ -3147,7 +3150,7 @@ var Z={
   hi:"Hey! \uD83D\uDC4B Ask me about tournaments, joining, rules, or contact.",
   hin:"Hey {x}! \uD83D\uDC4B What do you want to know \u2014 tournaments, joining, or rules?",
   thanks:"Anytime! \uD83D\uDE4C Good luck in the lobby.",
-  squadsize:"It's Squad mode \u2014 4 players per team. Solo/Duo aren't running right now, just Squad tournaments.",
+  squadsize:"Most JD events are Squad, 4 players per team. Some are Solo or Duo, and the event card shows which. The line-up form asks for the right number of players.",
   platform:"Mobile only, Free Fire BR \u2014 squad mode. No PC/emulator unless a tournament specifically says otherwise.",
   ack:"\uD83D\uDC4D",
   fbprompt:"Go ahead \u2014 tell me the issue or your suggestion, and I'll pass it straight to Prabin.",
@@ -3185,7 +3188,7 @@ var Z={
   hi:"\u0928\u092E\u0938\u094D\u0924\u0947! \uD83D\uDC4B \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0938\u0939\u092D\u093E\u0917\u093F\u0924\u093E, \u0928\u093F\u092F\u092E \u0935\u093E \u0938\u092E\u094D\u092A\u0930\u094D\u0915 \u092C\u093E\u0930\u0947 \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
   hin:"\u0928\u092E\u0938\u094D\u0924\u0947 {x}! \uD83D\uDC4B \u0915\u0947 \u0925\u093E\u0939\u093E \u092A\u093E\u0909\u0928 \u091A\u093E\u0939\u0928\u0941\u0939\u0941\u0928\u094D\u091B \u2014 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0938\u0939\u092D\u093E\u0917\u093F\u0924\u093E \u0935\u093E \u0928\u093F\u092F\u092E?",
   thanks:"\u091C\u0939\u093F\u0932\u0947 \u092A\u0928\u093F! \uD83D\uDE4C \u0932\u092C\u0940\u092E\u093E \u0936\u0941\u092D\u0915\u093E\u092E\u0928\u093E\u0964",
-  squadsize:"\u092F\u094B Squad mode \u0939\u094B \u2014 \u091F\u093F\u092E\u092E\u093E \u096A \u091C\u0928\u093E\u0964 \u0905\u0939\u093F\u0932\u0947 Solo/Duo \u091B\u0948\u0928, Squad \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E \u092E\u093E\u0924\u094D\u0930 \u091B\u0964",
+  squadsize:"धेरै JD event Squad हुन्, टिममा ४ जना। कुनै Solo वा Duo हुन्छन्, event card मा लेखिएको हुन्छ।",
   platform:"\u092E\u094B\u092C\u093E\u0907\u0932 \u092E\u093E\u0924\u094D\u0930, Free Fire BR \u2014 squad mode\u0964 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E\u0932\u0947 \u0928\u092D\u0928\u0947\u0938\u0940 PC/emulator \u091A\u0932\u094D\u0926\u0948\u0928\u0964",
   ack:"\uD83D\uDC4D",
   fbprompt:"\u092D\u0928\u094D\u0928\u0941\u0939\u094B\u0938\u094D \u2014 \u0938\u092E\u0938\u094D\u092F\u093E \u0935\u093E \u0938\u0941\u091D\u093E\u0935 \u0932\u0947\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D, \u092E \u092A\u094D\u0930\u092C\u093F\u0928\u0932\u093E\u0908 \u0938\u093F\u0927\u0948 \u092A\u0920\u093E\u0909\u0901\u091B\u0941\u0964",
