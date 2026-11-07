@@ -93,6 +93,27 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .pe-maps i.rnd{background:repeating-linear-gradient(135deg,#1a2233 0 6px,#151c2b 6px 12px);align-items:center;padding:0;font-style:normal;font-size:.9rem}
 .pe-win.hw{color:#FFB15C;background:linear-gradient(90deg,rgba(90,30,140,.35),rgba(255,122,28,.18));border-color:rgba(255,122,28,.55);box-shadow:0 0 14px rgba(150,80,255,.35);text-shadow:0 0 8px rgba(255,122,28,.6)}
 .pe-maps b{font-size:.55rem;font-weight:800;color:#111;background:#FFC83D;border-radius:3px;padding:0 3px;line-height:1.4}
+/* drawn icons instead of phone emoji: the same on every phone, in the page's own colours */
+.ic{width:1.05em;height:1.05em;vertical-align:-.16em;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pe-meta .ic{color:var(--gold);margin-right:3px}
+.ev-seats .hot .ic{margin-right:3px}
+.next .ev-link{display:inline-flex;align-items:center;gap:7px}
+/* the next event to play, on its own map art */
+.ev-hero{position:relative;margin-top:18px;border-radius:22px;overflow:hidden;min-height:250px;display:grid;align-content:end;gap:12px;padding:20px 18px 16px;
+  background:#0d1320 center 35%/cover no-repeat;border:1px solid var(--gold-m);isolation:isolate}
+.ev-hero::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(7,9,15,.05) 0%,rgba(7,9,15,.5) 42%,rgba(7,9,15,.95) 78%)}
+.ev-hero .k{display:inline-flex;align-items:center;gap:6px;justify-self:start;font:600 .78rem var(--font-body);color:#07090F;background:var(--gold);border-radius:999px;padding:3px 11px}
+.ev-hero h2{margin:0;font:700 clamp(1.8rem,7vw,2.6rem)/.98 var(--font-display);overflow-wrap:anywhere;text-shadow:0 2px 14px rgba(0,0,0,.6)}
+.ev-hero .when{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.88rem;color:#E4E8F2}
+.ev-hero .when span{display:inline-flex;align-items:center;gap:6px}
+.ev-hero .when .ic{color:var(--gold)}
+.ev-hero .money{display:grid;grid-template-columns:1fr 1fr;gap:1px;border-radius:14px;overflow:hidden;background:var(--line)}
+.ev-hero .money div{background:rgba(7,9,15,.82);padding:9px 12px}
+.ev-hero .money dt{font-size:.72rem;color:var(--silver)}
+.ev-hero .money dd{margin:0;font:700 1.5rem/1.05 var(--font-display);color:var(--gold);font-variant-numeric:tabular-nums}
+.ev-hero .money div+div dd{color:var(--cream);font-size:1.15rem;padding-top:5px}
+.ev-hero .ev-low .ev-seats{color:#D3D9E6}
+@media (min-width:640px){.ev-hero{min-height:300px;padding:26px}}
 </style>
 <link rel="stylesheet" href="/effects.css">
 <link rel="stylesheet" href="/ui.css?v=26">
@@ -141,8 +162,8 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
     <div class="pe-list" id="pe-list"><div class="pe-empty">Loading events…</div></div>
   </div>
   <div class="next">
-    <a class="ev-link" href="/leaderboard.html">🏆 Leaderboard →</a>
-    <a class="ev-link" href="/squad/">👥 Find teammates →</a>
+    <a class="ev-link" href="/leaderboard.html" id="ev-lb">Leaderboard</a>
+    <a class="ev-link" href="/squad/" id="ev-sq">Find teammates</a>
   </div>
 </main>
 
@@ -158,6 +179,15 @@ const TOURNAMENTS_URL='https://jdesport.co.uk/tournaments.json';
 const sb=(typeof supabase!=='undefined')?supabase.createClient('https://cnoxvqvpmgowdiyrrusv.supabase.co','sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil'):null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pubTime=d=>(d&&Date.parse(d._published_at))||0;
+const ICONS={cal:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+  trophy:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>',
+  map:'<path d="M9 4 3 6.5v14L9 18l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v14M15 6.5v14"/>',
+  crown:'<path d="M3 19h18M4 8l4.5 4L12 5l3.5 7L20 8l-1.8 8.5H5.8z"/>',
+  flame:'<path d="M12 3c.5 3.5 5 5.4 5 10a5 5 0 0 1-10 0c0-2.6 1.4-4 2.4-5.6.4 1.6 1.2 2.6 2.4 3.1.6-2.4.6-4.9.2-7.5z"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/>',
+  star:'<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>'};
+const ic=n=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
 const MAPS=['bermuda','purgatory','kalahari','alpine','nexterra','solara'];
 
 function status(t){
@@ -172,9 +202,9 @@ const isBo3=t=>!t.image&&(t.map2||t.map3);
 const bo3Keys=t=>[t.map,t.map2,t.map3].map(k=>String(k||'random').toLowerCase());
 function mapsHtml(t){
   return `<div class="pe-img pe-maps" aria-hidden="true">${bo3Keys(t).map((k,i)=>MAP_NAME[k]
-    ?`<i style="background-image:url('/maps/thumb/ff-${k}.webp')"><b>M${i+1}</b></i>`:`<i class="rnd" title="Random">🎲</i>`).join('')}</div>`;
+    ?`<i style="background-image:url('/maps/thumb/ff-${k}.webp')"><b>M${i+1}</b></i>`:`<i class="rnd" title="Random">?</i>`).join('')}</div>`;
 }
-const mapsLine=t=>bo3Keys(t).map(k=>MAP_NAME[k]||'🎲 Random').join(' · ');
+const mapsLine=t=>bo3Keys(t).map(k=>MAP_NAME[k]||'Random').join(' · ');
 function fmtDate(t){
   if(t.date)return t.date;
   const ms=Date.parse(t.start);
@@ -220,14 +250,14 @@ async function load(){
       ${isBo3(t)?mapsHtml(t):`<div class="pe-img" style="background-image:url('${esc(img)}')"></div>`}
       <div class="pe-main">
         <div class="pe-name">${esc(t.name)}${t.host?` <small style="font-size:.72em;color:#CFE0FF;font-weight:600">· hosted by @${esc(String(t.host).replace(/^@+/,''))}</small>`:''}</div>
-        <div class="pe-meta">${fmtDate(t)?`<span>📅 <b>${esc(fmtDate(t))}</b></span>`:''}${n?`<span>👥 <b>${n}</b> squad${n===1?'':'s'}</span>`:''}${t.prize?`<span>🏆 <b>${esc(t.prize)}</b></span>`:''}<span>${/^free$/i.test(entry)?'Free entry':'Entry '+esc(entry)}</span>${isBo3(t)?`<span>🗺 <b>${esc(mapsLine(t))}</b></span>`:''}</div>
-        ${st==='completed'&&String(t.winner||'').trim()?`<div class="pe-win${/hallowe?en/i.test(t.name||'')?' hw':''}">${/hallowe?en/i.test(t.name||'')?'🎃🦇':'👑'} ${esc(t.winner)}</div>`:''}
+        <div class="pe-meta">${fmtDate(t)?`<span>${ic('cal')}<b>${esc(fmtDate(t))}</b></span>`:''}${n?`<span>${ic('users')}<b>${n}</b> squad${n===1?'':'s'}</span>`:''}${t.prize?`<span>${ic('trophy')}<b>${esc(t.prize)}</b></span>`:''}<span>${/^free$/i.test(entry)?'Free entry':'Entry '+esc(entry)}</span>${isBo3(t)?`<span>${ic('map')}<b>${esc(mapsLine(t))}</b></span>`:''}</div>
+        ${st==='completed'&&String(t.winner||'').trim()?`<div class="pe-win${/hallowe?en/i.test(t.name||'')?' hw':''}">${ic('crown')} ${esc(t.winner)}</div>`:''}
       </div>
       <span class="pe-status ${st}">${st==='cancelled'?'Cancelled':'Finished'}</span>
       ${squadChips(t.name)}
     </div>`;
   };
-  const slim=name=>`<div class="pe-card slim" role="button" tabindex="0" aria-expanded="false"><div class="pe-main"><div class="pe-name">${esc(name)}</div><div class="pe-meta"><span>👥 <b>${count.get(name)||0}</b> squad${count.get(name)===1?'':'s'}</span></div></div><span class="pe-status">Finished</span>${squadChips(name)}</div>`;
+  const slim=name=>`<div class="pe-card slim" role="button" tabindex="0" aria-expanded="false"><div class="pe-main"><div class="pe-name">${esc(name)}</div><div class="pe-meta"><span>${ic('users')}<b>${count.get(name)||0}</b> squad${count.get(name)===1?'':'s'}</span></div></div><span class="pe-status">Finished</span>${squadChips(name)}</div>`;
 
   list.innerHTML=past.map(card).join('')+older.map(slim).join('');
   loadReviews(list);
@@ -261,7 +291,7 @@ async function loadReviews(list){
     const avg=rows.length?rows.reduce((a,r)=>a+r.rating,0)/rows.length:0;
     el.innerHTML=(rows.length?`<div class="pe-rev-sum"><span class="pe-stars" aria-label="${avg.toFixed(1)} out of 5">${stars(avg)}</span> ${avg.toFixed(1)} · ${rows.length} review${rows.length===1?'':'s'}</div>`+
       rows.slice(0,5).map(r=>`<p class="pe-rev-item"><span class="pe-stars" aria-label="${r.rating} out of 5">${stars(r.rating)}</span> <b>@${esc(r.username||'player')}</b>${r.comment?' — '+esc(r.comment):''}</p>`).join(''):'')+
-      (mine.has(name)?`<button type="button" class="pe-rate">⭐ Rate this event</button>`:'');
+      (mine.has(name)?`<button type="button" class="pe-rate">${ic('star')} Rate this event</button>`:'');
     const b=el.querySelector('.pe-rate');
     if(b)b.onclick=e=>{e.stopPropagation();rateForm(el,name);};
     el.onclick=e=>e.stopPropagation();
@@ -281,11 +311,12 @@ function rateForm(el,name){
 /* Every event still to come, sorted by day, prize or host. Join and tickets open the homepage's own flow
    (/?join=, /?ticket=), so the wallet, free card, waitlist and confirm rules live in one place only. */
 const LANG=(()=>{try{return localStorage.getItem('jd_lang')==='ne'?'ne':'en';}catch(e){return 'en';}})();
-const TXT={en:{units:{solo:'players',duo:'duos',squad:'squads'},modes:{solo:'Solo',duo:'Duo'},stagenote:(n,to)=>`Top ${n} go to the ${to}. The prize is played for in the Grand Final.`,semisw:'Semi-finals',finalw:'Grand Final',path:(a,b)=>a+' → '+b,drawn:'Drawn',infinal:'In the Grand Final',pool:'Prize pool',fee:'Entry fee',feeshort:'Entry',cardshort:'card or 15 pts',h:'Events',sub:'Every Free Fire event on JD Arena. Tap one for details.',day:'Day',prize:'Prize',host:'Host',all:'All',free:'Card or 15 points',paid:'Paid',open:'Seats left',past:'Past events',pastsub:'Every finished tournament: who won, the prize, and the squads that played. Tap one to see its squads.',tonight:'Today',tomorrow:'Tomorrow',tba:'Date to be announced',biggest:'Biggest prize first',official:'JD Official',events:n=>n+(n===1?' event':' events'),join:'Join',wait:'Join waitlist',ticket:'Your ticket',waiting:'On waitlist',view:'View',full:'Full',fullw:'Full, waitlist open',left:n=>n+(n===1?' seat left':' seats left'),of:(a,b)=>a+' of '+b+' squads',live:'● Live',entry:'Entry',freeentry:'Free card or 15 points',map:'Map',device:'Device',format:'Format',date:'When',pts:'points',jdpay:(a,b,c)=>`Official JD event. The prize goes to your wallet: 1st Rs ${a}, 2nd Rs ${b}, 3rd Rs ${c}.`,hostpay:h=>`Run by <b>@${h}</b>, who sends the room code and pays this prize directly. It won't show in your JD wallet.`,none:'Nothing matches right now. Try All.',noev:'No events coming up yet. New events show up here the moment they are published.',err:'Could not load events. Check your connection and try again.'},
-ne:{units:{solo:'players',duo:'duos',squad:'squad'},modes:{solo:'Solo',duo:'Duo'},stagenote:(n,to)=>`माथिका ${n} ${to} मा जान्छन्। पुरस्कार Grand Final मा छ।`,semisw:'Semi-final',finalw:'Grand Final',path:(a,b)=>a+' → '+b,drawn:'Drawn',infinal:'Grand Final मा',pool:'पुरस्कार रकम',fee:'Entry शुल्क',feeshort:'Entry',cardshort:'card वा 15 pts',h:'प्रतियोगिता',sub:'JD Arena का सबै Free Fire event। थप जानकारीका लागि event मा थिच्नुहोस्।',day:'दिन',prize:'पुरस्कार',host:'Host',all:'सबै',free:'Card वा 15 points',paid:'Paid',open:'Seat बाँकी',past:'पुराना event',pastsub:'सकिएका सबै प्रतियोगिता: को जित्यो, पुरस्कार र खेल्ने squad। Squad हेर्न थिच्नुहोस्।',tonight:'आज',tomorrow:'भोलि',tba:'मिति पछि आउँछ',biggest:'ठूलो पुरस्कार पहिले',official:'JD Official',events:n=>n+' event',join:'Join',wait:'Waitlist मा join',ticket:'तपाईंको ticket',waiting:'Waitlist मा',view:'हेर्नुहोस्',full:'भरियो',fullw:'भरियो, waitlist खुला',left:n=>n+' seat बाँकी',of:(a,b)=>b+' मध्ये '+a+' squad',live:'● Live',entry:'Entry',freeentry:'Free card वा 15 points',map:'Map',device:'Device',format:'Format',date:'कहिले',pts:'points',jdpay:(a,b,c)=>`JD को आधिकारिक event। पुरस्कार wallet मा आउँछ: 1st Rs ${a}, 2nd Rs ${b}, 3rd Rs ${c}।`,hostpay:h=>`<b>@${h}</b> ले चलाउँछन्। Room code र पुरस्कार उनीहरूले नै सिधै दिन्छन्, JD wallet मा देखिँदैन।`,none:'अहिले केही मिलेन। सबै थिच्नुहोस्।',noev:'अहिले कुनै event छैन। नयाँ event publish हुनासाथ यहाँ देखिन्छ।',err:'Event लोड भएन। Connection हेरेर फेरि प्रयास गर्नुहोस्।'}}[LANG];
+const TXT={en:{units:{solo:'players',duo:'duos',squad:'squads'},modes:{solo:'Solo',duo:'Duo'},stagenote:(n,to)=>`Top ${n} go to the ${to}. The prize is played for in the Grand Final.`,semisw:'Semi-finals',finalw:'Grand Final',path:(a,b)=>a+' → '+b,drawn:'Drawn',infinal:'In the Grand Final',next:'Next event',startsin:s=>'Starts in '+s,soon:'Starting now',pool:'Prize pool',fee:'Entry fee',feeshort:'Entry',cardshort:'card or 15 pts',h:'Events',sub:'Every Free Fire event on JD Arena. Tap one for details.',day:'Day',prize:'Prize',host:'Host',all:'All',free:'Card or 15 points',paid:'Paid',open:'Seats left',past:'Past events',pastsub:'Every finished tournament: who won, the prize, and the squads that played. Tap one to see its squads.',tonight:'Today',tomorrow:'Tomorrow',tba:'Date to be announced',biggest:'Biggest prize first',official:'JD Official',events:n=>n+(n===1?' event':' events'),join:'Join',wait:'Join waitlist',ticket:'Your ticket',waiting:'On waitlist',view:'View',full:'Full',fullw:'Full, waitlist open',left:n=>n+(n===1?' seat left':' seats left'),of:(a,b)=>a+' of '+b+' squads',live:'● Live',entry:'Entry',freeentry:'Free card or 15 points',map:'Map',device:'Device',format:'Format',date:'When',pts:'points',jdpay:(a,b,c)=>`Official JD event. The prize goes to your wallet: 1st Rs ${a}, 2nd Rs ${b}, 3rd Rs ${c}.`,hostpay:h=>`Run by <b>@${h}</b>, who sends the room code and pays this prize directly. It won't show in your JD wallet.`,none:'Nothing matches right now. Try All.',noev:'No events coming up yet. New events show up here the moment they are published.',err:'Could not load events. Check your connection and try again.'},
+ne:{units:{solo:'players',duo:'duos',squad:'squad'},modes:{solo:'Solo',duo:'Duo'},stagenote:(n,to)=>`माथिका ${n} ${to} मा जान्छन्। पुरस्कार Grand Final मा छ।`,semisw:'Semi-final',finalw:'Grand Final',path:(a,b)=>a+' → '+b,drawn:'Drawn',infinal:'Grand Final मा',next:'अर्को event',startsin:s=>s+' पछि सुरु',soon:'सुरु हुँदैछ',pool:'पुरस्कार रकम',fee:'Entry शुल्क',feeshort:'Entry',cardshort:'card वा 15 pts',h:'प्रतियोगिता',sub:'JD Arena का सबै Free Fire event। थप जानकारीका लागि event मा थिच्नुहोस्।',day:'दिन',prize:'पुरस्कार',host:'Host',all:'सबै',free:'Card वा 15 points',paid:'Paid',open:'Seat बाँकी',past:'पुराना event',pastsub:'सकिएका सबै प्रतियोगिता: को जित्यो, पुरस्कार र खेल्ने squad। Squad हेर्न थिच्नुहोस्।',tonight:'आज',tomorrow:'भोलि',tba:'मिति पछि आउँछ',biggest:'ठूलो पुरस्कार पहिले',official:'JD Official',events:n=>n+' event',join:'Join',wait:'Waitlist मा join',ticket:'तपाईंको ticket',waiting:'Waitlist मा',view:'हेर्नुहोस्',full:'भरियो',fullw:'भरियो, waitlist खुला',left:n=>n+' seat बाँकी',of:(a,b)=>b+' मध्ये '+a+' squad',live:'● Live',entry:'Entry',freeentry:'Free card वा 15 points',map:'Map',device:'Device',format:'Format',date:'कहिले',pts:'points',jdpay:(a,b,c)=>`JD को आधिकारिक event। पुरस्कार wallet मा आउँछ: 1st Rs ${a}, 2nd Rs ${b}, 3rd Rs ${c}।`,hostpay:h=>`<b>@${h}</b> ले चलाउँछन्। Room code र पुरस्कार उनीहरूले नै सिधै दिन्छन्, JD wallet मा देखिँदैन।`,none:'अहिले केही मिलेन। सबै थिच्नुहोस्।',noev:'अहिले कुनै event छैन। नयाँ event publish हुनासाथ यहाँ देखिन्छ।',err:'Event लोड भएन। Connection हेरेर फेरि प्रयास गर्नुहोस्।'}}[LANG];
 document.getElementById('ev-h').textContent=TXT.h;document.getElementById('ev-sub').textContent=TXT.sub;
 document.querySelectorAll('[data-s]').forEach(b=>b.textContent=TXT[b.dataset.s]);
 document.querySelectorAll('[data-f]').forEach(b=>b.textContent=TXT[b.dataset.f]);
+document.getElementById('ev-lb').insertAdjacentHTML('afterbegin',ic('trophy'));document.getElementById('ev-sq').insertAdjacentHTML('afterbegin',ic('users'));
 const NPT='Asia/Kathmandu';
 const hostOf=t=>String(t.host||'').replace(/^@+/,'').trim();
 const startMs=t=>{const m=Date.parse(t.start);return isNaN(m)?null:m;};
@@ -318,7 +349,7 @@ function row(t,by){
   const num=prizeNum(t),prize=num?'Rs '+num.toLocaleString('en-IN'):(t.stage==='group'||t.stage==='semi')?TXT.infinal:esc(t.prize||'');
   const org=host?`<span class="ev-org host"><i aria-hidden="true">${esc(host.charAt(0).toUpperCase())}</i>@${esc(host)}</span>`:`<span class="ev-org"><img src="/logo.webp" alt="">${TXT.official}</span>`;
   const when=(by==='day'?'':(dayTitle(t).filter(Boolean).pop()+' · '))+timeOf(t);
-  const seat=!slots?'':left===0?`<span class="full">${isPaid(t)?TXT.full:TXT.fullw}</span>`:left<=3?`<span class="hot">🔥 ${TXT.left(left)}</span>`:TXT.left(left);
+  const seat=!slots?'':left===0?`<span class="full">${isPaid(t)?TXT.full:TXT.fullw}</span>`:left<=3?`<span class="hot">${ic('flame')}${TXT.left(left)}</span>`:TXT.left(left);
   const pct=slots?Math.min(100,Math.round(n/slots*100)):0,open=evOpen.has(t.name);
   const b=Math.floor(num*.3),c=Math.round(num*.2);
   const entry=isPaid(t)?esc(/^\d+$/.test(String(t.entry).trim())?t.entry+' '+TXT.pts:t.entry):TXT.freeentry;
@@ -337,6 +368,21 @@ function row(t,by){
     </div>
   </article>`;
 }
+const inTime=ms=>{const m=Math.round((ms-Date.now())/6e4);if(m<=0)return '';const d=Math.floor(m/1440),h=Math.floor(m%1440/60),mm=m%60;
+  return d?d+'d '+h+'h':h?h+'h '+mm+'m':mm+'m';};
+function hero(t){
+  const st=evStatus(t),slots=+t.slots||0,n=evCounts.get(t.name)||0,left=slots?Math.max(0,slots-n):null,num=prizeNum(t);
+  const k=isBo3(t)?(bo3Keys(t).find(x=>MAP_NAME[x])||'bermuda'):mapOf(t),art=t.image||('/maps/ff-'+k+'.webp');
+  const entry=isPaid(t)?esc(/^\d+$/.test(String(t.entry).trim())?t.entry+' '+TXT.pts:t.entry):TXT.freeentry,cd=startMs(t)?inTime(startMs(t)):'';
+  const pct=slots?Math.min(100,Math.round(n/slots*100)):0,seat=!slots?'':left===0?(isPaid(t)?TXT.full:TXT.fullw):TXT.left(left);
+  return `<section class="ev-hero" style="background-image:url('${esc(art)}')" aria-label="${esc(TXT.next)}">
+    <span class="k">${ic('clock')}${esc(cd?TXT.startsin(cd):TXT.soon)}</span>
+    <h2>${esc(t.name)}</h2>
+    <div class="when"><span>${ic('cal')}${esc([dayTitle(t).filter(Boolean).pop(),timeOf(t)].filter(Boolean).join(', '))}</span><span>${ic('map')}${esc(isBo3(t)?mapsLine(t):(MAP_NAME[mapOf(t)]||''))}</span>${hostOf(t)?`<span>@${esc(hostOf(t))}</span>`:''}</div>
+    <dl class="money"><div><dt>${TXT.pool}</dt><dd>${num?'Rs '+num.toLocaleString('en-IN'):esc(t.prize||'')}</dd></div><div><dt>${TXT.fee}</dt><dd>${entry}</dd></div></dl>
+    <div class="ev-low"><div class="ev-seats">${slots?`<span class="ev-track" aria-hidden="true"><i style="width:${pct}%"></i></span>`:''}${TXT.of(n,slots||'?').replace(/squads?$/,TXT.units[t.mode]||'$&')}${seat?' · '+seat:''}</div>${action(t,st,n)}</div>
+  </section>`;
+}
 const group=(title,sub,items,by,now)=>`<section class="ev-group"><h2${now?' class="now"':''}>${esc(title)}${sub?` <small>${esc(sub)}</small>`:''}</h2>${items.map(t=>row(t,by)).join('')}</section>`;
 function renderEvents(){
   const past=evFilter==='past';
@@ -350,10 +396,13 @@ function renderEvents(){
   const up=(evDoc.tournaments||[]).filter(t=>!['completed','cancelled'].includes(evStatus(t)));
   const L=up.filter(t=>evFilter==='all'||(evFilter==='free'&&!isPaid(t))||(evFilter==='paid'&&isPaid(t))||(evFilter==='open'&&!t.parent&&(!+t.slots||(evCounts.get(t.name)||0)<+t.slots))).sort(byTime);
   let html='';
-  if(!L.length)html=`<div class="pe-empty" style="margin-top:16px">${up.length?TXT.none:TXT.noev}</div>`;
+  // banner only on the plain list: the soonest event still to start that a player can join
+  const top=evFilter==='all'&&evSort==='day'?L.find(t=>evStatus(t)==='upcoming'&&!t.parent&&!t.mega&&!earlyLocked(t)):null;
+  if(top){html=hero(top);L.splice(L.indexOf(top),1);}
+  if(!L.length){if(!top)html=`<div class="pe-empty" style="margin-top:16px">${up.length?TXT.none:TXT.noev}</div>`;}
   else if(evSort==='day'){
     const keys=[...new Set(L.map(t=>startMs(t)==null?'':dayKey(startMs(t))))];
-    html=keys.map(k=>{const it=L.filter(t=>(startMs(t)==null?'':dayKey(startMs(t)))===k),[a,b]=dayTitle(it[0]);return group(a,b,it,'day',a===TXT.tonight);}).join('');
+    html+=keys.map(k=>{const it=L.filter(t=>(startMs(t)==null?'':dayKey(startMs(t)))===k),[a,b]=dayTitle(it[0]);return group(a,b,it,'day',a===TXT.tonight);}).join('');
   }else if(evSort==='prize'){
     html=group(TXT.biggest,'',L.slice().sort((a,b)=>prizeNum(b)-prizeNum(a)||byTime(a,b)),'prize');
   }else{
