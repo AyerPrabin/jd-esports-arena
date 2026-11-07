@@ -17,7 +17,7 @@ if (window.JDApp || /JDArenaApp\//.test(navigator.userAgent)) document.documentE
   try { ne = localStorage.getItem('jd_lang') === 'ne'; } catch (e) {}
   var tabs = [
     { k: 'home', href: '/', en: 'Home', np: 'होम' },
-    { k: 'events', href: '/#tournaments', en: 'Events', np: 'प्रतियोगिता' },
+    { k: 'events', href: '/events/', en: 'Events', np: 'प्रतियोगिता' },
     { k: 'fight', href: '/challenges/', en: 'Challenges', np: 'च्यालेन्ज' },
     { k: 'chat', href: '/chat/', en: 'Chat', np: 'च्याट' },
     { k: 'ranks', href: '/leaderboard.html', en: 'Ranks', np: 'र्याङ्क' },
@@ -120,7 +120,7 @@ if (window.JDApp || /JDArenaApp\//.test(navigator.userAgent)) document.documentE
     document.body.insertBefore(f, tb || null);
   }
   if (f && !f.querySelector('.site-links')) {
-    var links = [['/', 'Tournaments'], ['/challenges/', 'Challenges'], ['/leaderboard.html', 'Leaderboard'], ['/events/', 'Past events'], ['/about/', 'About'], ['/ban-list.html', 'Ban list']];
+    var links = [['/', 'Tournaments'], ['/challenges/', 'Challenges'], ['/leaderboard.html', 'Leaderboard'], ['/events/#past', 'Past events'], ['/about/', 'About'], ['/ban-list.html', 'Ban list']];
     var here = location.pathname.replace(/index\.html$/, '');
     var s = document.createElement('nav');
     s.className = 'site-links';

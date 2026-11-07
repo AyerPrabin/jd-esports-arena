@@ -9,8 +9,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#07090F">
 <link rel="icon" type="image/png" href="/favicon-64.png">
-<title>Past Events — JD Esports Arena</title>
-<meta name="description" content="Every finished JD Esports Arena Free Fire tournament — winners, prizes and the squads that played.">
+<title>Events — JD Esports Arena</title>
+<meta name="description" content="Every JD Esports Arena Free Fire event by day, prize and host, plus past winners and the squads that played.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
@@ -35,6 +35,53 @@ header{padding:20px var(--gutter);border-bottom:1px solid var(--line)}
 main{max-width:var(--container);margin:0 auto;padding:40px 0 80px}
 footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8rem}
 .next{margin-top:28px;display:flex;gap:10px;flex-wrap:wrap}
+/* every event: sort bar + rows built on the same card as past events (.pe-card) */
+.ev-bar{position:sticky;top:0;z-index:20;background:var(--bg);padding:10px 0;margin-bottom:6px;display:grid;gap:8px;border-bottom:1px solid var(--line)}
+.ev-seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:999px;background:var(--panel);border:1px solid var(--line)}
+.ev-seg button{border:0;background:none;color:var(--silver);font:700 1.08rem var(--font-display);padding:8px 4px;border-radius:999px;cursor:pointer}
+.ev-seg button[aria-pressed=true]{background:linear-gradient(100deg,var(--gold),var(--gold-2));color:#07090F}
+.ev-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}
+.ev-chips::-webkit-scrollbar{display:none}
+.ev-chips button{flex:none;border:1px solid var(--line);background:none;color:var(--silver);font:500 .8rem var(--font-body);padding:6px 12px;border-radius:999px;cursor:pointer}
+.ev-chips button[aria-pressed=true]{border-color:var(--gold-m);color:var(--gold-l);background:rgba(255,200,61,.12)}
+.ev-group{margin-top:20px;display:grid;gap:10px}
+.ev-group h2{font:700 1.45rem/1.1 var(--font-display);margin:0;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;text-wrap:balance}
+.ev-group h2 small{font:400 .82rem var(--font-body);color:var(--silver)}
+.ev-group h2.now{color:var(--gold-l)}
+.ev{border-radius:16px;background:var(--panel);border:1px solid var(--line);padding:10px 12px;display:grid;gap:10px}
+.ev:hover{border-color:var(--gold-m)}
+.ev.joined{border-color:rgba(98,211,148,.45)}
+.ev-top{all:unset;box-sizing:border-box;display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:12px;align-items:center;cursor:pointer;width:100%}
+.ev-top:focus-visible,.ev-act:focus-visible,.ev-seg button:focus-visible,.ev-chips button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.ev-top .pe-img{width:64px;height:64px}
+.ev-name{display:block;font:700 1.18rem/1.12 var(--font-display);overflow-wrap:anywhere}
+.ev-meta{display:flex;flex-wrap:wrap;align-items:center;gap:3px 10px;margin-top:4px;font-size:.8rem;color:var(--silver)}
+.ev-org{display:inline-flex;align-items:center;gap:5px;font-weight:600;color:var(--gold-l);min-width:0;overflow-wrap:anywhere}
+.ev-org img,.ev-org i{width:16px;height:16px;border-radius:50%;flex:none}
+.ev-org.host{color:#CFE0FF}
+.ev-org i{font-style:normal;display:grid;place-items:center;background:#2B3B63;font-size:.58rem;color:#CFE0FF}
+.ev-live{color:#ff7676;font-weight:700}
+.ev-prize{text-align:right;font:700 1.55rem/1 var(--font-display);color:var(--gold);white-space:nowrap;font-variant-numeric:tabular-nums}
+.ev-prize.big{font-size:2rem}
+.ev-prize small{display:block;margin-top:3px;font:500 .7rem var(--font-body);color:var(--silver)}
+.ev-low{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}
+.ev-seats{font-size:.76rem;color:var(--silver);font-variant-numeric:tabular-nums}
+.ev-seats .full{color:#ff9a9a;font-weight:600}
+.ev-seats .hot{color:var(--gold-l);font-weight:600}
+.ev-track{display:block;height:5px;margin-bottom:4px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+.ev-track i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-2))}
+.ev-act{display:inline-block;text-align:center;min-width:104px;padding:9px 18px;border-radius:999px;background:linear-gradient(100deg,var(--gold),var(--gold-2));color:#07090F;font-weight:700;font-size:.86rem}
+.ev-act.alt{background:none;border:1px solid var(--gold-m);color:var(--gold-l)}
+.ev-act.ok{background:none;border:1px solid rgba(98,211,148,.6);color:#62D394}
+.ev-act.off{background:rgba(255,255,255,.06);color:var(--silver)}
+.ev-more{border-top:1px solid var(--line);padding-top:10px;display:grid;gap:10px}
+.ev-more[hidden],.ev-seg[hidden]{display:none}
+.ev-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:0}
+.ev-facts div{min-width:0}
+.ev-facts dt{font-size:.72rem;color:var(--silver)}
+.ev-facts dd{margin:0;font-size:.88rem;font-weight:500;overflow-wrap:anywhere}
+.ev-note{margin:0;font-size:.82rem;color:var(--silver)}
+.ev-note b{color:var(--gold-l);font-weight:600}
 /* best of 3: the three maps as mini tiles in place of the single map picture */
 .pe-img.pe-maps{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;overflow:hidden;background:#0d1320;filter:none}
 .pe-maps i{position:relative;background-size:cover;background-position:center;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px}
@@ -49,8 +96,8 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 <link rel="canonical" href="https://jdesport.co.uk/events/">
 <meta property="og:url" content="https://jdesport.co.uk/events/">
 <meta property="og:site_name" content="JD Esports Arena">
-<meta property="og:title" content="Past Events — JD Esports Arena">
-<meta property="og:description" content="Every finished JD Esports Arena Free Fire tournament — winners, prizes and the squads that played.">
+<meta property="og:title" content="Events — JD Esports Arena">
+<meta property="og:description" content="Every JD Esports Arena Free Fire event by day, prize and host, plus past winners and the squads that played.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://jdesport.co.uk/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -66,13 +113,29 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 
 <main class="wrap">
   <div class="pe-head">
-    <h1>Past events</h1>
-    <p>Every finished tournament: who won, the prize, and the squads that played. Tap an event to see its squads.</p>
+    <h1 id="ev-h">Events</h1>
+    <p id="ev-sub">Every Free Fire event on JD Arena. Tap one for details.</p>
   </div>
-  <div class="pe-stats" id="pe-stats" hidden></div>
-  <div class="pe-list" id="pe-list"><div class="pe-empty">Loading events…</div></div>
+  <div class="ev-bar">
+    <div class="ev-seg" id="ev-seg" role="group" aria-label="Sort events">
+      <button type="button" data-s="day" aria-pressed="true">Day</button>
+      <button type="button" data-s="prize" aria-pressed="false">Prize</button>
+      <button type="button" data-s="host" aria-pressed="false">Host</button>
+    </div>
+    <div class="ev-chips" id="ev-chips" role="group" aria-label="Filter events">
+      <button type="button" data-f="all" aria-pressed="true">All</button>
+      <button type="button" data-f="free" aria-pressed="false">Card or 15 points</button>
+      <button type="button" data-f="paid" aria-pressed="false">Paid</button>
+      <button type="button" data-f="open" aria-pressed="false">Seats left</button>
+      <button type="button" data-f="past" aria-pressed="false">Past events</button>
+    </div>
+  </div>
+  <div id="ev-list" aria-live="polite"><div class="pe-empty">Loading events…</div></div>
+  <div id="pe-wrap" hidden>
+    <div class="pe-stats" id="pe-stats" hidden></div>
+    <div class="pe-list" id="pe-list"><div class="pe-empty">Loading events…</div></div>
+  </div>
   <div class="next">
-    <a class="ev-link" href="/#tournaments">⚔️ Upcoming events →</a>
     <a class="ev-link" href="/leaderboard.html">🏆 Leaderboard →</a>
     <a class="ev-link" href="/squad/">👥 Find teammates →</a>
   </div>
@@ -90,7 +153,7 @@ const TOURNAMENTS_URL='https://jdesport.co.uk/tournaments.json';
 const sb=(typeof supabase!=='undefined')?supabase.createClient('https://cnoxvqvpmgowdiyrrusv.supabase.co','sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil'):null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pubTime=d=>(d&&Date.parse(d._published_at))||0;
-const MAPS=['bermuda','purgatory','kalahari','alpine','nexterra'];
+const MAPS=['bermuda','purgatory','kalahari','alpine','nexterra','solara'];
 
 function status(t){
   const s=String(t.status||'upcoming').toLowerCase();
@@ -210,9 +273,114 @@ function rateForm(el,name){
     loadReviews(el.closest('.pe-list'));
   };
 }
-load().catch(()=>{document.getElementById('pe-list').innerHTML='<div class="pe-empty">Could not load events right now. Please try again.</div>';});
+/* Every event still to come, sorted by day, prize or host. Join and tickets open the homepage's own flow
+   (/?join=, /?ticket=), so the wallet, free card, waitlist and confirm rules live in one place only. */
+const LANG=(()=>{try{return localStorage.getItem('jd_lang')==='ne'?'ne':'en';}catch(e){return 'en';}})();
+const TXT={en:{h:'Events',sub:'Every Free Fire event on JD Arena. Tap one for details.',day:'Day',prize:'Prize',host:'Host',all:'All',free:'Card or 15 points',paid:'Paid',open:'Seats left',past:'Past events',pastsub:'Every finished tournament: who won, the prize, and the squads that played. Tap one to see its squads.',tonight:'Today',tomorrow:'Tomorrow',tba:'Date to be announced',biggest:'Biggest prize first',official:'JD Official',events:n=>n+(n===1?' event':' events'),join:'Join',wait:'Join waitlist',ticket:'Your ticket',waiting:'On waitlist',view:'View',full:'Full',fullw:'Full, waitlist open',left:n=>n+(n===1?' seat left':' seats left'),of:(a,b)=>a+' of '+b+' squads',live:'● Live',entry:'Entry',freeentry:'Free card or 15 points',map:'Map',device:'Device',format:'Format',date:'When',pts:'points',jdpay:(a,b,c)=>`Official JD event. The prize goes to your wallet: 1st Rs ${a}, 2nd Rs ${b}, 3rd Rs ${c}.`,hostpay:h=>`Run by <b>@${h}</b>, who sends the room code and pays this prize directly. It won't show in your JD wallet.`,none:'Nothing matches right now. Try All.',noev:'No events coming up yet. New events show up here the moment they are published.',err:'Could not load events. Check your connection and try again.'},
+ne:{h:'प्रतियोगिता',sub:'JD Arena का सबै Free Fire event। थप जानकारीका लागि event मा थिच्नुहोस्।',day:'दिन',prize:'पुरस्कार',host:'Host',all:'सबै',free:'Card वा 15 points',paid:'Paid',open:'Seat बाँकी',past:'पुराना event',pastsub:'सकिएका सबै प्रतियोगिता: को जित्यो, पुरस्कार र खेल्ने squad। Squad हेर्न थिच्नुहोस्।',tonight:'आज',tomorrow:'भोलि',tba:'मिति पछि आउँछ',biggest:'ठूलो पुरस्कार पहिले',official:'JD Official',events:n=>n+' event',join:'Join',wait:'Waitlist मा join',ticket:'तपाईंको ticket',waiting:'Waitlist मा',view:'हेर्नुहोस्',full:'भरियो',fullw:'भरियो, waitlist खुला',left:n=>n+' seat बाँकी',of:(a,b)=>b+' मध्ये '+a+' squad',live:'● Live',entry:'Entry',freeentry:'Free card वा 15 points',map:'Map',device:'Device',format:'Format',date:'कहिले',pts:'points',jdpay:(a,b,c)=>`JD को आधिकारिक event। पुरस्कार wallet मा आउँछ: 1st Rs ${a}, 2nd Rs ${b}, 3rd Rs ${c}।`,hostpay:h=>`<b>@${h}</b> ले चलाउँछन्। Room code र पुरस्कार उनीहरूले नै सिधै दिन्छन्, JD wallet मा देखिँदैन।`,none:'अहिले केही मिलेन। सबै थिच्नुहोस्।',noev:'अहिले कुनै event छैन। नयाँ event publish हुनासाथ यहाँ देखिन्छ।',err:'Event लोड भएन। Connection हेरेर फेरि प्रयास गर्नुहोस्।'}}[LANG];
+document.getElementById('ev-h').textContent=TXT.h;document.getElementById('ev-sub').textContent=TXT.sub;
+document.querySelectorAll('[data-s]').forEach(b=>b.textContent=TXT[b.dataset.s]);
+document.querySelectorAll('[data-f]').forEach(b=>b.textContent=TXT[b.dataset.f]);
+const NPT='Asia/Kathmandu';
+const hostOf=t=>String(t.host||'').replace(/^@+/,'').trim();
+const startMs=t=>{const m=Date.parse(t.start);return isNaN(m)?null:m;};
+function evStatus(t){const s=status(t);if(s==='upcoming'){const m=startMs(t);if(m!=null&&Date.now()>=m)return 'live';}return s;}
+const isPaid=t=>{const e=String(t.entry||'').trim().toLowerCase();return !!e&&e!=='free';};
+const prizeNum=t=>{const m=String(t.prize||'').replace(/,/g,'').match(/\d+/);return m?+m[0]:0;};
+const dayKey=ms=>new Date(ms).toLocaleDateString('en-CA',{timeZone:NPT});
+function dayTitle(t){
+  const m=startMs(t);if(m==null)return [TXT.tba,''];
+  const k=dayKey(m),nice=new Date(m).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:NPT});
+  const d=Math.round((Date.parse(k)-Date.parse(dayKey(Date.now())))/864e5);
+  return d<=0?[TXT.tonight,nice]:d===1?[TXT.tomorrow,nice]:[nice,''];
+}
+const timeOf=t=>{const m=startMs(t);return m==null?String(t.time||'').replace(/\s*NPT$/,''):new Date(m).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:NPT});};
+const earlyLocked=t=>/^(yes|true)$/i.test(String(t.early_access||''))&&t.reg_opens&&Date.parse(t.reg_opens)>Date.now();
+
+let evDoc=null,evCounts=new Map(),evMine=new Map(),evSort='day',evFilter='all',evOpen=new Set(),evLast='',pastLoaded=false;
+
+function action(t,st,n){
+  const slots=+t.slots||0,mine=evMine.get(t.name),q=encodeURIComponent(t.name);
+  if(mine)return `<a class="ev-act ok" href="/?ticket=${q}">${mine==='waitlisted'?TXT.waiting:TXT.ticket}</a>`;
+  if(t.mega)return `<a class="ev-act" href="/mega/">${TXT.view}</a>`;
+  if(st==='live'||earlyLocked(t))return `<a class="ev-act alt" href="/?ticket=${q}">${TXT.view}</a>`;
+  if(slots&&n>=slots)return isPaid(t)?`<span class="ev-act off">${TXT.full}</span>`:`<a class="ev-act alt" href="/?join=${q}">${TXT.wait}</a>`;
+  return `<a class="ev-act" href="/?join=${q}">${TXT.join}</a>`;
+}
+function row(t,by){
+  const st=evStatus(t),host=hostOf(t),slots=+t.slots||0,n=evCounts.get(t.name)||0,left=slots?Math.max(0,slots-n):null;
+  const num=prizeNum(t),prize=num?'Rs '+num.toLocaleString('en-IN'):esc(t.prize||'');
+  const org=host?`<span class="ev-org host"><i aria-hidden="true">${esc(host.charAt(0).toUpperCase())}</i>@${esc(host)}</span>`:`<span class="ev-org"><img src="/logo.webp" alt="">${TXT.official}</span>`;
+  const when=(by==='day'?'':(dayTitle(t).filter(Boolean).pop()+' · '))+timeOf(t);
+  const seat=!slots?'':left===0?`<span class="full">${isPaid(t)?TXT.full:TXT.fullw}</span>`:left<=3?`<span class="hot">🔥 ${TXT.left(left)}</span>`:TXT.left(left);
+  const pct=slots?Math.min(100,Math.round(n/slots*100)):0,open=evOpen.has(t.name);
+  const b=Math.floor(num*.3),c=Math.round(num*.2);
+  const entry=isPaid(t)?esc(/^\d+$/.test(String(t.entry).trim())?t.entry+' '+TXT.pts:t.entry):TXT.freeentry;
+  const when2=[dayTitle(t).filter(Boolean).pop(),timeOf(t)].filter(Boolean).join(', ');
+  const fact=(k,v)=>v?`<div><dt>${k}</dt><dd>${v}</dd></div>`:'';
+  return `<article class="ev${evMine.get(t.name)?' joined':''}" data-ev="${esc(t.name)}">
+    <button type="button" class="ev-top" aria-expanded="${open}">
+      ${isBo3(t)?mapsHtml(t):`<span class="pe-img" style="display:block;background-image:url('${esc(t.image||('/maps/thumb/ff-'+mapOf(t)+'.webp'))}')"></span>`}
+      <span style="min-width:0"><span class="ev-name">${esc(t.name)}</span><span class="ev-meta">${st==='live'?`<span class="ev-live">${TXT.live}</span>`:`<span>${esc(when)}</span>`}${by==='host'?'':org}</span></span>
+      <span class="ev-prize${num>=1000?' big':''}">${prize}<small>${isPaid(t)?entry:''}</small></span>
+    </button>
+    <div class="ev-low"><div class="ev-seats">${slots?`<span class="ev-track" aria-hidden="true"><i style="width:${pct}%"></i></span>`:''}${TXT.of(n,slots||'?')}${seat?' · '+seat:''}</div>${action(t,st,n)}</div>
+    <div class="ev-more"${open?'':' hidden'}>
+      <dl class="ev-facts">${fact(TXT.date,esc(when2))}${fact(TXT.entry,entry)}${fact(TXT.map,esc(isBo3(t)?mapsLine(t):(MAP_NAME[mapOf(t)]||'')))}${fact(TXT.device,esc(t.platform||''))}${fact(TXT.format,esc(t.format||''))}${fact(TXT.prize,esc(t.prize&&num?(/^\s*(rs\.?\s*)?[\d,]+\s*$/i.test(t.prize)?'Rs '+num.toLocaleString('en-IN'):t.prize):t.prize||''))}</dl>
+      ${t.mega?'':`<p class="ev-note">${host?TXT.hostpay(esc(host)):(num?TXT.jdpay(num-b-c,b,c):'')}</p>`}
+    </div>
+  </article>`;
+}
+const group=(title,sub,items,by,now)=>`<section class="ev-group"><h2${now?' class="now"':''}>${esc(title)}${sub?` <small>${esc(sub)}</small>`:''}</h2>${items.map(t=>row(t,by)).join('')}</section>`;
+function renderEvents(){
+  const past=evFilter==='past';
+  document.getElementById('ev-list').hidden=past;
+  document.getElementById('pe-wrap').hidden=!past;
+  document.getElementById('ev-seg').hidden=past;
+  document.getElementById('ev-sub').textContent=past?TXT.pastsub:TXT.sub;
+  if(past){if(!pastLoaded){pastLoaded=true;load().catch(()=>{document.getElementById('pe-list').innerHTML=`<div class="pe-empty">${TXT.err}</div>`;});}return;}
+  if(!evDoc)return;
+  const tms=t=>startMs(t)??Number.MAX_SAFE_INTEGER,byTime=(a,b)=>tms(a)-tms(b);
+  const up=(evDoc.tournaments||[]).filter(t=>!['completed','cancelled'].includes(evStatus(t)));
+  const L=up.filter(t=>evFilter==='all'||(evFilter==='free'&&!isPaid(t))||(evFilter==='paid'&&isPaid(t))||(evFilter==='open'&&(!+t.slots||(evCounts.get(t.name)||0)<+t.slots))).sort(byTime);
+  let html='';
+  if(!L.length)html=`<div class="pe-empty" style="margin-top:16px">${up.length?TXT.none:TXT.noev}</div>`;
+  else if(evSort==='day'){
+    const keys=[...new Set(L.map(t=>startMs(t)==null?'':dayKey(startMs(t))))];
+    html=keys.map(k=>{const it=L.filter(t=>(startMs(t)==null?'':dayKey(startMs(t)))===k),[a,b]=dayTitle(it[0]);return group(a,b,it,'day',a===TXT.tonight);}).join('');
+  }else if(evSort==='prize'){
+    html=group(TXT.biggest,'',L.slice().sort((a,b)=>prizeNum(b)-prizeNum(a)||byTime(a,b)),'prize');
+  }else{
+    const hosts=[...new Set(L.map(hostOf))].sort((a,b)=>a.localeCompare(b));   // '' (JD) sorts first
+    html=hosts.map(h=>{const it=L.filter(t=>hostOf(t)===h);return group(h?'@'+h:'JD Esports',TXT.events(it.length),it,'host');}).join('');
+  }
+  if(html!==evLast){evLast=html;document.getElementById('ev-list').innerHTML=html;}
+}
+async function refreshEvents(){
+  const [doc,roster,session]=await Promise.all([getDoc().catch(()=>null),sb?sb.rpc('get_public_roster').then(r=>r.data||[],()=>null):null,sb?sb.auth.getSession().then(r=>r.data.session,()=>null):null]);
+  if(doc)evDoc=doc;
+  if(roster){const c=new Map();roster.forEach(r=>c.set(r.tournament_slug,(c.get(r.tournament_slug)||0)+1));evCounts=c;}
+  if(session){const {data}=await sb.from('registrations').select('tournament_slug,status').eq('player_id',session.user.id);
+    if(data)evMine=new Map(data.filter(r=>['confirmed','approved','pending','waitlisted'].includes(r.status)).map(r=>[r.tournament_slug,r.status]));}
+  if(!evDoc){if(evFilter!=='past')document.getElementById('ev-list').innerHTML=`<div class="pe-empty">${TXT.err}</div>`;return;}
+  renderEvents();
+}
+const press=(sel,attr,val)=>document.querySelectorAll(sel).forEach(x=>x.setAttribute('aria-pressed',x.dataset[attr]===val));
+document.getElementById('ev-seg').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(!b)return;evSort=b.dataset.s;press('[data-s]','s',evSort);renderEvents();});
+document.getElementById('ev-chips').addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(!b)return;evFilter=b.dataset.f;press('[data-f]','f',evFilter);try{history.replaceState(null,'',evFilter==='past'?'#past':location.pathname);}catch(x){}renderEvents();});
+document.getElementById('ev-list').addEventListener('click',e=>{
+  const top=e.target.closest('.ev-top');if(!top)return;
+  const card=top.closest('.ev'),name=card.dataset.ev,more=card.querySelector('.ev-more'),o=more.hidden;
+  more.hidden=!o;top.setAttribute('aria-expanded',o);
+  if(o)evOpen.add(name);else evOpen.delete(name);
+  evLast='';
+});
+if(location.hash==='#past'){evFilter='past';press('[data-f]','f','past');}
+renderEvents();
+refreshEvents();
+setInterval(()=>{if(!document.hidden)refreshEvents();},30000);
 </script>
-<script src="/ui.js?v=26" defer></script>
+<script src="/ui.js?v=27" defer></script>
 <script src="/chat.js?v=36" defer></script>
 </body>
 </html>
