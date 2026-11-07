@@ -722,7 +722,7 @@ function hostEventForm(t){
     (ed?'':`<label class="f" for="hev-name">Event name, after <b>@${esc(ME.handle)}</b></label><input id="hev-name" maxlength="28" placeholder="e.g. Night Scrim (optional)" autocomplete="off">`)+
     `<label class="f" for="hev-start">Day and time (Nepal)</label><input id="hev-start" type="datetime-local" required value="${esc(st)}">`+
     `<label class="f" for="hev-prize">Prize (shown on the card)</label><input id="hev-prize" maxlength="40" placeholder="e.g. Rs 500 from @${esc(ME.handle)}" value="${esc(t?t.prize||'':'')}">`+
-    `<div class="row2"><div><label class="f" for="hev-slots">Squads</label><input id="hev-slots" type="number" min="2" max="48" value="${esc(t?t.slots||12:12)}"></div>`+
+    `<div class="row2"><div><label class="f" for="hev-slots">Squads</label><input id="hev-slots" type="number" min="2" max="12" value="${esc(t?t.slots||12:12)}"></div>`+
     `<div><label class="f" for="hev-m">Matches</label><select id="hev-m">${opt([['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6']],m)}</select></div></div>`+
     `<div class="row2"><div><label class="f" for="hev-map">Map</label><select id="hev-map">${opt(MAPS,t?t.map||'bermuda':'bermuda')}</select></div>`+
     `<div><label class="f" for="hev-dev">Device</label><select id="hev-dev">${opt([['mobile','Mobile only'],['mixed','Mix device'],['emulator','Emulator only']],t?t.platform_mode||'mixed':'mobile')}</select></div></div>`+

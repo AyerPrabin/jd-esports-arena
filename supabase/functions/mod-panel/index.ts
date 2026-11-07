@@ -702,19 +702,24 @@ Deno.serve(async (req: Request) => {
   // ── host mods: create / edit their OWN events (free entry; JD never pays prizes for them) ──
   if (action === 'event_save') {
     if (!isHost) return fail('Staff create events in /admin/.', 403);
-    const typed = String(p.name || '').trim().replace(/\s+/g, ' ').slice(0, 60);
+    const typed = String(p.name || '').normalize('NFKC').trim().replace(/\s+/g, ' ').slice(0, 60);
     const edit = p.edit === true;
     const tag = '@' + handle, low = typed.toLowerCase();   // a new event always carries the host's own TikTok ID
     const title = edit ? '' : (low.startsWith(tag) ? typed.slice(tag.length) : low.startsWith(handle) ? typed.slice(handle.length) : typed).replace(/^[\s\-·:]+/, '');
     if (!edit && /\bjd\b|jd ?esports?/i.test(title)) return fail('Use your own name for the event, not JD.');
     if (!edit && title.includes('@')) return fail('Only your own TikTok ID goes on the event, and JD adds that for you.');
     if ([title, String(p.prize || '')].some((x) => /\d{7,}|https?:|www\./i.test(x))) return fail('No phone numbers or links in the event name or prize.');
+    // both reach every player's alerts, emails and pages: plain text only
+    if (!/^[\p{L}\p{N}\p{M} #.\-]*$/u.test(title)) return fail('Use only letters, numbers, spaces and # . - in the event name.');
+    if (!/^[\p{L}\p{N}\p{M} #.,+\-]*$/u.test(String(p.prize || ''))) return fail('Use only letters, numbers, spaces and # . , + - in the prize.');
     const m = String(p.start || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
     if (!m) return fail('Pick a day and a time.');
     const [, y, mo, d, h, mi] = m;
     const start = `${y}-${mo}-${d}T${h}:${mi}:00+05:45`;
     const status = p.status === 'cancelled' ? 'cancelled' : 'upcoming';
-    if (status === 'upcoming' && Date.parse(start) <= Date.now()) return fail('That time is in the past.');
+    const startMs = Date.parse(start);
+    if (!Number.isFinite(startMs)) return fail('Pick a day and a time.');
+    if (status === 'upcoming' && startMs <= Date.now()) return fail('That time is in the past.');
     const MAPS = ['bermuda', 'purgatory', 'kalahari', 'nexterra', 'solara'];
     const DEV: Record<string, string> = { mobile: 'Mobile only', mixed: 'Mix Device', emulator: 'Emulator only' };
     const device = DEV[p.device] ? String(p.device) : 'mobile';
@@ -725,7 +730,7 @@ Deno.serve(async (req: Request) => {
       time: `${hh}:${mi} ${+h < 12 ? 'AM' : 'PM'} NPT`, start, status,
       prize: String(p.prize || '').trim().slice(0, 40),
       entry: 'Free', platform: DEV[device], platform_mode: device,
-      slots: Math.min(48, Math.max(2, Math.round(Number(p.slots) || 12))),
+      slots: Math.min(12, Math.max(2, Math.round(Number(p.slots) || 12))),   // one room holds 12 squads; bigger events need groups
       format: matches === 3 ? 'BR · Best of 3' : 'BR · ' + matches + (matches === 1 ? ' match' : ' matches'),
       map: MAPS.includes(p.map) ? p.map : 'bermuda', host: handle,
     };

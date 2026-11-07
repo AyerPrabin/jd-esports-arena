@@ -76,6 +76,9 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .ev-act.off{background:rgba(255,255,255,.06);color:var(--silver)}
 .ev-more{border-top:1px solid var(--line);padding-top:10px;display:grid;gap:10px}
 .ev-more[hidden],.ev-seg[hidden]{display:none}
+.ev-thumb{position:relative;display:block}
+.ev-badge{position:absolute;top:-5px;left:-5px;z-index:1;width:24px;height:24px;border-radius:50%;background:#07090F;border:1.5px solid var(--gold);display:grid;place-items:center;overflow:hidden;font:700 .8rem var(--font-display);font-style:normal;color:var(--gold)}
+.ev-badge img{width:18px;height:18px;object-fit:contain;display:block}
 .ev-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:0}
 .ev-facts div{min-width:0}
 .ev-facts dt{font-size:.72rem;color:var(--silver)}
@@ -320,7 +323,7 @@ function row(t,by){
   const fact=(k,v)=>v?`<div><dt>${k}</dt><dd>${v}</dd></div>`:'';
   return `<article class="ev${evMine.get(t.name)?' joined':''}" data-ev="${esc(t.name)}">
     <button type="button" class="ev-top" aria-expanded="${open}">
-      ${isBo3(t)?mapsHtml(t):`<span class="pe-img" style="display:block;background-image:url('${esc(t.image||('/maps/thumb/ff-'+mapOf(t)+'.webp'))}')"></span>`}
+      <span class="ev-thumb">${isBo3(t)?mapsHtml(t):`<span class="pe-img" style="display:block;background-image:url('${esc(t.image||('/maps/thumb/ff-'+mapOf(t)+'.webp'))}')"></span>`}<i class="ev-badge" aria-hidden="true">${host?esc(host.charAt(0).toUpperCase()):'<img src="/logo.webp" alt="">'}</i></span>
       <span style="min-width:0"><span class="ev-name">${esc(t.name)}</span><span class="ev-meta">${st==='live'?`<span class="ev-live">${TXT.live}</span>`:`<span>${esc(when)}</span>`}${by==='host'?'':org}</span></span>
       <span class="ev-prize${num>=1000?' big':''}">${prize}<small>${isPaid(t)?entry:''}</small></span>
     </button>

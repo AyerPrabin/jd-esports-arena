@@ -700,7 +700,7 @@ function bcRender(d){
   const prize=t=>t.prize&&t.prize!=='—'?` · ${ne?'इनाम':'Prize'} <em>${esc(t.prize)}</em>`:'';
   const slotsOf=t=>{const sl=+t.slots||0,rg=teamsFor(t).length||+t.registered||0;return sl?` · ${rg}/${sl} ${ne?'स्क्वाड':'squads'}`:'';};
   if(live)items.push(`<span class="bc-tk-item">🔴 <b>${esc(live.name)}</b> ${ne?'अहिले लाइभ':'is live now'}${prize(live)}</span>`);
-  ups.slice(0,3).forEach(t=>items.push(`<span class="bc-tk-item"><b>${esc(t.name)}</b> ${esc([t.date,t.time].filter(x=>x&&x!=='—').join(' · ')||'TBA')}${prize(t)}${slotsOf(t)}${/^free$/i.test(String(t.entry||'').trim())?' · '+(ne?'निःशुल्क':'Free entry'):''}</span>`));
+  ups.slice(0,3).forEach(t=>items.push(`<span class="bc-tk-item"><b>${esc(t.name)}</b> ${esc([t.date,t.time].filter(x=>x&&x!=='—').join(' · ')||'TBA')}${prize(t)}${slotsOf(t)}${/^free$/i.test(String(t.entry||'').trim())?' · '+(ne?'Card वा 15 points':'Card or 15 points'):''}</span>`));
   const done=ts.filter(t=>effectiveStatus(t)==='completed').sort((a,b)=>(Date.parse(b.start)||0)-(Date.parse(a.start)||0));
   done.slice(0,2).forEach(t=>{const w=winnerOf(t,d);if(w)items.push(`<span class="bc-tk-item">🏆 <b>${esc(w)}</b> ${ne?'ले जित्यो':'won'} ${esc(t.name)}</span>`);});
   try{const rows=(d.bo3&&d.bo3.published&&d.bo3.teams&&d.bo3.teams.length)?bo3Standings(d.bo3):[];if(rows[0])items.push(`<span class="bc-tk-item">${ne?'शीर्ष':'Top of the table'}: <b>${esc(rows[0].team)}</b> <em>${rows[0].totalPts||0} ${ne?'अङ्क':'pts'}</em></span>`);}catch(e){}
@@ -767,7 +767,7 @@ function render(d){
     const org=host?`<span class="tm-org host" title="Run by partner host @${esc(host)}"><i>${esc(host.charAt(0).toUpperCase())}</i>Hosted by @${esc(host)}</span>`
                   :`<span class="tm-org" title="Official JD Esports event"><img src="/logo.webp" alt="">JD Official</span>`;
     const bo3=!t.image&&(t.map2||t.map3);
-    const media=`<div class="tcard-media${bo3?' bo3':''}" style="background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%)${bo3?'':`,url('${esc(t.image||('maps/ff-'+mapOf(t)+'.webp'))}')`}">${bo3?mapsStrip(t):''}${org}<div class="tm-over">${prizeTxt!=='—'?`<span class="tm-prize">🏆 ${esc(prizeTxt)}</span>`:''}<span class="tm-entry${/^free$/i.test(entryTxt.trim())?' free':''}">${/^free$/i.test(entryTxt.trim())?'Free entry':'Entry '+esc(entryTxt)}</span></div>${urgency}</div>`;
+    const media=`<div class="tcard-media${bo3?' bo3':''}" style="background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%)${bo3?'':`,url('${esc(t.image||('maps/ff-'+mapOf(t)+'.webp'))}')`}">${bo3?mapsStrip(t):''}${org}<div class="tm-over">${prizeTxt!=='—'?`<span class="tm-prize">🏆 ${esc(prizeTxt)}</span>`:''}<span class="tm-entry${/^free$/i.test(entryTxt.trim())?' free':''}">${/^free$/i.test(entryTxt.trim())?'Card or 15 points':'Entry '+esc(entryTxt)}</span></div>${urgency}</div>`;
     const isPast=st==='completed'||st==='cancelled';
     return `<div class="tcard${isPast?' past':''}" data-tname="${esc(t.name)}" onclick="cardTap(event,this)">${media}<div class="tcard-body"><span class="tbadge ${st}">${st==='live'?'● Live':(st==='cancelled'?'✕ Cancelled':(st.charAt(0).toUpperCase()+st.slice(1)))}</span><div class="tname">${esc(t.name)}</div><div class="tgame">${esc(t.game||'Free Fire')}</div>${(st==='upcoming'&&t.start)?`<div class="tcount" data-start="${esc(t.start)}"></div><div class="tcount-bar"><span></span></div>`:''}<div class="tmeta">${prizeSplit(t)?`<div class="row"><span>Prize split</span><b>${esc(prizeSplitText(t))}</b></div>`:''}<div class="row"><span>Date</span><b>${esc(t.date||'TBA')}${t.time&&t.time!=='—'?' · '+esc(t.time):''}</b></div><div class="row"><span>Format</span><b>${esc(t.format||'BR')}</b></div><div class="row"><span>${t.map2||t.map3?'Maps':'Map'}</span><b>${esc(mapsText(t))}</b></div><div class="row"><span>Platform</span><b>📱 ${esc(platText(t))}</b></div>${host?`<div class="row"><span>Host</span><b>@${esc(host)}</b></div>`:''}</div>${host?`<p class="thost-note">Run by partner host <b>@${esc(host)}</b>: they send the room ID and pay the prize. JD Arena handles sign-up, slots and alerts.</p>`:''}${slots?`<div class="tslots"><span style="width:${pct}%"></span></div><button class="tslots-label" data-roster="${esc(t.name)}">${reg}/${slots} ${tr('sqview')}</button>`:''}${teams.length?`<div class="troster">${teams.slice(0,CHIP_MAX).map(tm=>{const fx=squadFx(tm);const cls=fx?' '+fx.cls:'';const badge=(fx&&fx.badge)?`<span class="fx-badge">${fx.badge}</span> `:'';const particles=fxParticlesHtml(fx);const nameHtml=fxNameHtml(fx,tm.name);return tm.logo?`<span class="${(fx?fx.cls:'')}"><img src="${esc(tm.logo)}" alt="">${badge}${nameHtml}${particles}</span>`:`<span class="nologo${cls}">${badge}${nameHtml}${particles}</span>`;}).join('')}${teams.length>CHIP_MAX?`<button type="button" class="chip-more" data-roster="${esc(t.name)}">+${teams.length-CHIP_MAX} more</button>`:''}</div>`:''}${btn}${inAppRegBtn(t,st,full)}${(sb&&open)?`<button type="button" class="tm-evbtn" data-lfg="${esc(t.name)}">👥 Find teammate</button>`:''}</div></div>`;
   }).join(''):(lang==='ne'?'<p class="ev-empty">अहिले कुनै आगामी प्रतियोगिता छैन — अर्को प्रतियोगिता पहिले Discord मा घोषणा हुन्छ। त्यतिन्जेल <a href="/events/">पुराना प्रतियोगिता</a> हेर्नुहोस्।</p>':'<p class="ev-empty">No upcoming tournaments right now — the next one is announced on Discord first. Meanwhile, see <a href="/events/">past events</a>.</p>');
@@ -2135,7 +2135,7 @@ function regSuccessOpen(t,status,reg){
   if(t.prize){prizeRow.style.display='';document.getElementById('rs-prize').textContent=prizeSplit(t)?fmtPrize(t.prize)+' ('+prizeSplitText(t)+')':t.prize;}
   else prizeRow.style.display='none';
   const entryEl=document.getElementById('rs-entry');
-  entryEl.textContent=isPaidTournament(t)?(t.entry||''):'FREE';
+  entryEl.textContent=isPaidTournament(t)?(t.entry||''):'Free card or 15 points';
   entryEl.className='rs-val'+(isPaidTournament(t)?'':' ok');
   document.getElementById('rs-platform').textContent=platText(t);
   const statusEl=document.getElementById('rs-status');
@@ -2710,7 +2710,7 @@ async function withdrawSquad(name){
   const isPaid=isPaidTournament(t);
   const rf=refundInfo(t),code=regTicketCode(r);
   const back=r.paid_points>0?(rf.late?Math.floor(r.paid_points*0.1):r.paid_points):0;
-  const fee=!isPaid?'This was a free entry, so there is nothing to refund.'
+  const fee=!isPaid&&!(r.paid_points>0)?'This was a free entry, so there is nothing to refund.'
     :r.paid_points>0
       ?(rf.late
         ?`Late cancellation: the match starts within 24 hours, so ${back} of your ${r.paid_points} points (10%) go back to your wallet.`
