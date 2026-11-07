@@ -476,6 +476,26 @@
       "early_access": "yes",
       "teams": [],
       "registered": 0
+    },
+    {
+      "name": "JD Free Fire Open #21",
+      "game": "Free Fire BR · Squad",
+      "date": "Sat, Nov 14",
+      "time": "9:30 PM NPT",
+      "start": "2026-11-14T21:30:00+05:45",
+      "status": "upcoming",
+      "map": "kalahari",
+      "prize": "1000",
+      "entry": "50 points",
+      "platform": "Mobile only",
+      "platform_mode": "mobile",
+      "slots": 24,
+      "format": "BR · Best of 3",
+      "map2": "random",
+      "map3": "random",
+      "early_access": "yes",
+      "teams": [],
+      "registered": 0
     }
   ],
   "bo3": {
@@ -630,5 +650,5 @@
       }
     ]
   },
-  "_published_at": "2026-11-07T02:40:19.798Z"
+  "_published_at": "2026-11-07T02:41:05.526Z"
 }
