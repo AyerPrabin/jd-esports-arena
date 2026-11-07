@@ -2657,7 +2657,7 @@ function fxShopRender(){
   document.getElementById('fx-plans').innerHTML=Object.entries(FX_PLANS).map(([k,pl])=>`<button type="button" class="fx-plan${k===_fxShop.plan?' on':''}" onclick="_fxShop.plan='${k}';fxShopRender()">${pl.best?'<span class="best">Best value</span>':(pl.popular?'<span class="best pop">Popular</span>':'')}<b>${esc(pl.name)}</b><span class="pr">${esc(pl.price)}</span><small>${esc(pl.per)}</small></button>`).join('');
   document.getElementById('fx-pick').innerHTML=Object.values(SQUAD_FX).map(f=>{
     const ok=fxTierOk(tier,f.key);
-    return `<button type="button" data-fx="${f.key}" class="${f.key===_fxShop.effect?'on':''}${ok?'':' lock'}" ${ok?`onclick="_fxShop.effect='${f.key}';fxShopRender()"`:`disabled title="Included in Pro plans"`}>${ok?'':''}${esc(f.tag)}${f.hot?'<span class="hot"><i class=ji-flame aria-hidden=true></i></span>':''}${f.tier==='pro'?'<span class="pro">PRO</span>':''}</button>`;
+    return `<button type="button" data-fx="${f.key}" class="${f.key===_fxShop.effect?'on':''}${ok?'':' lock'}" ${ok?`onclick="_fxShop.effect='${f.key}';fxShopRender()"`:`disabled title="Included in Pro plans"`}>${ok?'':'<i class=ji-lock aria-hidden=true></i> '}${esc(f.tag)}${f.hot?'<span class="hot"><i class=ji-flame aria-hidden=true></i></span>':''}${f.tier==='pro'?'<span class="pro">PRO</span>':''}</button>`;
   }).join('');
   document.getElementById('fx-preview').innerHTML=sqCardHtml({name:r.squad_name||'Your squad',logo:r.squad_logo||'',members:[],effect:_fxShop.effect},0);
   const pl=FX_PLANS[_fxShop.plan];
@@ -2678,7 +2678,7 @@ function renderFxShow(){
   const box=document.getElementById('fx-show');if(!box)return;
   const mine=_player&&_player.squad_name;
   box.innerHTML=FX_SHOWCASE.map(([k,sample],i)=>{const f=SQUAD_FX[k];if(!f)return '';
-    return `<div class="fx-show-item"><div class="fx-show-lbl"><b>${esc(f.tag)}${f.hot?'':''}</b><span class="tier${f.tier==='pro'?'':' std'}">${f.tier==='pro'?'Pro':'From Rs 2'}</span></div>${sqCardHtml({name:mine||sample,logo:(_player&&_player.squad_logo)||'',members:[],effect:k},i)}</div>`;}).join('');
+    return `<div class="fx-show-item"><div class="fx-show-lbl"><b>${esc(f.tag)}${f.hot?' <i class=ji-flame aria-hidden=true></i>':''}</b><span class="tier${f.tier==='pro'?'':' std'}">${f.tier==='pro'?'Pro':'From Rs 2'}</span></div>${sqCardHtml({name:mine||sample,logo:(_player&&_player.squad_logo)||'',members:[],effect:k},i)}</div>`;}).join('');
   if(!box._io&&'IntersectionObserver' in window){box._io=new IntersectionObserver(es=>es.forEach(e=>box.classList.toggle('fx-paused',!e.isIntersecting)),{rootMargin:'100px'});box._io.observe(box);}
 }
 function fxShowCta(){

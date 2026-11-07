@@ -1049,7 +1049,7 @@
     if (/\?\s*$/.test(b)) add('Yes', 'No', 'Not sure');
     if (!out.length) {
       if (kind === 'match') add('Room ready', 'Joining now', 'Wait 2 min', 'Start?', 'GG');
-      else if (b) add('', 'Let\'s go', 'Okay');
+      else if (b) add('Haha', 'Let\'s go', 'Okay');
     }
     return out.slice(0, 5);
   }

@@ -656,7 +656,7 @@ async function subscribePush(){
     return !error;
   }catch(e){return false;}
 }
-function showAlerts(ic,t,btn,warn,fn){const a=$('alerts');a.hidden=false;a.classList.toggle('warn',!!warn);$('alerts-ic').textContent=ic;$('alerts-t').textContent=t;$('alerts-btn').hidden=!btn;$('alerts-btn').textContent=btn||'';$('alerts-btn').onclick=fn||null;}
+function showAlerts(ic,t,btn,warn,fn){const a=$('alerts');a.hidden=false;a.classList.toggle('warn',!!warn);$('alerts-ic').innerHTML=ic;$('alerts-t').textContent=t;$('alerts-btn').hidden=!btn;$('alerts-btn').textContent=btn||'';$('alerts-btn').onclick=fn||null;}
 async function setupAlerts(){
   $('alerts').hidden=true;
   if(isIos()&&!isApp()){showAlerts('<i class=ji-phone aria-hidden=true></i>','On iPhone/iPad, alerts only work in the installed app: tap Share → Add to Home Screen, then open JD Arena from there.');return;}
@@ -744,7 +744,7 @@ async function start(){
 })();
 </script>
 <script src="/ui.js?v=28" defer></script>
-<script src="/chat.js?v=39" defer></script>
+<script src="/chat.js?v=40" defer></script>
 <script src="/fx-engine.js?v=4" defer></script>
 </body>
 </html>

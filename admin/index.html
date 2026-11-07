@@ -1891,7 +1891,7 @@ async function renderMatchDay(){
   const when=ms===null?'time not set':started?`started ${agoText(ms)} ago`:`starts in ${inText(ms)}`;
   box.innerHTML=`<div class="md">
     ${evs.length>1?`<div class="md-pick">${evs.map(x=>`<button type="button" class="${x===cur?'on':''}" data-md="${esc(x.t.name)}">${esc(x.t.name)}</button>`).join('')}</div>`:''}
-    <h3>${started?'':''}${esc(t.name)}</h3>
+    <h3>${started?'<i class=ji-dot-red aria-hidden=true></i> ':''}${esc(t.name)}</h3>
     <p class="sub">${esc(t.date||'')} ${esc(t.time||'')} · ${when} · prize pool ${esc(rsText(t.prize))} · entry fee ${esc(feeText(t.entry))}</p>
     ${step(1,squads?'ok':'now','Squads',`${squads}${t.slots?' of '+esc(t.slots):''} squads confirmed.`,`<button class="btn ghost" onclick="mdTeams()">See squads</button>`)}
     ${step(2,'','Room code',started?'Send it now if players are still waiting.':'Send it now, or stage it to go out by itself about 5 minutes before kickoff.',
