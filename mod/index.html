@@ -36,6 +36,9 @@ button{font:inherit}
 /* event picker: one choice drives squads, room code and notifications */
 .evbar{max-width:1280px;margin:8px auto 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;overscroll-behavior-x:contain}
 .evbar::-webkit-scrollbar{display:none}
+#hev-m:not([hidden]){display:flex;gap:8px;margin:0 0 12px}   /* the Events column is desktop only: phones and tablets get the host's buttons here */
+#hev-m .btn,#hev-m .ghost{flex:1;justify-content:center}
+@media (min-width:1080px){#hev-m:not([hidden]){display:none}}
 .evpill{flex:none;display:flex;flex-direction:column;align-items:flex-start;gap:1px;border:1px solid var(--line);background:var(--panel-2);color:var(--cream);border-radius:12px;padding:7px 12px;cursor:pointer;text-align:left;transition:border-color .15s,background-color .15s}
 .evpill>span{display:flex;flex-direction:column;align-items:flex-start;gap:1px}
 .evpill b{font-weight:600;font-size:.86rem;white-space:nowrap}
@@ -80,6 +83,7 @@ main{position:relative;max-width:1280px;margin:0 auto;padding:16px 16px calc(var
   .tabs{padding:12px max(16px,calc((100% - 1440px)/2 + 16px))}
   .tabs [data-tab=chats]{display:none}
   main{display:grid;grid-template-columns:250px minmax(0,1fr) 380px;gap:18px;align-items:start}
+  main.no-chats{grid-template-columns:250px minmax(0,1fr)}
   .col-right{display:contents}
   .tab{grid-column:2;grid-row:1}
   #tab-events{display:block;grid-column:1;grid-row:1;position:sticky;top:calc(var(--top-h,72px) + 64px);max-height:calc(100vh - var(--top-h,72px) - 80px);overflow:auto;overscroll-behavior:contain}
@@ -489,6 +493,7 @@ textarea{min-height:96px;resize:vertical}
   <!-- squads -->
   <section class="tab on" id="tab-squads" aria-labelledby="h-squads">
     <div class="panel">
+      <div id="hev-m" hidden><button type="button" class="btn sm" id="hev-new-m">+ New event</button><button type="button" class="ghost" id="hev-edit-m" hidden>Edit this event</button></div>
       <div class="sec-h"><h2 id="h-squads">Squads</h2><span class="sp"></span><span class="updated" id="updated" aria-live="polite"></span></div>
       <p class="lead" id="ev-line"></p>
       <div class="sum" id="sum"></div>
@@ -672,7 +677,7 @@ const TOUR_KEY='jd_mod_tour_v1';
 function tourSteps(){
   if(isHostMod()) return [
     {t:'Welcome, @'+ME.handle,x:'This is your host panel. You run your own events on JD Arena under your TikTok ID. Here is how a night works.'},
-    {tab:'squads',t:'Make an event',x:'Tap + New event. Your TikTok ID goes on the event name for you, and players see Hosted by @'+ME.handle+'. Entry is free for squads.'},
+    {tab:'squads',t:'Make an event',x:'Tap + New event. Your TikTok ID goes on the event name for you, and players see Hosted by @'+ME.handle+'. Squads join like any JD free event, with a free card or 15 points.'},
     {tab:'squads',t:'Check your squads',x:'Pick your event, then set Playing to Yes for squads that confirmed. Message on a squad sends its captain a notification.'},
     {tab:'room',t:'Send the room code',x:'Type the Room ID and password about 5 minutes before the start. Only squads with a slot get it. If you remove a squad afterwards, change the password and send it again.'},
     {tab:'notify',t:'Tell your squads',x:'Notify reaches the squads in your event, signed with your @name.'+($('n-invite-w')?' You also get one invite per event to bring in new players.':'')},
@@ -713,7 +718,7 @@ function hostEventForm(t){
   const opt=(list,v)=>list.map(([k,l])=>`<option value="${k}"${k===v?' selected':''}>${l}</option>`).join('');
   const bg=document.createElement('div'); bg.className='sheet-bg';
   bg.innerHTML=`<form class="sheet" role="dialog" aria-modal="true" aria-labelledby="hev-t"><h3 id="hev-t">${ed?'Edit '+esc(t.name):'New event'}</h3>`+
-    `<p>Free entry. It runs under your TikTok ID, and players see it hosted by <b>@${esc(ME.handle)}</b>. You pay your own prizes; JD doesn't.</p>`+
+    `<p>It runs under your TikTok ID, and players see it hosted by <b>@${esc(ME.handle)}</b>. Squads join like any JD free event, with a free card or 15 points. You pay your own prizes; JD doesn't.</p>`+
     (ed?'':`<label class="f" for="hev-name">Event name, after <b>@${esc(ME.handle)}</b></label><input id="hev-name" maxlength="28" placeholder="e.g. Night Scrim (optional)" autocomplete="off">`)+
     `<label class="f" for="hev-start">Day and time (Nepal)</label><input id="hev-start" type="datetime-local" required value="${esc(st)}">`+
     `<label class="f" for="hev-prize">Prize (shown on the card)</label><input id="hev-prize" maxlength="40" placeholder="e.g. Rs 500 from @${esc(ME.handle)}" value="${esc(t?t.prize||'':'')}">`+
@@ -742,8 +747,8 @@ function hostEventForm(t){
   setTimeout(()=>{const f=bg.querySelector('input');if(f)f.focus();},50);
 }
 document.addEventListener('click',e=>{
-  if(e.target.closest('#hev-new')) hostEventForm(null);
-  if(e.target.closest('#hev-edit')&&selected) hostEventForm(selected);
+  if(e.target.closest('#hev-new,#hev-new-m')) hostEventForm(null);
+  if(e.target.closest('#hev-edit,#hev-edit-m')&&selected) hostEventForm(selected);
 });
 
 /* ── server: a fresh sign-in token on every call (they expire after an hour), readable errors ── */
@@ -804,7 +809,7 @@ async function loadTournaments(){
 }
 function selectEvent(t,scroll){
   selected=t;
-  if(isHostMod()) $('hev-edit').hidden=!(t&&!isDone(t));
+  if(isHostMod()) $('hev-edit').hidden=$('hev-edit-m').hidden=!(t&&!isDone(t));
   renderEvents();
   $('rc-ev').textContent=t?t.name:'this event';
   $('ev-line').textContent=t?`${t.name} · ${fmtWhen(t)}${t.entry?' · '+t.entry:''}`:'';
@@ -835,7 +840,7 @@ function waTemplate(squad, ev){
     `Squads that don't confirm before the match can lose their slot to the waitlist. GG \u{1F3AE}`;
 }
 async function loadSquads(quiet){
-  if(!selected){ $('reg-body').innerHTML='<div class="empty">No upcoming event. New events show up here as soon as the admin publishes them.</div>'; $('sum').innerHTML=''; return; }
+  if(!selected){ $('reg-body').innerHTML=`<div class="empty">${isHostMod()?'No events yet. Tap + New event to make your first one.':'No upcoming event. New events show up here as soon as the admin publishes them.'}</div>`; $('sum').innerHTML=''; return; }
   if(loadingSquads) return;
   loadingSquads=true;
   if(!quiet) $('reg-body').innerHTML='<p class="note">Loading squads…</p>';
@@ -1409,7 +1414,7 @@ $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
   try{
     const me=await call({action:'whoami'}); ME=me;
     $('who').textContent=me.email+(isHostMod()?' · host @'+me.handle:''); $('who-wrap').hidden=false;
-    if(isHostMod()){ document.querySelector('#tabs [data-tab=chats]').hidden=true; $('tab-chats').style.display='none'; $('hev-new').hidden=false; document.querySelector('#tabs [data-tab=notify]').classList.remove('in-more'); }
+    if(isHostMod()){ document.querySelector('#tabs [data-tab=chats]').hidden=true; $('tab-chats').style.display='none'; $('hev-new').hidden=false; $('hev-m').hidden=false; $('main').classList.add('no-chats'); document.querySelector('#tabs [data-tab=notify]').classList.remove('in-more'); }
     if(!me.owner){ const all=document.querySelector('input[name=aud][value=all]'); all.closest('label').remove(); }
     $('main').hidden=false; $('tabs').hidden=false;
     const h=(location.hash||'').slice(1); if(['results','room','notify','help','loads','challenges','promo'].concat(isHostMod()?[]:['chats']).includes(h)) showTab(h);
