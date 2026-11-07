@@ -158,6 +158,8 @@ begin
       perform public._wallet_apply(r.player_id, r.paid_points, 'refund', 'wl_refund:' || r.id::text, p_slug);
     end if;
     delete from public.registrations where id = r.id;
+    -- not a removal by a mod: keep it out of the player's history (as mod_remove_reg does)
+    delete from public.jd_no_show_log where tournament_slug = p_slug and player_id = r.player_id and removed_at = now();
     insert into public.notifications (player_id, tournament_slug, title, body)
     values (r.player_id, p_slug, 'No seat in ' || p_slug,
       'Groups are drawn and your squad had no seat.' || case when coalesce(r.paid_points, 0) > 0 then ' Your ' || r.paid_points || ' points are back in your wallet.' else '' end);

@@ -935,7 +935,7 @@ function lineupHtml(r){
 function groupsBar(n){
   const t=selected, cap=t?ROOM[modeOf(t)]:0, box=$('ev-groups');
   const show=t&&!t.parent&&!t.mega&&!isDone(t)&&(n>cap||+t.slots>cap); box.hidden=!show; if(!show) return;
-  const g=Math.ceil(n/cap), semi=g>=4, up=Math.max(1,Math.floor((semi?cap*2:cap)/g));
+  const g=Math.ceil(n/cap), semi=g>=4, up=Math.max(1,Math.min(Math.floor((semi?cap*2:cap)/g),Math.floor(n/g)-1));
   $('ev-groups-t').textContent=n>cap?`${n} ${unitOf(t)} won't fit one room (${cap}). 2 hours before the start, JD draws ${g} random groups by itself. Top ${up} of each go to the ${semi?'Semi-finals, then the Grand Final':'Grand Final'}.`
     :`If more than ${cap} ${unitOf(t)} join, JD draws groups by itself 2 hours before the start. If not, it stays one room.`;
   const soon=t.start&&new Date(t.start)-Date.now()<=864e5;

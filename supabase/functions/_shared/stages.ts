@@ -12,7 +12,8 @@ export function planStages(name: string, n: number, mode: string, matches: numbe
   if (groups > 8) throw new Error('That is more than 8 groups. Ask the JD admin.');
   const final = `${name} · Grand Final`, useSemis = groups >= 4;
   const semis = useSemis ? [`${name} · Semi-final 1`, `${name} · Semi-final 2`] : [];
-  const advance = Math.max(1, Math.floor((useSemis ? cap * 2 : cap) / groups));
+  // the next room's seats shared out, but never a whole group: someone always goes out (13 squads = 7/6, top 5)
+  const advance = Math.max(1, Math.min(Math.floor((useSemis ? cap * 2 : cap) / groups), Math.floor(n / groups) - 1));
   const groupNames = Array.from({ length: groups }, (_, i) => `${name} · Group ${'ABCDEFGH'[i]}`);
   const through = advance * groups, gap = matches * 30 * 60000;
   const stages: any[] = groupNames.map((g, i) => ({ name: g, stage: 'group', stage_label: `Group ${'ABCDEFGH'[i]}`, seat: i, offset: i * gap,
