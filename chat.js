@@ -697,9 +697,9 @@
   var hostChats = [];
   function hostRow(t) {
     var active = cur && cur.kind === 'host' && cur.id === t.handle ? ' active' : '', dot = t.unread ? '<span class="dm-dot">' + (t.unread > 9 ? '9+' : t.unread) + '</span>' : '';
-    var prev = t.at ? (t.mine ? T('you') + ': ' : '') + t.body : 'Event host · ask about their events';
+    var prev = t.at ? (t.mine ? T('you') + ': ' : '') + t.body : 'Verified event host · ask about their events';
     return '<button type="button" class="dm-row' + (t.unread ? ' unread' : '') + active + '" data-k="host" data-open="' + esc(t.handle) + '">' + avatar({ id: 'host:' + t.handle, username: t.handle }) +
-      '<span class="dm-mid"><span class="dm-name">@' + esc(t.handle) + '</span><span class="dm-prev"><span>' + esc(prev) + '</span>' + (t.at ? '<span>· ' + short(t.at) + '</span>' : '') + '</span></span>' + dot + '</button>';
+      '<span class="dm-mid"><span class="dm-name">@' + esc(t.handle) + ' ' + VERIFIED + '</span><span class="dm-prev"><span>' + esc(prev) + '</span>' + (t.at ? '<span>· ' + short(t.at) + '</span>' : '') + '</span></span>' + dot + '</button>';
   }
   function alertsRow() {
     var n = zn[0], active = cur && cur.kind === 'alerts' ? ' active' : '', f = n ? alFrom(n.title) : null;
@@ -1121,12 +1121,12 @@
       av = jdAv('sm'); name = MERGED ? 'JD Esports · ZULU' : 'JD Esports';
       st = MERGED ? 'ZULU AI replies in seconds · JD team joins for big issues' : 'Official JD team · we reply here';
     }
-    else if (p.kind === 'host') { av = avatar(p, 'sm'); name = '@' + p.id; st = 'Event host'; }
+    else if (p.kind === 'host') { av = avatar(p, 'sm'); name = '@' + p.id; st = 'Verified event host · invited by JD'; }
     else if (p.kind === 'alerts') { av = alAv('sm'); name = 'Alerts'; st = 'Room IDs, reminders and results'; }
     else { av = zuluAv('sm'); name = 'ZULU'; st = 'AI assistant · replies in seconds'; on = true; }
     $('dm-th-av').innerHTML = av;
     $('dm-th-name').textContent = name;
-    if (p.kind === 'jd') $('dm-th-name').insertAdjacentHTML('beforeend', ' ' + VERIFIED);
+    if (p.kind === 'jd' || p.kind === 'host') $('dm-th-name').insertAdjacentHTML('beforeend', ' ' + VERIFIED);
     var s = $('dm-th-st'); s.textContent = st; s.className = on ? 'on' : '';
     $('dm-ring').hidden = p.kind !== 'group';
   }
@@ -1277,7 +1277,7 @@
     else if (p.kind === 'match') h += '<div class="dm-hello">' + matchAv() + '<b>' + esc((p.mode || '') + ' Clash Squad') + '</b>Only you and the other captain can see this chat.<br>Agree the room, play, then report the result on the challenge.<br><span class="dm-hint">Type <b>@zulu</b> to ask ZULU (AI) about the rules. It reads the last few messages.</span></div>';
     else if (p.kind === 'jd' && MERGED) h += '<div class="dm-hello">' + jdAv() + '<b>JD Esports · ZULU ' + VERIFIED + '</b>One chat for everything. <strong>ZULU (AI) replies in seconds</strong> using your own tickets, points and the schedule.<br>For big issues (payments, prizes, refunds, results, bans) ZULU brings in the JD team and they reply right here.<br><span class="dm-hint">The JD team and ZULU never ask for your password, OTP or eSewa PIN.</span></div>';
     else if (p.kind === 'jd') h += '<div class="dm-hello">' + jdAv() + '<b>JD Esports ' + VERIFIED + '</b>The official JD Esports Arena team.<br>Real people from the JD team (moderators and admin) write here. Ask about events, slots, points or room IDs and we reply. For instant answers, ask ZULU.<br><span class="dm-hint">The JD team never asks for your password or eSewa PIN.</span></div>';
-    else if (p.kind === 'host') h += '<div class="dm-hello">' + avatar(p) + '<b>@' + esc(p.id) + '</b>This host runs their own events on JD Arena and pays those prizes directly. They are not the JD team.<br><span class="dm-hint">Never share your password, OTP or eSewa PIN. Links and the host\'s phone numbers are blocked here. Report a problem in the JD Esports chat.</span></div>';
+    else if (p.kind === 'host') h += '<div class="dm-hello">' + avatar(p) + '<b>@' + esc(p.id) + ' ' + VERIFIED + '</b>A verified host, invited by JD. They run their own events on JD Arena and pay those prizes directly. They are not the JD team.<br><span class="dm-hint">Never share your password, OTP or eSewa PIN. Links and the host\'s phone numbers are blocked here. Report a problem in the JD Esports chat.</span></div>';
     else if (p.kind === 'alerts') h += '<div class="dm-hello">' + alAv() + '<b>Alerts</b>Room IDs and passwords, slot reminders, results and messages from the JD team or an event\'s host. Tap a Room ID or password to copy it.</div>';
     else h += '<div class="dm-hello">' + zuluAv() + '<b>ZULU</b>Your JD Arena buddy. Chat about anything gaming, get Free Fire tips, or ask about tournaments and your own points, tickets and challenges. It never sees your private chats.</div>';
     var list = msgs;
