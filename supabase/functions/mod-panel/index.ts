@@ -626,6 +626,55 @@ Deno.serve(async (req: Request) => {
       .or(`username.ilike.${lit},player_tag.ilike.${lit}`).limit(1).maybeSingle();
     return data;
   };
+  // ── host chat (host_chat.sql): a host's own chats, signed @handle, never JD's. Same reply shapes as chat_*.
+  // The handle always comes from the signed-in host, never from the request. Only players from that host's
+  // events, or who already wrote to them, can be reached. No WhatsApp or other contact details leave the server.
+  if (action === 'host_inbox' || action === 'host_thread' || action === 'host_send') {
+    if (!isHost || !handle) return fail('Host chat is for invited hosts.', 403);
+    const events = [...await myEvents()];
+    const myRegs = (pid: string) => events.length
+      ? admin.from('registrations').select('tournament_slug, squad_name, status, checked_in_at, created_at').eq('player_id', pid).in('tournament_slug', events).order('created_at', { ascending: false }).limit(6)
+      : Promise.resolve({ data: [] as any[] });
+    if (action === 'host_inbox') {
+      const { data, error } = await admin.from('host_messages').select('player_id, from_staff, body, created_at, read_at').eq('host_handle', handle).order('id', { ascending: false }).limit(600);
+      if (error) return fail(error.message, 500);
+      const threads = new Map<string, any>();
+      for (const m of data || []) {
+        let t = threads.get(m.player_id);
+        if (!t) { t = { player_id: m.player_id, last: m.body, last_at: m.created_at, last_staff: m.from_staff, unread: 0 }; threads.set(m.player_id, t); }
+        if (!m.from_staff && !m.read_at) t.unread++;
+      }
+      const list = [...threads.values()].slice(0, 60);
+      const { data: ps } = list.length ? await admin.from('players').select(PCOLS).in('id', list.map((t) => t.player_id)) : { data: [] as any[] };
+      const by = new Map((await withAvatars((ps || []).map((x: any) => card(x)))).map((c: any) => [c.id, c]));
+      return json(list.map((t) => ({ ...t, player: by.get(t.player_id) || { id: t.player_id, name: 'Player' } })));
+    }
+    const pl = await chatTarget();
+    if (!pl) return fail('Player not found. Check the @username or JD tag.', 404);
+    const [{ data: regs }, { count: past }] = await Promise.all([myRegs(pl.id),
+      admin.from('host_messages').select('id', { count: 'exact', head: true }).eq('host_handle', handle).eq('player_id', pl.id)]);
+    if (!(regs || []).length && !past) return fail('You can only chat with players who joined your events.', 403);
+    if (action === 'host_thread') {
+      const { data, error } = await admin.from('host_messages').select('id, from_staff, body, created_at, read_at').eq('host_handle', handle).eq('player_id', pl.id).order('id', { ascending: false }).limit(100);
+      if (error) return fail(error.message, 500);
+      const pc = card(pl, (regs || []).find((r: any) => r.squad_name)?.squad_name);
+      await Promise.all([withAvatars([pc]), admin.from('host_messages').update({ read_at: new Date().toISOString() })
+        .eq('host_handle', handle).eq('player_id', pl.id).eq('from_staff', false).is('read_at', null).then(() => {}, () => {})]);
+      return json({ player: pc, tickets: (regs || []).map((r: any) => ({ event: r.tournament_slug, squad: r.squad_name, status: r.status, confirmed: !!r.checked_in_at, whatsapp: null, at: r.created_at })),
+        messages: (data || []).reverse().map((m: any) => ({ id: m.id, staff: m.from_staff, by: m.from_staff ? 'You' : null, body: m.body, created_at: m.created_at, read_at: m.read_at })) });
+    }
+    const body = String(p.body || '').trim();
+    if (!body) return fail('Type a message first.');
+    if (body.length > 1000) return fail('That message is too long (1000 characters max).');
+    const { count: since } = await admin.from('host_messages').select('id', { count: 'exact', head: true }).eq('host_handle', handle).eq('from_staff', true).gt('created_at', new Date(Date.now() - 600000).toISOString());
+    if ((since || 0) >= 60) return fail('You sent a lot of messages. Wait a few minutes.', 429);
+    const { count: waiting } = await admin.from('host_messages').select('id', { count: 'exact', head: true }).eq('host_handle', handle).eq('player_id', pl.id).eq('from_staff', true).is('read_at', null);
+    const { data, error } = await admin.from('host_messages').insert({ player_id: pl.id, host_handle: handle, from_staff: true, body }).select('id, created_at').single();
+    if (error) return fail(error.message, 400);   // the links / phone number filter lands here
+    if (!waiting) await admin.from('notifications').insert({ player_id: pl.id, push: true, title: tagT('New message from your event host'), body: 'Open Messages to read it and reply.' });
+    await log('host_chat', `${card(pl)!.name} · ${body.slice(0, 120)}`);
+    return json({ ok: true, id: data.id, created_at: data.created_at, player: card(pl) });
+  }
   if (action === 'chat_thread') {
     const pl = await chatTarget();
     if (!pl) return fail('Player not found. Check the @username or JD tag.', 404);

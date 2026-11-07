@@ -600,7 +600,8 @@
   }
 
   async function loadOverview() {
-    var r = await Promise.all([SB.rpc('chat_overview'), SB.rpc('chat_threads')]);
+    var r = await Promise.all([SB.rpc('chat_overview'), SB.rpc('chat_threads'), SB.rpc('host_chat_list')]);
+    hostChats = (r[2] && r[2].data) || [];
     if (r[0].error) { if (!ov) $('dm-list').innerHTML = '<div class="dm-empty">Couldn\'t load your chats. Check your connection.</div>'; return; }
     ov = r[0].data || { friends: [], incoming: [], outgoing: [], blocked: [] };
     th = (r[1] && r[1].data) || { groups: [], matches: [] };
@@ -692,6 +693,14 @@
       '<span class="dm-mid"><span class="dm-name">' + (MERGED ? 'JD Esports · ZULU ' : 'JD Esports ') + VERIFIED + '</span>' +
       '<span class="dm-prev"><span>' + esc(prev) + '</span>' + (l && l.at ? '<span>· ' + short(l.at) + '</span>' : '') + '</span></span>' + dot + '</button>';
   }
+  // host chat (host_chat.sql): one chat per invited host, signed @handle, separate from JD Esports
+  var hostChats = [];
+  function hostRow(t) {
+    var active = cur && cur.kind === 'host' && cur.id === t.handle ? ' active' : '', dot = t.unread ? '<span class="dm-dot">' + (t.unread > 9 ? '9+' : t.unread) + '</span>' : '';
+    var prev = t.at ? (t.mine ? T('you') + ': ' : '') + t.body : 'Event host · ask about their events';
+    return '<button type="button" class="dm-row' + (t.unread ? ' unread' : '') + active + '" data-k="host" data-open="' + esc(t.handle) + '">' + avatar({ id: 'host:' + t.handle, username: t.handle }) +
+      '<span class="dm-mid"><span class="dm-name">@' + esc(t.handle) + '</span><span class="dm-prev"><span>' + esc(prev) + '</span>' + (t.at ? '<span>· ' + short(t.at) + '</span>' : '') + '</span></span>' + dot + '</button>';
+  }
   function alertsRow() {
     var n = zn[0], active = cur && cur.kind === 'alerts' ? ' active' : '', f = n ? alFrom(n.title) : null;
     var prev = n ? (f.from ? f.from + ': ' : '') + f.title + (n.room_id ? ' · Room ' + n.room_id : '') : 'Room IDs, reminders and results land here';
@@ -748,6 +757,7 @@
     }
     if (tab === 'all' && !q) h += recsHtml();
     if (tab === 'all' && (!q || 'jd esports team support help zulu'.indexOf(q) >= 0)) h += jdRow();
+    if (tab === 'all') h += hostChats.filter(function (t) { return !q || t.handle.indexOf(q) >= 0; }).map(hostRow).join('');
     if (tab === 'all' && (!q || 'alerts notifications room'.indexOf(q) >= 0)) h += alertsRow();
     // signed in, ZULU lives inside the JD Esports chat (its tips show there too)
     if (tab === 'all' && (!q || 'zulu ai'.indexOf(q) >= 0) && (!MERGED || !me)) h += zuluRow();
@@ -791,6 +801,7 @@
     if (k === 'zulu') return openZulu();
     if (k === 'alerts') return openAlerts();
     if (k === 'jd') return openJd();
+    if (k === 'host') return openThread({ kind: 'host', id: id, username: id });
     if (k === 'group') return openGroup(id);
     if (k === 'match') return openMatch(id);
     var f = ov && ov.friends.find(function (x) { return x.id === id; });
@@ -969,6 +980,7 @@
     if (p.kind === 'dm' && p.friend === false) foot = composer(p.req === 'in' ? 'Reply…' : 'Message request…', 500);
     else if (p.kind === 'zulu') foot = composer(T('askZulu'), 500);
     else if (p.kind === 'jd') foot = composer(MERGED ? 'Message JD Esports · ZULU replies…' : 'Message the JD team…', 1000);
+    else if (p.kind === 'host') foot = composer('Message @' + p.id + '…', 1000);
     else if (p.kind === 'alerts') foot = '<div class="dm-locked">Alerts can\'t be answered. Questions? Message JD Esports or ask ZULU.</div>';
     else if (p.kind === 'match') foot = composer('Message… · @zulu asks AI', 300);
     else if (p.kind === 'group') foot = composer('Message… · @zulu asks AI', 500);
@@ -1043,6 +1055,7 @@
   }
   function smartChips(force) {
     var p = cur; if (!p || p.kind === 'zulu') return;
+    if (p.kind === 'host') { setChips(''); return; }
     if (p.kind === 'jd') {
       if (MERGED) {   // ZULU answers; it brings in the JD team itself when the issue is big (zulu-auto [FLAG])
         if (msgs.length) setChips(''); else chips(['🏆 Next tournament?', '🪙 How many points do I have?', 'Room ID problem 🎮', 'Our squad is ready ✅']);
@@ -1108,6 +1121,7 @@
       av = jdAv('sm'); name = MERGED ? 'JD Esports · ZULU' : 'JD Esports';
       st = MERGED ? 'ZULU AI replies in seconds · JD team joins for big issues' : 'Official JD team · we reply here';
     }
+    else if (p.kind === 'host') { av = avatar(p, 'sm'); name = '@' + p.id; st = 'Event host · not the JD team'; }
     else if (p.kind === 'alerts') { av = alAv('sm'); name = 'Alerts'; st = 'Room IDs, reminders and results'; }
     else { av = zuluAv('sm'); name = 'ZULU'; st = 'AI assistant · replies in seconds'; on = true; }
     $('dm-th-av').innerHTML = av;
@@ -1127,6 +1141,10 @@
     if (p.kind === 'dm') {
       var r = await SB.rpc('dm_thread', args({ p_with: p.id }));
       return r.error ? r : { data: (r.data || []).map(function (m) { return Object.assign({ sender: m.mine ? me : p.id, kind: 'text' }, m); }) };
+    }
+    if (p.kind === 'host') {
+      var hr = await SB.rpc('host_thread', args({ p_handle: p.id }));
+      return hr.error ? hr : { data: (hr.data || []).map(function (m) { return Object.assign({ sender: m.mine ? me : p.id, kind: 'text' }, m); }) };
     }
     if (p.kind === 'jd' || p.kind === 'group') {
       var x = await SB.rpc(p.kind === 'jd' ? 'jd_thread' : 'group_thread', args(p.kind === 'jd' ? {} : { p_group: p.id }));
@@ -1186,6 +1204,7 @@
       if (p.kind === 'dm') { if (rows.some(function (m) { return !m.mine && !m.read_at; })) { await SB.rpc('dm_mark_read', { p_with: p.id }); poll(); } }
       else if (p.kind === 'group') { await SB.rpc('group_mark_read', { p_group: p.id }); poll(); }
       else if (p.kind === 'jd') { if (rows.some(function (m) { return !m.mine && !m.read_at; })) { await SB.rpc('jd_mark_read'); poll(); } }
+      else if (p.kind === 'host') { if (rows.some(function (m) { return !m.mine && !m.read_at; })) { await SB.rpc('host_mark_read', { p_handle: p.id }); hostChats.forEach(function (t) { if (t.handle === p.id) t.unread = 0; }); } }
       else { await SB.rpc('challenge_mark_read', { p_id: p.id }); poll(); }
     }
   }
@@ -1258,6 +1277,7 @@
     else if (p.kind === 'match') h += '<div class="dm-hello">' + matchAv() + '<b>' + esc((p.mode || '') + ' Clash Squad') + '</b>Only you and the other captain can see this chat.<br>Agree the room, play, then report the result on the challenge.<br><span class="dm-hint">Type <b>@zulu</b> to ask ZULU (AI) about the rules. It reads the last few messages.</span></div>';
     else if (p.kind === 'jd' && MERGED) h += '<div class="dm-hello">' + jdAv() + '<b>JD Esports · ZULU ' + VERIFIED + '</b>One chat for everything. <strong>ZULU (AI) replies in seconds</strong> using your own tickets, points and the schedule.<br>For big issues (payments, prizes, refunds, results, bans) ZULU brings in the JD team and they reply right here.<br><span class="dm-hint">The JD team and ZULU never ask for your password, OTP or eSewa PIN.</span></div>';
     else if (p.kind === 'jd') h += '<div class="dm-hello">' + jdAv() + '<b>JD Esports ' + VERIFIED + '</b>The official JD Esports Arena team.<br>Real people from the JD team (moderators and admin) write here. Ask about events, slots, points or room IDs and we reply. For instant answers, ask ZULU.<br><span class="dm-hint">The JD team never asks for your password or eSewa PIN.</span></div>';
+    else if (p.kind === 'host') h += '<div class="dm-hello">' + avatar(p) + '<b>@' + esc(p.id) + '</b>This host runs their own events on JD Arena and pays those prizes directly. They are not the JD team.<br><span class="dm-hint">Never share your password, OTP or eSewa PIN. Links and the host\'s phone numbers are blocked here. Report a problem in the JD Esports chat.</span></div>';
     else if (p.kind === 'alerts') h += '<div class="dm-hello">' + alAv() + '<b>Alerts</b>Room IDs and passwords, slot reminders, results and messages from the JD team or an event\'s host. Tap a Room ID or password to copy it.</div>';
     else h += '<div class="dm-hello">' + zuluAv() + '<b>ZULU</b>Your JD Arena buddy. Chat about anything gaming, get Free Fire tips, or ask about tournaments and your own points, tickets and challenges. It never sees your private chats.</div>';
     var list = msgs;
@@ -1322,7 +1342,7 @@
   }
   function seenLine(m) {
     if (m.pending) return 'Sending…';
-    if (cur.kind === 'dm' || cur.kind === 'jd') return m.read_at ? 'Seen ' + short(m.read_at).replace('now', 'just now') : 'Sent';
+    if (cur.kind === 'dm' || cur.kind === 'jd' || cur.kind === 'host') return m.read_at ? 'Seen ' + short(m.read_at).replace('now', 'just now') : 'Sent';
     if (cur.kind === 'group' && ginfo && typeof m.id === 'number') {
       var seen = ginfo.members.filter(function (x) { return !x.me && Number(x.read) >= m.id; });
       if (seen.length) return '<span class="dm-seenby" title="' + esc(T('seenBy') + ' ' + seen.map(nameOf).join(', ')) + '">' + seen.slice(0, 5).map(function (x) { return avatar(x, 'xxs'); }).join('') + '</span>';
@@ -1566,6 +1586,7 @@
     if (p.kind === 'dm') r = await SB.rpc('send_dm', { p_to: p.id, p_body: body });
     else if (p.kind === 'group') r = await SB.rpc('send_group_message', { p_group: p.id, p_body: body, p_kind: kind || 'text' });
     else if (p.kind === 'jd') r = await SB.rpc('jd_send', { p_body: body });
+    else if (p.kind === 'host') r = await SB.rpc('host_send', { p_handle: p.id, p_body: body });
     else r = await SB.rpc('send_challenge_message', { p_id: p.id, p_body: body });
     sending = false;
     if (cur !== p) return;
@@ -1575,7 +1596,7 @@
       if (/only message your friends/i.test(m.failed)) { p.friend = false; $('dm-foot').innerHTML = '<div class="dm-locked">You can\'t message this player.</div>'; }
       renderMsgs(true); return;
     }
-    if ((p.kind !== 'dm' && p.kind !== 'jd' && MENTION.test(body)) || (p.kind === 'jd' && MERGED)) {   // ZULU typing dots until its reply lands
+    if ((p.kind !== 'dm' && p.kind !== 'jd' && p.kind !== 'host' && MENTION.test(body)) || (p.kind === 'jd' && MERGED)) {   // ZULU typing dots until its reply lands
       zuluWait = { key: p.kind + p.id, until: Date.now() + 30000 };
       setTimeout(function () { if (cur === p && zuluWait) { sig += '~'; refreshThread(); } }, 30500);
     }
@@ -1681,6 +1702,8 @@
         '<button type="button" class="dm-opt red" data-a="block">⛔ Block ' + n + '</button>' +
         '<button type="button" class="dm-opt red" data-a="report">🚩 Report ' + n + '</button>' +
         '<button type="button" class="dm-opt" data-a="close">' + T('cancel') + '</button>');
+    } else if (p.kind === 'host') {
+      sheet('<h3>@' + esc(p.id) + '</h3><a class="dm-opt" href="/events/">🏆 Events and your tickets</a><button type="button" class="dm-opt" data-a="close">' + T('cancel') + '</button>');
     } else if (p.kind === 'jd') {
       sheet('<h3>JD Esports ' + VERIFIED + '</h3>' +
         '<a class="dm-opt" href="/events/">🏆 Events and your tickets</a>' +

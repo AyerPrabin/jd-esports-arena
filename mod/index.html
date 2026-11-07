@@ -89,7 +89,6 @@ main{position:relative;max-width:1280px;margin:0 auto;padding:16px 16px calc(var
   .tabs{padding:12px max(16px,calc((100% - 1440px)/2 + 16px))}
   .tabs [data-tab=chats]{display:none}
   main{display:grid;grid-template-columns:250px minmax(0,1fr) 380px;gap:18px;align-items:start}
-  main.no-chats{grid-template-columns:250px minmax(0,1fr)}
   .col-right{display:contents}
   .tab{grid-column:2;grid-row:1}
   #tab-events{display:block;grid-column:1;grid-row:1;position:sticky;top:calc(var(--top-h,72px) + 64px);max-height:calc(100vh - var(--top-h,72px) - 80px);overflow:auto;overscroll-behavior:contain}
@@ -631,7 +630,7 @@ textarea{min-height:96px;resize:vertical}
       <h3>Room code</h3>
       <p>Type the Room ID and password and send it about 5 minutes before the start. Only squads in a slot get it. If you remove a squad after sending, change the room password and send the new one.</p>
       <h3>Host mods</h3>
-      <p>Invited scrim hosts see only the events the JD admin made them host of. They publish their own results and pay their own prizes; JD points never move for them. Message on a squad sends its captain a notification, and Notify has one invite per event. When a host event is full, the waitlist costs half the entry and comes back if no slot opens. The JD Esports chat stays with the JD team.</p>
+      <p>Invited scrim hosts see only the events the JD admin made them host of. They publish their own results and pay their own prizes; JD points never move for them. Message on a squad sends its captain a notification, and Notify has one invite per event. When a host event is full, the waitlist costs half the entry and comes back if no slot opens. Hosts have their own Chats tab with players from their events, signed with their @handle. The JD Esports chat stays with the JD team.</p>
       <h3>Chats</h3>
       <p>JD team only. Tap Message on a squad, or type a player's @username, to chat with them. They see it in Messages as JD Esports with a verified tick – never your name or email – and get a phone push. Their replies show up here with a count on the Chats tab. ZULU answers here first and rings your phone for big problems. After you reply, it waits 2 minutes, then carries on if the player is still waiting, so reply again within that time if you are still on it.</p>
       <h3>Notifications</h3>
@@ -1081,7 +1080,7 @@ const status=p=>p.online?'Active now':p.seen?'Active '+ago(p.seen)+' ago':'';
 const team=p=>p&&(p.squad||p.name)||'Player';
 function renderInbox(){
   const unread=inbox.reduce((n,t)=>n+(t.unread||0),0), bd=$('badge-chat');
-  bd.hidden=!unread; bd.textContent=unread>9?'9+':unread; $('c-readall').hidden=!unread;
+  bd.hidden=!unread; bd.textContent=unread>9?'9+':unread; $('c-readall').hidden=!unread||isHostMod();
   $('c-list').innerHTML=inbox.length?inbox.map(t=>{
     const p=t.player||{}, who=t.last_staff?'You: ':'';
     return `<button type="button" class="crow${t.unread?' unread':''}${t.player_id===chatPid?' on':''}" data-pid="${esc(t.player_id)}">${cav(p)}`+
@@ -1090,10 +1089,10 @@ function renderInbox(){
   }).join(''):'<div class="empty">No chats yet. Tap Message on a squad, or type a player\'s @username above.</div>';
 }
 try{ const c=JSON.parse(localStorage.getItem('jd_mod_inbox')||'null'); if(Array.isArray(c)){ inbox=c; renderInbox(); } }catch(e){}
+const chatAct=a=>(isHostMod()?'host_':'chat_')+a;   // hosts have their own chats (host_chat.sql), same screens
 async function loadInbox(){
-  if(isHostMod()) return;
   try{
-    inbox=await call({action:'chat_inbox'});
+    inbox=await call({action:chatAct('inbox')});
     const open=chatPid&&inbox.find(x=>x.player_id===chatPid); if(open) open.unread=0;   // the chat on screen is read
     try{ localStorage.setItem('jd_mod_inbox',JSON.stringify(inbox.slice(0,40).map(t=>({...t,player:{...t.player,logo:null,avatar:null}})))); }catch(e){}
     renderInbox();
@@ -1107,7 +1106,7 @@ function renderChat(d){
   const sub=$('c-sub'); sub.textContent=status(p)||[p.squad?p.name:'',p.tag].filter(Boolean).join(' · '); sub.className=p.online?'on':'';
   if(!$('cprof-wrap').hidden) renderProfile(d);
   const ms=d.messages||[];
-  if(!ms.length){ box.innerHTML='<p class="cempty">No messages yet. Say hi – it arrives as JD Esports with a phone push.</p>'; return; }
+  if(!ms.length){ box.innerHTML=`<p class="cempty">No messages yet. Say hi – it arrives as ${isHostMod()?'@'+esc(ME.handle):'JD Esports'} with a phone push.</p>`; return; }
   let h='', lastMine=-1; ms.forEach((m,i)=>{ if(m.staff) lastMine=i; });
   ms.forEach((m,i)=>{
     const prev=ms[i-1], next=ms[i+1], t=new Date(m.created_at).getTime();
@@ -1126,7 +1125,7 @@ async function refreshChat(){
   if(!chatWith||chatBusy) return;
   const who=chatWith;
   try{
-    const d=await call({action:'chat_thread',...who});
+    const d=await call({action:chatAct('thread'),...who});
     if(who!==chatWith) return;
     chatPid=d.player.id; chatWith={player_id:chatPid};
     const old=threads.get(chatPid), pend=old?old.messages.filter(m=>m.pending||m.failed):[];
@@ -1167,10 +1166,11 @@ function renderProfile(d){
     (tk.length?`<div class="cptk">${tk.map(t=>`<div><span style="min-width:0"><b>${esc(t.event)}</b><small>${esc(t.squad||'')} · ${esc(ST[t.status]||t.status)}</small></span>`+
       `<small class="${t.status==='confirmed'||t.status==='approved'?(t.confirmed?'ok':'no'):''}">${t.status==='confirmed'||t.status==='approved'?(t.confirmed?'Playing ✓':'Not confirmed'):''}</small></div>`).join('')}</div>`
       :'<p class="note">No tickets yet.</p>')+
-    `<button type="button" id="cp-zulu-b" style="width:100%;margin-top:10px">✨ Ask ZULU: what's going on + reply idea</button><div id="cp-zulu"></div>`+
-    `<div id="cp-act"><button type="button" class="ghost" id="cp-act-b" style="width:100%;margin-top:10px">📋 What did this player do? (money, events, challenges, withdrawals)</button></div>`+
+    (isHostMod()?'':`<button type="button" id="cp-zulu-b" style="width:100%;margin-top:10px">✨ Ask ZULU: what's going on + reply idea</button><div id="cp-zulu"></div>`+
+    `<div id="cp-act"><button type="button" class="ghost" id="cp-act-b" style="width:100%;margin-top:10px">📋 What did this player do? (money, events, challenges, withdrawals)</button></div>`)+
     `<div class="cprow">${wl?`<a class="abtn wa" href="${wl}" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-wa"/></svg>WhatsApp</a>`:''}<button type="button" class="ghost" id="cprof-close">Back to chat</button></div></div>`;
   $('cprof-close').onclick=toggleProfile;
+  if(isHostMod()) return;
   $('cp-zulu-b').onclick=async()=>{const b=$('cp-zulu-b'),box=$('cp-zulu');b.disabled=true;box.innerHTML='<p class="note">ZULU is reading the chat and activity…</p>';
     try{const r=await call({action:'chat_zulu_brief',player_id:p.id});
       box.innerHTML=`<div class="zbrief"></div><p class="note" style="margin:4px 0 0">AI summary from the player's own messages. Check money in 📋 activity before any refund or credit.</p>${r.reply?'<button type="button" class="ghost" id="cp-zulu-use" style="width:100%;margin-top:6px">Use this reply</button>':''}`;
@@ -1204,7 +1204,7 @@ $('c-form').onsubmit=async e=>{
   $('c-msgs').dataset.first='1'; renderChat(d);                   // shows at once
   chatBusy=true;
   try{
-    const r=await call({action:'chat_send',...chatWith,body});
+    const r=await call({action:chatAct('send'),...chatWith,body});
     m.pending=false; m.id=r.id; m.created_at=r.created_at||m.created_at;
     if(r.player&&!chatPid){ chatPid=r.player.id; chatWith={player_id:chatPid}; d.player=r.player; threads.set(chatPid,d); }
     const t=inbox.find(x=>x.player_id===chatPid);
@@ -1476,7 +1476,7 @@ $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
   try{
     const me=await call({action:'whoami'}); ME=me;
     $('who').textContent=me.email+(isHostMod()?' · host @'+me.handle:''); $('who-wrap').hidden=false;
-    if(isHostMod()){ document.querySelector('#tabs [data-tab=chats]').hidden=true; $('tab-chats').style.display='none'; $('hev-new').hidden=false; $('hev-m').hidden=false; $('main').classList.add('no-chats'); document.querySelector('#tabs [data-tab=notify]').classList.remove('in-more'); }
+    if(isHostMod()){ $('c-live').hidden=true; $('c-new').querySelector('input').placeholder='Message a player from your events: @username…'; $('c-in').setAttribute('aria-label','Message as @'+ME.handle); $('c-list').parentElement.querySelector('p.note').textContent='Players see you as @'+ME.handle+'. This is your own chat, separate from JD Esports. Links and phone numbers are blocked, and the JD team can read a chat if someone reports a problem.'; $('hev-new').hidden=false; $('hev-m').hidden=false; document.querySelector('#tabs [data-tab=notify]').classList.remove('in-more'); }
     if(!me.owner){ const all=document.querySelector('input[name=aud][value=all]'); all.closest('label').remove(); }
     if(me.commission_pct!=null){ document.querySelector('#tabs [data-tab=earnings]').hidden=false; if(!me.agreed_at) agreeAsk().catch(err=>toast(err.message,null,true)); }
     if(isHostMod()) $('n-invite-w').hidden=false;
@@ -1484,7 +1484,7 @@ $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
     const h=(location.hash||'').slice(1); if(['results','room','notify','help','loads','challenges','promo','earnings'].concat(isHostMod()?[]:['chats']).includes(h)) showTab(h);
     setTopH();
     loadTournaments(); modTourFirst();
-    if(!isHostMod()){ loadInbox(); startLive(); }
+    loadInbox(); if(!isHostMod()) startLive();
     if(!isHostMod()){ document.querySelector('#tabs [data-tab=loads]').hidden=false; ldLoad(); setInterval(()=>{ if(!document.hidden) ldLoad(); },60000);
       document.querySelector('#tabs [data-tab=challenges]').hidden=false; centerTab(); cqLoad(); setInterval(()=>{ if(!document.hidden) cqLoad(); },120000); }
     if(!isHostMod()) sb.rpc('promo_queue').then(r=>{ if(r.error) return; document.querySelector('#tabs [data-tab=promo]').hidden=false; $('tab-promo').classList.add('ok'); centerTab(); prLoad(); const n=(r.data||[]).length,bd=$('badge-promo'); bd.hidden=!n; bd.textContent=n; if(h==='promo') showTab('promo'); });
