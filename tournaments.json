@@ -418,11 +418,11 @@
       "registered": 0
     },
     {
-      "map": "kalahari",
+      "map": "nexterra",
       "date": "Sun, Nov 8",
       "game": "Free Fire BR · Squad",
-      "map2": "random",
-      "map3": "random",
+      "map2": "kalahari",
+      "map3": "bermuda",
       "name": "JD Free Fire Open #18",
       "time": "9:30 PM NPT",
       "entry": "Free",
@@ -650,5 +650,5 @@
       }
     ]
   },
-  "_published_at": "2026-11-07T02:43:40.809Z"
+  "_published_at": "2026-11-07T02:43:48.694Z"
 }
