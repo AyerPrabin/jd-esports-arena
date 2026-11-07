@@ -1121,7 +1121,7 @@
       av = jdAv('sm'); name = MERGED ? 'JD Esports · ZULU' : 'JD Esports';
       st = MERGED ? 'ZULU AI replies in seconds · JD team joins for big issues' : 'Official JD team · we reply here';
     }
-    else if (p.kind === 'host') { av = avatar(p, 'sm'); name = '@' + p.id; st = 'Event host · not the JD team'; }
+    else if (p.kind === 'host') { av = avatar(p, 'sm'); name = '@' + p.id; st = 'Event host'; }
     else if (p.kind === 'alerts') { av = alAv('sm'); name = 'Alerts'; st = 'Room IDs, reminders and results'; }
     else { av = zuluAv('sm'); name = 'ZULU'; st = 'AI assistant · replies in seconds'; on = true; }
     $('dm-th-av').innerHTML = av;

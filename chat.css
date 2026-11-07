@@ -408,3 +408,4 @@ html.app-gated .dm-fab,html.app-gated .dm-panel,html.app-gated .dm-banner{displa
 .dm-find span{grid-row:span 2;font-size:1.4rem}
 .dm-find b{font-size:.95rem;color:#FFDD85}
 .dm-find small{font-size:.78rem;color:#8A94A8}
+.dm-ib[hidden]{display:none}
