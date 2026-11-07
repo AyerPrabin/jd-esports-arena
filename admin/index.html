@@ -639,7 +639,7 @@ h2[id]{scroll-margin-top:64px}
   <div class="grid">
     <div class="f"><label>Add moderator email</label><input id="mod-email" placeholder="name@example.com" autocomplete="off"></div>
     <div class="f"><label>Role</label><select id="mod-role" onchange="document.getElementById('mod-handle-f').style.display=this.value==='host'?'':'none'"><option value="staff">Staff (my mod)</option><option value="host">Host (invited scrim host)</option></select></div>
-    <div class="f" id="mod-handle-f" style="display:none"><label>Host handle <span class="tag">put this in the event's Host field</span></label><input id="mod-handle" placeholder="e.g. goats.esp" autocomplete="off"></div>
+    <div class="f" id="mod-handle-f" style="display:none"><label>TikTok ID <span class="tag">their events run under this name</span></label><input id="mod-handle" placeholder="e.g. goats.esp" autocomplete="off"></div>
     <div class="f"><label>Note <span class="tag">optional</span></label><input id="mod-note" placeholder="e.g. Ramesh - reminders"></div>
   </div>
   <div class="row" style="margin:8px 0 0"><button class="btn" onclick="modAdd()">➕ Add moderator</button><button class="btn ghost" onclick="modList()">🔄 Refresh list</button><div id="mod-msg" class="hint"></div></div>
@@ -2430,8 +2430,8 @@ async function modAdd(){
   const email=document.getElementById('mod-email').value.trim(),note=document.getElementById('mod-note').value.trim();
   const role=document.getElementById('mod-role').value,handle=document.getElementById('mod-handle').value.trim().replace(/^@+/,'');
   if(!email){modMsg('Enter an email.','err');return;}
-  if(role==='host'&&!handle){modMsg('Enter the host handle (e.g. their TikTok name).','err');return;}
-  try{ await modCall({action:'mod_add',email,note,role,handle}); ['mod-email','mod-note','mod-handle'].forEach(id=>document.getElementById(id).value=''); modMsg('Added '+email+(role==='host'?' as host @'+handle+'. Set "Host mod handle" on their events.':' as staff.'),'ok'); modList(); }
+  if(role==='host'&&!handle){modMsg('Enter their TikTok ID (e.g. goats.esp).','err');return;}
+  try{ await modCall({action:'mod_add',email,note,role,handle}); ['mod-email','mod-note','mod-handle'].forEach(id=>document.getElementById(id).value=''); modMsg('Added '+email+(role==='host'?' as host @'+handle+'. They can make events now.':' as staff.'),'ok'); modList(); }
   catch(e){modMsg(e.message,'err');}
 }
 async function modRemove(email){

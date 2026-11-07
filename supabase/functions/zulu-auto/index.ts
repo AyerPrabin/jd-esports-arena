@@ -1,8 +1,9 @@
 // ZULU answers players in the JD Esports chat (zulu_auto.sql, jd_chat.sql). Called by the
 // jd_messages_push trigger (pg_net) whenever a player writes there. For each player it waits a
 // moment, then replies with the AI using the player's own account (squad, points, tickets, recent
-// alerts) and the live JD schedule. It stays quiet when a moderator wrote in that chat in the last
-// 20 minutes (a human is handling it) or when the newest player message already has a ZULU answer.
+// alerts) and the live JD schedule. A moderator's reply gives them 2 minutes to carry on: if the
+// player's message is still unanswered after that, ZULU answers it. It stays quiet when the newest
+// player message already has an answer.
 // The reply is a staff message (staff_email 'zulu-ai', push on) that the player sees as ZULU inside
 // JD Esports; moderators still see every player message as unread in /mod/ → Chats.
 // Must be deployed with --no-verify-jwt (the pg_net caller has no JWT, only x-cron-secret).
@@ -11,7 +12,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { askAI, type AIMessage } from '../_shared/ai.ts';
 import { safeReply, teamAnswers, zuluSystemPrompt } from '../_shared/zulu.ts';
 
-const HUMAN_QUIET_MS = 20 * 60000;
+const HUMAN_GRACE_MS = 2 * 60000;   // keep under the edge function's 150 s wall clock: this worker sleeps through it
 const PER_PLAYER_DAILY = 25;
 const GLOBAL_DAILY = 400;
 const GEMINI_MODELS = (Deno.env.get('ZULU_CHAT_GEMINI_MODELS') || 'gemini-flash-lite-latest,gemini-flash-latest,gemini-2.5-flash-lite')
@@ -32,7 +33,8 @@ You are answering inside the player's official "JD Esports" / "JD Support" chat,
 - You cannot change anything yourself (points, slots, confirmations, refunds, withdrawals, bans, results). For those, or if they ask for a person, are upset, or you are not sure, say a JD team member will reply here soon AND end with [FLAG].
 - If they say their squad is ready / confirm, tell them to tap "Confirm you're playing" on their ticket, and that a moderator can also mark it.
 - Never ask for passwords, OTPs or eSewa PINs.
-- You handle this chat on your own. The JD team only joins when you flag it. Flag ONLY big issues: points/payment not received, prize or withdrawal problems, refunds, result disputes, bans, cheating/hacker reports, a hacked account, a very upset player, or anything you truly cannot solve. To flag, end your reply with the exact tag [FLAG] and tell them a JD team member will reply here soon. Never flag simple questions.`;
+- Lines marked (JD moderator) were written by the team. Stay consistent with them, don't repeat them, and never write that label yourself.
+- You handle this chat on your own. The JD team only joins when you flag it. Flag ONLY big issues: points/payment not received, prize or withdrawal problems, refunds, result disputes, bans, cheating/hacker reports, a hacked account, a very upset player, or a scrim host asking to become a partner host (after you have their TikTok ID and JD account email), or anything you truly cannot solve. To flag, end your reply with the exact tag [FLAG] and tell them a JD team member will reply here soon. Never flag simple questions.`;
 const FLAG = /\[FLAG\]/gi;
 
 Deno.serve(async (req: Request) => {
@@ -52,7 +54,7 @@ Deno.serve(async (req: Request) => {
       .eq('staff_email', 'zulu-ai').gte('created_at', day.toISOString());
     let used = globalCount ?? 0;
     for (const pid of players) {
-      try { if (await answer(db, pid, day, used)) used++; } catch (e) { console.error('zulu-auto', pid, e); }
+      try { if (await answer(db, pid, day, used, ids)) used++; } catch (e) { console.error('zulu-auto', pid, e); }
     }
   })().catch((e) => console.error('zulu-auto', e));
   // @ts-ignore EdgeRuntime is provided by Supabase Edge Functions
@@ -60,15 +62,20 @@ Deno.serve(async (req: Request) => {
   return Response.json({ queued: ids.length });
 });
 
-async function answer(db: any, pid: string, day: Date, used: number): Promise<boolean> {
+async function answer(db: any, pid: string, day: Date, used: number, ids: number[]): Promise<boolean> {
   const { data: hist } = await db.from('jd_messages').select('id, from_staff, staff_email, body, created_at')
     .eq('player_id', pid).eq('channel', 'jd').order('id', { ascending: false }).limit(14);
   const msgs = (hist || []).reverse();
   if (!msgs.length) return false;
   const last = msgs[msgs.length - 1];
   if (last.from_staff) return false;                                            // already answered
+  if (!ids.includes(last.id)) return false;                                     // a newer message has its own worker: one answer, not two
   const human = msgs.filter((m: any) => m.from_staff && !String(m.staff_email || '').startsWith('zulu'));
-  if (human.length && Date.now() - new Date(human[human.length - 1].created_at).getTime() < HUMAN_QUIET_MS) return false;
+  const wait = human.length ? HUMAN_GRACE_MS - (Date.now() - new Date(human[human.length - 1].created_at).getTime()) : 0;
+  if (wait > 0) {   // the moderator may still be typing: look again when their 2 minutes are up
+    await new Promise((r) => setTimeout(r, wait + 500));
+    return answer(db, pid, day, used, ids);
+  }
 
   // flagged: player messages stay unread in /mod/ and the moderators' phones RING (dm-push kind 'staff', ring);
   // handled by ZULU: marked read, so the team's inbox only lights up for the big issues

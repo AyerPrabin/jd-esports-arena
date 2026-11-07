@@ -516,7 +516,7 @@ textarea{min-height:96px;resize:vertical}
           <div class="sec-h"><h2 id="h-chats">Chats</h2><span class="sp"></span><span class="live" id="c-live" title="New messages arrive instantly"><i></i>Connecting…</span><button type="button" class="ghost" id="c-readall" hidden style="margin-left:8px;padding:6px 12px;font-size:.8rem">Mark all read</button></div>
           <form class="chat-new" id="c-new"><input id="c-who" name="who" autocomplete="off" spellcheck="false" placeholder="Message a player: @username or JD tag…" aria-label="Player's @username or JD tag"><button class="btn" type="submit">Open</button></form>
           <div class="clist" id="c-list"><div class="cskel"><i></i><span><b></b><b></b></span></div><div class="cskel"><i></i><span><b></b><b></b></span></div><div class="cskel"><i></i><span><b></b><b></b></span></div></div>
-          <p class="note">Players see you as <b>JD Esports</b> <svg class="ver" viewBox="0 0 24 24" aria-label="verified"><path fill="currentColor" d="M12 1.6l2.6 1.9 3.2-.1 1 3 2.6 1.9-1 3.1 1 3.1-2.6 1.9-1 3-3.2-.1L12 22.4l-2.6-1.9-3.2.1-1-3L2.6 15.7l1-3.1-1-3.1 2.6-1.9 1-3 3.2.1z"/></svg>, never your name. ZULU's automatic messages go to their ZULU chat, not here.</p>
+          <p class="note">Players see you as <b>JD Esports</b> <svg class="ver" viewBox="0 0 24 24" aria-label="verified"><path fill="currentColor" d="M12 1.6l2.6 1.9 3.2-.1 1 3 2.6 1.9-1 3.1 1 3.1-2.6 1.9-1 3-3.2-.1L12 22.4l-2.6-1.9-3.2.1-1-3L2.6 15.7l1-3.1-1-3.1 2.6-1.9 1-3 3.2.1z"/></svg>, never your name. ZULU answers here too. After you reply it waits 2 minutes, then carries on if the player is still waiting.</p>
         </div>
         <div id="cview" hidden>
           <div class="cview-h"><button type="button" class="ghost" id="c-back" aria-label="Back to chats"><svg aria-hidden="true"><use href="#i-back"/></svg></button>
@@ -597,7 +597,7 @@ textarea{min-height:96px;resize:vertical}
   <!-- help -->
   <section class="tab help" id="tab-help" aria-labelledby="h-help">
     <div class="panel">
-      <div class="sec-h"><h2 id="h-help">How it works</h2></div>
+      <div class="sec-h"><h2 id="h-help">How it works</h2><span class="sp"></span><button type="button" class="ghost" id="tour-again">Show the tour</button></div>
       <h3>Match night</h3>
       <p>Pick tonight's event. In Squads, set Playing to Yes for squads that confirmed. Tap WhatsApp to send a ready reminder to the ones that haven't. Remove squads that never confirm. In JD free events the first on the waitlist is told a slot is open and pays 20 points for it.</p>
       <h3>Room code</h3>
@@ -605,7 +605,7 @@ textarea{min-height:96px;resize:vertical}
       <h3>Host mods</h3>
       <p>Invited scrim hosts see only the events the JD admin made them host of. Message on a squad sends its captain a notification. Chats and prize payouts stay with the JD team.</p>
       <h3>Chats</h3>
-      <p>JD team only. Tap Message on a squad, or type a player's @username, to chat with them. They see it in Messages as JD Esports with a verified tick – never your name or email – and get a phone push. Their replies show up here with a count on the Chats tab. This chat is people only: ZULU's automatic messages go to the player's ZULU chat.</p>
+      <p>JD team only. Tap Message on a squad, or type a player's @username, to chat with them. They see it in Messages as JD Esports with a verified tick – never your name or email – and get a phone push. Their replies show up here with a count on the Chats tab. ZULU answers here first and rings your phone for big problems. After you reply, it waits 2 minutes, then carries on if the player is still waiting, so reply again within that time if you are still on it.</p>
       <h3>Notifications</h3>
       <p>Templates fill the title and message. Notifications go only to the squads in the event you picked, never to everyone on JD Arena.</p>
       <h3>Results and prizes</h3>
@@ -638,7 +638,7 @@ function sheet(o){
     bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t"><h3 id="sh-t">${esc(o.title)}</h3>`+
       (o.text?`<p>${esc(o.text)}</p>`:'')+
       (o.chips&&o.chips.length?`<div class="chips">${o.chips.map(c=>`<button type="button">${esc(c)}</button>`).join('')}</div>`:'')+field+
-      `<div class="row2">${o.cancel===false?'':'<button type="button" class="ghost" data-x>Cancel</button>'}<button type="button" class="btn sm${o.danger?' danger':''}" data-ok>${esc(o.ok||'OK')}</button></div></div>`;
+      `<div class="row2">${o.cancel===false?'':`<button type="button" class="ghost" data-x>${esc(o.cancelText||'Cancel')}</button>`}<button type="button" class="btn sm${o.danger?' danger':''}" data-ok>${esc(o.ok||'OK')}</button></div></div>`;
     document.body.appendChild(bg);document.body.style.overflow='hidden';
     requestAnimationFrame(()=>bg.classList.add('open'));
     const inp=bg.querySelector('#sh-in'), okb=bg.querySelector('[data-ok]');
@@ -667,6 +667,45 @@ function toast(text,undo,err){
   clearTimeout(_toastT);_toastT=setTimeout(()=>t.remove(),undo?6000:3500);
 }
 
+/* ── first-open tour, one for JD mods and one for invited hosts. Replay from How it works. ── */
+const TOUR_KEY='jd_mod_tour_v1';
+function tourSteps(){
+  if(isHostMod()) return [
+    {t:'Welcome, @'+ME.handle,x:'This is your host panel. You run your own events on JD Arena under your TikTok ID. Here is how a night works.'},
+    {tab:'squads',t:'Make an event',x:'Tap + New event. Your TikTok ID goes on the event name for you, and players see Hosted by @'+ME.handle+'. Entry is free for squads.'},
+    {tab:'squads',t:'Check your squads',x:'Pick your event, then set Playing to Yes for squads that confirmed. Message on a squad sends its captain a notification.'},
+    {tab:'room',t:'Send the room code',x:'Type the Room ID and password about 5 minutes before the start. Only squads with a slot get it. If you remove a squad afterwards, change the password and send it again.'},
+    {tab:'notify',t:'Tell your squads',x:'Notify reaches the squads in your event, signed with your @name.'+($('n-invite-w')?' You also get one invite per event to bring in new players.':'')},
+    {tab:'results',t:'Publish your results',x:'Type each squad\'s points per match and publish. When it is over, tap Finish event. You pay your winners yourself: JD doesn\'t pay host prizes and can\'t move points for you.'},
+  ];
+  const on=n=>{const b=document.querySelector(`#tabs [data-tab=${n}]`);return b&&!b.hidden;};
+  return [
+    {t:'Welcome to the JD team',x:'This panel runs match night and player support. A quick look at each tool, and you can see it again any time in How it works.'},
+    {tab:'squads',t:'Check the squads',x:'Pick tonight\'s event. Set Playing to Yes for squads that confirmed, and tap WhatsApp to remind the rest. Remove squads that never confirm.'},
+    {tab:'room',t:'Send the room code',x:'Send the Room ID and password about 5 minutes before the start. Only squads with a slot get it. If you remove a squad afterwards, change the password and send it again.'},
+    {tab:'chats',t:'Answer players',x:'ZULU answers players first and rings your phone for big problems. Players see you as JD Esports, never your name. After you reply, ZULU waits 2 minutes, then picks the chat back up if the player is still waiting.'},
+    on('loads')&&{tab:'loads',t:'Match point loads',x:'This is real money. Add points only when a player\'s screenshot matches a Money received alert: same amount, and paid up to 3 hours before the request. If it doesn\'t match, leave it for the admin.'},
+    on('challenges')&&{tab:'challenges',t:'Decide challenges',x:'Read the chat and open the result screenshots. Pay the side the screenshot shows as the winner. If nobody shows proof, refund both. The decision is final.'},
+    on('promo')&&{tab:'promo',t:'Check promo posts',x:'Open each link and check it against the list at the top of this tab before you approve. Approving gives the player a free card.'},
+    {tab:'results',t:'Finish the event',x:'Type each squad\'s points and publish after each match. Finish pays the prizes into the winners\' wallets, so check the standings first. Every payment is logged for the admin.'},
+    ME.commission_pct!=null&&{tab:'earnings',t:'Your earnings',x:'Commission for each event you run shows here, and the admin marks it paid.'},
+  ].filter(Boolean);
+}
+async function modTour(){
+  try{localStorage.setItem(TOUR_KEY,'1');}catch(e){}
+  const steps=tourSteps();
+  for(let i=0;i<steps.length;i++){
+    const s=steps[i], last=i===steps.length-1;
+    if(s.tab) showTab(s.tab);
+    if(!await sheet({title:s.t,text:s.x,ok:last?'Done':`Next (${i+1} of ${steps.length})`,cancelText:'Skip'})) break;
+  }
+  showTab('squads');
+}
+function modTourFirst(){
+  try{ if(localStorage.getItem(TOUR_KEY)) return; }catch(e){ return; }
+  const w=setInterval(()=>{ if(document.querySelector('.sheet-bg')) return; clearInterval(w); modTour(); },800);   // never on top of another sheet
+}
+document.addEventListener('click',e=>{ if(e.target.closest('#tour-again')) modTour(); });
 /* ── host mods: their own events (free entry, signed with their @handle) ── */
 const MAPS=[['bermuda','Bermuda'],['purgatory','Purgatory'],['kalahari','Kalahari'],['nexterra','NeXTerra'],['solara','Solara']]   // Alpine left the FF map pool in OB54
 function hostEventForm(t){
@@ -674,8 +713,8 @@ function hostEventForm(t){
   const opt=(list,v)=>list.map(([k,l])=>`<option value="${k}"${k===v?' selected':''}>${l}</option>`).join('');
   const bg=document.createElement('div'); bg.className='sheet-bg';
   bg.innerHTML=`<form class="sheet" role="dialog" aria-modal="true" aria-labelledby="hev-t"><h3 id="hev-t">${ed?'Edit '+esc(t.name):'New event'}</h3>`+
-    `<p>Free entry. Players see it hosted by <b>@${esc(ME.handle)}</b>. You pay your own prizes; JD doesn't.</p>`+
-    (ed?'':`<label class="f" for="hev-name">Event name</label><input id="hev-name" maxlength="60" required placeholder="e.g. Goats Night Scrim #1" autocomplete="off">`)+
+    `<p>Free entry. It runs under your TikTok ID, and players see it hosted by <b>@${esc(ME.handle)}</b>. You pay your own prizes; JD doesn't.</p>`+
+    (ed?'':`<label class="f" for="hev-name">Event name, after <b>@${esc(ME.handle)}</b></label><input id="hev-name" maxlength="28" placeholder="e.g. Night Scrim (optional)" autocomplete="off">`)+
     `<label class="f" for="hev-start">Day and time (Nepal)</label><input id="hev-start" type="datetime-local" required value="${esc(st)}">`+
     `<label class="f" for="hev-prize">Prize (shown on the card)</label><input id="hev-prize" maxlength="40" placeholder="e.g. Rs 500 from @${esc(ME.handle)}" value="${esc(t?t.prize||'':'')}">`+
     `<div class="row2"><div><label class="f" for="hev-slots">Squads</label><input id="hev-slots" type="number" min="2" max="48" value="${esc(t?t.slots||12:12)}"></div>`+
@@ -691,10 +730,10 @@ function hostEventForm(t){
     const q=id=>bg.querySelector('#'+id), msg=q('hev-msg'), name=ed?t.name:q('hev-name').value.trim();
     msg.textContent=status==='cancelled'?'Cancelling…':'Publishing…'; msg.className='msg';
     try{
-      const r=await call({action:'event_save',name,start:q('hev-start').value,prize:q('hev-prize').value,slots:+q('hev-slots').value,
+      const r=await call({action:'event_save',edit:ed,name,start:q('hev-start').value,prize:q('hev-prize').value,slots:+q('hev-slots').value,
         matches:+q('hev-m').value,map:q('hev-map').value,device:q('hev-dev').value,status});
-      close(); toast(status==='cancelled'?name+' cancelled.':(r.created?name+' is live.':name+' updated.'));
-      selected={name}; await loadTournaments();
+      close(); toast(status==='cancelled'?r.name+' cancelled.':(r.created?r.name+' is live.':r.name+' updated.'));
+      selected={name:r.name}; await loadTournaments();
     }catch(err){ msg.textContent=err.message; msg.className='msg err'; }
   };
   bg.querySelector('form').addEventListener('submit',e=>{e.preventDefault();save('upcoming');});
@@ -1375,7 +1414,7 @@ $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
     $('main').hidden=false; $('tabs').hidden=false;
     const h=(location.hash||'').slice(1); if(['results','room','notify','help','loads','challenges','promo'].concat(isHostMod()?[]:['chats']).includes(h)) showTab(h);
     setTopH();
-    loadTournaments();
+    loadTournaments(); modTourFirst();
     if(!isHostMod()){ loadInbox(); startLive(); }
     if(!isHostMod()){ document.querySelector('#tabs [data-tab=loads]').hidden=false; ldLoad(); setInterval(()=>{ if(!document.hidden) ldLoad(); },60000);
       document.querySelector('#tabs [data-tab=challenges]').hidden=false; centerTab(); cqLoad(); setInterval(()=>{ if(!document.hidden) cqLoad(); },120000); }

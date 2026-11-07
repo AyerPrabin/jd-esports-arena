@@ -1535,6 +1535,42 @@ async function authConfirmDeleteAccount(){
   }catch(e){authMsg('Could not delete your account: '+e.message);}
 }
 
+/* New player tour: first week of an account, once per device. /#tour replays it for anyone (linked from /rules/). */
+const TOUR_STEPS={
+ en:[['👋 Welcome to JD Arena','Free Fire tournaments with real prizes. Here is how it works in under a minute.'],
+  ['🎮 Add your game ID','Tap your name, then Game UID & name, and add your Free Fire UID and in-game name so we can see who played.'],
+  ['🏆 Join an event','Open Events and tap Join. Free events take a free card or 15 points. Paid events take points, which you load in your Wallet. 1 point = Rs 1.'],
+  ['✅ Confirm you\'re playing','After joining, tap Confirm you\'re playing on your ticket. It opens 48 hours before the start, and squads not confirmed 24 hours before the start are removed.'],
+  ['🔑 Get the room code','The Room ID and password come about 5 minutes before the start, in Alerts and on your ticket. Turn on notifications so you don\'t miss them.'],
+  ['💰 Win prizes','JD events pay 50% to 1st, 30% to 2nd and 20% to 3rd, straight into your wallet. Events marked Hosted by @name are run by a partner host, who pays their prize directly.'],
+  ['💬 Need help?','Open Messages and write to JD Esports. ZULU replies right away, and a team member steps in for bigger problems.']],
+ ne:[['👋 JD Arena मा स्वागत छ','साँचो पुरस्कार भएका Free Fire tournament हरू। एक मिनेटमै बुझ्नुहोस् कसरी चल्छ।'],
+  ['🎮 Game ID राख्नुहोस्','आफ्नो नाममा थिच्नुहोस्, अनि Game UID & name मा Free Fire UID र in-game name राख्नुहोस्। यसले को खेल्यो भनेर हेर्न मिल्छ।'],
+  ['🏆 Event मा join गर्नुहोस्','Events खोलेर Join थिच्नुहोस्। Free event मा free card वा 15 points लाग्छ। Paid event मा points लाग्छ, जुन Wallet बाट load गर्न सकिन्छ। 1 point = Rs 1.'],
+  ['✅ खेल्ने पक्का गर्नुहोस्','Join गरेपछि ticket मा Confirm you\'re playing थिच्नुहोस्। यो सुरु हुनुभन्दा 48 घण्टा अगाडि खुल्छ, र 24 घण्टा अगाडिसम्म confirm नगर्ने squad हटाइन्छ।'],
+  ['🔑 Room code पाउनुहोस्','Room ID र password सुरु हुनुभन्दा करिब 5 मिनेट अगाडि Alerts र ticket मा आउँछ। नछुटोस् भनेर notification खोल्नुहोस्।'],
+  ['💰 पुरस्कार जित्नुहोस्','JD event मा 1st लाई 50%, 2nd लाई 30% र 3rd लाई 20% सिधै wallet मा आउँछ। Hosted by @name लेखिएको event partner host ले चलाउँछन्, र पुरस्कार उनीहरूले नै सिधै दिन्छन्।'],
+  ['💬 मद्दत चाहियो?','Messages खोलेर JD Esports लाई लेख्नुहोस्। ZULU ले तुरुन्तै जवाफ दिन्छ, र ठूलो समस्यामा team member आउँछन्।']]
+};
+async function jdTour(){
+  lsSet('jd_tour_v1','1');
+  const steps=TOUR_STEPS[lang]||TOUR_STEPS.en, ne=lang==='ne', ico=document.querySelector('#confirm-overlay .msg-icon');
+  ico.style.display='none';   // the shared box's warning icon doesn't belong on a welcome
+  try{for(let i=0;i<steps.length;i++){
+    const last=i===steps.length-1;
+    const ok=await confirmBox(steps[i][0],steps[i][1],last?(ne?'Event हेर्नुहोस्':'See events'):(ne?`अर्को (${i+1}/${steps.length})`:`Next (${i+1} of ${steps.length})`),last?(ne?'बन्द गर्नुहोस्':'Close'):(ne?'छोड्नुहोस्':'Skip'));
+    if(!ok)return;
+    if(last)location.href='/events/';
+  }}finally{ico.style.display='';}
+}
+function jdTourFirst(user){   // waits for the terms box, the game ID box and the app welcome to close
+  if(location.pathname!=='/'||lsGet('jd_tour_v1')||Date.now()-Date.parse(user.created_at||0)>7*864e5)return;
+  const w=setInterval(()=>{
+    if(!_player||!_player.termsAccepted||document.querySelector('.zoverlay.open'))return;
+    clearInterval(w);jdTour();
+  },1500);
+}
+if(location.pathname==='/'&&location.hash==='#tour')setTimeout(jdTour,1200);
 /* App perks: the first time a signed-in player opens the installed app, claim_app_perks()
    (schema.sql) gives a free 7-day Lite effect, the 📱 badge and early access — once per
    account. Then ask for push alerts, the main reason the app is required on phones. */
@@ -1570,6 +1606,7 @@ async function authRefreshPlayer(){
   saveArea();
   if(_player.app)appAskPush(); // a first app open asks inside claimAppPerks' welcome instead
   claimAppPerks();
+  jdTourFirst(user);
   claimInvite();
   await loadMyAvatarUrl();
   updateAcctBtn();

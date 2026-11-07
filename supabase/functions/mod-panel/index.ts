@@ -702,16 +702,20 @@ Deno.serve(async (req: Request) => {
   // ── host mods: create / edit their OWN events (free entry; JD never pays prizes for them) ──
   if (action === 'event_save') {
     if (!isHost) return fail('Staff create events in /admin/.', 403);
-    const name = String(p.name || '').trim().replace(/\s+/g, ' ').slice(0, 60);
-    if (name.length < 3) return fail('Give the event a name.');
-    if (/\bjd\b|jd ?esports?/i.test(name)) return fail('Use your own name for the event, not JD.');
+    const typed = String(p.name || '').trim().replace(/\s+/g, ' ').slice(0, 60);
+    const edit = p.edit === true;
+    const tag = '@' + handle, low = typed.toLowerCase();   // a new event always carries the host's own TikTok ID
+    const title = edit ? '' : (low.startsWith(tag) ? typed.slice(tag.length) : low.startsWith(handle) ? typed.slice(handle.length) : typed).replace(/^[\s\-·:]+/, '');
+    if (!edit && /\bjd\b|jd ?esports?/i.test(title)) return fail('Use your own name for the event, not JD.');
+    if (!edit && title.includes('@')) return fail('Only your own TikTok ID goes on the event, and JD adds that for you.');
+    if ([title, String(p.prize || '')].some((x) => /\d{7,}|https?:|www\./i.test(x))) return fail('No phone numbers or links in the event name or prize.');
     const m = String(p.start || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
     if (!m) return fail('Pick a day and a time.');
     const [, y, mo, d, h, mi] = m;
     const start = `${y}-${mo}-${d}T${h}:${mi}:00+05:45`;
     const status = p.status === 'cancelled' ? 'cancelled' : 'upcoming';
     if (status === 'upcoming' && Date.parse(start) <= Date.now()) return fail('That time is in the past.');
-    const MAPS = ['bermuda', 'purgatory', 'kalahari', 'alpine', 'nexterra'];
+    const MAPS = ['bermuda', 'purgatory', 'kalahari', 'nexterra', 'solara'];
     const DEV: Record<string, string> = { mobile: 'Mobile only', mixed: 'Mix Device', emulator: 'Emulator only' };
     const device = DEV[p.device] ? String(p.device) : 'mobile';
     const matches = Math.min(6, Math.max(1, Math.round(Number(p.matches) || 3)));
@@ -728,8 +732,12 @@ Deno.serve(async (req: Request) => {
     const { data: sc } = await admin.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
     const doc: any = sc?.content;
     if (!doc?.tournaments) return fail('Could not load the events. Try again.', 500);
-    const ex = doc.tournaments.find((x: any) => String(x.name).trim().toLowerCase() === name.toLowerCase());
-    if (ex && normHandle(ex.host) !== handle) return fail('An event with that name already exists. Pick another name.', 409);
+    const same = (n: string) => doc.tournaments.find((x: any) => String(x.name).trim().toLowerCase() === n.toLowerCase());
+    const mine = doc.tournaments.filter((x: any) => normHandle(x.host) === handle);
+    const ex = edit ? same(typed) : null;
+    if (edit && (!ex || normHandle(ex.host) !== handle)) return notYours();
+    const name = edit ? ex.name : `${tag} ${title || 'Scrim #' + (mine.length + 1)}`.slice(0, 60);
+    if (!edit && same(name)) return fail('You already have an event with that name. Pick another name.', 409);
     if (ex && (ex.winner || String(ex.status).toLowerCase() === 'completed')) return fail("That event is finished and can't be changed.", 409);
     if (ex) Object.assign(ex, fields);
     else doc.tournaments.push({ name, game: 'Free Fire BR · Squad', ...fields, winner: '', teams: [] });
