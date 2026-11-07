@@ -213,11 +213,27 @@ function fmtDate(t){
   const ms=Date.parse(t.start);
   return isNaN(ms)?'':new Date(ms).toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'});
 }
+/* site_content 'tournaments' is ~145 KB (squad logos): read only its updated_at (a few bytes) and download the
+   content only when it changed, keeping the last copy on this device. Re-reading it every 15-30 s on every open
+   page used up the whole Supabase data allowance (7 Nov 2026). */
+async function jdLiveTournaments(sb){
+  let at=null,doc=null;
+  try{at=localStorage.getItem('jd_tour_at');doc=at?JSON.parse(localStorage.getItem('jd_tour_doc')||'null'):null;}catch(e){doc=null;}
+  if(doc&&window.__jdTour&&window.__jdTour.at===at)doc=window.__jdTour.doc;   // same object between polls
+  const h=await sb.from('site_content').select('updated_at').eq('key','tournaments').maybeSingle();
+  if(h.error||!h.data)return doc;
+  if(doc&&h.data.updated_at===at){window.__jdTour={at,doc};return doc;}
+  const f=await sb.from('site_content').select('content,updated_at').eq('key','tournaments').maybeSingle();
+  if(f.error||!f.data||!f.data.content)return doc;
+  try{localStorage.setItem('jd_tour_doc',JSON.stringify(f.data.content));localStorage.setItem('jd_tour_at',f.data.updated_at);}catch(e){}
+  window.__jdTour={at:f.data.updated_at,doc:f.data.content};
+  return f.data.content;
+}
 async function getDoc(){
   const bust='v='+Math.floor(Date.now()/20000);
   const get=u=>fetch(u,{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject());
   const pages=get('/tournaments.json?'+bust).catch(()=>get(TOURNAMENTS_URL+'?'+bust)).catch(()=>null);
-  const live=sb?sb.from('site_content').select('content').eq('key','tournaments').maybeSingle().then(r=>(r.data&&r.data.content)||null,()=>null):Promise.resolve(null);
+  const live=sb?jdLiveTournaments(sb).catch(()=>null):Promise.resolve(null);
   const [p,l]=await Promise.all([pages,live]);
   return (p&&l)?(pubTime(l)>=pubTime(p)?l:p):(l||p);
 }

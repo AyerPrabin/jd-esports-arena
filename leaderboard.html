@@ -1299,9 +1299,25 @@ function renderChamp(d,rows){
    publish by minutes) and the live copy in site_content — newer _published_at wins, so
    a just-published result or winner shows here on the next poll, not 10 minutes later. */
 const pubTime=d=>(d&&Date.parse(d._published_at))||0;
+/* site_content 'tournaments' is ~145 KB (squad logos): read only its updated_at (a few bytes) and download the
+   content only when it changed, keeping the last copy on this device. Re-reading it every 15-30 s on every open
+   page used up the whole Supabase data allowance (7 Nov 2026). */
+async function jdLiveTournaments(sb){
+  let at=null,doc=null;
+  try{at=localStorage.getItem('jd_tour_at');doc=at?JSON.parse(localStorage.getItem('jd_tour_doc')||'null'):null;}catch(e){doc=null;}
+  if(doc&&window.__jdTour&&window.__jdTour.at===at)doc=window.__jdTour.doc;   // same object between polls
+  const h=await sb.from('site_content').select('updated_at').eq('key','tournaments').maybeSingle();
+  if(h.error||!h.data)return doc;
+  if(doc&&h.data.updated_at===at){window.__jdTour={at,doc};return doc;}
+  const f=await sb.from('site_content').select('content,updated_at').eq('key','tournaments').maybeSingle();
+  if(f.error||!f.data||!f.data.content)return doc;
+  try{localStorage.setItem('jd_tour_doc',JSON.stringify(f.data.content));localStorage.setItem('jd_tour_at',f.data.updated_at);}catch(e){}
+  window.__jdTour={at:f.data.updated_at,doc:f.data.content};
+  return f.data.content;
+}
 async function liveDoc(){
   if(!sb)return null;
-  try{const {data}=await sb.from('site_content').select('content').eq('key','tournaments').maybeSingle();return (data&&data.content)||null;}catch(e){return null;}
+  try{return await jdLiveTournaments(sb);}catch(e){return null;}
 }
 let _rosterAt=0;
 async function loadRoster(){

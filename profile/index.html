@@ -466,12 +466,28 @@ async function loadCards(){
   $('fc-list').innerHTML=c.map(x=>`<div class="fcard ${esc(x.tier)}"><b>${T[x.tier]||T.any}</b><small>${x.tier==='free'?'One free tournament':x.max_npr?'Any event up to Rs '+(+x.max_npr):'Any paid event'} · ends ${esc(fmtDate(x.expires_at))}</small></div>`).join('');
   $('fc-card').hidden=false;
 }
+/* site_content 'tournaments' is ~145 KB (squad logos): read only its updated_at (a few bytes) and download the
+   content only when it changed, keeping the last copy on this device. Re-reading it every 15-30 s on every open
+   page used up the whole Supabase data allowance (7 Nov 2026). */
+async function jdLiveTournaments(sb){
+  let at=null,doc=null;
+  try{at=localStorage.getItem('jd_tour_at');doc=at?JSON.parse(localStorage.getItem('jd_tour_doc')||'null'):null;}catch(e){doc=null;}
+  if(doc&&window.__jdTour&&window.__jdTour.at===at)doc=window.__jdTour.doc;   // same object between polls
+  const h=await sb.from('site_content').select('updated_at').eq('key','tournaments').maybeSingle();
+  if(h.error||!h.data)return doc;
+  if(doc&&h.data.updated_at===at){window.__jdTour={at,doc};return doc;}
+  const f=await sb.from('site_content').select('content,updated_at').eq('key','tournaments').maybeSingle();
+  if(f.error||!f.data||!f.data.content)return doc;
+  try{localStorage.setItem('jd_tour_doc',JSON.stringify(f.data.content));localStorage.setItem('jd_tour_at',f.data.updated_at);}catch(e){}
+  window.__jdTour={at:f.data.updated_at,doc:f.data.content};
+  return f.data.content;
+}
 async function loadTournaments(){
   const [{data:regs},site]=await Promise.all([
     sb.from('registrations').select('id, tournament_slug, squad_name, status, checked_in_at, paid_points, created_at').eq('player_id',me.id).order('created_at',{ascending:false}),
-    sb.from('site_content').select('content').eq('key','tournaments').maybeSingle()
+    jdLiveTournaments(sb).catch(()=>null)
   ]);
-  const tmap=new Map((((site.data||{}).content||{}).tournaments||[]).map(t=>[t.name,t]));
+  const tmap=new Map(((site||{}).tournaments||[]).map(t=>[t.name,t]));
   $('tlist').innerHTML=(regs||[]).length?regs.map(r=>{
     const t=tmap.get(r.tournament_slug)||{};const [lbl,cls]=STATUS[r.status]||[r.status,''];
     const done=t.status==='completed';const icon=t.status==='live'?'<i class=ji-dot-red aria-hidden=true></i>':(done?'<i class=ji-flag aria-hidden=true></i>':'<i class=ji-swords aria-hidden=true></i>');
