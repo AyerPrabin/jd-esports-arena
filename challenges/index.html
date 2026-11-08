@@ -729,7 +729,7 @@ async function start(){
   const inv=new URLSearchParams(location.search).get('invite'); // "Challenge" from a 💬 Messages chat
   if(deep)openRoom(deep);
   else if(inv){setTab('create');const ch=$('who').querySelector('.chip[data-w="direct"]');if(ch)ch.click();$('invite').value=inv.replace(/[^A-Za-z0-9_-]/g,'');}
-  else{setTab('lobby');tutMaybe();}
+  else{const lm=new URLSearchParams(location.search).get('lobby');if(/^[1-4]v[1-4]$/.test(lm||''))lobbyMode=lm;setTab('lobby');tutMaybe();}
   loadMine();
   setInterval(()=>{if(document.hidden)return;loadBalance();loadLobby();if(tab==='mine')loadMine();},30000);
 }

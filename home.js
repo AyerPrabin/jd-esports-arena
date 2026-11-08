@@ -1094,7 +1094,7 @@ function authRender(){
   if(!sb){el.innerHTML='<h3>Accounts coming soon</h3><p class="sub">Sign-in isn\'t set up on this deploy yet.</p>';return;}
   if(_termsGateActive){
     el.innerHTML=`<h3>One more thing</h3><p class="sub">We've updated our Terms &amp; Conditions and added a Privacy Policy. Please review and accept them to keep using JD Esports Arena.</p>
-      <label class="tc-check"><input type="checkbox" id="au-tc-accept-gate"><span>I am 13 or older (under 18: my parent or guardian agrees) and I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a></span></label>
+      <label class="tc-check"><input type="checkbox" id="au-tc-accept-gate"><span>I am 13 or older (under 18: my parent or guardian agrees) and I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a>, <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a> and the full <a href="/rules/#full-squad" target="_blank" rel="noopener">tournament rules</a> (banned characters, no-shows, prizes)</span></label>
       <div class="msg" id="au-msg"></div>
       <div class="row2"><button class="btn-primary" style="flex:1" onclick="authAcceptTermsGate()">Continue</button></div>
       <p class="sub" style="margin-top:16px"><button class="link" onclick="authLogout()">Log out instead</button></p>`;
@@ -1123,7 +1123,7 @@ function authRender(){
       <div class="msg" id="au-uname-msg"></div>
       ${gameIdFieldsHtml(_player.ff_uid,_player.ff_name)}
       ${_googleFirstRun?refFieldHtml():''}
-      ${_googleFirstRun?'<label class="tc-check"><input type="checkbox" id="au-tc-accept"><span>I am 13 or older (under 18: my parent or guardian agrees) and I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a></span></label>':''}
+      ${_googleFirstRun?'<label class="tc-check"><input type="checkbox" id="au-tc-accept"><span>I am 13 or older (under 18: my parent or guardian agrees) and I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a>, <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a> and the full <a href="/rules/#full-squad" target="_blank" rel="noopener">tournament rules</a> (banned characters, no-shows, prizes)</span></label>':''}
       <div class="msg" id="au-msg"></div>
       <div class="row2"><button class="btn-primary" style="flex:1" onclick="authSetUsername()">Save</button></div>
       ${_googleFirstRun?'<p class="sub" style="margin-top:16px"><button class="link" onclick="authClose()">Skip for now</button></p>':'<p class="sub" style="margin-top:16px"><button class="link" onclick="_authView=\'login\';authRender();">Cancel</button></p>'}`;
@@ -1225,7 +1225,7 @@ function authRender(){
       <div class="msg" id="au-uname-msg"></div>
       ${gameIdFieldsHtml('','')}
       ${refFieldHtml()}
-      <label class="tc-check"><input type="checkbox" id="au-tc-accept"><span>I am 13 or older (under 18: my parent or guardian agrees) and I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a></span></label>
+      <label class="tc-check"><input type="checkbox" id="au-tc-accept"><span>I am 13 or older (under 18: my parent or guardian agrees) and I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a>, <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a> and the full <a href="/rules/#full-squad" target="_blank" rel="noopener">tournament rules</a> (banned characters, no-shows, prizes)</span></label>
       <label>Email</label><input id="au-email" type="email" autocomplete="email">
       <label>Password</label><input id="au-pass" type="password" autocomplete="new-password" placeholder="At least 6 characters">
       <div class="msg" id="au-msg"></div>
@@ -1366,7 +1366,7 @@ async function authSetUsername(){
   const g=gameIdRead();
   if(g&&g.err){authMsg(g.err);return;}
   const tc=document.getElementById('au-tc-accept');
-  if(tc&&!tc.checked){authMsg('Please confirm your age and accept the Terms & Privacy Policy to continue.');return;}
+  if(tc&&!tc.checked){authMsg('Please confirm your age and accept the Terms, Privacy Policy and rules to continue.');return;}
   authMsg('Saving…',true);
   if(g){const gerr=await gameIdSave(g);if(gerr){authMsg(gerr);return;}}
   if(uname!==_player.username){
@@ -1416,7 +1416,7 @@ async function authSignup(){
   const g=gameIdRead();
   if(g&&g.err){authMsg(g.err);return;}
   const tc=document.getElementById('au-tc-accept');
-  if(tc&&!tc.checked){authMsg('Please confirm your age and accept the Terms & Privacy Policy to continue.');return;}
+  if(tc&&!tc.checked){authMsg('Please confirm your age and accept the Terms, Privacy Policy and rules to continue.');return;}
   if(!email||pass.length<6){authMsg('Enter a valid email and a password of 6+ characters.');return;}
   authMsg('Checking username…',true);
   const {data:taken}=await sb.rpc('is_username_taken',{check_username:uname});
@@ -1475,7 +1475,7 @@ async function authLogout(){
 }
 async function authAcceptTermsGate(){
   const cb=document.getElementById('au-tc-accept-gate');
-  if(!cb||!cb.checked){authMsg('Please confirm your age and accept the Terms & Privacy Policy to continue.');return;}
+  if(!cb||!cb.checked){authMsg('Please confirm your age and accept the Terms, Privacy Policy and rules to continue.');return;}
   authMsg('Saving…',true);
   const {error}=await sb.rpc('accept_terms');
   if(error){authMsg(error.message);return;}

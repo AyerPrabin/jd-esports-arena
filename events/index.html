@@ -115,6 +115,33 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .ev-hero .ev-low .ev-seats{color:#D3D9E6}
 @media (min-width:640px){.ev-hero{min-height:300px;padding:26px}}
 .ev-rules{display:inline-flex;align-items:center;gap:8px;margin-top:10px;color:var(--gold-l,#ffd36b);font-weight:600;font-size:.92rem;text-decoration:none}.ev-rules:hover span{text-decoration:underline}
+/* mode tiles: one per kind of game, on its own map with a character; tap = filter the list (Clash Squad opens Challenges) */
+.mt{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 8px}
+.mt-t{all:unset;box-sizing:border-box;position:relative;display:block;aspect-ratio:1/1.04;border-radius:18px;overflow:hidden;cursor:pointer;isolation:isolate;
+  background:#0d1320 center/cover no-repeat;border:1px solid rgba(255,255,255,.09);transition:border-color .15s,transform .15s}
+.mt-t::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(165deg,color-mix(in srgb,var(--c) 62%,transparent) 0%,rgba(7,9,15,.25) 48%,rgba(7,9,15,.94) 88%)}
+.mt-c{position:absolute;z-index:-1;left:0;right:0;top:6%;bottom:24%;display:flex;justify-content:flex-end;align-items:flex-end;padding-right:2%}
+.mt-c img{height:100%;width:auto;min-width:0;filter:drop-shadow(0 6px 10px rgba(0,0,0,.55))}
+.mt-c img+img{margin-left:-17%}
+.mt-c.n2 img{height:92%}.mt-c.n4 img{height:80%}.mt-c.n4 img+img{margin-left:-30%}
+.mt-c.n2 img:first-child,.mt-c.n4 img:nth-child(odd){height:86%}
+.mt-c.vs{justify-content:center;padding:0;gap:0}
+.mt-c.vs .side{display:flex;align-items:flex-end;height:100%;flex:1;min-width:0;justify-content:center}
+.mt-c.vs .side img+img{margin-left:-40%}
+.mt-c.vs .side:last-child img{transform:scaleX(-1)}
+.mt-x{flex:none;align-self:center;font:700 1.25rem/1 'Barlow Condensed',sans-serif;color:#07090F;background:var(--c);border-radius:8px;padding:4px 6px 3px;transform:skewX(-12deg);box-shadow:0 2px 12px rgba(0,0,0,.6);z-index:1}
+.mt-n{position:absolute;left:10px;right:10px;bottom:30px;font:700 clamp(1.45rem,6.6vw,2.05rem)/.92 'Barlow Condensed',sans-serif;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.7);text-wrap:balance}
+.mt-n::before{content:'';display:block;width:34px;height:4px;border-radius:2px;background:var(--c);margin-bottom:6px;transform:skewX(-20deg)}
+.mt-f{position:absolute;left:10px;right:10px;bottom:9px;display:flex;justify-content:space-between;gap:6px;font-size:.72rem;color:#C9D0DE;white-space:nowrap}
+.mt-f span:first-child{overflow:hidden;text-overflow:ellipsis}
+.mt-f b{color:#62D394;font-weight:600;font-variant-numeric:tabular-nums}
+.mt-f b::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:#62D394;margin-right:5px;vertical-align:1px}
+.mt-t:hover{border-color:color-mix(in srgb,var(--c) 70%,transparent)}
+.mt-t[aria-pressed=true]{border:2px solid var(--c);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 25%,transparent)}
+.mt-t:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.mt-t:active{transform:scale(.98)}
+@media (min-width:700px){.mt{grid-template-columns:repeat(4,1fr)}}
+@media (prefers-reduced-motion:reduce){.mt-t{transition:none}.mt-t:active{transform:none}}
 </style>
 <link rel="stylesheet" href="/effects.css">
 <link rel="stylesheet" href="/ui.css?v=28">
@@ -144,6 +171,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
     <p id="ev-sub">Every Free Fire event on JD Arena. Tap one for details.</p>
     <a class="ev-rules" href="/rules/">🛡️<span id="ev-rules-t">The rules in 30 seconds</span></a>
   </div>
+  <nav class="mt" id="mt" aria-label="Choose a game mode"></nav>
   <div class="ev-bar">
     <div class="ev-seg" id="ev-seg" role="group" aria-label="Sort events">
       <button type="button" data-s="day" aria-pressed="true">Day</button>
@@ -403,6 +431,37 @@ function hero(t){
   </section>`;
 }
 const group=(title,sub,items,by,now)=>`<section class="ev-group"><h2${now?' class="now"':''}>${esc(title)}${sub?` <small>${esc(sub)}</small>`:''}</h2>${items.map(t=>row(t,by)).join('')}</section>`;
+/* mode tiles (8 Nov 2026): counts come from data the page already has; Clash Squad counts from the open lobby, read once */
+const MODES=[
+  {k:'squad',t:'BR Squad',s:'4 a team',map:'bermuda',ch:['alok','kairos','luqueta','wukong'],c:'#FFC83D'},
+  {k:'duo',t:'BR Duo',s:'2 a team',map:'purgatory',ch:['dasha','kenta'],c:'#3FD0C9'},
+  {k:'solo',t:'BR Solo',s:'Just you',map:'kalahari',ch:['wolfrahh'],c:'#FF5A5F'},
+  {k:'free',t:'Free events',s:'Card or 15 points',map:'alpine',ch:['kassie'],c:'#62D394'},
+  {k:'paid',t:'Big prize',s:'Paid entry',map:'nexterra',ch:['chrono'],c:'#FFAE00'},
+  {k:'final',t:'Grand Final',s:'Groups to final',map:'solara',ch:['skyler'],c:'#9B6BFF'},
+  {k:'1v1',t:'Clash Squad 1v1',s:'Challenge',map:'purgatory',vs:[['hayato'],['tatsuya']],c:'#FF8A3D',href:'/challenges/?lobby=1v1'},
+  {k:'4v4',t:'Clash Squad 4v4',s:'Challenge',map:'bermuda',vs:[['jota','moco'],['xayne','maro']],c:'#FF8A3D',href:'/challenges/?lobby=4v4'}];
+// banned in JD tournaments (rules: Orion, Sonia, Dimitri, Ryden) - never shown on a tile
+const BANNED=['orion','sonia','dimitri','ryden'],ok=a=>a.filter(c=>!BANNED.includes(c));
+const chImg=c=>`<img src="/characters/${c}.webp" alt="" width="240" height="349" loading="lazy" decoding="async">`;
+const chars=m=>m.vs?`<span class="mt-c vs"><span class="side">${ok(m.vs[0]).map(chImg).join('')}</span><span class="mt-x">VS</span><span class="side">${ok(m.vs[1]).map(chImg).join('')}</span></span>`
+  :`<span class="mt-c n${ok(m.ch).length}">${ok(m.ch).map(chImg).join('')}</span>`;
+const modeOf=t=>{const m=String(t.mode||'').toLowerCase();return m==='solo'||m==='duo'?m:'squad';};
+const isFinal=t=>!!t.mega||['group','semi','final'].includes(t.stage);
+const inMode=(t,k)=>k==='squad'||k==='duo'||k==='solo'?modeOf(t)===k:k==='final'?isFinal(t):k==='free'?!isPaid(t):k==='paid'?isPaid(t):true;
+let csOpen=null,mtLast='';
+function renderModes(up){
+  const html=MODES.map(m=>{
+    let n='';
+    if(m.href)n=csOpen&&csOpen[m.k]?`<b>${csOpen[m.k]} open</b>`:'Play now';
+    else{const it=up.filter(t=>inMode(t,m.k)),j=it.reduce((a,t)=>a+(evCounts.get(t.name)||0),0);
+      n=j?`<b>${j} joined</b>`:it.length?it.length+' event'+(it.length===1?'':'s'):'Soon';}
+    const inner=`${chars(m)}<span class="mt-n">${m.t}</span><span class="mt-f"><span>${m.s}</span>${n}</span>`;
+    const st=`style="--c:${m.c};background-image:url('/maps/tile/ff-${m.map}.webp')"`;
+    return m.href?`<a class="mt-t" href="${m.href}" ${st}>${inner}</a>`:`<button type="button" class="mt-t" data-k="${m.k}" aria-pressed="${evFilter===m.k}" ${st}>${inner}</button>`;
+  }).join('');
+  if(html!==mtLast){mtLast=html;document.getElementById('mt').innerHTML=html;}
+}
 function renderEvents(){
   const past=evFilter==='past';
   document.getElementById('ev-list').hidden=past;
@@ -413,7 +472,8 @@ function renderEvents(){
   if(!evDoc)return;
   const tms=t=>startMs(t)??Number.MAX_SAFE_INTEGER,byTime=(a,b)=>tms(a)-tms(b);
   const up=(evDoc.tournaments||[]).filter(t=>!['completed','cancelled'].includes(evStatus(t)));
-  const L=up.filter(t=>evFilter==='all'||(evFilter==='free'&&!isPaid(t))||(evFilter==='paid'&&isPaid(t))||(evFilter==='open'&&!t.parent&&(!+t.slots||(evCounts.get(t.name)||0)<+t.slots))).sort(byTime);
+  renderModes(up);
+  const L=up.filter(t=>evFilter==='all'||(evFilter==='open'?!t.parent&&(!+t.slots||(evCounts.get(t.name)||0)<+t.slots):inMode(t,evFilter))).sort(byTime);
   let html='';
   // banner only on the plain list: the soonest event still to start that a player can join
   const top=evFilter==='all'&&evSort==='day'?L.find(t=>evStatus(t)==='upcoming'&&!t.parent&&!t.mega&&!earlyLocked(t)):null;
@@ -434,6 +494,7 @@ async function refreshEvents(){
   const [doc,roster,session]=await Promise.all([getDoc().catch(()=>null),sb?jdRoster(sb).then(r=>r.data||[],()=>null):null,sb?sb.auth.getSession().then(r=>r.data.session,()=>null):null]);
   if(doc)evDoc=doc;
   if(roster){const c=new Map();roster.forEach(r=>c.set(r.tournament_slug,(c.get(r.tournament_slug)||0)+1));evCounts=c;}
+  if(session&&!csOpen){csOpen={};sb.rpc('get_open_challenges').then(({data})=>{(data||[]).forEach(c=>{csOpen[c.mode]=(csOpen[c.mode]||0)+1;});renderEvents();},()=>{});}
   if(session){const {data}=await sb.from('registrations').select('tournament_slug,status').eq('player_id',session.user.id);
     if(data)evMine=new Map(data.filter(r=>['confirmed','approved','pending','waitlisted'].includes(r.status)).map(r=>[r.tournament_slug,r.status]));}
   if(!evDoc){if(evFilter!=='past')document.getElementById('ev-list').innerHTML=`<div class="pe-empty">${TXT.err}</div>`;return;}
@@ -442,6 +503,13 @@ async function refreshEvents(){
 const press=(sel,attr,val)=>document.querySelectorAll(sel).forEach(x=>x.setAttribute('aria-pressed',x.dataset[attr]===val));
 document.getElementById('ev-seg').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(!b)return;evSort=b.dataset.s;press('[data-s]','s',evSort);renderEvents();});
 document.getElementById('ev-chips').addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(!b)return;evFilter=b.dataset.f;press('[data-f]','f',evFilter);try{history.replaceState(null,'',evFilter==='past'?'#past':location.pathname);}catch(x){}renderEvents();});
+document.getElementById('mt').addEventListener('click',e=>{
+  const b=e.target.closest('[data-k]');if(!b)return;
+  evFilter=evFilter===b.dataset.k?'all':b.dataset.k;press('[data-f]','f',evFilter);
+  try{history.replaceState(null,'',location.pathname);}catch(x){}
+  renderEvents();
+  if(evFilter!=='all')document.querySelector('.ev-bar').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'start'});
+});
 document.getElementById('ev-list').addEventListener('click',e=>{
   const top=e.target.closest('.ev-top');if(!top)return;
   const card=top.closest('.ev'),name=card.dataset.ev,more=card.querySelector('.ev-more'),o=more.hidden;
