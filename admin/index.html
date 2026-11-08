@@ -1772,11 +1772,17 @@ let _dashBusy=false,_dashFirst={pending:'',unver:''};
 async function loadDashboard(){
   const box=document.getElementById('dash'),secret=adminSecret();
   if(!box||!secret||_dashBusy)return;
+  // last numbers at once (this device only), fresh ones replace them in a moment
+  if(!box.querySelector('.dash-tile')){try{const c=JSON.parse(localStorage.getItem('jd_admin_dash')||'null');if(c&&c.h){box.innerHTML=c.h;_dashFirst=c.f||_dashFirst;}}catch(e){}}
   _dashBusy=true;
   const open=data.tournaments.filter(t=>!['completed','cancelled'].includes(String(t.status||'upcoming').toLowerCase()));
   try{
-    const per=await Promise.all(open.map(t=>fetch(EDGE_FN_BASE+'/list-registrations?tournament_slug='+encodeURIComponent(t.name)+'&lite=1',{headers:{'x-admin-secret':secret}}).then(r=>r.ok?r.json():[]).then(rows=>({t,rows})).catch(()=>({t,rows:[]}))));
-    const reports=await fetch(EDGE_FN_BASE+'/list-reports?status=pending',{headers:{'x-admin-secret':secret}}).then(r=>r.ok?r.json():[]).catch(()=>[]);
+    // one call for every open event (slugs=[...]); an older server without it answers per event
+    const one=(t)=>fetch(EDGE_FN_BASE+'/list-registrations?tournament_slug='+encodeURIComponent(t.name)+'&lite=1',{headers:{'x-admin-secret':secret}}).then(r=>r.ok?r.json():[]).then(rows=>({t,rows})).catch(()=>({t,rows:[]}));
+    const [all,reports]=await Promise.all([
+      open.length?fetch(EDGE_FN_BASE+'/list-registrations?lite=1&tournament_slug=_&slugs='+encodeURIComponent(JSON.stringify(open.map(t=>t.name))),{headers:{'x-admin-secret':secret}}).then(r=>r.ok?r.json():null).catch(()=>null):{by_slug:[]},
+      fetch(EDGE_FN_BASE+'/list-reports?status=pending',{headers:{'x-admin-secret':secret}}).then(r=>r.ok?r.json():[]).catch(()=>[])]);
+    const per=all&&all.by_slug?open.map(t=>({t,rows:all.by_slug.filter(r=>r.tournament_slug===t.name)})):await Promise.all(open.map(one));
     let active=0,slots=0,pending=0,unver=0,wait=0,firstPending='',firstUnver='';
     for(const {t,rows} of per){
       slots+=+t.slots||0;
@@ -1794,6 +1800,7 @@ async function loadDashboard(){
       tile(reports.length,'Open reports','danger',`dashGo('reports',null,'',loadReportsAdmin)`,reports.length?'waiting on you':'nothing new')+
       `<button type="button" class="dash-tile stat" onclick="dashGo('teams','tm-tourney','',loadTeamsAdmin)"><b>${active}${slots?'<em>/'+slots+'</em>':''}</b><span>Squads confirmed</span><small>${open.length} open event${open.length===1?'':'s'}${wait?' · '+wait+' waitlisted':''}</small></button>`;
     staggerReveal(box);
+    try{localStorage.setItem('jd_admin_dash',JSON.stringify({h:box.innerHTML,f:_dashFirst}));}catch(e){}
   }catch(e){box.innerHTML='<p class="hint">Could not load the dashboard: '+esc(e.message)+'</p>';}
   _dashBusy=false;
 }

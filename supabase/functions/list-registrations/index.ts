@@ -22,6 +22,15 @@ Deno.serve(async (req: Request) => {
   const url = new URL(req.url);
   const tournament_slug = url.searchParams.get('tournament_slug');
   const status = url.searchParams.get('status');
+  // ?lite=1&slugs=["A","B"]: every open event's statuses in ONE call (admin dashboard, was one call per event)
+  if (url.searchParams.get('lite') === '1' && url.searchParams.get('slugs')) {
+    let slugs: string[] = [];
+    try { slugs = (JSON.parse(url.searchParams.get('slugs')!) as unknown[]).map(String).slice(0, 60); } catch { /* bad list */ }
+    const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data, error } = await db.from('registrations').select('tournament_slug, status, verified_at').in('tournament_slug', slugs);
+    if (error) return new Response(error.message, { status: 500, headers: CORS_HEADERS });
+    return new Response(JSON.stringify({ by_slug: data || [] }), { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
+  }
   if (!tournament_slug) return new Response('tournament_slug is required', { status: 400, headers: CORS_HEADERS });
 
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
