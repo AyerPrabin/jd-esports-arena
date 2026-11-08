@@ -730,11 +730,15 @@ Deno.serve(async (req: Request) => {
     const { data: regs } = await admin.from('registrations').select('id, squad_name, status, created_at, player_id')
       .eq('tournament_slug', slug).in('status', ['confirmed', 'approved']).order('slot_key');
     const squads = [...new Set((regs || []).map((r: any) => String(r.squad_name || '').trim()).filter(Boolean))];
+    // rule 10 (rules page): the owner plays for fun and never takes prize money; prize places move down past their squad
+    const { data: ownerPl } = await admin.from('players').select('id').ilike('email', OWNER_EMAIL).maybeSingle();
+    const ownerSquads = (regs || []).filter((r: any) => ownerPl && r.player_id === ownerPl.id)
+      .map((r: any) => String(r.squad_name || '').trim().toLowerCase().replace(/\s+/g, ' ')).filter(Boolean);
     const board = doc?.bo3?.tournament === slug ? doc.bo3 : null;
     const { data: paid } = await admin.from('wallet_ledger').select('ref, delta').eq('reason', 'prize').like('ref', `prize:${slug}:%`);
     if (action === 'results_get') {
       return json({ event: slug, pool, prize: t.prize || null, matches, winner: t.winner || null, status: t.status || 'upcoming',
-        squads, board: board ? { published: !!board.published, teams: board.teams || [] } : null,
+        squads, owner_squads: ownerSquads, board: board ? { published: !!board.published, teams: board.teams || [] } : null,
         paid: (paid || []).map((x: any) => ({ squad: String(x.ref).split(':').slice(2).join(':'), amount: x.delta })) });
     }
 
@@ -775,8 +779,9 @@ Deno.serve(async (req: Request) => {
         const tm = teams.find((x) => norm(x.team) === norm(k));
         if (!tm) return fail(`${k} isn't in the standings.`);
         if (!regSet.has(norm(tm.team))) return fail(`${tm.team} isn't a registered squad in ${slug}, so it can't be paid.`);
+        if (!isHost && ownerSquads.includes(norm(tm.team))) return fail(`${tm.team} is the owner's squad: the owner plays for fun and never takes prize money (rule 10). Give this prize to the next squad.`, 403);
         if (!isHost && !isOwner) {   // JD's points: only the published 50/30/20, and never to the mod's own squad
-          const place = ranked.indexOf(tm as any);
+          const place = ranked.filter((x) => !ownerSquads.includes(norm(x.team))).indexOf(tm as any);   // rule 10: places move up past the owner
           const ownSquad = (regs || []).some((r: any) => r.player_id === mine && norm(String(r.squad_name || '')) === norm(tm.team));
           if (ownSquad) return fail(`${tm.team} is your own squad, so the JD admin has to pay this prize.`, 403);
           if (place < 0 || place > 2 || amt > split[place]) return fail(`${tm.team} can get at most ${place >= 0 && place <= 2 ? split[place] : 0} points: prizes follow the 50/30/20 split for 1st, 2nd and 3rd.`, 403);

@@ -634,6 +634,7 @@ textarea{min-height:96px;resize:vertical}
       <label for="hp-name" style="display:block;font-size:.8rem;margin-bottom:4px">Host name</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><input id="hp-name" maxlength="24" autocomplete="off" placeholder="2 to 24 letters or numbers" style="flex:1;min-width:160px"><button type="button" id="hp-send">Send for approval</button></div>
       <p class="note" id="hp-msg" role="status"></p>
+      <label style="display:flex;gap:10px;align-items:flex-start;margin-top:14px;cursor:pointer"><input type="checkbox" id="hp-zulu" style="margin-top:4px"><span><b>Let ZULU answer my players</b><br><span class="note">ZULU, JD's AI, replies in your chats straight away using your events and the player's ticket. Its messages start with "ZULU ·". It pings you for prizes, disputes or when a player asks for you, and stays out of a chat for 12 hours after you reply yourself. Off unless you turn it on.</span></span></label>
     </div>
     <div class="panel">
       <div class="sec-h"><h2 id="h-help">How it works</h2><span class="sp"></span><button type="button" class="ghost" id="tour-again">Show the tour</button></div>
@@ -1309,20 +1310,24 @@ function renderResults(){
 function renderPrizes(){
   const d=rs, rank=rsRanked(), box=$('rs-prz'); if(!d||!box) return;
   const paid=new Map((d.paid||[]).map(p=>[p.squad.toLowerCase(),p.amount]));
-  const top=rank.slice(0,3);
+  const top=rsPrizeRank().slice(0,3);
   const prz=top.map((x,k)=>{ const pd=paid.get(x.r.team.toLowerCase());
     return `<div class="prz-row"><span class="pl" style="width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-weight:700;background:${['var(--gold)','#c8d1e6','#c98b4c'][k]};color:#07090F">${k+1}</span><b translate="no">${esc(x.r.team)}</b>`+
       (pd?`<span class="paid">Paid ${pd} ✓</span>`:`<input type="number" inputmode="numeric" min="0" data-prize="${k}" value="${rsPrize[k]||''}" placeholder="0" aria-label="Prize points for place ${k+1}">`)+`</div>`; }).join('');
-  box.innerHTML=prz||'<p class="note">Enter points first.</p>';
+  const own=rank.slice(0,3).find(x=>rsOwner(x.r.team));
+  box.innerHTML=(prz||'<p class="note">Enter points first.</p>')+(own?`<p class="note">${esc(own.r.team)} is the owner's squad: the owner plays for fun and never takes prize money (rule 10), so prize places move down to the next squads.</p>`:'');
   rsSum();
 }
+// rule 10: the owner's squad never takes a prize, so prize places are counted without it
+const rsOwner=t=>((rs&&rs.owner_squads)||[]).includes(String(t||'').trim().toLowerCase().replace(/\s+/g,' '));
+function rsPrizeRank(){ return rsRanked().filter(x=>!rsOwner(x.r.team)); }
 // positions + medal colours, without rebuilding the inputs you're typing in
 function rsPlaces(){
   const place=new Map(rsRanked().map((x,k)=>[x.i,k+1]));
   $('rs-body').querySelectorAll('.rsr[data-i]').forEach(tr=>{ const pl=place.get(+tr.dataset.i)||'–'; tr.className='rsr'+(pl<=3?' p'+pl:''); tr.querySelector('.pl').textContent=pl; });
 }
 function rsSum(){
-  if(!rs) return; const paid=(rs.paid||[]).reduce((a,p)=>a+p.amount,0), now=rsRanked().slice(0,3).reduce((a,x,k)=>a+((rs.paid||[]).some(p=>p.squad.toLowerCase()===x.r.team.toLowerCase())?0:(+rsPrize[k]||0)),0), el=$('prz-sum'); if(!el) return;
+  if(!rs) return; const paid=(rs.paid||[]).reduce((a,p)=>a+p.amount,0), now=rsPrizeRank().slice(0,3).reduce((a,x,k)=>a+((rs.paid||[]).some(p=>p.squad.toLowerCase()===x.r.team.toLowerCase())?0:(+rsPrize[k]||0)),0), el=$('prz-sum'); if(!el) return;
   el.textContent=isHostMod()?`You pay Rs ${now} in total`:`Assigned ${now+paid} of ${rs.pool} points${paid?` (${paid} already paid)`:''}`; el.className='prz-sum'+(!isHostMod()&&now+paid>rs.pool?' bad':'');
 }
 $('rs-body').addEventListener('input',e=>{
@@ -1343,7 +1348,7 @@ $('rs-body').addEventListener('click',async e=>{
   const rank=rsRanked(), msg=$('rs-msg');
   if(!rank.length){ msg.textContent='Add squads and points first.'; msg.className='msg err'; return; }
   const teams=rsRows.filter(r=>r.team.trim()).map(r=>({team:r.team.trim(),pts:r.pts,kills:r.kills||[]}));
-  const prizes={}; if(fin) rank.slice(0,3).forEach((x,k)=>{ if(+rsPrize[k]>0&&!(rs.paid||[]).some(p=>p.squad.toLowerCase()===x.r.team.toLowerCase())) prizes[x.r.team.trim()]=+rsPrize[k]; });
+  const prizes={}; if(fin) rsPrizeRank().slice(0,3).forEach((x,k)=>{ if(+rsPrize[k]>0&&!(rs.paid||[]).some(p=>p.squad.toLowerCase()===x.r.team.toLowerCase())) prizes[x.r.team.trim()]=+rsPrize[k]; });
   const sum=Object.values(prizes).reduce((a,b)=>a+b,0);
   const ok=await sheet(fin?{title:`Finish ${rs.event}?`,text:`Winner: ${rank[0].r.team} (${rank[0].t} points). `+(isHostMod()?(sum?`Tells ${Object.entries(prizes).map(([k,v])=>k+' Rs '+v).join(', ')} that you will pay them. `:'')+'Everyone in the event gets the result. You can\'t change it afterwards.':(sum?`Pays ${Object.entries(prizes).map(([k,v])=>k+' '+v).join(', ')} points into their wallets. `:'No prizes will be paid. ')+`The event is marked finished and the leaderboard is saved. Payments can't be undone here.`),ok:isHostMod()?'Finish event':'Finish & pay',danger:sum>0}
                           :{title:'Publish standings?',text:`#1 ${rank[0].r.team} (${rank[0].t}). The leaderboard on the site updates for everyone now.`,ok:'Publish'});
@@ -1514,6 +1519,9 @@ async function hostProfile(){
   const show=m=>{ $('hp-name').value=m.pending_name||m.display_name||'';
     msg(m.pending_name?`Waiting for approval: "${m.pending_name}".`+(m.display_name?` Players still see "${m.display_name}".`:''):m.display_name?`Players see you as "${m.display_name}".`:'No host name yet. Players see @'+m.handle+'.'); };
   show(me);
+  $('hp-zulu').checked=!!me.zulu_on; $('hp-zulu').disabled=me.zulu_on===undefined;
+  $('hp-zulu').onchange=async e=>{ const on=e.target.checked; const x=await sb.rpc('host_zulu_set',{p_on:on});
+    if(x.error){ e.target.checked=!on; toast(x.error.message,null,true); return; } toast(on?'ZULU now answers your players.':'ZULU is off. You get every message yourself.'); };
   const pic=async()=>{ const u=await sb.storage.from('avatars').createSignedUrl(me.pid+'/host.jpg',3600); if(u.data&&u.data.signedUrl) $('hp-img').src=u.data.signedUrl; };
   pic().catch(()=>{});
   $('hp-send').onclick=async()=>{ msg('Sending…'); const x=await sb.rpc('host_name_request',{p_name:$('hp-name').value});
