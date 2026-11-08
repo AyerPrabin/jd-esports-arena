@@ -14,6 +14,23 @@
    "kill_pts": 1,
    "teams": [
     {
+     "team": "CRZ ESPORTS",
+     "r": [
+      {
+       "kills": 12,
+       "pts": 12
+      },
+      {
+       "kills": 14,
+       "pts": 12
+      },
+      {
+       "kills": 12,
+       "pts": 6
+      }
+     ]
+    },
+    {
      "team": "Ancient Ogs 1",
      "r": [
       {
@@ -27,23 +44,6 @@
       {
        "kills": 19,
        "pts": 12
-      }
-     ]
-    },
-    {
-     "team": "CRZ ESPORTS",
-     "r": [
-      {
-       "kills": 12,
-       "pts": 12
-      },
-      {
-       "kills": 14,
-       "pts": 12
-      },
-      {
-       "kills": 3,
-       "pts": 6
       }
      ]
     },
