@@ -1339,3 +1339,11 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 }
 /* Android WebView paints blurred layers black while scrolling (profile chips on event cards) - phones get no blur */
 @media (hover:none),(pointer:coarse){*,*::before,*::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}}
+/* Android WebView runs out of GPU tiles on this page and paints the rest black while scrolling: phones skip the
+   huge spinning rays, the panning/blurred winner background, blend modes and filters on clipped text */
+@media (hover:none),(pointer:coarse){
+  .ws-rays,.ws::after,.discord-glow{display:none}
+  .ws-bg{animation:none;filter:none;transform:none}
+  .ws-title{filter:none}
+  *,*::before,*::after{mix-blend-mode:normal!important}
+}
