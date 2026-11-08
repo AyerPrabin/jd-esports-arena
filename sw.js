@@ -68,7 +68,7 @@ const STATIC = /\.(?:png|jpe?g|webp|gif|svg|ico|css|js|woff2?)$/i;   // not audi
 const STATIC_CACHE = "jd-static-v1";
 // Pages are cached by path (no ?query) after every good load, so a page opened once also opens offline.
 // Staff pages (admin, mod, secret links) are never kept on the phone.
-const PAGE_CACHE = "jd-pages-v4";   // v4 (8 Nov 2026): drop pages saved before the emoji -> line icon update
+const PAGE_CACHE = "jd-pages-v3";   // v3 (30 Oct 2026): drop pages saved before the leaderboard effects update
 const NO_KEEP = /^\/(admin|mod)(\/|$)|admin|private|secret|zulu-|jd-arena\.html/i;
 // The bottom-tab pages open from the phone's copy at once (like a native app) while the network copy replaces
 // it in the background for next time. A copy older than TAB_FRESH (or none) waits on the network as before, so an
@@ -116,25 +116,25 @@ self.addEventListener("push", e => {
   try { d = e.data ? e.data.json() : {}; } catch (x) { d = { body: e.data ? e.data.text() : "" }; }
   const tag = d.tag || "jd-arena";
   const url = d.url || "/";
-  // a teammate ringing the squad (squad-ring): long buzz, stays until tapped, never bundled with messages
+  // 📞 a teammate ringing the squad (squad-ring): long buzz, stays until tapped, never bundled with messages
   const ring = /^jd-ring/.test(tag);
   const chat = !ring && (/[?&](dm|g|chat)=|\/chat\//.test(url) || /^jd-(g-|c-|dm-|chat|staff-chat|zulu)/.test(tag));
   const room = /\/challenges\/\?c=/.test(url);
   // Each alert type looks and buzzes differently so players know what it is before opening:
-  // messages = blue , short buzz, bundled; Room ID/password = green , long urgent buzz,
-  // stays until tapped; results = gold , celebration buzz.
+  // messages = blue 💬, short buzz, bundled; Room ID/password = green 🔑, long urgent buzz,
+  // stays until tapped; results = gold 🏆, celebration buzz.
   const kind = ring ? "ring" : tag === "jd-room" || /^room code/i.test(d.title || "") ? "roomcode"
     : tag === "jd-results" || /^results are in/i.test(d.title || "") ? "result"
     : /off the waitlist|you're in:/i.test(d.title || "") ? "slot"
     : chat ? "msg" : "";
   const STYLE = {
-    msg: { icon: "/notif-msg.png", pre: "", vibrate: [90, 60, 90] },
+    msg: { icon: "/notif-msg.png", pre: "💬 ", vibrate: [90, 60, 90] },
     ring: { icon: "/notif-msg.png", pre: "", vibrate: [1000, 400, 1000, 400, 1000, 400, 1000, 400, 1000], sticky: true,
-      action: /^jd-ring-mod/.test(tag) ? "Open mod chat" : "Open squad chat" },
-    roomcode: { icon: "/notif-room.png", pre: "", vibrate: [600, 200, 600, 200, 600], sticky: true, action: "Show Room ID" },
+      action: /^jd-ring-mod/.test(tag) ? "🔔 Open mod chat" : "📞 Open squad chat" },
+    roomcode: { icon: "/notif-room.png", pre: "🔑 ", vibrate: [600, 200, 600, 200, 600], sticky: true, action: "🔑 Show Room ID" },
     // a waitlist slot opened: it must be confirmed, so it stays until tapped
-    slot: { icon: "/icon-192.png", pre: "", vibrate: [300, 120, 300, 120, 600], sticky: true, action: "Open my ticket" },
-    result: { icon: "/notif-result.png", pre: "", vibrate: [120, 60, 120, 60, 120, 60, 500], action: "See results" },
+    slot: { icon: "/icon-192.png", pre: "🎟 ", vibrate: [300, 120, 300, 120, 600], sticky: true, action: "🎟 Open my ticket" },
+    result: { icon: "/notif-result.png", pre: "🏆 ", vibrate: [120, 60, 120, 60, 120, 60, 500], action: "🏆 See results" },
   }[kind] || { icon: "/icon-192.png", pre: "", vibrate: [200, 100, 200, 100, 200] };
   e.waitUntil((async () => {
     let old = null;
@@ -146,8 +146,8 @@ self.addEventListener("push", e => {
     const t0 = d.title || "JD Arena";
     const title = (STYLE.pre && !t0.includes(STYLE.pre.trim()) ? STYLE.pre : "") + t0 + (count > 1 && (chat || room) ? ` · ${count} new` : "");
     // messages: "Reply" opens the chat with the typing box ready, "Dismiss" just clears it (Android shows 2 buttons max)
-    const actions = chat ? [{ action: "reply", title: "Reply" }, { action: "dismiss", title: "✓ Dismiss" }]
-      : room ? [{ action: "open", title: "Open room" }] : STYLE.action ? [{ action: "open", title: STYLE.action }] : [];
+    const actions = chat ? [{ action: "reply", title: "💬 Reply" }, { action: "dismiss", title: "✓ Dismiss" }]
+      : room ? [{ action: "open", title: "⚔️ Open room" }] : STYLE.action ? [{ action: "open", title: STYLE.action }] : [];
     // a bundled chat alert shows the last 3 messages, newest at the bottom, instead of only the newest one
     const lines = chat ? (od.lines || []).concat(d.body || "").filter(Boolean).slice(-3) : [];
     // if a browser rejects any of the extras, still show a plain alert (a push without a

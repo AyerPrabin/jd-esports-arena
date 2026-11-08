@@ -23,17 +23,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/home.css?v=21">
+<link rel="stylesheet" href="/home.css?v=19">
 <link rel="stylesheet" href="/effects-pro.css?v=4">
-<link rel="stylesheet" href="/ui.css?v=27">
-<link rel="stylesheet" href="/broadcast.css?v=6">
+<link rel="stylesheet" href="/ui.css?v=26">
+<link rel="stylesheet" href="/broadcast.css?v=5">
 <link rel="stylesheet" href="/effects-styles.css?v=2">
 <link rel="canonical" href="https://jdesport.co.uk/">
 <meta property="og:url" content="https://jdesport.co.uk/">
 <meta property="og:site_name" content="JD Esports Arena">
 <script type="application/ld+json" data-seo="org">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://jdesport.co.uk/#org","name":"JD Esports Arena","alternateName":["JD Arena","AyerFire"],"url":"https://jdesport.co.uk/","logo":"https://jdesport.co.uk/icon-512.png","description":"Free Fire BR tournaments in Nepal with live brackets, prize pools, room IDs and a season leaderboard.","areaServed":{"@type":"Country","name":"Nepal"},"founder":{"@type":"Person","name":"Prabin Ayer","url":"https://jdesport.co.uk/zulu-website.html"},"sameAs":["https://instagram.com/ayerprabin","https://www.tiktok.com/@ayer_fire","https://discord.gg/dgvQTbNvVu"]},{"@type":"WebSite","@id":"https://jdesport.co.uk/#website","name":"JD Esports Arena","url":"https://jdesport.co.uk/","inLanguage":"en","publisher":{"@id":"https://jdesport.co.uk/#org"}}]}</script>
 <script defer src="/analytics.js?v=2"></script>
-<link rel="stylesheet" href="/icons.css?v=1">
 </head>
 <body>
 <div id="preloader" aria-hidden="true">
@@ -50,9 +49,9 @@
     </a>
     <div class="bar-right">
       <a id="pts-pill" class="pts-pill" href="/wallet/" aria-label="Points wallet" hidden><span class="jd-coin" aria-hidden="true">JD</span><b id="pts-bal">0</b><span class="pts-unit">pts</span></a>
-      <button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History"><i class=ji-bell aria-hidden=true></i><span class="badge" id="notif-badge" hidden>0</span></button>
+      <button id="notifhist-btn" class="icon-btn" onclick="notifHistOpen()" aria-label="Notification History">🔔<span class="badge" id="notif-badge" hidden>0</span></button>
       <button class="nav-toggle" id="nav-toggle-btn" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="acct-nav"><span class="nt-lines" aria-hidden="true"><i></i><i></i><i></i></span></button>
-      <script>(function(){var u=navigator.userAgent||"",mob=/Android|iPhone|iPad|iPod|Mobile/i.test(u);if(!mob&&(/Windows NT/i.test(u)||(matchMedia("(pointer:fine)").matches&&innerWidth>=900)))document.documentElement.classList.add("is-pc");})();</script><nav class="bar-nav" id="acct-nav"><a class="lang-btn nav-m" id="nav-pts" href="/wallet/" hidden><span>Points wallet</span><b id="nav-pts-bal">0</b></a><button type="button" class="lang-btn nav-m" id="nav-notif" onclick="notifHistOpen()"><span>Notifications</span><b id="nav-notif-count" hidden>0</b></button><a class="lang-btn nav-link" href="/challenges/">Challenges</a><a class="lang-btn nav-link" href="/events/" data-i18n="evnav">Events</a><a class="lang-btn nav-link" href="/pass/">Weekly Pass</a><a class="lang-btn nav-link" href="/leaderboard.html">Leaderboard</a><button type="button" class="lang-btn nav-m" onclick="closeMobileNav();authOpen('support')"><span>Help &amp; Support</span></button><a class="lang-btn nav-link pc-only pc-opt" href="/optimizer/">PC Optimizer</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="mod-btn" class="lang-btn nav-link" href="/mod/" style="display:none">Mod</a><a id="admin-btn" class="lang-btn nav-link" href="/admin/" style="display:none">Admin</a><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none" aria-label="Settings" title="Settings"><span class="sb-ic" aria-hidden="true"></span><span class="sb-lbl"> Settings</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">Android</button><button onclick="downloadIOS();closeDlMenu()">iOS</button><a class="pc-only" href="/optimizer/" onclick="closeDlMenu()">Windows PC</a></div></div></nav>
+      <script>(function(){var u=navigator.userAgent||"",mob=/Android|iPhone|iPad|iPod|Mobile/i.test(u);if(!mob&&(/Windows NT/i.test(u)||(matchMedia("(pointer:fine)").matches&&innerWidth>=900)))document.documentElement.classList.add("is-pc");})();</script><nav class="bar-nav" id="acct-nav"><a class="lang-btn nav-m" id="nav-pts" href="/wallet/" hidden><span>🪙 Points wallet</span><b id="nav-pts-bal">0</b></a><button type="button" class="lang-btn nav-m" id="nav-notif" onclick="notifHistOpen()"><span>🔔 Notifications</span><b id="nav-notif-count" hidden>0</b></button><a class="lang-btn nav-link" href="/challenges/">⚔️ Challenges</a><a class="lang-btn nav-link" href="/events/" data-i18n="evnav">📅 Events</a><a class="lang-btn nav-link" href="/pass/">🎟 Weekly Pass</a><a class="lang-btn nav-link" href="/leaderboard.html">🏆 Leaderboard</a><button type="button" class="lang-btn nav-m" onclick="closeMobileNav();authOpen('support')"><span>🎧 Help &amp; Support</span></button><a class="lang-btn nav-link pc-only pc-opt" href="/optimizer/">🚀 PC Optimizer</a><button id="signup-btn" class="lang-btn" onclick="authOpen('signup')">Sign up</button><button id="acct-btn" class="lang-btn" onclick="authOpen('login')">Login</button><a id="mod-btn" class="lang-btn nav-link" href="/mod/" style="display:none">🛡 Mod</a><a id="admin-btn" class="lang-btn nav-link" href="/admin/" style="display:none">🛠 Admin</a><button class="lang-btn" id="settings-btn" onclick="settingsOpen()" style="display:none" aria-label="Settings" title="Settings"><span class="sb-ic" aria-hidden="true">⚙️</span><span class="sb-lbl"> Settings</span></button><div class="dl-wrap" id="dl-wrap"><button id="dl-btn" class="lang-btn" onclick="handleDlClick(event)">⬇ Download</button><div class="dl-menu" id="dl-menu"><button onclick="downloadAndroid();closeDlMenu()">🤖 Android</button><button onclick="downloadIOS();closeDlMenu()">🍎 iOS</button><a class="pc-only" href="/optimizer/" onclick="closeDlMenu()">💻 Windows PC</a></div></div></nav>
     </div>
   </div>
   <div class="nav-scrim" id="nav-scrim" onclick="closeMobileNav()"></div>
@@ -100,14 +99,14 @@
     <div class="sec-h"><h2 data-i18n="ttl">Tournaments</h2><span class="ln"></span><span class="tag" data-i18n="ttag">Live + Upcoming</span></div>
     <div class="streak" id="streak" hidden></div>
     <div class="arena-grid" id="arena-grid"></div>
-    <div class="ev-links"><a class="ev-link" href="/events/#past" data-i18n="evpast">Past events →</a><a class="ev-link" href="/leaderboard.html" data-i18n="evlb">Leaderboard →</a></div>
+    <div class="ev-links"><a class="ev-link" href="/events/#past" data-i18n="evpast">📅 Past events →</a><a class="ev-link" href="/leaderboard.html" data-i18n="evlb">🏆 Leaderboard →</a></div>
   </section>
 
-  <div class="wrap"><a class="promo-strip" href="/wallet/#promo"><span class="ps-tk" aria-hidden="true"><i class=ji-ticket aria-hidden=true></i></span><span><b>Free tournaments need a free card</b><small>Follow, then comment and repost 3 videos, once. After that, make a video about JD. Or pay 15 points</small></span><span class="ps-go">Get my card</span></a>
+  <div class="wrap"><a class="promo-strip" href="/wallet/#promo"><span class="ps-tk" aria-hidden="true">🎟️</span><span><b>Free tournaments need a free card</b><small>Follow, then comment and repost 3 videos, once. After that, make a video about JD. Or pay 15 points</small></span><span class="ps-go">Get my card</span></a>
     <a class="promo-strip" href="/profile/#invite"><span class="ps-tk" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M19 8v6M16 11h6"/></svg></span><span><b>Invite friends, get free entry cards</b><small>When a friend you invited wins their first prize, you get a free entry card. Up to 3 friends</small></span><span class="ps-go">Invite</span></a></div>
   <section class="sec wrap reveal" id="teammates">
     <div class="sec-h"><h2>Find Teammates</h2><span class="ln"></span><span class="tag">Squad matchup</span></div>
-    <p class="tm-sub">Rusher, sniper, IGL or all-rounder: add players like on Instagram, chat in Messages and play the next event together.</p>
+    <p class="tm-sub">Rusher, sniper, IGL or all-rounder: add players like on Instagram, chat in 💬 Messages and play the next event together.</p>
     <div class="tm-bar"><a class="btn-primary tm-postbtn" href="/squad/#post">＋ Post yourself</a><a class="tm-seeall" href="/squad/">See all players →</a></div>
     <div class="tm-msg" id="tm-msg" aria-live="polite"></div>
     <div class="tm-list" id="tm-list"><div class="tm-empty">Loading players…</div></div>
@@ -130,20 +129,20 @@
     <p class="fx-show-sub">Make your squad impossible to miss — on every tournament card and in the squad list. Cosmetic only, no gameplay advantage. The squads below are examples.</p>
     <div class="fx-show-grid sqlist" id="fx-show"></div>
     <div class="fx-show-plans"><span>Single match <b>Rs 2</b></span><span>Lite week <b>Rs 5</b></span><span>Pro week <b>Rs 10</b></span><span class="best">Pro month <b>Rs 30</b> · every effect</span></div>
-    <button type="button" class="btn-primary" onclick="fxShowCta()">Get effects for your squad</button>
+    <button type="button" class="btn-primary" onclick="fxShowCta()">✨ Get effects for your squad</button>
   </section>
 
   <section class="sec wrap reveal" id="arena-shots">
     <div class="sec-h"><h2>From the Arena</h2><span class="ln"></span><span class="tag">Mobile gameplay</span></div>
     <div class="shots">
-      <figure class="shot big"><img src="ff-victory.webp" alt="Free Fire mobile gameplay — the round won" loading="lazy" width="1200" height="964"><figcaption>Round won</figcaption></figure>
-      <figure class="shot"><img src="ff-fight.webp" alt="Free Fire mobile gameplay — firefight behind a gloo wall" loading="lazy" width="1200" height="818"><figcaption>Gloo wall fight</figcaption></figure>
-      <figure class="shot"><img src="ff-gloo.webp" alt="Free Fire mobile gameplay — pushing through gloo walls" loading="lazy" width="1200" height="776"><figcaption>The push</figcaption></figure>
-      <figure class="shot"><img src="ff-gameplay.webp" alt="Free Fire mobile gameplay — holding cover" loading="lazy" width="1400" height="690"><figcaption>Holding cover</figcaption></figure>
+      <figure class="shot big"><img src="ff-victory.webp" alt="Free Fire mobile gameplay — the round won" loading="lazy" width="1200" height="964"><figcaption>🏆 Round won</figcaption></figure>
+      <figure class="shot"><img src="ff-fight.webp" alt="Free Fire mobile gameplay — firefight behind a gloo wall" loading="lazy" width="1200" height="818"><figcaption>🔫 Gloo wall fight</figcaption></figure>
+      <figure class="shot"><img src="ff-gloo.webp" alt="Free Fire mobile gameplay — pushing through gloo walls" loading="lazy" width="1200" height="776"><figcaption>🧊 The push</figcaption></figure>
+      <figure class="shot"><img src="ff-gameplay.webp" alt="Free Fire mobile gameplay — holding cover" loading="lazy" width="1400" height="690"><figcaption>🛡️ Holding cover</figcaption></figure>
     </div>
     <h3 class="maps-h">Battle maps</h3>
-    <div class="maps-row" tabindex="0" role="region" aria-label="Battle maps"><figure class="mapt"><img src="maps/ff-bermuda.webp" alt="Bermuda map" loading="lazy" width="1000" height="1000"><figcaption>Bermuda</figcaption></figure><figure class="mapt"><img src="maps/ff-purgatory.webp" alt="Purgatory map" loading="lazy" width="1000" height="1000"><figcaption>Purgatory</figcaption></figure><figure class="mapt"><img src="maps/ff-kalahari.webp" alt="Kalahari map" loading="lazy" width="1000" height="1000"><figcaption>Kalahari</figcaption></figure><figure class="mapt"><img src="maps/ff-nexterra.webp" alt="NeXTerra map" loading="lazy" width="1000" height="1000"><figcaption>NeXTerra</figcaption></figure><figure class="mapt"><img src="maps/ff-solara.webp" alt="Solara map" loading="lazy" width="1000" height="1000"><figcaption>Solara</figcaption></figure></div>
-    <p class="sub" style="margin:10px 0 0"><a href="/ff/" style="color:var(--gold-l);font-weight:700">FF Guide: every character, gun and map →</a></p>
+    <div class="maps-row" tabindex="0" role="region" aria-label="Battle maps"><figure class="mapt"><img src="maps/ff-bermuda.webp" alt="Bermuda map" loading="lazy" width="1000" height="1000"><figcaption>🌴 Bermuda</figcaption></figure><figure class="mapt"><img src="maps/ff-purgatory.webp" alt="Purgatory map" loading="lazy" width="1000" height="1000"><figcaption>🌲 Purgatory</figcaption></figure><figure class="mapt"><img src="maps/ff-kalahari.webp" alt="Kalahari map" loading="lazy" width="1000" height="1000"><figcaption>🏜️ Kalahari</figcaption></figure><figure class="mapt"><img src="maps/ff-nexterra.webp" alt="NeXTerra map" loading="lazy" width="1000" height="1000"><figcaption>🌌 NeXTerra</figcaption></figure><figure class="mapt"><img src="maps/ff-solara.webp" alt="Solara map" loading="lazy" width="1000" height="1000"><figcaption>☀️ Solara</figcaption></figure></div>
+    <p class="sub" style="margin:10px 0 0"><a href="/ff/" style="color:var(--gold-l);font-weight:700">📖 FF Guide: every character, gun and map →</a></p>
   </section>
 
   <section class="sec wrap reveal" id="scoring">
@@ -153,12 +152,12 @@
       <div class="step"><b data-i18n="sckillt">Kill points</b><span data-i18n="sckilld">1 point for every kill your squad gets in the match.</span></div>
       <div class="step"><b data-i18n="scplacet">Total</b><span data-i18n="scplaced">Placement points and kill points from all matches are added together. The highest total wins.</span></div>
     </div>
-    <h3 class="pos-h" data-i18n="scposh">Position points</h3>
+    <h3 class="pos-h" data-i18n="scposh">📊 Position points</h3>
     <p class="sub" data-i18n="scposd">Where your squad finishes in each match gives placement points. Every kill adds 1 more point.</p>
     <div class="pos-pts" role="list" aria-label="Position points">
-      <div role="listitem"><b>1st</b><span>12</span></div>
-      <div role="listitem"><b>2nd</b><span>9</span></div>
-      <div role="listitem"><b>3rd</b><span>8</span></div>
+      <div role="listitem"><b>🥇 1st</b><span>12</span></div>
+      <div role="listitem"><b>🥈 2nd</b><span>9</span></div>
+      <div role="listitem"><b>🥉 3rd</b><span>8</span></div>
       <div role="listitem"><b>4th</b><span>7</span></div>
       <div role="listitem"><b>5th</b><span>6</span></div>
       <div role="listitem"><b>6th</b><span>5</span></div>
@@ -179,17 +178,17 @@
       <div class="step"><b data-i18n="msgunt">Gun Attributes</b><span data-i18n="msgund">Off — weapon skin stat bonuses don't apply.</span><span class="wstrip" aria-hidden="true"><img src="/weapons/ak47.webp" alt="" loading="lazy" height="22"><img src="/weapons/m1887.webp" alt="" loading="lazy" height="22"><img src="/weapons/mp40.webp" alt="" loading="lazy" height="22"></span></div>
       <div class="step"><b data-i18n="msskillt">Character Skills</b><span data-i18n="msskilld">On — your character's active/passive skill works as normal.</span></div>
       <div class="step"><b data-i18n="msmapt">Map</b><span data-i18n="msmapd">Full map, normal settings — the zone shrinks as usual, nothing's changed there.</span></div>
-      <div class="step"><b>Full squad only</b><span>Entering the room without your squad is banned.</span></div>
-      <div class="step"><b>Banned character skills</b><span>Orion, Sonia, Dimitri and Ryden are not allowed. Using a banned skill can get your squad disqualified.</span></div>
-      <div class="step"><b>No duplicate active skills</b><span>Two players in the same squad can't use the same active skill.</span></div>
-      <div class="step"><b>No zone pushing</b><span>Zone pusher is not allowed — play the zone normally.</span></div>
-      <div class="step"><b>Enter in 10 minutes</b><span>Be in the room within 10 minutes of the Room ID being shared.</span></div>
-      <div class="step"><b>Sit in your app slot</b><span>Enter as a squad and take the seat that matches your slot position in the app.</span></div>
-      <div class="step"><b>3 no-shows = 1 month ban</b><span>Join and don't come for 3 matches and your squad is banned for 1 month.</span></div>
-      <div class="step"><b>Be online in the app</b><span>Register only if you'll attend the custom room and stay online in the JD Arena app — room details arrive there. <a class="no-in-app" href="/download/" style="color:var(--gold-l)">Download the APK</a></span></div>
+      <div class="step"><b>🚫 Full squad only</b><span>Entering the room without your squad is banned.</span></div>
+      <div class="step"><b>🚫 Banned character skills</b><span>Orion, Sonia, Dimitri and Ryden are not allowed. Using a banned skill can get your squad disqualified.</span></div>
+      <div class="step"><b>🚫 No duplicate active skills</b><span>Two players in the same squad can't use the same active skill.</span></div>
+      <div class="step"><b>🚫 No zone pushing</b><span>Zone pusher is not allowed — play the zone normally.</span></div>
+      <div class="step"><b>⏱️ Enter in 10 minutes</b><span>Be in the room within 10 minutes of the Room ID being shared.</span></div>
+      <div class="step"><b>💺 Sit in your app slot</b><span>Enter as a squad and take the seat that matches your slot position in the app.</span></div>
+      <div class="step"><b>🚫 3 no-shows = 1 month ban</b><span>Join and don't come for 3 matches and your squad is banned for 1 month.</span></div>
+      <div class="step"><b>📲 Be online in the app</b><span>Register only if you'll attend the custom room and stay online in the JD Arena app — room details arrive there. <a class="no-in-app" href="/download/" style="color:var(--gold-l)">Download the APK</a></span></div>
     </div>
-    <a class="btn-primary" href="/rules/" style="display:inline-flex;margin:18px 0 0">Read the full tournament rules</a>
-    <h3 class="ban-ch-h">Banned characters</h3>
+    <a class="btn-primary" href="/rules/" style="display:inline-flex;margin:18px 0 0">📜 Read the full tournament rules</a>
+    <h3 class="ban-ch-h">🚫 Banned characters</h3>
     <div class="ban-ch">
       <figure><img src="characters/orion.webp" alt="Orion" loading="lazy" width="213" height="360"><figcaption><b>Orion</b><i>Crimson Crush · Active</i><span>Uses Crimson Energy to become immune to damage for 3s while draining HP from enemies within 5m.</span></figcaption></figure>
       <figure><img src="characters/sonia.webp" alt="Sonia" loading="lazy" width="240" height="349"><figcaption><b>Sonia</b><i>Nano Lifeshield · Passive</i><span>After taking fatal damage, becomes invulnerable for a moment and gets a 1 HP shield for 2s.</span></figcaption></figure>
@@ -218,12 +217,12 @@
   </div>
   <div>JD Esports Arena · AyerFire</div>
   <div class="live-note" id="arena-foot"></div>
-  <div style="margin-top:10px"><a id="about-link" data-i18n="about" href="/about/">About</a> · <a href="/rules/">Rules</a> · <a href="/ban-list.html">Ban List</a></div>
+  <div style="margin-top:10px"><a id="about-link" data-i18n="about" href="/about/">About</a> · <a href="/rules/">📜 Rules</a> · <a href="/ban-list.html">🛡️ Ban List</a></div>
 </footer>
 
 <div class="fab-nudge" id="fab-nudge" onclick="fbOpen()"><button class="fab-nudge-x" onclick="event.stopPropagation();dismissNudge()" aria-label="dismiss">×</button><span id="fab-nudge-text"></span></div>
 <div id="next-match" class="next-match" hidden></div>
-<button class="fab" id="fab" onclick="fbOpen()">Ask ZULU</button>
+<button class="fab" id="fab" onclick="fbOpen()">💬 Ask ZULU</button>
 <div class="fb-panel" id="fb-panel">
   <div class="fb-head"><div><b>ZULU</b><span class="sub" id="z-sub">JD Arena assistant</span></div><button class="fb-x" onclick="fbClose()" aria-label="close">×</button></div>
   <div class="fb-msgs" id="fb-msgs"></div>
@@ -235,17 +234,17 @@
 </div>
 <div class="zoverlay" id="reg-overlay" onclick="if(event.target===this)regClose()">
   <div class="zmodal"><button class="fb-x" style="position:absolute;top:12px;right:14px" onclick="regClose()" aria-label="close">×</button>
-    <div class="reg-hero"><span class="reg-hero-eye">Register in-app</span><h3 id="reg-tname"></h3></div>
+    <div class="reg-hero"><span class="reg-hero-eye">🎮 Register in-app</span><h3 id="reg-tname"></h3></div>
     <div class="reg-quick" id="reg-quick" hidden>
       <div class="rq-av" id="rq-av"></div>
       <div class="rq-info"><span class="rq-eye">Your saved squad</span><b id="rq-name"></b><span id="rq-meta"></span></div>
-      <button type="button" class="rq-edit" onclick="regQuickEdit()">Change</button>
+      <button type="button" class="rq-edit" onclick="regQuickEdit()">✏️ Change</button>
     </div>
     <div id="reg-edit-a">
     <label>Squad / team name <span style="color:var(--gold-l)">*</span></label>
     <input id="reg-squad" placeholder="e.g. Ayer Legends" maxlength="40" required>
     <label>Device</label>
-    <select id="reg-device"><option value="mobile">Mobile</option><option value="emulator">Emulator</option></select>
+    <select id="reg-device"><option value="mobile">📱 Mobile</option><option value="emulator">🖥️ Emulator</option></select>
     <p class="sub" style="margin:4px 0 0">Declare honestly — mobile-only brackets check this, and misdeclaring can get you reported and banned.</p>
     <label>Squad logo (optional)</label>
     <p class="sub" id="reg-logo-note" style="margin:0 0 6px"></p>
@@ -261,37 +260,37 @@
     </div>
     <div class="reg-wa" id="reg-edit-b">
       <input type="checkbox" id="reg-wa-on" checked hidden>
-      <label style="display:block;margin:0 0 4px;color:var(--cream);font-size:.9rem;text-transform:none;letter-spacing:0"><b>WhatsApp number</b> <span style="color:var(--gold-l)">*</span> <small style="color:var(--pm-muted,#9CA8BE);font-weight:500">required — your Room ID &amp; reminders are sent here</small></label>
+      <label style="display:block;margin:0 0 4px;color:var(--cream);font-size:.9rem;text-transform:none;letter-spacing:0"><b>💬 WhatsApp number</b> <span style="color:var(--gold-l)">*</span> <small style="color:var(--pm-muted,#9CA8BE);font-weight:500">required — your Room ID &amp; reminders are sent here</small></label>
       <div id="reg-wa-box">
         <div class="wa-row">
-          <label class="wa-cc" title="Country"><span class="wa-flag" id="reg-wa-flag"></span><span id="reg-wa-code">+977</span><span class="wa-caret" aria-hidden="true">▼</span><select id="reg-wa-cc" aria-label="Country code" onchange="regWaCountry()"></select></label>
+          <label class="wa-cc" title="Country"><span class="wa-flag" id="reg-wa-flag">🇳🇵</span><span id="reg-wa-code">+977</span><span class="wa-caret" aria-hidden="true">▼</span><select id="reg-wa-cc" aria-label="Country code" onchange="regWaCountry()"></select></label>
           <input id="reg-wa" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="98XXXXXXXX" maxlength="20" oninput="regWaPreview()" aria-label="WhatsApp number">
         </div>
         <p class="wa-preview" id="reg-wa-preview" aria-live="polite"></p>
         <p class="sub" style="margin:6px 0 0">Pick your country (Nepal is set already), then type your number. Used to send your <b>Room ID and reminders</b> — never shown publicly. It's saved to your account so next time you just confirm. <button type="button" class="rq-forget" id="reg-wa-forget" hidden onclick="regWaForget()">Remove saved number</button> <a href="/privacy/" target="_blank" rel="noopener">Privacy</a></p>
       </div>
     </div>
-    <p class="sub" style="color:var(--warm-l);margin:12px 0 0"><b>Please show up.</b> Registering means you're committing to play. Squads that register and then don't join get a warning — <b>3 no-shows = banned for 1 month</b>.</p>
-    <p class="sub" style="margin:8px 0 0"><b>Register only if you'll attend the custom room and stay online in the JD Arena app.</b> Room ID, password and your slot are sent there as app notifications.</p>
-    <a class="btn-primary" id="reg-getapp" href="/download/?get=1" style="display:none;margin:10px 0 0">Download the JD Arena app (APK)</a>
-    <div class="reg-noshow" id="reg-noshow" hidden><b>Warning</b> Your squad has <b id="reg-noshow-n">1</b> of 3 no-shows. You can join again, but at 3 no-shows your squad is <b>banned from JD tournaments for 1 month</b>.</div>
+    <p class="sub" style="color:var(--warm-l);margin:12px 0 0"><b>⚠️ Please show up.</b> Registering means you're committing to play. Squads that register and then don't join get a warning — <b>3 no-shows = banned for 1 month</b>.</p>
+    <p class="sub" style="margin:8px 0 0"><b>📲 Register only if you'll attend the custom room and stay online in the JD Arena app.</b> Room ID, password and your slot are sent there as app notifications.</p>
+    <a class="btn-primary" id="reg-getapp" href="/download/?get=1" style="display:none;margin:10px 0 0">📲 Download the JD Arena app (APK)</a>
+    <div class="reg-noshow" id="reg-noshow" hidden><b>⚠️ Warning</b> Your squad has <b id="reg-noshow-n">1</b> of 3 no-shows. You can join again, but at 3 no-shows your squad is <b>banned from JD tournaments for 1 month</b>.</div>
     <div class="reg-rules">
-      <b>Tournament rules</b>
+      <b>📜 Tournament rules</b>
       <ol>
-        <li>Entering the room without your squad is banned.</li>
-        <li>Character skills not allowed: Orion, Sonia, Dimitri, Ryden. <a href="/rules/#banned-characters" target="_blank" rel="noopener">See their skills</a>
+        <li>🚫 Entering the room without your squad is banned.</li>
+        <li>🚫 Character skills not allowed: Orion, Sonia, Dimitri, Ryden. <a href="/rules/#banned-characters" target="_blank" rel="noopener">See their skills</a>
           <div class="reg-ch"><img src="characters/orion.webp" alt="Orion" title="Orion" loading="lazy"><img src="characters/sonia.webp" alt="Sonia" title="Sonia" loading="lazy"><img src="characters/dimitri.webp" alt="Dimitri" title="Dimitri" loading="lazy"><img src="characters/ryden.webp" alt="Ryden" title="Ryden" loading="lazy"></div></li>
-        <li>Two players in the same squad can't use the same active skill.</li>
-        <li>Zone pusher is not allowed.</li>
-        <li>Enter the room within 10 minutes of the Room ID being shared.</li>
-        <li>Enter as a squad and sit in the seat matching your slot position in the app.</li>
-        <li>Join and don't come for 3 matches = squad banned for 1 month.</li>
-        <li>Register only if you'll attend the custom room and stay online in the JD Arena app.</li>
-        <li>Respect everyone: no rude language. Rude words in chat are hidden, and repeated abuse can get you banned.</li>
-        <li>Every prize pool pays 50% to 1st, 30% to 2nd and 20% to 3rd.</li>
-        <li>The owner sometimes plays for fun from a laptop and never takes prize money: if the owner places, the next squad gets the prize.</li>
+        <li>🚫 Two players in the same squad can't use the same active skill.</li>
+        <li>🚫 Zone pusher is not allowed.</li>
+        <li>⏱️ Enter the room within 10 minutes of the Room ID being shared.</li>
+        <li>💺 Enter as a squad and sit in the seat matching your slot position in the app.</li>
+        <li>🚫 Join and don't come for 3 matches = squad banned for 1 month.</li>
+        <li>📲 Register only if you'll attend the custom room and stay online in the JD Arena app.</li>
+        <li>🤝 Respect everyone: no rude language. Rude words in chat are hidden, and repeated abuse can get you banned.</li>
+        <li>🏆 Every prize pool pays 50% to 1st, 30% to 2nd and 20% to 3rd.</li>
+        <li>🎮 The owner sometimes plays for fun from a laptop and never takes prize money: if the owner places, the next squad gets the prize.</li>
       </ol>
-      <a class="reg-rules-link" href="/rules/" target="_blank" rel="noopener">Read the full rules with pictures →</a>
+      <a class="reg-rules-link" href="/rules/" target="_blank" rel="noopener">📖 Read the full rules with pictures →</a>
       <label class="tc-check"><input type="checkbox" id="reg-rules-ok"><span>I have read these rules and my whole squad agrees to follow them. Breaking them can get us disqualified or banned.</span></label>
     </div>
     <div class="msg" id="reg-msg"></div>
@@ -302,7 +301,7 @@
   <div class="zmodal nf-sheet" role="dialog" aria-modal="true" aria-labelledby="nf-title">
     <div class="nf-head">
       <h3 id="nf-title">Notifications <span class="nf-count" id="nf-count" hidden></span></h3>
-      <button type="button" class="nf-ib" id="notif-gear" onclick="notifSettings()" aria-label="Alert settings" title="Alert settings" hidden><i class=ji-gear aria-hidden=true></i></button>
+      <button type="button" class="nf-ib" id="notif-gear" onclick="notifSettings()" aria-label="Alert settings" title="Alert settings" hidden>⚙️</button>
       <button type="button" class="nf-ib" onclick="notifHistClose()" aria-label="Close">×</button>
     </div>
     <div class="notif-chips" id="notif-chips" role="tablist" aria-label="Filter notifications"></div>
@@ -359,15 +358,15 @@
     <p class="rs-note" id="rs-note"></p>
     <div class="rs-divider"></div>
     <div class="rs-table">
-      <div class="rs-row"><span class="rs-lbl">Tournament</span><span class="rs-val" id="rs-tournament"></span></div>
-      <div class="rs-row" id="rs-ticket-row"><span class="rs-lbl">Ticket</span><span class="rs-val" id="rs-ticket"></span></div>
-      <div class="rs-row" id="rs-prize-row"><span class="rs-lbl">Prize Pool</span><span class="rs-val" id="rs-prize"></span></div>
-      <div class="rs-row"><span class="rs-lbl">Entry</span><span class="rs-val" id="rs-entry"></span></div>
-      <div class="rs-row"><span class="rs-lbl">Platform</span><span class="rs-val" id="rs-platform"></span></div>
-      <div class="rs-row"><span class="rs-lbl">Status</span><span class="rs-val" id="rs-status"></span></div>
+      <div class="rs-row"><span class="rs-lbl">🏆 Tournament</span><span class="rs-val" id="rs-tournament"></span></div>
+      <div class="rs-row" id="rs-ticket-row"><span class="rs-lbl">🪪 Ticket</span><span class="rs-val" id="rs-ticket"></span></div>
+      <div class="rs-row" id="rs-prize-row"><span class="rs-lbl">💰 Prize Pool</span><span class="rs-val" id="rs-prize"></span></div>
+      <div class="rs-row"><span class="rs-lbl">🎫 Entry</span><span class="rs-val" id="rs-entry"></span></div>
+      <div class="rs-row"><span class="rs-lbl">📱 Platform</span><span class="rs-val" id="rs-platform"></span></div>
+      <div class="rs-row"><span class="rs-lbl">🛡 Status</span><span class="rs-val" id="rs-status"></span></div>
     </div>
     <div class="rs-cal" id="rs-cal"></div>
-    <p style="color:var(--warm-l);margin:10px 0 0;font-size:.82rem;text-align:center">One more step — tap <b>“Confirm you're playing”</b> on the event card. The confirm window opens 48h before start and closes 24h before; miss it and your seat is released. Be online and ready; no-shows can be banned from future tournaments.</p>
+    <p style="color:var(--warm-l);margin:10px 0 0;font-size:.82rem;text-align:center">⚠️ One more step — tap <b>“Confirm you're playing”</b> on the event card. The confirm window opens 48h before start and closes 24h before; miss it and your seat is released. Be online and ready; no-shows can be banned from future tournaments.</p>
     <div class="rs-actions"><button class="btn-primary" onclick="regSuccessViewNotif()">View Notifications</button><button class="btn-ghost-sm" onclick="regSuccessClose()">Close</button></div>
   </div>
 </div>

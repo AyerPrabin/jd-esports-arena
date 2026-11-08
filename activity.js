@@ -3,7 +3,7 @@
    profile picture (staff). Everything printed is escaped. */
 (function () {
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
-  var ICON = { money: '<i class=ji-coin aria-hidden=true></i>', event: '<i class=ji-game aria-hidden=true></i>', challenge: '<i class=ji-swords aria-hidden=true></i>', withdraw: '<i class=ji-bank aria-hidden=true></i>', promo: '<i class=ji-film aria-hidden=true></i>', alert: '<i class=ji-bell aria-hidden=true></i>' };
+  var ICON = { money: '💰', event: '🎮', challenge: '⚔️', withdraw: '🏦', promo: '🎬', alert: '🔔' };
   var LABEL = { all: 'All', money: 'Money', event: 'Events', challenge: 'Challenges', withdraw: 'Withdrawals', promo: 'Promo', alert: 'Alerts' };
   var css = '.jda{text-align:left;margin-top:10px}.jda-top{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}.jda-top span{font-size:.74rem;padding:4px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.12)}' +
     '.jda-top .bad{border-color:#ff6b6b;color:#ff9d9d}.jda-f{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:4px}.jda-f button{flex:none;font:inherit;font-size:.74rem;padding:5px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:none;color:inherit;cursor:pointer}' +
@@ -21,7 +21,7 @@
       var draw = function () {
         var list = ev.filter(function (e) { return f === 'all' || e.kind === f; });
         var pic = p.avatar && /^https:/.test(p.avatar) ? '<div class="jda-pic"><img src="' + esc(p.avatar) + '" alt="Profile picture of ' + esc(p.name) + '">' +
-          (removeAvatar ? '<button type="button" data-rm="1">Remove picture</button>' : '') + '</div>' : '';
+          (removeAvatar ? '<button type="button" data-rm="1">🚫 Remove picture</button>' : '') + '</div>' : '';
         box.innerHTML = '<div class="jda">' + pic + '<div class="jda-top"><span>Balance <b>' + (+p.balance || 0).toLocaleString() + '</b></span>' +
           (p.banned ? '<span class="bad">Banned: ' + esc(p.banned) + '</span>' : '') + (p.ff ? '<span>FF ' + esc(p.ff) + '</span>' : '') +
           (p.seen ? '<span>Seen ' + esc(ago(p.seen)) + '</span>' : '') + (p.city ? '<span>' + esc(p.city) + '</span>' : '') + '</div>' +

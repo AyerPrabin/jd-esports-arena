@@ -7,12 +7,12 @@ window.FF = {
   updated: '4 Nov 2026',
   // map pool. live:false = no longer in Free Fire's pool (kept so old events still show their map name)
   maps: [
-    { k: 'bermuda', name: 'Bermuda', ic: '<i class=ji-map aria-hidden=true></i>', live: true, size: 'Large', note: 'The classic island. Mixed towns, open fields and hills, good for every play style.' },
-    { k: 'purgatory', name: 'Purgatory', ic: '<i class=ji-map aria-hidden=true></i>', live: true, size: 'Large', note: 'Islands joined by bridges and rivers. Rotations decide fights, so watch the bridges.' },
-    { k: 'kalahari', name: 'Kalahari', ic: '<i class=ji-map aria-hidden=true></i>', live: true, size: 'Medium', note: 'Desert with little cover between towns. Close, fast fights that punish waiting.' },
-    { k: 'nexterra', name: 'NeXTerra', ic: '<i class=ji-map aria-hidden=true></i>', live: true, size: 'Large', note: 'Futuristic city map with tall buildings, launch pads and vertical fights.' },
-    { k: 'solara', name: 'Solara', ic: '<i class=ji-sun aria-hidden=true></i>', live: true, size: 'Large', note: 'The newest map. Sunny coast and city areas with plenty of rooftops and long sightlines.' },
-    { k: 'alpine', name: 'Alpine', ic: '<i class=ji-mountain aria-hidden=true></i>', live: false, size: 'Medium', note: 'Snowy mountains and villages. Removed from the map pool in OB54.' },
+    { k: 'bermuda', name: 'Bermuda', ic: '🌴', live: true, size: 'Large', note: 'The classic island. Mixed towns, open fields and hills, good for every play style.' },
+    { k: 'purgatory', name: 'Purgatory', ic: '🌲', live: true, size: 'Large', note: 'Islands joined by bridges and rivers. Rotations decide fights, so watch the bridges.' },
+    { k: 'kalahari', name: 'Kalahari', ic: '🏜️', live: true, size: 'Medium', note: 'Desert with little cover between towns. Close, fast fights that punish waiting.' },
+    { k: 'nexterra', name: 'NeXTerra', ic: '🌌', live: true, size: 'Large', note: 'Futuristic city map with tall buildings, launch pads and vertical fights.' },
+    { k: 'solara', name: 'Solara', ic: '☀️', live: true, size: 'Large', note: 'The newest map. Sunny coast and city areas with plenty of rooftops and long sightlines.' },
+    { k: 'alpine', name: 'Alpine', ic: '🏔️', live: false, size: 'Medium', note: 'Snowy mountains and villages. Removed from the map pool in OB54.' },
   ],
   // type: active (you press it) or passive (always on). role: what it helps with most
   characters: [

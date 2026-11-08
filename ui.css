@@ -242,7 +242,7 @@ img{max-width:100%}
   header .back-btn{display:none}
   /* the leaderboard showed the winner 3 times (photo banner, podium, row 1): the podium's
      crowned #1 is enough on a phone */
-  #champ:not(.hw){display:none!important}   /* the Halloween banner still shows */
+  #champ:not(.hw){display:none!important}   /* the 🎃 Halloween banner still shows */
 }
 
 /* squad-effects showcase: it pauses its animations off-screen (.fx-paused), which also froze
@@ -375,7 +375,7 @@ html.app-gated .tabbar,html.app-gated .fab,html.app-gated .storage-note,html.app
 .ag-foot{font-size:.8rem;color:#8A94A8;margin:6px 0 0}.ag-foot a{color:#A6AFC2}
 .ag-ok{margin:0 0 16px;padding:12px 14px;border-radius:14px;background:rgba(94,219,149,.1);border:1px solid rgba(94,219,149,.35);color:#BFF2D6;font-size:.95rem}
 
-/* Chat tab: unread count from Messages (chat.js setBadges) */
+/* Chat tab: unread count from 💬 Messages (chat.js setBadges) */
 .tabbar a{position:relative}
 .tabbar .tb-count{position:absolute;top:4px;left:calc(50% + 4px);min-width:17px;height:17px;padding:0 5px;border-radius:9px;background:#FF3B5C;color:#fff;font:800 .62rem/17px var(--font-body,system-ui);text-align:center;box-shadow:0 0 0 2px #07090F}
 .tabbar .tb-count[hidden]{display:none}

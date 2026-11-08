@@ -74,7 +74,6 @@ canvas{display:none}
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <script defer src="/analytics.js?v=2"></script>
-<link rel="stylesheet" href="/icons.css?v=1">
 </head>
 <body>
 <div class="wrap">
@@ -99,7 +98,7 @@ canvas{display:none}
   </section>
 
   <section class="card">
-    <div class="guard"><span class="ic" aria-hidden="true"><i class=ji-shield aria-hidden=true></i></span><div><b>No risk: full refund if it doesn't fill</b>
+    <div class="guard"><span class="ic" aria-hidden="true">🛡️</span><div><b>No risk: full refund if it doesn't fill</b>
       <p class="note" id="guard-txt">If fewer than the minimum squads have joined when registration closes, every squad gets its entry points back automatically and the event is called off.</p></div></div>
   </section>
 
@@ -118,7 +117,7 @@ canvas{display:none}
     <div class="inv" id="inv-in" hidden>
       <div class="link"><input id="inv-link" readonly aria-label="Your invite link"><button class="btn" type="button" id="copy">Copy</button></div>
       <p class="note" id="inv-stat"></p>
-      <div class="cta" style="justify-content:flex-start;margin-top:4px"><button class="btn ghost" type="button" id="card-btn">Today's share card</button><button class="btn ghost" type="button" id="share-btn">Share link</button></div>
+      <div class="cta" style="justify-content:flex-start;margin-top:4px"><button class="btn ghost" type="button" id="card-btn">🖼️ Today's share card</button><button class="btn ghost" type="button" id="share-btn">📤 Share link</button></div>
     </div>
     <p class="note" id="inv-out">Sign in on <a href="/" style="color:var(--gold-l)">jdesport.co.uk</a> to get your own invite link. You earn points for every squad that joins with it.</p>
   </section>
@@ -167,12 +166,12 @@ async function load(){
       $('inv-out').hidden=true; $('inv-in').hidden=false;
       $('inv-link').value=link();
       const per=me.host?M.host_reward:M.refer_reward;
-      $('inv-stat').innerHTML=`${me.joined?'Your squad is in. ':''}<b>${num(me.brought)}</b> squad${me.brought==1?'':'s'} joined with your link · you get <b>${num(per)} points</b> for each one when ${esc(M.slug)} goes ahead.`;
+      $('inv-stat').innerHTML=`${me.joined?'✅ Your squad is in. ':''}<b>${num(me.brought)}</b> squad${me.brought==1?'':'s'} joined with your link · you get <b>${num(per)} points</b> for each one when ${esc(M.slug)} goes ahead.`;
     }
   }
 }
 function link(){ return 'https://jdesport.co.uk/mega/?r='+encodeURIComponent(ME&&ME.code?ME.code:''); }
-function shareText(){ return M?`${M.slug}: ${num(M.max)} squads, Rs ${num(M.prize_pool)} prize pool! ${num(M.squads)} squads in already - only ${num(Math.max(0,M.max-M.squads))} slots left. Full refund if it doesn't fill. Join with my link:`:'JD MEGA is coming:'; }
+function shareText(){ return M?`🏆 ${M.slug}: ${num(M.max)} squads, Rs ${num(M.prize_pool)} prize pool! ${num(M.squads)} squads in already - only ${num(Math.max(0,M.max-M.squads))} slots left. Full refund if it doesn't fill. Join with my link:`:'JD MEGA is coming:'; }
 async function share(url){
   const text=shareText();
   try{ if(navigator.share){ await navigator.share({title:M?M.slug:'JD MEGA',text,url}); return; } }catch(e){ return; }

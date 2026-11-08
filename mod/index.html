@@ -434,7 +434,6 @@ textarea{min-height:96px;resize:vertical}
   .tabs button.more-btn[aria-current=true]{color:var(--cta);box-shadow:inset 0 2px 0 var(--cta)}
 }
 </style>
-<link rel="stylesheet" href="/icons.css?v=1">
 </head>
 <body>
 <a class="skip" href="#main">Skip to the panel</a>
@@ -505,7 +504,7 @@ textarea{min-height:96px;resize:vertical}
       <div class="sec-h"><h2 id="h-squads">Squads</h2><span class="sp"></span><span class="updated" id="updated" aria-live="polite"></span></div>
       <p class="lead" id="ev-line"></p>
       <dl class="money" id="ev-money" hidden></dl>
-      <div id="ev-groups" hidden style="margin:0 0 12px"><button type="button" class="btn sm" id="ev-draw" style="width:100%">Draw groups now</button><p class="note" id="ev-groups-t" style="margin:6px 0 0"></p></div>
+      <div id="ev-groups" hidden style="margin:0 0 12px"><button type="button" class="btn sm" id="ev-draw" style="width:100%">🎲 Draw groups now</button><p class="note" id="ev-groups-t" style="margin:6px 0 0"></p></div>
       <div class="sum" id="sum"></div>
       <div id="reg-body"><p class="note">Pick an event to see its squads.</p></div>
       <div id="removed-box"></div>
@@ -881,10 +880,10 @@ const active=r=>r.status==='approved'||r.status==='confirmed';
 function waLink(num,text){ const n=String(num).replace(/[^\d]/g,''); return n.length>=9?'https://wa.me/'+(n.length<=10?'977'+n:n)+(text?'?text='+encodeURIComponent(text):''):null; }
 function waTemplate(squad, ev){
   const mod=($('who').textContent||'').split('@')[0].replace(/[._-]+/g,' ').replace(/\d+/g,'').trim()||'a JD moderator';
-  return `Hey ${squad}! This is ${mod} from JD Esports Arena.\n\n`+
+  return `Hey ${squad}! \u{1F44B} This is ${mod} from JD Esports Arena.\n\n`+
     `Is your squad ready for *${ev.name}* (${fmtWhen(ev)})? Please reply *YES* to confirm your slot `+
     `– or tap "Confirm you're playing" on jdesport.co.uk.\n\n`+
-    `Squads that don't confirm before the match can lose their slot to the waitlist. GG`;
+    `Squads that don't confirm before the match can lose their slot to the waitlist. GG \u{1F3AE}`;
 }
 async function loadSquads(quiet){
   if(!selected){ $('reg-body').innerHTML=`<div class="empty">${isHostMod()?'No events yet. Tap + New event to make your first one.':'No upcoming event. New events show up here as soon as the admin publishes them.'}</div>`; $('sum').innerHTML=''; return; }
@@ -928,8 +927,8 @@ $('removed-box').addEventListener('click',async e=>{
 });
 /* the line-up the captain gave with "Verify your squad" (squad_verify.sql): check names/UIDs against the room */
 function lineupHtml(r){
-  if(!r.lineup||!r.lineup.length) return `<small class="lu lu-no">Squad not verified${r.captain_ff?' · captain '+esc(r.captain_ff):''}</small>`;
-  return `<details class="lu"><summary>Verified · ${r.lineup.length} players</summary>`+
+  if(!r.lineup||!r.lineup.length) return `<small class="lu lu-no">⚠ Squad not verified${r.captain_ff?' · captain '+esc(r.captain_ff):''}</small>`;
+  return `<details class="lu"><summary>🛡️ Verified · ${r.lineup.length} players</summary>`+
     r.lineup.map((m,i)=>`<div translate="no">${i<4?i+1:'Sub'} · ${esc(m.name)} · <span class="uid" data-copy="${esc(m.uid)}" title="Tap to copy">${esc(m.uid)}</span></div>`).join('')+
     `<small>Saved ${esc(new Date(r.lineup_at).toLocaleString([], {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))}</small></details>`;
 }
@@ -975,7 +974,7 @@ function renderSquads(){
       (wait&&free?`<button type="button" class="abtn" data-act="give" data-id="${esc(r.id)}" data-sq="${esc(name)}">Give slot</button>`:'')+
       `<button type="button" class="abtn rm" data-act="rm" data-id="${esc(r.id)}" data-sq="${esc(name)}"><svg aria-hidden="true"><use href="#i-x"/></svg>Remove</button>`;
     return `<div class="slot${on?'':' off'}${wait?' wait':''}"><span class="no" aria-label="${on?'Slot '+no:wait?'Waitlist '+wn:''}">${on?no:wait?'W'+wn:'–'}</span>`+
-      `<div class="nm"><b translate="no">${esc(name)}</b>${r.now_name&&r.now_name.trim().toLowerCase()!==String(name).trim().toLowerCase()?`<small translate="no">Now called ${esc(r.now_name)}</small>`:''}<small>${esc(r.captain||'')}${r.whatsapp?' · '+esc(r.whatsapp):''}${r.pro?' · Pro pass':''}${on&&r.promoted_at?' · from waitlist'+(freshUp(r)?' (confirming…)':''):''}</small>${lineupHtml(r)}</div>`+
+      `<div class="nm"><b translate="no">${esc(name)}</b>${r.now_name&&r.now_name.trim().toLowerCase()!==String(name).trim().toLowerCase()?`<small translate="no">Now called ${esc(r.now_name)}</small>`:''}<small>${esc(r.captain||'')}${r.whatsapp?' · '+esc(r.whatsapp):''}${r.pro?' · ⭐ Pro pass':''}${on&&r.promoted_at?' · 🎟 from waitlist'+(freshUp(r)?' (confirming…)':''):''}</small>${lineupHtml(r)}</div>`+
       play+`<div class="acts">${acts}</div></div>`;
   }).join('')+'</div>';
 }
@@ -1189,18 +1188,18 @@ function renderProfile(d){
   const wl=wa?waLink(wa,`Hi ${team(p)}! This is the JD Esports team.`):null;
   $('cprof-wrap').innerHTML=`<div class="cprof">${cav(p,'')}<h3 translate="no">${esc(team(p))}</h3>`+
     `<p class="un" translate="no">${esc(p.name||'')}</p><p class="st${p.online?' on':''}">${esc(status(p)||'Not seen recently')}</p>`+
-    `<div class="cpchips">${p.tag?`<button type="button" data-copy="${esc(p.tag)}">${esc(p.tag)} · Copy</button>`:''}${p.app?'<span>Uses the app</span>':''}${p.joined?`<span>Joined ${esc(new Date(p.joined).toLocaleDateString([], {month:'short',year:'numeric'}))}</span>`:''}</div>`+
+    `<div class="cpchips">${p.tag?`<button type="button" data-copy="${esc(p.tag)}">${esc(p.tag)} · Copy</button>`:''}${p.app?'<span>📱 Uses the app</span>':''}${p.joined?`<span>Joined ${esc(new Date(p.joined).toLocaleDateString([], {month:'short',year:'numeric'}))}</span>`:''}</div>`+
     (tk.length?`<div class="cptk">${tk.map(t=>`<div><span style="min-width:0"><b>${esc(t.event)}</b><small>${esc(t.squad||'')} · ${esc(ST[t.status]||t.status)}</small></span>`+
       `<small class="${t.status==='confirmed'||t.status==='approved'?(t.confirmed?'ok':'no'):''}">${t.status==='confirmed'||t.status==='approved'?(t.confirmed?'Playing ✓':'Not confirmed'):''}</small></div>`).join('')}</div>`
       :'<p class="note">No tickets yet.</p>')+
-    (isHostMod()?'':`<button type="button" id="cp-zulu-b" style="width:100%;margin-top:10px">Ask ZULU: what's going on + reply idea</button><div id="cp-zulu"></div>`+
-    `<div id="cp-act"><button type="button" class="ghost" id="cp-act-b" style="width:100%;margin-top:10px">What did this player do? (money, events, challenges, withdrawals)</button></div>`)+
+    (isHostMod()?'':`<button type="button" id="cp-zulu-b" style="width:100%;margin-top:10px">✨ Ask ZULU: what's going on + reply idea</button><div id="cp-zulu"></div>`+
+    `<div id="cp-act"><button type="button" class="ghost" id="cp-act-b" style="width:100%;margin-top:10px">📋 What did this player do? (money, events, challenges, withdrawals)</button></div>`)+
     `<div class="cprow">${wl?`<a class="abtn wa" href="${wl}" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-wa"/></svg>WhatsApp</a>`:''}<button type="button" class="ghost" id="cprof-close">Back to chat</button></div></div>`;
   $('cprof-close').onclick=toggleProfile;
   if(isHostMod()) return;
   $('cp-zulu-b').onclick=async()=>{const b=$('cp-zulu-b'),box=$('cp-zulu');b.disabled=true;box.innerHTML='<p class="note">ZULU is reading the chat and activity…</p>';
     try{const r=await call({action:'chat_zulu_brief',player_id:p.id});
-      box.innerHTML=`<div class="zbrief"></div><p class="note" style="margin:4px 0 0">AI summary from the player's own messages. Check money in activity before any refund or credit.</p>${r.reply?'<button type="button" class="ghost" id="cp-zulu-use" style="width:100%;margin-top:6px">Use this reply</button>':''}`;
+      box.innerHTML=`<div class="zbrief"></div><p class="note" style="margin:4px 0 0">AI summary from the player's own messages. Check money in 📋 activity before any refund or credit.</p>${r.reply?'<button type="button" class="ghost" id="cp-zulu-use" style="width:100%;margin-top:6px">Use this reply</button>':''}`;
       box.querySelector('.zbrief').textContent=r.brief;
       if(r.reply)$('cp-zulu-use').onclick=()=>{toggleProfile();$('c-in').value=r.reply;autoGrow();$('c-in').focus();};
     }catch(e){box.innerHTML='<p class="msg err">'+esc(e.message)+'</p>';}b.disabled=false;};
@@ -1357,7 +1356,7 @@ function rsAutoReload(){ if(selected&&!rsDirty&&!document.querySelector('.sheet-
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&$('tab-results').classList.contains('on')) rsAutoReload(); });
 
 /* ── tabs (phone / tablet) ── */
-/* ── point loads ── */
+/* ── 💰 point loads ── */
 let ldData=null;
 const npt=t=>new Date(t).toLocaleString([], {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
 async function ldLoad(){
@@ -1369,7 +1368,7 @@ async function ldLoad(){
     (r.shot?`<img src="${esc(r.shot)}" alt="Payment screenshot from ${esc(r.who)}" loading="lazy">`:'<p class="note">No screenshot preview.</p>')+
     `<div class="ld-m">${r.fits.length?r.fits.map(id=>{const x=pays.get(id);return `<button type="button" class="btn" data-match="${+id}">✓ Match &amp; add ${+r.amount} points · ${esc(x.provider)} ${esc(npt(x.received_at))}${x.sender?' · '+esc(x.sender):''}</button>`;}).join('')
       :'<p class="note" style="margin:0">No matching payment yet. Wait for the "money received" alert, or leave it for the admin.</p>'}</div></div>`).join('')
-    :'<p class="note">No point loads waiting.</p>';
+    :'<p class="note">No point loads waiting. 🎉</p>';
   $('ld-pay').innerHTML=ldData.payments.length?ldData.payments.map(x=>`<div class="ld-p${x.load_id||x.matched_at?' used':''}"><span><b>Rs ${+x.amount}</b> · ${esc(x.provider)}${x.sender?' · '+esc(x.sender):''}<small>${esc(x.raw)}</small></span><span style="white-space:nowrap">${esc(npt(x.received_at))}${x.load_id||x.matched_at?'<br>✓ used':''}</span></div>`).join('')
     :'<p class="note">Nothing received in the last 48 hours. Is the JD phone forwarding alerts?</p>';
   const sk=ldData.skipped||[];
@@ -1387,19 +1386,19 @@ $('tab-loads')&&$('tab-loads').addEventListener('click',async e=>{
   catch(err){ toast(err.message,null,true); }
   ldLoad();
 });
-/* ── challenges to decide ── */
+/* ── ⚖️ challenges to decide ── */
 let cqData=null;
 async function cqLoad(){
   const box=$('cq-list');if(!box)return;
   try{ cqData=await call({action:'challenges_list'}); }catch(e){ box.innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; return; }
   const list=cqData.disputed||[], b=$('badge-cq'); if(b){ b.hidden=!list.length; b.textContent=list.length; }
-  const side=(s,label)=>`<div class="cq-side"><b>${esc(label)}</b> ${esc(s.name)}<br><span class="note" style="margin:0">${s.ign?'In game: '+esc(s.ign):'No game name saved'}${s.uid?' · UID '+esc(s.uid):''}</span><br>Says: <b>${s.claim==='won'?'We won':s.claim==='lost'?'We lost':'no answer'}</b></div>`;
+  const side=(s,label)=>`<div class="cq-side"><b>${esc(label)}</b> ${esc(s.name)}<br><span class="note" style="margin:0">${s.ign?'In game: '+esc(s.ign):'No game name saved'}${s.uid?' · UID '+esc(s.uid):''}</span><br>Says: <b>${s.claim==='won'?'🏆 We won':s.claim==='lost'?'We lost':'no answer'}</b></div>`;
   box.innerHTML=list.length?list.map(c=>`<div class="ld" data-cq="${esc(c.id)}"><div class="ld-top"><span><b>${esc(c.mode)} · ${+c.pot} pts</b> (${+c.stake} each)</span><small>${esc(npt(c.claim_at||c.created_at))}</small></div>`+
     (c.resolution?`<p class="note" style="margin:4px 0 0">${esc(c.resolution)}</p>`:'')+
     `<div class="cq-sides">${side(c.creator,'Creator')}${side(c.opponent,'Opponent')}</div>`+
     `<div class="cq-chat">${c.chat.length?c.chat.map(m=>`<div class="cq-m ${m.who}"><b>${m.who==='creator'?esc(c.creator.name):m.who==='opponent'?esc(c.opponent.name):esc(m.who)}</b><small>${esc(npt(m.at))}</small><br>${esc(m.body)}${m.img?`<img src="${esc(m.img)}" alt="Photo in the match chat" loading="lazy">`:''}</div>`).join(''):'<p class="note" style="margin:0">Nothing in the match chat. Message both captains and ask for the result screenshot.</p>'}</div>`+
-    `<div class="ld-m"><button type="button" class="btn" data-cq-out="creator">${esc(c.creator.name)} won</button><button type="button" class="btn" data-cq-out="opponent">${esc(c.opponent.name)} won</button><button type="button" class="btn alt" data-cq-out="refund">↩ Refund both (${+c.stake} each)</button></div></div>`).join('')
-    :'<p class="note">No challenges waiting for a decision.</p>';
+    `<div class="ld-m"><button type="button" class="btn" data-cq-out="creator">🏆 ${esc(c.creator.name)} won</button><button type="button" class="btn" data-cq-out="opponent">🏆 ${esc(c.opponent.name)} won</button><button type="button" class="btn alt" data-cq-out="refund">↩ Refund both (${+c.stake} each)</button></div></div>`).join('')
+    :'<p class="note">No challenges waiting for a decision. 🎉</p>';
 }
 $('cq-reload')&&($('cq-reload').onclick=cqLoad);
 $('tab-challenges')&&$('tab-challenges').addEventListener('click',async e=>{
@@ -1409,7 +1408,7 @@ $('tab-challenges')&&$('tab-challenges').addEventListener('click',async e=>{
   const what=out==='refund'?'Refund both captains '+c.stake+' points?':'Pay '+(out==='creator'?c.creator.name:c.opponent.name)+' the pot?';
   if(!await sheet({title:what,text:'This is final and moves real points. Only decide from the chat and screenshots.',ok:out==='refund'?'Refund both':'Pay winner'}))return;
   card.querySelectorAll('button').forEach(x=>x.disabled=true);
-  try{ await call({action:'challenge_resolve',id:c.id,outcome:out}); toast(out==='refund'?'↩ Both refunded':'Winner paid'); }
+  try{ await call({action:'challenge_resolve',id:c.id,outcome:out}); toast(out==='refund'?'↩ Both refunded':'🏆 Winner paid'); }
   catch(err){ toast(err.message,null,true); }
   cqLoad();
 });
@@ -1451,8 +1450,8 @@ async function prLoad(){
   if(error){box.innerHTML='<p class="note">'+esc(error.message)+'</p>';return;}
   const q=data||[];const bd=$('badge-promo');if(bd){bd.hidden=!q.length;bd.textContent=q.length;}
   box.innerHTML=q.length?q.map(p=>`<div class="pr-item" data-id="${p.id}"><a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer"><span class="cap">${esc(p.platform)}</span> · ${p.kind==='engage'?'FREE CARD (one time only): check this account follows @ayer_fire and reposted 3 of our videos, with the JD username above in a comment on each':p.kind==='repost'?'FREE CARD: check this is a video about JD Arena and says how to download':(+p.views).toLocaleString()+' views claimed'}</a>
-    <p class="note" style="margin:4px 0 8px">@${esc(p.username||'?')}${p.ign?' ·'+esc(p.ign):''} · ${esc(new Date(p.at).toLocaleString())}${p.approved_before?' · approved '+p.approved_before+'× before':''}</p>
-    <div class="rs-acts">${/^https:[/][/]/i.test(p.url)?`<a class="btn alt" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">Check link</a>`:''}<button type="button" class="btn alt" data-pr="no">Reject</button><button type="button" class="btn" data-pr="yes">Give free voucher</button></div></div>`).join(''):'<p class="note">No posts waiting.</p>';
+    <p class="note" style="margin:4px 0 8px">@${esc(p.username||'?')}${p.ign?' · 🎮 '+esc(p.ign):''} · ${esc(new Date(p.at).toLocaleString())}${p.approved_before?' · approved '+p.approved_before+'× before':''}</p>
+    <div class="rs-acts">${/^https:[/][/]/i.test(p.url)?`<a class="btn alt" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">🔗 Check link</a>`:''}<button type="button" class="btn alt" data-pr="no">Reject</button><button type="button" class="btn" data-pr="yes">🎟️ Give free voucher</button></div></div>`).join(''):'<p class="note">No posts waiting.</p>';
 }
 $('pr-reload').onclick=prLoad;
 $('pr-q').addEventListener('click',async e=>{
@@ -1522,6 +1521,6 @@ $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
   }
 })();
 </script>
-<script src="/activity.js?v=3"></script>
+<script src="/activity.js?v=2"></script>
 </body>
 </html>

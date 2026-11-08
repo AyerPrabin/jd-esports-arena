@@ -98,7 +98,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .champ-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:clamp(2rem,6vw,3rem);line-height:1.1;margin:8px 0 2px;overflow-wrap:anywhere}
 .champ-name .fxn-tag{font-family:var(--font-body);font-size:.66rem;vertical-align:super}
 .champ-sub{color:var(--silver);font-size:.86rem}
-/* Halloween champions (any event named "Halloween"): storm tint, bats flying across, lightning flashes.
+/* 🎃 Halloween champions (any event named "Halloween"): storm tint, bats flying across, lightning flashes.
    Bats ride full-width lanes moved with transform only (cheap on phones); still under reduced motion. */
 .hw-fx{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
 .hw-fx .lane{position:absolute;left:0;right:0;top:var(--y);animation:hwLane var(--t) linear var(--d) infinite;transform:translateX(-12%)}
@@ -201,7 +201,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 @media(prefers-reduced-motion:reduce){.pod-slot,.pts-table td{transition:none!important;animation:none!important}.rp-chip{animation:none}.rp-track i{transition:none}}
 .rp-watch{background:linear-gradient(135deg,#ff4d4d,#ff8a3d);color:#fff;border:0;border-radius:999px;padding:8px 16px;font:800 .8rem var(--font-body);cursor:pointer;box-shadow:0 0 18px rgba(255,90,60,.35)}
 
-/* ── match replay "video": full screen, every kill +1, live overtakes, placement count-up, BOOYAH, champions.
+/* ── 🎬 match replay "video": full screen, every kill +1, live overtakes, placement count-up, BOOYAH, champions.
    Started by a tap, so it plays with motion even when the device asks for less (see rvOpen()). ── */
 .rv{position:fixed;inset:0;z-index:9000;background:#05070d;color:#fff;display:flex;flex-direction:column;overflow:hidden;font-family:var(--font-body)}
 .rv[hidden]{display:none}
@@ -337,8 +337,8 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
   .cs-row .av{width:38px;height:38px}
 }
 </style>
-<link rel="stylesheet" href="/ui.css?v=27">
-<link rel="stylesheet" href="/broadcast.css?v=6">
+<link rel="stylesheet" href="/ui.css?v=26">
+<link rel="stylesheet" href="/broadcast.css?v=5">
 <link rel="stylesheet" href="/effects-styles.css?v=2">
 <link rel="canonical" href="https://jdesport.co.uk/leaderboard.html">
 <meta property="og:url" content="https://jdesport.co.uk/leaderboard.html">
@@ -349,7 +349,6 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 <meta property="og:image" content="https://jdesport.co.uk/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
 <script defer src="/analytics.js?v=2"></script>
-<link rel="stylesheet" href="/icons.css?v=1">
 </head>
 <body>
 <header>
@@ -361,9 +360,9 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 
 <main class="wrap">
   <div class="lb-tabs" role="tablist" aria-label="Leaderboards">
-    <button type="button" role="tab" id="tab-season" aria-selected="true" aria-controls="lb-alltime" onclick="lbTab('season')">Season</button>
-    <button type="button" role="tab" id="tab-latest" aria-selected="false" aria-controls="lb-season" onclick="lbTab('latest')">Latest event</button>
-    <button type="button" role="tab" id="tab-clash" aria-selected="false" aria-controls="lb-clash" onclick="lbTab('clash')">Clash Squad</button>
+    <button type="button" role="tab" id="tab-season" aria-selected="true" aria-controls="lb-alltime" onclick="lbTab('season')">🏆 Season</button>
+    <button type="button" role="tab" id="tab-latest" aria-selected="false" aria-controls="lb-season" onclick="lbTab('latest')">📺 Latest event</button>
+    <button type="button" role="tab" id="tab-clash" aria-selected="false" aria-controls="lb-clash" onclick="lbTab('clash')">⚔️ Clash Squad</button>
   </div>
   <section id="lb-alltime" role="tabpanel" aria-labelledby="tab-season">
     <div class="sec-h"><h1>Season Standings</h1><span class="ln"></span></div>
@@ -378,15 +377,15 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
   <div id="lb-season" role="tabpanel" aria-labelledby="tab-latest" hidden>
   <div class="sec-h"><h1 id="lb-ttl">Latest Event</h1><span class="ln"></span></div>
   <p class="sub" id="lb-sub">Loading standings…</p>
-  <div class="champ" id="champ" hidden><div class="champ-eye">Champions</div><div class="champ-name" id="champ-name"></div><div class="champ-sub" id="champ-sub"></div></div>
+  <div class="champ" id="champ" hidden><div class="champ-eye">🏆 Champions</div><div class="champ-name" id="champ-name"></div><div class="champ-sub" id="champ-sub"></div></div>
   <div class="podium" id="podium">
     <div class="pod-slot p2"><div class="pod-card"><img class="pod-logo" alt="" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">2</div></div>
-    <div class="pod-slot p1"><div class="pod-card"><span class="pod-crown"><i class=ji-crown aria-hidden=true></i></span><img class="pod-logo" alt="" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">1</div></div>
+    <div class="pod-slot p1"><div class="pod-card"><span class="pod-crown">👑</span><img class="pod-logo" alt="" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">1</div></div>
     <div class="pod-slot p3"><div class="pod-card"><img class="pod-logo" alt="" hidden><div class="pod-name"></div><div class="pod-pts"><span class="num-val">0</span><span class="pod-pts-lbl">pts</span></div></div><div class="pod-bar">3</div></div>
   </div>
   <div class="replay" id="replay" hidden>
-    <button type="button" class="rp-watch" id="rv-open">Watch match replay</button>
-    <button type="button" class="rp-play" id="rp-play">Replay matches</button>
+    <button type="button" class="rp-watch" id="rv-open">🎬 Watch match replay</button>
+    <button type="button" class="rp-play" id="rp-play">▶ Replay matches</button>
     <div class="rp-steps" id="rp-steps"></div>
     <div class="rp-track"><i id="rp-fill"></i></div>
   </div>
@@ -394,14 +393,14 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
   <p class="sub" style="margin:6px 0 8px;font-size:.74rem">How to read a row: <b>M1 <span style="background:var(--gold);color:#140f02;border-radius:5px;padding:0 4px">#1</span> 23</b> = match 1, finished 1st, 23 kills.</p>
   <div id="lb-body"></div>
   <section class="pred" id="predict" hidden>
-    <h2 class="pred-h">Prediction <span id="predict-sub"></span></h2>
+    <h2 class="pred-h">🔮 Prediction <span id="predict-sub"></span></h2>
     <p class="pred-note">Before results are in: each registered squad ranked by its season average. Screenshot it, then go prove it wrong.</p>
     <div class="pred-list" id="predict-list"></div>
   </section>
   <canvas id="confetti-canvas"></canvas>
   <div class="rv" id="rv" hidden role="dialog" aria-label="Match replay">
     <div class="rv-bg" id="rv-bg"></div>
-    <div class="rv-top"><div class="rv-ev">Replay</div>
+    <div class="rv-top"><div class="rv-ev">🎬 Replay</div>
       <select class="rv-sel" id="rv-sel" aria-label="Event"></select>
       <button type="button" class="rv-btn" id="rv-close" aria-label="Close">✕</button></div>
     <div class="rv-prog" id="rv-prog"></div>
@@ -411,8 +410,8 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
     <div class="rv-ctl">
       <div class="rv-steps" id="rv-steps"></div>
       <div class="rv-ctl2">
-        <button type="button" class="rv-btn" id="rv-pause" aria-label="Pause"><i class=ji-pause aria-hidden=true></i></button>
-        <div class="rv-spd" id="rv-spd" role="group" aria-label="Speed"><span class="rv-spd-l">Speed</span><button type="button" data-v="0.5">0.5x</button><button type="button" data-v="1" class="on">1x</button><button type="button" data-v="2">2x</button><button type="button" data-v="3">3x</button></div>
+        <button type="button" class="rv-btn" id="rv-pause" aria-label="Pause">⏸</button>
+        <div class="rv-spd" id="rv-spd" role="group" aria-label="Speed"><span class="rv-spd-l">🐢 Speed</span><button type="button" data-v="0.5">0.5x</button><button type="button" data-v="1" class="on">1x</button><button type="button" data-v="2">2x</button><button type="button" data-v="3">3x ⚡</button></div>
       </div>
     </div>
     <div class="rv-card" id="rv-card" hidden></div>
@@ -429,7 +428,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 <script>
 const TOURNAMENTS_URL='https://jdesport.co.uk/tournaments.json';
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-/* ── Clash Squad tab: get_challenge_leaderboard() (schema.sql) — signed-in players only ── */
+/* ── ⚔️ Clash Squad tab: get_challenge_leaderboard() (schema.sql) — signed-in players only ── */
 let _cs=null,_csFilter='all';
 function lbTab(t){
   const map={season:['tab-season','lb-alltime'],latest:['tab-latest','lb-season'],clash:['tab-clash','lb-clash']};
@@ -468,20 +467,20 @@ function seasonAv(name,fx){
 function renderSeason(){
   const box=document.getElementById('alltime-body'),rows=_season||[];
   if(!rows.length){box.innerHTML='<div class="empty-state">No finished events yet — the season table fills in as results are published.</div>';return;}
-  const medal=n=>n===1?'<i class=ji-medal1 aria-hidden=true></i>':n===2?'<i class=ji-medal2 aria-hidden=true></i>':n===3?'<i class=ji-medal3 aria-hidden=true></i>':n;
+  const medal=n=>n===1?'🥇':n===2?'🥈':n===3?'🥉':n;
   box.innerHTML=`<div class="ss-list">${rows.map((r,i)=>{
     const fx=seasonFx(r.squad_name);
     const dup=r.owner&&rows.some((o,j)=>j!==i&&fxKey(o.squad_name)===fxKey(r.squad_name));
-    const sub=`${dup?esc('@'+r.owner)+' · ':''}${r.events} event${r.events===1?'':'s'} · ${r.wins}${r.kills!=null?` · ${r.kills} kills`:''}`;
+    const sub=`${dup?esc('@'+r.owner)+' · ':''}${r.events} event${r.events===1?'':'s'} · 🏆 ${r.wins}${r.kills!=null?` · ${r.kills} kills`:''}`;
     return `<div class="ss-row${fx?fxCardCls(fx):' ss-plain'}${i<3?' ss-top':''}">${fxDeco(fx)}<span class="ss-rk">${medal(i+1)}</span>${seasonAv(r.squad_name,fx)}`+
       `<span class="ss-main"><span class="ss-nm">${fx?`<span class="fx-name">${esc(r.squad_name)}</span>`:esc(r.squad_name)}</span><small>${sub}</small></span>`+
       `${fx?`<span class="sqfx-tag">${FX_TAG[fx]}</span>`:''}<span class="ss-pts"><b>${r.points}</b><small>pts</small></span></div>`;
-  }).join('')}</div><div class="ss-cta"><span><b>Make your squad stand out.</b> Squads with an effect glow on every board.</span><a href="/#tournaments">Get an effect</a></div>`;
+  }).join('')}</div><div class="ss-cta"><span>✨ <b>Make your squad stand out.</b> Squads with an effect glow on every board.</span><a href="/#tournaments">Get an effect</a></div>`;
 }
 async function loadClash(){
   const box=document.getElementById('cs-body');
   const {data:{session}}=sb?await sb.auth.getSession():{data:{}};
-  if(!session){box.innerHTML='<div class="cs-empty"><span style="font-size:2rem"><i class=ji-lock aria-hidden=true></i></span><b>Sign in to see Clash Squad ranks</b>Challenge records are only shown to JD Arena players.<br><a href="/?signin=1">Sign in</a></div>';return;}
+  if(!session){box.innerHTML='<div class="cs-empty"><span style="font-size:2rem">🔒</span><b>Sign in to see Clash Squad ranks</b>Challenge records are only shown to JD Arena players.<br><a href="/?signin=1">Sign in</a></div>';return;}
   if(!_cs){const {data,error}=await sb.rpc('get_challenge_leaderboard');if(error){box.innerHTML='<p class="sub">Couldn\'t load ranks. Check your connection.</p>';return;}_cs=data||{rows:[]};}
   renderClash();
 }
@@ -489,19 +488,19 @@ function csAv(r){let h=0;const k=String(r.id||r.name);for(let i=0;i<k.length;i++
   return `<span class="av" style="background:linear-gradient(145deg,hsl(${h} 70% 52%),hsl(${(h+40)%360} 75% 38%))">${r.logo&&/^(https:|data:image\/)/.test(r.logo)?`<img src="${esc(r.logo)}" alt="" loading="lazy">`:esc(String(r.username||r.tag||'?').charAt(0))}</span>`;}
 function renderClash(){
   const box=document.getElementById('cs-body'),d=_cs||{rows:[]},rows=d.rows||[];
-  if(!rows.length){box.innerHTML='<div class="cs-empty"><span style="font-size:2rem"><i class=ji-swords aria-hidden=true></i></span><b>No Clash Squad results yet</b>Win a 1v1, 2v2, 3v3 or 4v4 challenge to be the first on this board.<br><a href="/challenges/">Play a challenge</a></div>';return;}
+  if(!rows.length){box.innerHTML='<div class="cs-empty"><span style="font-size:2rem">⚔️</span><b>No Clash Squad results yet</b>Win a 1v1, 2v2, 3v3 or 4v4 challenge to be the first on this board.<br><a href="/challenges/">Play a challenge</a></div>';return;}
   const me=d.me;
-  let h=me?`<div class="cs-me"><span class="rk">#${me.rank}</span><div><div style="font-weight:700;margin-bottom:2px">Your rank</div><div class="st"><span><b>${me.wins}</b> wins</span><span><b>${me.played}</b> played</span><span><b>${me.rate}%</b> win rate</span>${me.streak>1?`<span><b>${me.streak}</b> in a row</span>`:''}</div></div></div>`
+  let h=me?`<div class="cs-me"><span class="rk">#${me.rank}</span><div><div style="font-weight:700;margin-bottom:2px">Your rank</div><div class="st"><span><b>${me.wins}</b> wins</span><span><b>${me.played}</b> played</span><span><b>${me.rate}%</b> win rate</span>${me.streak>1?`<span>🔥 <b>${me.streak}</b> in a row</span>`:''}</div></div></div>`
     :'<div class="cs-me"><span class="rk">–</span><div><div style="font-weight:700">You\'re not ranked yet</div><div class="st">Finish a challenge to get on the board. <a href="/challenges/" style="color:var(--gold-l);font-weight:700">Play one →</a></div></div></div>';
   const fr=rows.some(r=>r.friend);
-  if(fr)h+=`<div class="cs-chips" role="tablist"><button type="button" role="tab" aria-selected="${_csFilter==='all'}" onclick="_csFilter='all';renderClash()">Everyone</button><button type="button" role="tab" aria-selected="${_csFilter==='friends'}" onclick="_csFilter='friends';renderClash()">Friends</button></div>`;
+  if(fr)h+=`<div class="cs-chips" role="tablist"><button type="button" role="tab" aria-selected="${_csFilter==='all'}" onclick="_csFilter='all';renderClash()">Everyone</button><button type="button" role="tab" aria-selected="${_csFilter==='friends'}" onclick="_csFilter='friends';renderClash()">🤝 Friends</button></div>`;
   const list=rows.filter(r=>_csFilter!=='friends'||r.friend||r.me);
-  const medal=n=>n===1?'<i class=ji-medal1 aria-hidden=true></i>':n===2?'<i class=ji-medal2 aria-hidden=true></i>':n===3?'<i class=ji-medal3 aria-hidden=true></i>':n;
+  const medal=n=>n===1?'🥇':n===2?'🥈':n===3?'🥉':n;
   h+='<div class="cs-list">'+list.map(r=>{
     const u=String(r.username||'').replace(/[^A-Za-z0-9_-]/g,'');
-    const acts=r.me||!u?'':`<span class="acts"><button type="button" title="Message @${esc(u)}" aria-label="Message @${esc(u)}" onclick="window.jdChat&&jdChat.connect('${u}')"><i class=ji-chat aria-hidden=true></i></button><a href="/challenges/?invite=${encodeURIComponent(u)}" title="Challenge @${esc(u)}" aria-label="Challenge @${esc(u)}"><i class=ji-swords aria-hidden=true></i></a></span>`;
+    const acts=r.me||!u?'':`<span class="acts"><button type="button" title="Message @${esc(u)}" aria-label="Message @${esc(u)}" onclick="window.jdChat&&jdChat.connect('${u}')">💬</button><a href="/challenges/?invite=${encodeURIComponent(u)}" title="Challenge @${esc(u)}" aria-label="Challenge @${esc(u)}">⚔️</a></span>`;
     const fx=seasonFx(r.squad||'')||seasonFx(r.name||'');
-    return `<div class="cs-row${r.me?' me':''}${fxCardCls(fx)}">${fxDeco(fx)}<span class="rk${r.rank<=3?' m':''}">${medal(r.rank)}</span>${csAv(r)}<span class="nm"><b>${fx?`<span class="fx-name">${esc(r.name)}</span>`:esc(r.name)}${r.me?' · You':''}</b>${fx?`<span class="sqfx-tag">${FX_TAG[fx]}</span>`:''}<small>${esc(r.squad||r.tag||'')}${r.streak>1?' ·'+r.streak+' streak':''}</small></span>${acts||`<span class="stat">${r.wins}<small>wins</small></span>`}
+    return `<div class="cs-row${r.me?' me':''}${fxCardCls(fx)}">${fxDeco(fx)}<span class="rk${r.rank<=3?' m':''}">${medal(r.rank)}</span>${csAv(r)}<span class="nm"><b>${fx?`<span class="fx-name">${esc(r.name)}</span>`:esc(r.name)}${r.me?' · You':''}</b>${fx?`<span class="sqfx-tag">${FX_TAG[fx]}</span>`:''}<small>${esc(r.squad||r.tag||'')}${r.streak>1?' · 🔥 '+r.streak+' streak':''}</small></span>${acts||`<span class="stat">${r.wins}<small>wins</small></span>`}
       <span class="wr"><span>${r.wins}W · ${r.played-r.wins}L</span><span class="bar"><i style="width:${r.rate}%"></i></span><span>${r.rate}%</span></span></div>`;
   }).join('')+'</div>';
   box.innerHTML=h;
@@ -559,7 +558,7 @@ function fxOf(tname,team,doc){
   if(m&&FX_TAG[m.effect])return m.effect;
   return seasonFx(team); // squad's active effect from any event: it shows everywhere while their pass lasts
 }
-function fxText(fx,name,tag){return fx?`<span class="fxn fxn-${fx}">${esc(name)}</span>${tag?`<span class="fxn-tag">${FX_TAG[fx]}</span>`:''}`:esc(name);}
+function fxText(fx,name,tag){return fx?`<span class="fxn fxn-${fx}">${esc(name)}</span>${tag?`<span class="fxn-tag">✨ ${FX_TAG[fx]}</span>`:''}`:esc(name);}
 function mvArrow(m){return m==='up'?'<span class="mv mv-up">▲</span>':m==='down'?'<span class="mv mv-down">▼</span>':'<span class="mv mv-same">–</span>';}
 
 /* ═══════════════════════ motion: spring physics + FLIP + confetti ═══════════════════════
@@ -620,7 +619,7 @@ const CONFETTI_COLORS=['#FFC83D','#FFDD85','#FFFFFF','#A6AFC2','#E3A15F'];
 const GRAVITY=780,DRAG=0.55;
 let _particles=[],_confettiRunning=false,_lastConfettiT=0;
 function burstConfetti(x,y,count,force){
-  if(REDUCE_MOTION&&!force)return;   // force: the replay, which the viewer started
+  if(REDUCE_MOTION&&!force)return;   // force: the 🎬 replay, which the viewer started
   for(let i=0;i<count;i++){
     const angle=-Math.PI/2+(Math.random()-0.5)*Math.PI*1.15; // fans mostly upward
     const speed=240+Math.random()*360;
@@ -933,7 +932,7 @@ document.getElementById('rp-steps').addEventListener('click',e=>{
   if(s===n-1)setTimeout(()=>{if(_rp.stage===s&&_rp.busy){_rp.busy=false;_rp.stage=-1;if(_lastDoc)render(_lastDoc);}},1400);
 });
 
-/* ═══════════════ match replay (full screen, plays like a video) ═══════════════
+/* ═══════════════ 🎬 match replay (full screen, plays like a video) ═══════════════
    Any event with match-by-match points: the latest board (bo3) or a past one from /results-archive.json
    (TOURNAMENT_ARCHIVE, rebuilt from tournaments.json's git history). Every squad starts on 0; in each
    match every kill lands one at a time (+1, kill feed), then placement points count up 1 by 1 from last
@@ -994,8 +993,8 @@ function rvBuild(ev){
   const kp=+ev.kill_pts||0,cur=!!ev.current;
   RV.teams=(ev.teams||[]).filter(x=>x&&x.team).map(x=>({team:x.team,logo:cur?(x.logo||_logoMap[fxKey(x.team)]||''):'',r:x.r||[],kp}));
   $rv('rv-steps').innerHTML=`<button type="button" data-a="reset">⟲ Reset (0 pts)</button>`+
-    Array.from({length:RV.n},(_,i)=>{const m=RV_MAP[String((ev.maps||[])[i]||'').toLowerCase()];return `<button type="button" data-a="m${i}">M${i+1}${m?`<small>${m}</small>`:''}</button>`;}).join('')+
-    `<button type="button" data-a="full" class="full">Full (M1→M${RV.n})</button>`;
+    Array.from({length:RV.n},(_,i)=>{const m=RV_MAP[String((ev.maps||[])[i]||'').toLowerCase()];return `<button type="button" data-a="m${i}">▶ M${i+1}${m?`<small>${m}</small>`:''}</button>`;}).join('')+
+    `<button type="button" data-a="full" class="full">▶ Full (M1→M${RV.n})</button>`;
   $rv('rv-prog').innerHTML=Array.from({length:RV.n},()=>'<span><i></i></span>').join('');
   const board=$rv('rv-board');board.innerHTML='';
   RV.rowH=Math.max(34,Math.min(56,Math.floor((board.clientHeight||480)/Math.max(1,RV.teams.length))));
@@ -1011,7 +1010,7 @@ function rvBuild(ev){
 }
 function rvText(t){
   t.tt.textContent=t.tot;
-  t.sm.innerHTML=`${t.pl} place pts · ${RV_SKULL}${t.kills} kill${t.kills===1?'':'s'}${t.kp?' (+'+t.kills*t.kp+')':''}`+(t.boo?` · ${t.boo}`:'');
+  t.sm.innerHTML=`${t.pl} place pts · ${RV_SKULL}${t.kills} kill${t.kills===1?'':'s'}${t.kp?' (+'+t.kills*t.kp+')':''}`+(t.boo?` · 🏆${t.boo}`:'');
 }
 function rvCmp(a,b){return b.tot-a.tot||b.boo-a.boo||b.kills-a.kills||b.last-a.last||String(a.team).localeCompare(String(b.team));}
 function rvLayout(animate){
@@ -1079,33 +1078,33 @@ async function rvMatch(s,g){
   }
   await rvWait(800,g);
   // placement points, last place first, +1 at a time; the BOOYAH comes last
-  $rv('rv-phase').textContent='Placement';
+  $rv('rv-phase').textContent='🏁 Placement';
   const pl=teams.map(t=>({t,p:+((t.r[s]||{}).pts)||0})).sort((a,b)=>a.p-b.p);
   for(let i=0;i<pl.length;i++){
     const {t,p}=pl[i],place=RV_PLACE[p];
-    if(p===12){$rv('rv-phase').textContent='Booyah';await rvCard('BOOYAH!',esc(t.team),g,true);t.boo++;}
-    rvFeed(`<b>${esc(t.team)}</b> ${place?rvOrd(place)+' place':'no placement points'}${p?` <span style="color:var(--green)">+${p}</span>`:''}`);
+    if(p===12){$rv('rv-phase').textContent='🏆 Booyah';await rvCard('BOOYAH!',esc(t.team),g,true);t.boo++;}
+    rvFeed(`🏁 <b>${esc(t.team)}</b> ${place?rvOrd(place)+' place':'no placement points'}${p?` <span style="color:var(--green)">+${p}</span>`:''}`);
     if(p){rvFlash(t.el,'pl');rvFloat(t.el,'+'+p,true);}
     for(let k=0;k<p;k++){
       t.tot++;t.pl++;t.last++;rvText(t);t.tt.classList.remove('bump');void t.tt.offsetWidth;t.tt.classList.add('bump');
       rvLayout(true);await rvWait(90,g);
     }
-    if(p===12){const r=t.el.getBoundingClientRect();burstConfetti(r.left+r.width/2,r.top,110,true);$rv('rv-phase').textContent='Placement';}
+    if(p===12){const r=t.el.getBoundingClientRect();burstConfetti(r.left+r.width/2,r.top,110,true);$rv('rv-phase').textContent='🏁 Placement';}
     rvProg(s,.6+.4*(i+1)/pl.length);
     await rvWait(p?320:120,g);
   }
   // who moved this match + the biggest climb + any tie-breaks
   RV.stage=s;rvProg(s,1);
-  $rv('rv-phase').textContent='After match '+(s+1);
+  $rv('rv-phase').textContent='📊 After match '+(s+1);
   let climb=null;
   teams.forEach(t=>{
     const dlt=before.get(t.team)-t.pos;
     if(s>0&&dlt)t.chip.innerHTML=`<span class="rv-chip ${dlt>0?'up':'down'}">${dlt>0?'▲':'▼'}${Math.abs(dlt)}</span>`;
     if(s>0&&dlt>0&&(!climb||dlt>climb.d))climb={t,d:dlt};
   });
-  if(climb)rvFeed(`Biggest climb: <b>${esc(climb.t.team)}</b> ${rvOrd(before.get(climb.t.team))} → ${rvOrd(climb.t.pos)} <span style="color:var(--green)">▲${climb.d}</span>`);
-  RV.order.forEach((t,i)=>{const dn=RV.order[i+1];if(dn&&t.tot>0&&dn.tot===t.tot&&t.tb.textContent)rvFeed(`Tie on ${t.tot}: <b>${esc(t.team)}</b> ahead of ${esc(dn.team)} (${t.tb.textContent.replace('TB: ','')})`);});
-  rvFeed(`Leading: <b>${esc(RV.order[0].team)}</b> ${RV.order[0].tot} pts`);
+  if(climb)rvFeed(`🚀 Biggest climb: <b>${esc(climb.t.team)}</b> ${rvOrd(before.get(climb.t.team))} → ${rvOrd(climb.t.pos)} <span style="color:var(--green)">▲${climb.d}</span>`);
+  RV.order.forEach((t,i)=>{const dn=RV.order[i+1];if(dn&&t.tot>0&&dn.tot===t.tot&&t.tb.textContent)rvFeed(`⚖️ Tie on ${t.tot}: <b>${esc(t.team)}</b> ahead of ${esc(dn.team)} (${t.tb.textContent.replace('TB: ','')})`);});
+  rvFeed(`👑 Leading: <b>${esc(RV.order[0].team)}</b> ${RV.order[0].tot} pts`);
   await rvWait(2400,g);
 }
 async function rvFull(g){
@@ -1116,14 +1115,14 @@ async function rvFull(g){
   }finally{RV.full=false;}
   RV.teams.forEach(t=>{t.chip.innerHTML='';});
   const top=RV.order.slice(0,3),ch=$rv('rv-champ');
-  $rv('rv-phase').textContent='Final';
+  $rv('rv-phase').textContent='🏆 Final';
   const hw=isHalloween(RV.ev&&RV.ev.name);ch.classList.toggle('hw',hw);
-  ch.innerHTML=(hw?hwFx():'')+`<h2>${hw?'CHAMPIONS':'CHAMPIONS'}</h2><div class="rv-pod">${top.map((t,i)=>`<div class="p${i+1}"><span>${['<i class=ji-medal1 aria-hidden=true></i>','<i class=ji-medal2 aria-hidden=true></i>','<i class=ji-medal3 aria-hidden=true></i>'][i]}</span><span class="nm">${esc(t.team)}</span><b>${t.tot}</b><div class="st">${i+1}</div></div>`).join('')}</div><div style="display:flex;gap:10px"><button type="button" class="rv-again" data-rv="again">⟲ Watch again</button><button type="button" class="rv-btn sp" data-rv="close">Close</button></div>`;
+  ch.innerHTML=(hw?hwFx():'')+`<h2>${hw?'🎃 CHAMPIONS 🦇':'CHAMPIONS'}</h2><div class="rv-pod">${top.map((t,i)=>`<div class="p${i+1}"><span>${['🥇','🥈','🥉'][i]}</span><span class="nm">${esc(t.team)}</span><b>${t.tot}</b><div class="st">${i+1}</div></div>`).join('')}</div><div style="display:flex;gap:10px"><button type="button" class="rv-again" data-rv="again">⟲ Watch again</button><button type="button" class="rv-btn sp" data-rv="close">Close</button></div>`;
   ch.hidden=false;
   for(let i=0;i<3;i++){burstConfetti(innerWidth*(.25+.25*i),innerHeight*.3,120,true);await rvWait(600,g);}
 }
 function rvRun(fn){
-  const g=++RV.gen;RV.paused=false;$rv('rv').classList.remove('paused');$rv('rv-pause').textContent='';
+  const g=++RV.gen;RV.paused=false;$rv('rv').classList.remove('paused');$rv('rv-pause').textContent='⏸';
   $rv('rv-champ').hidden=true;$rv('rv-card').hidden=true;
   fn(g).catch(()=>{/* stopped: another button, another event, or closed */});
 }
@@ -1147,7 +1146,7 @@ function rvClose(){
 $rv('rv-open').addEventListener('click',rvOpen);
 $rv('rv-close').addEventListener('click',rvClose);
 $rv('rv-sel').addEventListener('change',e=>rvPick(+e.target.value));
-$rv('rv-pause').addEventListener('click',()=>{RV.paused=!RV.paused;$rv('rv').classList.toggle('paused',RV.paused);$rv('rv-pause').textContent=RV.paused?'':'';});
+$rv('rv-pause').addEventListener('click',()=>{RV.paused=!RV.paused;$rv('rv').classList.toggle('paused',RV.paused);$rv('rv-pause').textContent=RV.paused?'▶':'⏸';});
 function rvSpeed(v){RV.speed=v;$rv('rv-spd').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.v===v));}
 $rv('rv-spd').addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b)return;rvSpeed(+b.dataset.v);try{localStorage.setItem('jd_rv_speed',b.dataset.v);}catch(x){}});
 try{const v=+localStorage.getItem('jd_rv_speed');if([0.5,1,2,3].includes(v))rvSpeed(v);}catch(x){}   // last speed this viewer picked
@@ -1232,7 +1231,7 @@ function render(d){
   if(!_revealed){
     // ── the reveal: results just went from "nothing yet" to published ──
     document.getElementById('lb-body').innerHTML=tableSkeleton();
-    // first view: play the matches (or once the Latest event tab is opened, see lbTab())
+    // first view: play the matches (or once the 📺 Latest event tab is opened, see lbTab())
     if(stageCount(B)>1&&!REDUCE_MOTION){
       if(!document.getElementById('lb-season').hidden){_revealed=true;playReplay();return;}
       _rp.pending=true;
@@ -1292,7 +1291,7 @@ function renderChamp(d,rows){
   if(el.classList.contains('hw')!==hw){
     el.classList.toggle('hw',hw);el.querySelector('.hw-fx')?.remove();
     if(hw)el.insertAdjacentHTML('afterbegin',hwFx());
-    el.querySelector('.champ-eye').textContent=hw?'Halloween Champions':'Champions';
+    el.querySelector('.champ-eye').textContent=hw?'🎃 Halloween Champions 🦇':'🏆 Champions';
   }
   el.hidden=false;
 }
@@ -1342,7 +1341,7 @@ load();
 lbTab(location.hash==="#clash"?"clash":location.hash==="#latest"||location.hash==="#replay"?"latest":"season");
 setInterval(()=>{if(!document.hidden)load();},15000);
 </script>
-<script src="/ui.js?v=28" defer></script>
+<script src="/ui.js?v=27" defer></script>
 <script src="/fx-engine.js?v=4" defer></script>
 <script src="/chat.js?v=41" defer></script>
 </body>

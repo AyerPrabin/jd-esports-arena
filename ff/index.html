@@ -95,8 +95,7 @@ button,input{font:inherit;color:inherit}
 .ff-note{margin:14px 0 0;font-size:.74rem;color:var(--body)}
 .ff-empty{padding:30px 10px;text-align:center;color:var(--body);font-size:.86rem}
 </style>
-<link rel="stylesheet" href="/ui.css?v=27">
-<link rel="stylesheet" href="/icons.css?v=1">
+<link rel="stylesheet" href="/ui.css?v=26">
 </head>
 <body class="pg-ff">
 <main class="ff-pg">
@@ -115,7 +114,7 @@ button,input{font:inherit;color:inherit}
   <div id="out"></div>
   <p class="ff-note" id="note"></p>
 </main>
-<script src="/ff-data.js?v=3"></script>
+<script src="/ff-data.js?v=2"></script>
 <script src="/ff-art.js?v=1"></script>
 <script>
 (function(){
@@ -128,7 +127,7 @@ button,input{font:inherit;color:inherit}
   const GUNS=D.guns.concat(A.guns.filter(g=>!known.has(g.s)).map(g=>({n:g.n,c:g.c,dmg:g.dmg,rof:g.rof,rng:g.rng,ctl:g.ctl,use:(g.tags.length?g.tags.join(' · ')+'. ':'')+(USE[g.c]||''),x:1})));
   const chImg=c=>{const k=slug(c.n);return A.ch[k]!==undefined?k:null;};
   $('n-ch').textContent=D.characters.length;$('n-gn').textContent=GUNS.length;$('n-pt').textContent=A.pets.length;$('n-mp').textContent=D.liveMaps.length;
-  const CH_F=[['all','All'],['active','Active skill'],['passive','Passive skill'],['rusher','Rusher'],['sniper','Sniper'],['support','Support'],['defence','Defence'],['scout','Scout'],['stealth','Stealth']];
+  const CH_F=[['all','All'],['active','Active skill'],['passive','Passive skill'],['rusher','⚡ Rusher'],['sniper','🎯 Sniper'],['support','💚 Support'],['defence','🛡 Defence'],['scout','👁 Scout'],['stealth','🌿 Stealth']];
   const GN_F=[['all','All'],...[...new Set(GUNS.map(g=>g.c))].map(c=>[c,c])];
   const MAPS=new Set(['bermuda','purgatory','kalahari','nexterra','solara','alpine']);
   let tab=(location.hash.slice(1)||'ch'),f='all',q='';
@@ -168,6 +167,6 @@ button,input{font:inherit;color:inherit}
   render();
 })();
 </script>
-<script src="/ui.js?v=28" defer></script>
+<script src="/ui.js?v=27" defer></script>
 </body>
 </html>

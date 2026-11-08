@@ -33,16 +33,16 @@ const SUPPORT_PHONE='9779868813682',SUPPORT_PHONE_TXT='+977 986-8813682';
 const SQUAD_FX={
   glow:{key:'glow',cls:'sq-fx-glow',badge:'',particles:0,tag:'Glow',tier:'lite'},
   steel:{key:'steel',cls:'sq-fx-steel',badge:'',particles:0,tag:'Steel',tier:'lite'},
-  gold:{key:'gold',cls:'sq-fx-gold',badge:'<i class=ji-crown aria-hidden=true></i>',particles:0,tag:'Champion',tier:'game'},
+  gold:{key:'gold',cls:'sq-fx-gold',badge:'👑',particles:0,tag:'Champion',tier:'game'},
   fire:{key:'fire',cls:'sq-fx-fire',badge:'',particles:4,tag:'On fire',tier:'game'},
   ice:{key:'ice',cls:'sq-fx-ice',badge:'',particles:2,tag:'Frozen',tier:'game'},
   neon:{key:'neon',cls:'sq-fx-neon',badge:'',particles:0,tag:'Neon',tier:'game'},
   rainbow:{key:'rainbow',cls:'sq-fx-rainbow',badge:'',particles:2,tag:'Prism',tier:'game'},
   galaxy:{key:'galaxy',cls:'sq-fx-galaxy',badge:'',particles:0,tag:'Galaxy',tier:'pro'},
   thunder:{key:'thunder',cls:'sq-fx-thunder',badge:'',particles:0,tag:'Thunder',tier:'pro'},
-  bullets:{key:'bullets',cls:'sq-fx-bullets',badge:'<i class=ji-spark aria-hidden=true></i>',particles:0,tag:'Bullet Storm',tier:'pro',hot:true},
-  blade:{key:'blade',cls:'sq-fx-blade',badge:'<i class=ji-swords aria-hidden=true></i>',particles:0,tag:'Blade',tier:'pro'},
-  legend:{key:'legend',cls:'sq-fx-legend',badge:'<i class=ji-gem aria-hidden=true></i>',particles:0,tag:'Legend',tier:'pro',hot:true},
+  bullets:{key:'bullets',cls:'sq-fx-bullets',badge:'💥',particles:0,tag:'Bullet Storm',tier:'pro',hot:true},
+  blade:{key:'blade',cls:'sq-fx-blade',badge:'⚔️',particles:0,tag:'Blade',tier:'pro'},
+  legend:{key:'legend',cls:'sq-fx-legend',badge:'💎',particles:0,tag:'Legend',tier:'pro',hot:true},
   /* design-style effects, all Pro (styles in /effects-styles.css) */
   skeuo:{key:'skeuo',cls:'sq-fx-skeuo',badge:'',particles:0,tag:'Metal Plate',tier:'pro'},
   soft:{key:'soft',cls:'sq-fx-soft',badge:'',particles:0,tag:'Soft Touch',tier:'pro'},
@@ -50,7 +50,7 @@ const SQUAD_FX={
   clay:{key:'clay',cls:'sq-fx-clay',badge:'',particles:0,tag:'Clay',tier:'pro'},
   brutal:{key:'brutal',cls:'sq-fx-brutal',badge:'',particles:0,tag:'Brutal',tier:'pro'},
   mono:{key:'mono',cls:'sq-fx-mono',badge:'',particles:0,tag:'Mono',tier:'pro'},
-  maximal:{key:'maximal',cls:'sq-fx-maximal',badge:'<i class=ji-spark aria-hidden=true></i>',particles:0,tag:'Overload',tier:'pro'},
+  maximal:{key:'maximal',cls:'sq-fx-maximal',badge:'🎉',particles:0,tag:'Overload',tier:'pro'},
   liquid:{key:'liquid',cls:'sq-fx-liquid',badge:'',particles:0,tag:'Liquid Glass',tier:'pro',hot:true},
   bento:{key:'bento',cls:'sq-fx-bento',badge:'',particles:0,tag:'Bento',tier:'pro'},
   spatial:{key:'spatial',cls:'sq-fx-spatial',badge:'',particles:0,tag:'Spatial 3D',tier:'pro',hot:true}
@@ -83,7 +83,7 @@ function fxForSquad(tname,squad){
 // name with its effect as text only (no card) — see .fxn-* in effects-pro.css
 // a name inside a small effect card (same .sqfx card + fx-engine canvas as the roster): winner spotlight, Winner label
 function fxChip(fx,name,tag){return fx?`<span class="fxchip sqfx sqfx-${fx.key}"><span class="fx-name">${esc(name)}</span>${tag?`<span class="sqfx-tag">${esc(fx.tag)}</span>`:''}</span>`:esc(name);}
-function fxText(fx,name,tag){return fx?`<span class="fxn fxn-${fx.key}">${esc(name)}</span>${tag?`<span class="fxn-tag">${esc(fx.tag)}</span>`:''}`:esc(name);}
+function fxText(fx,name,tag){return fx?`<span class="fxn fxn-${fx.key}">${esc(name)}</span>${tag?`<span class="fxn-tag">✨ ${esc(fx.tag)}</span>`:''}`:esc(name);}
 /* The champion of a finished event: the admin's Winner field, or — if that's still blank —
    the top squad of its published Best-of-3 table, so the name shows the moment it ends. */
 function winnerOf(t,d){
@@ -111,7 +111,7 @@ const RANK_TIERS=[
   {name:'Ace',min:550,effect:'rainbow'}
 ];
 function computeTier(points){let t=RANK_TIERS[0];for(const tier of RANK_TIERS){if(points>=tier.min)t=tier;}return t;}
-const TIER_ICONS={Bronze:'<i class=ji-medal3 aria-hidden=true></i>',Silver:'<i class=ji-medal2 aria-hidden=true></i>',Gold:'<i class=ji-medal1 aria-hidden=true></i>',Platinum:'<i class=ji-gem aria-hidden=true></i>',Diamond:'<i class=ji-gem aria-hidden=true></i>',Heroic:'<i class=ji-flame aria-hidden=true></i>',Ace:'<i class=ji-crown aria-hidden=true></i>'};
+const TIER_ICONS={Bronze:'🥉',Silver:'🥈',Gold:'🥇',Platinum:'💠',Diamond:'💎',Heroic:'🔥',Ace:'👑'};
 // % progress through the CURRENT tier's point band, for the rank card's ring + XP bar.
 // Ace has no next tier — treated as maxed out (100%) rather than dividing by zero.
 function tierProgress(tier,points){
@@ -145,7 +145,7 @@ function teamRankLine(){
   const rows=bo3Standings(B);
   const mine=rows.find(r=>r.team===squad);
   if(!mine)return'';
-  return `<div class="career-team-rank">Squad rank in "${esc(B.tournament)}": <b>#${mine.rank}</b> · ${mine.totalPts} pts<p style="margin:8px 0 0;font-size:.8rem;color:var(--pm-muted,#9CA8BE)">${esc(matchAnalystComment(mine,rows))}</p></div><button class="pm-btn" id="share-result-btn" style="margin-top:10px" onclick="shareMyResult()"><span class="pm-btn-ic"><i class=ji-upload aria-hidden=true></i></span><span class="pm-btn-txt">Share my result</span></button>`;
+  return `<div class="career-team-rank">Squad rank in "${esc(B.tournament)}": <b>#${mine.rank}</b> · ${mine.totalPts} pts<p style="margin:8px 0 0;font-size:.8rem;color:var(--pm-muted,#9CA8BE)">🧠 ${esc(matchAnalystComment(mine,rows))}</p></div><button class="pm-btn" id="share-result-btn" style="margin-top:10px" onclick="shareMyResult()"><span class="pm-btn-ic">📤</span><span class="pm-btn-txt">Share my result</span></button>`;
 }
 function ordinal(n){const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
 // Personal per-squad breakdown ("match analyst") — computed straight from the same
@@ -166,7 +166,7 @@ function renderCareerStats(){
   if(nameEl){nameEl.className='auth-tag'+(fx?' '+fx.cls:'');nameEl.innerHTML=(fx&&fx.badge?`<span class="fx-badge">${fx.badge}</span> `:'')+fxNameHtml(fx,'@'+(_player.username||'…'))+fxParticlesHtml(fx);}
   const played=s.tournaments_played||0;
   const points=+s.total_points||0;
-  const icon=TIER_ICONS[tier.name]||'<i class=ji-trophy aria-hidden=true></i>';
+  const icon=TIER_ICONS[tier.name]||'🎖️';
   const nextTier=RANK_TIERS[RANK_TIERS.indexOf(tier)+1];
   if(!played){
     box.innerHTML=`<div class="career-card"><div class="pm-rank-top"><div class="pm-rank-icon">${icon}</div><div class="pm-rank-text"><div class="career-tier">${esc(tier.name)} Rank</div><p class="pm-rank-sub">Play a tournament to start building your career stats.</p></div></div></div>`;
@@ -439,7 +439,7 @@ function updatePushBtn(){
   const strip=document.getElementById('notif-push');
   if(strip){
     if(!_player||!ui.strip){strip.hidden=true;strip.innerHTML='';}
-    else{strip.hidden=false;strip.className='notif-push '+s;strip.innerHTML=`<span class="notif-push-ic">${s==='ask'?'<i class=ji-bell aria-hidden=true></i>':s==='ios'?'<i class=ji-phone aria-hidden=true></i>':'<i class=ji-ban aria-hidden=true></i>'}</span><span class="notif-push-txt">${esc(s==='blocked'&&JD_TWA?'Notifications are turned off for the JD Arena app.':ui.strip)}</span><button type="button" onclick="enablePush()">${esc(ui.cta)}</button>`;}
+    else{strip.hidden=false;strip.className='notif-push '+s;strip.innerHTML=`<span class="notif-push-ic">${s==='ask'?'🔔':s==='ios'?'📲':'🚫'}</span><span class="notif-push-txt">${esc(s==='blocked'&&JD_TWA?'Notifications are turned off for the JD Arena app.':ui.strip)}</span><button type="button" onclick="enablePush()">${esc(ui.cta)}</button>`;}
   }
 }
 /* Inside the Android app notifications are the whole point, and the player is often already signed in
@@ -447,7 +447,7 @@ function updatePushBtn(){
 async function appAskPush(){
   if(!JD_TWA||!_player||!_player.termsAccepted||!pushSupported()||pushPerm()==='granted')return;
   try{if(sessionStorage.getItem('jd_app_push'))return;sessionStorage.setItem('jd_app_push','1');}catch(e){return;}
-  if(await confirmBox('Turn on notifications','Room IDs, check-in alerts, results and challenges arrive as JD Arena app notifications - even when the app is closed.','Turn on','Later'))enablePush();
+  if(await confirmBox('🔔 Turn on notifications','Room IDs, check-in alerts, results and challenges arrive as JD Arena app notifications - even when the app is closed.','Turn on','Later'))enablePush();
 }
 /* App 2.0.2+: the app calls this when it comes back to the front and after Android's notification question,
    so turning notifications on in phone settings takes effect without a reload. */
@@ -481,8 +481,6 @@ const ARENA_SAMPLE={tagline:'JD Esports Arena · AyerFire',tournaments:[
  {name:'JD Free Fire Open #2',game:'Free Fire BR · Squad',date:'TBA',time:'TBA',status:'upcoming',prize:'Bragging rights + shoutout',entry:'Free',platform:'Mobile only',slots:12,registered:0,teams:[],format:'Battle Royale · 4 matches',register_url:''},
  {name:'JD Free Fire Open #3',game:'Free Fire BR · Squad',date:'TBA',time:'TBA',status:'upcoming',prize:'Bragging rights + shoutout',entry:'Free',platform:'Mobile only',slots:12,registered:0,teams:[],format:'Battle Royale · 4 matches',register_url:''}]};
 
-// server notifications still carry phone emoji; the app shows its own line icons instead
-const noEmoji=s=>String(s==null?'':s).replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}]\s?/gu,'').trim();
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 let _lastData=null;
 /* ── language (EN / नेपाली) + safe register links — easy + safe for young players ── */
@@ -496,8 +494,8 @@ function regLink(t){var ty=(t.register_type||'whatsapp');
   if(ty==='url')return safeUrl(t.register_url);
   return waLink('Hi! I want to register for '+(t.name||'a JD Arena tournament')+'. My squad: ')||safeUrl(t.register_url);}
 const T={
- en:{eye:'Free Fire \u00b7 Nepal',h1:'Where Nepal <em>competes</em>',sub:"Free Fire BR tournaments under the AyerFire banner \u2014 real prize pools, live brackets, room-ID delivery and a season leaderboard. Built and run solo.",see:"See what's on",discord:'Join the Discord',ttl:'Tournaments',ttag:'Live + Upcoming',howttl:'How to join',s1t:'Sign up',s1d:'Create a free account. Your squad name and logo are saved for every event.',s2t:'Load points',s2d:'In your wallet, pay the eSewa QR and upload the payment screenshot. Points are added once we check it (1 point = Rs 1).',s3t:'Join with points',s3d:'Tap Join on an event. Free events confirm straight away; paid entries are taken from your points.',s4t:'Confirm & play',s4d:'After you register, tap "Confirm you\'re playing" on the event. The window opens 48h before start and closes 24h before — not confirmed by then means you lose your seat.',s5t:'Get your Room ID',s5d:'The Room ID and password appear on your ticket about 5 minutes before the match.',evpast:'Past events \u2192',evlb:'Leaderboard \u2192',tuttag:'Tutorial',openwallet:'Open wallet \u2192',evnav:'Events',wacta:'Register on WhatsApp',lbttl:'Season Leaderboard',lbtag:'Standings',about:'About',reg:'Register',regwa:'Register on WhatsApp',join:'Watch / Join',soon:'Registration opening soon',livenow:'Live now',winner:'Winner',livettl:'Now Playing',livetag:'Live',schttl:'Schedule',ptsttl:'Points',th_team:'Team',th_kills:'Kills',th_place:'Place',th_pts:'Points',scheduled:'Scheduled',done:'Finished',nosched:'Schedule coming soon.',nopts:'Points appear once matches start.',regdc:'Register on Discord',bo3ttl:'Best of 3 Results',bo3tag:'Round by round',th_total:'Total',th_rank:'#',bo3norounds:'Results appear here once a bracket is published.',sqview:'squads · tap to view',sqttl:'Registered Squads',sqmembers:'Members',sqopen:'Open slot',sqempty:'No squads registered yet — be the first!',scttl:'How Points Work',sctag:"Placement + kills",scintro:"Each match, your squad gets placement points from the official room result plus 1 point for every kill.",sckillt:"Kill points",sckilld:"1 point for every kill your squad gets in the match.",scplacet:"Total",scplaced:"Placement points and kill points from all matches are added together. The highest total wins.",scposh:"Position points",scposd:"Where your squad finishes in each match gives placement points. Every kill adds 1 more point.",scposex:"Example: 1st in match 1 (12) + 3rd in match 2 (8) + 10th in match 3 (1) = 21 points.",msttl:'Match Settings',mstag:'Same every match',msintro:'The room is set up the same way every tournament, so nobody has an edge going in.',msgunt:'Gun Attributes',msgund:"Off — weapon skin stat bonuses don't apply.",msskillt:'Character Skills',msskilld:"On — your character's active/passive skill works as normal.",msmapt:'Map',msmapd:"Full map, normal settings — the zone shrinks as usual, nothing's changed there."},
- ne:{eye:'\u092b\u094d\u0930\u0940 \u092b\u093e\u092f\u0930 \u00b7 \u0928\u0947\u092a\u093e\u0932',h1:'\u091c\u0939\u093e\u0901 \u0928\u0947\u092a\u093e\u0932 <em>\u092a\u094d\u0930\u0924\u093f\u0938\u094d\u092a\u0930\u094d\u0927\u093e</em> \u0917\u0930\u094d\u091b',sub:'AyerFire \u0905\u0928\u094d\u0924\u0930\u094d\u0917\u0924 \u092b\u094d\u0930\u0940 \u092b\u093e\u092f\u0930 BR \u092a\u094d\u0930\u0924\u093f\u092f\u094b\u0917\u093f\u0924\u093e \u2014 \u0938\u093e\u0901\u091a\u094b \u0907\u0928\u093e\u092e, \u0932\u093e\u0907\u092d \u092c\u094d\u0930\u093e\u0915\u0947\u091f, \u0930\u0941\u092e-ID \u0930 \u0938\u093f\u091c\u0928 \u0932\u093f\u0921\u0930\u092c\u094b\u0930\u094d\u0921\u0964 \u090f\u0915\u094d\u0932\u0948 \u092c\u0928\u093e\u090f\u0915\u094b \u0930 \u091a\u0932\u093e\u090f\u0915\u094b\u0964',see:'\u0915\u0947 \u091a\u0932\u093f\u0930\u0939\u0947\u0915\u094b \u091b \u0939\u0947\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d',discord:'Discord \u092e\u093e \u091c\u094b\u0921\u093f\u0928\u0941\u0939\u094b\u0938\u094d',ttl:'\u092a\u094d\u0930\u0924\u093f\u092f\u094b\u0917\u093f\u0924\u093e',ttag:'\u0932\u093e\u0907\u092d + \u0906\u0909\u0901\u0926\u0948',howttl:'\u0915\u0938\u0930\u0940 \u0938\u0939\u092d\u093e\u0917\u0940 \u0939\u0941\u0928\u0947',s1t:'\u0938\u093e\u0907\u0928 \u0905\u092a \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d',s1d:'\u0928\u093f\u0903\u0936\u0941\u0932\u094d\u0915 \u0916\u093e\u0924\u093e \u092c\u0928\u093e\u0909\u0928\u0941\u0939\u094b\u0938\u094d\u0964 \u0924\u092a\u093e\u0908\u0902\u0915\u094b \u091f\u093f\u092e\u0915\u094b \u0928\u093e\u092e \u0930 \u0932\u094b\u0917\u094b \u0939\u0930\u0947\u0915 \u092a\u094d\u0930\u0924\u093f\u092f\u094b\u0917\u093f\u0924\u093e\u0915\u093e \u0932\u093e\u0917\u093f \u0938\u0947\u092d \u0939\u0941\u0928\u094d\u091b\u0964',s2t:'\u092a\u094b\u0907\u0928\u094d\u091f \u0932\u094b\u0921 \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d',s2d:'\u0935\u093e\u0932\u0947\u091f\u092e\u093e eSewa QR \u092c\u093e\u091f \u0924\u093f\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d \u0930 \u092d\u0941\u0915\u094d\u0924\u093e\u0928\u0940\u0915\u094b \u0938\u094d\u0915\u094d\u0930\u093f\u0928\u0938\u091f \u0905\u092a\u0932\u094b\u0921 \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d\u0964 \u091c\u093e\u0901\u091a\u092a\u091b\u093f \u092a\u094b\u0907\u0928\u094d\u091f \u0925\u092a\u093f\u0928\u094d\u091b (\u0967 \u092a\u094b\u0907\u0928\u094d\u091f = \u0930\u0941 \u0967)\u0964',s3t:'\u092a\u094b\u0907\u0928\u094d\u091f\u0932\u0947 \u091c\u094b\u0907\u0928 \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d',s3d:'\u092a\u094d\u0930\u0924\u093f\u092f\u094b\u0917\u093f\u0924\u093e\u092e\u093e Join \u0925\u093f\u091a\u094d\u0928\u0941\u0939\u094b\u0938\u094d\u0964 \u092b\u094d\u0930\u0940 \u092a\u094d\u0930\u0924\u093f\u092f\u094b\u0917\u093f\u0924\u093e \u0924\u0941\u0930\u0941\u0928\u094d\u0924\u0948 \u092a\u0915\u094d\u0915\u093e \u0939\u0941\u0928\u094d\u091b; \u092a\u0947\u0921 \u092a\u094d\u0930\u0935\u0947\u0936 \u0936\u0941\u0932\u094d\u0915 \u092a\u094b\u0907\u0928\u094d\u091f\u092c\u093e\u091f \u0915\u093e\u091f\u093f\u0928\u094d\u091b\u0964',s4t:'\u0938\u094d\u0932\u091f \u092a\u0915\u094d\u0915\u093e',s4d:'\u0938\u094d\u0915\u094d\u0935\u093e\u0921 \u092a\u0915\u094d\u0915\u093e \u092d\u090f\u092a\u091b\u093f \u0924\u092a\u093e\u0908\u0902 \u0916\u0947\u0932\u094d\u0928\u0941\u0939\u0941\u0928\u094d\u091b\u0964 \u091a\u0947\u0915-\u0907\u0928 \u091a\u093e\u0939\u093f\u0901\u0926\u0948\u0928\u0964',s5t:'Room ID \u092a\u093e\u0909\u0928\u0941\u0939\u094b\u0938\u094d',s5d:'\u0916\u0947\u0932 \u0938\u0941\u0930\u0941 \u0939\u0941\u0928\u0941\u092d\u0928\u094d\u0926\u093e \u0915\u0930\u093f\u092c \u096b \u092e\u093f\u0928\u0947\u091f\u0905\u0918\u093f Room ID \u0930 \u092a\u093e\u0938\u0935\u0930\u094d\u0921 \u0924\u092a\u093e\u0908\u0902\u0915\u094b \u091f\u093f\u0915\u091f\u092e\u093e \u0926\u0947\u0916\u093f\u0928\u094d\u091b\u0964',evpast:'\u092a\u0941\u0930\u093e\u0928\u093e \u092a\u094d\u0930\u0924\u093f\u092f\u094b\u0917\u093f\u0924\u093e \u2192',evlb:'\u0932\u093f\u0921\u0930\u092c\u094b\u0930\u094d\u0921 \u2192',tuttag:'\u0938\u093f\u0915\u093e\u0907',openwallet:'\u0935\u093e\u0932\u0947\u091f \u0916\u094b\u0932\u094d\u0928\u0941\u0939\u094b\u0938\u094d \u2192',evnav:'\u092a\u094d\u0930\u0924\u093f\u092f\u094b\u0917\u093f\u0924\u093e',wacta:'WhatsApp \u092e\u093e \u0926\u0930\u094d\u0924\u093e \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d',lbttl:'\u0938\u093f\u091c\u0928 \u0932\u093f\u0921\u0930\u092c\u094b\u0930\u094d\u0921',lbtag:'\u0938\u094d\u091f\u094d\u092f\u093e\u0928\u094d\u0921\u093f\u0919',about:'\u092c\u093e\u0930\u0947\u092e\u093e',reg:'\u0926\u0930\u094d\u0924\u093e \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d',regwa:'WhatsApp \u092e\u093e \u0926\u0930\u094d\u0924\u093e',join:'\u0939\u0947\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d / \u091c\u094b\u0921\u093f\u0928\u0941\u0939\u094b\u0938\u094d',soon:'\u0926\u0930\u094d\u0924\u093e \u091a\u093e\u0901\u0921\u0948 \u0916\u0941\u0932\u094d\u0926\u0948',livenow:'\u0905\u0939\u093f\u0932\u0947 \u0932\u093e\u0907\u092d',winner:'\u0935\u093f\u091c\u0947\u0924\u093e',livettl:'\u0905\u0939\u093f\u0932\u0947 \u091a\u0932\u093f\u0930\u0939\u0947\u0915\u094b',livetag:'\u0932\u093e\u0907\u092d',schttl:'\u0924\u093e\u0932\u093f\u0915\u093e',ptsttl:'\u0905\u0919\u094d\u0915',th_team:'\u091f\u093f\u092e',th_kills:'\u0915\u093f\u0932',th_place:'\u0938\u094d\u0925\u093e\u0928',th_pts:'\u0905\u0919\u094d\u0915',scheduled:'\u0924\u093e\u0932\u093f\u0915\u093e\u092c\u0926\u094d\u0927',done:'\u0938\u0915\u093f\u092f\u094b',nosched:'\u0924\u093e\u0932\u093f\u0915\u093e \u091a\u093e\u0901\u0921\u0948 \u0906\u0909\u0901\u0926\u0948\u0964',nopts:'\u0916\u0947\u0932 \u0938\u0941\u0930\u0941 \u092d\u090f\u092a\u091b\u093f \u0905\u0919\u094d\u0915 \u0926\u0947\u0916\u093f\u0928\u0947\u091b\u0964',regdc:'Discord \u092e\u093e \u0926\u0930\u094d\u0924\u093e',sqview:'\u0938\u094d\u0915\u094d\u0935\u093e\u0921 \u0939\u0947\u0930\u094d\u0928 \u091b\u0941\u0928\u0941\u0939\u094b\u0938\u094d',sqttl:'\u0926\u0930\u094d\u0924\u093e \u092d\u090f\u0915\u093e \u0938\u094d\u0915\u094d\u0935\u093e\u0921\u0939\u0930\u0942',sqmembers:'\u0938\u0926\u0938\u094d\u092f\u0939\u0930\u0942',sqopen:'\u0916\u093e\u0932\u0940 \u0938\u094d\u0925\u093e\u0928',sqempty:'\u0905\u0939\u093f\u0932\u0947\u0938\u092e\u094d\u092e \u0915\u0941\u0928\u0948 \u0938\u094d\u0915\u094d\u0935\u093e\u0921 \u0926\u0930\u094d\u0924\u093e \u092d\u090f\u0915\u094b \u091b\u0948\u0928 \u2014 \u092a\u0939\u093f\u0932\u094b \u0939\u0941\u0928\u0941\u0939\u094b\u0938\u094d!',scttl:'\u0905\u0919\u094d\u0915 \u0915\u0938\u0930\u0940 \u0926\u093f\u0907\u0928\u094d\u091b',sctag:"\u0938\u094d\u0925\u093e\u0928 + \u0915\u093f\u0932",scintro:"\u0939\u0930\u0947\u0915 \u092e\u094d\u092f\u093e\u091a\u092e\u093e \u0924\u092a\u093e\u0908\u0902\u0915\u094b \u0938\u094d\u0915\u094d\u0935\u093e\u0921\u0932\u0947 \u0906\u0927\u093f\u0915\u093e\u0930\u093f\u0915 \u0930\u0941\u092e \u0928\u0924\u093f\u091c\u093e\u0905\u0928\u0941\u0938\u093e\u0930 \u0938\u094d\u0925\u093e\u0928 \u0905\u0919\u094d\u0915 \u092a\u093e\u0909\u0901\u091b, \u0930 \u0939\u0930\u0947\u0915 \u0915\u093f\u0932\u0915\u094b \u0967 \u0905\u0919\u094d\u0915 \u0925\u092a\u093f\u0928\u094d\u091b\u0964",sckillt:"\u0915\u093f\u0932 \u0905\u0919\u094d\u0915",sckilld:"\u092e\u094d\u092f\u093e\u091a\u092e\u093e \u0924\u092a\u093e\u0908\u0902\u0915\u094b \u0938\u094d\u0915\u094d\u0935\u093e\u0921\u0932\u0947 \u0917\u0930\u0947\u0915\u094b \u0939\u0930\u0947\u0915 \u0915\u093f\u0932\u0915\u094b \u0967 \u0905\u0919\u094d\u0915\u0964",scplacet:"\u091c\u092e\u094d\u092e\u093e",scplaced:"\u0938\u092c\u0948 \u092e\u094d\u092f\u093e\u091a\u0915\u093e \u0938\u094d\u0925\u093e\u0928 \u0905\u0919\u094d\u0915 \u0930 \u0915\u093f\u0932 \u0905\u0919\u094d\u0915 \u091c\u094b\u0921\u093f\u0928\u094d\u091b\u0928\u094d\u0964 \u0938\u092c\u0948\u092d\u0928\u094d\u0926\u093e \u0927\u0947\u0930\u0948 \u091c\u092e\u094d\u092e\u093e \u0905\u0919\u094d\u0915 \u0939\u0941\u0928\u0947 \u0938\u094d\u0915\u094d\u0935\u093e\u0921 \u091c\u093f\u0924\u094d\u091b\u0964",scposh:"\u0938\u094d\u0925\u093e\u0928 \u0905\u0919\u094d\u0915",scposd:"\u0939\u0930\u0947\u0915 \u092e\u094d\u092f\u093e\u091a\u092e\u093e \u0924\u092a\u093e\u0908\u0902\u0915\u094b \u0938\u094d\u0915\u094d\u0935\u093e\u0921 \u0915\u0941\u0928 \u0938\u094d\u0925\u093e\u0928\u092e\u093e \u0938\u0915\u093f\u092f\u094b, \u0924\u094d\u092f\u0938\u0932\u0947 \u0938\u094d\u0925\u093e\u0928 \u0905\u0919\u094d\u0915 \u0926\u093f\u0928\u094d\u091b\u0964 \u0939\u0930\u0947\u0915 \u0915\u093f\u0932\u0932\u0947 \u0967 \u0905\u0919\u094d\u0915 \u0925\u092a\u094d\u091b\u0964",scposex:"\u0909\u0926\u093e\u0939\u0930\u0923: \u092e\u094d\u092f\u093e\u091a \u0967 \u092e\u093e \u092a\u0939\u093f\u0932\u094b (12) + \u092e\u094d\u092f\u093e\u091a \u0968 \u092e\u093e \u0924\u0947\u0938\u094d\u0930\u094b (8) + \u092e\u094d\u092f\u093e\u091a \u0969 \u092e\u093e \u0926\u0936\u094c\u0902 (1) = 21 \u0905\u0919\u094d\u0915\u0964",msttl:'\u092e\u094d\u092f\u093e\u091a \u0938\u0947\u091f\u093f\u0919',mstag:'\u0939\u0930\u0947\u0915 \u092e\u094d\u092f\u093e\u091a\u092e\u093e \u0909\u0938\u094d\u0924\u0948',msintro:'\u0939\u0930\u0947\u0915 \u091f\u0941\u0930\u094d\u0928\u093e\u092e\u0947\u0928\u094d\u091f\u092e\u093e \u0930\u0941\u092e \u0909\u0938\u094d\u0924\u0948 \u0924\u0930\u093f\u0915\u093e\u0932\u0947 \u0938\u0947\u091f\u0905\u092a \u0939\u0941\u0928\u094d\u091b, \u0924\u094d\u092f\u0938\u0948\u0932\u0947 \u0915\u0938\u0948\u0932\u093e\u0908 \u092b\u093e\u0907\u0926\u093e \u0939\u0941\u0901\u0926\u0948\u0928\u0964',msgunt:'\u0917\u0928 \u090f\u091f\u094d\u0930\u093f\u092c\u094d\u092f\u0941\u091f',msgund:'\u0905\u092b \u2014 \u0939\u0924\u093f\u092f\u093e\u0930 \u0938\u094d\u0915\u093f\u0928\u0915\u094b \u0938\u094d\u091f\u094d\u092f\u093e\u091f \u092c\u094b\u0928\u0938 \u0932\u093e\u0917\u0942 \u0939\u0941\u0901\u0926\u0948\u0928\u0964',msskillt:'\u0915\u094d\u092f\u093e\u0930\u0947\u0915\u094d\u091f\u0930 \u0938\u094d\u0915\u093f\u0932',msskilld:'\u0905\u0928 \u2014 \u0924\u092a\u093e\u0908\u0902\u0915\u094b \u0915\u094d\u092f\u093e\u0930\u0947\u0915\u094d\u091f\u0930\u0915\u094b \u090f\u0915\u094d\u091f\u093f\u092d/\u092a\u094d\u092f\u093e\u0938\u093f\u092d \u0938\u094d\u0915\u093f\u0932 \u0938\u093e\u092e\u093e\u0928\u094d\u092f \u0930\u0942\u092a\u092e\u093e \u0915\u093e\u092e \u0917\u0930\u094d\u091b\u0964',msmapt:'\u0928\u0915\u094d\u0938\u093e',msmapd:'\u092b\u0941\u0932 \u092e\u094d\u092f\u093e\u092a, \u0938\u093e\u092e\u093e\u0928\u094d\u092f \u0938\u0947\u091f\u093f\u0919 \u2014 \u091c\u094b\u0928 \u0938\u0927\u0948\u0902 \u091c\u0938\u094d\u0924\u0948 \u0938\u093e\u0901\u0918\u0941\u0930\u093f\u0928\u094d\u091b, \u0924\u094d\u092f\u0938\u092e\u093e \u0915\u0941\u0928\u0948 \u092a\u0930\u093f\u0935\u0930\u094d\u0924\u0928 \u091b\u0948\u0928\u0964'}
+ en:{eye:'Free Fire \u00b7 Nepal',h1:'Where Nepal <em>competes</em>',sub:"Free Fire BR tournaments under the AyerFire banner \u2014 real prize pools, live brackets, room-ID delivery and a season leaderboard. Built and run solo.",see:"See what's on",discord:'Join the Discord',ttl:'Tournaments',ttag:'Live + Upcoming',howttl:'How to join',s1t:'Sign up',s1d:'Create a free account. Your squad name and logo are saved for every event.',s2t:'Load points',s2d:'In your wallet, pay the eSewa QR and upload the payment screenshot. Points are added once we check it (1 point = Rs 1).',s3t:'Join with points',s3d:'Tap Join on an event. Free events confirm straight away; paid entries are taken from your points.',s4t:'Confirm & play',s4d:'After you register, tap "Confirm you\'re playing" on the event. The window opens 48h before start and closes 24h before — not confirmed by then means you lose your seat.',s5t:'Get your Room ID',s5d:'The Room ID and password appear on your ticket about 5 minutes before the match.',evpast:'📅 Past events \u2192',evlb:'🏆 Leaderboard \u2192',tuttag:'Tutorial',openwallet:'Open wallet \u2192',evnav:'📅 Events',wacta:'Register on WhatsApp',lbttl:'Season Leaderboard',lbtag:'Standings',about:'About',reg:'Register',regwa:'Register on WhatsApp',join:'Watch / Join',soon:'Registration opening soon',livenow:'Live now',winner:'Winner',livettl:'Now Playing',livetag:'Live',schttl:'Schedule',ptsttl:'Points',th_team:'Team',th_kills:'Kills',th_place:'Place',th_pts:'Points',scheduled:'Scheduled',done:'Finished',nosched:'Schedule coming soon.',nopts:'Points appear once matches start.',regdc:'Register on Discord',bo3ttl:'Best of 3 Results',bo3tag:'Round by round',th_total:'Total',th_rank:'#',bo3norounds:'Results appear here once a bracket is published.',sqview:'squads · tap to view',sqttl:'Registered Squads',sqmembers:'Members',sqopen:'Open slot',sqempty:'No squads registered yet — be the first!',scttl:'How Points Work',sctag:"Placement + kills",scintro:"Each match, your squad gets placement points from the official room result plus 1 point for every kill.",sckillt:"Kill points",sckilld:"1 point for every kill your squad gets in the match.",scplacet:"Total",scplaced:"Placement points and kill points from all matches are added together. The highest total wins.",scposh:"\ud83d\udcca Position points",scposd:"Where your squad finishes in each match gives placement points. Every kill adds 1 more point.",scposex:"Example: 1st in match 1 (12) + 3rd in match 2 (8) + 10th in match 3 (1) = 21 points.",msttl:'Match Settings',mstag:'Same every match',msintro:'The room is set up the same way every tournament, so nobody has an edge going in.',msgunt:'Gun Attributes',msgund:"Off — weapon skin stat bonuses don't apply.",msskillt:'Character Skills',msskilld:"On — your character's active/passive skill works as normal.",msmapt:'Map',msmapd:"Full map, normal settings — the zone shrinks as usual, nothing's changed there."},
+ ne:{eye:'\u092b\u094d\u0930\u0940 \u092b\u093e\u092f\u0930 \u00b7 \u0928\u0947\u092a\u093e\u0932',h1:'\u091c\u0939\u093e\u0901 \u0928\u0947\u092a\u093e\u0932 <em>\u092a\u094d\u0930\u0924\u093f\u0938\u094d\u092a\u0930\u094d\u0927\u093e</em> \u0917\u0930\u094d\u091b',sub:'AyerFire \u0905\u0928\u094d\u0924\u0930\u094d\u0917\u0924 \u092b\u094d\u0930\u0940 \u092b\u093e\u092f\u0930 BR \u092a\u094d\u0930\u0924\u093f\u092f\u094b\u0917\u093f\u0924\u093e \u2014 \u0938\u093e\u0901\u091a\u094b \u0907\u0928\u093e\u092e, \u0932\u093e\u0907\u092d \u092c\u094d\u0930\u093e\u0915\u0947\u091f, \u0930\u0941\u092e-ID \u0930 \u0938\u093f\u091c\u0928 \u0932\u093f\u0921\u0930\u092c\u094b\u0930\u094d\u0921\u0964 \u090f\u0915\u094d\u0932\u0948 \u092c\u0928\u093e\u090f\u0915\u094b \u0930 \u091a\u0932\u093e\u090f\u0915\u094b\u0964',see:'\u0915\u0947 \u091a\u0932\u093f\u0930\u0939\u0947\u0915\u094b \u091b \u0939\u0947\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d',discord:'Discord \u092e\u093e \u091c\u094b\u0921\u093f\u0928\u0941\u0939\u094b\u0938\u094d',ttl:'\u092a\u094d\u0930\u0924\u093f\u092f\u094b\u0917\u093f\u0924\u093e',ttag:'\u0932\u093e\u0907\u092d + \u0906\u0909\u0901\u0926\u0948',howttl:'\u0915\u0938\u0930\u0940 \u0938\u0939\u092d\u093e\u0917\u0940 \u0939\u0941\u0928\u0947',s1t:'\u0938\u093e\u0907\u0928 \u0905\u092a \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d',s1d:'\u0928\u093f\u0903\u0936\u0941\u0932\u094d\u0915 \u0916\u093e\u0924\u093e \u092c\u0928\u093e\u0909\u0928\u0941\u0939\u094b\u0938\u094d\u0964 \u0924\u092a\u093e\u0908\u0902\u0915\u094b \u091f\u093f\u092e\u0915\u094b \u0928\u093e\u092e \u0930 \u0932\u094b\u0917\u094b \u0939\u0930\u0947\u0915 \u092a\u094d\u0930\u0924\u093f\u092f\u094b\u0917\u093f\u0924\u093e\u0915\u093e \u0932\u093e\u0917\u093f \u0938\u0947\u092d \u0939\u0941\u0928\u094d\u091b\u0964',s2t:'\u092a\u094b\u0907\u0928\u094d\u091f \u0932\u094b\u0921 \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d',s2d:'\u0935\u093e\u0932\u0947\u091f\u092e\u093e eSewa QR \u092c\u093e\u091f \u0924\u093f\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d \u0930 \u092d\u0941\u0915\u094d\u0924\u093e\u0928\u0940\u0915\u094b \u0938\u094d\u0915\u094d\u0930\u093f\u0928\u0938\u091f \u0905\u092a\u0932\u094b\u0921 \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d\u0964 \u091c\u093e\u0901\u091a\u092a\u091b\u093f \u092a\u094b\u0907\u0928\u094d\u091f \u0925\u092a\u093f\u0928\u094d\u091b (\u0967 \u092a\u094b\u0907\u0928\u094d\u091f = \u0930\u0941 \u0967)\u0964',s3t:'\u092a\u094b\u0907\u0928\u094d\u091f\u0932\u0947 \u091c\u094b\u0907\u0928 \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d',s3d:'\u092a\u094d\u0930\u0924\u093f\u092f\u094b\u0917\u093f\u0924\u093e\u092e\u093e Join \u0925\u093f\u091a\u094d\u0928\u0941\u0939\u094b\u0938\u094d\u0964 \u092b\u094d\u0930\u0940 \u092a\u094d\u0930\u0924\u093f\u092f\u094b\u0917\u093f\u0924\u093e \u0924\u0941\u0930\u0941\u0928\u094d\u0924\u0948 \u092a\u0915\u094d\u0915\u093e \u0939\u0941\u0928\u094d\u091b; \u092a\u0947\u0921 \u092a\u094d\u0930\u0935\u0947\u0936 \u0936\u0941\u0932\u094d\u0915 \u092a\u094b\u0907\u0928\u094d\u091f\u092c\u093e\u091f \u0915\u093e\u091f\u093f\u0928\u094d\u091b\u0964',s4t:'\u0938\u094d\u0932\u091f \u092a\u0915\u094d\u0915\u093e',s4d:'\u0938\u094d\u0915\u094d\u0935\u093e\u0921 \u092a\u0915\u094d\u0915\u093e \u092d\u090f\u092a\u091b\u093f \u0924\u092a\u093e\u0908\u0902 \u0916\u0947\u0932\u094d\u0928\u0941\u0939\u0941\u0928\u094d\u091b\u0964 \u091a\u0947\u0915-\u0907\u0928 \u091a\u093e\u0939\u093f\u0901\u0926\u0948\u0928\u0964',s5t:'Room ID \u092a\u093e\u0909\u0928\u0941\u0939\u094b\u0938\u094d',s5d:'\u0916\u0947\u0932 \u0938\u0941\u0930\u0941 \u0939\u0941\u0928\u0941\u092d\u0928\u094d\u0926\u093e \u0915\u0930\u093f\u092c \u096b \u092e\u093f\u0928\u0947\u091f\u0905\u0918\u093f Room ID \u0930 \u092a\u093e\u0938\u0935\u0930\u094d\u0921 \u0924\u092a\u093e\u0908\u0902\u0915\u094b \u091f\u093f\u0915\u091f\u092e\u093e \u0926\u0947\u0916\u093f\u0928\u094d\u091b\u0964',evpast:'📅 \u092a\u0941\u0930\u093e\u0928\u093e \u092a\u094d\u0930\u0924\u093f\u092f\u094b\u0917\u093f\u0924\u093e \u2192',evlb:'🏆 \u0932\u093f\u0921\u0930\u092c\u094b\u0930\u094d\u0921 \u2192',tuttag:'\u0938\u093f\u0915\u093e\u0907',openwallet:'\u0935\u093e\u0932\u0947\u091f \u0916\u094b\u0932\u094d\u0928\u0941\u0939\u094b\u0938\u094d \u2192',evnav:'📅 \u092a\u094d\u0930\u0924\u093f\u092f\u094b\u0917\u093f\u0924\u093e',wacta:'WhatsApp \u092e\u093e \u0926\u0930\u094d\u0924\u093e \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d',lbttl:'\u0938\u093f\u091c\u0928 \u0932\u093f\u0921\u0930\u092c\u094b\u0930\u094d\u0921',lbtag:'\u0938\u094d\u091f\u094d\u092f\u093e\u0928\u094d\u0921\u093f\u0919',about:'\u092c\u093e\u0930\u0947\u092e\u093e',reg:'\u0926\u0930\u094d\u0924\u093e \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d',regwa:'WhatsApp \u092e\u093e \u0926\u0930\u094d\u0924\u093e',join:'\u0939\u0947\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d / \u091c\u094b\u0921\u093f\u0928\u0941\u0939\u094b\u0938\u094d',soon:'\u0926\u0930\u094d\u0924\u093e \u091a\u093e\u0901\u0921\u0948 \u0916\u0941\u0932\u094d\u0926\u0948',livenow:'\u0905\u0939\u093f\u0932\u0947 \u0932\u093e\u0907\u092d',winner:'\u0935\u093f\u091c\u0947\u0924\u093e',livettl:'\u0905\u0939\u093f\u0932\u0947 \u091a\u0932\u093f\u0930\u0939\u0947\u0915\u094b',livetag:'\u0932\u093e\u0907\u092d',schttl:'\u0924\u093e\u0932\u093f\u0915\u093e',ptsttl:'\u0905\u0919\u094d\u0915',th_team:'\u091f\u093f\u092e',th_kills:'\u0915\u093f\u0932',th_place:'\u0938\u094d\u0925\u093e\u0928',th_pts:'\u0905\u0919\u094d\u0915',scheduled:'\u0924\u093e\u0932\u093f\u0915\u093e\u092c\u0926\u094d\u0927',done:'\u0938\u0915\u093f\u092f\u094b',nosched:'\u0924\u093e\u0932\u093f\u0915\u093e \u091a\u093e\u0901\u0921\u0948 \u0906\u0909\u0901\u0926\u0948\u0964',nopts:'\u0916\u0947\u0932 \u0938\u0941\u0930\u0941 \u092d\u090f\u092a\u091b\u093f \u0905\u0919\u094d\u0915 \u0926\u0947\u0916\u093f\u0928\u0947\u091b\u0964',regdc:'Discord \u092e\u093e \u0926\u0930\u094d\u0924\u093e',sqview:'\u0938\u094d\u0915\u094d\u0935\u093e\u0921 \u0939\u0947\u0930\u094d\u0928 \u091b\u0941\u0928\u0941\u0939\u094b\u0938\u094d',sqttl:'\u0926\u0930\u094d\u0924\u093e \u092d\u090f\u0915\u093e \u0938\u094d\u0915\u094d\u0935\u093e\u0921\u0939\u0930\u0942',sqmembers:'\u0938\u0926\u0938\u094d\u092f\u0939\u0930\u0942',sqopen:'\u0916\u093e\u0932\u0940 \u0938\u094d\u0925\u093e\u0928',sqempty:'\u0905\u0939\u093f\u0932\u0947\u0938\u092e\u094d\u092e \u0915\u0941\u0928\u0948 \u0938\u094d\u0915\u094d\u0935\u093e\u0921 \u0926\u0930\u094d\u0924\u093e \u092d\u090f\u0915\u094b \u091b\u0948\u0928 \u2014 \u092a\u0939\u093f\u0932\u094b \u0939\u0941\u0928\u0941\u0939\u094b\u0938\u094d!',scttl:'\u0905\u0919\u094d\u0915 \u0915\u0938\u0930\u0940 \u0926\u093f\u0907\u0928\u094d\u091b',sctag:"\u0938\u094d\u0925\u093e\u0928 + \u0915\u093f\u0932",scintro:"\u0939\u0930\u0947\u0915 \u092e\u094d\u092f\u093e\u091a\u092e\u093e \u0924\u092a\u093e\u0908\u0902\u0915\u094b \u0938\u094d\u0915\u094d\u0935\u093e\u0921\u0932\u0947 \u0906\u0927\u093f\u0915\u093e\u0930\u093f\u0915 \u0930\u0941\u092e \u0928\u0924\u093f\u091c\u093e\u0905\u0928\u0941\u0938\u093e\u0930 \u0938\u094d\u0925\u093e\u0928 \u0905\u0919\u094d\u0915 \u092a\u093e\u0909\u0901\u091b, \u0930 \u0939\u0930\u0947\u0915 \u0915\u093f\u0932\u0915\u094b \u0967 \u0905\u0919\u094d\u0915 \u0925\u092a\u093f\u0928\u094d\u091b\u0964",sckillt:"\u0915\u093f\u0932 \u0905\u0919\u094d\u0915",sckilld:"\u092e\u094d\u092f\u093e\u091a\u092e\u093e \u0924\u092a\u093e\u0908\u0902\u0915\u094b \u0938\u094d\u0915\u094d\u0935\u093e\u0921\u0932\u0947 \u0917\u0930\u0947\u0915\u094b \u0939\u0930\u0947\u0915 \u0915\u093f\u0932\u0915\u094b \u0967 \u0905\u0919\u094d\u0915\u0964",scplacet:"\u091c\u092e\u094d\u092e\u093e",scplaced:"\u0938\u092c\u0948 \u092e\u094d\u092f\u093e\u091a\u0915\u093e \u0938\u094d\u0925\u093e\u0928 \u0905\u0919\u094d\u0915 \u0930 \u0915\u093f\u0932 \u0905\u0919\u094d\u0915 \u091c\u094b\u0921\u093f\u0928\u094d\u091b\u0928\u094d\u0964 \u0938\u092c\u0948\u092d\u0928\u094d\u0926\u093e \u0927\u0947\u0930\u0948 \u091c\u092e\u094d\u092e\u093e \u0905\u0919\u094d\u0915 \u0939\u0941\u0928\u0947 \u0938\u094d\u0915\u094d\u0935\u093e\u0921 \u091c\u093f\u0924\u094d\u091b\u0964",scposh:"\ud83d\udcca \u0938\u094d\u0925\u093e\u0928 \u0905\u0919\u094d\u0915",scposd:"\u0939\u0930\u0947\u0915 \u092e\u094d\u092f\u093e\u091a\u092e\u093e \u0924\u092a\u093e\u0908\u0902\u0915\u094b \u0938\u094d\u0915\u094d\u0935\u093e\u0921 \u0915\u0941\u0928 \u0938\u094d\u0925\u093e\u0928\u092e\u093e \u0938\u0915\u093f\u092f\u094b, \u0924\u094d\u092f\u0938\u0932\u0947 \u0938\u094d\u0925\u093e\u0928 \u0905\u0919\u094d\u0915 \u0926\u093f\u0928\u094d\u091b\u0964 \u0939\u0930\u0947\u0915 \u0915\u093f\u0932\u0932\u0947 \u0967 \u0905\u0919\u094d\u0915 \u0925\u092a\u094d\u091b\u0964",scposex:"\u0909\u0926\u093e\u0939\u0930\u0923: \u092e\u094d\u092f\u093e\u091a \u0967 \u092e\u093e \u092a\u0939\u093f\u0932\u094b (12) + \u092e\u094d\u092f\u093e\u091a \u0968 \u092e\u093e \u0924\u0947\u0938\u094d\u0930\u094b (8) + \u092e\u094d\u092f\u093e\u091a \u0969 \u092e\u093e \u0926\u0936\u094c\u0902 (1) = 21 \u0905\u0919\u094d\u0915\u0964",msttl:'\u092e\u094d\u092f\u093e\u091a \u0938\u0947\u091f\u093f\u0919',mstag:'\u0939\u0930\u0947\u0915 \u092e\u094d\u092f\u093e\u091a\u092e\u093e \u0909\u0938\u094d\u0924\u0948',msintro:'\u0939\u0930\u0947\u0915 \u091f\u0941\u0930\u094d\u0928\u093e\u092e\u0947\u0928\u094d\u091f\u092e\u093e \u0930\u0941\u092e \u0909\u0938\u094d\u0924\u0948 \u0924\u0930\u093f\u0915\u093e\u0932\u0947 \u0938\u0947\u091f\u0905\u092a \u0939\u0941\u0928\u094d\u091b, \u0924\u094d\u092f\u0938\u0948\u0932\u0947 \u0915\u0938\u0948\u0932\u093e\u0908 \u092b\u093e\u0907\u0926\u093e \u0939\u0941\u0901\u0926\u0948\u0928\u0964',msgunt:'\u0917\u0928 \u090f\u091f\u094d\u0930\u093f\u092c\u094d\u092f\u0941\u091f',msgund:'\u0905\u092b \u2014 \u0939\u0924\u093f\u092f\u093e\u0930 \u0938\u094d\u0915\u093f\u0928\u0915\u094b \u0938\u094d\u091f\u094d\u092f\u093e\u091f \u092c\u094b\u0928\u0938 \u0932\u093e\u0917\u0942 \u0939\u0941\u0901\u0926\u0948\u0928\u0964',msskillt:'\u0915\u094d\u092f\u093e\u0930\u0947\u0915\u094d\u091f\u0930 \u0938\u094d\u0915\u093f\u0932',msskilld:'\u0905\u0928 \u2014 \u0924\u092a\u093e\u0908\u0902\u0915\u094b \u0915\u094d\u092f\u093e\u0930\u0947\u0915\u094d\u091f\u0930\u0915\u094b \u090f\u0915\u094d\u091f\u093f\u092d/\u092a\u094d\u092f\u093e\u0938\u093f\u092d \u0938\u094d\u0915\u093f\u0932 \u0938\u093e\u092e\u093e\u0928\u094d\u092f \u0930\u0942\u092a\u092e\u093e \u0915\u093e\u092e \u0917\u0930\u094d\u091b\u0964',msmapt:'\u0928\u0915\u094d\u0938\u093e',msmapd:'\u092b\u0941\u0932 \u092e\u094d\u092f\u093e\u092a, \u0938\u093e\u092e\u093e\u0928\u094d\u092f \u0938\u0947\u091f\u093f\u0919 \u2014 \u091c\u094b\u0928 \u0938\u0927\u0948\u0902 \u091c\u0938\u094d\u0924\u0948 \u0938\u093e\u0901\u0918\u0941\u0930\u093f\u0928\u094d\u091b, \u0924\u094d\u092f\u0938\u092e\u093e \u0915\u0941\u0928\u0948 \u092a\u0930\u093f\u0935\u0930\u094d\u0924\u0928 \u091b\u0948\u0928\u0964'}
 };
 let lang=lsGet('jd_lang')||'en';
 function tr(k){return (T[lang]&&T[lang][k]!=null)?T[lang][k]:(T.en[k]!=null?T.en[k]:k)}
@@ -628,16 +626,16 @@ function teamsFor(t){
 const MAP_ART={bermuda:'Bermuda',purgatory:'Purgatory',kalahari:'Kalahari',alpine:'Alpine',nexterra:'NeXTerra',solara:'Solara'};
 function mapOf(t){const k=String(t.map||'').toLowerCase();return MAP_ART[k]?k:'bermuda';}
 /* Best of 3 (map2 / map3 set): one map per match, 'random' = picked when the room is made. */
-/* Card picture for a best of 3: the three maps side by side, labelled M1 / M2 / M3 (tile for Random). */
+/* Card picture for a best of 3: the three maps side by side, labelled M1 / M2 / M3 (🎲 tile for Random). */
 function mapsStrip(t){
   return '<div class="tm-maps" aria-hidden="true">'+[t.map,t.map2,t.map3].map((k,i)=>{
     k=String(k||'random').toLowerCase();const m=MAP_ART[k];
-    return `<div class="tm-map${m?'':' rnd'}"${m?` style="background-image:url('maps/ff-${k}.webp')"`:''}><b>M${i+1}</b><span>${m||'Random'}</span></div>`;
+    return `<div class="tm-map${m?'':' rnd'}"${m?` style="background-image:url('maps/ff-${k}.webp')"`:''}><b>M${i+1}</b><span>${m||'🎲 Random'}</span></div>`;
   }).join('')+'</div>';
 }
 function mapsText(t){
-  if(!t.map2&&!t.map3)return ''+MAP_ART[mapOf(t)];
-  const n=k=>{k=String(k||'random').toLowerCase();return MAP_ART[k]||'Random';};
+  if(!t.map2&&!t.map3)return '🗺️ '+MAP_ART[mapOf(t)];
+  const n=k=>{k=String(k||'random').toLowerCase();return MAP_ART[k]||'🎲 Random';};
   return [t.map,t.map2,t.map3].map(n).join(' · ');
 }
 /* every JD prize pool: 50 / 30 / 20 %, same rounding as zulu-admin-command. Partner hosts pay their own prize. */
@@ -701,12 +699,12 @@ function bcRender(d){
   const items=[];
   const prize=t=>t.prize&&t.prize!=='—'?` · ${ne?'इनाम':'Prize'} <em>${esc(t.prize)}</em>`:'';
   const slotsOf=t=>{const sl=+t.slots||0,rg=teamsFor(t).length||+t.registered||0;return sl?` · ${rg}/${sl} ${ne?'स्क्वाड':'squads'}`:'';};
-  if(live)items.push(`<span class="bc-tk-item"><b>${esc(live.name)}</b> ${ne?'अहिले लाइभ':'is live now'}${prize(live)}</span>`);
+  if(live)items.push(`<span class="bc-tk-item">🔴 <b>${esc(live.name)}</b> ${ne?'अहिले लाइभ':'is live now'}${prize(live)}</span>`);
   ups.slice(0,3).forEach(t=>items.push(`<span class="bc-tk-item"><b>${esc(t.name)}</b> ${esc([t.date,t.time].filter(x=>x&&x!=='—').join(' · ')||'TBA')}${prize(t)}${slotsOf(t)}${/^free$/i.test(String(t.entry||'').trim())?' · '+(ne?'Card वा 15 points':'Card or 15 points'):''}</span>`));
   const done=ts.filter(t=>effectiveStatus(t)==='completed').sort((a,b)=>(Date.parse(b.start)||0)-(Date.parse(a.start)||0));
-  done.slice(0,2).forEach(t=>{const w=winnerOf(t,d);if(w)items.push(`<span class="bc-tk-item"><b>${esc(w)}</b> ${ne?'ले जित्यो':'won'} ${esc(t.name)}</span>`);});
+  done.slice(0,2).forEach(t=>{const w=winnerOf(t,d);if(w)items.push(`<span class="bc-tk-item">🏆 <b>${esc(w)}</b> ${ne?'ले जित्यो':'won'} ${esc(t.name)}</span>`);});
   try{const rows=(d.bo3&&d.bo3.published&&d.bo3.teams&&d.bo3.teams.length)?bo3Standings(d.bo3):[];if(rows[0])items.push(`<span class="bc-tk-item">${ne?'शीर्ष':'Top of the table'}: <b>${esc(rows[0].team)}</b> <em>${rows[0].totalPts||0} ${ne?'अङ्क':'pts'}</em></span>`);}catch(e){}
-  items.push(`<span class="bc-tk-item"><b>${ne?'क्ल्यास स्क्वाड':'Clash Squad challenges'}</b> ${ne?'२४/७ खुला — JD अंक जित्नुहोस्':'open 24/7 — 1v1 to 4v4, win JD points'}</span>`);
+  items.push(`<span class="bc-tk-item">⚔️ <b>${ne?'क्ल्यास स्क्वाड':'Clash Squad challenges'}</b> ${ne?'२४/७ खुला — JD अंक जित्नुहोस्':'open 24/7 — 1v1 to 4v4, win JD points'}</span>`);
   if(items.length<2){tk.hidden=true;document.querySelector('.hero').classList.remove('has-ticker');return;}
   const set=items.join('');
   const html=`<div class="bc-tk-set">${set}</div><div class="bc-tk-set" aria-hidden="true">${set}</div>`;
@@ -748,7 +746,7 @@ function render(d){
     const full=slots>0&&reg>=slots&&st!=='completed'&&st!=='cancelled'&&!_myRegs.has(t.name);
     let btn;
     if(st==='cancelled')btn=`<span class="tbtn done">Cancelled</span>`;
-    else if(st==='completed'){const w=winnerOf(t,d),wf=w?fxForSquad(t.name,w):null;btn=`<span class="tbtn done win">${tr('winner')}: <b>${w?fxChip(wf.fx,w):'TBA'}</b></span>`;}
+    else if(st==='completed'){const w=winnerOf(t,d),wf=w?fxForSquad(t.name,w):null;btn=`<span class="tbtn done win">🏆 ${tr('winner')}: <b>${w?fxChip(wf.fx,w):'TBA'}</b></span>`;}
     // Free tournaments waitlist via inAppRegBtn's "Join Waitlist" button below — don't also
     // show a static "Squads full" label right next to an actual clickable CTA that contradicts
     // it. Paid tournaments (no waitlist yet) and non-Supabase deploys still show it plainly.
@@ -763,15 +761,15 @@ function render(d){
       else btn=`<span class="tbtn done">${st==='live'?tr('livenow'):tr('soon')}</span>`;}
     const left=slots?Math.max(0,slots-reg):null;
     const open=st==='upcoming'||st==='live';
-    const urgency=(open&&slots&&!_myRegs.has(t.name))?(left===0?`<span class="tm-urg full">Full${(sb&&(!isPaidTournament(t)||wlDeposit(t)))?' · waitlist open':''}</span>`:(left<=3?`<span class="tm-urg hot">${left} slot${left===1?'':'s'} left</span>`:'')):'';
+    const urgency=(open&&slots&&!_myRegs.has(t.name))?(left===0?`<span class="tm-urg full">Full${(sb&&(!isPaidTournament(t)||wlDeposit(t)))?' · waitlist open':''}</span>`:(left<=3?`<span class="tm-urg hot">🔥 ${left} slot${left===1?'':'s'} left</span>`:'')):'';
     const prizeTxt=fmtPrize(t.prize),entryTxt=String(t.entry||'Free');
     const host=String(t.host||'').replace(/^@+/,'').trim();
     const org=host?`<span class="tm-org host" title="Run by partner host @${esc(host)}"><i>${esc(host.charAt(0).toUpperCase())}</i>Hosted by @${esc(host)}</span>`
                   :`<span class="tm-org" title="Official JD Esports event"><img src="/logo.webp" alt="">JD Official</span>`;
     const bo3=!t.image&&(t.map2||t.map3);
-    const media=`<div class="tcard-media${bo3?' bo3':''}" style="background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%)${bo3?'':`,url('${esc(t.image||('maps/ff-'+mapOf(t)+'.webp'))}')`}">${bo3?mapsStrip(t):''}${org}<div class="tm-over">${prizeTxt!=='—'?`<span class="tm-prize">${esc(prizeTxt)}</span>`:''}<span class="tm-entry${/^free$/i.test(entryTxt.trim())?' free':''}">${/^free$/i.test(entryTxt.trim())?'Card or 15 points':'Entry '+esc(entryTxt)}</span></div>${urgency}</div>`;
+    const media=`<div class="tcard-media${bo3?' bo3':''}" style="background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%)${bo3?'':`,url('${esc(t.image||('maps/ff-'+mapOf(t)+'.webp'))}')`}">${bo3?mapsStrip(t):''}${org}<div class="tm-over">${prizeTxt!=='—'?`<span class="tm-prize">🏆 ${esc(prizeTxt)}</span>`:''}<span class="tm-entry${/^free$/i.test(entryTxt.trim())?' free':''}">${/^free$/i.test(entryTxt.trim())?'Card or 15 points':'Entry '+esc(entryTxt)}</span></div>${urgency}</div>`;
     const isPast=st==='completed'||st==='cancelled';
-    return `<div class="tcard${isPast?' past':''}" data-tname="${esc(t.name)}" onclick="cardTap(event,this)">${media}<div class="tcard-body"><span class="tbadge ${st}">${st==='live'?'● Live':(st==='cancelled'?'✕ Cancelled':(st.charAt(0).toUpperCase()+st.slice(1)))}</span><div class="tname">${esc(t.name)}</div><div class="tgame">${esc(t.game||'Free Fire')}</div>${(st==='upcoming'&&t.start)?`<div class="tcount" data-start="${esc(t.start)}"></div><div class="tcount-bar"><span></span></div>`:''}<div class="tmeta">${prizeSplit(t)?`<div class="row"><span>Prize split</span><b>${esc(prizeSplitText(t))}</b></div>`:''}<div class="row"><span>Date</span><b>${esc(t.date||'TBA')}${t.time&&t.time!=='—'?' · '+esc(t.time):''}</b></div><div class="row"><span>Format</span><b>${esc(t.format||'BR')}</b></div><div class="row"><span>${t.map2||t.map3?'Maps':'Map'}</span><b>${esc(mapsText(t))}</b></div><div class="row"><span>Platform</span><b>${esc(platText(t))}</b></div>${host?`<div class="row"><span>Host</span><b>@${esc(host)}</b></div>`:''}</div>${host?`<p class="thost-note">Run by partner host <b>@${esc(host)}</b>: they send the room ID and pay the prize. JD Arena handles sign-up, slots and alerts.</p>`:''}${slots?`<div class="tslots"><span style="width:${pct}%"></span></div><button class="tslots-label" data-roster="${esc(t.name)}">${reg}/${slots} ${tr('sqview')}</button>`:''}${teams.length?`<div class="troster">${teams.slice(0,CHIP_MAX).map(tm=>{const fx=squadFx(tm);const cls=fx?' '+fx.cls:'';const badge=(fx&&fx.badge)?`<span class="fx-badge">${fx.badge}</span> `:'';const particles=fxParticlesHtml(fx);const nameHtml=fxNameHtml(fx,tm.name);return tm.logo?`<span class="${(fx?fx.cls:'')}"><img src="${esc(tm.logo)}" alt="">${badge}${nameHtml}${particles}</span>`:`<span class="nologo${cls}">${badge}${nameHtml}${particles}</span>`;}).join('')}${teams.length>CHIP_MAX?`<button type="button" class="chip-more" data-roster="${esc(t.name)}">+${teams.length-CHIP_MAX} more</button>`:''}</div>`:''}${btn}${inAppRegBtn(t,st,full)}${(sb&&open)?`<button type="button" class="tm-evbtn" data-lfg="${esc(t.name)}">Find teammate</button>`:''}</div></div>`;
+    return `<div class="tcard${isPast?' past':''}" data-tname="${esc(t.name)}" onclick="cardTap(event,this)">${media}<div class="tcard-body"><span class="tbadge ${st}">${st==='live'?'● Live':(st==='cancelled'?'✕ Cancelled':(st.charAt(0).toUpperCase()+st.slice(1)))}</span><div class="tname">${esc(t.name)}</div><div class="tgame">${esc(t.game||'Free Fire')}</div>${(st==='upcoming'&&t.start)?`<div class="tcount" data-start="${esc(t.start)}"></div><div class="tcount-bar"><span></span></div>`:''}<div class="tmeta">${prizeSplit(t)?`<div class="row"><span>Prize split</span><b>${esc(prizeSplitText(t))}</b></div>`:''}<div class="row"><span>Date</span><b>${esc(t.date||'TBA')}${t.time&&t.time!=='—'?' · '+esc(t.time):''}</b></div><div class="row"><span>Format</span><b>${esc(t.format||'BR')}</b></div><div class="row"><span>${t.map2||t.map3?'Maps':'Map'}</span><b>${esc(mapsText(t))}</b></div><div class="row"><span>Platform</span><b>📱 ${esc(platText(t))}</b></div>${host?`<div class="row"><span>Host</span><b>@${esc(host)}</b></div>`:''}</div>${host?`<p class="thost-note">Run by partner host <b>@${esc(host)}</b>: they send the room ID and pay the prize. JD Arena handles sign-up, slots and alerts.</p>`:''}${slots?`<div class="tslots"><span style="width:${pct}%"></span></div><button class="tslots-label" data-roster="${esc(t.name)}">${reg}/${slots} ${tr('sqview')}</button>`:''}${teams.length?`<div class="troster">${teams.slice(0,CHIP_MAX).map(tm=>{const fx=squadFx(tm);const cls=fx?' '+fx.cls:'';const badge=(fx&&fx.badge)?`<span class="fx-badge">${fx.badge}</span> `:'';const particles=fxParticlesHtml(fx);const nameHtml=fxNameHtml(fx,tm.name);return tm.logo?`<span class="${(fx?fx.cls:'')}"><img src="${esc(tm.logo)}" alt="">${badge}${nameHtml}${particles}</span>`:`<span class="nologo${cls}">${badge}${nameHtml}${particles}</span>`;}).join('')}${teams.length>CHIP_MAX?`<button type="button" class="chip-more" data-roster="${esc(t.name)}">+${teams.length-CHIP_MAX} more</button>`:''}</div>`:''}${btn}${inAppRegBtn(t,st,full)}${(sb&&open)?`<button type="button" class="tm-evbtn" data-lfg="${esc(t.name)}">👥 Find teammate</button>`:''}</div></div>`;
   }).join(''):(lang==='ne'?'<p class="ev-empty">अहिले कुनै आगामी प्रतियोगिता छैन — अर्को प्रतियोगिता पहिले Discord मा घोषणा हुन्छ। त्यतिन्जेल <a href="/events/">पुराना प्रतियोगिता</a> हेर्नुहोस्।</p>':'<p class="ev-empty">No upcoming tournaments right now — the next one is announced on Discord first. Meanwhile, see <a href="/events/">past events</a>.</p>');
   // Finished/cancelled events live on /events/ (linked under the grid).
   if(gridHTML!==_lastGridHTML){
@@ -882,15 +880,15 @@ function renderWinnerSpot(d){
   const prize=fmtPrize(t.prize);
   const ru=rows.filter(r=>fxKey(r.team)!==fxKey(w)).slice(0,2);
   const mini=r=>{const lf=fxForSquad(t.name,r.team),lg=r.logo||lf.logo;return lg?`<img src="${esc(lg)}" alt="">`:esc(String(r.team||'?').trim().charAt(0).toUpperCase());};
-  const ruCard=(r,i)=>r?`<div class="ws-ru r${i+2}"><span class="ws-medal">${i?'<i class=ji-medal3 aria-hidden=true></i>':'<i class=ji-medal2 aria-hidden=true></i>'}</span><span class="ws-mini">${mini(r)}</span><span class="ws-plc">${i?'3rd':'2nd'}</span><b>${fxChip(fxForSquad(t.name,r.team).fx,r.team)}</b><small><em>${r.totalPts}</em> pts</small></div>`:'<div></div>';
+  const ruCard=(r,i)=>r?`<div class="ws-ru r${i+2}"><span class="ws-medal">${i?'🥉':'🥈'}</span><span class="ws-mini">${mini(r)}</span><span class="ws-plc">${i?'3rd':'2nd'}</span><b>${fxChip(fxForSquad(t.name,r.team).fx,r.team)}</b><small><em>${r.totalPts}</em> pts</small></div>`:'<div></div>';
   const stat=(v,l,pre)=>`<div class="ws-stat"><b${typeof v==='number'?` data-count="${v}"`:''}>${pre||''}${typeof v==='number'?v.toLocaleString('en-IN'):esc(v)}</b><span>${l}</span></div>`;
   const prizeNum=/^Rs [\d,]+$/.test(prize)?Number(prize.replace(/\D/g,'')):null;
   const html=`<div class="ws"><div class="ws-bg" role="img" aria-label="Free Fire gameplay"></div><div class="ws-rays" aria-hidden="true"></div><div class="ws-in">`+
-    `<span class="ws-eye">Champions</span><div class="ws-title" aria-hidden="true">Booyah!</div><div class="ws-ev"><b>${esc(t.name)}</b>${t.date?' · '+esc(t.date):''}</div>`+
-    `<div class="ws-pod">${ruCard(ru[0],0)}<div class="ws-champ"><div class="ws-av${fx?' fxa-'+fx.key:''}"><span class="ws-crown"><i class=ji-crown aria-hidden=true></i></span>${logo?`<img src="${esc(logo)}" alt="">`:esc(w.charAt(0).toUpperCase())}</div>`+
-    `<div class="ws-name">${fxChip(fx,w,true)}</div><div class="ws-lbl">${tr('winner')}</div></div>${ruCard(ru[1],1)}</div>`+
+    `<span class="ws-eye">🏆 Champions</span><div class="ws-title" aria-hidden="true">Booyah!</div><div class="ws-ev"><b>${esc(t.name)}</b>${t.date?' · '+esc(t.date):''}</div>`+
+    `<div class="ws-pod">${ruCard(ru[0],0)}<div class="ws-champ"><div class="ws-av${fx?' fxa-'+fx.key:''}"><span class="ws-crown">👑</span>${logo?`<img src="${esc(logo)}" alt="">`:esc(w.charAt(0).toUpperCase())}</div>`+
+    `<div class="ws-name">${fxChip(fx,w,true)}</div><div class="ws-lbl">🏆 ${tr('winner')}</div></div>${ruCard(ru[1],1)}</div>`+
     `<div class="ws-stats">${prize!=='—'?(prizeNum!=null?stat(prizeNum,'Prize','Rs '):stat(prize,'Prize')):''}${row?stat(row.totalPts,'Points'):''}</div>`+
-    `<div class="ws-acts">${rows.length?`<a class="ws-cta" href="/leaderboard.html#replay">Watch replay</a><a class="ws-share" href="/leaderboard.html#latest">Full results →</a>`:''}<button type="button" class="ws-share" data-share="${esc(w)}" data-ev="${esc(t.name)}">Share</button></div>`+
+    `<div class="ws-acts">${rows.length?`<a class="ws-cta" href="/leaderboard.html#replay">🎬 Watch replay</a><a class="ws-share" href="/leaderboard.html#latest">Full results →</a>`:''}<button type="button" class="ws-share" data-share="${esc(w)}" data-ev="${esc(t.name)}">📣 Share</button></div>`+
     `</div></div>`;
   if(html===_lastSpotHTML)return;
   _lastSpotHTML=html;box.innerHTML=html;box.hidden=false;
@@ -898,9 +896,9 @@ function renderWinnerSpot(d){
   try{seen=!!localStorage.getItem(key);if(!seen)localStorage.setItem(key,'1');}catch(e){}
   const sh=box.querySelector('.ws-share');
   if(sh)sh.onclick=async()=>{
-    const text=`${sh.dataset.share} won ${sh.dataset.ev} on JD Esports Arena! Booyah!`,url='https://jdesport.co.uk/';
+    const text=`🏆 ${sh.dataset.share} won ${sh.dataset.ev} on JD Esports Arena! Booyah! 🔥`,url='https://jdesport.co.uk/';
     if(navigator.share){try{await navigator.share({title:'JD Arena champions',text,url});}catch(e){}return;}
-    try{await navigator.clipboard.writeText(text+' '+url);sh.textContent='Copied';setTimeout(()=>{sh.textContent='Share';},1800);}catch(e){}
+    try{await navigator.clipboard.writeText(text+' '+url);sh.textContent='✅ Copied';setTimeout(()=>{sh.textContent='📣 Share';},1800);}catch(e){}
   };
   // stat numbers count up the first time the banner scrolls into view (skipped with reduced motion)
   if(!matchMedia('(prefers-reduced-motion:reduce)').matches&&'IntersectionObserver' in window){
@@ -934,7 +932,7 @@ function renderBo3Board(d){
   const pod=document.getElementById('bo3-podium');
   if(pod){
     const top=rows.slice(0,3);
-    const step=(r,place)=>{if(!r)return '';const f=fxForSquad(B.tournament,r.team),fx=f.fx,logo=r.logo||f.logo;return `<div class="pod p${place}${r.team===mySquad?' mine':''}">${place===1?'<span class="pod-crown"><i class=ji-crown aria-hidden=true></i></span>':''}<div class="pod-av${fx?' fxa-'+fx.key:''}">${logo?`<img src="${esc(logo)}" alt="">`:esc(String(r.team||'?').trim().charAt(0).toUpperCase())}</div><div class="pod-name">${fxText(fx,r.team)}</div><div class="pod-pts">${r.totalPts} pts</div><div class="pod-block"><span>${place}</span></div></div>`;};
+    const step=(r,place)=>{if(!r)return '';const f=fxForSquad(B.tournament,r.team),fx=f.fx,logo=r.logo||f.logo;return `<div class="pod p${place}${r.team===mySquad?' mine':''}">${place===1?'<span class="pod-crown">👑</span>':''}<div class="pod-av${fx?' fxa-'+fx.key:''}">${logo?`<img src="${esc(logo)}" alt="">`:esc(String(r.team||'?').trim().charAt(0).toUpperCase())}</div><div class="pod-name">${fxText(fx,r.team)}</div><div class="pod-pts">${r.totalPts} pts</div><div class="pod-block"><span>${place}</span></div></div>`;};
     pod.innerHTML=top.length>=3&&top.some(r=>r.totalPts>0)?step(top[1],2)+step(top[0],1)+step(top[2],3):'';
   }
   const noKills=!(+B.kill_pts); // kill columns only on boards where kills score
@@ -968,7 +966,7 @@ async function renderPredictBoard(d){
     document.getElementById('predict-table').innerHTML=`<thead><tr><th>#</th><th>Squad</th><th class="num">Season avg pts</th><th class="num">Win %</th></tr></thead><tbody>${ranked.map((r,i)=>`<tr><td class="rk">${i+1}</td><td>${fxText(fxForSquad(tournamentName,r.squad_name).fx,r.squad_name)}</td><td class="num">${r.appearances>0?(+r.avg_points).toFixed(1):'—'}</td><td class="tot">${(r.prob*100).toFixed(0)}%</td></tr>`).join('')}</tbody>`;
   }catch(e){sec.style.display='none';}
 }
-function tick(){document.querySelectorAll('.tcount').forEach(el=>{const bar=el.nextElementSibling;const s=Date.parse(el.dataset.start);if(isNaN(s)){el.style.display='none';if(bar)bar.style.display='none';return}let diff=s-Date.now();if(diff<=0){el.textContent='Starting now';if(bar)bar.style.display='none';return}const d=Math.floor(diff/864e5),h=Math.floor(diff%864e5/36e5),m=Math.floor(diff%36e5/6e4),sec=Math.floor(diff%6e4/1e3);el.textContent='Starts in '+(d?d+'d ':'')+h+'h '+m+'m'+(d?'':' '+sec+'s')})}
+function tick(){document.querySelectorAll('.tcount').forEach(el=>{const bar=el.nextElementSibling;const s=Date.parse(el.dataset.start);if(isNaN(s)){el.style.display='none';if(bar)bar.style.display='none';return}let diff=s-Date.now();if(diff<=0){el.textContent='⏱ Starting now';if(bar)bar.style.display='none';return}const d=Math.floor(diff/864e5),h=Math.floor(diff%864e5/36e5),m=Math.floor(diff%36e5/6e4),sec=Math.floor(diff%6e4/1e3);el.textContent='⏱ Starts in '+(d?d+'d ':'')+h+'h '+m+'m'+(d?'':' '+sec+'s')})}
 /* Two copies of tournaments.json exist: the GitHub Pages file, and the live copy the
    publish-tournaments Edge Function also writes to public.site_content. The Pages file
    lags every publish (rebuild + a CDN cache that can hold it ~10 min, which `no-store`
@@ -1140,9 +1138,9 @@ function authRender(){
     const appSupport=_player&&window.jdChat&&jdChat.merged&&jdChat.support;
     el.innerHTML=`<h3>Help &amp; Support</h3><p class="sub">${appSupport?'One chat with JD Esports and ZULU: ZULU (AI) replies in seconds, and it brings in the JD team for big issues.':'Ask our AI assistant ZULU anything, any time — or talk to a person on WhatsApp or by phone.'}</p>
       <div class="pm-list">
-        ${appSupport?'<button class="pm-row" onclick="authClose();jdChat.support()"><span class="pm-row-ic"><i class=ji-speaker aria-hidden=true></i></span><span class="pm-row-txt">Chat with JD Esports · ZULU<small class="pm-row-sub">ZULU replies in seconds · JD team for big issues</small></span><span class="pm-row-chev">›</span></button>':'<button class="pm-row" onclick="authClose();fbOpen()"><span class="pm-row-ic"><i class=ji-brain aria-hidden=true></i></span><span class="pm-row-txt">Chat with ZULU<small class="pm-row-sub">AI support · instant answers, 24/7</small></span><span class="pm-row-chev">›</span></button>'}
-        <a class="pm-row" href="https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(waText)}" target="_blank" rel="noopener"><span class="pm-row-ic"><i class=ji-chat aria-hidden=true></i></span><span class="pm-row-txt">WhatsApp support<small class="pm-row-sub">${esc(SUPPORT_PHONE_TXT)}</small></span><span class="pm-row-chev">›</span></a>
-        <a class="pm-row" href="tel:+${SUPPORT_PHONE}"><span class="pm-row-ic"><i class=ji-call aria-hidden=true></i></span><span class="pm-row-txt">Call support<small class="pm-row-sub">${esc(SUPPORT_PHONE_TXT)}</small></span><span class="pm-row-chev">›</span></a>
+        ${appSupport?'<button class="pm-row" onclick="authClose();jdChat.support()"><span class="pm-row-ic">🎧</span><span class="pm-row-txt">Chat with JD Esports · ZULU<small class="pm-row-sub">ZULU replies in seconds · JD team for big issues</small></span><span class="pm-row-chev">›</span></button>':'<button class="pm-row" onclick="authClose();fbOpen()"><span class="pm-row-ic">🤖</span><span class="pm-row-txt">Chat with ZULU<small class="pm-row-sub">AI support · instant answers, 24/7</small></span><span class="pm-row-chev">›</span></button>'}
+        <a class="pm-row" href="https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(waText)}" target="_blank" rel="noopener"><span class="pm-row-ic">💬</span><span class="pm-row-txt">WhatsApp support<small class="pm-row-sub">${esc(SUPPORT_PHONE_TXT)}</small></span><span class="pm-row-chev">›</span></a>
+        <a class="pm-row" href="tel:+${SUPPORT_PHONE}"><span class="pm-row-ic">📞</span><span class="pm-row-txt">Call support<small class="pm-row-sub">${esc(SUPPORT_PHONE_TXT)}</small></span><span class="pm-row-chev">›</span></a>
       </div>
       <p class="pm-hint">For points, prizes or results, send your username and a screenshot so we can fix it fast.</p>
       <p class="sub" style="margin-top:16px"><button class="link" onclick="_authView='login';authRender();">Back</button></p>`;
@@ -1162,15 +1160,15 @@ function authRender(){
     if(_player){
       let discordRow;
       if(_player.discord_username){
-        discordRow=`<div class="pm-row pm-row-static"><span class="pm-row-ic"><i class=ji-chat aria-hidden=true></i></span><span class="pm-row-txt">@${esc(_player.discord_username)}</span><span class="pm-badge pm-badge-on">Connected</span></div>`;
+        discordRow=`<div class="pm-row pm-row-static"><span class="pm-row-ic">💬</span><span class="pm-row-txt">@${esc(_player.discord_username)}</span><span class="pm-badge pm-badge-on">Connected</span></div>`;
       }else if(_discordLinkCode){
         discordRow=`<div class="pm-row pm-row-static" style="flex-direction:column;align-items:flex-start;gap:4px"><div class="auth-tag" style="margin:0;font-family:'Courier New',monospace;word-break:break-all">${esc(_discordLinkCode)}</div><p class="pm-hint" style="margin:0">Type <code>!link ${esc(_discordLinkCode)}</code> in the JD Esports Arena Discord server — expires in 10 minutes.</p></div>`;
       }else{
-        discordRow=`<button class="pm-row" onclick="authLinkDiscord()"><span class="pm-row-ic"><i class=ji-chat aria-hidden=true></i></span><span class="pm-row-txt">Link Discord</span><span class="pm-badge">Not connected</span></button>`;
+        discordRow=`<button class="pm-row" onclick="authLinkDiscord()"><span class="pm-row-ic">💬</span><span class="pm-row-txt">Link Discord</span><span class="pm-badge">Not connected</span></button>`;
       }
       const unlinkRow=_player.discord_username?'<p class="sub" style="margin:-8px 0 14px"><button class="link pm-unlink" onclick="authUnlinkDiscord()">Unlink Discord</button></p>':'';
       accountOnlyBlock=`<div class="pm-list">
-        <button class="pm-row" onclick="_authView='changepass';authRender();"><span class="pm-row-ic"><i class=ji-key aria-hidden=true></i></span><span class="pm-row-txt">Change password</span><span class="pm-row-chev">›</span></button>
+        <button class="pm-row" onclick="_authView='changepass';authRender();"><span class="pm-row-ic">🔑</span><span class="pm-row-txt">Change password</span><span class="pm-row-chev">›</span></button>
         ${discordRow}
       </div>
       ${unlinkRow}`;
@@ -1178,16 +1176,16 @@ function authRender(){
     el.innerHTML=`<h3>Settings</h3><p class="sub">Reports, rules, downloads and other pages — not tied to your account.</p>
       ${accountOnlyBlock}
       <div class="pm-list">
-        <button class="pm-row" onclick="authOpen('support')"><span class="pm-row-ic"><i class=ji-speaker aria-hidden=true></i></span><span class="pm-row-txt">Help &amp; Support<small class="pm-row-sub">AI chat, WhatsApp or call</small></span><span class="pm-row-chev">›</span></button>
-        <button class="pm-row" onclick="openReportFlow()"><span class="pm-row-ic"><i class=ji-flag aria-hidden=true></i></span><span class="pm-row-txt">Report a player/squad</span><span class="pm-row-chev">›</span></button>
-        <a class="pm-row" href="/leaderboard.html"><span class="pm-row-ic"><i class=ji-trophy aria-hidden=true></i></span><span class="pm-row-txt">Leaderboard</span><span class="pm-row-chev">›</span></a>
-        <a class="pm-row" href="/ban-list.html"><span class="pm-row-ic"><i class=ji-shield aria-hidden=true></i></span><span class="pm-row-txt">Ban List</span><span class="pm-row-chev">›</span></a>
-        <a class="pm-row" href="/terms.html"><span class="pm-row-ic"><i class=ji-doc aria-hidden=true></i></span><span class="pm-row-txt">Terms &amp; Conditions</span><span class="pm-row-chev">›</span></a>
-        <a class="pm-row" href="${esc(MAIN_SITE_URL||'/about/')}"><span class="pm-row-ic"><i class=ji-info aria-hidden=true></i></span><span class="pm-row-txt">About Us</span><span class="pm-row-chev">›</span></a>
+        <button class="pm-row" onclick="authOpen('support')"><span class="pm-row-ic">🎧</span><span class="pm-row-txt">Help &amp; Support<small class="pm-row-sub">AI chat, WhatsApp or call</small></span><span class="pm-row-chev">›</span></button>
+        <button class="pm-row" onclick="openReportFlow()"><span class="pm-row-ic">🚩</span><span class="pm-row-txt">Report a player/squad</span><span class="pm-row-chev">›</span></button>
+        <a class="pm-row" href="/leaderboard.html"><span class="pm-row-ic">🏆</span><span class="pm-row-txt">Leaderboard</span><span class="pm-row-chev">›</span></a>
+        <a class="pm-row" href="/ban-list.html"><span class="pm-row-ic">🛡️</span><span class="pm-row-txt">Ban List</span><span class="pm-row-chev">›</span></a>
+        <a class="pm-row" href="/terms.html"><span class="pm-row-ic">📜</span><span class="pm-row-txt">Terms &amp; Conditions</span><span class="pm-row-chev">›</span></a>
+        <a class="pm-row" href="${esc(MAIN_SITE_URL||'/about/')}"><span class="pm-row-ic">ℹ️</span><span class="pm-row-txt">About Us</span><span class="pm-row-chev">›</span></a>
       </div>
       <div class="pm-list">
-        <button class="pm-row" onclick="downloadAndroid()"><span class="pm-row-ic"><i class=ji-brain aria-hidden=true></i></span><span class="pm-row-txt">Download for Android</span><span class="pm-row-chev">›</span></button>
-        <button class="pm-row" onclick="downloadIOS()"><span class="pm-row-ic"><i class=ji-phone aria-hidden=true></i></span><span class="pm-row-txt">Download for iPhone</span><span class="pm-row-chev">›</span></button>
+        <button class="pm-row" onclick="downloadAndroid()"><span class="pm-row-ic">🤖</span><span class="pm-row-txt">Download for Android</span><span class="pm-row-chev">›</span></button>
+        <button class="pm-row" onclick="downloadIOS()"><span class="pm-row-ic">🍎</span><span class="pm-row-txt">Download for iPhone</span><span class="pm-row-chev">›</span></button>
       </div>
       ${_player?`<p class="sub" style="margin-top:16px"><button class="link" onclick="_authView='login';authRender();">Back to account</button></p>
       <p class="sub" style="text-align:center;margin-top:28px"><button class="link" style="font-size:.68rem;color:var(--pm-muted,#9CA8BE)" onclick="const d=document.getElementById('acct-danger-zone');d.style.display=d.style.display==='none'?'block':'none';">Account management</button></p>
@@ -1196,7 +1194,7 @@ function authRender(){
   }
   if(_player){
     const verifiedBadge=_player.verified?'<span class="pm-verified">✓ Verified</span>':'';
-    const avatarBlock=`<div class="pm-avatar-wrap"><img class="pm-avatar" id="pm-avatar-img" src="${esc(_player.avatar||'/logo.webp')}" alt=""><button class="pm-avatar-edit" onclick="document.getElementById('pm-avatar-file').click()" aria-label="Change profile picture"><i class=ji-camera aria-hidden=true></i></button><input type="file" id="pm-avatar-file" accept="image/*" style="display:none" onchange="authUploadAvatar(this)"></div>`;
+    const avatarBlock=`<div class="pm-avatar-wrap"><img class="pm-avatar" id="pm-avatar-img" src="${esc(_player.avatar||'/logo.webp')}" alt=""><button class="pm-avatar-edit" onclick="document.getElementById('pm-avatar-file').click()" aria-label="Change profile picture">📷</button><input type="file" id="pm-avatar-file" accept="image/*" style="display:none" onchange="authUploadAvatar(this)"></div>`;
     const regRows=[..._myRegs.entries()];
     // Upcoming/live first, then the rest; each row is a tap target that jumps to the card.
     const tByName=new Map(((_lastData||{}).tournaments||[]).map(t=>[t.name,t]));
@@ -1204,14 +1202,14 @@ function authRender(){
     regRows.sort((a,b)=>stRank(a[0])-stRank(b[0]));
     const statusLabel=r=>r.checked_in_at&&(r.status==='confirmed'||r.status==='approved')?'Checked in':r.status==='no_show'?'No-show':(r.status.charAt(0).toUpperCase()+r.status.slice(1));
     const historyBlock=regRows.length?`<div class="pm-history"><div class="pm-history-title">Your tournaments</div>${regRows.map(([slug,r])=>{const t=tByName.get(slug);const st=t?effectiveStatus(t):'';const when=t&&t.date&&t.date!=='TBA'?esc(t.date)+(t.time&&t.time!=='TBA'?' · '+esc(t.time):''):'';
-      return `<button type="button" class="pm-history-row pm-history-btn" onclick="authClose();setTimeout(()=>nmJump(this.dataset.t),250)" data-t="${esc(slug)}">${r.squad_logo?`<img class="pm-history-logo" src="${esc(r.squad_logo)}" alt="">`:`<span class="pm-history-logo">${st==='live'?'<i class=ji-dot-red aria-hidden=true></i>':st==='upcoming'?'<i class=ji-swords aria-hidden=true></i>':'<i class=ji-flag aria-hidden=true></i>'}</span>`}<span class="pm-history-main"><span class="pm-history-name">${esc(slug)}</span><span class="pm-history-squad">${[r.squad_name&&esc(r.squad_name),when||(st&&esc(st)),esc(regTicketCode(r))].filter(Boolean).join(' · ')}</span></span><span class="pm-history-status pm-status-${esc(r.checked_in_at&&r.status==='confirmed'?'confirmed':r.status)}">${esc(statusLabel(r))}</span></button>`;}).join('')}</div>`:'';
-    el.innerHTML=`<h3 class="pm-title">Signed in</h3>${avatarBlock}<div class="auth-tag">@${esc(_player.username||'…')}</div><div class="pm-meta"><span>${esc(_player.email)}</span>${verifiedBadge}</div>${_player.ff_uid?`<div class="pm-meta"><span>${esc(_player.ff_name||'')}</span><span class="pm-dot">●</span><span>UID ${esc(_player.ff_uid)}</span></div>`:''}<div id="career-stats"></div><div class="msg" id="au-msg"></div>${historyBlock}<div class="pm-list">
-        <a class="pm-row" href="/wallet/#withdraw"><span class="pm-row-ic"><i class=ji-coin aria-hidden=true></i></span><span class="pm-row-txt">Withdraw points<small class="pm-row-sub">To your eSewa · minimum 100 points</small></span><span class="pm-row-chev">›</span></a>
-        <a class="pm-row" href="/wallet/#load"><span class="pm-row-ic"><i class=ji-coin aria-hidden=true></i></span><span class="pm-row-txt">Load points</span><span class="pm-row-chev">›</span></a>
-        <button class="pm-row" id="acct-push-btn" onclick="enablePush()"><span class="pm-row-ic"><i class=ji-bell aria-hidden=true></i></span><span class="pm-row-txt">Enable push alerts</span><span class="pm-toggle" id="acct-push-toggle"></span></button>
-        <button class="pm-row${_player.ff_uid?'':' warn'}" onclick="_authView='gameid';authRender();"><span class="pm-row-ic"><i class=ji-game aria-hidden=true></i></span><span class="pm-row-txt">${_player.ff_uid?'Game UID &amp; name':'Add your Free Fire UID'}<small class="pm-row-sub">${_player.ff_uid?esc((_player.ff_name||'')+' · UID '+_player.ff_uid):'Needed so admins know who played'}</small></span><span class="pm-row-chev">›</span></button>
-        <button class="pm-row" onclick="authChangeUsername()"><span class="pm-row-ic"><i class=ji-edit aria-hidden=true></i></span><span class="pm-row-txt">Change username</span><span class="pm-row-chev">›</span></button>
-        <button class="pm-row" onclick="authOpen('support')"><span class="pm-row-ic"><i class=ji-speaker aria-hidden=true></i></span><span class="pm-row-txt">Help &amp; Support<small class="pm-row-sub">AI chat, WhatsApp or call</small></span><span class="pm-row-chev">›</span></button>
+      return `<button type="button" class="pm-history-row pm-history-btn" onclick="authClose();setTimeout(()=>nmJump(this.dataset.t),250)" data-t="${esc(slug)}">${r.squad_logo?`<img class="pm-history-logo" src="${esc(r.squad_logo)}" alt="">`:`<span class="pm-history-logo">${st==='live'?'🔴':st==='upcoming'?'⚔️':'🏁'}</span>`}<span class="pm-history-main"><span class="pm-history-name">${esc(slug)}</span><span class="pm-history-squad">${[r.squad_name&&esc(r.squad_name),when||(st&&esc(st)),esc(regTicketCode(r))].filter(Boolean).join(' · ')}</span></span><span class="pm-history-status pm-status-${esc(r.checked_in_at&&r.status==='confirmed'?'confirmed':r.status)}">${esc(statusLabel(r))}</span></button>`;}).join('')}</div>`:'';
+    el.innerHTML=`<h3 class="pm-title">Signed in</h3>${avatarBlock}<div class="auth-tag">@${esc(_player.username||'…')}</div><div class="pm-meta"><span>${esc(_player.email)}</span>${verifiedBadge}</div>${_player.ff_uid?`<div class="pm-meta"><span>🎮 ${esc(_player.ff_name||'')}</span><span class="pm-dot">●</span><span>UID ${esc(_player.ff_uid)}</span></div>`:''}<div id="career-stats"></div><div class="msg" id="au-msg"></div>${historyBlock}<div class="pm-list">
+        <a class="pm-row" href="/wallet/#withdraw"><span class="pm-row-ic">💸</span><span class="pm-row-txt">Withdraw points<small class="pm-row-sub">To your eSewa · minimum 100 points</small></span><span class="pm-row-chev">›</span></a>
+        <a class="pm-row" href="/wallet/#load"><span class="pm-row-ic">🪙</span><span class="pm-row-txt">Load points</span><span class="pm-row-chev">›</span></a>
+        <button class="pm-row" id="acct-push-btn" onclick="enablePush()"><span class="pm-row-ic">🔔</span><span class="pm-row-txt">Enable push alerts</span><span class="pm-toggle" id="acct-push-toggle"></span></button>
+        <button class="pm-row${_player.ff_uid?'':' warn'}" onclick="_authView='gameid';authRender();"><span class="pm-row-ic">🎮</span><span class="pm-row-txt">${_player.ff_uid?'Game UID &amp; name':'Add your Free Fire UID'}<small class="pm-row-sub">${_player.ff_uid?esc((_player.ff_name||'')+' · UID '+_player.ff_uid):'Needed so admins know who played'}</small></span><span class="pm-row-chev">›</span></button>
+        <button class="pm-row" onclick="authChangeUsername()"><span class="pm-row-ic">✏️</span><span class="pm-row-txt">Change username</span><span class="pm-row-chev">›</span></button>
+        <button class="pm-row" onclick="authOpen('support')"><span class="pm-row-ic">🎧</span><span class="pm-row-txt">Help &amp; Support<small class="pm-row-sub">AI chat, WhatsApp or call</small></span><span class="pm-row-chev">›</span></button>
         <button class="pm-row" onclick="authLogout()"><span class="pm-row-ic">↩</span><span class="pm-row-txt">Log out</span><span class="pm-row-chev">›</span></button>
       </div>`;
     updatePushBtn();
@@ -1301,7 +1299,7 @@ function openInBrowser(){
 function googleBtnHtml(){
   const iab=inAppBrowser();
   const note=iab?`<div class="iab-note"><b>Opened from ${esc(iab)}?</b> Google sign-in doesn't work inside ${esc(iab)}. ${isIosDevice()?'Tap ••• at the top and choose "Open in external browser", or log in with email below.':'Open JD Arena in Chrome to use Google, or log in with email below.'}${isIosDevice()?'':' <button type="button" class="link" onclick="openInBrowser()">Open in Chrome</button>'}</div>`:'';
-  return note+'<button class="btn-ghost" style="width:100%;margin-bottom:14px" onclick="authGoogleSignIn()">Continue with Google</button>';
+  return note+'<button class="btn-ghost" style="width:100%;margin-bottom:14px" onclick="authGoogleSignIn()">🔐 Continue with Google</button>';
 }
 const USERNAME_RE=/^[A-Za-z0-9_]{3,20}$/;
 let _unameTimer=null;
@@ -1356,8 +1354,8 @@ async function authGoogleSignIn(){
   if(error){sessionStorage.removeItem('jd_google_flow');authMsg('Google sign-in isn\'t set up on this deploy yet.');}
 }
 async function waitlistBuySlot(name){
-  if(!await confirmBox('Pay 20 points for a place?',`You get a place in ${name} now. If it is full, a squad that hasn't confirmed, or the newest squad, loses its place and gets its entry back. You get your 20 points back if you withdraw 24 hours or more before the start.`,'Pay 20 points','Not now'))return;
-  if(!canAfford(20)){confirmBox('Load points',`You need 20 points and you have ${walletLabel()}.`,'Load points','Later').then(ok=>{if(ok)goWallet('load');});return;}
+  if(!await confirmBox('🎟 Pay 20 points for a place?',`You get a place in ${name} now. If it is full, a squad that hasn't confirmed, or the newest squad, loses its place and gets its entry back. You get your 20 points back if you withdraw 24 hours or more before the start.`,'Pay 20 points','Not now'))return;
+  if(!canAfford(20)){confirmBox('🪙 Load points',`You need 20 points and you have ${walletLabel()}.`,'Load points','Later').then(ok=>{if(ok)goWallet('load');});return;}
   const {error}=await sb.rpc('waitlist_buy_slot',{p_slug:name});
   if(error){confirmBox('Could not get a place',error.message,'OK','Close');return;}
   location.reload();
@@ -1559,20 +1557,20 @@ async function authConfirmDeleteAccount(){
 
 /* New player tour: first week of an account, once per device. /#tour replays it for anyone (linked from /rules/). */
 const TOUR_STEPS={
- en:[['Welcome to JD Arena','Free Fire tournaments with real prizes. Here is how it works in under a minute.'],
-  ['Add your game ID','Tap your name, then Game UID & name, and add your Free Fire UID and in-game name so we can see who played.'],
-  ['Join an event','Open Events and tap Join. Free events take a free card or 15 points. Paid events take points, which you load in your Wallet. 1 point = Rs 1.'],
-  ['Confirm you\'re playing','After joining, tap Confirm you\'re playing on your ticket. It opens 48 hours before the start, and squads not confirmed 24 hours before the start are removed.'],
-  ['Get the room code','The Room ID and password come about 5 minutes before the start, in Alerts and on your ticket. Turn on notifications so you don\'t miss them.'],
-  ['Win prizes','JD events pay 50% to 1st, 30% to 2nd and 20% to 3rd, straight into your wallet. Events marked Hosted by @name are run by a partner host, who pays their prize directly.'],
-  ['Need help?','Open Messages and write to JD Esports. ZULU replies right away, and a team member steps in for bigger problems.']],
- ne:[['JD Arena मा स्वागत छ','साँचो पुरस्कार भएका Free Fire tournament हरू। एक मिनेटमै बुझ्नुहोस् कसरी चल्छ।'],
-  ['Game ID राख्नुहोस्','आफ्नो नाममा थिच्नुहोस्, अनि Game UID & name मा Free Fire UID र in-game name राख्नुहोस्। यसले को खेल्यो भनेर हेर्न मिल्छ।'],
-  ['Event मा join गर्नुहोस्','Events खोलेर Join थिच्नुहोस्। Free event मा free card वा 15 points लाग्छ। Paid event मा points लाग्छ, जुन Wallet बाट load गर्न सकिन्छ। 1 point = Rs 1.'],
-  ['खेल्ने पक्का गर्नुहोस्','Join गरेपछि ticket मा Confirm you\'re playing थिच्नुहोस्। यो सुरु हुनुभन्दा 48 घण्टा अगाडि खुल्छ, र 24 घण्टा अगाडिसम्म confirm नगर्ने squad हटाइन्छ।'],
-  ['Room code पाउनुहोस्','Room ID र password सुरु हुनुभन्दा करिब 5 मिनेट अगाडि Alerts र ticket मा आउँछ। नछुटोस् भनेर notification खोल्नुहोस्।'],
-  ['पुरस्कार जित्नुहोस्','JD event मा 1st लाई 50%, 2nd लाई 30% र 3rd लाई 20% सिधै wallet मा आउँछ। Hosted by @name लेखिएको event partner host ले चलाउँछन्, र पुरस्कार उनीहरूले नै सिधै दिन्छन्।'],
-  ['मद्दत चाहियो?','Messages खोलेर JD Esports लाई लेख्नुहोस्। ZULU ले तुरुन्तै जवाफ दिन्छ, र ठूलो समस्यामा team member आउँछन्।']]
+ en:[['👋 Welcome to JD Arena','Free Fire tournaments with real prizes. Here is how it works in under a minute.'],
+  ['🎮 Add your game ID','Tap your name, then Game UID & name, and add your Free Fire UID and in-game name so we can see who played.'],
+  ['🏆 Join an event','Open Events and tap Join. Free events take a free card or 15 points. Paid events take points, which you load in your Wallet. 1 point = Rs 1.'],
+  ['✅ Confirm you\'re playing','After joining, tap Confirm you\'re playing on your ticket. It opens 48 hours before the start, and squads not confirmed 24 hours before the start are removed.'],
+  ['🔑 Get the room code','The Room ID and password come about 5 minutes before the start, in Alerts and on your ticket. Turn on notifications so you don\'t miss them.'],
+  ['💰 Win prizes','JD events pay 50% to 1st, 30% to 2nd and 20% to 3rd, straight into your wallet. Events marked Hosted by @name are run by a partner host, who pays their prize directly.'],
+  ['💬 Need help?','Open Messages and write to JD Esports. ZULU replies right away, and a team member steps in for bigger problems.']],
+ ne:[['👋 JD Arena मा स्वागत छ','साँचो पुरस्कार भएका Free Fire tournament हरू। एक मिनेटमै बुझ्नुहोस् कसरी चल्छ।'],
+  ['🎮 Game ID राख्नुहोस्','आफ्नो नाममा थिच्नुहोस्, अनि Game UID & name मा Free Fire UID र in-game name राख्नुहोस्। यसले को खेल्यो भनेर हेर्न मिल्छ।'],
+  ['🏆 Event मा join गर्नुहोस्','Events खोलेर Join थिच्नुहोस्। Free event मा free card वा 15 points लाग्छ। Paid event मा points लाग्छ, जुन Wallet बाट load गर्न सकिन्छ। 1 point = Rs 1.'],
+  ['✅ खेल्ने पक्का गर्नुहोस्','Join गरेपछि ticket मा Confirm you\'re playing थिच्नुहोस्। यो सुरु हुनुभन्दा 48 घण्टा अगाडि खुल्छ, र 24 घण्टा अगाडिसम्म confirm नगर्ने squad हटाइन्छ।'],
+  ['🔑 Room code पाउनुहोस्','Room ID र password सुरु हुनुभन्दा करिब 5 मिनेट अगाडि Alerts र ticket मा आउँछ। नछुटोस् भनेर notification खोल्नुहोस्।'],
+  ['💰 पुरस्कार जित्नुहोस्','JD event मा 1st लाई 50%, 2nd लाई 30% र 3rd लाई 20% सिधै wallet मा आउँछ। Hosted by @name लेखिएको event partner host ले चलाउँछन्, र पुरस्कार उनीहरूले नै सिधै दिन्छन्।'],
+  ['💬 मद्दत चाहियो?','Messages खोलेर JD Esports लाई लेख्नुहोस्। ZULU ले तुरुन्तै जवाफ दिन्छ, र ठूलो समस्यामा team member आउँछन्।']]
 };
 async function jdTour(){
   lsSet('jd_tour_v1','1');
@@ -1594,7 +1592,7 @@ function jdTourFirst(user){   // waits for the terms box, the game ID box and th
 }
 if(location.pathname==='/'&&location.hash==='#tour')setTimeout(jdTour,1200);
 /* App perks: the first time a signed-in player opens the installed app, claim_app_perks()
-   (schema.sql) gives a free 7-day Lite effect, the badge and early access — once per
+   (schema.sql) gives a free 7-day Lite effect, the 📱 badge and early access — once per
    account. Then ask for push alerts, the main reason the app is required on phones. */
 async function claimAppPerks(){
   if(!sb||!_player||_player.app||!_player.termsAccepted||!isStandaloneApp())return; // after the terms box, never on top of it
@@ -1604,8 +1602,8 @@ async function claimAppPerks(){
   if(data&&data.new){
     loadMyRegs(); // picks up the new pass
     const push=pushSupported()&&pushPerm()!=='granted';
-    const ok=await confirmBox('Welcome to the app!',
-      'Your free 7-day Lite squad effect (Glow) is on, your username now has the badge, and you can join marked events 24 hours early.'+(push?'\n\nTurn on notifications so you get room IDs and check-in alerts the moment they are sent.':''),
+    const ok=await confirmBox('📱 Welcome to the app!',
+      'Your free 7-day Lite squad effect (Glow) is on, your username now has the 📱 badge, and you can join marked events 24 hours early.'+(push?'\n\nTurn on notifications so you get room IDs and check-in alerts the moment they are sent.':''),
       push?'Turn on notifications':'Nice!',push?'Later':'Close');
     if(ok&&push)enablePush();
   }
@@ -1645,8 +1643,8 @@ async function loadStreak(checkin){
   const {data,error}=await sb.rpc(checkin?'daily_checkin':'my_streak');
   if(error||!data){box.hidden=true;return;}
   const n=data.streak||0,done=!!data.checked_today,week=n%7||(n?7:0);
-  const title=done?(n===1?'Day 1 – streak started!':`${n}-day streak`):n?`${n}-day streak – check in to keep it`:'Start your daily streak';
-  box.innerHTML=`<span class="fl" aria-hidden="true">${done?'<i class=ji-flame aria-hidden=true></i>':'<i class=ji-flame aria-hidden=true></i>'}</span><span class="tx"><b>${esc(title)}</b>`+
+  const title=done?(n===1?'Day 1 – streak started!':`${n}-day streak 🔥`):n?`${n}-day streak – check in to keep it`:'Start your daily streak';
+  box.innerHTML=`<span class="fl" aria-hidden="true">${done?'🔥':'🕯️'}</span><span class="tx"><b>${esc(title)}</b>`+
     `<small>Best ${data.best||0} day${data.best===1?'':'s'} · ${data.total||0} check-in${data.total===1?'':'s'}${n>=7?' · '+Math.floor(n/7)+' full week'+(n>=14?'s':''):''}</small>`+
     `<span class="days" aria-label="${week} of 7 days this week">${Array.from({length:7},(_,i)=>`<i class="${i<week?'on':''}"></i>`).join('')}</span></span>`+
     `<button type="button" id="streak-btn"${done?' disabled':''}>${done?'Checked in ✓':'Check in'}</button>`;
@@ -1730,7 +1728,7 @@ function updateAcctBtn(){
   if(_player){
     if(su)su.style.display='none';
     ac.classList.add('acct-btn-signed');
-    ac.innerHTML=`<img class="acct-avatar-mini" src="${esc(_player.avatar||'/logo.webp')}" alt="">${esc(_player.username||'Account')}${_player.app?' <span class="app-badge" title="JD Arena app user"><i class=ji-phone aria-hidden=true></i></span>':''}`;
+    ac.innerHTML=`<img class="acct-avatar-mini" src="${esc(_player.avatar||'/logo.webp')}" alt="">${esc(_player.username||'Account')}${_player.app?' <span class="app-badge" title="JD Arena app user">📱</span>':''}`;
     ac.onclick=()=>{location.href='/profile/';}; // profile has its own page; account settings stay reachable via /?account=1
     const adb=document.getElementById('admin-btn');
     if(adb)adb.style.display=(window.JDApp||/JDArenaApp\//.test(navigator.userAgent)||JD_TWA)&&(_player.email||'').toLowerCase()==='ayerprabin95@gmail.com'?'':'none';
@@ -1824,8 +1822,8 @@ const PAY_SCREENSHOT_MAX_PX=640;
 function wlDeposit(t){if(!t||t.mega)return 0;const e=isPaidTournament(t)?entryAmount(t):(t.host?15:0);return e?Math.ceil(e/2):0;}
 async function wlAsk(t,dep){
   const need=isPaidTournament(t)?entryAmount(t):dep;   // paid events: the server wants the whole entry ready, half now and half when a slot opens
-  if(!canAfford(need)){confirmBox('Load points to join',need>dep?`You need the full ${need} points ready to join this waitlist: ${dep} now and the rest when a slot opens. You have ${walletLabel()}.`:`The waitlist costs ${dep} points and you have ${walletLabel()}.`,'Load points','Later').then(ok=>{if(ok)goWallet('load');});return false;}
-  const ok=await confirmBox('This event is full',`Join the waitlist for ${dep} points, half the entry.\n\nIf a slot opens, you move up automatically and the rest of the entry is taken from your wallet.\n\nIf no slot opens, or you leave the waitlist, all ${dep} points come back.`,`Pay ${dep} points`,'Not now');
+  if(!canAfford(need)){confirmBox('🪙 Load points to join',need>dep?`You need the full ${need} points ready to join this waitlist: ${dep} now and the rest when a slot opens. You have ${walletLabel()}.`:`The waitlist costs ${dep} points and you have ${walletLabel()}.`,'Load points','Later').then(ok=>{if(ok)goWallet('load');});return false;}
+  const ok=await confirmBox('⏳ This event is full',`Join the waitlist for ${dep} points, half the entry.\n\nIf a slot opens, you move up automatically and the rest of the entry is taken from your wallet.\n\nIf no slot opens, or you leave the waitlist, all ${dep} points come back.`,`Pay ${dep} points`,'Not now');
   if(ok)_regWlDep=dep;return ok;
 }
 function isPaidTournament(t){const e=String((t&&t.entry)||'').trim().toLowerCase();return !!e&&e!=='free';}
@@ -1870,15 +1868,15 @@ async function registerInApp(name){
   /* no points, no registration: straight to Load points (the server refuses it too - register_for_tournament) */
   if(paid&&!canAfford(entryAmount(t))&&!vFit(entryAmount(t))){
     const need=entryAmount(t)-(+_wallet||0);
-    confirmBox('Load points to join',`${name} costs ${entryAmount(t)} points to join. You have ${walletLabel()} - load ${need} more points, then come back and join in one tap.`,'Load points','Later')
+    confirmBox('🪙 Load points to join',`${name} costs ${entryAmount(t)} points to join. You have ${walletLabel()} - load ${need} more points, then come back and join in one tap.`,'Load points','Later')
       .then(ok=>{if(ok)goWallet('load');});
     return;
   }
   _regPayPts=false;_regWlDep=0;
   if(full&&wlDeposit(t)&&!_myRegs.has(name)&&(paid||_freeOk!==true)&&!(await wlAsk(t,wlDeposit(t))))return;
   if(!paid&&!full&&!_myRegs.has(name)&&_freeOk===false){
-    if(!await confirmBox('Join this free tournament',`Pick one:\n\nPay 15 points and join now. You get them back if you withdraw 24 hours or more before the start.\n\nOr get a free card: follow @ayer_fire, then comment on and repost 3 of our videos with your JD username in each comment (one time only). After that, make a video about JD Arena for each new card. A mod checks it, then your card joins one free tournament.`,'Pay 15 points','Get a free card')){location.href='/wallet/#promo';return;}
-    if(!canAfford(15)){confirmBox('Load points to join',`You need 15 points and you have ${walletLabel()}.`,'Load points','Later').then(ok=>{if(ok)goWallet('load');});return;}
+    if(!await confirmBox('🎟️ Join this free tournament',`Pick one:\n\n🪙 Pay 15 points and join now. You get them back if you withdraw 24 hours or more before the start.\n\n🎟️ Or get a free card: follow @ayer_fire, then comment on and repost 3 of our videos with your JD username in each comment (one time only). After that, make a video about JD Arena for each new card. A mod checks it, then your card joins one free tournament.`,'Pay 15 points','Get a free card')){location.href='/wallet/#promo';return;}
+    if(!canAfford(15)){confirmBox('🪙 Load points to join',`You need 15 points and you have ${walletLabel()}.`,'Load points','Later').then(ok=>{if(ok)goWallet('load');});return;}
     _regPayPts=true;
   }
   /* free events: 3 rewarded ads first when the ad gate is on (ads.js + ad_gate.sql; Weekly Pass skips it) */
@@ -1897,7 +1895,7 @@ async function registerInApp(name){
   regQuickSetup(false);
   myContact().then(()=>{if(_regTarget===name)regQuickSetup(true);});
   const pp=document.getElementById('reg-pay-price');if(pp)pp.textContent='Entry '+(t.entry||'');
-  const ps=document.getElementById('reg-pay-steps');if(ps){const pr=entryAmount(t);ps.innerHTML=paid&&vFit(pr)?`<label class="pts-line" style="font-size:.82rem;color:var(--body);display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="reg-use-v" checked${canAfford(pr)?'':' disabled'} style="width:auto">Use a free-entry card <span style="color:var(--muted)">(${vFit(pr)} fit${canAfford(pr)?' · untick to pay '+pr+' points':''})</span></label>`:paid?`<div class="pts-line" style="font-size:.8rem;color:var(--body)">Entry <b style="color:var(--gold-l)">${pr} points</b> · You have <b style="color:var(--gold-l)">${walletLabel()}</b>${canAfford(pr)?' — paid automatically when you register.':''}</div>`+(!canAfford(pr)?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="goWallet('load')">Load points (need ${pr-_wallet} more)</button>`:''):'';}
+  const ps=document.getElementById('reg-pay-steps');if(ps){const pr=entryAmount(t);ps.innerHTML=paid&&vFit(pr)?`<label class="pts-line" style="font-size:.82rem;color:var(--body);display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="reg-use-v" checked${canAfford(pr)?'':' disabled'} style="width:auto">🎟️ Use a free-entry card <span style="color:var(--muted)">(${vFit(pr)} fit${canAfford(pr)?' · untick to pay '+pr+' points':''})</span></label>`:paid?`<div class="pts-line" style="font-size:.8rem;color:var(--body)">Entry <b style="color:var(--gold-l)">${pr} points</b> · You have <b style="color:var(--gold-l)">${walletLabel()}</b>${canAfford(pr)?' — paid automatically when you register.':''}</div>`+(!canAfford(pr)?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="goWallet('load')">➕ Load points (need ${pr-_wallet} more)</button>`:''):'';}
   const payNote=document.getElementById('reg-pay-note');if(payNote)payNote.textContent='The entry is paid from your points when you register.';
   const rok=document.getElementById('reg-rules-ok');if(rok)rok.checked=false;
   // squads that registered and didn't show up before get a final warning (they can still join)
@@ -1990,13 +1988,13 @@ function regQuickSetup(loaded){
   if(loaded&&c.whatsapp){regWaSet(c.whatsapp);const fg=document.getElementById('reg-wa-forget');if(fg)fg.hidden=false;}
   if(loaded&&c.device_type){const dv=document.getElementById('reg-device');if(dv)dv.value=c.device_type;}
   if(q)q.hidden=!quick;if(a)a.hidden=quick;if(b)b.hidden=quick;
-  const sbt=document.getElementById('reg-submit');if(sbt)sbt.textContent=quick?'Confirm & join':'Register';
+  const sbt=document.getElementById('reg-submit');if(sbt)sbt.textContent=quick?'✅ Confirm & join':'Register';
   if(!quick)return;
   const av=document.getElementById('rq-av');
   if(av)av.innerHTML=_player.squad_logo?`<img src="${esc(_player.squad_logo)}" alt="">`:esc(name.trim()[0].toUpperCase());
   document.getElementById('rq-name').textContent=name;
-  const dv=(document.getElementById('reg-device')||{}).value==='emulator'?'Emulator':'Mobile';
-  document.getElementById('rq-meta').textContent=dv+' ·'+regWaMask(c.whatsapp);
+  const dv=(document.getElementById('reg-device')||{}).value==='emulator'?'🖥️ Emulator':'📱 Mobile';
+  document.getElementById('rq-meta').textContent=dv+' · 💬 '+regWaMask(c.whatsapp);
 }
 function regQuickEdit(){
   document.getElementById('reg-quick').hidden=true;
@@ -2104,7 +2102,7 @@ async function submitRegister(){
   // a squad that verified before gets its saved line-up copied in (squad_verify_saved.sql): only ask the others
   if(reg&&reg.id)sb.from('registrations').select('lineup, lineup_at').eq('id',reg.id).maybeSingle().then(({data:lu})=>{
     const r=_myRegs.get(name);if(r&&lu&&lu.lineup){r.lineup=lu.lineup;r.lineup_at=lu.lineup_at;renderCur();return;}
-    const n=document.getElementById('rs-note');if(n)n.innerHTML+=`<br><br><b>Next: verify your squad.</b> Add your real squad name and your 4 players' Free Fire names + UIDs so everyone knows who's playing.<br><button type="button" class="inapp-reg mt-sqv-btn" style="margin-top:10px" onclick="regSuccessClose();sqvOpen(${esc(JSON.stringify(name))})">Verify your squad now</button>`;});
+    const n=document.getElementById('rs-note');if(n)n.innerHTML+=`<br><br><b>🛡️ Next: verify your squad.</b> Add your real squad name and your 4 players' Free Fire names + UIDs so everyone knows who's playing.<br><button type="button" class="inapp-reg mt-sqv-btn" style="margin-top:10px" onclick="regSuccessClose();sqvOpen(${esc(JSON.stringify(name))})">🛡️ Verify your squad now</button>`;});
   if(codeErr){const n=document.getElementById('rs-note');if(n)n.innerHTML+=`<br><br><b>Payment not completed:</b> ${esc(codeErr)} Your place is held — you can pay from your ticket.`;}
   renderCur();
   loadPublicRoster(); // pulls the new registration into the public count/roster right away instead of waiting for the 45s poll
@@ -2115,9 +2113,9 @@ async function submitRegister(){
 // players a line-up needs, and how many subs: solo 1 + 0, duo 2 + 1, squad 4 + 2 (same limits in verify_my_squad)
 function teamSize(t){const m=String(t&&t.mode||'').toLowerCase();return m==='solo'?[1,0]:m==='duo'?[2,1]:[4,2];}
 function sqvTicketHtml(t,r){
-  if(!r||!r.id||_roomCodes.has(t.name))return r&&r.lineup_at?`<div class="mt-next"><b>Squad verified</b> · ${(r.lineup||[]).length} players</div>`:'';
-  if(r.lineup_at)return `<div class="mt-next"><b>Squad verified</b> · ${(r.lineup||[]).map(m=>esc(m.name)).join(', ')} <button type="button" class="link" data-sqv="${esc(t.name)}" style="background:none;border:none;color:var(--gold-l);text-decoration:underline;cursor:pointer;font:inherit">Edit</button></div>`;
-  return `<button type="button" class="inapp-reg mt-checkin mt-sqv-btn" data-sqv="${esc(t.name)}">Verify your squad</button><div class="mt-next warn">Add your real ${teamSize(t)[0]===1?'player':'team'} name and ${teamSize(t)[0]===1?'your':'your '+teamSize(t)[0]+' players\''} Free Fire name${teamSize(t)[0]===1?'':'s'} + UID${teamSize(t)[0]===1?'':'s'}. Random names like "abc" or "test" aren't accepted.</div>`;
+  if(!r||!r.id||_roomCodes.has(t.name))return r&&r.lineup_at?`<div class="mt-next">🛡️ <b>Squad verified</b> · ${(r.lineup||[]).length} players</div>`:'';
+  if(r.lineup_at)return `<div class="mt-next">🛡️ <b>Squad verified</b> · ${(r.lineup||[]).map(m=>esc(m.name)).join(', ')} <button type="button" class="link" data-sqv="${esc(t.name)}" style="background:none;border:none;color:var(--gold-l);text-decoration:underline;cursor:pointer;font:inherit">Edit</button></div>`;
+  return `<button type="button" class="inapp-reg mt-checkin mt-sqv-btn" data-sqv="${esc(t.name)}">🛡️ Verify your squad</button><div class="mt-next warn">Add your real ${teamSize(t)[0]===1?'player':'team'} name and ${teamSize(t)[0]===1?'your':'your '+teamSize(t)[0]+' players\''} Free Fire name${teamSize(t)[0]===1?'':'s'} + UID${teamSize(t)[0]===1?'':'s'}. Random names like "abc" or "test" aren't accepted.</div>`;
 }
 function sqvEnsure(){
   if(document.getElementById('sqv-overlay'))return;
@@ -2125,13 +2123,13 @@ function sqvEnsure(){
   d.className='zoverlay';d.id='sqv-overlay';
   d.onclick=e=>{if(e.target===d)sqvClose();};
   d.innerHTML=`<div class="zmodal" style="max-width:440px"><button class="fb-x" style="position:absolute;top:12px;right:14px" onclick="sqvClose()" aria-label="close">×</button>
-    <div class="reg-hero"><span class="reg-hero-eye">Verify your squad</span><h3 id="sqv-tname"></h3></div>
+    <div class="reg-hero"><span class="reg-hero-eye">🛡️ Verify your squad</span><h3 id="sqv-tname"></h3></div>
     <p class="sub" style="margin:0">Use the name your squad really plays under and the exact in-game names and UIDs (Free Fire &gt; your profile &gt; UID). The admin checks the room against this line-up.</p>
     <label>Squad name <span style="color:var(--gold-l)">*</span></label>
     <input id="sqv-squad" maxlength="30" placeholder="Your real squad name">
     <div id="sqv-rows"></div>
     <div class="msg" id="sqv-msg"></div>
-    <button type="button" class="btn-primary" id="sqv-save" style="margin-top:14px;width:100%" onclick="sqvSave()">Verify squad</button></div>`;
+    <button type="button" class="btn-primary" id="sqv-save" style="margin-top:14px;width:100%" onclick="sqvSave()">✅ Verify squad</button></div>`;
   document.body.appendChild(d);
 }
 let _sqvTarget=null,_sqvNeed=4;
@@ -2213,7 +2211,7 @@ function calFold(l){let o='';while(l.length>60){o+=l.slice(0,60)+'\r\n ';l=l.sli
 function calBtnHtml(t){
   const c=calTimes(t);if(!c||c.start<Date.now())return '';
   const g='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent('JD Arena: '+t.name)+'&dates='+calStamp(c.start)+'/'+calStamp(c.end)+'&details='+encodeURIComponent('Free Fire tournament on JD Esports Arena. Your Room ID and password appear on your ticket at https://jdesport.co.uk about 5 minutes before the start.')+'&location='+encodeURIComponent('https://jdesport.co.uk');
-  return `<div class="mt-cal"><button type="button" class="mt-cal-btn" data-cal="${esc(t.name)}">Add to calendar</button><a class="mt-cal-g" data-gcal href="${esc(g)}" target="_blank" rel="noopener">Google Calendar</a></div>`;
+  return `<div class="mt-cal"><button type="button" class="mt-cal-btn" data-cal="${esc(t.name)}">📅 Add to calendar</button><a class="mt-cal-g" data-gcal href="${esc(g)}" target="_blank" rel="noopener">Google Calendar</a></div>`;
 }
 function calAdd(name){
   const t=((_lastData||ARENA_SAMPLE).tournaments||[]).find(x=>x.name===name),c=calTimes(t);
@@ -2300,37 +2298,37 @@ function matchTicketHtml(t,r){
   if(rc){
     next=`<div class="mt-room"><div class="mt-room-h"><span class="mt-live-dot"></span>Room is open — join now</div><div class="mt-room-row"><button type="button" class="mt-copy" data-copy="${esc(rc.room_id)}"><span>Room ID</span><b>${esc(rc.room_id)}</b><em>Tap to copy</em></button>${rc.room_pass?`<button type="button" class="mt-copy" data-copy="${esc(rc.room_pass)}"><span>Password</span><b>${esc(rc.room_pass)}</b><em>Tap to copy</em></button>`:''}</div></div>`;
   }else if(CONFIRM_REQUIRED&&!checked&&!confirmWindowOpen(t)&&lateUp(t,r)){
-    next=`<button class="inapp-reg mt-checkin" data-confirm="${esc(t.name)}">Confirm you're playing</button><div class="mt-next warn">${r.promoted_at?'You got this slot from the waitlist':'You joined after the main deadline'}. Confirm now so the slot stays yours.</div>`;
+    next=`<button class="inapp-reg mt-checkin" data-confirm="${esc(t.name)}">✅ Confirm you're playing</button><div class="mt-next warn">🎟 ${r.promoted_at?'You got this slot from the waitlist':'You joined after the main deadline'}. Confirm now so the slot stays yours.</div>`;
   }else if(CONFIRM_REQUIRED&&!checked&&confirmWindowOpen(t)){
     const dl=confirmDeadline(t);
-    next=`<button class="inapp-reg mt-checkin" data-confirm="${esc(t.name)}">Confirm you're playing</button><div class="mt-next warn">Confirm${dl?` by <b>${esc(dl)}</b>`:''} (24h before start) or your seat is given to another squad. We need real players!</div>`;
+    next=`<button class="inapp-reg mt-checkin" data-confirm="${esc(t.name)}">✅ Confirm you're playing</button><div class="mt-next warn">Confirm${dl?` by <b>${esc(dl)}</b>`:''} (24h before start) or your seat is given to another squad. We need real players!</div>`;
   }else if(CONFIRM_REQUIRED&&!checked&&confirmBeforeWindow(t)){
     const op=confirmOpensAt(t);
-    next=`<div class="mt-next">Confirmation opens 48 hours before start${op?` (<b>${esc(op)}</b>)`:''} — we'll remind you. Confirm then, or your seat is released.</div>`;
+    next=`<div class="mt-next">⏰ Confirmation opens 48 hours before start${op?` (<b>${esc(op)}</b>)`:''} — we'll remind you. Confirm then, or your seat is released.</div>`;
   }else if(CONFIRM_REQUIRED&&!checked){
-    next=`<div class="mt-next warn">Confirmation has closed (24h before start). If you didn't confirm, your seat may be released to another squad.</div>`;
+    next=`<div class="mt-next warn">⚠️ Confirmation has closed (24h before start). If you didn't confirm, your seat may be released to another squad.</div>`;
   }else if(checked||!CHECKIN_REQUIRED){
-    next=`<div class="mt-next">Your Room ID and password will appear here about 5 minutes before the match starts.</div>`;
+    next=`<div class="mt-next">🔑 Your Room ID and password will appear here about 5 minutes before the match starts.</div>`;
   }else if(win){
-    next=`<button class="inapp-reg mt-checkin" data-checkin="${esc(t.name)}">Check in now</button><div class="mt-next warn">Check in at least 10 minutes before the start, otherwise your slot is released to the waitlist.</div>`;
+    next=`<button class="inapp-reg mt-checkin" data-checkin="${esc(t.name)}">✅ Check in now</button><div class="mt-next warn">Check in at least 10 minutes before the start, otherwise your slot is released to the waitlist.</div>`;
   }else{
     const startMs=Date.parse(t.start);
     const opens=isNaN(startMs)?'':new Date(startMs-CHECKIN_WINDOW_MS).toLocaleString([],{weekday:'short',hour:'2-digit',minute:'2-digit'});
-    next=`<div class="mt-next">Check-in opens 12 hours before start${opens?` (<b>${esc(opens)}</b>)`:''} — we will send you a reminder.</div>`;
+    next=`<div class="mt-next">⏰ Check-in opens 12 hours before start${opens?` (<b>${esc(opens)}</b>)`:''} — we will send you a reminder.</div>`;
   }
   const logo=r.squad_logo?`<img class="mt-logo" src="${esc(r.squad_logo)}" alt="">`:`<span class="mt-logo mt-logo-empty">${esc((r.squad_name||'?').trim().charAt(0).toUpperCase()||'?')}</span>`;
-  return `<div class="mt"><div class="mt-head">${logo}<div class="mt-squad"><b>${esc(r.squad_name||'Your squad')}</b><small>${checked?'Confirmed ✓':(CONFIRM_REQUIRED?'Confirm needed':'You\'re in')}${r.verified_at?' · <span class="mt-ver">Verified</span>':''}</small></div><button type="button" class="mt-code" data-copy="${esc(code)}" title="Tap to copy your ticket code">${esc(code)}</button></div><ol class="mt-steps">${stepHtml}</ol>${slot}${sqvTicketHtml(t,r)}${next}${calBtnHtml(t)}${fxTicketHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}</div>`;
+  return `<div class="mt"><div class="mt-head">${logo}<div class="mt-squad"><b>${esc(r.squad_name||'Your squad')}</b><small>${checked?'Confirmed ✓':(CONFIRM_REQUIRED?'Confirm needed':'You\'re in')}${r.verified_at?' · <span class="mt-ver">✅ Verified</span>':''}</small></div><button type="button" class="mt-code" data-copy="${esc(code)}" title="Tap to copy your ticket code">🎫 ${esc(code)}</button></div><ol class="mt-steps">${stepHtml}</ol>${slot}${sqvTicketHtml(t,r)}${next}${calBtnHtml(t)}${fxTicketHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}</div>`;
 }
 function fxTicketHtml(t,r){
   const own=SQUAD_FX[r.effect],pass=fxPassNow(),pk=pass&&SQUAD_FX[pass.effect];
-  if(own)return `<div class="mt-fx on">${esc(own.tag)} effect active for this tournament</div>`;
-  if(pk)return `<div class="mt-fx on">${esc(pk.tag)} · ${pass.tier==='pro'?'Pro':'Lite'} pass until ${esc(fxDate(_myPassEnd||pass.expires_at))} <button type="button" class="link" data-fx-buy="${esc(t.name)}" style="margin-left:6px;background:none;border:none;color:var(--gold-l);text-decoration:underline;cursor:pointer;font:inherit">Change</button></div>`;
+  if(own)return `<div class="mt-fx on">✨ ${esc(own.tag)} effect active for this tournament</div>`;
+  if(pk)return `<div class="mt-fx on">✨ ${esc(pk.tag)} · ${pass.tier==='pro'?'Pro':'Lite'} pass until ${esc(fxDate(_myPassEnd||pass.expires_at))} <button type="button" class="link" data-fx-buy="${esc(t.name)}" style="margin-left:6px;background:none;border:none;color:var(--gold-l);text-decoration:underline;cursor:pointer;font:inherit">Change</button></div>`;
   if(!canWithdraw(t))return '';
-  return `<button type="button" class="mt-fx-buy" data-fx-buy="${esc(t.name)}">Squad effects · from Rs 2</button>`;
+  return `<button type="button" class="mt-fx-buy" data-fx-buy="${esc(t.name)}">✨ Squad effects · from Rs 2</button>`;
 }
 function entryCodeBoxHtml(t,r){
   const price=entryAmount(t);
-  return `<div class="mt-codebox"><p><b>Place held.</b> Pay the entry from your points to confirm your slot.</p>${vFit(price)?`<button type="button" class="pts-btn" data-v-entry="${esc(t.name)}" style="margin-bottom:8px">Use a free-entry card (${vFit(price)} fit)</button>`:''}${ptsPayHtml(price,'Entry',`data-pts-entry="${esc(t.name)}"`)}</div>`;
+  return `<div class="mt-codebox"><p>⏳ <b>Place held.</b> Pay the entry from your points to confirm your slot.</p>${vFit(price)?`<button type="button" class="pts-btn" data-v-entry="${esc(t.name)}" style="margin-bottom:8px">🎟️ Use a free-entry card (${vFit(price)} fit)</button>`:''}${ptsPayHtml(price,'Entry',`data-pts-entry="${esc(t.name)}"`)}</div>`;
 }
 async function payEntryWithVoucher(name){
   const ok=await confirmBox('Use a free entry?',`One free-entry voucher confirms your squad for ${name}. If you withdraw before the start, the voucher comes back.`,'Use free entry','Cancel');
@@ -2366,14 +2364,14 @@ function inAppRegBtn(t,st,full){if(t&&t.parent)return '';
   if(!sb)return '';
   if(_myRegs.has(t.name)){
     const r=_myRegs.get(t.name);
-    if(r.status==='waitlisted')return `<div class="inapp-reg-done pending"><span>Waitlisted${r.squad_name?' as '+esc(r.squad_name):''}${wlDeposit(t)?" — we'll move you up automatically if a slot opens":''} · Ticket ${esc(regTicketCode(r))}</span></div>${wlDeposit(t)?'':`<button type="button" class="pts-btn" data-wbuy="${esc(t.name)}">Pay 20 points for a place</button>`}${r.wpos?`<div class="mt-wpos"><b>${r.wpos===1?"You're next in line":'#'+r.wpos+' in line'}</b><span>${r.wtotal} squad${r.wtotal===1?'':'s'} waiting${r.wpro?' · your Pro pass puts you ahead':' · Pro pass holders move up first'}. Squads that don't confirm lose their slot, so keep alerts on.</span></div>`:''}${sqvTicketHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
+    if(r.status==='waitlisted')return `<div class="inapp-reg-done pending"><span>🕒 Waitlisted${r.squad_name?' as '+esc(r.squad_name):''}${wlDeposit(t)?" — we'll move you up automatically if a slot opens":''} · Ticket ${esc(regTicketCode(r))}</span></div>${wlDeposit(t)?'':`<button type="button" class="pts-btn" data-wbuy="${esc(t.name)}">🎟 Pay 20 points for a place</button>`}${r.wpos?`<div class="mt-wpos"><b>${r.wpos===1?"You're next in line":'#'+r.wpos+' in line'}</b><span>${r.wtotal} squad${r.wtotal===1?'':'s'} waiting${r.wpro?' · ⭐ your Pro pass puts you ahead':' · Pro pass holders move up first'}. Squads that don't confirm lose their slot, so keep alerts on.</span></div>`:''}${sqvTicketHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
     if(r.status==='pending')return `<div class="inapp-reg-done pending">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>${r.squad_name?esc(r.squad_name)+' · ':''}Ticket ${esc(regTicketCode(r))}</span></div>${entryCodeBoxHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
     if(r.status==='rejected')return `<div class="inapp-reg-done rejected"><span>✕ Payment could not be verified — please contact the organiser on Discord</span></div>`;
     if(r.status==='no_show')return `<div class="inapp-reg-done rejected"><span>✕ Check-in was missed, so this slot was released</span></div>`;
     if(r.status==='confirmed'||r.status==='approved'||!r.status)return matchTicketHtml(t,r);
-    if(r.checked_in_at)return `<div class="inapp-reg-done">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>✓ Checked in${r.squad_name?' as '+esc(r.squad_name):''} — see you there! · Ticket ${esc(regTicketCode(r))}</span>${r.verified_at?'<span class="reg-verified">Verified</span>':''}</div>`;
-    if(checkinWindowOpen(t))return `<button class="inapp-reg" data-checkin="${esc(t.name)}">Check In Now</button>`;
-    return `<div class="inapp-reg-done">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>✓ Registered${r.squad_name?' as '+esc(r.squad_name):''} — Ticket ${esc(regTicketCode(r))} · room details will be sent to Notification History</span>${r.verified_at?'<span class="reg-verified">Verified</span>':''}</div>`;
+    if(r.checked_in_at)return `<div class="inapp-reg-done">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>✓ Checked in${r.squad_name?' as '+esc(r.squad_name):''} — see you there! · Ticket ${esc(regTicketCode(r))}</span>${r.verified_at?'<span class="reg-verified">✅ Verified</span>':''}</div>`;
+    if(checkinWindowOpen(t))return `<button class="inapp-reg" data-checkin="${esc(t.name)}">✅ Check In Now</button>`;
+    return `<div class="inapp-reg-done">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>✓ Registered${r.squad_name?' as '+esc(r.squad_name):''} — Ticket ${esc(regTicketCode(r))} · room details will be sent to Notification History</span>${r.verified_at?'<span class="reg-verified">✅ Verified</span>':''}</div>`;
   }
   // Paid tournaments still have no waitlist (see registerInApp's early gate) — only free
   // ones show "Join Waitlist" here; the button still opens the normal registration modal,
@@ -2381,9 +2379,9 @@ function inAppRegBtn(t,st,full){if(t&&t.parent)return '';
   // Early access (admin: early_access + reg_opens): app users can join 24h before reg_opens;
   // register_for_tournament() enforces the same window server-side.
   const ea=earlyAccess(t);
-  if(ea==='closed')return `<button class="inapp-reg" disabled>Opens ${esc(fmtOpen(t.reg_opens))}</button><div class="ea-note">App users can join 24 hours earlier</div>`;
-  if(ea==='app-only'&&!(_player&&_player.app))return `<button class="inapp-reg" disabled>App early access until ${esc(fmtOpen(t.reg_opens))}</button><div class="ea-note">Install the JD Arena app on your phone to join now</div>`;
-  if(ea==='app-only')return `<button class="inapp-reg" data-reg="${esc(t.name)}">Join early (app)</button>`;
+  if(ea==='closed')return `<button class="inapp-reg" disabled>Opens ${esc(fmtOpen(t.reg_opens))}</button><div class="ea-note">⚡ App users can join 24 hours earlier</div>`;
+  if(ea==='app-only'&&!(_player&&_player.app))return `<button class="inapp-reg" disabled>📱 App early access until ${esc(fmtOpen(t.reg_opens))}</button><div class="ea-note">Install the JD Arena app on your phone to join now</div>`;
+  if(ea==='app-only')return `<button class="inapp-reg" data-reg="${esc(t.name)}">⚡ Join early (app)</button>`;
   if(full)return isPaidTournament(t)&&!wlDeposit(t)?`<button class="inapp-reg" disabled>Squads full</button>`:`<button class="inapp-reg" data-reg="${esc(t.name)}">Join Waitlist</button>`;
   return `<button class="inapp-reg" data-reg="${esc(t.name)}">Join</button>`;
 }
@@ -2415,7 +2413,7 @@ async function loadReviewSummaries(){
     if(seeBtn)seeBtn.onclick=e=>{e.stopPropagation();toggleReviewList(el,name);};
     if(canReview){
       const box=document.createElement('div');box.className='review-box';
-      const rateBtn=document.createElement('button');rateBtn.type='button';rateBtn.className='link';rateBtn.textContent='Rate this tournament';
+      const rateBtn=document.createElement('button');rateBtn.type='button';rateBtn.className='link';rateBtn.textContent='⭐ Rate this tournament';
       rateBtn.onclick=e=>{e.stopPropagation();openReviewForm(box,name);};
       box.appendChild(rateBtn);
       el.appendChild(box);
@@ -2463,7 +2461,7 @@ function openReviewForm(box,name){
   };
   form.querySelector('.link').onclick=()=>{
     box.innerHTML='';
-    const rateBtn=document.createElement('button');rateBtn.type='button';rateBtn.className='link';rateBtn.textContent='Rate this tournament';
+    const rateBtn=document.createElement('button');rateBtn.type='button';rateBtn.className='link';rateBtn.textContent='⭐ Rate this tournament';
     rateBtn.onclick=e=>{e.stopPropagation();openReviewForm(box,name);};
     box.appendChild(rateBtn);
   };
@@ -2518,7 +2516,7 @@ function updateNextMatch(){
     const action=rc?`<button type="button" class="nm-btn" data-copy="${esc(rc.room_id)}">Copy ID ${esc(rc.room_id)}</button>`
       :win?`<button type="button" class="nm-btn" onclick="checkInForTournament(this.dataset.t)" data-t="${esc(t.name)}">Check in</button>`
       :'';
-    const label=rc?'Room code is out':win?'Check-in is open':'Your next match';
+    const label=rc?'🔑 Room code is out':win?'✅ Check-in is open':'⚔️ Your next match';
     el.className='next-match '+mode;
     el.innerHTML=`<button type="button" class="nm-main" onclick="nmJump(this.dataset.t)" data-t="${esc(t.name)}"><small>${label}</small><b>${esc(t.name)}</b><span class="nm-count"></span></button>${action}<button type="button" class="nm-x" aria-label="Hide" onclick="nmDismiss(this.dataset.t)" data-t="${esc(t.name)}">×</button>`;
     el.hidden=false;requestAnimationFrame(()=>el.classList.add('show'));
@@ -2591,7 +2589,7 @@ async function checkLock(){
   const {data}=await sb.from('system_state').select('locked').eq('id',1).maybeSingle();
   let b=document.getElementById('lock-banner');
   if(data&&data.locked){
-    if(!b){b=document.createElement('div');b.id='lock-banner';b.setAttribute('role','status');b.style.cssText='position:sticky;top:0;z-index:70;padding:10px 16px;text-align:center;font-size:.84rem;font-weight:600;background:linear-gradient(100deg,#5a1d1d,#3a1414);color:#ffd6d6;border-bottom:1px solid rgba(255,120,120,.4)';b.textContent='Payments, withdrawals and codes are paused for a quick security check. Your points are safe, and free tournaments run as normal.';document.body.prepend(b);}
+    if(!b){b=document.createElement('div');b.id='lock-banner';b.setAttribute('role','status');b.style.cssText='position:sticky;top:0;z-index:70;padding:10px 16px;text-align:center;font-size:.84rem;font-weight:600;background:linear-gradient(100deg,#5a1d1d,#3a1414);color:#ffd6d6;border-bottom:1px solid rgba(255,120,120,.4)';b.textContent='⚠️ Payments, withdrawals and codes are paused for a quick security check. Your points are safe, and free tournaments run as normal.';document.body.prepend(b);}
   }else if(b)b.remove();
 }
 setTimeout(renderFxShow,600);
@@ -2616,7 +2614,7 @@ function ptsPayHtml(price,label,action){
   const enough=canAfford(price);
   return `<div class="pts-pay"><div class="pts-line">${esc(label)}: <b>${price} points</b> · You have <b>${walletLabel()}</b></div>`
     +(enough?`<button type="button" class="pts-btn" ${action}><span class="jd-coin sm" aria-hidden="true">JD</span> Pay ${price} points</button>`
-            :`<button type="button" class="pts-btn ghost" onclick="event.stopPropagation();goWallet('load')">Load points (need ${price-_wallet} more)</button>`)
+            :`<button type="button" class="pts-btn ghost" onclick="event.stopPropagation();goWallet('load')">➕ Load points (need ${price-_wallet} more)</button>`)
     +`</div>`;
 }
 function payWaLink(msg){return 'https://wa.me/'+PAY_WHATSAPP+'?text='+encodeURIComponent(msg||'');}
@@ -2656,14 +2654,14 @@ function fxShopRender(){
   const tier=change?pass.tier:FX_PLANS[_fxShop.plan].tier;
   if(!fxTierOk(tier,_fxShop.effect))_fxShop.effect=Object.keys(SQUAD_FX).find(k=>fxTierOk(tier,k));
   const info=document.getElementById('fx-passinfo');
-  if(pass){info.hidden=false;info.innerHTML=`${pass.tier==='pro'?'Pro':'Lite'} pass active until <b>${esc(fxDate(_myPassEnd||pass.expires_at))}</b>`+(change?`<button type="button" onclick="_fxShop.mode='buy';fxShopRender()">Buy or extend a plan</button>`:`<button type="button" onclick="_fxShop.mode='change';_fxShop.effect=fxPassNow().effect;fxShopRender()">Just change my effect</button>`);}
+  if(pass){info.hidden=false;info.innerHTML=`✨ ${pass.tier==='pro'?'Pro':'Lite'} pass active until <b>${esc(fxDate(_myPassEnd||pass.expires_at))}</b>`+(change?`<button type="button" onclick="_fxShop.mode='buy';fxShopRender()">Buy or extend a plan</button>`:`<button type="button" onclick="_fxShop.mode='change';_fxShop.effect=fxPassNow().effect;fxShopRender()">Just change my effect</button>`);}
   else{info.hidden=true;info.innerHTML='';}
   document.getElementById('fx-plans-wrap').hidden=!!change;
   document.getElementById('fx-pay').hidden=!!change;
   document.getElementById('fx-plans').innerHTML=Object.entries(FX_PLANS).map(([k,pl])=>`<button type="button" class="fx-plan${k===_fxShop.plan?' on':''}" onclick="_fxShop.plan='${k}';fxShopRender()">${pl.best?'<span class="best">Best value</span>':(pl.popular?'<span class="best pop">Popular</span>':'')}<b>${esc(pl.name)}</b><span class="pr">${esc(pl.price)}</span><small>${esc(pl.per)}</small></button>`).join('');
   document.getElementById('fx-pick').innerHTML=Object.values(SQUAD_FX).map(f=>{
     const ok=fxTierOk(tier,f.key);
-    return `<button type="button" data-fx="${f.key}" class="${f.key===_fxShop.effect?'on':''}${ok?'':' lock'}" ${ok?`onclick="_fxShop.effect='${f.key}';fxShopRender()"`:`disabled title="Included in Pro plans"`}>${ok?'':''}${esc(f.tag)}${f.hot?'<span class="hot"><i class=ji-flame aria-hidden=true></i></span>':''}${f.tier==='pro'?'<span class="pro">PRO</span>':''}</button>`;
+    return `<button type="button" data-fx="${f.key}" class="${f.key===_fxShop.effect?'on':''}${ok?'':' lock'}" ${ok?`onclick="_fxShop.effect='${f.key}';fxShopRender()"`:`disabled title="Included in Pro plans"`}>${ok?'':'🔒 '}${esc(f.tag)}${f.hot?'<span class="hot">🔥</span>':''}${f.tier==='pro'?'<span class="pro">PRO</span>':''}</button>`;
   }).join('');
   document.getElementById('fx-preview').innerHTML=sqCardHtml({name:r.squad_name||'Your squad',logo:r.squad_logo||'',members:[],effect:_fxShop.effect},0);
   const pl=FX_PLANS[_fxShop.plan];
@@ -2674,7 +2672,7 @@ function fxShopRender(){
     :(targets.length?`<label>For which tournament?</label><select id="fx-tourney" onchange="_fxShop.name=this.value">${targets.map(n=>`<option value="${esc(n)}"${n===_fxShop.name?' selected':''}>${esc(n)}</option>`).join('')}</select>`
       :'<p class="sub" style="margin:8px 0 0;color:var(--warm-l,#FFC66B)">Single match needs a tournament you\'re confirmed in. Join one first — or pick a weekly or monthly pass, which works everywhere.</p>');
   if(_fxShop.plan==='fx_game'&&targets.length&&!targets.includes(_fxShop.name))_fxShop.name=targets[0];
-  document.getElementById('fx-pay-steps').innerHTML=`<div class="pts-line" style="font-size:.8rem;color:var(--body)">${esc(pl.name)}: <b style="color:var(--gold-l)">${price} points</b> · You have <b style="color:var(--gold-l)">${walletLabel()}</b></div>`+(!canAfford(price)?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="goWallet('load')">Load points (need ${price-_wallet} more)</button>`:'');
+  document.getElementById('fx-pay-steps').innerHTML=`<div class="pts-line" style="font-size:.8rem;color:var(--body)">${esc(pl.name)}: <b style="color:var(--gold-l)">${price} points</b> · You have <b style="color:var(--gold-l)">${walletLabel()}</b></div>`+(!canAfford(price)?`<button type="button" class="pts-btn ghost" style="margin-top:8px" onclick="goWallet('load')">➕ Load points (need ${price-_wallet} more)</button>`:'');
   document.getElementById('fx-submit').disabled=!!gameBlocked;
   document.getElementById('fx-submit').innerHTML=change?'Save effect':('<span class="jd-coin sm" aria-hidden="true">JD</span> Pay '+(_walletUnlimited?'(admin) ':'')+parseInt(pl.price.replace(/[^0-9]/g,''),10)+' points &amp; activate');
 }
@@ -2684,7 +2682,7 @@ function renderFxShow(){
   const box=document.getElementById('fx-show');if(!box)return;
   const mine=_player&&_player.squad_name;
   box.innerHTML=FX_SHOWCASE.map(([k,sample],i)=>{const f=SQUAD_FX[k];if(!f)return '';
-    return `<div class="fx-show-item"><div class="fx-show-lbl"><b>${esc(f.tag)}${f.hot?'':''}</b><span class="tier${f.tier==='pro'?'':' std'}">${f.tier==='pro'?'Pro':'From Rs 2'}</span></div>${sqCardHtml({name:mine||sample,logo:(_player&&_player.squad_logo)||'',members:[],effect:k},i)}</div>`;}).join('');
+    return `<div class="fx-show-item"><div class="fx-show-lbl"><b>${esc(f.tag)}${f.hot?' 🔥':''}</b><span class="tier${f.tier==='pro'?'':' std'}">${f.tier==='pro'?'Pro':'From Rs 2'}</span></div>${sqCardHtml({name:mine||sample,logo:(_player&&_player.squad_logo)||'',members:[],effect:k},i)}</div>`;}).join('');
   if(!box._io&&'IntersectionObserver' in window){box._io=new IntersectionObserver(es=>es.forEach(e=>box.classList.toggle('fx-paused',!e.isIntersecting)),{rootMargin:'100px'});box._io.observe(box);}
 }
 function fxShowCta(){
@@ -2817,8 +2815,8 @@ function notifTicketHtml(n,unreadClass){
   const cur=_myRegs.get(n.tournament_slug);
   const withdrawn=_myRegsLoaded&&(!cur||regTicketCode(cur)!==ticket);
   const [st,cls]=withdrawn?['Withdrawn','off']:waitlisted?['Waitlisted','warn']:pending?['Pending check','warn']:['Registered','ok'];
-  const meta=[t.prize?''+t.prize:'',paid?(t.entry?''+t.entry:''):'Free',t.name?''+platText(t):''].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('');
-  return `<div class="notif-item k-tour nf-ticket${unreadClass}"><span class="ni-ic" aria-hidden="true"><i class=ji-ticket aria-hidden=true></i></span><div class="ni-main"><div class="ni-top"><div class="t">${esc(notifTitle(n.title))}</div>${notifTimeHtml(n.created_at)}</div>`
+  const meta=[t.prize?'💰 '+t.prize:'',paid?(t.entry?'🎫 '+t.entry:''):'🎫 Free',t.name?'📱 '+platText(t):''].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('');
+  return `<div class="notif-item k-tour nf-ticket${unreadClass}"><span class="ni-ic" aria-hidden="true">🎟️</span><div class="ni-main"><div class="ni-top"><div class="t">${esc(notifTitle(n.title))}</div>${notifTimeHtml(n.created_at)}</div>`
     +`<div class="nf-tk"><code>${esc(ticket)}</code><span class="nf-st ${cls}">${st}</span></div>${meta?`<div class="nf-meta">${meta}</div>`:''}</div></div>`;
 }
 function notifTimeHtml(iso){
@@ -2840,20 +2838,20 @@ function copyOne(btn,val){
 }
 /* Which bucket a notification belongs to, where tapping it goes, and its icon. Keep these
    patterns in step with linkFor() in supabase/functions/push-notifications (push alerts use
-   the same buckets for alert settings). */
+   the same buckets for ⚙️ alert settings). */
 function notifKind(n){
   const t=(n.title||'')+' '+(n.body||'');
-  if(/^\/watch\/(\?v=\d{6,25})?$/.test(n.link||''))return {k:'other',ic:'<i class=ji-film aria-hidden=true></i>',go:n.link,lbl:'Watch on TikTok'};
-  if(/squad chat|friend request|now your friend/i.test(t))return {k:'social',ic:/squad chat/i.test(t)?'<i class=ji-users aria-hidden=true></i>':'<i class=ji-heart aria-hidden=true></i>',go:'chat',lbl:'Open Messages'};
-  if(/challenge/i.test(t))return {k:'challenge',ic:'<i class=ji-swords aria-hidden=true></i>',go:'/challenges/',lbl:'Open challenges'};
-  if(/wallet|points added|withdraw/i.test(t))return {k:'wallet',ic:'<i class=ji-coin aria-hidden=true></i>',go:'/wallet/',lbl:'Open wallet'};
-  if(n.tournament_slug||String(n.body||'').startsWith('TICKET::'))return {k:'tour',ic:n.room_id?'<i class=ji-game aria-hidden=true></i>':'<i class=ji-trophy aria-hidden=true></i>',go:'',lbl:''};
-  return {k:'other',ic:'<i class=ji-bell aria-hidden=true></i>',go:'',lbl:''};
+  if(/^\/watch\/(\?v=\d{6,25})?$/.test(n.link||''))return {k:'other',ic:'🎬',go:n.link,lbl:'Watch on TikTok'};
+  if(/squad chat|friend request|now your friend/i.test(t))return {k:'social',ic:/squad chat/i.test(t)?'👥':'🤝',go:'chat',lbl:'Open Messages'};
+  if(/challenge/i.test(t))return {k:'challenge',ic:'⚔️',go:'/challenges/',lbl:'Open challenges'};
+  if(/wallet|points added|withdraw/i.test(t))return {k:'wallet',ic:'🪙',go:'/wallet/',lbl:'Open wallet'};
+  if(n.tournament_slug||String(n.body||'').startsWith('TICKET::'))return {k:'tour',ic:n.room_id?'🎮':/^results are in/i.test(n.title||'')?'🏅':'🏆',go:'',lbl:''};
+  return {k:'other',ic:'🔔',go:'',lbl:''};
 }
 function notifGo(where){notifHistClose();if(where==='chat'){if(window.jdChat)jdChat.open();return;}location.href=where;}
 function notifSettings(){notifHistClose();if(window.jdChat&&jdChat.settings)jdChat.settings();}
 let _notifRows=[],_notifFilter='all';
-const NOTIF_TABS=[['all','All'],['tour','Tournaments'],['challenge','Challenges'],['wallet','Wallet'],['social','Friends']];
+const NOTIF_TABS=[['all','All'],['tour','🏆 Tournaments'],['challenge','⚔️ Challenges'],['wallet','🪙 Wallet'],['social','🤝 Friends']];
 /* "Right now" card: a room code sent in the last 3 hours sits on top with big tap-to-copy tiles,
    so nobody scrolls the inbox while the lobby is filling. */
 const NOTIF_HERO_MS=3*3600e3;
@@ -2875,8 +2873,8 @@ function renderNotifList(){
   const day=d=>{const x=new Date(d),n=new Date(),y=new Date();y.setDate(n.getDate()-1);return x.toDateString()===n.toDateString()?'Today':x.toDateString()===y.toDateString()?'Yesterday':(n-x<7*864e5?'This week':'Earlier');};
   let last='',h=hero&&(_notifFilter==='all'||_notifFilter==='tour')?notifHeroHtml(hero):'';
   rows.forEach((r,i)=>{if(r===hero||(_notifFilter!=='all'&&kinds[i].k!==_notifFilter))return;const d=day(r.created_at);if(d!==last){h+=`<div class="notif-day">${d}</div>`;last=d;}h+=notifItemHtml(r);});
-  list.innerHTML=h||(rows.length?'<div class="notif-empty"><span><i class=ji-doc aria-hidden=true></i></span><b>Nothing here yet</b><p>No notifications of this type. Switch to All to see everything.</p></div>'
-    :'<div class="notif-empty"><span><i class=ji-bell aria-hidden=true></i></span><b>You\'re all caught up</b><p>Join an event and your ticket, room ID and results land here.</p><button type="button" class="nf-cta" onclick="notifHistClose()">See events</button></div>');
+  list.innerHTML=h||(rows.length?'<div class="notif-empty"><span>🗂️</span><b>Nothing here yet</b><p>No notifications of this type. Switch to All to see everything.</p></div>'
+    :'<div class="notif-empty"><span>🔔</span><b>You\'re all caught up</b><p>Join an event and your ticket, room ID and results land here.</p><button type="button" class="nf-cta" onclick="notifHistClose()">See events</button></div>');
   const g=document.getElementById('notif-gear');if(g)g.hidden=!(window.jdChat&&jdChat.settings);
 }
 function notifItemHtml(n){
@@ -2915,7 +2913,7 @@ function notifBanner(n){
   const isChallenge=!isFriend&&/challenge/i.test(n.title||'');
   const ak=alertKind(n);b.classList.toggle('nb-room',ak==='roomcode');b.classList.toggle('nb-result',ak==='result');
   const body=String(n.body||'').startsWith('TICKET::')?'Your ticket is ready — tap to view.':String(n.body||'');
-  b.innerHTML=`<span class="nb-ic">${ak==='roomcode'?'<i class=ji-key aria-hidden=true></i>':ak==='result'?'<i class=ji-trophy aria-hidden=true></i>':isChallenge?'<i class=ji-swords aria-hidden=true></i>':isFriend?'<i class=ji-hand aria-hidden=true></i>':'<i class=ji-bell aria-hidden=true></i>'}</span><span class="nb-t"><b>${esc(noEmoji(n.title)||'New notification')}</b><small>${esc(noEmoji(body).slice(0,110))}${body.length>110?'…':''}</small></span>`;
+  b.innerHTML=`<span class="nb-ic">${ak==='roomcode'?'🔑':ak==='result'?'🏆':isChallenge?'⚔️':isFriend?'👋':'🔔'}</span><span class="nb-t"><b>${esc(n.title||'New notification')}</b><small>${esc(body.slice(0,110))}${body.length>110?'…':''}</small></span>`;
   b.onclick=()=>{b.classList.remove('show');if(isChallenge)location.href='/challenges/';else if(isFriend)window.jdChat.open();else notifHistOpen();};
   b.classList.remove('show');void b.offsetWidth;b.classList.add('show');
   clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('show'),6500);
@@ -3070,8 +3068,8 @@ if(JD_TWA>0)window.addEventListener('load',()=>setTimeout(async()=>{
     const day=new Date().toISOString().slice(0,10);
     if(d.versionCode>JD_TWA&&(_updAsked||localStorage.getItem('jd_apk_upd')!==day)){
       localStorage.setItem('jd_apk_upd',day);
-      if(await confirmBox('App update ready',`JD Arena ${d.versionName}: ${d.notes||'a better app.'}\n\nTap Update, open the downloaded file and tap Install (Update). Your account and settings stay.`,'Update now','Later'))location.href=d.url;
-    }else if(_updAsked&&d.versionCode<=JD_TWA)showMsg('Up to date',"You already have the newest JD Arena app.");
+      if(await confirmBox('⬇ App update ready',`JD Arena ${d.versionName}: ${d.notes||'a better app.'}\n\nTap Update, open the downloaded file and tap Install (Update). Your account and settings stay.`,'Update now','Later'))location.href=d.url;
+    }else if(_updAsked&&d.versionCode<=JD_TWA)showMsg('Up to date',"You already have the newest JD Arena app. 🎮");
   }catch(e){}
 },_updAsked?800:4000));
 /* Old home-screen web app on Android (not the APK): ask once a day to install the real app and delete
@@ -3087,7 +3085,7 @@ async function appUpdateStrip(){
   if(!d||!d.url)return;
   const old=JD_TWA!==0,el=document.createElement('div');
   el.className='app-upd';el.setAttribute('role','region');el.setAttribute('aria-label','App update');
-  el.innerHTML=`<span class="app-upd-ic" aria-hidden="true">${old?'<i class=ji-download aria-hidden=true></i>':'<i class=ji-phone aria-hidden=true></i>'}</span><span class="app-upd-txt"><b>${old?'Update to JD Arena '+esc(d.versionName):'Get the JD Arena app'}</b>${old?'A real app now - no browser, no ad blockers, faster alerts. Sign in once after updating.':'Room IDs and alerts arrive as app notifications, even when JD Arena is closed.'}</span><button type="button" class="app-upd-go">${old?'Update':'Get app'}</button><button type="button" class="app-upd-x" aria-label="Hide">×</button>`;
+  el.innerHTML=`<span class="app-upd-ic" aria-hidden="true">${old?'⬇':'📲'}</span><span class="app-upd-txt"><b>${old?'Update to JD Arena '+esc(d.versionName):'Get the JD Arena app'}</b>${old?'A real app now - no browser, no ad blockers, faster alerts. Sign in once after updating.':'Room IDs and alerts arrive as app notifications, even when JD Arena is closed.'}</span><button type="button" class="app-upd-go">${old?'Update':'Get app'}</button><button type="button" class="app-upd-x" aria-label="Hide">×</button>`;
   el.querySelector('.app-upd-go').onclick=()=>{location.href=old?d.url:'/download/?get=1';};
   el.querySelector('.app-upd-x').onclick=()=>{el.remove();try{sessionStorage.setItem('jd_upd_strip','1');}catch(e){}};
   const h=document.querySelector('header');if(h)h.insertAdjacentElement('afterend',el);else document.body.prepend(el);
@@ -3104,7 +3102,7 @@ async function appRequiredUpdate(){
   g.className='app-gate';g.setAttribute('role','dialog');g.setAttribute('aria-modal','true');g.setAttribute('aria-labelledby','ag-t');
   g.innerHTML=`<div class="ag-card"><img src="/logo.webp" alt="" width="64" height="64"><h1 id="ag-t">Update JD Arena</h1>
     <p class="ag-lead">This version of the app is too old - room IDs and alerts won't reach you. The new version takes a minute and your account stays the same.</p>
-    <a class="ag-btn" href="${esc(d.url)}">Update to ${esc(d.versionName)}</a>
+    <a class="ag-btn" href="${esc(d.url)}">⬇ Update to ${esc(d.versionName)}</a>
     <ol class="ag-steps"><li>Tap <b>Update</b> and wait for the download</li><li>Open the downloaded file and tap <b>Install</b> (or Update)</li><li>Open <b>JD Arena</b> and sign in once</li></ol>
     <p class="ag-foot">Need help? <a href="https://wa.me/${SUPPORT_PHONE}" target="_blank" rel="noopener">WhatsApp ${esc(SUPPORT_PHONE_TXT)}</a></p></div>`;
   document.documentElement.classList.add('app-gated');
@@ -3118,15 +3116,15 @@ if(!JD_TWA&&isAndroidDevice()&&isStandaloneApp()&&navigator.getInstalledRelatedA
     const apps=await navigator.getInstalledRelatedApps();
     if(apps.some(a=>a.id==='uk.co.jdesport.arena'))return;
     localStorage.setItem('jd_webapp_nag',day);
-    if(await confirmBox('Get the real JD Arena app','This is the old web version. The new Android app gets room IDs, results and challenge alerts as real app notifications that never get blocked - and your account stays the same.\n\n1. Tap Download app and install it.\n2. Then delete this web version: long-press this JD Arena icon on your home screen → Uninstall (or Remove).','Download app','Later'))location.href='/download/';
+    if(await confirmBox('📲 Get the real JD Arena app','This is the old web version. The new Android app gets room IDs, results and challenge alerts as real app notifications that never get blocked - and your account stays the same.\n\n1. Tap Download app and install it.\n2. Then delete this web version: long-press this JD Arena icon on your home screen → Uninstall (or Remove).','Download app','Later'))location.href='/download/';
   }catch(e){}
 },3000));
 function downloadAndroid(){
-  if(JD_TWA){showMsg('Already installed',"You're using the JD Arena app.");return;}
+  if(JD_TWA){showMsg('Already installed',"You're using the JD Arena app. 🎮");return;}
   location.href='/download/?get=1'; // the download page starts the APK download and shows the install steps
 }
 function downloadIOS(){
-  if(isStandaloneApp()){showMsg('Already installed',"You're using the JD Arena home-screen app.");return;}
+  if(isStandaloneApp()){showMsg('Already installed',"You're using the JD Arena home-screen app. 🎮");return;}
   showMsg('Install on iPhone/iPad',"1. In Safari, tap the Share icon (square with an arrow ↑). On newer iPhones tap ••• first, then Share.\n2. Scroll down and tap 'Add to Home Screen', then Add.\n3. Open JD Arena from the new gold JD icon on your home screen and allow notifications.\n\nNo App Store needed - it opens full-screen like an app.");
 }
 if(DISCORD_INVITE){document.querySelectorAll('.discord-cta').forEach(a=>a.href=DISCORD_INVITE);}else{document.querySelectorAll('.discord-cta').forEach(a=>a.style.display='none');}
@@ -3170,82 +3168,82 @@ var ZMODE='chat',fbData={msg:'',contact:''};
 function pget(){try{return localStorage.getItem('jd_player')||''}catch(e){return ''}}
 function pset(n){try{localStorage.setItem('jd_player',n)}catch(e){}}
 var Z={
- en:{fab:'Ask ZULU',zsub:'JD Arena assistant',zph:'Ask about tournaments, joining, rules\u2026',send:'Send',
-  greet:"Hey I'm ZULU, the JD Arena assistant. Ask me about tournaments, how to join, the rules, or how to reach Prabin.",
-  greetn:"Welcome back, {x}! I'm ZULU. Ask me about tournaments, joining, rules, or contact.",
+ en:{fab:'\uD83D\uDCAC Ask ZULU',zsub:'JD Arena assistant',zph:'Ask about tournaments, joining, rules\u2026',send:'Send',
+  greet:"Hey \uD83D\uDC4B I'm ZULU, the JD Arena assistant. Ask me about tournaments, how to join, the rules, or how to reach Prabin.",
+  greetn:"Welcome back, {x}! \uD83D\uDC4B I'm ZULU. Ask me about tournaments, joining, rules, or contact.",
   nameset:"Nice to meet you, {x}! I'll remember that. Now \u2014 ask me anything about JD Arena.",
-  secret:"That part's private to Prabin \u2014 I only handle JD Arena: tournaments, how to join, the rules, and contact. Ask me any of those!",
-  prizesplit:"Every JD tournament splits its prize pool the same way: 50% to 1st, 30% to 2nd, 20% to 3rd. Example: Rs 180 pays Rs 90, Rs 54 and Rs 36. Prizes are paid into the winners' JD wallets when results are published. Free tournaments have a Rs 180 prize; the big prizes are in paid tournaments. A partner host's event is paid by that host.",
-  wpass:"The Weekly Pass is switched off for now - nothing to buy, nothing taken from your points or prizes. Free JD tournaments join with a free card or 15 points, there are no ads, prizes are paid in full, and JD Frag Engine only needs an Optimizer plan. Invite up to 3 friends: when one wins their first prize, you get a free entry card.",
+  secret:"That part's private to Prabin \u2014 I only handle JD Arena: tournaments, how to join, the rules, and contact. Ask me any of those! \uD83C\uDFAE",
+  prizesplit:"🏆 Every JD tournament splits its prize pool the same way: 50% to 1st, 30% to 2nd, 20% to 3rd. Example: Rs 180 pays Rs 90, Rs 54 and Rs 36. Prizes are paid into the winners' JD wallets when results are published. Free tournaments have a Rs 180 prize; the big prizes are in paid tournaments. A partner host's event is paid by that host.",
+  wpass:"🎟 The Weekly Pass is switched off for now - nothing to buy, nothing taken from your points or prizes. Free JD tournaments join with a free card or 15 points, there are no ads, prizes are paid in full, and JD Frag Engine only needs an Optimizer plan. Invite up to 3 friends: when one wins their first prize, you get a free entry card.",
   howjoin:"Easy \u2014 5 steps:\n1. Sign up (your squad name is saved for next time).\n2. Load points: in your wallet, pay the eSewa QR and upload the payment screenshot.\n3. Tap Join on a tournament. Free ones confirm instantly; paid ones are paid from your points.\n4. Tap \"Confirm you're playing\" on the event. The confirm window opens 48 hours before start and closes 24 hours before \u2014 squads not confirmed by then lose their seat (entry points refunded).\n5. The Room ID + password appear on your ticket about 5 minutes before the match.",
   wallet:"Your JD points wallet: 1 point = Rs 1. Points are the only way to pay for paid entries and squad effects.\nTo load: open the wallet (the coin at the top) \u2192 Load \u2192 pay the eSewa QR with your username in the remarks, then upload the payment screenshot. No screenshot, no points. Points arrive once it's verified. You need your 6-number wallet PIN to load or withdraw.",
   withdrawpts:"To cash out: open your wallet (the coin at the top) \u2192 Withdraw \u2192 enter the points, your eSewa ID and account name. The points leave your wallet now and the money is sent to your eSewa by hand, usually within a day.",
   refund:"Withdrawing from a paid tournament: 24h+ before the start = full refund, last 24 hours = 10% back, nothing once room details are out. Points refunds go straight back to your wallet. Tap Withdraw squad on your ticket.",
   effects:"Squad effects make your squad stand out on the site (cosmetic only): Rs 2 for one match, Rs 5 lite week, Rs 10 pro week, Rs 30 pro month (every effect, incl. Bullet Storm, Blade, Legend and the design styles: Liquid Glass, Spatial 3D, Clay, Brutal, Bento and more). Tap Squad effects on your ticket and pay with points. \u2728 Squads with an effect also get the top slots in tournaments.",
   profile:"Your profile (tap your name at the top) shows your rank, stats, points, tournaments and saved squad. Change your squad name or logo there \u2014 the logo is uploaded once and used for every tournament.",
-  challenge:"Want a match now? Open Challenges (top menu): create a 1v1, 2v2, 3v3 or 4v4 Clash Squad challenge with a points stake, or accept one from the lobby. Both sides put in the same points and the winner takes the pot, minus just a 1-point platform fee per player (50 each \u2192 winner gets 98). Chat and share the room inside the challenge. 18+ only.",
+  challenge:"Want a match now? Open \u2694\uFE0F Challenges (top menu): create a 1v1, 2v2, 3v3 or 4v4 Clash Squad challenge with a points stake, or accept one from the lobby. Both sides put in the same points and the winner takes the pot, minus just a 1-point platform fee per player (50 each \u2192 winner gets 98). Chat and share the room inside the challenge. 18+ only.",
   howjoinwa:"Tap the green Register button on any tournament to start on WhatsApp.",
-  rules:"The basics: withdraw 24h+ before the start for a full refund, 10% back on the last day, no refund once the Room ID is sent \u00B7 cheating or modded apps = instant ban \u00B7 the prize pool is fixed and posted before registration opens \u00B7 entry fees go to JD Arena to fund prizes and keep tournaments running. Free tournaments? The prize is on us. Fair and clean.",
-  scoring:"Simple \u2014 each match your squad gets placement points from the official room result plus 1 point for every kill. All matches are added up and the highest total wins\n\nPosition points per match: 1st 12, 2nd 9, 3rd 8, 4th 7, 5th 6, 6th 5, 7th 4, 8th 3, 9th 2, 10th 1, 11th\u201312th 0. Kills: +1 each. Example: 1st with 5 kills + 3rd with 2 kills = (12 + 5) + (8 + 2) = 27 points.",
-  hacker:"Zero mercy for hackers \u2014 proven cheating, modded apps, aimbot or wallhacks means an instant ban and the win/prize is voided on the spot, no appeal. Suspicious matches get their replay checked. Play clean and you've got nothing to worry about.",
-  payout:"Win and your prize lands in your points wallet automatically as JD points (1 point = Rs 1) \u2014 the full posted prize, no deductions. Withdraw it to your eSewa any time from the wallet page.",
+  rules:"The basics: withdraw 24h+ before the start for a full refund, 10% back on the last day, no refund once the Room ID is sent \u00B7 cheating or modded apps = instant ban \u00B7 the prize pool is fixed and posted before registration opens \u00B7 entry fees go to JD Arena to fund prizes and keep tournaments running. Free tournaments? The prize is on us. Fair and clean. \uD83D\uDEE1\uFE0F",
+  scoring:"Simple \u2014 each match your squad gets placement points from the official room result plus 1 point for every kill. All matches are added up and the highest total wins \ud83c\udfc6\n\nPosition points per match: 1st 12, 2nd 9, 3rd 8, 4th 7, 5th 6, 6th 5, 7th 4, 8th 3, 9th 2, 10th 1, 11th\u201312th 0. Kills: +1 each. Example: 1st with 5 kills + 3rd with 2 kills = (12 + 5) + (8 + 2) = 27 points.",
+  hacker:"Zero mercy for hackers \u2014 proven cheating, modded apps, aimbot or wallhacks means an instant ban and the win/prize is voided on the spot, no appeal. Suspicious matches get their replay checked. Play clean and you've got nothing to worry about. \uD83D\uDEE1\uFE0F",
+  payout:"Win and your prize lands in your points wallet automatically as JD points (1 point = Rs 1) \u2014 the full posted prize, no deductions. Withdraw it to your eSewa any time from the wallet page. \uD83D\uDCB0",
   prizenone:"No prize pool is posted right now \u2014 check back soon or watch the Discord.",
   entrynone:"No entry fee is posted right now \u2014 the next tournament's details are coming soon.",
   about:"Prabin Ayer runs JD Arena and the AyerFire brand \u2014 a Computing Science student in London with roots in Nepal. Full intro: open \u201CAbout Prabin\u201D.",
   contact:"Customer support (call or WhatsApp): "+SUPPORT_PHONE_TXT+" \u2014 send your username and a screenshot.\n\u2022 WhatsApp: https://wa.me/"+SUPPORT_PHONE+"\n\u2022 Discord: "+DISCORD_INVITE+"\n\u2022 Email: "+FEEDBACK_EMAIL+((typeof WHATSAPP_NUMBER==='string'&&WHATSAPP_NUMBER)?"\n\u2022 WhatsApp: tap any Register button":""),
-  hi:"Hey! Ask me about tournaments, joining, rules, or contact.",
-  hin:"Hey {x}! What do you want to know \u2014 tournaments, joining, or rules?",
-  thanks:"Anytime! Good luck in the lobby.",
+  hi:"Hey! \uD83D\uDC4B Ask me about tournaments, joining, rules, or contact.",
+  hin:"Hey {x}! \uD83D\uDC4B What do you want to know \u2014 tournaments, joining, or rules?",
+  thanks:"Anytime! \uD83D\uDE4C Good luck in the lobby.",
   squadsize:"Most JD events are Squad, 4 players per team. Some are Solo or Duo, and the event card shows which. The line-up form asks for the right number of players.",
   platform:"Mobile only, Free Fire BR \u2014 squad mode. No PC/emulator unless a tournament specifically says otherwise.",
   ack:"\uD83D\uDC4D",
   fbprompt:"Go ahead \u2014 tell me the issue or your suggestion, and I'll pass it straight to Prabin.",
-  unknown:"I don't have that one yet \u2014 logged as ticket {x} for Prabin, quote that if you follow up. Meanwhile, ask me about tournaments, how to join, the rules, or contact.",
+  unknown:"I don't have that one yet \u2014 logged as ticket {x} for Prabin, quote that if you follow up. Meanwhile, ask me about tournaments, how to join, the rules, or contact. \uD83C\uDFAE",
   askc:"Got it. How can Prabin reach you if needed \u2014 Discord tag or email? (or type 'skip')",
-  sent:"\u2705 Sent to Prabin \u2014 your ticket is {x}, quote it if you check back in. Thank you \u2014 this genuinely helps make JD Arena better.",
-  mail:"I'll open your email so you can send it to Prabin directly",
-  chiprules:'Rules',chippoints:'Points system',chippay:'Payment',chipwallet:'Points',chipjoin:'How to join',chiphelp:'Support',
-  nudge0:"New here? I can help you find a tournament to join.",
+  sent:"\u2705 Sent to Prabin \u2014 your ticket is {x}, quote it if you check back in. Thank you \u2014 this genuinely helps make JD Arena better. \uD83D\uDE4F",
+  mail:"I'll open your email so you can send it to Prabin directly \uD83D\uDC47",
+  chiprules:'\uD83D\uDCDC Rules',chippoints:'\uD83C\uDFC6 Points system',chippay:'\uD83D\uDCB0 Payment',chipwallet:'\uD83E\uDE99 Points',chipjoin:'\uD83C\uDFAE How to join',chiphelp:'\uD83C\uDFA7 Support',
+  nudge0:"\uD83D\uDC4B New here? I can help you find a tournament to join.",
   nudge1:"\u2753 Got questions about entry fees or how payouts work? Just ask.",
-  nudge2:"Not sure how registration works? I'll walk you through it."},
- ne:{fab:'ZULU \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D',zsub:'JD Arena \u0938\u0939\u093E\u092F\u0915',zph:'\u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0938\u0939\u092D\u093E\u0917\u093F\u0924\u093E, \u0928\u093F\u092F\u092E \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u2026',send:'\u092A\u0920\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D',
-  greet:"\u0928\u092E\u0938\u094D\u0924\u0947 \u092E ZULU \u0939\u0941\u0901, JD Arena \u0915\u094B \u0938\u0939\u093E\u092F\u0915\u0964 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0915\u0938\u0930\u0940 \u0938\u0939\u092D\u093E\u0917\u0940 \u0939\u0941\u0928\u0947, \u0928\u093F\u092F\u092E, \u0935\u093E \u092A\u094D\u0930\u092C\u093F\u0928\u0932\u093E\u0908 \u0938\u092E\u094D\u092A\u0930\u094D\u0915 \u2014 \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
-  greetn:"\u092B\u0947\u0930\u093F \u0938\u094D\u0935\u093E\u0917\u0924 \u091B, {x}! \u092E ZULU \u0939\u0941\u0901\u0964 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0938\u0939\u092D\u093E\u0917\u093F\u0924\u093E, \u0928\u093F\u092F\u092E \u0935\u093E \u0938\u092E\u094D\u092A\u0930\u094D\u0915 \u092C\u093E\u0930\u0947 \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  nudge2:"\uD83C\uDFAE Not sure how registration works? I'll walk you through it."},
+ ne:{fab:'\uD83D\uDCAC ZULU \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D',zsub:'JD Arena \u0938\u0939\u093E\u092F\u0915',zph:'\u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0938\u0939\u092D\u093E\u0917\u093F\u0924\u093E, \u0928\u093F\u092F\u092E \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u2026',send:'\u092A\u0920\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D',
+  greet:"\u0928\u092E\u0938\u094D\u0924\u0947 \uD83D\uDC4B \u092E ZULU \u0939\u0941\u0901, JD Arena \u0915\u094B \u0938\u0939\u093E\u092F\u0915\u0964 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0915\u0938\u0930\u0940 \u0938\u0939\u092D\u093E\u0917\u0940 \u0939\u0941\u0928\u0947, \u0928\u093F\u092F\u092E, \u0935\u093E \u092A\u094D\u0930\u092C\u093F\u0928\u0932\u093E\u0908 \u0938\u092E\u094D\u092A\u0930\u094D\u0915 \u2014 \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  greetn:"\u092B\u0947\u0930\u093F \u0938\u094D\u0935\u093E\u0917\u0924 \u091B, {x}! \uD83D\uDC4B \u092E ZULU \u0939\u0941\u0901\u0964 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0938\u0939\u092D\u093E\u0917\u093F\u0924\u093E, \u0928\u093F\u092F\u092E \u0935\u093E \u0938\u092E\u094D\u092A\u0930\u094D\u0915 \u092C\u093E\u0930\u0947 \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
   nameset:"\u092D\u0947\u091F\u0947\u0930 \u0916\u0941\u0938\u0940 \u0932\u093E\u0917\u094D\u092F\u094B, {x}! \u092E \u092F\u094B \u0938\u092E\u094D\u091D\u0928\u094D\u091B\u0941\u0964 \u0905\u092C JD Arena \u092C\u093E\u0930\u0947 \u091C\u0947 \u092A\u0928\u093F \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
-  secret:"\u0924\u094D\u092F\u094B \u092A\u094D\u0930\u092C\u093F\u0928\u0915\u094B \u0928\u093F\u091C\u0940 \u0915\u0941\u0930\u093E \u0939\u094B \u2014 \u092E \u0924 JD Arena \u092E\u093E\u0924\u094D\u0930\u0948 \u0939\u0947\u0930\u094D\u091B\u0941: \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0915\u0938\u0930\u0940 \u0938\u0939\u092D\u093E\u0917\u0940 \u0939\u0941\u0928\u0947, \u0928\u093F\u092F\u092E \u0930 \u0938\u092E\u094D\u092A\u0930\u094D\u0915\u0964 \u0924\u0940 \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D!",
-  prizesplit:"JD का सबै प्रतियोगितामा पुरस्कार यसरी बाँडिन्छ: पहिलोलाई 50%, दोस्रोलाई 30%, तेस्रोलाई 20%। उदाहरण: Rs 180 मा Rs 90, Rs 54 र Rs 36। नतिजा प्रकाशित भएपछि पुरस्कार विजेताको JD wallet मा आउँछ। फ्री प्रतियोगिताको पुरस्कार Rs 180 हो; ठूला पुरस्कार paid प्रतियोगितामा हुन्छन्। Partner host को event को पुरस्कार त्यही host ले दिन्छ।",
-  wpass:"साप्ताहिक पास अहिलेलाई बन्द छ - किन्नु पर्दैन, पॉइन्ट वा पुरस्कारबाट केही कटिँदैन। फ्री टुर्नामेन्टमा free card वा 15 points चाहिन्छ, विज्ञापन छैन, पुरस्कार पूरै पाइन्छ। JD Frag Engine लाई Optimizer plan मात्र चाहिन्छ। साथीलाई invite गर्नुहोस्: पहिलो जितमा दुवैलाई +४०।",
+  secret:"\u0924\u094D\u092F\u094B \u092A\u094D\u0930\u092C\u093F\u0928\u0915\u094B \u0928\u093F\u091C\u0940 \u0915\u0941\u0930\u093E \u0939\u094B \u2014 \u092E \u0924 JD Arena \u092E\u093E\u0924\u094D\u0930\u0948 \u0939\u0947\u0930\u094D\u091B\u0941: \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0915\u0938\u0930\u0940 \u0938\u0939\u092D\u093E\u0917\u0940 \u0939\u0941\u0928\u0947, \u0928\u093F\u092F\u092E \u0930 \u0938\u092E\u094D\u092A\u0930\u094D\u0915\u0964 \u0924\u0940 \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D! \uD83C\uDFAE",
+  prizesplit:"🏆 JD का सबै प्रतियोगितामा पुरस्कार यसरी बाँडिन्छ: पहिलोलाई 50%, दोस्रोलाई 30%, तेस्रोलाई 20%। उदाहरण: Rs 180 मा Rs 90, Rs 54 र Rs 36। नतिजा प्रकाशित भएपछि पुरस्कार विजेताको JD wallet मा आउँछ। फ्री प्रतियोगिताको पुरस्कार Rs 180 हो; ठूला पुरस्कार paid प्रतियोगितामा हुन्छन्। Partner host को event को पुरस्कार त्यही host ले दिन्छ।",
+  wpass:"🎟 साप्ताहिक पास अहिलेलाई बन्द छ - किन्नु पर्दैन, पॉइन्ट वा पुरस्कारबाट केही कटिँदैन। फ्री टुर्नामेन्टमा free card वा 15 points चाहिन्छ, विज्ञापन छैन, पुरस्कार पूरै पाइन्छ। JD Frag Engine लाई Optimizer plan मात्र चाहिन्छ। साथीलाई invite गर्नुहोस्: पहिलो जितमा दुवैलाई +४०।",
   howjoin:"\u0938\u091c\u093f\u0932\u094b \u2014 \u096b \u091a\u0930\u0923:\n\u0967. \u0938\u093e\u0907\u0928 \u0905\u092a \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d (\u091f\u093f\u092e\u0915\u094b \u0928\u093e\u092e \u0905\u0930\u094d\u0915\u094b \u092a\u091f\u0915\u0915\u093e \u0932\u093e\u0917\u093f \u0938\u0947\u092d \u0939\u0941\u0928\u094d\u091b)\u0964\n\u0968. \u092a\u094b\u0907\u0928\u094d\u091f \u0932\u094b\u0921 \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d: \u0935\u093e\u0932\u0947\u091f\u092e\u093e eSewa QR \u092c\u093e\u091f \u0924\u093f\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d \u0930 \u092d\u0941\u0915\u094d\u0924\u093e\u0928\u0940\u0915\u094b \u0938\u094d\u0915\u094d\u0930\u093f\u0928\u0938\u091f \u0905\u092a\u0932\u094b\u0921 \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d\u0964\n\u0969. \u092a\u094d\u0930\u0924\u093f\u092f\u094b\u0917\u093f\u0924\u093e\u092e\u093e Join \u0925\u093f\u091a\u094d\u0928\u0941\u0939\u094b\u0938\u094d\u0964 \u092b\u094d\u0930\u0940 \u0924\u0941\u0930\u0941\u0928\u094d\u0924\u0948 \u092a\u0915\u094d\u0915\u093e \u0939\u0941\u0928\u094d\u091b; \u092a\u0947\u0921 \u092a\u094b\u0907\u0928\u094d\u091f\u092c\u093e\u091f \u0924\u093f\u0930\u093f\u0928\u094d\u091b\u0964\n\u096a. \u092c\u0938 \u2014 \u091a\u0947\u0915-\u0907\u0928 \u091a\u093e\u0939\u093f\u0901\u0926\u0948\u0928\u0964 \u092a\u0915\u094d\u0915\u093e \u092d\u090f\u092a\u091b\u093f \u0924\u092a\u093e\u0908\u0902\u0915\u094b \u0938\u094d\u0932\u091f \u0930\u0939\u0928\u094d\u091b\u0964\n\u096b. \u0916\u0947\u0932 \u0938\u0941\u0930\u0941 \u0939\u0941\u0928\u0941\u092d\u0928\u094d\u0926\u093e \u0915\u0930\u093f\u092c \u096b \u092e\u093f\u0928\u0947\u091f\u0905\u0918\u093f Room ID \u0930 \u092a\u093e\u0938\u0935\u0930\u094d\u0921 \u091f\u093f\u0915\u091f\u092e\u093e \u0926\u0947\u0916\u093f\u0928\u094d\u091b\u0964",
   wallet:"\u0924\u092a\u093e\u0908\u0902\u0915\u094b JD \u092a\u094b\u0907\u0928\u094d\u091f \u0935\u093e\u0932\u0947\u091f: \u0967 \u092a\u094b\u0907\u0928\u094d\u091f = \u0930\u0941 \u0967\u0964 \u092a\u0947\u0921 \u092a\u094d\u0930\u0924\u093f\u092f\u094b\u0917\u093f\u0924\u093e \u0930 squad effect \u092a\u094b\u0907\u0928\u094d\u091f\u092c\u093e\u091f \u092e\u093e\u0924\u094d\u0930 \u0924\u093f\u0930\u094d\u0928 \u0938\u0915\u093f\u0928\u094d\u091b\u0964\n\u0932\u094b\u0921 \u0917\u0930\u094d\u0928: \u0935\u093e\u0932\u0947\u091f \u0916\u094b\u0932\u094d\u0928\u0941\u0939\u094b\u0938\u094d (\u092e\u093e\u0925\u093f\u0915\u094b \u0915\u094b\u0907\u0928) \u2192 Load \u2192 remarks \u092e\u093e \u0906\u092b\u094d\u0928\u094b username \u0932\u0947\u0916\u0947\u0930 eSewa QR \u092c\u093e\u091f \u0924\u093f\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d, \u0905\u0928\u093f \u092d\u0941\u0915\u094d\u0924\u093e\u0928\u0940\u0915\u094b \u0938\u094d\u0915\u094d\u0930\u093f\u0928\u0938\u091f \u0905\u092a\u0932\u094b\u0921 \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d\u0964 \u0938\u094d\u0915\u094d\u0930\u093f\u0928\u0938\u091f \u092c\u093f\u0928\u093e \u092a\u094b\u0907\u0928\u094d\u091f \u0925\u092a\u093f\u0901\u0926\u0948\u0928\u0964 \u091c\u093e\u0901\u091a\u092a\u091b\u093f \u092a\u094b\u0907\u0928\u094d\u091f \u0906\u0909\u0901\u091b\u0964 Load वा withdraw गर्न 6 अंकको wallet PIN चाहिन्छ।",
   withdrawpts:"\u092A\u0948\u0938\u093E \u0928\u093F\u0915\u093E\u0932\u094D\u0928: \u0935\u093E\u0932\u0947\u091F \u0916\u094B\u0932\u094D\u0928\u0941\u0939\u094B\u0938\u094D (\u092E\u093E\u0925\u093F\u0915\u094B \u0915\u094B\u0907\u0928) \u2192 Withdraw \u2192 \u092A\u094B\u0907\u0928\u094D\u091F, eSewa ID \u0930 \u0916\u093E\u0924\u093E\u0915\u094B \u0928\u093E\u092E \u0932\u0947\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u092A\u094B\u0907\u0928\u094D\u091F \u0924\u0941\u0930\u0941\u0928\u094D\u0924\u0948 \u0935\u093E\u0932\u0947\u091F\u092C\u093E\u091F \u0918\u091F\u094D\u091B \u0930 \u092A\u0948\u0938\u093E \u092A\u094D\u0930\u093E\u092F\u0903 \u090F\u0915 \u0926\u093F\u0928\u092D\u093F\u0924\u094D\u0930 eSewa \u092E\u093E \u092A\u0920\u093E\u0907\u0928\u094D\u091B\u0964",
   refund:"\u092A\u0947\u0921 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E\u092C\u093E\u091F \u0939\u091F\u094D\u0926\u093E: \u0938\u0941\u0930\u0941 \u0939\u0941\u0928\u0941 \u0968\u096A \u0918\u0923\u094D\u091F\u093E\u0905\u0918\u093F = \u092A\u0942\u0930\u093E \u0930\u093F\u092B\u0928\u094D\u0921, \u0905\u0928\u094D\u0924\u093F\u092E \u0968\u096A \u0918\u0923\u094D\u091F\u093E = \u0967\u0966%, Room ID \u092A\u0920\u093E\u090F\u092A\u091B\u093F \u0915\u0947\u0939\u0940 \u092A\u0928\u093F \u091B\u0948\u0928\u0964 \u092A\u094B\u0907\u0928\u094D\u091F\u0915\u094B \u0930\u093F\u092B\u0928\u094D\u0921 \u0938\u093F\u0927\u0948 \u0935\u093E\u0932\u0947\u091F\u092E\u093E \u0906\u0909\u0901\u091B\u0964 \u091F\u093F\u0915\u091F\u092E\u093E Withdraw squad \u0925\u093F\u091A\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
   effects:"Squad effect \u0932\u0947 \u0938\u093E\u0907\u091F\u092E\u093E \u0924\u092A\u093E\u0908\u0902\u0915\u094B \u091F\u093F\u092E\u0932\u093E\u0908 \u092B\u0930\u0915 \u0926\u0947\u0916\u093E\u0909\u0901\u091B (\u0926\u0947\u0916\u093E\u0935\u091F\u0940 \u092E\u093E\u0924\u094D\u0930): \u090F\u0915 \u0916\u0947\u0932 \u0930\u0941 \u0968, \u0932\u093E\u0907\u091F \u0939\u092A\u094D\u0924\u093E \u0930\u0941 \u096B, \u092A\u094D\u0930\u094B \u0939\u092A\u094D\u0924\u093E \u0930\u0941 \u0967\u0966, \u092A\u094D\u0930\u094B \u092E\u0939\u093F\u0928\u093E \u0930\u0941 \u0969\u0966 (\u0938\u092C\u0948 effect)\u0964 \u091F\u093F\u0915\u091F\u092E\u093E Squad effects \u0925\u093F\u091A\u0947\u0930 \u092A\u094B\u0907\u0928\u094D\u091F\u092C\u093E\u091F \u0924\u093F\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u2728 Effect भएका squad ले tournament मा माथिल्लो slot पाउँछन्।",
   profile:"\u0924\u092A\u093E\u0908\u0902\u0915\u094B \u092A\u094D\u0930\u094B\u092B\u093E\u0907\u0932 (\u092E\u093E\u0925\u093F \u0906\u092B\u094D\u0928\u094B \u0928\u093E\u092E \u0925\u093F\u091A\u094D\u0928\u0941\u0939\u094B\u0938\u094D) \u092E\u093E \u0930\u094D\u200D\u092F\u093E\u0919\u094D\u0915, \u0924\u0925\u094D\u092F\u093E\u0919\u094D\u0915, \u092A\u094B\u0907\u0928\u094D\u091F, \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E \u0930 \u0938\u0947\u092D \u0917\u0930\u093F\u090F\u0915\u094B \u091F\u093F\u092E \u0926\u0947\u0916\u093F\u0928\u094D\u091B\u0964 \u0924\u094D\u092F\u0939\u0940\u0901\u092C\u093E\u091F \u091F\u093F\u092E\u0915\u094B \u0928\u093E\u092E \u0935\u093E \u0932\u094B\u0917\u094B \u092C\u0926\u0932\u094D\u0928\u0941\u0939\u094B\u0938\u094D \u2014 \u0932\u094B\u0917\u094B \u090F\u0915 \u092A\u091F\u0915 \u0905\u092A\u0932\u094B\u0921 \u0917\u0930\u0947\u092A\u091B\u093F \u0938\u092C\u0948 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E\u092E\u093E \u092A\u094D\u0930\u092F\u094B\u0917 \u0939\u0941\u0928\u094D\u091B\u0964",
-  challenge:"\u0905\u0939\u093F\u0932\u0947 \u0928\u0948 \u0916\u0947\u0932\u094D\u0928 \u091A\u093E\u0939\u0928\u0941\u0939\u0941\u0928\u094D\u091B? Challenges (\u092E\u093E\u0925\u093F\u0915\u094B \u092E\u0947\u0928\u0941) \u0916\u094B\u0932\u094D\u0928\u0941\u0939\u094B\u0938\u094D: \u092A\u094B\u0907\u0928\u094D\u091F \u0930\u093E\u0916\u0947\u0930 1v1, 2v2, 3v3 \u0935\u093E 4v4 Clash Squad \u091A\u094D\u092F\u093E\u0932\u0947\u0928\u094D\u091C \u092C\u0928\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D, \u0935\u093E lobby \u092C\u093E\u091F \u0938\u094D\u0935\u0940\u0915\u093E\u0930 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u0926\u0941\u0935\u0948 \u092A\u0915\u094D\u0937\u0932\u0947 \u0909\u0924\u094D\u0924\u093F\u0915\u0948 \u092A\u094B\u0907\u0928\u094D\u091F \u0930\u093E\u0916\u094D\u091B\u0928\u094D \u0930 \u091C\u093F\u0924\u094D\u0928\u0947\u0932\u0947 \u092A\u094B\u091F \u092A\u093E\u0909\u0901\u091B \u2014 \u092A\u094D\u0930\u0924\u093F \u0916\u0947\u0932\u093E\u0921\u0940 \u0967 \u092A\u094B\u0907\u0928\u094D\u091F \u092E\u093E\u0924\u094D\u0930 platform fee (\u096B\u0966-\u096B\u0966 \u2192 \u091C\u093F\u0924\u094D\u0928\u0947\u0932\u0947 \u096F\u096E)\u0964 \u091A\u094D\u092F\u093E\u0932\u0947\u0928\u094D\u091C\u092D\u093F\u0924\u094D\u0930\u0948 \u091A\u094D\u092F\u093E\u091F \u0930 room \u0936\u0947\u092F\u0930 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u0967\u096E+ \u092E\u093E\u0924\u094D\u0930\u0964",
+  challenge:"\u0905\u0939\u093F\u0932\u0947 \u0928\u0948 \u0916\u0947\u0932\u094D\u0928 \u091A\u093E\u0939\u0928\u0941\u0939\u0941\u0928\u094D\u091B? \u2694\uFE0F Challenges (\u092E\u093E\u0925\u093F\u0915\u094B \u092E\u0947\u0928\u0941) \u0916\u094B\u0932\u094D\u0928\u0941\u0939\u094B\u0938\u094D: \u092A\u094B\u0907\u0928\u094D\u091F \u0930\u093E\u0916\u0947\u0930 1v1, 2v2, 3v3 \u0935\u093E 4v4 Clash Squad \u091A\u094D\u092F\u093E\u0932\u0947\u0928\u094D\u091C \u092C\u0928\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D, \u0935\u093E lobby \u092C\u093E\u091F \u0938\u094D\u0935\u0940\u0915\u093E\u0930 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u0926\u0941\u0935\u0948 \u092A\u0915\u094D\u0937\u0932\u0947 \u0909\u0924\u094D\u0924\u093F\u0915\u0948 \u092A\u094B\u0907\u0928\u094D\u091F \u0930\u093E\u0916\u094D\u091B\u0928\u094D \u0930 \u091C\u093F\u0924\u094D\u0928\u0947\u0932\u0947 \u092A\u094B\u091F \u092A\u093E\u0909\u0901\u091B \u2014 \u092A\u094D\u0930\u0924\u093F \u0916\u0947\u0932\u093E\u0921\u0940 \u0967 \u092A\u094B\u0907\u0928\u094D\u091F \u092E\u093E\u0924\u094D\u0930 platform fee (\u096B\u0966-\u096B\u0966 \u2192 \u091C\u093F\u0924\u094D\u0928\u0947\u0932\u0947 \u096F\u096E)\u0964 \u091A\u094D\u092F\u093E\u0932\u0947\u0928\u094D\u091C\u092D\u093F\u0924\u094D\u0930\u0948 \u091A\u094D\u092F\u093E\u091F \u0930 room \u0936\u0947\u092F\u0930 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u0967\u096E+ \u092E\u093E\u0924\u094D\u0930\u0964",
   howjoinwa:"\u0915\u0941\u0928\u0948 \u092A\u0928\u093F \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E\u092E\u093E \u0939\u0930\u093F\u092F\u094B Register \u092C\u091F\u0928 \u0925\u093F\u091A\u0940 WhatsApp \u092E\u093E \u0938\u0941\u0930\u0941 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
-  rules:"\u092E\u0941\u0916\u094D\u092F \u0915\u0941\u0930\u093E: \u0938\u0941\u0930\u0941 \u0939\u0941\u0928\u0941 \u0968\u096A \u0918\u0923\u094D\u091F\u093E\u0905\u0918\u093F \u091B\u094B\u0921\u0947 \u092A\u0942\u0930\u093E \u0930\u093F\u092B\u0928\u094D\u0921, \u0905\u0928\u094D\u0924\u093F\u092E \u0926\u093F\u0928 \u0967\u0966% \u092E\u093E\u0924\u094D\u0930, Room ID \u092A\u0920\u093E\u090F\u092A\u091B\u093F \u0930\u093F\u092B\u0928\u094D\u0921 \u0939\u0941\u0901\u0926\u0948\u0928 \u00B7 \u091A\u093F\u091F\u093F\u0919 \u0935\u093E \u092E\u094B\u0921 \u0917\u0930\u093F\u090F\u0915\u094B \u090F\u092A = \u0924\u0941\u0930\u0941\u0928\u094D\u0924\u0948 \u092C\u094D\u092F\u093E\u0928 \u00B7 \u0907\u0928\u093E\u092E \u0930\u0915\u092E \u0926\u0930\u094D\u0924\u093E \u0916\u0941\u0932\u094D\u0928\u0941\u0905\u0918\u093F \u0928\u0948 \u0924\u094B\u0915\u093F\u0928\u094D\u091B \u00B7 \u092A\u094D\u0930\u0935\u0947\u0936 \u0936\u0941\u0932\u094D\u0915 JD Arena \u0932\u0947 \u0907\u0928\u093E\u092E \u0930 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E \u091A\u0932\u093E\u0909\u0928 \u0930\u093E\u0916\u094D\u091B\u0964 \u092B\u094D\u0930\u0940 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E? \u0907\u0928\u093E\u092E \u0939\u093E\u092E\u094D\u0930\u094B \u0924\u0930\u094D\u092B\u092C\u093E\u091F\u0964 \u0928\u093F\u0937\u094D\u092A\u0915\u094D\u0937 \u0930 \u0938\u092B\u093E\u0964",
-  scoring:"\u0938\u091c\u093f\u0932\u094b \u2014 \u0939\u0930\u0947\u0915 \u092e\u094d\u092f\u093e\u091a\u092e\u093e \u0924\u092a\u093e\u0908\u0902\u0915\u094b \u0938\u094d\u0915\u094d\u0935\u093e\u0921\u0932\u0947 \u0906\u0927\u093f\u0915\u093e\u0930\u093f\u0915 \u0930\u0941\u092e \u0928\u0924\u093f\u091c\u093e\u0905\u0928\u0941\u0938\u093e\u0930 \u0938\u094d\u0925\u093e\u0928 \u0905\u0919\u094d\u0915 \u092a\u093e\u0909\u0901\u091b, \u0938\u093e\u0925\u0948 \u0939\u0930\u0947\u0915 \u0915\u093f\u0932\u0915\u094b \u0967 \u0905\u0919\u094d\u0915\u0964 \u0938\u092c\u0948 \u092e\u094d\u092f\u093e\u091a\u0915\u093e \u0905\u0919\u094d\u0915 \u091c\u094b\u0921\u093f\u0928\u094d\u091b\u0928\u094d, \u0938\u092c\u0948\u092d\u0928\u094d\u0926\u093e \u0927\u0947\u0930\u0948 \u091c\u092e\u094d\u092e\u093e \u0905\u0919\u094d\u0915 \u0939\u0941\u0928\u0947 \u0938\u094d\u0915\u094d\u0935\u093e\u0921 \u091c\u093f\u0924\u094d\u091b\n\n\u0939\u0930\u0947\u0915 \u092e\u094d\u092f\u093e\u091a\u0915\u094b \u0938\u094d\u0925\u093e\u0928 \u0905\u0919\u094d\u0915: \u092a\u0939\u093f\u0932\u094b 12, \u0926\u094b\u0938\u094d\u0930\u094b 9, \u0924\u0947\u0938\u094d\u0930\u094b 8, \u091a\u094c\u0925\u094b 7, \u092a\u093e\u0901\u091a\u094c\u0902 6, \u091b\u0948\u091f\u094c\u0902 5, \u0938\u093e\u0924\u094c\u0902 4, \u0906\u0920\u094c\u0902 3, \u0928\u0935\u094c\u0902 2, \u0926\u0936\u094c\u0902 1, 11-12\u0914\u0902 0\u0964 \u0915\u093f\u0932: \u0939\u0930\u0947\u0915\u0915\u094b +1\u0964 \u0909\u0926\u093e\u0939\u0930\u0923: \u092a\u0939\u093f\u0932\u094b + 5 \u0915\u093f\u0932, \u0924\u0947\u0938\u094d\u0930\u094b + 2 \u0915\u093f\u0932 = (12 + 5) + (8 + 2) = 27 \u0905\u0919\u094d\u0915\u0964",
-  hacker:"\u0939\u094D\u092F\u093E\u0915\u0930/\u091A\u093F\u091F\u0930\u0932\u093E\u0908 \u0915\u0941\u0928\u0948 \u091B\u0941\u091F \u091B\u0948\u0928 \u2014 \u092A\u094D\u0930\u092E\u093E\u0923\u093F\u0924 \u091A\u093F\u091F\u093F\u0919, \u092E\u094B\u0921 \u0917\u0930\u093F\u090F\u0915\u094B \u090F\u092A, \u0910\u092E\u092C\u091F \u0935\u093E \u0935\u093E\u0932\u0939\u094D\u092F\u093E\u0915 \u092D\u0947\u091F\u093F\u092F\u094B \u092D\u0928\u0947 \u0924\u0941\u0930\u0941\u0928\u094D\u0924\u0948 \u092C\u094D\u092F\u093E\u0928 \u0930 \u091C\u093F\u0924\u0947\u0915\u094B \u0907\u0928\u093E\u092E \u0924\u0941\u0930\u0941\u0928\u094D\u0924\u0948 \u0930\u0926\u094D\u0926, \u0915\u0941\u0928\u0948 \u0905\u092A\u093F\u0932 \u091B\u0948\u0928\u0964 \u0936\u0902\u0915\u093E\u0938\u094D\u092A\u0926 \u092E\u094D\u092F\u093E\u091A\u092E\u093E \u0930\u093F\u092A\u094D\u0932\u0947 \u091C\u093E\u0901\u091A \u0917\u0930\u093F\u0928\u094D\u091B\u0964 \u0938\u092B\u093E \u0916\u0947\u0932\u094D\u0928\u0941\u0939\u094B\u0938\u094D, \u091A\u093F\u0928\u094D\u0924\u093E \u0932\u093F\u0928\u0941 \u092A\u0930\u094D\u0926\u0948\u0928\u0964",
-  payout:"\u091C\u093F\u0924\u094D\u0928\u0941\u092D\u092F\u094B \u092D\u0928\u0947 \u0907\u0928\u093E\u092E JD \u092A\u094B\u0907\u0928\u094D\u091F\u0915\u094B \u0930\u0942\u092A\u092E\u093E \u0924\u092A\u093E\u0908\u0902\u0915\u094B \u0935\u093E\u0932\u0947\u091F\u092E\u093E \u0906\u092B\u0948\u0902 \u0906\u0909\u0901\u091B (\u0967 \u092A\u094B\u0907\u0928\u094D\u091F = \u0930\u0941 \u0967) \u2014 \u092A\u0942\u0930\u093E \u0907\u0928\u093E\u092E, \u0915\u0941\u0928\u0948 \u0915\u091F\u094C\u0924\u0940 \u091B\u0948\u0928\u0964 \u0935\u093E\u0932\u0947\u091F \u092A\u0947\u091C\u092C\u093E\u091F \u091C\u0941\u0928\u0938\u0941\u0915\u0948 \u092C\u0947\u0932\u093E eSewa \u092E\u093E \u0928\u093F\u0915\u093E\u0932\u094D\u0928 \u0938\u0915\u094D\u0928\u0941\u0939\u0941\u0928\u094D\u091B\u0964",
+  rules:"\u092E\u0941\u0916\u094D\u092F \u0915\u0941\u0930\u093E: \u0938\u0941\u0930\u0941 \u0939\u0941\u0928\u0941 \u0968\u096A \u0918\u0923\u094D\u091F\u093E\u0905\u0918\u093F \u091B\u094B\u0921\u0947 \u092A\u0942\u0930\u093E \u0930\u093F\u092B\u0928\u094D\u0921, \u0905\u0928\u094D\u0924\u093F\u092E \u0926\u093F\u0928 \u0967\u0966% \u092E\u093E\u0924\u094D\u0930, Room ID \u092A\u0920\u093E\u090F\u092A\u091B\u093F \u0930\u093F\u092B\u0928\u094D\u0921 \u0939\u0941\u0901\u0926\u0948\u0928 \u00B7 \u091A\u093F\u091F\u093F\u0919 \u0935\u093E \u092E\u094B\u0921 \u0917\u0930\u093F\u090F\u0915\u094B \u090F\u092A = \u0924\u0941\u0930\u0941\u0928\u094D\u0924\u0948 \u092C\u094D\u092F\u093E\u0928 \u00B7 \u0907\u0928\u093E\u092E \u0930\u0915\u092E \u0926\u0930\u094D\u0924\u093E \u0916\u0941\u0932\u094D\u0928\u0941\u0905\u0918\u093F \u0928\u0948 \u0924\u094B\u0915\u093F\u0928\u094D\u091B \u00B7 \u092A\u094D\u0930\u0935\u0947\u0936 \u0936\u0941\u0932\u094D\u0915 JD Arena \u0932\u0947 \u0907\u0928\u093E\u092E \u0930 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E \u091A\u0932\u093E\u0909\u0928 \u0930\u093E\u0916\u094D\u091B\u0964 \u092B\u094D\u0930\u0940 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E? \u0907\u0928\u093E\u092E \u0939\u093E\u092E\u094D\u0930\u094B \u0924\u0930\u094D\u092B\u092C\u093E\u091F\u0964 \u0928\u093F\u0937\u094D\u092A\u0915\u094D\u0937 \u0930 \u0938\u092B\u093E\u0964 \uD83D\uDEE1\uFE0F",
+  scoring:"\u0938\u091c\u093f\u0932\u094b \u2014 \u0939\u0930\u0947\u0915 \u092e\u094d\u092f\u093e\u091a\u092e\u093e \u0924\u092a\u093e\u0908\u0902\u0915\u094b \u0938\u094d\u0915\u094d\u0935\u093e\u0921\u0932\u0947 \u0906\u0927\u093f\u0915\u093e\u0930\u093f\u0915 \u0930\u0941\u092e \u0928\u0924\u093f\u091c\u093e\u0905\u0928\u0941\u0938\u093e\u0930 \u0938\u094d\u0925\u093e\u0928 \u0905\u0919\u094d\u0915 \u092a\u093e\u0909\u0901\u091b, \u0938\u093e\u0925\u0948 \u0939\u0930\u0947\u0915 \u0915\u093f\u0932\u0915\u094b \u0967 \u0905\u0919\u094d\u0915\u0964 \u0938\u092c\u0948 \u092e\u094d\u092f\u093e\u091a\u0915\u093e \u0905\u0919\u094d\u0915 \u091c\u094b\u0921\u093f\u0928\u094d\u091b\u0928\u094d, \u0938\u092c\u0948\u092d\u0928\u094d\u0926\u093e \u0927\u0947\u0930\u0948 \u091c\u092e\u094d\u092e\u093e \u0905\u0919\u094d\u0915 \u0939\u0941\u0928\u0947 \u0938\u094d\u0915\u094d\u0935\u093e\u0921 \u091c\u093f\u0924\u094d\u091b \ud83c\udfc6\n\n\u0939\u0930\u0947\u0915 \u092e\u094d\u092f\u093e\u091a\u0915\u094b \u0938\u094d\u0925\u093e\u0928 \u0905\u0919\u094d\u0915: \u092a\u0939\u093f\u0932\u094b 12, \u0926\u094b\u0938\u094d\u0930\u094b 9, \u0924\u0947\u0938\u094d\u0930\u094b 8, \u091a\u094c\u0925\u094b 7, \u092a\u093e\u0901\u091a\u094c\u0902 6, \u091b\u0948\u091f\u094c\u0902 5, \u0938\u093e\u0924\u094c\u0902 4, \u0906\u0920\u094c\u0902 3, \u0928\u0935\u094c\u0902 2, \u0926\u0936\u094c\u0902 1, 11-12\u0914\u0902 0\u0964 \u0915\u093f\u0932: \u0939\u0930\u0947\u0915\u0915\u094b +1\u0964 \u0909\u0926\u093e\u0939\u0930\u0923: \u092a\u0939\u093f\u0932\u094b + 5 \u0915\u093f\u0932, \u0924\u0947\u0938\u094d\u0930\u094b + 2 \u0915\u093f\u0932 = (12 + 5) + (8 + 2) = 27 \u0905\u0919\u094d\u0915\u0964",
+  hacker:"\u0939\u094D\u092F\u093E\u0915\u0930/\u091A\u093F\u091F\u0930\u0932\u093E\u0908 \u0915\u0941\u0928\u0948 \u091B\u0941\u091F \u091B\u0948\u0928 \u2014 \u092A\u094D\u0930\u092E\u093E\u0923\u093F\u0924 \u091A\u093F\u091F\u093F\u0919, \u092E\u094B\u0921 \u0917\u0930\u093F\u090F\u0915\u094B \u090F\u092A, \u0910\u092E\u092C\u091F \u0935\u093E \u0935\u093E\u0932\u0939\u094D\u092F\u093E\u0915 \u092D\u0947\u091F\u093F\u092F\u094B \u092D\u0928\u0947 \u0924\u0941\u0930\u0941\u0928\u094D\u0924\u0948 \u092C\u094D\u092F\u093E\u0928 \u0930 \u091C\u093F\u0924\u0947\u0915\u094B \u0907\u0928\u093E\u092E \u0924\u0941\u0930\u0941\u0928\u094D\u0924\u0948 \u0930\u0926\u094D\u0926, \u0915\u0941\u0928\u0948 \u0905\u092A\u093F\u0932 \u091B\u0948\u0928\u0964 \u0936\u0902\u0915\u093E\u0938\u094D\u092A\u0926 \u092E\u094D\u092F\u093E\u091A\u092E\u093E \u0930\u093F\u092A\u094D\u0932\u0947 \u091C\u093E\u0901\u091A \u0917\u0930\u093F\u0928\u094D\u091B\u0964 \u0938\u092B\u093E \u0916\u0947\u0932\u094D\u0928\u0941\u0939\u094B\u0938\u094D, \u091A\u093F\u0928\u094D\u0924\u093E \u0932\u093F\u0928\u0941 \u092A\u0930\u094D\u0926\u0948\u0928\u0964 \uD83D\uDEE1\uFE0F",
+  payout:"\u091C\u093F\u0924\u094D\u0928\u0941\u092D\u092F\u094B \u092D\u0928\u0947 \u0907\u0928\u093E\u092E JD \u092A\u094B\u0907\u0928\u094D\u091F\u0915\u094B \u0930\u0942\u092A\u092E\u093E \u0924\u092A\u093E\u0908\u0902\u0915\u094B \u0935\u093E\u0932\u0947\u091F\u092E\u093E \u0906\u092B\u0948\u0902 \u0906\u0909\u0901\u091B (\u0967 \u092A\u094B\u0907\u0928\u094D\u091F = \u0930\u0941 \u0967) \u2014 \u092A\u0942\u0930\u093E \u0907\u0928\u093E\u092E, \u0915\u0941\u0928\u0948 \u0915\u091F\u094C\u0924\u0940 \u091B\u0948\u0928\u0964 \u0935\u093E\u0932\u0947\u091F \u092A\u0947\u091C\u092C\u093E\u091F \u091C\u0941\u0928\u0938\u0941\u0915\u0948 \u092C\u0947\u0932\u093E eSewa \u092E\u093E \u0928\u093F\u0915\u093E\u0932\u094D\u0928 \u0938\u0915\u094D\u0928\u0941\u0939\u0941\u0928\u094D\u091B\u0964 \uD83D\uDCB0",
   prizenone:"\u0905\u0939\u093F\u0932\u0947 \u0907\u0928\u093E\u092E \u0930\u093E\u0916\u093F\u090F\u0915\u094B \u091B\u0948\u0928 \u2014 \u091A\u093E\u0901\u0921\u0948 \u0939\u0947\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D \u0935\u093E Discord \u0939\u0947\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
   entrynone:"\u0905\u0939\u093F\u0932\u0947 \u092A\u094D\u0930\u0935\u0947\u0936 \u0936\u0941\u0932\u094D\u0915 \u0930\u093E\u0916\u093F\u090F\u0915\u094B \u091B\u0948\u0928 \u2014 \u0905\u0930\u094D\u0915\u094B \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E\u0915\u094B \u0935\u093F\u0935\u0930\u0923 \u091A\u093E\u0901\u0921\u0948 \u0906\u0909\u0901\u0926\u0948\u0964",
   about:"\u092A\u094D\u0930\u092C\u093F\u0928 \u0906\u092F\u0930 JD Arena \u0930 AyerFire \u091A\u0932\u093E\u0909\u0901\u091B\u0928\u094D \u2014 \u0932\u0928\u094D\u0921\u0928\u092E\u093E \u0930\u0939\u0947\u0915\u093E, \u0928\u0947\u092A\u093E\u0932\u0940 \u091C\u0930\u093E \u092D\u090F\u0915\u093E Computing Science \u0935\u093F\u0926\u094D\u092F\u093E\u0930\u094D\u0925\u0940\u0964 \u092A\u0942\u0930\u093E \u092A\u0930\u093F\u091A\u092F: \u201CAbout Prabin\u201D \u0916\u094B\u0932\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
   contact:"\u0917\u094D\u0930\u093E\u0939\u0915 \u0938\u0939\u093E\u092F\u0924\u093E (\u092B\u094B\u0928 \u0935\u093E WhatsApp): "+SUPPORT_PHONE_TXT+" \u2014 \u0906\u092B\u094D\u0928\u094B username \u0930 screenshot \u092A\u0920\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D\u0964\n\u2022 WhatsApp: https://wa.me/"+SUPPORT_PHONE+"\n\u2022 Discord: "+DISCORD_INVITE+"\n\u2022 \u0907\u092E\u0947\u0932: "+FEEDBACK_EMAIL+((typeof WHATSAPP_NUMBER==='string'&&WHATSAPP_NUMBER)?"\n\u2022 WhatsApp: \u0915\u0941\u0928\u0948 Register \u092C\u091F\u0928 \u0925\u093F\u091A\u094D\u0928\u0941\u0939\u094B\u0938\u094D":""),
-  hi:"\u0928\u092E\u0938\u094D\u0924\u0947! \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0938\u0939\u092D\u093E\u0917\u093F\u0924\u093E, \u0928\u093F\u092F\u092E \u0935\u093E \u0938\u092E\u094D\u092A\u0930\u094D\u0915 \u092C\u093E\u0930\u0947 \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
-  hin:"\u0928\u092E\u0938\u094D\u0924\u0947 {x}! \u0915\u0947 \u0925\u093E\u0939\u093E \u092A\u093E\u0909\u0928 \u091A\u093E\u0939\u0928\u0941\u0939\u0941\u0928\u094D\u091B \u2014 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0938\u0939\u092D\u093E\u0917\u093F\u0924\u093E \u0935\u093E \u0928\u093F\u092F\u092E?",
-  thanks:"\u091C\u0939\u093F\u0932\u0947 \u092A\u0928\u093F! \u0932\u092C\u0940\u092E\u093E \u0936\u0941\u092D\u0915\u093E\u092E\u0928\u093E\u0964",
+  hi:"\u0928\u092E\u0938\u094D\u0924\u0947! \uD83D\uDC4B \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0938\u0939\u092D\u093E\u0917\u093F\u0924\u093E, \u0928\u093F\u092F\u092E \u0935\u093E \u0938\u092E\u094D\u092A\u0930\u094D\u0915 \u092C\u093E\u0930\u0947 \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  hin:"\u0928\u092E\u0938\u094D\u0924\u0947 {x}! \uD83D\uDC4B \u0915\u0947 \u0925\u093E\u0939\u093E \u092A\u093E\u0909\u0928 \u091A\u093E\u0939\u0928\u0941\u0939\u0941\u0928\u094D\u091B \u2014 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0938\u0939\u092D\u093E\u0917\u093F\u0924\u093E \u0935\u093E \u0928\u093F\u092F\u092E?",
+  thanks:"\u091C\u0939\u093F\u0932\u0947 \u092A\u0928\u093F! \uD83D\uDE4C \u0932\u092C\u0940\u092E\u093E \u0936\u0941\u092D\u0915\u093E\u092E\u0928\u093E\u0964",
   squadsize:"धेरै JD event Squad हुन्, टिममा ४ जना। कुनै Solo वा Duo हुन्छन्, event card मा लेखिएको हुन्छ।",
   platform:"\u092E\u094B\u092C\u093E\u0907\u0932 \u092E\u093E\u0924\u094D\u0930, Free Fire BR \u2014 squad mode\u0964 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E\u0932\u0947 \u0928\u092D\u0928\u0947\u0938\u0940 PC/emulator \u091A\u0932\u094D\u0926\u0948\u0928\u0964",
   ack:"\uD83D\uDC4D",
   fbprompt:"\u092D\u0928\u094D\u0928\u0941\u0939\u094B\u0938\u094D \u2014 \u0938\u092E\u0938\u094D\u092F\u093E \u0935\u093E \u0938\u0941\u091D\u093E\u0935 \u0932\u0947\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D, \u092E \u092A\u094D\u0930\u092C\u093F\u0928\u0932\u093E\u0908 \u0938\u093F\u0927\u0948 \u092A\u0920\u093E\u0909\u0901\u091B\u0941\u0964",
-  unknown:"\u0924\u094D\u092F\u094B \u0905\u091D\u0948 \u092E\u0932\u093E\u0908 \u0925\u093E\u0939\u093E \u091B\u0948\u0928 \u2014 \u091F\u093F\u0915\u091F {x} \u092D\u0928\u0947\u0930 \u092A\u094D\u0930\u092C\u093F\u0928\u0932\u093E\u0908 \u0932\u0917 \u0917\u0930\u093F\u092F\u094B, \u092A\u091B\u093F \u0938\u094B\u0927\u094D\u0926\u093E \u092F\u094B \u0928\u092E\u094D\u092C\u0930 \u092D\u0928\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u0905\u0939\u093F\u0932\u0947 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0938\u0939\u092D\u093E\u0917\u093F\u0924\u093E, \u0928\u093F\u092F\u092E \u0935\u093E \u0938\u092E\u094D\u092A\u0930\u094D\u0915 \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  unknown:"\u0924\u094D\u092F\u094B \u0905\u091D\u0948 \u092E\u0932\u093E\u0908 \u0925\u093E\u0939\u093E \u091B\u0948\u0928 \u2014 \u091F\u093F\u0915\u091F {x} \u092D\u0928\u0947\u0930 \u092A\u094D\u0930\u092C\u093F\u0928\u0932\u093E\u0908 \u0932\u0917 \u0917\u0930\u093F\u092F\u094B, \u092A\u091B\u093F \u0938\u094B\u0927\u094D\u0926\u093E \u092F\u094B \u0928\u092E\u094D\u092C\u0930 \u092D\u0928\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u0905\u0939\u093F\u0932\u0947 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E, \u0938\u0939\u092D\u093E\u0917\u093F\u0924\u093E, \u0928\u093F\u092F\u092E \u0935\u093E \u0938\u092E\u094D\u092A\u0930\u094D\u0915 \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \uD83C\uDFAE",
   askc:"\u092C\u0941\u091D\u0947\u0901\u0964 \u0906\u0935\u0936\u094D\u092F\u0915 \u092A\u0930\u0947 \u092A\u094D\u0930\u092C\u093F\u0928\u0932\u0947 \u0915\u0938\u0930\u0940 \u0938\u092E\u094D\u092A\u0930\u094D\u0915 \u0917\u0930\u094D\u0928\u0947 \u2014 Discord \u091F\u094D\u092F\u093E\u0917 \u0935\u093E \u0907\u092E\u0947\u0932? ('skip' \u0932\u0947\u0916\u094D\u0928 \u0938\u0915\u094D\u0928\u0941\u0939\u0941\u0928\u094D\u091B)",
-  sent:"\u2705 \u092A\u094D\u0930\u092C\u093F\u0928\u0932\u093E\u0908 \u092A\u0920\u093E\u0907\u092F\u094B \u2014 \u0924\u092A\u093E\u0908\u0902\u0915\u094B \u091F\u093F\u0915\u091F {x} \u0939\u094B, \u092A\u091B\u093F \u0938\u094B\u0927\u094D\u0926\u093E \u092F\u0939\u0940 \u0928\u092E\u094D\u092C\u0930 \u092D\u0928\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u0927\u0928\u094D\u092F\u0935\u093E\u0926 \u2014 \u092F\u0938\u0932\u0947 JD Arena \u0930\u093E\u092E\u094D\u0930\u094B \u092C\u0928\u093E\u0909\u0928 \u0938\u093E\u091A\u094D\u091A\u0948 \u092E\u0926\u094D\u0926\u0924 \u0917\u0930\u094D\u091B\u0964",
-  mail:"\u0924\u092A\u093E\u0908\u0902\u0915\u094B \u0907\u092E\u0947\u0932 \u0916\u094B\u0932\u094D\u091B\u0941 \u0924\u093E\u0915\u093F \u0938\u093F\u0927\u0948 \u092A\u094D\u0930\u092C\u093F\u0928\u0932\u093E\u0908 \u092A\u0920\u093E\u0909\u0928 \u0938\u0915\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
-  chiprules:'\u0928\u093F\u092F\u092E',chippoints:'\u0905\u0919\u094D\u0915 \u092A\u094D\u0930\u0923\u093E\u0932\u0940',chippay:'\u092D\u0941\u0915\u094D\u0924\u093E\u0928\u0940',chipjoin:'\u0915\u0938\u0930\u0940 \u091C\u094B\u0921\u093F\u0928\u0947',chiphelp:'\u0938\u0939\u093E\u092F\u0924\u093E',
-  nudge0:"\u0928\u092F\u093E\u0901 \u0939\u0941\u0928\u0941\u0939\u0941\u0928\u094D\u091B? \u092E \u0924\u092A\u093E\u0908\u0902\u0932\u093E\u0908 \u0909\u092A\u092F\u0941\u0915\u094D\u0924 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E \u092B\u0947\u0932\u093E \u092A\u093E\u0930\u094D\u0928 \u092E\u0926\u094D\u0926\u0924 \u0917\u0930\u094D\u0928 \u0938\u0915\u094D\u091B\u0941\u0964",
+  sent:"\u2705 \u092A\u094D\u0930\u092C\u093F\u0928\u0932\u093E\u0908 \u092A\u0920\u093E\u0907\u092F\u094B \u2014 \u0924\u092A\u093E\u0908\u0902\u0915\u094B \u091F\u093F\u0915\u091F {x} \u0939\u094B, \u092A\u091B\u093F \u0938\u094B\u0927\u094D\u0926\u093E \u092F\u0939\u0940 \u0928\u092E\u094D\u092C\u0930 \u092D\u0928\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u0927\u0928\u094D\u092F\u0935\u093E\u0926 \u2014 \u092F\u0938\u0932\u0947 JD Arena \u0930\u093E\u092E\u094D\u0930\u094B \u092C\u0928\u093E\u0909\u0928 \u0938\u093E\u091A\u094D\u091A\u0948 \u092E\u0926\u094D\u0926\u0924 \u0917\u0930\u094D\u091B\u0964 \uD83D\uDE4F",
+  mail:"\u0924\u092A\u093E\u0908\u0902\u0915\u094B \u0907\u092E\u0947\u0932 \u0916\u094B\u0932\u094D\u091B\u0941 \u0924\u093E\u0915\u093F \u0938\u093F\u0927\u0948 \u092A\u094D\u0930\u092C\u093F\u0928\u0932\u093E\u0908 \u092A\u0920\u093E\u0909\u0928 \u0938\u0915\u094D\u0928\u0941\u0939\u094B\u0938\u094D \uD83D\uDC47",
+  chiprules:'\uD83D\uDCDC \u0928\u093F\u092F\u092E',chippoints:'\uD83C\uDFC6 \u0905\u0919\u094D\u0915 \u092A\u094D\u0930\u0923\u093E\u0932\u0940',chippay:'\uD83D\uDCB0 \u092D\u0941\u0915\u094D\u0924\u093E\u0928\u0940',chipjoin:'\uD83C\uDFAE \u0915\u0938\u0930\u0940 \u091C\u094B\u0921\u093F\u0928\u0947',chiphelp:'\uD83C\uDFA7 \u0938\u0939\u093E\u092F\u0924\u093E',
+  nudge0:"\uD83D\uDC4B \u0928\u092F\u093E\u0901 \u0939\u0941\u0928\u0941\u0939\u0941\u0928\u094D\u091B? \u092E \u0924\u092A\u093E\u0908\u0902\u0932\u093E\u0908 \u0909\u092A\u092F\u0941\u0915\u094D\u0924 \u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E \u092B\u0947\u0932\u093E \u092A\u093E\u0930\u094D\u0928 \u092E\u0926\u094D\u0926\u0924 \u0917\u0930\u094D\u0928 \u0938\u0915\u094D\u091B\u0941\u0964",
   nudge1:"\u2753 \u092A\u094D\u0930\u0935\u0947\u0936 \u0936\u0941\u0932\u094D\u0915 \u0935\u093E \u092D\u0941\u0915\u094D\u0924\u093E\u0928\u0940 \u092C\u093E\u0930\u0947 \u092A\u094D\u0930\u0936\u094D\u0928 \u091B? \u0938\u093F\u0927\u0948 \u0938\u094B\u0927\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
-  nudge2:"\u0926\u0930\u094D\u0924\u093E \u0915\u0938\u0930\u0940 \u0917\u0930\u094D\u0928\u0947 \u0925\u093E\u0939\u093E \u091B\u0948\u0928? \u092E \u0924\u092A\u093E\u0908\u0902\u0932\u093E\u0908 \u091A\u0930\u0923\u092C\u0926\u094D\u0927 \u0930\u0942\u092A\u092E\u093E \u0926\u0947\u0916\u093E\u0909\u0901\u091B\u0941\u0964"}
+  nudge2:"\uD83C\uDFAE \u0926\u0930\u094D\u0924\u093E \u0915\u0938\u0930\u0940 \u0917\u0930\u094D\u0928\u0947 \u0925\u093E\u0939\u093E \u091B\u0948\u0928? \u092E \u0924\u092A\u093E\u0908\u0902\u0932\u093E\u0908 \u091A\u0930\u0923\u092C\u0926\u094D\u0927 \u0930\u0942\u092A\u092E\u093E \u0926\u0947\u0916\u093E\u0909\u0901\u091B\u0941\u0964"}
 };
 function zL(k,a){var s=(Z[lang]&&Z[lang][k]!=null)?Z[lang][k]:Z.en[k];if(s==null)s='';return a?s.replace('{x}',a):s;}
 function zChrome(){if(typeof Z==='undefined'||!Z)return;var f=document.getElementById('fab');if(f)f.textContent=zL('fab');var s=document.getElementById('z-sub');if(s)s.textContent=zL('zsub');var i=document.getElementById('fb-input');if(i)i.setAttribute('placeholder',zL('zph'));var b=document.getElementById('z-send');if(b)b.textContent=zL('send');}
@@ -3293,10 +3291,10 @@ function fbChips(){
 function fbClose(){document.getElementById('fb-panel').classList.remove('open');document.getElementById('fab').style.display='';}
 function fbScroll(){var b=document.getElementById('fb-msgs');b.scrollTop=b.scrollHeight;}
 function fbBot(t){var m=document.createElement('div');m.className='fb-msg bot';m.textContent=t;document.getElementById('fb-msgs').appendChild(m);fbScroll();}
-// An AI reply: site paths become tap buttons, plus read-aloud once it has finished (chat.js helpers).
+// An AI reply: site paths become tap buttons, plus 🔊 read-aloud once it has finished (chat.js helpers).
 function zuluShow(el,text,streaming){
   el.innerHTML='<span class="dm-zt">'+(typeof window.zuluRender==='function'?window.zuluRender(text):esc(text))+'</span>'+
-    (!streaming&&typeof window.zuluSpeak==='function'?'<button type="button" class="dm-say" aria-label="Read aloud" title="Read aloud"><i class=ji-speaker aria-hidden=true></i></button>':'');
+    (!streaming&&typeof window.zuluSpeak==='function'?'<button type="button" class="dm-say" aria-label="Read aloud" title="Read aloud">🔊</button>':'');
   var b=el.querySelector('.dm-say');
   if(b)b.onclick=function(){var err=window.zuluSpeak(el.querySelector('.dm-zt').textContent,b);if(err&&!b.nextElementSibling){b.insertAdjacentHTML('afterend','<span class="dm-sayerr">'+esc(err)+'</span>');setTimeout(function(){var n=b.nextElementSibling;if(n)n.remove();},4000);}};
   fbScroll();
@@ -3334,7 +3332,7 @@ function zuluRespond(q){
     fbScroll();
   });
 }
-// For the ZULU chat in Messages (chat.js), which replaces this panel for logged-in
+// For the ZULU chat in 💬 Messages (chat.js), which replaces this panel for logged-in
 // players: the same built-in answers as zuluRespond() — personal ones (your room ID, your
 // match time) and instant short ones — without touching this panel's DOM. Resolves to
 // { text } when a built-in answer should be used as is, or { fallback } when the online AI
@@ -3392,7 +3390,7 @@ function myMatchInfo(){
   }
   var lines=active.map(function(e){
     var t=e.t,when=[t.date,t.time].filter(Boolean).join(' · ')||(ne?'मिति मिति हुने बाँकी':'TBA');
-    var ci=e.reg.checked_in_at?(ne?'चेक-इन भइसक्यो':'Checked in'):'';
+    var ci=e.reg.checked_in_at?(ne?' ✔️ चेक-इन भइसक्यो':' ✔️ Checked in'):'';
     return '• '+t.name+' — '+when+ci;
   });
   return (ne?'तपाईंको म्याच:':"Your match(es):")+'\n'+lines.join('\n');
@@ -3516,7 +3514,7 @@ function genTicket(){var d=new Date();var ymd=d.getFullYear().toString().slice(2
    nothing is silently lost. */
 function deliverFeedback(fields){
   if(typeof FEEDBACK_WEBHOOK==='string'&&FEEDBACK_WEBHOOK){
-    var content='JD Arena ['+fields.ticket+'] '+fields.kind+'\n'+fields.message+'\n\u2014 '+fields.contact;
+    var content='\uD83C\uDFAE JD Arena ['+fields.ticket+'] '+fields.kind+'\n'+fields.message+'\n\u2014 '+fields.contact;
     return fetch(FEEDBACK_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:content})});
   }
   var same=(/^https?:$/.test(location.protocol))?location.origin.replace(/\/$/,'')+'/feedback':null;

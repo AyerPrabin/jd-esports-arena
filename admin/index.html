@@ -283,14 +283,13 @@ h2[id]{scroll-margin-top:64px}
 .au-tip{position:absolute;top:6px;right:12px;font-size:.74rem;opacity:.85}
 @media(max-width:560px){.au-k{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
-<link rel="stylesheet" href="/icons.css?v=1">
 </head>
 <body>
 <div id="gate">
   <img class="jdlogo-lg" src="/logo.webp" alt="JD Esports Arena" width="64" height="64">
   <h1>JD Arena — Editor</h1>
   <div class="sub" style="text-align:center">Owner only</div>
-  <button class="btn" id="google-signin-btn" onclick="signInWithGoogle()">Sign in with Google</button>
+  <button class="btn" id="google-signin-btn" onclick="signInWithGoogle()">🔐 Sign in with Google</button>
   <div id="google-msg" class="hint"></div>
   <div class="hint" style="margin:10px 0 0">— or use the passcode —</div>
   <input id="code" type="password" placeholder="Admin passcode" autocomplete="off" onkeydown="if(event.key==='Enter')unlock()">
@@ -342,36 +341,36 @@ h2[id]{scroll-margin-top:64px}
 
   <div class="row">
     <a class="btn ghost" href="/">← Back to site</a>
-    <button class="btn ghost" onclick="changePasscode()">Change passcode</button>
-    <button class="btn ghost" onclick="openUsersPopup()">Users</button>
+    <button class="btn ghost" onclick="changePasscode()">🔑 Change passcode</button>
+    <button class="btn ghost" onclick="openUsersPopup()">👥 Users</button>
     <div id="msg"></div>
   </div>
 
   <p class="hint" style="margin:0 0 6px">Edit any event below, then tap <b>Publish changes</b> in Quick actions — that's the only step needed to make it live.</p>
 
-  <div class="dash-head"><span>Quick actions</span></div>
+  <div class="dash-head"><span>⚡ Quick actions</span></div>
   <div class="qa">
-    <button class="qa-tile qa-new" onclick="newEventOpen()"><span class="qa-ic"><i class=ji-plus aria-hidden=true></i></span>New event</button>
-    <button class="qa-tile" onclick="publishNow()"><span class="qa-ic"><i class=ji-rocket aria-hidden=true></i></span>Publish changes</button>
-    <a class="qa-tile" href="#room-codes"><span class="qa-ic"><i class=ji-key aria-hidden=true></i></span>Send room code</a>
-    <button class="qa-tile" onclick="payPrizesNow()"><span class="qa-ic"><i class=ji-trophy aria-hidden=true></i></span>Pay prizes</button>
-    <a class="qa-tile" href="#wallets" onclick="setTimeout(loadWithdrawals,60)"><span class="qa-ic"><i class=ji-coin aria-hidden=true></i></span>Withdrawals</a>
-    <a class="qa-tile" href="#wallets" onclick="setTimeout(loadMoney,60)"><span class="qa-ic"><i class=ji-coin aria-hidden=true></i></span>Money in/out</a>
-    <a class="qa-tile" href="#wallets" onclick="setTimeout(loadBalances,60)"><span class="qa-ic"><i class=ji-doc aria-hidden=true></i></span>Point history</a>
-    <a class="qa-tile" href="#promo" onclick="setTimeout(pvLoad,60)"><span class="qa-ic"><i class=ji-film aria-hidden=true></i></span>Promo videos <b id="qa-promo-n" hidden></b></a>
-    <a class="qa-tile" href="#moderators"><span class="qa-ic"><i class=ji-shield aria-hidden=true></i></span>Mods</a>
-    <a class="qa-tile" href="#tournaments"><span class="qa-ic"><i class=ji-trophy aria-hidden=true></i></span>Events</a>
-    <a class="qa-tile" href="#teams"><span class="qa-ic"><i class=ji-users aria-hidden=true></i></span>Players</a>
+    <button class="qa-tile qa-new" onclick="newEventOpen()"><span class="qa-ic">➕</span>New event</button>
+    <button class="qa-tile" onclick="publishNow()"><span class="qa-ic">🚀</span>Publish changes</button>
+    <a class="qa-tile" href="#room-codes"><span class="qa-ic">🔑</span>Send room code</a>
+    <button class="qa-tile" onclick="payPrizesNow()"><span class="qa-ic">🏆</span>Pay prizes</button>
+    <a class="qa-tile" href="#wallets" onclick="setTimeout(loadWithdrawals,60)"><span class="qa-ic">💸</span>Withdrawals</a>
+    <a class="qa-tile" href="#wallets" onclick="setTimeout(loadMoney,60)"><span class="qa-ic">💰</span>Money in/out</a>
+    <a class="qa-tile" href="#wallets" onclick="setTimeout(loadBalances,60)"><span class="qa-ic">📜</span>Point history</a>
+    <a class="qa-tile" href="#promo" onclick="setTimeout(pvLoad,60)"><span class="qa-ic">🎬</span>Promo videos <b id="qa-promo-n" hidden></b></a>
+    <a class="qa-tile" href="#moderators"><span class="qa-ic">🛡</span>Mods</a>
+    <a class="qa-tile" href="#tournaments"><span class="qa-ic">🏆</span>Events</a>
+    <a class="qa-tile" href="#teams"><span class="qa-ic">👥</span>Players</a>
   </div>
   <div id="publish-top-msg" class="hint" style="margin:6px 0 0"></div>
 
-  <div class="dash-head"><span>Active users</span><button class="dash-refresh" onclick="auLoad()" title="Refresh">↻</button></div>
+  <div class="dash-head"><span>📈 Active users</span><button class="dash-refresh" onclick="auLoad()" title="Refresh">↻</button></div>
   <div id="au-box" class="au"><p class="hint">Sign in with Google (top of the page) to see active users.</p></div>
 
-  <div class="dash-head"><span>Inbox</span><button class="dash-refresh" onclick="inboxLoad(true);loadDashboard()" title="Refresh">↻</button></div>
+  <div class="dash-head"><span>📥 Inbox</span><button class="dash-refresh" onclick="inboxLoad(true);loadDashboard()" title="Refresh">↻</button></div>
   <div id="inbox" class="inbox"><p class="hint">Loading point loads, withdrawals and disputes…</p></div>
 
-  <div class="dash-head"><span>Match day</span></div>
+  <div class="dash-head"><span>🎮 Match day</span></div>
   <div id="md-box"></div>
 
   <div class="dash-head"><span>What's going on</span></div>
@@ -381,7 +380,7 @@ h2[id]{scroll-margin-top:64px}
   <div class="dash" id="dash"><div class="dash-tile loading"><b>…</b><span>Loading</span></div></div>
 
   <nav class="adm-nav" id="adm-nav">
-    <button type="button" class="nav-pub" onclick="publishNow()">Publish</button><a href="#tournaments">Tournaments</a><a href="#history">History</a><a href="#teams">Teams</a><a href="#pending-payments">Payments</a><a href="#wallets">Points</a><a href="#optimizer">Optimizer</a><a href="#moderators">Mods</a><a href="#mega">MEGA</a><a href="#promo" onclick="setTimeout(pvLoad,60)">Promo</a><a href="#zsquad">ZULU squads</a><a href="#challenges">Challenges</a><a href="#room-codes">Room codes</a><a href="#announce">Announce</a><a href="#reports">Reports</a><a href="#ban-list">Bans</a><a href="#anomaly-flags">Flags</a><a href="#reviews">Reviews</a>
+    <button type="button" class="nav-pub" onclick="publishNow()">🚀 Publish</button><a href="#tournaments">🏆 Tournaments</a><a href="#history">📜 History</a><a href="#teams">👥 Teams</a><a href="#pending-payments">💳 Payments</a><a href="#wallets">💰 Points</a><a href="#optimizer">🚀 Optimizer</a><a href="#moderators">🛡 Mods</a><a href="#mega">🏆 MEGA</a><a href="#promo" onclick="setTimeout(pvLoad,60)">🎬 Promo</a><a href="#zsquad">🤝 ZULU squads</a><a href="#challenges">⚔️ Challenges</a><a href="#room-codes">🔑 Room codes</a><a href="#announce">📣 Announce</a><a href="#reports">🚩 Reports</a><a href="#ban-list">🚫 Bans</a><a href="#anomaly-flags">⚠️ Flags</a><a href="#reviews">⭐ Reviews</a>
   </nav>
 
   <div class="f full" style="margin-bottom:8px">
@@ -392,11 +391,11 @@ h2[id]{scroll-margin-top:64px}
   <h2 id="tournaments">Tournaments</h2>
   <p class="hint" style="margin-top:-4px">Upcoming and live events. Once an event is finished or cancelled it moves to History below.</p>
   <div id="tlist"></div>
-  <button class="btn" onclick="newEventOpen()">New Event</button>
+  <button class="btn" onclick="newEventOpen()">➕ New Event</button>
 
   <div class="nev-ov" id="nev-ov" onclick="if(event.target===this)newEventClose()">
     <div class="nev" role="dialog" aria-label="New event">
-      <h3>New event</h3>
+      <h3>➕ New event</h3>
       <p class="hint" style="margin:0">Name is numbered for you. Everything else is copied from your last event, so you usually only pick the date.</p>
       <span class="row-l">NAME <span class="tag">auto-numbered</span></span>
       <div class="nev-name"><input id="nev-name"></div>
@@ -420,7 +419,7 @@ h2[id]{scroll-margin-top:64px}
       <div class="nev-sum" id="nev-sum"></div>
       <div class="nev-msg" id="nev-msg"></div>
       <div class="nev-acts">
-        <button class="btn" onclick="newEventCreate(true)">Create &amp; publish</button>
+        <button class="btn" onclick="newEventCreate(true)">🚀 Create &amp; publish</button>
         <button class="btn ghost" onclick="newEventCreate(false)">Save as draft</button>
         <button class="btn ghost" onclick="newEventClose()">Cancel</button>
       </div>
@@ -446,14 +445,14 @@ h2[id]{scroll-margin-top:64px}
   <div class="row">
     <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.86rem"><input type="checkbox" id="bo3-published" style="width:auto" onchange="data.bo3.published=this.checked">Published (shows on the live site once you publish tournaments.json)</label>
   </div>
-  <p class="hint">Publishing here only takes effect once you <b>Generate</b> and then <b>Publish to GitHub</b> (or Download and commit manually) below. Do that first and confirm the live site shows it — <i>then</i> use "Notify players" below. Notifying before the publish is live sends players to a stale or empty board.</p>
+  <p class="hint">Publishing here only takes effect once you <b>Generate</b> and then <b>🚀 Publish to GitHub</b> (or Download and commit manually) below. Do that first and confirm the live site shows it — <i>then</i> use "Notify players" below. Notifying before the publish is live sends players to a stale or empty board.</p>
   <div class="row">
-    <button class="btn ghost" onclick="notifyBo3Results()">Notify players</button>
+    <button class="btn ghost" onclick="notifyBo3Results()">🔔 Notify players</button>
     <div id="bo3-msg" class="hint"></div>
   </div>
   <p class="hint">Only players who <b>registered in-app</b> for the selected tournament get notified — the squad names typed into the table above are for display only and may not exactly match who's in that list (see SUPABASE_SETUP.md's "Known gap").</p>
   <div class="row">
-    <button class="btn" onclick="archiveResults()">Archive results</button>
+    <button class="btn" onclick="archiveResults()">📦 Archive results</button>
   </div>
   <p class="hint">Once these scores are truly final, click this to permanently save each squad's placement/kills/points (and any prize won) to player career stats — this is what powers player profiles, rank tiers, and career totals. Safe to re-run if you correct a score before moving on to a new bracket; it overwrites this tournament's archived rows rather than duplicating them.</p>
   </details>
@@ -465,13 +464,13 @@ h2[id]{scroll-margin-top:64px}
     <div class="f full"><label>Tournament</label><select id="mr-tourney"></select></div>
   </div>
   <div class="row">
-    <button class="btn ghost" onclick="generateMatchRecap()">Generate recap</button>
+    <button class="btn ghost" onclick="generateMatchRecap()">🎙️ Generate recap</button>
     <div id="mr-msg" class="hint"></div>
   </div>
   <div class="f full"><label>English</label><textarea id="mr-english" rows="4" placeholder="Generated recap appears here…"></textarea></div>
   <div class="f full"><label>Nepali</label><textarea id="mr-nepali" rows="4" placeholder="Generated recap appears here…"></textarea></div>
   <div class="row">
-    <button class="btn" onclick="sendRecapToAnnouncement()">Send to players</button>
+    <button class="btn" onclick="sendRecapToAnnouncement()">📣 Send to players</button>
   </div>
   <p class="hint">Copies the recap into Send Announcement below (title pre-filled), where you can still edit it and pick who it goes to before it actually sends.</p>
   </details>
@@ -488,7 +487,7 @@ h2[id]{scroll-margin-top:64px}
   </div>
   </details>
   <div class="row">
-    <button class="btn" onclick="runAiReview()">Run AI Review</button>
+    <button class="btn" onclick="runAiReview()">🤖 Run AI Review</button>
     <button class="btn ghost" onclick="loadAiRecommendations()">↻ Load recommendations</button>
     <div id="ai-msg" class="hint"></div>
   </div>
@@ -512,12 +511,12 @@ h2[id]{scroll-margin-top:64px}
   <div id="rc-status" class="hint"></div>
   <div class="row">
     <button class="btn" onclick="sendRoomCode()">Send Room Code now</button>
-    <button class="btn ghost" onclick="stageRoomCode()">Stage for auto-release (~5 min before)</button>
+    <button class="btn ghost" onclick="stageRoomCode()">💾 Stage for auto-release (~5 min before)</button>
     <div id="rc-msg" class="hint"></div>
   </div>
 
   <h2 id="teams">Registered Teams <span class="tag">roster · optional ticket check</span></h2>
-  <p class="hint">Every in-app registration for an event, with the ticket code the player sees on their card (<b>JD-XXXXXXXX</b>). Checking codes is <b>optional</b>: confirmed squads get the room code either way. If you want to, type a squad's code below to confirm it's theirs, or tap <b>✓ Verify all</b>; verified squads see a Verified badge.</p>
+  <p class="hint">Every in-app registration for an event, with the ticket code the player sees on their card (<b>JD-XXXXXXXX</b>). Checking codes is <b>optional</b>: confirmed squads get the room code either way. If you want to, type a squad's code below to confirm it's theirs, or tap <b>✓ Verify all</b>; verified squads see a ✅ Verified badge.</p>
   <div class="grid">
     <div class="f"><label>Tournament</label><select id="tm-tourney" onchange="loadTeamsAdmin()"></select></div>
     <div class="f"><label>Check a ticket code</label><input id="tm-code" placeholder="e.g. JD-7F3K2A9C" autocomplete="off" oninput="renderTeamsAdmin()" style="font-family:'JetBrains Mono',monospace;"></div>
@@ -564,7 +563,7 @@ h2[id]{scroll-margin-top:64px}
     <div class="f"><label>Reason (shown publicly)</label><input id="bl-reason" placeholder="e.g. Confirmed emulator use in a mobile-only bracket"></div>
   </div>
   <div class="row">
-    <button class="btn" onclick="banDirectly()">Ban</button>
+    <button class="btn" onclick="banDirectly()">🚫 Ban</button>
   </div>
 
   <h2 id="anomaly-flags">Anomaly Flags <span class="tag">cheating signal · never auto-bans</span></h2>
@@ -585,7 +584,7 @@ h2[id]{scroll-margin-top:64px}
     <div class="f full" id="an-recipients-wrap" style="display:none"><label>Players (tag / @username / email, comma separated)</label><input id="an-recipients" placeholder="e.g. JD-7F3K2, @someuser, someone@email.com"></div>
   </div>
   <div class="row">
-    <button class="btn" onclick="sendAnnouncement()">Send</button>
+    <button class="btn" onclick="sendAnnouncement()">📣 Send</button>
     <div id="an-msg" class="hint"></div>
   </div>
 
@@ -602,7 +601,7 @@ h2[id]{scroll-margin-top:64px}
 
   <h2 id="wallets">Points <span class="tag">1 point = Rs 1</span></h2>
   <p class="hint">Players upload their eSewa screenshot on the Wallet page. Check each one below (amount, and the username in the remarks), then approve to add the points or reject it.</p>
-  <div class="row" style="margin:0 0 6px"><button class="btn" onclick="loadLoads()">Payment screenshots to check <span id="wl-count"></span></button><div id="wl-msg" class="hint"></div></div>
+  <div class="row" style="margin:0 0 6px"><button class="btn" onclick="loadLoads()">🧾 Payment screenshots to check <span id="wl-count"></span></button><div id="wl-msg" class="hint"></div></div>
   <div id="wl-list"></div>
   <p class="hint" style="margin-top:14px">Need to add points by hand? Search the player, then add them.</p>
   <div class="grid">
@@ -612,10 +611,10 @@ h2[id]{scroll-margin-top:64px}
   <div id="wa-player"></div>
   <div id="wa-history"></div>
   <div class="row" style="margin-top:10px">
-    <button class="btn ghost" onclick="loadWithdrawals()">Withdrawal requests</button>
-    <button class="btn ghost" onclick="loadBalances()">Everyone's points and history</button>
-    <button class="btn ghost" onclick="loadMoney()">Money in / out</button>
-    <button class="btn ghost" onclick="payPrizesNow()" title="Prizes pay automatically when you publish a winner — use this only to retry">Pay prizes now</button>
+    <button class="btn ghost" onclick="loadWithdrawals()">💸 Withdrawal requests</button>
+    <button class="btn ghost" onclick="loadBalances()">📊 Everyone's points and history</button>
+    <button class="btn ghost" onclick="loadMoney()">💰 Money in / out</button>
+    <button class="btn ghost" onclick="payPrizesNow()" title="Prizes pay automatically when you publish a winner — use this only to retry">🏆 Pay prizes now</button>
     <div id="wa-msg" class="hint"></div>
   </div>
   <div id="wa-wlist"></div>
@@ -630,8 +629,8 @@ h2[id]{scroll-margin-top:64px}
   <div id="op-results"></div>
   <div id="op-player"></div>
   <div class="row" style="margin-top:10px">
-    <button class="btn ghost" onclick="opList()">All plans</button>
-    <button class="btn ghost" onclick="opGpuBoard()">FPS by graphics card</button>
+    <button class="btn ghost" onclick="opList()">📋 All plans</button>
+    <button class="btn ghost" onclick="opGpuBoard()">📊 FPS by graphics card</button>
     <div id="op-msg" class="hint"></div>
   </div>
   <div id="op-list"></div>
@@ -646,20 +645,20 @@ h2[id]{scroll-margin-top:64px}
     <div class="f" id="mod-pct-f"><label>Commission % <span class="tag">staff · empty = none</span></label><input id="mod-pct" type="number" min="0" max="100" placeholder="e.g. 10"></div>
     <div class="f"><label>Note <span class="tag">optional</span></label><input id="mod-note" placeholder="e.g. Ramesh - reminders"></div>
   </div>
-  <div class="row" style="margin:8px 0 0"><button class="btn" onclick="modAdd()">Add moderator</button><button class="btn ghost" onclick="modList()">Refresh list</button><div id="mod-msg" class="hint"></div></div>
+  <div class="row" style="margin:8px 0 0"><button class="btn" onclick="modAdd()">➕ Add moderator</button><button class="btn ghost" onclick="modList()">🔄 Refresh list</button><div id="mod-msg" class="hint"></div></div>
   <div id="mod-list"></div>
 
   <h2 id="commission">Mod commission <span class="tag">per event · no salary</span></h2>
   <p class="hint">The first staff mod with a commission rate to send an event's room code is put on that event. They earn their % of the entry points squads actually paid, once the event has a winner and they accepted the agreement in /mod/. Nothing moves by itself: pay them, then tap Mark paid.</p>
-  <div class="row" style="margin:8px 0 0"><button class="btn ghost" onclick="commList()">Refresh</button><div id="comm-msg" class="hint"></div></div>
+  <div class="row" style="margin:8px 0 0"><button class="btn ghost" onclick="commList()">🔄 Refresh</button><div id="comm-msg" class="hint"></div></div>
   <div id="comm-list"></div>
 
   <h2 id="referrals">Invite tracking <span class="tag">refer and earn</span></h2>
   <p class="hint">Who invited whom. The inviter gets one free entry card when the invited player wins a prize of 30 points or more. Same Free Fire UID never earns it. Same WhatsApp is only a warning: check it before trusting a payout.</p>
-  <div class="row" style="margin:8px 0 0"><button class="btn ghost" onclick="refList()">Refresh</button><div id="ref-msg" class="hint"></div></div>
+  <div class="row" style="margin:8px 0 0"><button class="btn ghost" onclick="refList()">🔄 Refresh</button><div id="ref-msg" class="hint"></div></div>
   <div id="ref-list"></div>
 
-  <h2 id="mega">MEGA event <span class="tag">big paid event · refund if it doesn't fill</span></h2>
+  <h2 id="mega">🏆 MEGA event <span class="tag">big paid event · refund if it doesn't fill</span></h2>
   <p class="hint">One huge event (e.g. 1,500 squads, 200 points entry, Rs 3,00,000). Players join and pay like any event. If fewer than <b>Min squads</b> have paid when registration closes, everyone is refunded automatically and it's called off; otherwise it's confirmed and invite rewards are paid (host mods per squad they brought, players per squad they invited). Every day at 7 PM players who haven't joined get a progress alert (they can turn it off). The page is <a href="/mega/" target="_blank">/mega/</a>. Set the start date later in Tournaments; qualifier groups are drawn when registration closes.</p>
   <div class="grid">
     <div class="f"><label>Event name</label><input id="mg-slug" placeholder="JD MEGA Cup 2027" autocomplete="off"></div>
@@ -672,7 +671,7 @@ h2[id]{scroll-margin-top:64px}
     <div class="f"><label>Host reward (points per squad)</label><input id="mg-hr" type="number" value="10"></div>
     <div class="f"><label>Player invite reward (points per squad)</label><input id="mg-pr" type="number" value="5"></div>
   </div>
-  <div class="row" style="margin:8px 0 0"><button class="btn" onclick="megaSave()">Save &amp; publish</button><button class="btn ghost" onclick="megaList()">Refresh</button><div id="mg-msg" class="hint"></div></div>
+  <div class="row" style="margin:8px 0 0"><button class="btn" onclick="megaSave()">💾 Save &amp; publish</button><button class="btn ghost" onclick="megaList()">🔄 Refresh</button><div id="mg-msg" class="hint"></div></div>
   <div id="mg-list"></div>
 
   <h2 id="promo">Promo videos <span class="tag" id="pv-count">free vouchers</span></h2>
@@ -682,7 +681,7 @@ h2[id]{scroll-margin-top:64px}
 
   <h2 id="zsquad">ZULU squads <span class="tag">every Saturday 6:15 PM</span></h2>
   <p class="hint">ZULU groups players whose Find Teammates post says <b>Looking for a squad</b> and <b>Free</b>. It makes groups of 2 to 4 by language (it reads their post), opens a squad chat and writes a hello. No points or coins are involved. Nobody is grouped with someone they blocked, and each player is matched at most once a week. Preview first if you like.</p>
-  <div class="row"><button class="btn ghost" onclick="zsRun(true)">Preview groups</button><button class="btn" onclick="zsRun(false)">Make squads now</button></div>
+  <div class="row"><button class="btn ghost" onclick="zsRun(true)">👀 Preview groups</button><button class="btn" onclick="zsRun(false)">🤝 Make squads now</button></div>
   <div id="zs-out" class="hint"></div>
 
   <h2 id="challenges">Challenges <span class="tag">player vs player · disputes</span></h2>
@@ -694,14 +693,14 @@ h2[id]{scroll-margin-top:64px}
   <summary class="dsum">Admin Alerts <span class="tag">new signups</span></summary>
   <p class="hint">Subscribes THIS device to a push alert every time someone new signs up on the site, naming their username. Needs the same OneSignal + <code>ADMIN_SECRET</code> setup as Room Codes, plus a one-time Supabase Database Webhook — see <code>SUPABASE_SETUP.md</code>.</p>
   <div class="row">
-    <button class="btn ghost" id="admin-push-btn" onclick="enableAdminPush()">Enable admin alerts</button>
+    <button class="btn ghost" id="admin-push-btn" onclick="enableAdminPush()">🔔 Enable admin alerts</button>
     <div id="admin-push-msg" class="hint"></div>
   </div>
   </details>
 
   <details>
   <summary class="dsum">Advanced <span class="tag">raw JSON · manual publish</span></summary>
-  <p class="hint">Only needed if the "Publish changes" button above fails — e.g. if it reports a GitHub error. Click <b>Generate JSON</b>, then either retry <b>Publish to GitHub</b> here or <b>Download</b> and replace <code>tournaments.json</code> in GitHub yourself.</p>
+  <p class="hint">Only needed if the "🚀 Publish changes" button above fails — e.g. if it reports a GitHub error. Click <b>Generate JSON</b>, then either retry <b>🚀 Publish to GitHub</b> here or <b>Download</b> and replace <code>tournaments.json</code> in GitHub yourself.</p>
   <div class="row">
     <button class="btn" onclick="gen()">Generate JSON</button>
     <button class="btn ghost" onclick="copyOut()">Copy</button>
@@ -709,7 +708,7 @@ h2[id]{scroll-margin-top:64px}
   </div>
   <textarea id="out" spellcheck="false" placeholder="Generated JSON appears here…"></textarea>
   <div class="row">
-    <button class="btn" onclick="publishToGitHub()">Publish to GitHub</button>
+    <button class="btn" onclick="publishToGitHub()">🚀 Publish to GitHub</button>
     <div id="publish-msg" class="hint"></div>
   </div>
   </details>
@@ -726,7 +725,7 @@ h2[id]{scroll-margin-top:64px}
    x-admin-secret, and the Edge Function only acts on it if it matches the ADMIN_SECRET secret —
    type the wrong thing and those two actions will fail with "Unauthorized", nothing else
    is exposed by getting into the editor UI itself. Remembered via localStorage so this is
-   ever only typed once per device; "Change passcode" clears it. */
+   ever only typed once per device; "🔑 Change passcode" clears it. */
 function unlock(){
   const v=document.getElementById('code').value.trim();
   if(!v){document.getElementById('gate-msg').innerHTML='<span class="err">Enter your admin passcode.</span>';return;}
@@ -875,7 +874,7 @@ function renderAllPlayers(){
   // where players come from (app 2.0.3+, only players who allowed location): top districts / cities
   const areaCount=new Map();_allPlayers.forEach(p=>{const k=p.area_district||p.area_city||p.area_region;if(k)areaCount.set(k,(areaCount.get(k)||0)+1);});
   const topAreas=[...areaCount.entries()].sort((a,b)=>b[1]-a[1]).slice(0,12);
-  box.innerHTML=(topAreas.length?`<p class="hint">Where players come from (${[...areaCount.values()].reduce((a,b)=>a+b,0)} shared their area): ${topAreas.map(([k,n])=>esc(k)+' '+n).join(' · ')}</p>`:'')+(rows.length?`<table class="bo3-tbl"><thead><tr><th></th><th>Player</th><th>Tag</th><th>Free Fire</th><th>Area</th><th>Email</th><th>Discord</th><th>Joined</th><th>Last seen</th><th>Regs</th></tr></thead><tbody>${rows.map(p=>{
+  box.innerHTML=(topAreas.length?`<p class="hint">📍 Where players come from (${[...areaCount.values()].reduce((a,b)=>a+b,0)} shared their area): ${topAreas.map(([k,n])=>esc(k)+' '+n).join(' · ')}</p>`:'')+(rows.length?`<table class="bo3-tbl"><thead><tr><th></th><th>Player</th><th>Tag</th><th>Free Fire</th><th>Area</th><th>Email</th><th>Discord</th><th>Joined</th><th>Last seen</th><th>Regs</th></tr></thead><tbody>${rows.map(p=>{
     const online=(p.player_tag&&_onlineTags.has(String(p.player_tag).toLowerCase()))||(p.username&&_onlineTags.has(String(p.username).toLowerCase()));
     return `<tr><td>${online?'<span class="ok" title="Online now">●</span>':''}</td><td>${esc(p.username||'—')}</td><td>${esc(p.player_tag||'—')}</td><td>${p.ff_uid?esc((p.ff_name||'')+' · '+p.ff_uid):'—'}</td><td>${esc(areaText(p)||'—')}</td><td>${esc(p.email||'—')}</td><td>${p.discord_username?('@'+esc(p.discord_username)):'—'}</td><td>${esc(new Date(p.created_at).toLocaleDateString())}</td><td>${esc(fmtLastSeen(p.last_sign_in_at))}</td><td>${p.reg_count||0}</td></tr>`;
   }).join('')}</tbody></table>`:`<p class="hint">No players${f?' match "'+esc(f)+'"':' yet'}.</p>`);
@@ -890,7 +889,7 @@ const STATUSES=['upcoming','live','completed','cancelled'];
 const REG_TYPES=['whatsapp','discord','url'];
 const MAPS=[['bermuda','Bermuda'],['purgatory','Purgatory'],['kalahari','Kalahari'],['nexterra','NeXTerra'],['solara','Solara']]   // Alpine left the FF map pool in OB54
 const PLATFORM_MODES=[['mixed','Mixed (any device)'],['mobile','Mobile only'],['emulator','Emulator only']];
-const SQUAD_EFFECTS=[['','None'],['glow','Glow (lite)'],['steel','Steel (lite)'],['gold','Champion (Gold)'],['fire','Fire'],['ice','Ice'],['neon','Neon'],['rainbow','Rainbow'],['galaxy','Galaxy (pro)'],['thunder','Thunder (pro)'],['legend','Legend (pro)'],['bullets','Bullet Storm (pro)'],['blade','Blade (pro)'],['skeuo','Metal Plate (pro)'],['soft','Soft Touch (pro)'],['glass','Frosted (pro)'],['clay','Clay (pro)'],['brutal','Brutal (pro)'],['mono','Mono (pro)'],['maximal','Overload (pro)'],['liquid','Liquid Glass (pro)'],['bento','Bento (pro)'],['spatial','Spatial 3D (pro)']]; /* shown wherever this squad's chip appears on the live site — see squadFx() in index.html */
+const SQUAD_EFFECTS=[['','None'],['glow','✨ Glow (lite)'],['steel','🔩 Steel (lite)'],['gold','👑 Champion (Gold)'],['fire','🔥 Fire'],['ice','❄️ Ice'],['neon','💜 Neon'],['rainbow','🌈 Rainbow'],['galaxy','🌌 Galaxy (pro)'],['thunder','⚡ Thunder (pro)'],['legend','💎 Legend (pro)'],['bullets','💥 Bullet Storm (pro)'],['blade','⚔️ Blade (pro)'],['skeuo','Metal Plate (pro)'],['soft','Soft Touch (pro)'],['glass','Frosted (pro)'],['clay','Clay (pro)'],['brutal','Brutal (pro)'],['mono','Mono (pro)'],['maximal','Overload (pro)'],['liquid','Liquid Glass (pro)'],['bento','Bento (pro)'],['spatial','Spatial 3D (pro)']]; /* shown wherever this squad's chip appears on the live site — see squadFx() in index.html */
 const PLACEHOLDER_LOGO="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23121a2e'/%3E%3Ctext x='20' y='26' text-anchor='middle' font-family='Inter' font-size='16' fill='%237e8eb0'%3E%3F%3C/text%3E%3C/svg%3E";
 const MAX_LOGO_PX=128;
 const EDGE_FN_BASE='https://cnoxvqvpmgowdiyrrusv.supabase.co/functions/v1'; // Supabase Edge Functions (moved off Netlify)
@@ -1004,20 +1003,20 @@ function tEditorHtml(t,i){
     }).join('');
     const sel=`<div class="f"><label>Status</label><select data-i="${i}" data-k="status">${STATUSES.map(s=>`<option ${(t.status||'upcoming')===s?'selected':''}>${s}</option>`).join('')}</select></div>`;
     const reg=`<div class="f"><label>Register via</label><select data-i="${i}" data-k="register_type">${REG_TYPES.map(s=>`<option ${(t.register_type||'whatsapp')===s?'selected':''}>${s}</option>`).join('')}</select></div>`;
-    // best of 3 (from 28 Oct 2026): one map per match - a fixed map or Random (pick it when you make the room,
+    // best of 3 (from 28 Oct 2026): one map per match - a fixed map or 🎲 Random (pick it when you make the room,
     // or press Roll). Match 1's map also sets the card image.
-    const mOpt=(k,cur)=>`<select data-i="${i}" data-k="${k}">${[['random','Random'],...MAPS].map(([v,lbl])=>`<option value="${v}" ${cur===v?'selected':''}>${lbl}</option>`).join('')}</select>`;
+    const mOpt=(k,cur)=>`<select data-i="${i}" data-k="${k}">${[['random','🎲 Random'],...MAPS].map(([v,lbl])=>`<option value="${v}" ${cur===v?'selected':''}>${lbl}</option>`).join('')}</select>`;
     const mapSel=`<div class="f full"><label>Maps · best of 3 <span class="tag">match 1 sets the card image</span></label><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">`+
       `<span>M1</span>${mOpt('map',t.map||'bermuda')}<span>M2</span>${mOpt('map2',t.map2||'random')}<span>M3</span>${mOpt('map3',t.map3||'random')}`+
-      `<button type="button" class="btn ghost" style="font-size:.75rem;padding:6px 10px" onclick="rollMaps(${i})">Roll 3 different maps</button></div></div>`;
+      `<button type="button" class="btn ghost" style="font-size:.75rem;padding:6px 10px" onclick="rollMaps(${i})">🎲 Roll 3 different maps</button></div></div>`;
     const platMode=`<div class="f"><label>Device eligibility <span class="tag">enforced server-side</span></label><select data-i="${i}" data-k="platform_mode">${PLATFORM_MODES.map(([v,lbl])=>`<option value="${v}" ${(t.platform_mode||'mixed')===v?'selected':''}>${lbl}</option>`).join('')}</select><p class="hint" style="margin:4px 0 0">Mobile/Emulator-only actually blocks the wrong device at registration (not just a display label) — see the "Platform" text field below for what players see.</p></div>`;
-    const early=`<div class="f"><label>Early access <span class="tag">enforced server-side</span></label><select data-i="${i}" data-k="early_access"><option value="" ${t.early_access?'':'selected'}>No</option><option value="yes" ${t.early_access==='yes'?'selected':''}>Yes — app users join 24h early</option></select></div><div class="f"><label>Public registration opens (Nepal time)</label><input type="datetime-local" data-i="${i}" data-regopens="1" value="${esc(isoToLocalInputValue(t.reg_opens))}"><p class="hint" style="margin:4px 0 0">With early access on, app users can join from 24 hours before this, everyone else from this time. Blank = open to everyone now.</p></div>`;
+    const early=`<div class="f"><label>📱 Early access <span class="tag">enforced server-side</span></label><select data-i="${i}" data-k="early_access"><option value="" ${t.early_access?'':'selected'}>No</option><option value="yes" ${t.early_access==='yes'?'selected':''}>Yes — app users join 24h early</option></select></div><div class="f"><label>Public registration opens (Nepal time)</label><input type="datetime-local" data-i="${i}" data-regopens="1" value="${esc(isoToLocalInputValue(t.reg_opens))}"><p class="hint" style="margin:4px 0 0">With early access on, app users can join from 24 hours before this, everyone else from this time. Blank = open to everyone now.</p></div>`;
     const startPicker=`<div class="f full"><label>Event start (Nepal date &amp; time) <span class="tag">sets Date, Time &amp; the live countdown together</span></label><input type="datetime-local" data-i="${i}" data-startpicker="1" value="${esc(isoToLocalInputValue(t.start))}"><p class="hint" style="margin:4px 0 0">Leave blank only if the date is genuinely TBA — without it the live site shows no countdown and won't auto-flip this event to "live".</p></div>`;
     const teams=t.teams||[];
     const live=_liveCounts.get(t.name)||0;
     const liveLine=sb?`<div class="f full"><label>Squads actually registered</label><p class="hint" style="margin:0"><span class="live-count">${live}${t.slots?'/'+t.slots:''}</span> — real players who signed up in the app. This is the number that matters; it updates on its own as people join.</p></div>`:'';
     const roster=`${liveLine}<details class="f full"><summary class="dsum-sm">Manual squad list <span class="tag">for special effects</span></summary><p class="hint">Also doubles as a display fallback if Supabase is ever unreachable, or if nobody's registered live yet for this event. Click "↻ Load from live roster" to pull in real registered squads here so you can give one an effect — it won't duplicate the live count above.</p><div class="row" style="margin:0 0 8px"><button class="btn ghost" style="font-size:.72rem;padding:7px 12px" onclick="loadSquadsFromRoster(${i})">↻ Load from live roster</button></div><div class="rosterlist">${teams.map((tm,mi)=>`<div class="rrow"><div class="rrow-top"><img class="rlogo" src="${esc(safeImg(tm.logo)||PLACEHOLDER_LOGO)}" alt=""><input data-ti="${i}" data-mi="${mi}" data-field="name" value="${esc(tm.name)}" placeholder="Squad name"><label class="rlogo-btn">Logo<input type="file" accept="image/*" hidden onchange="onTeamLogo(event,${i},${mi})"></label><button class="del" onclick="delTeam(${i},${mi})">✕</button></div><input class="rmembers" data-ti="${i}" data-mi="${mi}" data-field="members" value="${esc(Array.isArray(tm.members)?tm.members.join(', '):(tm.members||''))}" placeholder="Members, comma separated — e.g. PlayerA, PlayerB, PlayerC, PlayerD"><label class="rfx-label">Special effect <select class="rfx" data-ti="${i}" data-mi="${mi}" data-field="effect">${SQUAD_EFFECTS.map(([v,lbl])=>`<option value="${v}" ${(tm.effect||'')===v?'selected':''}>${lbl}</option>`).join('')}</select></label></div>`).join('')||'<p class="hint" style="margin:0">Empty.</p>'}</div><button class="btn ghost" style="margin-top:8px" onclick="addTeam(${i})">+ Add squad</button></details>`;
-    return `<div class="card"><button class="del" onclick="delT(${i})">Delete</button><button class="btn ghost" style="position:absolute;top:14px;right:92px;font-size:.72rem;padding:7px 12px" onclick="jumpToRoomCode(${i})">Send Room Code</button><div class="grid">${sel}${reg}${mapSel}${platMode}${early}${startPicker}${fields}${roster}</div></div>`;
+    return `<div class="card"><button class="del" onclick="delT(${i})">Delete</button><button class="btn ghost" style="position:absolute;top:14px;right:92px;font-size:.72rem;padding:7px 12px" onclick="jumpToRoomCode(${i})">📨 Send Room Code</button><div class="grid">${sel}${reg}${mapSel}${platMode}${early}${startPicker}${fields}${roster}</div></div>`;
   }
 }
 /* An event is history once it's marked completed or cancelled. One still marked
@@ -1045,13 +1044,13 @@ function histCardHtml(t,i){
   let top='';
   if(!cancelled&&data.bo3&&data.bo3.tournament===t.name&&(data.bo3.teams||[]).length){
     const rows=[...data.bo3.teams].map(x=>({team:x.team,pts:bo3Total(x)})).sort((a,b)=>b.pts-a.pts).slice(0,3);
-    top=`<ul class="hist-top3">${rows.map((r,k)=>`<li>${['<i class=ji-medal1 aria-hidden=true></i>','<i class=ji-medal2 aria-hidden=true></i>','<i class=ji-medal3 aria-hidden=true></i>'][k]} ${esc(r.team||'?')} · ${r.pts} pts</li>`).join('')}</ul>`;
+    top=`<ul class="hist-top3">${rows.map((r,k)=>`<li>${['🥇','🥈','🥉'][k]} ${esc(r.team||'?')} · ${r.pts} pts</li>`).join('')}</ul>`;
   }
   return `<div class="card hist"><div class="hist-top"><b>${esc(t.name)}</b><span class="pill ${cancelled?'cancel':'done'}">${cancelled?'Cancelled':'Finished'}</span></div>`+
-    `<div class="hist-when">${esc(when)}${ms?` · ${agoText(ms)} ago`:''}</div>`+
-    `<div class="hist-facts">${cancelled?'':fact('<i class=ji-trophy aria-hidden=true></i>','Winner',String(t.winner||'').trim()||'not set')}${fact('<i class=ji-users aria-hidden=true></i>','Squads',n?(n+(t.slots?' of '+t.slots:'')):'none recorded')}${fact('<i class=ji-coin aria-hidden=true></i>','Prize',t.prize)}${fact('<i class=ji-ticket aria-hidden=true></i>','Entry',t.entry)}${fact('<i class=ji-game aria-hidden=true></i>','',[t.format,(MAPS.find(m=>m[0]===t.map)||[])[1]].filter(Boolean).join(' · '))}</div>`+
+    `<div class="hist-when">📅 ${esc(when)}${ms?` · ${agoText(ms)} ago`:''}</div>`+
+    `<div class="hist-facts">${cancelled?'':fact('🏆','Winner',String(t.winner||'').trim()||'not set')}${fact('👥','Squads',n?(n+(t.slots?' of '+t.slots:'')):'none recorded')}${fact('💰','Prize',t.prize)}${fact('🎟️','Entry',t.entry)}${fact('🎮','',[t.format,(MAPS.find(m=>m[0]===t.map)||[])[1]].filter(Boolean).join(' · '))}</div>`+
     top+
-    `<div class="hist-acts"><button class="btn ghost" onclick="histEdit(${i})">Edit</button><button class="btn ghost" onclick="delT(${i})">Delete</button></div></div>`;
+    `<div class="hist-acts"><button class="btn ghost" onclick="histEdit(${i})">✏️ Edit</button><button class="btn ghost" onclick="delT(${i})">Delete</button></div></div>`;
 }
 function renderT(){
   const act=[],hist=[];
@@ -1065,10 +1064,10 @@ function renderT(){
     // a title line so each editor says which event it is and where it stands
     const ms=tStartMs(t),when=ms===null?'no start time yet':(ms>Date.now()?'starts in '+inText(ms):'started '+agoText(ms)+' ago');
     h=h.replace('<div class="card">','<div class="card"><div class="t-head"><b>'+esc(t.name||'Untitled event')+'</b><span class="pill">'+esc(tStatus(t))+' · '+when+'</span></div>');
-    if(_histEdit.has(t))h=h.replace('<div class="card">','<div class="card"><div class="t-overdue">Editing a past event. <button class="btn ghost" onclick="histDone('+i+')">✓ Done, back to History</button></div>');
-    else if(tOverdue(t))h=h.replace('<div class="card">','<div class="card"><div class="t-overdue">Started '+agoText(tStartMs(t))+' ago but still marked <b>'+esc(tStatus(t))+'</b>. <button class="btn" onclick="markFinished('+i+')">✓ Mark finished</button><button class="btn ghost" onclick="markCancelled('+i+')">Cancelled</button></div>');
+    if(_histEdit.has(t))h=h.replace('<div class="card">','<div class="card"><div class="t-overdue">✏️ Editing a past event. <button class="btn ghost" onclick="histDone('+i+')">✓ Done, back to History</button></div>');
+    else if(tOverdue(t))h=h.replace('<div class="card">','<div class="card"><div class="t-overdue">⚠️ Started '+agoText(tStartMs(t))+' ago but still marked <b>'+esc(tStatus(t))+'</b>. <button class="btn" onclick="markFinished('+i+')">✓ Mark finished</button><button class="btn ghost" onclick="markCancelled('+i+')">Cancelled</button></div>');
     return h;
-  }).join('')||'<p class="hint">No upcoming events. Tap "New Event" to make one.</p>';
+  }).join('')||'<p class="hint">No upcoming events. Tap "➕ New Event" to make one.</p>';
   hist.sort((a,b)=>(tStartMs(data.tournaments[b])||0)-(tStartMs(data.tournaments[a])||0));
   const hb=document.getElementById('thist');
   if(hb){hb.innerHTML=hist.map(i=>histCardHtml(data.tournaments[i],i)).join('')||'<p class="hint">Nothing here yet. Finished and cancelled events show up here.</p>';staggerReveal(hb);}
@@ -1089,16 +1088,16 @@ function renderNow(){
   const T=data.tournaments.map((t,i)=>({t,i,ms:tStartMs(t)}));
   const squads=t=>{const n=tSquads(t);return n+(t.slots?'/'+t.slots:'')+' squads';};
   const rows=[];
-  T.filter(x=>!tIsHistory(x.t)&&!tOverdue(x.t)&&(tStatus(x.t)==='live'||(x.ms!==null&&x.ms<=Date.now()))).forEach(x=>rows.push(`<div class="now-row live"><span class="ic"><i class=ji-dot-red aria-hidden=true></i></span><span><b>Live now:</b> ${esc(x.t.name)}</span><small>${x.ms?'started '+agoText(x.ms)+' ago · ':''}${squads(x.t)}</small><button class="btn ghost" onclick="jumpToRoomCode(${x.i})">Room code</button></div>`));
-  T.filter(x=>tOverdue(x.t)).forEach(x=>rows.push(`<div class="now-row warn"><span class="ic"><i class=ji-warn aria-hidden=true></i></span><span><b>${esc(x.t.name)}</b> started ${agoText(x.ms)} ago and is still marked ${esc(tStatus(x.t))}</span><button class="btn" onclick="markFinished(${x.i})">✓ Mark finished</button></div>`));
+  T.filter(x=>!tIsHistory(x.t)&&!tOverdue(x.t)&&(tStatus(x.t)==='live'||(x.ms!==null&&x.ms<=Date.now()))).forEach(x=>rows.push(`<div class="now-row live"><span class="ic">🔴</span><span><b>Live now:</b> ${esc(x.t.name)}</span><small>${x.ms?'started '+agoText(x.ms)+' ago · ':''}${squads(x.t)}</small><button class="btn ghost" onclick="jumpToRoomCode(${x.i})">📨 Room code</button></div>`));
+  T.filter(x=>tOverdue(x.t)).forEach(x=>rows.push(`<div class="now-row warn"><span class="ic">⚠️</span><span><b>${esc(x.t.name)}</b> started ${agoText(x.ms)} ago and is still marked ${esc(tStatus(x.t))}</span><button class="btn" onclick="markFinished(${x.i})">✓ Mark finished</button></div>`));
   const next=T.filter(x=>tStatus(x.t)==='upcoming'&&!tIsHistory(x.t)&&(x.ms===null||x.ms>Date.now())).sort((a,b)=>(a.ms??9e15)-(b.ms??9e15));
   next.slice(0,2).forEach((x,k)=>{
     const ro=Date.parse(x.t.reg_opens),reg=!isNaN(ro)&&ro>Date.now()?'registration opens in '+inText(ro):'registration open';
-    rows.push(`<div class="now-row"><span class="ic"><i class=ji-clock aria-hidden=true></i></span><span><b>${k?'After that':'Next'}:</b> ${esc(x.t.name)}</span><small>${x.ms?(x.ms>Date.now()?'in '+inText(x.ms)+' · ':''):'no start time yet · '}${squads(x.t)} · ${reg}</small></div>`);
+    rows.push(`<div class="now-row"><span class="ic">⏳</span><span><b>${k?'After that':'Next'}:</b> ${esc(x.t.name)}</span><small>${x.ms?(x.ms>Date.now()?'in '+inText(x.ms)+' · ':''):'no start time yet · '}${squads(x.t)} · ${reg}</small></div>`);
   });
   const last=T.filter(x=>tIsHistory(x.t)).sort((a,b)=>(b.ms||0)-(a.ms||0))[0];
-  if(last)rows.push(`<div class="now-row"><span class="ic">${tStatus(last.t)==='cancelled'?'✕':'<i class=ji-check aria-hidden=true></i>'}</span><span><b>Last ${tStatus(last.t)==='cancelled'?'cancelled':'finished'}:</b> ${esc(last.t.name)}</span><small>${last.ms?agoText(last.ms)+' ago':''}${String(last.t.winner||'').trim()&&tStatus(last.t)!=='cancelled'?' · winner '+esc(last.t.winner):''}</small><a class="btn ghost" href="#history">History</a></div>`);
-  if(!rows.length)rows.push('<div class="now-row"><span class="ic"><i class=ji-zzz aria-hidden=true></i></span><span>Nothing scheduled. Add an event below.</span></div>');
+  if(last)rows.push(`<div class="now-row"><span class="ic">${tStatus(last.t)==='cancelled'?'✕':'✅'}</span><span><b>Last ${tStatus(last.t)==='cancelled'?'cancelled':'finished'}:</b> ${esc(last.t.name)}</span><small>${last.ms?agoText(last.ms)+' ago':''}${String(last.t.winner||'').trim()&&tStatus(last.t)!=='cancelled'?' · winner '+esc(last.t.winner):''}</small><a class="btn ghost" href="#history">📜 History</a></div>`);
+  if(!rows.length)rows.push('<div class="now-row"><span class="ic">💤</span><span>Nothing scheduled. Add an event below.</span></div>');
   box.innerHTML=rows.join('');
 }
 setInterval(()=>{if(document.getElementById('app').style.display!=='none')renderNow();},60000);
@@ -1147,7 +1146,7 @@ document.addEventListener('input',e=>{
   else if(t.dataset.bi!==undefined&&t.dataset.bk!==undefined){const i=+t.dataset.bi,k=t.dataset.bk;data.bo3.teams[i][k]=t.value;}
 });
 
-/* ── compact event cards: summary + 3 buttons; the full editor opens on Edit ── */
+/* ── compact event cards: summary + 3 buttons; the full editor opens on ✏️ Edit ── */
 let _openEdit=new WeakSet();
 function evEdit(i){_openEdit.add(data.tournaments[i]);renderT();evScrollTo(i);}
 function evClose(i){_openEdit.delete(data.tournaments[i]);renderT();evScrollTo(i);}
@@ -1156,17 +1155,17 @@ function rsText(v){const s=String(v??'').trim();return /^\d[\d,]*$/.test(s)?'Rs 
 // entry fee in words. Display only: the stored text is what the server parses.
 function feeText(v){const s=String(v??'').trim();return !s||/^free$/i.test(s)?'Free card or 15 points':/^\d+$/.test(s)?s+' points':s;}
 // a paid event that can't cover its own prize even when full
-function feeWarn(prize,entry,slots){const p=+String(prize||'').replace(/[^\d]/g,''),e=+String(entry||'').replace(/[^\d]/g,''),n=e*(+slots||0);return e&&p>n?`<span class="ev-warn">Full, it collects ${n} points but pays Rs ${p}. JD covers Rs ${p-n}.</span>`:'';}
+function feeWarn(prize,entry,slots){const p=+String(prize||'').replace(/[^\d]/g,''),e=+String(entry||'').replace(/[^\d]/g,''),n=e*(+slots||0);return e&&p>n?`<span class="ev-warn">⚠️ Full, it collects ${n} points but pays Rs ${p}. JD covers Rs ${p-n}.</span>`:'';}
 function evMiniHtml(t,i){
   const ms=tStartMs(t);
-  const when=ms===null?'<span class="ev-warn">no start time — tap Edit</span>':`<b>${esc(t.date||'')}</b> ${esc(t.time||'')}`;
+  const when=ms===null?'<span class="ev-warn">⚠️ no start time — tap Edit</span>':`<b>${esc(t.date||'')}</b> ${esc(t.time||'')}`;
   const live=_liveCounts.get(t.name)||0;
   const pill=ms===null?tStatus(t):(ms>Date.now()?tStatus(t)+' · in '+inText(ms):tStatus(t)+' · started '+agoText(ms)+' ago');
   return `<div class="card ev-mini" data-ev="${i}"><div class="ev-top"><b>${esc(t.name||'Untitled event')}</b><span class="pill">${esc(pill)}</span></div>`+
-    `<div class="ev-facts"><span>${when}</span><span>Prize pool <b>${esc(rsText(t.prize))}</b></span><span>Entry fee <b>${esc(feeText(t.entry))}</b></span>`+
-    `<span><b>${live}${t.slots?'/'+esc(t.slots):''}</b> squads</span><span>${esc(DEVICE_LABEL[t.platform_mode||'mixed'])}</span><span>${esc(t.format||'')}</span>${t.mega||t.host?'':feeWarn(t.prize,t.entry,t.slots)}</div>`+
-    `<div class="ev-acts"><button class="btn ghost" onclick="evEdit(${i})">Edit</button>`+
-    `<button class="btn ghost" onclick="jumpToRoomCode(${i})">Room code</button>`+
+    `<div class="ev-facts"><span>📅 ${when}</span><span>🏆 Prize pool <b>${esc(rsText(t.prize))}</b></span><span>🎟 Entry fee <b>${esc(feeText(t.entry))}</b></span>`+
+    `<span>👥 <b>${live}${t.slots?'/'+esc(t.slots):''}</b> squads</span><span>📱 ${esc(DEVICE_LABEL[t.platform_mode||'mixed'])}</span><span>🗺 ${esc(t.format||'')}</span>${t.mega||t.host?'':feeWarn(t.prize,t.entry,t.slots)}</div>`+
+    `<div class="ev-acts"><button class="btn ghost" onclick="evEdit(${i})">✏️ Edit</button>`+
+    `<button class="btn ghost" onclick="jumpToRoomCode(${i})">🔑 Room code</button>`+
     `<button class="btn ghost" onclick="markFinished(${i})">✓ Finish</button></div></div>`;
 }
 
@@ -1229,11 +1228,11 @@ function newEventRender(){
   const f=startFieldsFromLocal(document.getElementById('nev-start').value);
   const entry=feeText(+NEV.entry?NEV.entry+' points':'Free'),pn=+NEV.prize||0,p2=Math.floor(pn*.3),p3=Math.round(pn*.2);
   document.getElementById('nev-sum').innerHTML=`<b>${esc(document.getElementById('nev-name').value)}</b><br>`+
-    `${f?esc(f.date+' · '+f.time):'<span class="ev-warn">pick a day and time</span>'}<br>`+
-    `Prize pool <b>Rs ${esc(NEV.prize)}</b> (1st ${pn-p2-p3} · 2nd ${p2} · 3rd ${p3})<br>`+
-    `Entry fee <b>${esc(entry)}</b>, each squad pays<br>`+
-    `<b>${esc(NEV.slots)}</b> ${nevUnit} · <b>${esc(NEV.matches)}</b> matches`+
-    (pn/(+NEV.slots||1)<5?'<br><span class="ev-warn">Rs '+pn+' shared by '+esc(NEV.slots)+' '+nevUnit+' looks low.</span>':'')+
+    `📅 ${f?esc(f.date+' · '+f.time):'<span class="ev-warn">pick a day and time</span>'}<br>`+
+    `🏆 Prize pool <b>Rs ${esc(NEV.prize)}</b> (1st ${pn-p2-p3} · 2nd ${p2} · 3rd ${p3})<br>`+
+    `🎟 Entry fee <b>${esc(entry)}</b>, each squad pays<br>`+
+    `👥 <b>${esc(NEV.slots)}</b> ${nevUnit} · <b>${esc(NEV.matches)}</b> matches`+
+    (pn/(+NEV.slots||1)<5?'<br><span class="ev-warn">⚠️ Rs '+pn+' shared by '+esc(NEV.slots)+' '+nevUnit+' looks low.</span>':'')+
     (feeWarn(NEV.prize,NEV.entry,NEV.slots)?'<br>'+feeWarn(NEV.prize,NEV.entry,NEV.slots):'');
 }
 document.addEventListener('input',e=>{
@@ -1261,14 +1260,14 @@ async function newEventCreate(publish){
   renderAll();
   evScrollTo(data.tournaments.length-1);
   if(publish){msg('Creating "'+esc(name)+'" and publishing…','');await publishNow();}
-  else msg('"'+esc(name)+'" saved as a draft here. Hit Publish changes to make it live.','ok');
+  else msg('"'+esc(name)+'" saved as a draft here. Hit 🚀 Publish changes to make it live.','ok');
 }
 /* ── ZULU admin chat: plain-language commands -> preview cards -> Confirm -> existing admin functions ── */
-const ZC_SUGG=['New event this Friday 10pm, prize 500','Room code for the next event','Remind players to confirm','What\'s pending?','✓ Finish the last event'];
+const ZC_SUGG=['➕ New event this Friday 10pm, prize 500','🔑 Room code for the next event','📣 Remind players to confirm','📊 What\'s pending?','✓ Finish the last event'];
 let _zcHist=[],_zcBusy=false,_zcSeq=0;
 const _zcActs=new Map();
 function zcOpen(){document.getElementById('zc').classList.add('open');document.getElementById('zc-fab').hidden=true;
-  if(!document.getElementById('zc-log').children.length)zcBubble('ai','Hi Prabin I can create and edit events, send room codes, post announcements, finish events and publish. Tell me in your own words — I\'ll show you exactly what I\'ll do before anything happens.');
+  if(!document.getElementById('zc-log').children.length)zcBubble('ai','Hi Prabin 👋 I can create and edit events, send room codes, post announcements, finish events and publish. Tell me in your own words — I\'ll show you exactly what I\'ll do before anything happens.');
   zcSuggest();
   setTimeout(()=>document.getElementById('zc-input').focus(),50);}
 // /admin/#zulu (the ZULU button on the main site): open the chat as soon as the admin app is unlocked
@@ -1285,11 +1284,11 @@ setInterval(()=>{const f=document.getElementById('zc-fab'),app=document.getEleme
 /* Chips follow what's actually waiting: the inbox counts and the next event come first. */
 function zcSuggest(){
   const {loads,wds,disputes}=_ibRows,nx=mdEvents()[0],chips=[];
-  if(loads.length)chips.push(loads.length>1?`Approve all ${loads.length} point loads`:'Approve the point load');
-  if(wds.length)chips.push(`Show the ${wds.length} withdrawal${wds.length>1?'s':''} to pay`);
-  if(disputes.length)chips.push(`Explain the ${disputes.length} challenge dispute${disputes.length>1?'s':''}`);
-  if(nx)chips.push(`Room code for ${nx.t.name}`);
-  chips.push('Summary of today','Tell everyone to play challenges: 20 points, win up to 38');
+  if(loads.length)chips.push(loads.length>1?`✅ Approve all ${loads.length} point loads`:'✅ Approve the point load');
+  if(wds.length)chips.push(`💸 Show the ${wds.length} withdrawal${wds.length>1?'s':''} to pay`);
+  if(disputes.length)chips.push(`⚖️ Explain the ${disputes.length} challenge dispute${disputes.length>1?'s':''}`);
+  if(nx)chips.push(`🔑 Room code for ${nx.t.name}`);
+  chips.push('📊 Summary of today','📣 Tell everyone to play challenges: 20 points, win up to 38');
   ZC_SUGG.forEach(t=>{if(chips.length<8&&!chips.includes(t)&&!(nx&&/next event/.test(t)))chips.push(t);});
   document.getElementById('zc-sugg').innerHTML=chips.slice(0,8).map(t=>`<button type="button">${esc(t)}</button>`).join('');
   document.querySelectorAll('#zc-sugg button').forEach(b=>b.onclick=()=>{document.getElementById('zc-input').value=b.textContent.replace(/^\S+\s/,'');zcSend();});
@@ -1340,7 +1339,7 @@ async function zcSend(){
     if((d.actions||[]).some(a=>/_load$|_withdrawal$/.test(a.type)))await zcLoadMoney();
     (d.actions||[]).forEach(zcCard);
     const open=(d.actions||[]).filter(a=>a.type!=='open').length;
-    if(open>1){const b=document.createElement('button');b.className='btn zc-all';b.textContent=`Confirm all ${open}`;b.onclick=()=>zcConfirmAll(b);const log=document.getElementById('zc-log');log.appendChild(b);log.scrollTop=log.scrollHeight;}
+    if(open>1){const b=document.createElement('button');b.className='btn zc-all';b.textContent=`✅ Confirm all ${open}`;b.onclick=()=>zcConfirmAll(b);const log=document.getElementById('zc-log');log.appendChild(b);log.scrollTop=log.scrollHeight;}
   }catch(e){wait.classList.remove('wait');wait.textContent='Sorry — '+(e.message||e);}
   finally{_zcBusy=false;zcSuggest();}
 }
@@ -1387,35 +1386,35 @@ function zcDescribe(a){
   const li=(k,v)=>`<li>${k}: <b>${esc(v)}</b></li>`;
   const pub=a.publish?'<li>…then <b>publish</b> so it goes live</li>':'';
   switch(a.type){
-    case 'create_event':{const {t,err}=zcBuildEvent(a);return {title:'Create event',html:li('Name',t.name)+li('When',(t.date||'?')+' · '+(t.time||'?'))+li('Prize','Rs '+t.prize)+li('Entry',t.entry)+li('Squads',t.slots)+li('Format',t.format)+li('Device',t.platform)+li('Map',t.map)+pub,err};}
-    case 'edit_event':{const i=zcFindEvent(a.event);if(i<0)return {title:'Edit event',html:'',err:'No event matches "'+a.event+'".'};
+    case 'create_event':{const {t,err}=zcBuildEvent(a);return {title:'➕ Create event',html:li('Name',t.name)+li('When',(t.date||'?')+' · '+(t.time||'?'))+li('Prize','Rs '+t.prize)+li('Entry',t.entry)+li('Squads',t.slots)+li('Format',t.format)+li('Device',t.platform)+li('Map',t.map)+pub,err};}
+    case 'edit_event':{const i=zcFindEvent(a.event);if(i<0)return {title:'✏️ Edit event',html:'',err:'No event matches "'+a.event+'".'};
       const t=data.tournaments[i],n=zcApplyFields(JSON.parse(JSON.stringify(t)),a.set);
       const ch=['date','time','prize','entry','slots','format','platform','map'].filter(k=>String(t[k]??'')!==String(n[k]??'')).map(k=>`<li>${k}: ${esc(t[k]??'—')} → <b>${esc(n[k])}</b></li>`).join('');
-      return {title:'Edit '+t.name,html:(ch||'<li>No change</li>')+pub,err:ch?'':'Nothing would change.'};}
+      return {title:'✏️ Edit '+t.name,html:(ch||'<li>No change</li>')+pub,err:ch?'':'Nothing would change.'};}
     case 'finish_event':{const i=zcFindEvent(a.event);if(i<0)return {title:'✓ Finish event',html:'',err:'No event matches "'+a.event+'".'};
       const t=data.tournaments[i],w=a.winner||bo3TopTeam(t.name)||'';return {title:'✓ Finish '+t.name,html:li('Winner',w||'(not set)')+'<li>Moves it to History · prize is paid when you tap Pay prizes</li>'+pub,err:''};}
     case 'cancel_event':{const i=zcFindEvent(a.event);if(i<0)return {title:'✕ Cancel event',html:'',err:'No event matches "'+a.event+'".'};
       return {title:'✕ Cancel '+data.tournaments[i].name,html:'<li>Marks it cancelled and moves it to History</li>'+pub,err:''};}
-    case 'room_code':{const i=zcFindEvent(a.event);if(i<0)return {title:'Room code',html:'',err:'No event matches "'+a.event+'".'};
-      return {title:'Room code · '+data.tournaments[i].name,html:li('Room ID',a.room_id)+li('Password',a.room_pass||'(none)')+li('When',a.when==='stage'?'automatically ~5 min before start':'right now, to every registered player'),err:''};}
+    case 'room_code':{const i=zcFindEvent(a.event);if(i<0)return {title:'🔑 Room code',html:'',err:'No event matches "'+a.event+'".'};
+      return {title:'🔑 Room code · '+data.tournaments[i].name,html:li('Room ID',a.room_id)+li('Password',a.room_pass||'(none)')+li('When',a.when==='stage'?'automatically ~5 min before start':'right now, to every registered player'),err:''};}
     case 'announce':{let aud='Everyone on the site';if(a.audience&&a.audience!=='everyone'){const i=zcFindEvent(a.audience);aud=i>=0?'Teams in '+data.tournaments[i].name:'Everyone on the site';}
-      return {title:'Announcement',html:li('To',aud)+li('Title',a.title)+`<li>Message: <b>${esc(a.message)}</b></li>`,err:''};}
-    case 'publish_results':{if(a.err)return {title:'Publish results',html:'',err:a.err};
-      const i=zcFindEvent(a.event);if(i<0)return {title:'Publish results',html:'',err:'No event matches "'+a.event+'".'};
+      return {title:'📣 Announcement',html:li('To',aud)+li('Title',a.title)+`<li>Message: <b>${esc(a.message)}</b></li>`,err:''};}
+    case 'publish_results':{if(a.err)return {title:'🏆 Publish results',html:'',err:a.err};
+      const i=zcFindEvent(a.event);if(i<0)return {title:'🏆 Publish results',html:'',err:'No event matches "'+a.event+'".'};
       const rows=(a.teams||[]).map((t,k)=>`<li>${k+1}. <b>${esc(t.team)}</b> <span class="hint" style="margin:0">(slot ${+t.slot||'?'}, matched by ${esc(t.via||'?')})</span> · ${+t.pts||0} pts · ${+t.kills||0} kills${t.prize_won?` · <b>Rs ${+t.prize_won}</b>`:''}${t.owner?' · your squad, not paid':''}</li>`).join('');
-      return {title:'Results · '+data.tournaments[i].name,html:rows+li('Prize pool','Rs '+(+a.pool||0)+' · 50 / 30 / 20 %')+'<li>On Confirm: finishes the event, publishes the board, saves the season stats and pays the prizes into wallets (never twice)</li>',err:(a.teams||[]).length?'':'No squads.'};}
-    case 'publish':return {title:'Publish changes',html:'<li>Pushes your edits to the live site</li>',err:''};
-    case 'pay_prizes':return {title:'Pay prizes',html:'<li>Pays any unpaid announced prizes into winners\' wallets (never pays twice)</li>',err:''};
-    case 'open':return {title:'Open '+a.section,html:'',err:''};
-    case 'approve_load':case 'reject_load':{const l=_zcLoads.get(a.id);if(!l)return {title:'Point load',html:'',err:'That load is no longer waiting (already handled?).'};
+      return {title:'🏆 Results · '+data.tournaments[i].name,html:rows+li('Prize pool','Rs '+(+a.pool||0)+' · 50 / 30 / 20 %')+'<li>On Confirm: finishes the event, publishes the board, saves the season stats and pays the prizes into wallets (never twice)</li>',err:(a.teams||[]).length?'':'No squads.'};}
+    case 'publish':return {title:'🚀 Publish changes',html:'<li>Pushes your edits to the live site</li>',err:''};
+    case 'pay_prizes':return {title:'🏆 Pay prizes',html:'<li>Pays any unpaid announced prizes into winners\' wallets (never pays twice)</li>',err:''};
+    case 'open':return {title:'🔎 Open '+a.section,html:'',err:''};
+    case 'approve_load':case 'reject_load':{const l=_zcLoads.get(a.id);if(!l)return {title:'💰 Point load',html:'',err:'That load is no longer waiting (already handled?).'};
       const who=(l.players&&(l.players.username||l.players.player_tag))||'player';
-      return a.type==='approve_load'?{title:'Approve load · '+who,html:li('Points',a.amount||l.amount)+(a.amount&&a.amount!==l.amount?li('They asked for',l.amount):'')+'<li>Check the screenshot in Wallets if unsure</li>',err:''}
+      return a.type==='approve_load'?{title:'💰 Approve load · '+who,html:li('Points',a.amount||l.amount)+(a.amount&&a.amount!==l.amount?li('They asked for',l.amount):'')+'<li>Check the screenshot in Wallets if unsure</li>',err:''}
         :{title:'✕ Reject load · '+who,html:li('Points asked',l.amount)+li('Reason shown',a.note||'(none)'),err:''};}
-    case 'pay_withdrawal':case 'reject_withdrawal':{const w=_zcWds.get(a.id);if(!w)return {title:'Withdrawal',html:'',err:'That withdrawal is no longer waiting (already handled?).'};
+    case 'pay_withdrawal':case 'reject_withdrawal':{const w=_zcWds.get(a.id);if(!w)return {title:'💸 Withdrawal',html:'',err:'That withdrawal is no longer waiting (already handled?).'};
       const who=(w.players&&(w.players.username||w.players.player_tag))||'player';
-      if(a.type==='pay_withdrawal')return {title:'Mark paid · '+who,html:li('Send','Rs '+w.payout)+li('eSewa',w.esewa_id+' · '+w.esewa_name)+li('eSewa ref',a.payout_ref||'(none)')+'<li>Only confirm after you sent the money</li>',err:''};
+      if(a.type==='pay_withdrawal')return {title:'💸 Mark paid · '+who,html:li('Send','Rs '+w.payout)+li('eSewa',w.esewa_id+' · '+w.esewa_name)+li('eSewa ref',a.payout_ref||'(none)')+'<li>Only confirm after you sent the money</li>',err:''};
       return {title:'↩️ Reject withdrawal · '+who,html:li('Points back to wallet',w.amount),err:''};}
-    case 'credit_points':return {title:'Add points · '+a.player,html:li('Points',a.amount)+li('Note',a.note||'(none)')+'<li>Exact username / JD tag only</li>',err:''};
+    case 'credit_points':return {title:'➕ Add points · '+a.player,html:li('Points',a.amount)+li('Note',a.note||'(none)')+'<li>Exact username / JD tag only</li>',err:''};
   }
   return {title:a.type,html:'',err:'Unknown action'};
 }
@@ -1429,8 +1428,8 @@ function zcCard(a){
   const id=++_zcSeq;_zcActs.set(id,a);
   const d=zcDescribe(a);
   const el=document.createElement('div');el.className='zc-act';el.id='zc-act-'+id;
-  el.innerHTML=`<h4>${esc(d.title)}</h4><ul>${d.html}</ul>`+(d.err?`<div class="zc-res err">${esc(d.err)}</div>`:
-    `<div class="zc-btns"><button class="btn" onclick="zcRun(${id})">Confirm</button><button class="btn ghost" onclick="zcSkip(${id})">Cancel</button></div><div class="zc-res"></div>`);
+  el.innerHTML=`<h4>${esc(d.title)}</h4><ul>${d.html}</ul>`+(d.err?`<div class="zc-res err">⚠️ ${esc(d.err)}</div>`:
+    `<div class="zc-btns"><button class="btn" onclick="zcRun(${id})">✅ Confirm</button><button class="btn ghost" onclick="zcSkip(${id})">Cancel</button></div><div class="zc-res"></div>`);
   const log=document.getElementById('zc-log');log.appendChild(el);log.scrollTop=log.scrollHeight;
   if(a.type==='open')zcRun(id);
 }
@@ -1578,12 +1577,12 @@ async function archiveResults(){
     const r=await fetch(EDGE_FN_BASE+'/archive-results',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({tournament_slug:name,results})});
     if(!r.ok)throw new Error(await r.text());
     const d=await r.json();
-    const pz=(d.prizes||[]).map(x=>x.status==='paid'?`Paid ${x.amount} points to ${esc(x.squad)}.`:`${esc(x.squad)} won ${x.amount} points but isn't registered in-app.`).join(' ');
-    bo3Msg('Archived '+d.archived+' squad result(s) — these now count toward player career stats and rank.'+(pz?' '+pz:'')+(d.flagged?''+d.flagged+' squad(s) flagged for anomaly review — see Anomaly Flags below.':''),'ok');
+    const pz=(d.prizes||[]).map(x=>x.status==='paid'?`🏆 Paid ${x.amount} points to ${esc(x.squad)}.`:`⚠️ ${esc(x.squad)} won ${x.amount} points but isn't registered in-app.`).join(' ');
+    bo3Msg('Archived '+d.archived+' squad result(s) — these now count toward player career stats and rank.'+(pz?' '+pz:'')+(d.flagged?' ⚠️ '+d.flagged+' squad(s) flagged for anomaly review — see Anomaly Flags below.':''),'ok');
     // Auto-draft the match recap the moment results go final, instead of making the admin
     // navigate to Match Recap, re-pick the same tournament, and click Generate separately.
     // Still stops short of auto-sending -- generateMatchRecap() only fills the text boxes,
-    // "Send to players" is a separate human click, since AI-written copy going out to
+    // "📣 Send to players" is a separate human click, since AI-written copy going out to
     // every player deserves a read-over first (tone/translation quality can vary per run).
     const mrSel=document.getElementById('mr-tourney');
     if(mrSel){mrSel.value=name;await generateMatchRecap();}
@@ -1614,7 +1613,7 @@ function sendRecapToAnnouncement(){
   const en=document.getElementById('mr-english').value||'';
   const ne=document.getElementById('mr-nepali').value||'';
   if(!en&&!ne){mrMsg('Generate a recap first.','err');return;}
-  document.getElementById('an-title').value='Match Recap: '+(document.getElementById('mr-tourney').value||'');
+  document.getElementById('an-title').value='🎙️ Match Recap: '+(document.getElementById('mr-tourney').value||'');
   document.getElementById('an-body').value=en+(ne?('\n\n'+ne):'');
   document.getElementById('announce').scrollIntoView({behavior:'smooth',block:'start'});
   mrMsg('Copied into Send Announcement below — edit and pick recipients there, nothing sent yet.','ok');
@@ -1724,7 +1723,7 @@ async function publishToGitHub(){
     try{published=JSON.parse(document.getElementById('out').value);_loadedSnapshot=published;}catch(x){} // what we just published is now the live baseline
     let resultMsg=d.warning?('Published, but: '+d.warning):'Published! Live on the site now — players see it within ~5 seconds, no refresh needed.';
     /* Auto-notify players the moment bo3 results go from unpublished to published,
-       instead of relying on a separate "Notify players" click that's order-dependent
+       instead of relying on a separate "🔔 Notify players" click that's order-dependent
        (must happen after this publish, easy to forget or run out of order) — see
        notifyBo3Results() below, which this reuses via the same publish-results Edge
        Function. Only fires on the false->true transition, never on a republish of
@@ -1734,12 +1733,12 @@ async function publishToGitHub(){
       try{
         const nr=await fetch(EDGE_FN_BASE+'/publish-results',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({tournament_slug:newBo3.tournament})});
         const nd=await nr.json().catch(()=>({}));
-        resultMsg+=nr.ok?(' Notified '+nd.sent+' player(s) about results.'):' (Results notification failed — use "Notify players" below to retry.)';
-      }catch(e){resultMsg+=' (Results notification failed — use "Notify players" below to retry.)';}
+        resultMsg+=nr.ok?(' Notified '+nd.sent+' player(s) about results.'):' (Results notification failed — use "🔔 Notify players" below to retry.)';
+      }catch(e){resultMsg+=' (Results notification failed — use "🔔 Notify players" below to retry.)';}
     }
-    if((d.announced||[]).length)resultMsg+='Announced to all players: '+d.announced.map(esc).join(', ')+'.';
+    if((d.announced||[]).length)resultMsg+=' 📣 Announced to all players: '+d.announced.map(esc).join(', ')+'.';
     const paidList=(d.prizes||[]);
-    if(paidList.length)resultMsg+=' '+paidList.map(x=>x.status==='paid'?`Paid ${x.amount} points to ${esc(x.squad)}.`:`${esc(x.squad)} won ${x.amount} points but isn't registered in-app — add them in Points.`).join(' ');
+    if(paidList.length)resultMsg+=' '+paidList.map(x=>x.status==='paid'?`🏆 Paid ${x.amount} points to ${esc(x.squad)}.`:`⚠️ ${esc(x.squad)} won ${x.amount} points but isn't registered in-app — add them in 💰 Points.`).join(' ');
     publishMsg(resultMsg,d.warning?'err':'ok');
   }catch(e){publishMsg('Publish failed: '+e.message,'err');}
 }
@@ -1833,24 +1832,24 @@ function inboxRender(){
   if(_ibSeen&&ids.some(id=>!_ibSeen.has(id))){try{new Audio('/notify.mp3').play().catch(()=>{});}catch(e){}}
   _ibSeen=new Set(ids);
   document.title=(n?`(${n}) `:'')+document.title.replace(/^\(\d+\)\s*/,'');
-  if(!n){box.innerHTML='<div class="ib-clear">All clear: no point loads, withdrawals or disputes waiting.</div>';return;}
+  if(!n){box.innerHTML='<div class="ib-clear">✅ All clear: no point loads, withdrawals or disputes waiting.</div>';return;}
   box.innerHTML=
     loads.map(r=>`<div class="ib load" data-id="${esc(r.id)}">
-      ${r.screenshot?`<img class="ib-shot" src="${esc(r.screenshot)}" alt="Payment screenshot" data-zoom="${esc(r.screenshot)}">`:'<span class="ib-ic"><i class=ji-coin aria-hidden=true></i></span>'}
-      <div><h4>Load · ${esc(ibName(r.players))} <span class="big">Rs ${esc(r.amount)}</span></h4>
+      ${r.screenshot?`<img class="ib-shot" src="${esc(r.screenshot)}" alt="Payment screenshot" data-zoom="${esc(r.screenshot)}">`:'<span class="ib-ic">💰</span>'}
+      <div><h4>💰 Load · ${esc(ibName(r.players))} <span class="big">Rs ${esc(r.amount)}</span></h4>
         <div class="sub">${esc(r.players&&r.players.player_tag||'')} · ${esc(agoText(Date.parse(r.created_at)))} ago · check your eSewa for Rs ${esc(r.amount)}, then approve</div>
         <div class="ib-row"><input type="number" min="1" value="${esc(r.amount)}" data-amt aria-label="Points to add"><button class="btn" data-ok>✓ Add points</button><button class="btn ghost" data-no>✕ Reject</button></div>
         <div class="ib-row" style="margin-top:6px"><input data-note placeholder="Note to player (optional, e.g. why rejected)"></div>
         <div class="ib-res"></div></div></div>`).join('')+
-    wds.map(w=>`<div class="ib wd" data-id="${esc(w.id)}"><span class="ib-ic"><i class=ji-coin aria-hidden=true></i></span>
-      <div><h4>Withdrawal · ${esc(ibName(w.players))} <span class="big">send Rs ${esc(w.payout!=null?w.payout:w.amount)}</span></h4>
+    wds.map(w=>`<div class="ib wd" data-id="${esc(w.id)}"><span class="ib-ic">💸</span>
+      <div><h4>💸 Withdrawal · ${esc(ibName(w.players))} <span class="big">send Rs ${esc(w.payout!=null?w.payout:w.amount)}</span></h4>
         <div class="sub">eSewa <b style="color:var(--cream)">${esc(w.esewa_id)}</b> <button type="button" class="ib-copy" data-copy="${esc(w.esewa_id)}">Copy</button> · ${esc(w.esewa_name||'')} · asked Rs ${esc(w.amount)}${w.fee?' (fee Rs '+esc(w.fee)+')':''} · ${esc(agoText(Date.parse(w.created_at)))} ago</div>
         <div class="ib-row"><input data-ref placeholder="eSewa transaction ID"><button class="btn" data-paid>✓ Paid</button><button class="btn ghost" data-rej>✕ Reject</button></div>
         <div class="ib-res"></div></div></div>`).join('')+
-    disputes.map(c=>`<div class="ib dispute" data-id="${esc(c.id)}"><span class="ib-ic"><i class=ji-scale aria-hidden=true></i></span>
-      <div><h4>Dispute · ${esc(c.mode)} · ${esc(c.stake*2)} pts pot</h4>
+    disputes.map(c=>`<div class="ib dispute" data-id="${esc(c.id)}"><span class="ib-ic">⚖️</span>
+      <div><h4>⚖️ Dispute · ${esc(c.mode)} · ${esc(c.stake*2)} pts pot</h4>
         <div class="sub">${esc(ibName(c.creator))} says <b>${esc(c.creator_claim||'-')}</b> · ${esc(ibName(c.opponent))} says <b>${esc(c.opponent_claim||'-')}</b>${(c.chat||[]).length?' · '+c.chat.length+' chat messages':''}</div>
-        <div class="ib-row"><button class="btn" data-o="creator">${esc(ibName(c.creator))}</button><button class="btn" data-o="opponent">${esc(ibName(c.opponent))}</button><button class="btn ghost" data-o="refund">↩ Refund</button><a class="btn ghost" href="#challenges" onclick="setTimeout(loadChallenges,60)">Chat</a></div>
+        <div class="ib-row"><button class="btn" data-o="creator">🏆 ${esc(ibName(c.creator))}</button><button class="btn" data-o="opponent">🏆 ${esc(ibName(c.opponent))}</button><button class="btn ghost" data-o="refund">↩ Refund</button><a class="btn ghost" href="#challenges" onclick="setTimeout(loadChallenges,60)">💬 Chat</a></div>
         <div class="ib-res"></div></div></div>`).join('');
   box.querySelectorAll('[data-zoom]').forEach(i=>i.onclick=()=>ibZoom(i.dataset.zoom));
   box.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(b.dataset.copy);b.textContent='Copied ✓';});
@@ -1885,24 +1884,24 @@ function mdMsg(t,c){setMsg(document.getElementById('md-msg'),esc(t),c);}
 async function renderMatchDay(){
   const box=document.getElementById('md-box');if(!box)return;
   const evs=mdEvents();
-  if(!evs.length){box.innerHTML='<div class="md"><h3>No upcoming event</h3><p class="sub">Create one and it shows up here.</p><button class="btn" onclick="newEventOpen()">New event</button></div>';return;}
+  if(!evs.length){box.innerHTML='<div class="md"><h3>No upcoming event</h3><p class="sub">Create one and it shows up here.</p><button class="btn" onclick="newEventOpen()">➕ New event</button></div>';return;}
   let cur=evs.find(x=>x.t.name===_mdPick)||evs.find(x=>x.ms!==null&&x.ms<=Date.now())||evs[0];
   const {t,i,ms}=cur,started=ms!==null&&ms<=Date.now(),squads=_liveCounts.get(t.name)||0;
   const step=(n,state,title,desc,body)=>`<div class="md-step ${state}"><span class="md-n">${state==='ok'?'✓':n}</span><div><b>${title}</b><p>${desc}</p>${body||''}</div></div>`;
   const when=ms===null?'time not set':started?`started ${agoText(ms)} ago`:`starts in ${inText(ms)}`;
   box.innerHTML=`<div class="md">
     ${evs.length>1?`<div class="md-pick">${evs.map(x=>`<button type="button" class="${x===cur?'on':''}" data-md="${esc(x.t.name)}">${esc(x.t.name)}</button>`).join('')}</div>`:''}
-    <h3>${started?'':''}${esc(t.name)}</h3>
+    <h3>${started?'🔴 ':''}${esc(t.name)}</h3>
     <p class="sub">${esc(t.date||'')} ${esc(t.time||'')} · ${when} · prize pool ${esc(rsText(t.prize))} · entry fee ${esc(feeText(t.entry))}</p>
-    ${step(1,squads?'ok':'now','Squads',`${squads}${t.slots?' of '+esc(t.slots):''} squads confirmed.`,`<button class="btn ghost" onclick="mdTeams()">See squads</button>`)}
+    ${step(1,squads?'ok':'now','Squads',`${squads}${t.slots?' of '+esc(t.slots):''} squads confirmed.`,`<button class="btn ghost" onclick="mdTeams()">👥 See squads</button>`)}
     ${step(2,'','Room code',started?'Send it now if players are still waiting.':'Send it now, or stage it to go out by itself about 5 minutes before kickoff.',
       `<div class="ib-row"><input id="md-rid" inputmode="numeric" placeholder="Room ID"><input id="md-rpw" placeholder="Password"></div>
-       <div class="ib-row" style="margin-top:6px"><button class="btn" onclick="mdRoom(false,this)">Send now</button>${started?'':'<button class="btn ghost" onclick="mdRoom(true,this)">Auto-send at kickoff</button>'}</div>
+       <div class="ib-row" style="margin-top:6px"><button class="btn" onclick="mdRoom(false,this)">📨 Send now</button>${started?'':'<button class="btn ghost" onclick="mdRoom(true,this)">⏱ Auto-send at kickoff</button>'}</div>
        <p id="md-rc-status" style="margin:6px 0 0"></p>`)}
     ${step(3,'','Finish',`Type the winning squad, then Finish: it moves to History and goes live.`,
       `<div class="ib-row"><input id="md-win" placeholder="Winning squad" value="${esc(t.winner||bo3TopTeam(t.name)||'')}"><button class="btn" onclick="mdFinish(${i},this)">✓ Finish &amp; publish</button></div>`)}
     ${step(4,'','Prizes','After results are published, pays every unpaid prize to the winners\' wallets (the Rs 50 pass rule and referral bonus apply automatically).',
-      `<button class="btn ghost" onclick="mdPrizes(this)">Pay prizes now</button><div id="md-prizes"></div>`)}
+      `<button class="btn ghost" onclick="mdPrizes(this)">🏆 Pay prizes now</button><div id="md-prizes"></div>`)}
     <div id="md-msg" class="hint"></div></div>`;
   box.querySelectorAll('[data-md]').forEach(b=>b.onclick=()=>{_mdPick=b.dataset.md;renderMatchDay();});
   mdRoomStatus(t.name);
@@ -1913,7 +1912,7 @@ async function mdRoomStatus(name){
   const el=document.getElementById('md-rc-status'),secret=adminSecret();if(!el||!secret)return;
   try{const r=await fetch(EDGE_FN_BASE+'/stage-room-code?tournament_slug='+encodeURIComponent(name),{headers:{'x-admin-secret':secret}});
     const d=r.ok?await r.json():null;
-    el.className='hint';el.textContent=!d?'Not sent yet.':d.sent_at?'✓ Sent at '+new Date(d.sent_at).toLocaleTimeString()+'.':'Staged: goes out by itself about 5 minutes before kickoff.';
+    el.className='hint';el.textContent=!d?'Not sent yet.':d.sent_at?'✓ Sent at '+new Date(d.sent_at).toLocaleTimeString()+'.':'⏱ Staged: goes out by itself about 5 minutes before kickoff.';
   }catch(e){}
 }
 async function mdRoom(stage,btn){
@@ -2005,7 +2004,7 @@ async function enableAdminPush(){
 function updateAdminPushBtn(){
   const b=document.getElementById('admin-push-btn');if(!b)return;
   const s=adminPushState();
-  const label={on:'Admin alerts on',blocked:'Alerts blocked',ios:'Install app to enable',loading:'Loading push…',unsupported:'Push not supported',off:'Push not configured',ask:'Enable admin alerts'}[s];
+  const label={on:'✅ Admin alerts on',blocked:'🚫 Alerts blocked',ios:'📲 Install app to enable',loading:'🔔 Loading push…',unsupported:'🔕 Push not supported',off:'🔕 Push not configured',ask:'🔔 Enable admin alerts'}[s];
   b.textContent=label;
   b.classList.toggle('on',s==='on');
   b.classList.toggle('blocked',s==='blocked'||s==='unsupported');
@@ -2218,10 +2217,10 @@ async function walletLookup(id){
         <div class="f"><label>Points to add</label><input id="wa-amt" type="number" min="1" inputmode="numeric" placeholder="Amount they paid"></div>
         <div class="f"><label>eSewa transaction ID <span class="tag">optional</span></label><input id="wa-ref" placeholder="Stops the same payment being added twice" autocomplete="off"></div>
       </div>
-      <div class="row" style="margin:8px 0 0">${[50,100,200,500].map(a=>`<button type="button" class="btn ghost" style="font-size:.74rem;padding:6px 12px" onclick="document.getElementById('wa-amt').value=${a}">${a}</button>`).join('')}<button class="btn" id="wa-credit" onclick="walletCredit()">Add points</button><button class="btn ghost" id="wa-rf-open" onclick="refundOpen()">↩ Refund…</button></div>
+      <div class="row" style="margin:8px 0 0">${[50,100,200,500].map(a=>`<button type="button" class="btn ghost" style="font-size:.74rem;padding:6px 12px" onclick="document.getElementById('wa-amt').value=${a}">${a}</button>`).join('')}<button class="btn" id="wa-credit" onclick="walletCredit()">➕ Add points</button><button class="btn ghost" id="wa-rf-open" onclick="refundOpen()">↩ Refund…</button></div>
       <div id="wa-refund"></div>
-      <div class="row" style="margin:10px 0 0"><button type="button" class="btn ghost" onclick="waResetPin()">Reset wallet PIN</button><button type="button" class="btn ghost" onclick="pointHistory(_waPlayer.id)">Point history</button></div>
-      <div class="row" style="margin:10px 0 0"><button type="button" class="btn ghost" onclick="jdActivity(document.getElementById('wa-act'),waActivity,waAvatarRemove)">Full activity: what this player did</button></div><div id="wa-act"></div>
+      <div class="row" style="margin:10px 0 0"><button type="button" class="btn ghost" onclick="waResetPin()">🔒 Reset wallet PIN</button><button type="button" class="btn ghost" onclick="pointHistory(_waPlayer.id)">📜 Point history</button></div>
+      <div class="row" style="margin:10px 0 0"><button type="button" class="btn ghost" onclick="jdActivity(document.getElementById('wa-act'),waActivity,waAvatarRemove)">📋 Full activity: what this player did</button></div><div id="wa-act"></div>
       ${d.ledger.length?`<table style="width:100%;font-size:.76rem;border-collapse:collapse;margin-top:12px">${d.ledger.map(x=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 4px">${esc(new Date(x.created_at).toLocaleString())}</td><td>${esc(WA_REASON[x.reason]||x.reason)}</td><td style="text-align:right;color:${x.delta>0?'var(--green,#5EDB95)':'#ff9d9d'}">${x.delta>0?'+':''}${x.delta}</td><td style="text-align:right">${x.balance_after}</td></tr>`).join('')}</table>`:'<p class="hint" style="margin:10px 0 0">No transactions yet.</p>'}
     </div>`;
     waMsg('','');
@@ -2295,9 +2294,9 @@ async function loadMoney(){
     const col=w=>`<td>${fmtRs(w.cash_in)}</td><td>${fmtRs(w.cash_out_paid)}</td><td>${fmtRs(w.pending_payouts)}</td><td>${fmtRs(w.fees_collected)}</td><td>${fmtRs(w.prize_given)}</td><td>${fmtRs(w.adjust_given)}</td><td>${(w.earned_points||0).toLocaleString()} pts</td>`;
     box.innerHTML=`<div class="card">
       <div class="row" style="gap:18px;flex-wrap:wrap;margin:0 0 12px">
-        <span class="hint" style="margin:0">Cash on eSewa (all-time loads − paid out): <b style="color:${m.cash_on_esewa>=0?'var(--gold-l)':'#ff8a8a'}">${fmtRs(m.cash_on_esewa)}</b></span>
-        <span class="hint" style="margin:0">Owed to players (could be withdrawn): <b>${fmtRs(m.owed_points)}</b></span>
-        ${m.staff_points?`<span class="hint" style="margin:0">Staff spending points (not cash, can't be withdrawn): <b>${(m.staff_points||0).toLocaleString()} pts</b></span>`:''}
+        <span class="hint" style="margin:0">💵 Cash on eSewa (all-time loads − paid out): <b style="color:${m.cash_on_esewa>=0?'var(--gold-l)':'#ff8a8a'}">${fmtRs(m.cash_on_esewa)}</b></span>
+        <span class="hint" style="margin:0">👥 Owed to players (could be withdrawn): <b>${fmtRs(m.owed_points)}</b></span>
+        ${m.staff_points?`<span class="hint" style="margin:0">🛠 Staff spending points (not cash, can't be withdrawn): <b>${(m.staff_points||0).toLocaleString()} pts</b></span>`:''}
       </div>
       <div style="overflow:auto"><table><thead><tr><th>Period</th><th>In (loads)</th><th>Out (paid)</th><th>Pending out</th><th>Fees kept</th><th>Prizes</th><th>Comp</th><th>Earned</th></tr></thead>
       <tbody>
@@ -2324,7 +2323,7 @@ async function loadBalances(){
 function renderBalances(){
   const q=(document.getElementById('bal-q')||{}).value||'';const ql=q.trim().toLowerCase();
   const rows=_balRows.filter(r=>!ql||[r.username,r.player_tag,r.email].some(v=>String(v||'').toLowerCase().includes(ql)));
-  document.getElementById('bal-table').innerHTML=`<table style="width:100%;font-size:.8rem;border-collapse:collapse">${rows.slice(0,300).map(r=>`<tr style="border-bottom:1px solid var(--line);cursor:pointer" data-bal-q="1" data-bal-id="${esc(r.id)}" title="Open this player's wallet"><td style="padding:7px 4px">${esc(r.username?'@'+r.username:'—')}<br><span class="hint" style="margin:0">${esc(r.player_tag||'')} · ${esc(r.email||'')}</span></td><td style="text-align:right;font-weight:700;color:${r.unlimited?'var(--gold-l)':(r.balance>0?'var(--green,#5EDB95)':'var(--silver)')}">${r.unlimited?'100B (admin)':r.balance.toLocaleString()+' pts'}</td><td style="text-align:right;padding-left:8px;width:1%"><button type="button" class="btn ghost" style="font-size:.74rem;padding:6px 10px;white-space:nowrap" data-ph="${esc(r.id)}">History</button></td></tr>`).join('')||'<tr><td class="hint">No players match.</td></tr>'}</table>`;
+  document.getElementById('bal-table').innerHTML=`<table style="width:100%;font-size:.8rem;border-collapse:collapse">${rows.slice(0,300).map(r=>`<tr style="border-bottom:1px solid var(--line);cursor:pointer" data-bal-q="1" data-bal-id="${esc(r.id)}" title="Open this player's wallet"><td style="padding:7px 4px">${esc(r.username?'@'+r.username:'—')}<br><span class="hint" style="margin:0">${esc(r.player_tag||'')} · ${esc(r.email||'')}</span></td><td style="text-align:right;font-weight:700;color:${r.unlimited?'var(--gold-l)':(r.balance>0?'var(--green,#5EDB95)':'var(--silver)')}">${r.unlimited?'100B (admin)':r.balance.toLocaleString()+' pts'}</td><td style="text-align:right;padding-left:8px;width:1%"><button type="button" class="btn ghost" style="font-size:.74rem;padding:6px 10px;white-space:nowrap" data-ph="${esc(r.id)}">📜 History</button></td></tr>`).join('')||'<tr><td class="hint">No players match.</td></tr>'}</table>`;
   document.querySelectorAll('[data-bal-q]').forEach(tr=>tr.onclick=()=>{walletLookup(tr.dataset.balId);document.getElementById('wallets').scrollIntoView({behavior:'smooth'});});
   document.querySelectorAll('[data-ph]').forEach(b=>b.onclick=e=>{e.stopPropagation();pointHistory(b.dataset.ph);});
 }
@@ -2340,7 +2339,7 @@ function phRender(){
   const d=_ph,all=d.rows,rows=all.filter(x=>_phF==='all'||(_phF==='in'?x.delta>0:x.delta<0));
   const chip=(f,l)=>`<button type="button" class="btn ${_phF===f?'':'ghost'}" style="font-size:.74rem;padding:6px 12px" aria-pressed="${_phF===f}" onclick="phShow('${f}')">${l}</button>`;
   document.getElementById('wa-history').innerHTML=`<div class="card" style="margin-top:12px">
-    <div class="row" style="margin:0 0 8px;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><b style="font-size:1.05rem">${esc(d.player.username?'@'+d.player.username:'(no username)')} <span class="hint" style="margin:0">${esc(d.player.player_tag||'')}</span></b><button type="button" class="btn ghost" style="font-size:.74rem;padding:6px 12px" onclick="document.getElementById('wa-history').innerHTML=''">Close</button></div>
+    <div class="row" style="margin:0 0 8px;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><b style="font-size:1.05rem">📜 ${esc(d.player.username?'@'+d.player.username:'(no username)')} <span class="hint" style="margin:0">${esc(d.player.player_tag||'')}</span></b><button type="button" class="btn ghost" style="font-size:.74rem;padding:6px 12px" onclick="document.getElementById('wa-history').innerHTML=''">Close</button></div>
     <div class="row" style="margin:0 0 10px;gap:16px;flex-wrap:wrap"><span>Balance <b style="color:var(--gold-l)">${d.unlimited?'100B':d.balance.toLocaleString()}</b></span><span>Added <b style="color:var(--green,#5EDB95)">+${d.added.toLocaleString()}</b></span><span>Taken <b style="color:#ff9d9d">-${d.taken.toLocaleString()}</b></span></div>
     <div class="row" style="margin:0 0 8px;gap:8px;flex-wrap:wrap">${chip('all','All '+all.length)}${chip('in','Added')}${chip('out','Taken')}</div>
     ${rows.slice(0,_phN).map(x=>`<div style="display:flex;gap:10px;justify-content:space-between;padding:8px 2px;border-bottom:1px solid var(--line);font-size:.8rem"><div style="min-width:0;overflow-wrap:anywhere"><b>${esc(WA_REASON[x.reason]||x.reason)}</b>${x.note?` · ${esc(x.note)}`:''}<div class="hint" style="margin:2px 0 0">${esc(new Date(x.created_at).toLocaleString())}</div></div><div style="text-align:right;white-space:nowrap"><b style="color:${x.delta>0?'var(--green,#5EDB95)':'#ff9d9d'}">${x.delta>0?'+':''}${x.delta}</b><div class="hint" style="margin:2px 0 0">bal ${esc(x.balance_after)}</div></div></div>`).join('')||'<p class="hint">No points moved yet.</p>'}
@@ -2349,7 +2348,7 @@ function phRender(){
 }
 function prizeReportHtml(list){
   if(!list||!list.length)return '';
-  return list.map(x=>x.status==='paid'?`Paid ${x.amount} points to ${esc(x.squad)} (${esc(x.tournament)})`:`${esc(x.squad)} (${esc(x.tournament)}) won ${x.amount} points but didn't register in-app — add them by hand`).join('<br>');
+  return list.map(x=>x.status==='paid'?`🏆 Paid ${x.amount} points to ${esc(x.squad)} (${esc(x.tournament)})`:`⚠️ ${esc(x.squad)} (${esc(x.tournament)}) won ${x.amount} points but didn't register in-app — add them by hand`).join('<br>');
 }
 async function payPrizesNow(){
   waMsg('Checking for unpaid prizes…','');
@@ -2360,7 +2359,7 @@ async function payPrizesNow(){
     waMsg(shown.length?'Done.':'No unpaid prizes — everything announced so far is already paid.','ok');
   }catch(e){waMsg(e.message,'err');}
 }
-/* ── active users: DAU / WAU / MAU + 30-day trend (active_users.sql, owner + staff via Google sign-in) ── */
+/* ── 📈 active users: DAU / WAU / MAU + 30-day trend (active_users.sql, owner + staff via Google sign-in) ── */
 setInterval(()=>{if(!document.hidden&&document.getElementById('au-k-live'))auLoad();},120000);
 async function auLoad(){
   const box=document.getElementById('au-box');if(!box||!sb)return;
@@ -2375,12 +2374,12 @@ async function auLoad(){
       <div><span>Daily active</span><b>${n(d.dau)}</b><small>last 24 hours</small></div>
       <div><span>Weekly active</span><b>${n(d.wau)}</b><small>last 7 days</small></div>
       <div><span>Monthly active</span><b>${n(d.mau)}</b><small>last 30 days</small></div></div>
-    <div class="au-sub"><span>${n(d.total)} players total</span><span>${n(d.new_1)} new today · ${n(d.new_7)} this week · ${n(d.new_30)} this month</span><span>${n(d.app)} with the app</span><span title="Daily ÷ monthly active: how many monthly players come back every day">Stickiness ${pct(d.dau,d.mau)}</span></div>
+    <div class="au-sub"><span>👤 ${n(d.total)} players total</span><span>🆕 ${n(d.new_1)} new today · ${n(d.new_7)} this week · ${n(d.new_30)} this month</span><span>📱 ${n(d.app)} with the app</span><span title="Daily ÷ monthly active: how many monthly players come back every day">🔁 Stickiness ${pct(d.dau,d.mau)}</span></div>
     ${days.length?`<div class="au-ch"><span class="au-tip" id="au-tip">Today: ${n(days[days.length-1].n)} players</span><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Players active each day, last 30 days">${bars}</svg>
       <div class="ax"><span>${esc(fd(days[0].d))}</span><span>Players active per day (Nepal time). History starts 3 Nov 2026.</span><span>Today</span></div></div>`:''}`;
   box.querySelectorAll('rect').forEach(r=>{const x=days[+r.dataset.i];const show=()=>{document.getElementById('au-tip').textContent=fd(x.d)+': '+n(x.n)+' players';};r.onmouseenter=show;r.onclick=show;});
 }
-/* ── ZULU squad match (zulu-squad-match edge function) ── */
+/* ── 🤝 ZULU squad match (zulu-squad-match edge function) ── */
 async function zsRun(dry){
   const out=document.getElementById('zs-out'),secret=adminSecret();
   if(!secret){out.textContent='Enter the admin passcode first.';return;}
@@ -2402,9 +2401,9 @@ async function pvLoad(){
   const c=document.getElementById('pv-count');if(c)c.textContent=q.length?q.length+' waiting':'free vouchers';
   const qa=document.getElementById('qa-promo-n');if(qa){qa.hidden=!q.length;qa.textContent=q.length;}
   box.innerHTML=q.map(p=>{const safe=/^https:[/][/]/i.test(p.url)?p.url:'';
-    return `<div class="card" data-pv="${+p.id}" style="margin:8px 0;padding:12px 14px"><div><b>@${esc(p.username||'?')}</b>${p.ign?' ·'+esc(p.ign):''} <span class="hint" style="margin:0">· ${esc(p.platform||'')} · ${p.kind==='engage'?'FREE CARD (one time only): check this account follows @ayer_fire and reposted 3 of our videos, with the JD username above in a comment on each':p.kind==='repost'?'FREE CARD: check this is a video about JD Arena and says how to download':(+p.views||0).toLocaleString()+' views claimed'} · ${esc(new Date(p.at).toLocaleString())}${p.approved_before?' · approved '+(+p.approved_before)+'× before':''}</span></div>
+    return `<div class="card" data-pv="${+p.id}" style="margin:8px 0;padding:12px 14px"><div><b>@${esc(p.username||'?')}</b>${p.ign?' · 🎮 '+esc(p.ign):''} <span class="hint" style="margin:0">· ${esc(p.platform||'')} · ${p.kind==='engage'?'FREE CARD (one time only): check this account follows @ayer_fire and reposted 3 of our videos, with the JD username above in a comment on each':p.kind==='repost'?'FREE CARD: check this is a video about JD Arena and says how to download':(+p.views||0).toLocaleString()+' views claimed'} · ${esc(new Date(p.at).toLocaleString())}${p.approved_before?' · approved '+(+p.approved_before)+'× before':''}</span></div>
     <div class="hint" style="margin:4px 0 8px;word-break:break-all">${esc(p.url)}</div>
-    <div class="row" style="margin:0;gap:8px">${safe?`<a class="btn ghost" href="${esc(safe)}" target="_blank" rel="noopener noreferrer">Check link</a>`:''}<button class="btn" data-pv-act="yes">Give free voucher</button><button class="btn ghost" data-pv-act="no">✕ Reject</button><span class="hint pv-res" style="margin:0"></span></div></div>`;}).join('');
+    <div class="row" style="margin:0;gap:8px">${safe?`<a class="btn ghost" href="${esc(safe)}" target="_blank" rel="noopener noreferrer">🔗 Check link</a>`:''}<button class="btn" data-pv-act="yes">🎟️ Give free voucher</button><button class="btn ghost" data-pv-act="no">✕ Reject</button><span class="hint pv-res" style="margin:0"></span></div></div>`;}).join('');
 }
 document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-pv-act]');if(!b)return;
@@ -2415,7 +2414,7 @@ document.addEventListener('click',async e=>{
   card.querySelectorAll('button').forEach(x=>x.disabled=true);res.textContent='Saving…';
   const {data:tier,error}=await sb.rpc('promo_review',{p_id:+card.dataset.pv,p_approve:yes,p_note:note||null});
   if(error){res.textContent='✗ '+error.message;card.querySelectorAll('button').forEach(x=>x.disabled=false);return;}
-  res.textContent=yes?'✓ Card sent: '+({gold:'GOLD (Rs 100)',silver:'SILVER (Rs 50)',free:'Free card'}[tier]||'Bronze (Rs 5)')+'.':'Rejected, the player was told.';
+  res.textContent=yes?'✓ Card sent: '+({gold:'🥇 GOLD (Rs 100)',silver:'🥈 SILVER (Rs 50)',free:'🎟️ Free card'}[tier]||'🥉 Bronze (Rs 5)')+'.':'Rejected, the player was told.';
   setTimeout(pvLoad,900);
 });
 /* ── security: lock status + automatic sweep (system_state / security_sweep in schema.sql) ── */
@@ -2427,8 +2426,8 @@ async function loadSecurity(){
     box.style.display='';
     box.style.borderColor=st.locked?'#ff6b6b':'';
     box.innerHTML=st.locked
-      ?`<b style="color:#ff8a8a">LOCKED — all payments, withdrawals and codes are paused</b><p class="hint" style="margin:6px 0">${esc(st.reason||'')} ${st.locked_at?'· since '+esc(new Date(st.locked_at).toLocaleString()):''}</p>${issues.length?`<p class="hint" style="margin:0 0 8px">Current findings: ${issues.map(i=>esc(i.type==='balance_mismatch'?`wallet ${String(i.player_id).slice(0,8)} balance ${i.balance} ≠ history ${i.ledger_sum}`:i.type)).join(' · ')}</p>`:'<p class="hint" style="margin:0 0 8px">The latest check finds nothing wrong now.</p>'}<div class="row" style="margin:0"><button class="btn" onclick="setLock(false)">Unlock</button><button class="btn ghost" onclick="loadSecurity()">↻ Re-check</button></div><p class="hint" style="margin:8px 0 0">Prizes don't pay out while locked — after unlocking, press "Pay prizes now" in Points.</p>`
-      :`<div class="row" style="margin:0;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><span><b style="color:var(--green,#5EDB95)">Security: all clear</b> <span class="hint" style="margin:0">· automatic check every 5 min${issues.length?' ·'+issues.length+' issue(s) found':''}</span></span><span><button class="btn ghost" style="font-size:.72rem;padding:7px 12px" onclick="loadSecurity()">↻ Run check now</button> <button class="btn ghost" style="font-size:.72rem;padding:7px 12px" onclick="setLock(true)">Lock now</button></span></div>`;
+      ?`<b style="color:#ff8a8a">🚨 LOCKED — all payments, withdrawals and codes are paused</b><p class="hint" style="margin:6px 0">${esc(st.reason||'')} ${st.locked_at?'· since '+esc(new Date(st.locked_at).toLocaleString()):''}</p>${issues.length?`<p class="hint" style="margin:0 0 8px">Current findings: ${issues.map(i=>esc(i.type==='balance_mismatch'?`wallet ${String(i.player_id).slice(0,8)} balance ${i.balance} ≠ history ${i.ledger_sum}`:i.type)).join(' · ')}</p>`:'<p class="hint" style="margin:0 0 8px">The latest check finds nothing wrong now.</p>'}<div class="row" style="margin:0"><button class="btn" onclick="setLock(false)">🔓 Unlock</button><button class="btn ghost" onclick="loadSecurity()">↻ Re-check</button></div><p class="hint" style="margin:8px 0 0">Prizes don't pay out while locked — after unlocking, press "🏆 Pay prizes now" in 💰 Points.</p>`
+      :`<div class="row" style="margin:0;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><span><b style="color:var(--green,#5EDB95)">🛡️ Security: all clear</b> <span class="hint" style="margin:0">· automatic check every 5 min${issues.length?' · ⚠️ '+issues.length+' issue(s) found':''}</span></span><span><button class="btn ghost" style="font-size:.72rem;padding:7px 12px" onclick="loadSecurity()">↻ Run check now</button> <button class="btn ghost" style="font-size:.72rem;padding:7px 12px" onclick="setLock(true)">🔒 Lock now</button></span></div>`;
   }catch(e){box.style.display='';box.innerHTML='<span class="hint">Security status unavailable: '+esc(e.message)+'</span>';}
 }
 async function setLock(lock){
@@ -2475,7 +2474,7 @@ async function refList(){
   try{
     const rows=await modCall({action:'referrals_list'});
     const paid=rows.filter(r=>r.bonus_at).length;
-    box.innerHTML=`<p class="hint" style="margin-top:10px">${rows.length} invited · ${paid} bonuses paid · ${paid*80} points given</p>`+(rows.length?`<table style="width:100%;font-size:.8rem;border-collapse:collapse">${rows.map(r=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px"><b>${esc(r.inviter||'?')}</b> invited <b>${esc(r.invited||'?')}</b><br><span class="hint">${esc(String(r.joined||'').slice(0,10))} · ${+r.events} events${r.first_prize?' · first prize '+esc(String(r.first_prize).slice(0,10)):' · no prize yet'}</span></td><td style="padding:6px 4px;text-align:right">${r.same_ff?'<span class="tag">same Free Fire UID</span> ':''}${r.same_phone?'<span class="tag">same WhatsApp</span> ':''}<span class="tag">${r.bonus_at?'card given':'waiting'}</span></td></tr>`).join('')}</table>`:'');
+    box.innerHTML=`<p class="hint" style="margin-top:10px">${rows.length} invited · ${paid} bonuses paid · ${paid*80} points given</p>`+(rows.length?`<table style="width:100%;font-size:.8rem;border-collapse:collapse">${rows.map(r=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px"><b>${esc(r.inviter||'?')}</b> invited <b>${esc(r.invited||'?')}</b><br><span class="hint">${esc(String(r.joined||'').slice(0,10))} · ${+r.events} events${r.first_prize?' · first prize '+esc(String(r.first_prize).slice(0,10)):' · no prize yet'}</span></td><td style="padding:6px 4px;text-align:right">${r.same_ff?'<span class="tag">🚩 same Free Fire UID</span> ':''}${r.same_phone?'<span class="tag">🚩 same WhatsApp</span> ':''}<span class="tag">${r.bonus_at?'card given':'waiting'}</span></td></tr>`).join('')}</table>`:'');
     cmMsg('ref-msg','');
   }catch(e){cmMsg('ref-msg',e.message,'err');}
 }
@@ -2585,7 +2584,7 @@ async function opOpen(r){
         <div class="f"><label>Days to add</label><input id="op-days" type="number" min="1" max="3660" value="30" inputmode="numeric"></div>
         <div class="f full"><label>Note <span class="tag">optional</span></label><input id="op-note" placeholder="e.g. sponsor, refund, tester" autocomplete="off"></div>
       </div>
-      <div class="row" style="margin:8px 0 0"><button class="btn" id="op-grant" onclick="opGrant()">Give free days</button>${r.tier&&new Date(r.expires_at)>new Date()?'<button class="btn ghost" onclick="opEnd()">End plan now</button>':''}</div>
+      <div class="row" style="margin:8px 0 0"><button class="btn" id="op-grant" onclick="opGrant()">🎁 Give free days</button>${r.tier&&new Date(r.expires_at)>new Date()?'<button class="btn ghost" onclick="opEnd()">⛔ End plan now</button>':''}</div>
       <p class="hint" style="margin-top:12px">Linked PCs</p>
       ${devs.length?`<table style="width:100%;font-size:.76rem;border-collapse:collapse">${devs.map(d=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 4px">${esc(d.device_name)}</td><td class="hint" style="padding:5px 4px">linked ${esc(new Date(d.created_at).toLocaleDateString())}${d.last_seen?' · seen '+esc(new Date(d.last_seen).toLocaleString()):''}</td><td style="padding:5px 4px;text-align:right">${d.revoked_at?'<span class="hint" style="margin:0">unlinked</span>':`<button class="btn ghost" style="font-size:.7rem;padding:4px 10px" onclick="opRevoke('${esc(d.id)}')">Unlink</button>`}</td></tr>`).join('')}</table>`:'<p class="hint" style="margin:0">No PC linked yet.</p>'}
     </div>`;
@@ -2636,12 +2635,12 @@ async function loadChallenges(){
   try{
     const d=await waCall({action:'challenges'});
     const box=document.getElementById('chg-list');
-    const disp=(d.disputed||[]).map(c=>`<div class="card" style="border-color:#ff6b6b"><div class="row" style="margin:0 0 8px;justify-content:space-between;flex-wrap:wrap;gap:8px"><b>${esc(c.mode)} · ${c.stake*2} pts pot</b><span class="hint" style="margin:0">${esc(new Date(c.created_at).toLocaleString())}</span></div>
+    const disp=(d.disputed||[]).map(c=>`<div class="card" style="border-color:#ff6b6b"><div class="row" style="margin:0 0 8px;justify-content:space-between;flex-wrap:wrap;gap:8px"><b>⚖️ ${esc(c.mode)} · ${c.stake*2} pts pot</b><span class="hint" style="margin:0">${esc(new Date(c.created_at).toLocaleString())}</span></div>
       <p class="hint" style="margin:0 0 8px">Creator ${esc(chgName(c.creator))} says <b>${esc(c.creator_claim||'—')}</b> · Opponent ${esc(chgName(c.opponent))} says <b>${esc(c.opponent_claim||'—')}</b>${c.room_id?' · room '+esc(c.room_id):''}${c.note?' · '+esc(c.note):''}</p>
       <div style="max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px;font-size:.8rem;margin-bottom:8px">${(c.chat||[]).map(m=>`<div><b>${esc(chgName(m.sender))}:</b> ${esc(m.body)} <span class="hint" style="margin:0">${esc(new Date(m.created_at).toLocaleTimeString())}</span></div>`).join('')||'<span class="hint">No chat.</span>'}</div>
-      <div class="row" style="margin:0"><button class="btn" data-chg="${esc(c.id)}" data-o="creator">${esc(chgName(c.creator))} won</button><button class="btn" data-chg="${esc(c.id)}" data-o="opponent">${esc(chgName(c.opponent))} won</button><button class="btn ghost" data-chg="${esc(c.id)}" data-o="refund">↩ Refund both</button></div></div>`).join('');
+      <div class="row" style="margin:0"><button class="btn" data-chg="${esc(c.id)}" data-o="creator">🏆 ${esc(chgName(c.creator))} won</button><button class="btn" data-chg="${esc(c.id)}" data-o="opponent">🏆 ${esc(chgName(c.opponent))} won</button><button class="btn ghost" data-chg="${esc(c.id)}" data-o="refund">↩ Refund both</button></div></div>`).join('');
     const rec=(d.recent||[]).length?`<div class="card"><table style="width:100%;font-size:.78rem;border-collapse:collapse">${d.recent.map(c=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px">${esc(c.mode)}</td><td>${esc(chgName(c.creator))} vs ${esc(chgName(c.opponent))}</td><td>${c.stake*2} pts</td><td>${esc(c.status)}${c.resolution?' · '+esc(c.resolution):''}</td><td class="hint" style="margin:0">${esc(new Date(c.created_at).toLocaleDateString())}</td></tr>`).join('')}</table></div>`:'';
-    box.innerHTML=(disp||'<p class="hint">No disputes</p>')+rec;
+    box.innerHTML=(disp||'<p class="hint">No disputes 🎉</p>')+rec;
     box.querySelectorAll('[data-chg]').forEach(b=>b.onclick=async()=>{
       const o=b.dataset.o;
       if(!confirm(o==='refund'?'Refund both players their stake?':'Pay the whole pot to this side?'))return;
@@ -2668,7 +2667,7 @@ async function loadLoads(){
           <div class="f"><label>Note to player <span class="tag">optional</span></label><input id="wl-note-${r.id}" placeholder="e.g. reason for rejecting"></div>
         </div>
         <div class="row" style="margin-top:10px"><button class="btn" data-wl-ok="${r.id}">✓ Approve &amp; add points</button><button class="btn ghost" data-wl-no="${r.id}">✕ Reject</button></div>
-      </div></div>`).join(''):'<p class="hint">No screenshots waiting.</p>';
+      </div></div>`).join(''):'<p class="hint">No screenshots waiting. 🎉</p>';
     box.querySelectorAll('[data-wl-ok]').forEach(b=>b.onclick=()=>resolveLoad(b,b.dataset.wlOk,true));
     box.querySelectorAll('[data-wl-no]').forEach(b=>b.onclick=()=>resolveLoad(b,b.dataset.wlNo,false));
     wlMsg(rows.length+' waiting.','ok');
@@ -2746,8 +2745,8 @@ function tmMsg(t,c){setMsg(document.getElementById('tm-msg'),t,c);}
 let _teams=[];
 // the line-up from "Verify your squad" (squad_verify.sql): names + UIDs to check against the room; tap a UID to copy
 function tmLineup(r){
-  if(!(r.lineup&&r.lineup.length))return '<div class="tm-meta" style="color:#e8a94d">Squad not verified (no line-up yet)</div>';
-  return `<details class="tm-meta" style="margin-top:4px"><summary style="cursor:pointer;color:#5EDB95;font-weight:600">Line-up · ${r.lineup.length} players · ${esc(new Date(r.lineup_at).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}))}</summary>`+
+  if(!(r.lineup&&r.lineup.length))return '<div class="tm-meta" style="color:#e8a94d">⚠ Squad not verified (no line-up yet)</div>';
+  return `<details class="tm-meta" style="margin-top:4px"><summary style="cursor:pointer;color:#5EDB95;font-weight:600">🛡️ Line-up · ${r.lineup.length} players · ${esc(new Date(r.lineup_at).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}))}</summary>`+
     r.lineup.map((m,i)=>`<div>${i<4?i+1:'Sub'} · ${esc(m.name)} · <span style="font-family:monospace;text-decoration:underline dotted;cursor:pointer" title="Click to copy" onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(m.uid)}');this.textContent='${esc(m.uid)} ✓'">${esc(m.uid)}</span></div>`).join('')+'</details>';
 }
 function tmVerified(){return new Set(_teams.filter(r=>r.verified_at).map(r=>r.id));}
@@ -2767,7 +2766,7 @@ async function tmToggleVerified(id,btn){
   }catch(e){tmMsg('Could not save: '+e.message,'err');}
   renderTeamsAdmin();
 }
-// optional: mark every confirmed/approved squad verified in one go (players see Verified)
+// optional: mark every confirmed/approved squad verified in one go (players see ✅ Verified)
 async function tmVerifyAll(){
   const secret=adminSecret();if(!secret){tmMsg('Enter the admin passcode first.','err');return;}
   const todo=_teams.filter(r=>(r.status==='confirmed'||r.status==='approved')&&!r.verified_at);
@@ -2824,11 +2823,11 @@ function renderTeamsAdmin(){
     const logo=r.squad_logo?`<img class="tm-logo" src="${esc(r.squad_logo)}" alt="">`:`<div class="tm-logo">${esc((r.squad_name||p.username||'?').trim().charAt(0).toUpperCase())}</div>`;
     const bits=[`<b>@${esc(p.username||'—')}</b>${p.player_tag?' · '+esc(p.player_tag):''}`];
     if(p.email)bits.push(esc(p.email));
-    if(r.whatsapp)bits.push(`<a class="tm-wa" href="${esc(waReminderLink(r))}" target="_blank" rel="noopener" title="Opens WhatsApp with a reminder ready to send">${esc(r.whatsapp)} · send reminder</a>`);
-    if(r.device_type)bits.push(r.device_type==='emulator'?'Emulator':'Mobile');
+    if(r.whatsapp)bits.push(`<a class="tm-wa" href="${esc(waReminderLink(r))}" target="_blank" rel="noopener" title="Opens WhatsApp with a reminder ready to send">💬 ${esc(r.whatsapp)} · send reminder</a>`);
+    if(r.device_type)bits.push(r.device_type==='emulator'?'🖥 Emulator':'📱 Mobile');
     if(r.checked_in_at)bits.push('✓ checked in '+esc(new Date(r.checked_in_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})));
     bits.push('joined '+esc(new Date(r.created_at).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})));
-    return `<div class="card tm-card${cls}">${logo}<div class="tm-main"><div class="tm-top">${slotOf.has(r.id)?`<span class="tm-slot" title="Slot number">#${slotOf.get(r.id)}</span>`:''}<span class="tm-name">${esc(r.squad_name||'(no squad name)')}</span>${r.players&&r.players.squad_name&&String(r.players.squad_name).trim().toLowerCase()!==String(r.squad_name||'').trim().toLowerCase()?`<span class="hint" style="margin:0 0 0 6px">now called ${esc(r.players.squad_name)}</span>`:''}<span class="tm-code" title="Click to copy" onclick="copyTicket(this,'${tc}')">${tc}</span><span class="tm-pill ${esc(r.status)}">${esc(String(r.status).replace('_','-'))}</span></div><div class="tm-meta">${bits.join(' · ')}</div>${tmLineup(r)}</div><div class="tm-actions"><button class="tm-btn${isVer?' ok-on':''}" onclick="tmToggleVerified('${r.id}',this)" title="${isVer?'Verified '+esc(new Date(r.verified_at).toLocaleString())+' — click to undo':'Saved permanently; the player sees a Verified badge'}">${isVer?'✓ Verified':'Mark verified'}</button>${slotOf.has(r.id)?`<button class="tm-btn${_swapFrom===r.id?' swap-on':''}" onclick="tmSwap('${r.id}')" title="Swap this squad's slot number with another squad">${_swapFrom===r.id?'Cancel swap':_swapFrom?'⇄ Swap here':'⇄ Swap slot'}</button>`:''}<button class="tm-btn" onclick="messageTeam('${r.id}')">Message</button><button class="tm-btn danger" onclick="removeTeamAdmin('${r.id}')">✕ Remove</button></div></div>`;
+    return `<div class="card tm-card${cls}">${logo}<div class="tm-main"><div class="tm-top">${slotOf.has(r.id)?`<span class="tm-slot" title="Slot number">#${slotOf.get(r.id)}</span>`:''}<span class="tm-name">${esc(r.squad_name||'(no squad name)')}</span>${r.players&&r.players.squad_name&&String(r.players.squad_name).trim().toLowerCase()!==String(r.squad_name||'').trim().toLowerCase()?`<span class="hint" style="margin:0 0 0 6px">now called ${esc(r.players.squad_name)}</span>`:''}<span class="tm-code" title="Click to copy" onclick="copyTicket(this,'${tc}')">${tc}</span><span class="tm-pill ${esc(r.status)}">${esc(String(r.status).replace('_','-'))}</span></div><div class="tm-meta">${bits.join(' · ')}</div>${tmLineup(r)}</div><div class="tm-actions"><button class="tm-btn${isVer?' ok-on':''}" onclick="tmToggleVerified('${r.id}',this)" title="${isVer?'Verified '+esc(new Date(r.verified_at).toLocaleString())+' — click to undo':'Saved permanently; the player sees a Verified badge'}">${isVer?'✓ Verified':'Mark verified'}</button>${slotOf.has(r.id)?`<button class="tm-btn${_swapFrom===r.id?' swap-on':''}" onclick="tmSwap('${r.id}')" title="Swap this squad's slot number with another squad">${_swapFrom===r.id?'Cancel swap':_swapFrom?'⇄ Swap here':'⇄ Swap slot'}</button>`:''}<button class="tm-btn" onclick="messageTeam('${r.id}')">📣 Message</button><button class="tm-btn danger" onclick="removeTeamAdmin('${r.id}')">✕ Remove</button></div></div>`;
   }).join(''):`<p class="hint">${_teams.length?'No teams with that status.':'No registrations loaded — pick an event and click "↻ Load teams".'}</p>`;
 }
 /* Players can leave a WhatsApp number when registering (optional, this event only).
@@ -2837,7 +2836,7 @@ function renderTeamsAdmin(){
 function waReminderLink(r){
   const t=data.tournaments.find(x=>x.name===document.getElementById('tm-tourney').value)||{};
   const when=[t.date,t.time].filter(x=>x&&x!=='TBA'&&x!=='—').join(' · ');
-  const txt=`Hi ${r.squad_name||'there'}! Reminder from JD Esports Arena: ${t.name||'your tournament'}${when?' starts '+when:' is coming up'}. Be online 15 min early — the Room ID and password arrive in your notifications on jdesport.co.uk. Good luck!`;
+  const txt=`Hi ${r.squad_name||'there'}! ⏰ Reminder from JD Esports Arena: ${t.name||'your tournament'}${when?' starts '+when:' is coming up'}. Be online 15 min early — the Room ID and password arrive in your notifications on jdesport.co.uk. Good luck! 🔥`;
   return 'https://wa.me/'+String(r.whatsapp).replace(/[^0-9]/g,'')+'?text='+encodeURIComponent(txt);
 }
 function copyTicket(el,code){
@@ -2859,7 +2858,7 @@ async function tmSwap(id){
     if(!res.ok)throw new Error(await res.text());
     const out=await res.json();
     await loadTeamsAdmin();
-    tmMsg('Swapped: "'+(a.squad_name||'?')+'" is now #'+out.a_slot+', "'+(b.squad_name||'?')+'" is now #'+out.b_slot+'.'+(out.room_code_was_sent?'The Room ID was already sent with the old seats: tell both squads their new seat.':''),out.room_code_was_sent?'err':'ok');
+    tmMsg('Swapped: "'+(a.squad_name||'?')+'" is now #'+out.a_slot+', "'+(b.squad_name||'?')+'" is now #'+out.b_slot+'.'+(out.room_code_was_sent?' ⚠️ The Room ID was already sent with the old seats: tell both squads their new seat.':''),out.room_code_was_sent?'err':'ok');
   }catch(e){renderTeamsAdmin();tmMsg('Swap failed: '+e.message,'err');}
 }
 async function removeTeamAdmin(id){
@@ -2879,7 +2878,7 @@ async function removeTeamAdmin(id){
     loadLiveCounts();
     await loadTeamsAdmin(); // re-fetch: the waitlist trigger may have promoted someone
     loadDashboard();
-    tmMsg('Removed '+who+' — list refreshed.'+(out.room_code_was_sent?'The Room ID was already sent: change the room password and send the new one.':''),out.room_code_was_sent?'err':'ok');
+    tmMsg('Removed '+who+' — list refreshed.'+(out.room_code_was_sent?' ⚠️ The Room ID was already sent: change the room password and send the new one.':''),out.room_code_was_sent?'err':'ok');
   }catch(e){tmMsg('Failed: '+e.message,'err');}
 }
 
@@ -2954,7 +2953,7 @@ function renderReportsAdmin(){
     const actions=r.status==='pending'?`<div class="row" style="margin-top:8px">
         <input placeholder="Ban: tag/username/email" id="ban-id-${r.id}" style="max-width:200px">
         <input placeholder="Public reason" id="ban-reason-${r.id}" style="max-width:220px">
-        <button class="btn" onclick="actionReport('${r.id}','ban')">Ban</button>
+        <button class="btn" onclick="actionReport('${r.id}','ban')">🚫 Ban</button>
         <button class="btn ghost" onclick="actionReport('${r.id}','dismiss')">Dismiss</button>
       </div>`:`<p class="hint" style="margin-top:8px">Status: <b>${esc(r.status)}</b>${r.resolution_note?' — '+esc(r.resolution_note):''}</p>`;
     return `<div class="card"><div class="grid">
@@ -3186,13 +3185,13 @@ function renderAiRecommendations(){
       <div class="row" style="justify-content:space-between"><b>${esc((kindLabel[rec.kind]||rec.kind))} ${rec.target_slug?'— '+esc(rec.target_slug):''}</b><span class="tag">${esc(rec.agreement)}</span></div>
       <p class="hint" style="margin:4px 0">AI recommends: <b>${esc(actionLabel)}</b></p>
       ${aiFamilyVotesHtml(rec)}
-      ${expanded?aiEvidenceHtml(rec):`<button class="btn ghost" onclick="_aiExpanded.add('${rec.id}');renderAiRecommendations();">Show evidence</button>`}
+      ${expanded?aiEvidenceHtml(rec):`<button class="btn ghost" onclick="_aiExpanded.add('${rec.id}');renderAiRecommendations();">👁 Show evidence</button>`}
       <div class="row" style="margin-top:10px">
         <button class="btn" ${expanded?'':'disabled'} onclick="confirmAiRecommendation('${rec.id}')">✓ Confirm: ${esc(actionLabel)}</button>
         <button class="btn ghost" onclick="dismissAiRecommendation('${rec.id}')">Dismiss recommendation</button>
       </div>
     </div>`;
-  }).join(''):'<p class="hint">No pending recommendations — click "Run AI Review" then "↻ Load recommendations".</p>';
+  }).join(''):'<p class="hint">No pending recommendations — click "🤖 Run AI Review" then "↻ Load recommendations".</p>';
   staggerReveal(box);
 }
 async function markAiResolved(id,status){
@@ -3332,13 +3331,13 @@ sendRoomCode=guard(sendRoomCode);approvePayment=guard(approvePayment);actionRepo
 dismissAiRecommendation=guard(dismissAiRecommendation);confirmAiRecommendation=guard(confirmAiRecommendation);notifyBo3Results=guard(notifyBo3Results);
 </script>
 
-<button class="zc-fab" id="zc-fab" onclick="zcOpen()" hidden>ZULU</button>
+<button class="zc-fab" id="zc-fab" onclick="zcOpen()" hidden>🤖 ZULU</button>
 <div class="zc" id="zc" role="dialog" aria-label="ZULU admin assistant">
-  <div class="zc-head"><span style="font-size:1.6rem"><i class=ji-brain aria-hidden=true></i></span><div><b>ZULU</b><small>Tell me what to do — I show it first, you confirm</small></div><button onclick="zcClose()" aria-label="Close">×</button></div>
+  <div class="zc-head"><span style="font-size:1.6rem">🤖</span><div><b>ZULU</b><small>Tell me what to do — I show it first, you confirm</small></div><button onclick="zcClose()" aria-label="Close">×</button></div>
   <div class="zc-log" id="zc-log"></div>
   <div class="zc-sugg" id="zc-sugg"></div>
-  <div class="zc-in"><button class="btn ghost zc-mic" id="zc-mic" type="button" onclick="zcMic()" aria-label="Speak" title="Speak (English or Nepali)" hidden><i class=ji-speaker aria-hidden=true></i></button><textarea id="zc-input" rows="1" placeholder="e.g. approve all loads · room code 1234567 pass jd22"></textarea><button class="btn" onclick="zcSend()">Send</button></div>
+  <div class="zc-in"><button class="btn ghost zc-mic" id="zc-mic" type="button" onclick="zcMic()" aria-label="Speak" title="Speak (English or Nepali)" hidden>🎤</button><textarea id="zc-input" rows="1" placeholder="e.g. approve all loads · room code 1234567 pass jd22"></textarea><button class="btn" onclick="zcSend()">Send</button></div>
 </div>
-<script src="/activity.js?v=3"></script>
+<script src="/activity.js?v=2"></script>
 </body>
 </html>
