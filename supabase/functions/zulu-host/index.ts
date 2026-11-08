@@ -113,7 +113,7 @@ async function answer(db: any, pid: string, h: string, day: Date, used: number, 
     { role: 'user', content: 'NOTES (from the JD server):\n' + notes },
     { role: 'assistant', content: 'Got it.' },
     ...turns,
-  ], undefined, { geminiModels: GEMINI_MODELS, timeoutMs: 9000 });
+  ], undefined, { geminiModels: GEMINI_MODELS, timeoutMs: 8000, fast: true });
   const { data: newest } = await db.from('host_messages').select('id').eq('player_id', pid).eq('host_handle', h).order('id', { ascending: false }).limit(1).maybeSingle();
   if (!newest || newest.id !== last.id) return false;
   const raw = String(r?.text || '').trim();

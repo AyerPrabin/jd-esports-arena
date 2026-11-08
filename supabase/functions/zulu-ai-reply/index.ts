@@ -195,7 +195,7 @@ This player is signed in, and the conversation starts with a MY ACCOUNT note the
           const s = await streamGemini(messages, CHAT_GEMINI_MODELS, (t) => { full += t; ctrl.enqueue(enc.encode(t)); });
           if (s) provider = 'gemini:' + s.model + ':stream';
           else if (!full) {                         // no model started: the normal chain, sent in one piece
-            const r = await askAI(messages, undefined, { geminiModels: CHAT_GEMINI_MODELS, timeoutMs: MODEL_TIMEOUT_MS });
+            const r = await askAI(messages, undefined, { geminiModels: CHAT_GEMINI_MODELS, timeoutMs: MODEL_TIMEOUT_MS, fast: true });
             if (r) { full = safeReply(r.text).text; provider = r.provider; ctrl.enqueue(enc.encode(full)); }
           }
         } catch { /* whatever was sent stays; the page falls back if nothing came */ }
@@ -210,7 +210,7 @@ This player is signed in, and the conversation starts with a MY ACCOUNT note the
   }
 
   try {
-    const result = await askAI(messages, undefined, { geminiModels: CHAT_GEMINI_MODELS, timeoutMs: MODEL_TIMEOUT_MS });
+    const result = await askAI(messages, undefined, { geminiModels: CHAT_GEMINI_MODELS, timeoutMs: MODEL_TIMEOUT_MS, fast: true });
     if (!result) {
       return new Response(JSON.stringify({ reply: null, note: 'No AI provider configured or all failed -- set at least one of GEMINI_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY, CEREBRAS_API_KEY, OPENROUTER_API_KEY in Edge Function secrets.' }), {
         status: 200,

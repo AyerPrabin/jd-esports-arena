@@ -165,13 +165,13 @@ export async function streamGemini(messages: AIMessage[], models: string[], onTe
 
 // Gemini's own native generateContent call (not its OpenAI-compat endpoint) -- this
 // request shape is the one already proven live in production.
-async function callGemini(model: string, key: string, messages: AIMessage[], inlineSystem = false, timeoutMs = TIMEOUT_MS): Promise<Outcome> {
+async function callGemini(model: string, key: string, messages: AIMessage[], inlineSystem = false, timeoutMs = TIMEOUT_MS, fast = false): Promise<Outcome> {
   // Real multi-turn contents (assistant -> "model"), so chat history keeps who said what.
   // Gemini wants user-first, alternating turns: drop leading model turns, merge repeats.
   const res = await post(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-    body: geminiBody(messages, inlineSystem),
+    body: fast ? JSON.stringify({ ...JSON.parse(geminiBody(messages, inlineSystem)), generationConfig: { thinkingConfig: { thinkingBudget: 0 } } }) : geminiBody(messages, inlineSystem),
   }, timeoutMs);
   // A timeout on one Gemini model (Flash can think for a long time) shouldn't skip Flash-Lite.
   if (!res) return 'next-model';
@@ -287,7 +287,8 @@ export async function describeMedia(instruction: string, media: { mime: string; 
  */
 // opts.timeoutMs: per-model limit; chat passes a short one so a stalled model falls through
 // to the next in seconds instead of holding the player for the default 20 s.
-export async function askAI(messages: AIMessage[], order?: string[], opts: { geminiModels?: string[]; timeoutMs?: number } = {}): Promise<AIResult | null> {
+// opts.fast: no thinking step on Gemini (chat replies: seconds faster, same quality for short answers)
+export async function askAI(messages: AIMessage[], order?: string[], opts: { geminiModels?: string[]; timeoutMs?: number; fast?: boolean } = {}): Promise<AIResult | null> {
   const ms = opts.timeoutMs || TIMEOUT_MS;
   const tryOrder = order || (Deno.env.get('AI_PROVIDER_ORDER') || 'groq,gemini,cerebras,mistral,openrouter,together,deepseek')
     .split(',').map((s) => s.trim()).filter(Boolean);
@@ -296,7 +297,7 @@ export async function askAI(messages: AIMessage[], order?: string[], opts: { gem
       const key = Deno.env.get('GEMINI_API_KEY');
       if (!key) continue;
       const models = opts.geminiModels?.length ? opts.geminiModels : modelsFor('gemini', GEMINI_MODELS);
-      const hit = await tryModels(models, (model) => callGemini(model, key, messages, false, ms));
+      const hit = await tryModels(models, (model) => callGemini(model, key, messages, false, ms, !!opts.fast));
       if (hit) return { text: hit.text, provider: `gemini:${hit.model}` };
       continue;
     }

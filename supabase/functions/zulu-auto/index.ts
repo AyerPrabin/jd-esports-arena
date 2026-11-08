@@ -12,7 +12,10 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { askAI, type AIMessage } from '../_shared/ai.ts';
 import { safeReply, teamAnswers, zuluSystemPrompt } from '../_shared/zulu.ts';
 
-const MOD_HOLD_MS = 12 * 3600000;   // owner, 7 Nov 2026: once a mod replies in person, ZULU steps back from that chat for 12 hours
+// owner, 8 Nov 2026 (was a 12-hour hold): a mod who replied in the last 10 minutes is "in the chat". A player
+// message then waits 2 minutes for that mod; if the mod has left, ZULU answers so nobody waits for hours.
+const MOD_ACTIVE_MS = 10 * 60000;
+const MOD_GRACE_MS = 120000;
 const PER_PLAYER_DAILY = 25;
 const GLOBAL_DAILY = 400;
 const GEMINI_MODELS = (Deno.env.get('ZULU_CHAT_GEMINI_MODELS') || 'gemini-flash-lite-latest,gemini-flash-latest,gemini-2.5-flash-lite')
@@ -71,15 +74,22 @@ async function answer(db: any, pid: string, day: Date, used: number, ids: number
   if (last.from_staff) return false;                                            // already answered
   if (!ids.includes(last.id)) return false;                                     // a newer message has its own worker: one answer, not two
   // a mod is handling this chat: ZULU stays quiet and the mods get a normal chat alert (no ring), message left unread for them
-  const { data: mod } = await db.from('jd_messages').select('created_at').eq('player_id', pid).eq('channel', 'jd').eq('from_staff', true)
-    .or('staff_email.is.null,staff_email.not.like.zulu*').order('id', { ascending: false }).limit(1).maybeSingle();
-  if (mod && Date.now() - new Date(mod.created_at).getTime() < MOD_HOLD_MS) {
+  const isMod = (m: any) => m.from_staff && !String(m.staff_email || '').startsWith('zulu');
+  const lastMod = [...msgs].reverse().find(isMod);
+  let modLeft = false;
+  if (lastMod && Date.now() - new Date(lastMod.created_at).getTime() < MOD_ACTIVE_MS) {
     await fetch(Deno.env.get('SUPABASE_URL') + '/functions/v1/dm-push', {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'x-cron-secret': Deno.env.get('CRON_SECRET')! },
       body: JSON.stringify({ kind: 'staff', ids: msgs.filter((m: any) => !m.from_staff && ids.includes(m.id)).map((m: any) => m.id) }),
     }).catch((e) => console.error('zulu-auto hold', e));
-    return false;
+    await new Promise((r) => setTimeout(r, MOD_GRACE_MS));
+    const { data: now } = await db.from('jd_messages').select('id').eq('player_id', pid).eq('channel', 'jd').order('id', { ascending: false }).limit(1).maybeSingle();
+    if (!now || now.id !== last.id) return false;                              // the mod answered, or a newer message has its own worker
+    modLeft = true;
   }
+  // an issue ZULU handed to the team that no mod has answered yet: ZULU keeps talking, but leaves it unread for the mods
+  const lastZ = [...msgs].reverse().find((m: any) => m.from_staff && !isMod(m));
+  const openFlag = !!lastZ && /(team member|moderator) will reply/i.test(lastZ.body) && (!lastMod || lastMod.id < lastZ.id);
 
   // flagged: player messages stay unread in /mod/ and the moderators' phones RING (dm-push kind 'staff', ring);
   // handled by ZULU: marked read, so the team's inbox only lights up for the big issues
@@ -111,13 +121,14 @@ async function answer(db: any, pid: string, day: Date, used: number, ids: number
   const promptP = zuluSystemPrompt(lang);
   const learnedP = teamAnswers(msgs.filter((m: any) => !m.from_staff).slice(-3).map((m: any) => m.body).join(' '), pid);
   // the player's own account, the same kind of note their app sends to ZULU in Messages
-  const [{ data: pl }, { data: wal }, { data: regs }, { data: notes }, { data: own }] = await Promise.all([
+  const [{ data: pl }, { data: wal }, { data: regs }, { data: notes }, { data: own }, { data: hosts }] = await Promise.all([
     db.from('players').select('username, player_tag, squad_name').eq('id', pid).maybeSingle(),
     db.from('wallets').select('balance').eq('player_id', pid).maybeSingle(),
     db.from('registrations').select('tournament_slug, squad_name, status, checked_in_at, whatsapp').eq('player_id', pid).order('created_at', { ascending: false }).limit(5),
     db.from('notifications').select('title, created_at').eq('player_id', pid).is('room_id', null).order('created_at', { ascending: false }).limit(5),
     // how this player writes: only their own messages in this chat (never their private chats with other players)
     db.from('jd_messages').select('body').eq('player_id', pid).eq('channel', 'jd').eq('from_staff', false).order('id', { ascending: false }).limit(40),
+    db.from('moderators').select('handle, display_name').eq('role', 'host').limit(40),
   ]);
   const samples = (own || []).map((m: any) => String(m.body || '').trim()).filter((b: string) => b && !HUMAN_ASK.test(b)).slice(0, 12);
   const words = samples.join(' ');
@@ -134,6 +145,9 @@ async function answer(db: any, pid: string, day: Date, used: number, ids: number
     `Points balance: ${wal?.balance ?? 0}`,
     'Tickets: ' + ((regs || []).map((r: any) => `${r.tournament_slug} – ${r.squad_name || ''} – ${r.status}${r.checked_in_at ? ', confirmed playing' : ', not confirmed yet'}${r.whatsapp ? '' : ', no WhatsApp number'}`).join('; ') || 'none'),
     'Recent alerts: ' + ((notes || []).map((n: any) => n.title).join('; ') || 'none'),
+    'Invited partner hosts on JD Arena (each runs and pays its own events; players can message a host in Messages): ' +
+      ((hosts || []).map((h: any) => '@' + String(h.handle || '').toLowerCase() + (h.display_name ? ` ("${h.display_name}")` : '')).join(', ') || 'none'),
+    ...(modLeft ? ['NOTE: a JD moderator was chatting here a few minutes ago and has stepped away. Carry on helping; if the player waits for that mod\'s answer, say the team will see it.'] : []),
   ].join('\n');
 
   const turns: AIMessage[] = [];
@@ -150,7 +164,7 @@ async function answer(db: any, pid: string, day: Date, used: number, ids: number
     { role: 'assistant', content: 'Got it.' },
     ...turns,
   ];
-  const r = await askAI(messages, undefined, { geminiModels: GEMINI_MODELS, timeoutMs: 9000 });
+  const r = await askAI(messages, undefined, { geminiModels: GEMINI_MODELS, timeoutMs: 8000, fast: true });
   // a newer player message may have arrived while the AI was thinking: that one triggers its own answer
   const { data: newest } = await db.from('jd_messages').select('id, from_staff').eq('player_id', pid).eq('channel', 'jd').order('id', { ascending: false }).limit(1).maybeSingle();
   if (!newest || newest.id !== last.id) return false;
@@ -159,6 +173,6 @@ async function answer(db: any, pid: string, day: Date, used: number, ids: number
   const safe = safeReply(raw.replace(FLAG, '').trim()), text = safe.text.trim();
   if (safe.risky) big = true;   // a promise only a person may make: the team checks it
   await say(text || 'Thanks! A JD moderator will reply here soon.');
-  if (big) await flag(); else await handled();
+  if (big) await flag(); else if (!openFlag) await handled();
   return !!raw;
 }
