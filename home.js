@@ -3125,6 +3125,7 @@ function downloadAndroid(){
 }
 function downloadIOS(){
   if(isStandaloneApp()){showMsg('Already installed',"You're using the JD Arena home-screen app. 🎮");return;}
+  if(window.jdIosInstall)return jdIosInstall();   // picture guide (ios-install.js), opens at once
   showMsg('Install on iPhone/iPad',"1. In Safari, tap the Share icon (square with an arrow ↑). On newer iPhones tap ••• first, then Share.\n2. Scroll down and tap 'Add to Home Screen', then Add.\n3. Open JD Arena from the new gold JD icon on your home screen and allow notifications.\n\nNo App Store needed - it opens full-screen like an app.");
 }
 if(DISCORD_INVITE){document.querySelectorAll('.discord-cta').forEach(a=>a.href=DISCORD_INVITE);}else{document.querySelectorAll('.discord-cta').forEach(a=>a.style.display='none');}

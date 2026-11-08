@@ -90,7 +90,7 @@
           if (e.target === box || a === 'close') return close(false);
           if (a === 'join') return close(true);
           if (a === 'pass') { location.href = '/pass/'; return; }
-          if (a === 'getapp') { location.href = '/download/'; return; }
+          if (a === 'getapp') { location.href = /iPad|iPhone|iPod/.test(navigator.userAgent) ? '/download/?ios=1' : '/download/'; return; }
           if (a !== 'watch') return;
           busy = true; e.target.disabled = true; e.target.textContent = 'Loading ad…';
           if (admob) { openAppAd(eventName, 'gate'); return; }

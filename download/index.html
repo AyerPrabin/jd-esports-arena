@@ -104,6 +104,7 @@ ol{margin:14px 0 0;padding-left:20px;color:#dfe4ee;font-size:.9rem;display:grid;
     <a class="btn" href="/optimizer/" style="background:rgba(255,255,255,.08);color:var(--cream)">🚀 JD Frag Engine (FPS booster)</a>
   </section>
 </div>
+<script src="/ios-install.js?v=1"></script>
 <script>
 fetch('/download/android.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{
   document.getElementById('apk-btn').href=d.url;
@@ -124,8 +125,10 @@ let installEv=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault()
 (()=>{const b=document.getElementById('ios-btn'),h=document.getElementById('ios-hint');if(!b)return;
   if(!ios)b.textContent='📲 Install the web version';
   if(matchMedia('(display-mode: standalone)').matches||navigator.standalone){b.textContent='✓ JD Arena is installed on this phone';b.disabled=true;return;}
+  if(ios&&window.jdIosInstall)setTimeout(jdIosInstall,400);   // iPhone: no "download?" question, the install steps open at once
   b.onclick=async()=>{
     if(installEv){installEv.prompt();installEv=null;return;}
+    if(ios&&window.jdIosInstall)return jdIosInstall();
     h.hidden=false;
     if(ios&&(!/Safari/.test(navigator.userAgent)||/CriOS|FxiOS|Instagram|FBAN|TikTok|musical_ly/.test(navigator.userAgent)))h.innerHTML='Open <b>jdesport.co.uk</b> in <b>Safari</b> first (other apps cannot add it), then tap <b>Share</b> ⬆ → <b>Add to Home Screen</b> ➕.';
     h.scrollIntoView({block:'nearest',behavior:'smooth'});
