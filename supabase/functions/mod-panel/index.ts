@@ -879,7 +879,9 @@ Deno.serve(async (req: Request) => {
 
   // ── host mods: create / edit their OWN events (free entry; JD never pays prizes for them) ──
   if (action === 'event_save') {
-    // hosts: their own events under their TikTok ID. JD staff mods (owner, 8 Nov 2026): JD free events in the standard
+    if (!isHost) return fail('Only invited hosts create events here. JD events are made in /admin/.', 403);   // owner, 8 Nov 2026
+    // hosts: their own events under their TikTok ID. (A staff path below stays unused: the owner kept event making to hosts.)
+    // JD staff mods (owner, 8 Nov 2026): JD free events in the standard
     // format only (free card or 15 points, Rs 180 prize paid by JD 50/30/20), and they can edit only events a mod made
     const typed = String(p.name || '').normalize('NFKC').trim().replace(/\s+/g, ' ').slice(0, 60);
     const edit = p.edit === true;

@@ -871,7 +871,7 @@ async function loadTournaments(){
 }
 function selectEvent(t,scroll){
   selected=t;
-  $('hev-edit').hidden=$('hev-edit-m').hidden=!(t&&!isDone(t)&&(isHostMod()||(t.by_mod&&!t.host)));   // staff edit only events a mod made
+  $('hev-edit').hidden=$('hev-edit-m').hidden=!(t&&!isDone(t)&&isHostMod());
   renderEvents();
   $('rc-ev').textContent=t?t.name:'this event';
   $('ev-line').textContent=t?`${t.name} · ${fmtWhen(t)}`:'';
@@ -1551,7 +1551,7 @@ async function hostProfile(){
     const me=await call({action:'whoami'}); ME=me;
     $('who').textContent=me.email+(isHostMod()?' · host @'+me.handle:''); $('who-wrap').hidden=false;
     if(isHostMod()){ $('c-live').hidden=true; $('c-new').querySelector('input').placeholder='Message a player from your events: @username…'; $('c-in').setAttribute('aria-label','Message as @'+ME.handle); $('c-list').parentElement.querySelector('p.note').textContent='Players see you as @'+ME.handle+'. This is your own chat, separate from JD Esports. Links and phone numbers are blocked, and the JD team can read a chat if someone reports a problem.'; document.querySelector('#tabs [data-tab=notify]').classList.remove('in-more'); }
-    $('hev-new').hidden=false; $('hev-m').hidden=false;   // + Solo / + Duo / + Squad: hosts and JD staff mods (8 Nov 2026)
+    if(isHostMod()){ $('hev-new').hidden=false; $('hev-m').hidden=false; }   // + Solo / + Duo / + Squad: invited hosts only (owner, 8 Nov 2026)
     if(!me.owner){ const all=document.querySelector('input[name=aud][value=all]'); all.closest('label').remove(); }
     if(me.commission_pct!=null){ document.querySelector('#tabs [data-tab=earnings]').hidden=false; if(!me.agreed_at) agreeAsk().catch(err=>toast(err.message,null,true)); }
     if(isHostMod()) $('n-invite-w').hidden=false;
