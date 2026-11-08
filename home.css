@@ -200,6 +200,10 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .bo3-more{text-align:center;margin:14px 0 0;font-size:.84rem}
 .bo3-more a{color:var(--gold-l);text-decoration:underline;text-underline-offset:3px}
 @media(prefers-reduced-motion:reduce){.pod,.chip-more{animation:none;opacity:1}.tm-urg.hot{animation:none}}
+.tmode{display:inline-block;margin:0 0 14px 6px;padding:3px 10px;border-radius:4px;font-size:.66rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;vertical-align:top;border:1px solid}
+.tmode.m-solo{color:#7DD3FC;background:rgba(56,189,248,.14);border-color:rgba(125,211,252,.45)}
+.tmode.m-duo{color:#C4B5FD;background:rgba(167,139,250,.15);border-color:rgba(196,181,253,.45)}
+.tmode.m-squad{color:#86EFAC;background:rgba(74,222,128,.13);border-color:rgba(134,239,172,.42)}
 .tbadge{display:inline-block;font-size:.64rem;letter-spacing:.01em;padding:4px 11px;border-radius:20px;font-weight:700;margin-bottom:14px}
 .tbadge.upcoming{background:rgba(255,200,61,.14);color:var(--gold-l);border:1px solid var(--gold-m)}
 .tbadge.live{background:rgba(227,107,107,.16);color:#ff7676;border:1px solid #ff7676;animation:tpulse 1.5s infinite}
