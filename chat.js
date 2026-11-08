@@ -769,6 +769,12 @@
       var rowsO = staffInbox.filter(function (t) { var pl = t.player || {}; return !q || (String(pl.name || '') + ' ' + (pl.tag || '') + ' ' + (pl.squad || '')).toLowerCase().indexOf(q) >= 0; });
       list.innerHTML = '<div class="dm-sec">Players\u2019 JD Esports chats · you reply as JD Esports ' + VERIFIED + '</div>' +
         (rowsO.length ? rowsO.map(staffRow).join('') : '<div class="dm-empty"><b>No chats</b>Players who message JD Esports show up here.</div>');
+      // invited hosts: JD officials can start a chat with any host as JD Esports (owner's ask, 8 Nov 2026)
+      var hostsO = hostChats.filter(function (t) { return t.pid && (!q || (t.handle + ' ' + (t.name || '')).toLowerCase().indexOf(q) >= 0); });
+      if (hostsO.length) list.innerHTML += '<div class="dm-sec">Invited hosts · message them as JD Esports</div>' + hostsO.map(function (t) {
+        return '<button type="button" class="dm-row" data-k="staff" data-open="' + esc(t.pid) + '">' + hostAv(t.handle) +
+          '<span class="dm-mid"><span class="dm-name">' + esc(hostName(t.handle)) + '</span><span class="dm-prev"><span>@' + esc(t.handle) + '</span></span></span></button>';
+      }).join('');
       return;
     }
     if (tab === 'requests') {
@@ -846,7 +852,8 @@
     if (k === 'jd') return openJd();
     if (k === 'host') return openThread({ kind: 'host', id: id, username: id });
     if (k === 'staff') { var st0 = (staffInbox || []).find(function (t) { return t.player_id === id; }), pl0 = (st0 && st0.player) || {};
-      return openThread({ kind: 'staff', id: id, username: String(pl0.name || 'Player').replace(/^@/, ''), avatar: pl0.avatar, logo: pl0.logo, squad: pl0.squad }); }
+      var hs0 = !st0 && hostChats.find(function (t) { return t.pid === id; });
+      return openThread({ kind: 'staff', id: id, username: hs0 ? hs0.handle : String(pl0.name || 'Player').replace(/^@/, ''), avatar: pl0.avatar, logo: pl0.logo, squad: pl0.squad }); }
     if (k === 'group') return openGroup(id);
     if (k === 'match') return openMatch(id);
     var f = ov && ov.friends.find(function (x) { return x.id === id; });
