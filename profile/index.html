@@ -616,11 +616,11 @@ $('ref-save').onclick=async()=>{
   $('app').hidden=false;
   // all at once - only the career stats need the player tag from the profile row
   await Promise.all([loadProfile().then(loadStats),loadWallet(),loadTournaments(),loadFx(),loadInvite(),loadClash().catch(()=>{}),loadCards().catch(()=>{}),loadOptHistory().catch(()=>{})]);
-  setInterval(()=>{if(!document.hidden)loadWallet();},20000);
+  setInterval(()=>{if(!document.hidden)loadWallet();},60000);
 })();
 </script>
 <script src="/ui.js?v=28" defer></script>
-<script src="/chat.js?v=40" defer></script>
+<script src="/chat.js?v=41" defer></script>
 <script src="/avcrop.js?v=1"></script>
 </body>
 </html>

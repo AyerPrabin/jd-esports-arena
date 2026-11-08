@@ -769,11 +769,11 @@ async function refresh(){
   await refresh();
   setTab(location.hash.slice(1)||'load');
   pinStatus().then(has=>{if(pinResetReady)pinDialog('reset');else if(!has&&location.hash!=='#promo')pinDialog('create');}).catch(()=>{});
-  setInterval(()=>{if(!document.hidden)refresh();},15000);
+  setInterval(()=>{if(!document.hidden)refresh();},45000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
 })();
 </script>
 <script src="/ui.js?v=28" defer></script>
-<script src="/chat.js?v=40" defer></script>
+<script src="/chat.js?v=41" defer></script>
 </body>
 </html>

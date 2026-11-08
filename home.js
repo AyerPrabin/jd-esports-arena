@@ -1833,9 +1833,15 @@ let _myRegsLoaded=false;
 let _myPass=null,_myPassEnd=null; // current effect pass (effect_passes row) and when the last stacked pass ends
 let _myRegs=new Map(); // tournament name -> {id, squad_name, squad_logo, status, checked_in_at}
 let _regTarget=null,_regLogoData=null,_regPayData=null;
-async function loadMyRegs(){
+// poll=true (the background tick) leaves out squad_logo - a base64 picture per row that never changes on its own -
+// and keeps the logo already on the device; every other call reads the full rows
+let _regsAt=0;
+async function loadMyRegs(poll){
   if(!sb||!_player){_myRegs=new Map();return;}
-  const {data}=await sb.from('registrations').select('id, tournament_slug, squad_name, squad_logo, status, checked_in_at, verified_at, lineup, lineup_at, effect, paid_points, promoted_at, created_at').eq('player_id',_player.id);
+  _regsAt=Date.now();
+  const lite=poll&&_myRegsLoaded,prev=_myRegs;
+  const {data}=await sb.from('registrations').select('id, tournament_slug, squad_name, '+(lite?'':'squad_logo, ')+'status, checked_in_at, verified_at, lineup, lineup_at, effect, paid_points, promoted_at, created_at').eq('player_id',_player.id);
+  if(lite)(data||[]).forEach(r=>{const o=prev.get(r.tournament_slug);r.squad_logo=o&&o.id===r.id?o.squad_logo:'';});
   _myRegsLoaded=true;
   loadWallet();
   _myRegs=new Map((data||[]).map(r=>[r.tournament_slug,{id:r.id,squad_name:r.squad_name,squad_logo:r.squad_logo,status:r.status||'confirmed',checked_in_at:r.checked_in_at||null,promoted_at:r.promoted_at||null,created_at:r.created_at||null,verified_at:r.verified_at||null,lineup:r.lineup||null,lineup_at:r.lineup_at||null,effect:r.effect||'',paid_points:r.paid_points||0,squad_logo:r.squad_logo||(_player&&_player.squad_logo)||''}]));
@@ -3128,13 +3134,21 @@ applyLang();refresh();loadPublicRoster();tick();updateAcctBtn();updateNotifHistB
 // Also re-checks the player's own registrations/notifications on the same tick — otherwise
 // a waitlist auto-promotion (or a room code, or anything else) sits invisible until they
 // happen to reload, which undercuts "you'll be confirmed automatically, nothing to do".
-/* 5s so slot counts/roster changes show up close to instantly without a manual reload —
-   safe now that render() no-ops when nothing actually changed (see _lastGridHTML above),
-   so most of these ticks touch zero DOM. Still skipped entirely on a backgrounded tab. */
-setInterval(()=>{if(!document.hidden){refresh();loadPublicRoster(true);if(_player){loadMyRegs();loadNotifications(false,true);}}},5000);
-setInterval(()=>{if(!document.hidden)checkLock();},30000);checkLock();
-// coming back to the tab/app catches up immediately instead of on the next 5s tick
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){refresh();loadPublicRoster(true);if(_player){loadMyRegs();loadNotifications(false,true);}}});
+/* 20s, not 5s: the 5s tick re-read every player's registrations (with base64 logos), wallet and passes on every
+   open phone and used up the Supabase data allowance (8 Nov 2026, 402 exceed_egress_quota). Each tick now only reads
+   small version stamps; registrations/wallet are re-read when the notification stamp moves (a waitlist promotion,
+   room code or result always sends a notification) or once a minute. Skipped entirely on a backgrounded tab. */
+async function pollTick(){
+  if(document.hidden)return;
+  refresh();loadPublicRoster(true);
+  if(!_player)return;
+  const s=_notifStamp;await loadNotifications(false,true);
+  if(_notifStamp!==s||Date.now()-_regsAt>60000)loadMyRegs(true);
+}
+setInterval(pollTick,20000);
+setInterval(()=>{if(!document.hidden)checkLock();},60000);checkLock();
+// coming back to the tab/app catches up immediately instead of on the next tick
+document.addEventListener('visibilitychange',pollTick);
 setInterval(tick,1000);
 
 /* ── scroll-reveal: fade+lift `.reveal` sections into view once, skipped entirely under
@@ -3536,5 +3550,5 @@ setTimeout(showNudge,13000);
     if(up){w.classList.remove('paid-up');void w.offsetWidth;w.dataset.up='+Rs '+fmt(up);w.classList.add('paid-up');}};
   const load=()=>{if(document.hidden)return;sb.rpc('payout_stats').then(r=>{const d=r&&r.data;if(!d)return;
     show('p','stat-paid',d.prizes);show('w','stat-wd',d.withdrawn);});};
-  load();setInterval(load,30000);document.addEventListener('visibilitychange',load);
+  load();setInterval(load,120000);document.addEventListener('visibilitychange',load);
 })();

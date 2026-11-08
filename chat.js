@@ -530,7 +530,7 @@
     clearTimeout(bannerTimer);
     bannerTimer = setTimeout(function () { banner.classList.remove('show'); }, 5500);
   }
-  setInterval(poll, 5000);
+  setInterval(poll, 15000);   // was 5 s: one of the reads that used up the Supabase data allowance (8 Nov 2026)
   document.addEventListener('visibilitychange', function () { if (!document.hidden) { poll(); if (cur) refreshThread(); } });
 
   // ── panel ──
@@ -1024,7 +1024,7 @@
     });
     refreshThread(true);
     if (p.kind === 'jd' && MERGED) loadZn().then(function () { if (cur !== p) return; renderMsgs(false); markZfRead(); });
-    threadTimer = setInterval(function () { if (!document.hidden) refreshThread(); }, 2500);
+    threadTimer = setInterval(function () { if (!document.hidden) refreshThread(); }, 5000);   // was 2.5 s (data allowance)
   }
   // swap the chips row without hiding the newest message behind it
   function setChips(html) {

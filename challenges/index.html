@@ -477,7 +477,7 @@ async function openRoom(id){
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
   document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-room'));
   await renderRoom();
-  clearInterval(chatTimer);chatTimer=setInterval(()=>{if(!document.hidden&&roomId===id)renderRoom(true);},4000);
+  clearInterval(chatTimer);chatTimer=setInterval(()=>{if(!document.hidden&&roomId===id)renderRoom(true);},8000);
   window.scrollTo({top:0,behavior:'smooth'});
 }
 // "Add friend / message" for the other player (Messages, /chat.js)
@@ -732,7 +732,7 @@ async function start(){
   else if(inv){setTab('create');const ch=$('who').querySelector('.chip[data-w="direct"]');if(ch)ch.click();$('invite').value=inv.replace(/[^A-Za-z0-9_-]/g,'');}
   else{setTab('lobby');tutMaybe();}
   loadMine();
-  setInterval(()=>{if(document.hidden)return;loadBalance();loadLobby();if(tab==='mine')loadMine();},15000);
+  setInterval(()=>{if(document.hidden)return;loadBalance();loadLobby();if(tab==='mine')loadMine();},30000);
 }
 (async function init(){
   const {data:{session}}=await sb.auth.getSession();
@@ -744,7 +744,7 @@ async function start(){
 })();
 </script>
 <script src="/ui.js?v=28" defer></script>
-<script src="/chat.js?v=40" defer></script>
+<script src="/chat.js?v=41" defer></script>
 <script src="/fx-engine.js?v=4" defer></script>
 </body>
 </html>
