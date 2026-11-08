@@ -879,14 +879,15 @@ Deno.serve(async (req: Request) => {
 
   // ── host mods: create / edit their OWN events (free entry; JD never pays prizes for them) ──
   if (action === 'event_save') {
-    if (!isHost) return fail('Staff create events in /admin/.', 403);
+    // hosts: their own events under their TikTok ID. JD staff mods (owner, 8 Nov 2026): JD free events in the standard
+    // format only (free card or 15 points, Rs 180 prize paid by JD 50/30/20), and they can edit only events a mod made
     const typed = String(p.name || '').normalize('NFKC').trim().replace(/\s+/g, ' ').slice(0, 60);
     const edit = p.edit === true;
-    const tag = '@' + handle, low = typed.toLowerCase();   // a new event always carries the host's own TikTok ID
-    const title = edit ? '' : (low.startsWith(tag) ? typed.slice(tag.length) : low.startsWith(handle) ? typed.slice(handle.length) : typed).replace(/^[\s\-·:]+/, '');
-    if (!edit && /\bjd\b|jd ?esports?/i.test(title)) return fail('Use your own name for the event, not JD.');
+    const tag = '@' + handle, low = typed.toLowerCase();   // a new host event always carries the host's own TikTok ID
+    const title = edit ? '' : (!isHost ? typed : (low.startsWith(tag) ? typed.slice(tag.length) : low.startsWith(handle) ? typed.slice(handle.length) : typed)).replace(/^[\s\-·:]+/, '');
+    if (isHost && !edit && /\bjd\b|jd ?esports?/i.test(title)) return fail('Use your own name for the event, not JD.');
     if (!edit && title.includes('@')) return fail('Only your own TikTok ID goes on the event, and JD adds that for you.');
-    const prizeText = String(p.prize || '').normalize('NFKC').trim().replace(/\s+/g, ' ');
+    const prizeText = isHost ? String(p.prize || '').normalize('NFKC').trim().replace(/\s+/g, ' ') : 'Rs 180';
     if ([title, prizeText].some((x) => /\p{Nd}{7,}/u.test(x.replace(/[\s.\-+,]/g, '')) || /https?:|www\.|[\p{L}\p{N}-]+\.\p{L}{2,}/iu.test(x))) return fail('No phone numbers or links in the event name or prize.');
     // both reach every player's alerts, emails and pages: plain text only
     if (!/^[\p{L}\p{N}\p{M} #.\-]*$/u.test(title)) return fail('Use only letters, numbers, spaces and # . - in the event name.');
@@ -913,7 +914,7 @@ Deno.serve(async (req: Request) => {
       mode, game: `Free Fire BR · ${mode === 'solo' ? 'Solo' : mode === 'duo' ? 'Duo' : 'Squad'}`,
       slots: Math.min(ROOM[mode] * 4, Math.max(2, Math.round(Number(p.slots) || ROOM[mode]))),   // over one room: Draw groups splits it
       format: matches === 3 ? 'BR · Best of 3' : 'BR · ' + matches + (matches === 1 ? ' match' : ' matches'),
-      map: MAPS.includes(p.map) ? p.map : 'bermuda', host: handle,
+      map: MAPS.includes(p.map) ? p.map : 'bermuda', ...(isHost ? { host: handle } : { by_mod: true }),
     };
     const { data: sc } = await admin.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
     const doc: any = sc?.content;
@@ -921,8 +922,11 @@ Deno.serve(async (req: Request) => {
     const same = (n: string) => doc.tournaments.find((x: any) => String(x.name).trim().toLowerCase() === n.toLowerCase());
     const mine = doc.tournaments.filter((x: any) => normHandle(x.host) === handle);
     const ex = edit ? same(typed) : null;
-    if (edit && (!ex || normHandle(ex.host) !== handle)) return notYours();
-    const name = edit ? ex.name : `${tag} ${title || 'Scrim #' + (mine.length + 1)}`.slice(0, 60);
+    if (edit && (!ex || (isHost ? normHandle(ex.host) !== handle : !ex.by_mod || ex.host))) return notYours();
+    const modeName = mode === 'solo' ? 'Solo' : mode === 'duo' ? 'Duo' : 'Squad';
+    const jdBase = `JD Free Fire ${modeName} #`;
+    const jdNo = 1 + doc.tournaments.filter((x: any) => String(x.name).startsWith(jdBase)).length;
+    const name = edit ? ex.name : isHost ? `${tag} ${title || 'Scrim #' + (mine.length + 1)}`.slice(0, 60) : (title || jdBase + jdNo).slice(0, 60);
     if (!edit && same(name)) return fail('You already have an event with that name. Pick another name.', 409);
     if (ex && (ex.winner || String(ex.status).toLowerCase() === 'completed')) return fail("That event is finished and can't be changed.", 409);
     if (ex?.parent) return fail("A drawn stage can't be edited.", 409);
