@@ -421,18 +421,18 @@ const PUSH_UI={
   on:{row:'Push alerts on',sub:'Alerts arrive even when the site is closed',strip:''},
   ask:{row:'Enable push alerts',sub:'Get alerts even when the site is closed',strip:'Turn on push alerts to get match reminders, room details and new challenges even when JD Arena is closed.',cta:'Enable'},
   blocked:{row:'Push alerts turned off',sub:'Tap for steps to turn them back on',strip:'Notifications are turned off for this site in your browser settings.',cta:'Show steps'},
-  ios:{row:'Install the app for alerts',sub:'Required on iPhone and iPad',strip:'On iPhone and iPad, push alerts only work in the installed home-screen app.',cta:'Show steps'},
+  ios:{row:'Alerts show here on the site',sub:'Check the 🔔 bell for room IDs and results',strip:''},
   svcerr:{row:'Push alerts need one setting',sub:'Tap for the fix',strip:"Push alerts couldn't start on this browser — one setting needs changing.",cta:'Show fix'},
   unsupported:{row:'Push alerts not supported',sub:'Use Chrome, Edge, Firefox or Brave',strip:''}
 };
 function updatePushBtn(){
-  const s=pushState(),ui=PUSH_UI[s],warn=s==='blocked'||s==='ios'||s==='svcerr';
+  const s=pushState(),ui=PUSH_UI[s],warn=s==='blocked'||s==='svcerr';
   const b=document.getElementById('acct-push-btn');
   if(b){
     const txt=b.querySelector('.pm-row-txt');
     if(txt)txt.innerHTML=`${esc(ui.row)}<small class="pm-row-sub">${esc(ui.sub)}</small>`;
     b.classList.toggle('on',s==='on');b.classList.toggle('warn',warn);
-    b.disabled=s==='on'||s==='unsupported';
+    b.disabled=s==='on'||s==='unsupported'||s==='ios';
     const tg=document.getElementById('acct-push-toggle');
     if(tg){tg.classList.toggle('on',s==='on');tg.classList.toggle('warn',warn);}
   }
@@ -1185,7 +1185,6 @@ function authRender(){
       </div>
       <div class="pm-list">
         <button class="pm-row" onclick="downloadAndroid()"><span class="pm-row-ic">🤖</span><span class="pm-row-txt">Download for Android</span><span class="pm-row-chev">›</span></button>
-        <button class="pm-row" onclick="downloadIOS()"><span class="pm-row-ic">🍎</span><span class="pm-row-txt">iPhone: add shortcut</span><span class="pm-row-chev">›</span></button>
       </div>
       ${_player?`<p class="sub" style="margin-top:16px"><button class="link" onclick="_authView='login';authRender();">Back to account</button></p>
       <p class="sub" style="text-align:center;margin-top:28px"><button class="link" style="font-size:.68rem;color:var(--pm-muted,#9CA8BE)" onclick="const d=document.getElementById('acct-danger-zone');d.style.display=d.style.display==='none'?'block':'none';">Account management</button></p>
@@ -2384,7 +2383,7 @@ function inAppRegBtn(t,st,full){if(t&&t.parent)return '';
   // register_for_tournament() enforces the same window server-side.
   const ea=earlyAccess(t);
   if(ea==='closed')return `<button class="inapp-reg" disabled>Opens ${esc(fmtOpen(t.reg_opens))}</button><div class="ea-note">⚡ App users can join 24 hours earlier</div>`;
-  if(ea==='app-only'&&!(_player&&_player.app))return `<button class="inapp-reg" disabled>App early access until ${esc(fmtOpen(t.reg_opens))}</button><div class="ea-note">Install the JD Arena app on your phone to join now</div>`;
+  if(ea==='app-only'&&!(_player&&_player.app))return `<button class="inapp-reg" disabled>App early access until ${esc(fmtOpen(t.reg_opens))}</button><div class="ea-note">${isIOSDevice()?'Opens to everyone at the time above':'Install the JD Arena app on your phone to join now'}</div>`;
   if(ea==='app-only')return `<button class="inapp-reg" data-reg="${esc(t.name)}">⚡ Join early (app)</button>`;
   if(full)return isPaidTournament(t)&&!wlDeposit(t)?`<button class="inapp-reg" disabled>Squads full</button>`:`<button class="inapp-reg" data-reg="${esc(t.name)}">Join Waitlist</button>`;
   return `<button class="inapp-reg" data-reg="${esc(t.name)}">Join</button>`;
@@ -3062,10 +3061,10 @@ function isAndroidDevice(){return /Android/i.test(navigator.userAgent);}
 /* one tap on mobile: skip the picker and go straight to the right install flow.
    Desktop/unknown devices still get the picker since auto-detect doesn't apply there. */
 // iPhone: the site runs in Safari, so the button only adds a Home Screen shortcut (owner, 8 Nov 2026)
-if(isIOSDevice()){const b=document.getElementById('dl-btn');if(b){if(isStandaloneApp())b.hidden=true;else b.textContent='➕ Add shortcut';}}
+// iPhone: the site just runs in Safari, so no download / shortcut button at all (owner, 8 Nov 2026)
+if(isIOSDevice()){const b=document.getElementById('dl-btn');if(b)b.hidden=true;}
 function handleDlClick(e){
   if(isAndroidDevice())return downloadAndroid();
-  if(isIOSDevice())return downloadIOS();
   toggleDlMenu(e);
 }
 /* Inside the app (JD_TWA, see isStandaloneApp) the download button says "already using the app", and a newer
@@ -3133,11 +3132,6 @@ if(!JD_TWA&&isAndroidDevice()&&isStandaloneApp()&&navigator.getInstalledRelatedA
 function downloadAndroid(){
   if(JD_TWA){showMsg('Already installed',"You're using the JD Arena app. 🎮");return;}
   location.href='/download/?get=1'; // the download page starts the APK download and shows the install steps
-}
-function downloadIOS(){
-  if(isStandaloneApp()){showMsg('Already installed',"You're using the JD Arena home-screen app. 🎮");return;}
-  if(window.jdIosInstall)return jdIosInstall();   // picture guide (ios-install.js), opens at once
-  showMsg('Install on iPhone/iPad',"1. In Safari, tap the Share icon (square with an arrow ↑). On newer iPhones tap ••• first, then Share.\n2. Scroll down and tap 'Add to Home Screen', then Add.\n3. Open JD Arena from the new gold JD icon on your home screen and allow notifications.\n\nNo App Store needed - it opens full-screen like an app.");
 }
 if(DISCORD_INVITE){document.querySelectorAll('.discord-cta').forEach(a=>a.href=DISCORD_INVITE);}else{document.querySelectorAll('.discord-cta').forEach(a=>a.style.display='none');}
 applyLang();refresh();loadPublicRoster();tick();updateAcctBtn();updateNotifHistBtn();updatePushBtn();

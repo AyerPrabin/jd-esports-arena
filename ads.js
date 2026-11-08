@@ -80,8 +80,9 @@
               'Watch ' + st.needed + ' short ads back to back to join this free tournament.') + '</p>' +
             '<div class="dots">' + dots + '</div><div class="err">' + (msg || '') + '</div>' +
             (ready ? '<button class="go" data-a="join">Join now</button>'
-              : admob && !app ? '<p>The ads play in the JD Arena Android app - open this tournament there to join.</p>' +
-                '<button class="go" data-a="getapp">Get the Android app</button>'
+              : admob && !app ? (/iPad|iPhone|iPod/.test(navigator.userAgent) ? '<p>This free entry needs the ads, which only play on Android. Use a free card or points to join on iPhone.</p>'
+                : '<p>The ads play in the JD Arena Android app - open this tournament there to join.</p>' +
+                '<button class="go" data-a="getapp">Get the Android app</button>')
               : '<button class="go" data-a="watch"' + (wait ? ' disabled' : '') + '>' + (wait ? 'Next ad in ' + fmtWait(st.next_at) : 'Watch ad ' + (st.have + 1) + ' of ' + st.needed) + '</button>') +
             '<button class="alt" data-a="close">Later</button></div>';
         }
@@ -90,7 +91,7 @@
           if (e.target === box || a === 'close') return close(false);
           if (a === 'join') return close(true);
           if (a === 'pass') { location.href = '/pass/'; return; }
-          if (a === 'getapp') { location.href = /iPad|iPhone|iPod/.test(navigator.userAgent) ? '/download/?ios=1' : '/download/'; return; }
+          if (a === 'getapp') { location.href = '/download/'; return; }
           if (a !== 'watch') return;
           busy = true; e.target.disabled = true; e.target.textContent = 'Loading ad…';
           if (admob) { openAppAd(eventName, 'gate'); return; }

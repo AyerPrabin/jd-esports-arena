@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#07090F">
 <link rel="icon" type="image/png" href="/favicon-64.png">
 <title>Get the App — JD Esports Arena</title>
-<meta name="description" content="JD Arena for Android: tournaments, tickets, room IDs and alerts as a real app with notifications that arrive. iPhone: add the site to your home screen.">
+<meta name="description" content="JD Arena for Android: tournaments, tickets, room IDs and alerts as a real app with notifications that arrive. iPhone: just open the website.">
 <meta property="og:title" content="JD Arena app for Android">
 <meta property="og:description" content="Real app notifications for room IDs, results and challenges.">
 <meta property="og:image" content="https://jdesport.co.uk/og-image.png">
@@ -88,14 +88,8 @@ ol{margin:14px 0 0;padding-left:20px;color:#dfe4ee;font-size:.9rem;display:grid;
 
   <section class="card" id="iphone">
     <h2>🍎 iPhone / iPad</h2>
-    <p class="meta">No download: JD Arena runs in Safari. Add a shortcut to open it in one tap.</p>
-    <button type="button" class="btn" id="ios-btn">➕ Add shortcut to Home Screen</button>
-    <p class="note" id="ios-hint" hidden style="color:var(--gold-l);font-weight:700">👇 Now tap Safari's <b>Share</b> button ⬆ in the bar at the bottom (on newer iPhones tap <b>•••</b> first), then <b>Add to Home Screen</b> ➕ and <b>Add</b>. Done: JD Arena opens from your home screen like an app.</p>
-    <ol>
-      <li>Open <b>jdesport.co.uk</b> in Safari.</li>
-      <li>Tap the <b>Share</b> icon (square with an arrow ↑). On newer iPhones tap <b>•••</b> first, then <b>Share</b>.</li>
-      <li>Tap <b>Add to Home Screen</b>, then open JD Arena from your home screen and allow notifications.</li>
-    </ol>
+    <p class="meta">Nothing to download or install: JD Arena works right here in Safari (or any browser) on every iPhone and iPad.</p>
+    <a class="btn" href="/">🎮 Open JD Arena</a>
   </section>
 
   <section class="card">
@@ -104,7 +98,6 @@ ol{margin:14px 0 0;padding-left:20px;color:#dfe4ee;font-size:.9rem;display:grid;
     <a class="btn" href="/optimizer/" style="background:rgba(255,255,255,.08);color:var(--cream)">🚀 JD Frag Engine (FPS booster)</a>
   </section>
 </div>
-<script src="/ios-install.js?v=2"></script>
 <script>
 fetch('/download/android.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{
   document.getElementById('apk-btn').href=d.url;
@@ -112,28 +105,14 @@ fetch('/download/android.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{
 }).catch(()=>{});
 let inApp=false;try{inApp=!!sessionStorage.getItem('jd_twa')||/android-app:\/\/uk\.co\.jdesport\.arena/.test(document.referrer);}catch(e){}
 if(inApp)document.getElementById('in-app').hidden=false;
-/* iPhone/iPad: no APK - show the home-screen steps first. Android tapping Download on the site
+/* iPhone/iPad: no APK - the "just use the website" card goes first. Android tapping Download on the site
    (?get=1): start the APK download right away; the steps stay on screen while it downloads. */
 const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 if(ios){const a=document.getElementById('android'),i=document.getElementById('iphone');if(a&&i){a.parentNode.insertBefore(i,a);a.classList.remove('gold');i.classList.add('gold');}}
 else if(!inApp&&/Android/i.test(navigator.userAgent)&&/[?&]get=1/.test(location.search)){
   fetch('/download/android.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{location.href=d.url;}).catch(()=>{location.href=document.getElementById('apk-btn').href;});
 }
-/* install the web version: iPhone shows exactly where Safari's Add to Home Screen is (no site can do it for you),
-   Chrome on Android/PC shows its own install prompt; already installed = nothing to do */
-let installEv=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEv=e;});
-(()=>{const b=document.getElementById('ios-btn'),h=document.getElementById('ios-hint');if(!b)return;
-  if(!ios)b.textContent='📲 Install the web version';
-  if(matchMedia('(display-mode: standalone)').matches||navigator.standalone){b.textContent='✓ The shortcut is on your Home Screen';b.disabled=true;return;}
-  if(ios&&window.jdIosInstall&&/[?&]ios=1/.test(location.search))setTimeout(jdIosInstall,400);   // only after a tap on Add shortcut elsewhere
-  b.onclick=async()=>{
-    if(installEv){installEv.prompt();installEv=null;return;}
-    if(ios&&window.jdIosInstall)return jdIosInstall();
-    h.hidden=false;
-    if(ios&&(!/Safari/.test(navigator.userAgent)||/CriOS|FxiOS|Instagram|FBAN|TikTok|musical_ly/.test(navigator.userAgent)))h.innerHTML='Open <b>jdesport.co.uk</b> in <b>Safari</b> first (other apps cannot add it), then tap <b>Share</b> ⬆ → <b>Add to Home Screen</b> ➕.';
-    h.scrollIntoView({block:'nearest',behavior:'smooth'});
-  };
-})();
+
 </script>
 </body>
 </html>

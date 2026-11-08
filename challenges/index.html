@@ -658,7 +658,7 @@ async function subscribePush(){
 function showAlerts(ic,t,btn,warn,fn){const a=$('alerts');a.hidden=false;a.classList.toggle('warn',!!warn);$('alerts-ic').textContent=ic;$('alerts-t').textContent=t;$('alerts-btn').hidden=!btn;$('alerts-btn').textContent=btn||'';$('alerts-btn').onclick=fn||null;}
 async function setupAlerts(){
   $('alerts').hidden=true;
-  if(isIos()&&!isApp()){showAlerts('📲','On iPhone/iPad, alerts only work in the installed app: tap Share → Add to Home Screen, then open JD Arena from there.');return;}
+  if(isIos()&&!isApp())return;   // iPhone: website only, no install ask
   if(!pushOk())return;
   if(Notification.permission==='denied'){showAlerts('🚫',"Alerts are blocked for this site. Allow notifications in your browser's site settings (icon next to the address bar), then reload.",'',true);return;}
   if(Notification.permission==='granted'){if(!await subscribePush())showAlerts('⚠️','Alerts couldn\'t start on this browser. On Brave: Settings → Privacy → turn on "Use Google services for push messaging", then reload.','Try again',true,setupAlerts);return;}
@@ -742,7 +742,7 @@ async function start(){
   start();
 })();
 </script>
-<script src="/ui.js?v=32" defer></script>
+<script src="/ui.js?v=33" defer></script>
 <script src="/chat.js?v=47" defer></script>
 <script src="/fx-engine.js?v=4" defer></script>
 </body>

@@ -174,7 +174,8 @@ if (window.JDApp || /JDArenaApp\//.test(navigator.userAgent)) document.documentE
   var exempt = /^\/(privacy|terms|reset-password|admin|about|download|app-auth)/.test(path) ||
     /confirm_delete=1|type=recovery/.test(location.search + location.hash) ||
     /bot|crawl|spider|slurp|lighthouse|inspectiontool|headless/i.test(ua);
-  if (!(ios || android) || standalone || exempt) return;
+  // iPhone/iPad: the website just opens in Safari, no wall and no Add-to-Home ask (owner, 8 Nov 2026)
+  if (ios || !android || standalone || exempt) return;
 
   // installing needs the manifest + service worker on this page too
   if (!document.querySelector('link[rel="manifest"]')) {
