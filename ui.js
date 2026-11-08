@@ -181,6 +181,8 @@ if (window.JDApp || /JDArenaApp\//.test(navigator.userAgent)) document.documentE
     var l = document.createElement('link'); l.rel = 'manifest'; l.href = '/manifest.json'; document.head.appendChild(l);
   }
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' }).catch(function () {});
+  // iPhone/iPad (owner, 8 Nov 2026): no install wall, the site runs in Safari; "Add shortcut" (ios-install.js) is optional
+  if (ios) return;
 
   var inApp = /FBAN|FBAV|FB_IAB|Instagram|musical_ly|BytedanceWebview|TikTok|Snapchat|Line\/|MicroMessenger|; wv\)|GSA\//i.test(ua);
   var iosNonSafari = ios && /CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
