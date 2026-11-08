@@ -664,7 +664,7 @@
     var out = [];
     (ov ? ov.friends : []).forEach(function (f) {
       out.push({ kind: 'dm', id: f.id, at: f.last_at, unread: f.unread, av: avatar(f), search: (f.username || '') + ' ' + (f.tag || '') + ' ' + (f.squad || ''),
-        title: esc(nameOf(f)) + (f.app ? ' <span class="dm-badge" title="Uses the app">📱</span>' : ''),
+        title: esc(nameOf(f)) + (f.app ? '' : ''),
         prev: f.last_body ? (f.last_mine ? T('you') + ': ' : '') + f.last_body : 'Say hi 👋' });
     });
     (th ? th.groups : []).forEach(function (g) {

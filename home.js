@@ -769,7 +769,7 @@ function render(d){
     const bo3=!t.image&&(t.map2||t.map3);
     const media=`<div class="tcard-media${bo3?' bo3':''}" style="background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%)${bo3?'':`,url('${esc(t.image||('maps/ff-'+mapOf(t)+'.webp'))}')`}">${bo3?mapsStrip(t):''}${org}<div class="tm-over">${prizeTxt!=='—'?`<span class="tm-prize">🏆 ${esc(prizeTxt)}</span>`:''}<span class="tm-entry${/^free$/i.test(entryTxt.trim())?' free':''}">${/^free$/i.test(entryTxt.trim())?'Card or 15 points':'Entry '+esc(entryTxt)}</span></div>${urgency}</div>`;
     const isPast=st==='completed'||st==='cancelled';
-    return `<div class="tcard${isPast?' past':''}" data-tname="${esc(t.name)}" onclick="cardTap(event,this)">${media}<div class="tcard-body"><span class="tbadge ${st}">${st==='live'?'● Live':(st==='cancelled'?'✕ Cancelled':(st.charAt(0).toUpperCase()+st.slice(1)))}</span><div class="tname">${esc(t.name)}</div><div class="tgame">${esc(t.game||'Free Fire')}</div>${(st==='upcoming'&&t.start)?`<div class="tcount" data-start="${esc(t.start)}"></div><div class="tcount-bar"><span></span></div>`:''}<div class="tmeta">${prizeSplit(t)?`<div class="row"><span>Prize split</span><b>${esc(prizeSplitText(t))}</b></div>`:''}<div class="row"><span>Date</span><b>${esc(t.date||'TBA')}${t.time&&t.time!=='—'?' · '+esc(t.time):''}</b></div><div class="row"><span>Format</span><b>${esc(t.format||'BR')}</b></div><div class="row"><span>${t.map2||t.map3?'Maps':'Map'}</span><b>${esc(mapsText(t))}</b></div><div class="row"><span>Platform</span><b>📱 ${esc(platText(t))}</b></div>${host?`<div class="row"><span>Host</span><b>@${esc(host)}</b></div>`:''}</div>${host?`<p class="thost-note">Run by partner host <b>@${esc(host)}</b>: they send the room ID and pay the prize. JD Arena handles sign-up, slots and alerts.</p>`:''}${slots?`<div class="tslots"><span style="width:${pct}%"></span></div><button class="tslots-label" data-roster="${esc(t.name)}">${reg}/${slots} ${tr('sqview')}</button>`:''}${teams.length?`<div class="troster">${teams.slice(0,CHIP_MAX).map(tm=>{const fx=squadFx(tm);const cls=fx?' '+fx.cls:'';const badge=(fx&&fx.badge)?`<span class="fx-badge">${fx.badge}</span> `:'';const particles=fxParticlesHtml(fx);const nameHtml=fxNameHtml(fx,tm.name);return tm.logo?`<span class="${(fx?fx.cls:'')}"><img src="${esc(tm.logo)}" alt="">${badge}${nameHtml}${particles}</span>`:`<span class="nologo${cls}">${badge}${nameHtml}${particles}</span>`;}).join('')}${teams.length>CHIP_MAX?`<button type="button" class="chip-more" data-roster="${esc(t.name)}">+${teams.length-CHIP_MAX} more</button>`:''}</div>`:''}${btn}${inAppRegBtn(t,st,full)}${(sb&&open)?`<button type="button" class="tm-evbtn" data-lfg="${esc(t.name)}">👥 Find teammate</button>`:''}</div></div>`;
+    return `<div class="tcard${isPast?' past':''}" data-tname="${esc(t.name)}" onclick="cardTap(event,this)">${media}<div class="tcard-body"><span class="tbadge ${st}">${st==='live'?'● Live':(st==='cancelled'?'✕ Cancelled':(st.charAt(0).toUpperCase()+st.slice(1)))}</span><div class="tname">${esc(t.name)}</div><div class="tgame">${esc(t.game||'Free Fire')}</div>${(st==='upcoming'&&t.start)?`<div class="tcount" data-start="${esc(t.start)}"></div><div class="tcount-bar"><span></span></div>`:''}<div class="tmeta">${prizeSplit(t)?`<div class="row"><span>Prize split</span><b>${esc(prizeSplitText(t))}</b></div>`:''}<div class="row"><span>Date</span><b>${esc(t.date||'TBA')}${t.time&&t.time!=='—'?' · '+esc(t.time):''}</b></div><div class="row"><span>Format</span><b>${esc(t.format||'BR')}</b></div><div class="row"><span>${t.map2||t.map3?'Maps':'Map'}</span><b>${esc(mapsText(t))}</b></div><div class="row"><span>Platform</span><b>${esc(platText(t))}</b></div>${host?`<div class="row"><span>Host</span><b>@${esc(host)}</b></div>`:''}</div>${host?`<p class="thost-note">Run by partner host <b>@${esc(host)}</b>: they send the room ID and pay the prize. JD Arena handles sign-up, slots and alerts.</p>`:''}${slots?`<div class="tslots"><span style="width:${pct}%"></span></div><button class="tslots-label" data-roster="${esc(t.name)}">${reg}/${slots} ${tr('sqview')}</button>`:''}${teams.length?`<div class="troster">${teams.slice(0,CHIP_MAX).map(tm=>{const fx=squadFx(tm);const cls=fx?' '+fx.cls:'';const badge=(fx&&fx.badge)?`<span class="fx-badge">${fx.badge}</span> `:'';const particles=fxParticlesHtml(fx);const nameHtml=fxNameHtml(fx,tm.name);return tm.logo?`<span class="${(fx?fx.cls:'')}"><img src="${esc(tm.logo)}" alt="">${badge}${nameHtml}${particles}</span>`:`<span class="nologo${cls}">${badge}${nameHtml}${particles}</span>`;}).join('')}${teams.length>CHIP_MAX?`<button type="button" class="chip-more" data-roster="${esc(t.name)}">+${teams.length-CHIP_MAX} more</button>`:''}</div>`:''}${btn}${inAppRegBtn(t,st,full)}${(sb&&open)?`<button type="button" class="tm-evbtn" data-lfg="${esc(t.name)}">👥 Find teammate</button>`:''}</div></div>`;
   }).join(''):(lang==='ne'?'<p class="ev-empty">अहिले कुनै आगामी प्रतियोगिता छैन — अर्को प्रतियोगिता पहिले Discord मा घोषणा हुन्छ। त्यतिन्जेल <a href="/events/">पुराना प्रतियोगिता</a> हेर्नुहोस्।</p>':'<p class="ev-empty">No upcoming tournaments right now — the next one is announced on Discord first. Meanwhile, see <a href="/events/">past events</a>.</p>');
   // Finished/cancelled events live on /events/ (linked under the grid).
   if(gridHTML!==_lastGridHTML){
@@ -1592,7 +1592,7 @@ function jdTourFirst(user){   // waits for the terms box, the game ID box and th
 }
 if(location.pathname==='/'&&location.hash==='#tour')setTimeout(jdTour,1200);
 /* App perks: the first time a signed-in player opens the installed app, claim_app_perks()
-   (schema.sql) gives a free 7-day Lite effect, the 📱 badge and early access — once per
+   (schema.sql) gives a free 7-day Lite effect and early access — once per
    account. Then ask for push alerts, the main reason the app is required on phones. */
 async function claimAppPerks(){
   if(!sb||!_player||_player.app||!_player.termsAccepted||!isStandaloneApp())return; // after the terms box, never on top of it
@@ -1602,8 +1602,8 @@ async function claimAppPerks(){
   if(data&&data.new){
     loadMyRegs(); // picks up the new pass
     const push=pushSupported()&&pushPerm()!=='granted';
-    const ok=await confirmBox('📱 Welcome to the app!',
-      'Your free 7-day Lite squad effect (Glow) is on, your username now has the 📱 badge, and you can join marked events 24 hours early.'+(push?'\n\nTurn on notifications so you get room IDs and check-in alerts the moment they are sent.':''),
+    const ok=await confirmBox('Welcome to the app!',
+      'Your free 7-day Lite squad effect (Glow) is on, and you can join marked events 24 hours early.'+(push?'\n\nTurn on notifications so you get room IDs and check-in alerts the moment they are sent.':''),
       push?'Turn on notifications':'Nice!',push?'Later':'Close');
     if(ok&&push)enablePush();
   }
@@ -1728,7 +1728,7 @@ function updateAcctBtn(){
   if(_player){
     if(su)su.style.display='none';
     ac.classList.add('acct-btn-signed');
-    ac.innerHTML=`<img class="acct-avatar-mini" src="${esc(_player.avatar||'/logo.webp')}" alt="">${esc(_player.username||'Account')}${_player.app?' <span class="app-badge" title="JD Arena app user">📱</span>':''}`;
+    ac.innerHTML=`<img class="acct-avatar-mini" src="${esc(_player.avatar||'/logo.webp')}" alt="">${esc(_player.username||'Account')}${_player.app?'':''}`;
     ac.onclick=()=>{location.href='/profile/';}; // profile has its own page; account settings stay reachable via /?account=1
     const adb=document.getElementById('admin-btn');
     if(adb)adb.style.display=(_player.email||'').toLowerCase()==='ayerprabin95@gmail.com'?'':'none';   // owner only, site and app (8 Nov 2026); /admin/ checks on the server too
@@ -1993,7 +1993,7 @@ function regQuickSetup(loaded){
   const av=document.getElementById('rq-av');
   if(av)av.innerHTML=_player.squad_logo?`<img src="${esc(_player.squad_logo)}" alt="">`:esc(name.trim()[0].toUpperCase());
   document.getElementById('rq-name').textContent=name;
-  const dv=(document.getElementById('reg-device')||{}).value==='emulator'?'🖥️ Emulator':'📱 Mobile';
+  const dv=(document.getElementById('reg-device')||{}).value==='emulator'?'🖥️ Emulator':'Mobile';
   document.getElementById('rq-meta').textContent=dv+' · 💬 '+regWaMask(c.whatsapp);
 }
 function regQuickEdit(){
@@ -2380,7 +2380,7 @@ function inAppRegBtn(t,st,full){if(t&&t.parent)return '';
   // register_for_tournament() enforces the same window server-side.
   const ea=earlyAccess(t);
   if(ea==='closed')return `<button class="inapp-reg" disabled>Opens ${esc(fmtOpen(t.reg_opens))}</button><div class="ea-note">⚡ App users can join 24 hours earlier</div>`;
-  if(ea==='app-only'&&!(_player&&_player.app))return `<button class="inapp-reg" disabled>📱 App early access until ${esc(fmtOpen(t.reg_opens))}</button><div class="ea-note">Install the JD Arena app on your phone to join now</div>`;
+  if(ea==='app-only'&&!(_player&&_player.app))return `<button class="inapp-reg" disabled>App early access until ${esc(fmtOpen(t.reg_opens))}</button><div class="ea-note">Install the JD Arena app on your phone to join now</div>`;
   if(ea==='app-only')return `<button class="inapp-reg" data-reg="${esc(t.name)}">⚡ Join early (app)</button>`;
   if(full)return isPaidTournament(t)&&!wlDeposit(t)?`<button class="inapp-reg" disabled>Squads full</button>`:`<button class="inapp-reg" data-reg="${esc(t.name)}">Join Waitlist</button>`;
   return `<button class="inapp-reg" data-reg="${esc(t.name)}">Join</button>`;
@@ -2815,7 +2815,7 @@ function notifTicketHtml(n,unreadClass){
   const cur=_myRegs.get(n.tournament_slug);
   const withdrawn=_myRegsLoaded&&(!cur||regTicketCode(cur)!==ticket);
   const [st,cls]=withdrawn?['Withdrawn','off']:waitlisted?['Waitlisted','warn']:pending?['Pending check','warn']:['Registered','ok'];
-  const meta=[t.prize?'💰 '+t.prize:'',paid?(t.entry?'🎫 '+t.entry:''):'🎫 Free',t.name?'📱 '+platText(t):''].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('');
+  const meta=[t.prize?'💰 '+t.prize:'',paid?(t.entry?'🎫 '+t.entry:''):'🎫 Free',t.name?''+platText(t):''].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('');
   return `<div class="notif-item k-tour nf-ticket${unreadClass}"><span class="ni-ic" aria-hidden="true">🎟️</span><div class="ni-main"><div class="ni-top"><div class="t">${esc(notifTitle(n.title))}</div>${notifTimeHtml(n.created_at)}</div>`
     +`<div class="nf-tk"><code>${esc(ticket)}</code><span class="nf-st ${cls}">${st}</span></div>${meta?`<div class="nf-meta">${meta}</div>`:''}</div></div>`;
 }

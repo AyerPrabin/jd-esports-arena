@@ -1188,7 +1188,7 @@ function renderProfile(d){
   const wl=wa?waLink(wa,`Hi ${team(p)}! This is the JD Esports team.`):null;
   $('cprof-wrap').innerHTML=`<div class="cprof">${cav(p,'')}<h3 translate="no">${esc(team(p))}</h3>`+
     `<p class="un" translate="no">${esc(p.name||'')}</p><p class="st${p.online?' on':''}">${esc(status(p)||'Not seen recently')}</p>`+
-    `<div class="cpchips">${p.tag?`<button type="button" data-copy="${esc(p.tag)}">${esc(p.tag)} · Copy</button>`:''}${p.app?'<span>📱 Uses the app</span>':''}${p.joined?`<span>Joined ${esc(new Date(p.joined).toLocaleDateString([], {month:'short',year:'numeric'}))}</span>`:''}</div>`+
+    `<div class="cpchips">${p.tag?`<button type="button" data-copy="${esc(p.tag)}">${esc(p.tag)} · Copy</button>`:''}${p.app?'<span>Uses the app</span>':''}${p.joined?`<span>Joined ${esc(new Date(p.joined).toLocaleDateString([], {month:'short',year:'numeric'}))}</span>`:''}</div>`+
     (tk.length?`<div class="cptk">${tk.map(t=>`<div><span style="min-width:0"><b>${esc(t.event)}</b><small>${esc(t.squad||'')} · ${esc(ST[t.status]||t.status)}</small></span>`+
       `<small class="${t.status==='confirmed'||t.status==='approved'?(t.confirmed?'ok':'no'):''}">${t.status==='confirmed'||t.status==='approved'?(t.confirmed?'Playing ✓':'Not confirmed'):''}</small></div>`).join('')}</div>`
       :'<p class="note">No tickets yet.</p>')+
