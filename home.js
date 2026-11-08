@@ -764,7 +764,7 @@ function render(d){
     const urgency=(open&&slots&&!_myRegs.has(t.name))?(left===0?`<span class="tm-urg full">Full${(sb&&(!isPaidTournament(t)||wlDeposit(t)))?' · waitlist open':''}</span>`:(left<=3?`<span class="tm-urg hot">🔥 ${left} slot${left===1?'':'s'} left</span>`:'')):'';
     const prizeTxt=fmtPrize(t.prize),entryTxt=String(t.entry||'Free');
     const host=String(t.host||'').replace(/^@+/,'').trim();
-    const org=host?`<span class="tm-org host" title="Run by partner host @${esc(host)}">${hostPic(host)?`<img src="/hosts/${esc(host.toLowerCase())}.jpg" alt="">`:`<i>${esc(host.charAt(0).toUpperCase())}</i>`}Hosted by @${esc(host)}</span>`
+    const org=host?`<span class="tm-org host" title="Run by partner host @${esc(host)}"><img src="${hostPic(host)?'/hosts/'+esc(host.toLowerCase())+'.jpg':SUPABASE_URL+'/storage/v1/object/public/host-photos/'+encodeURIComponent(host.toLowerCase())+'.jpg'}" alt="" data-i="${esc(host.charAt(0).toUpperCase())}" onerror="var i=document.createElement('i');i.textContent=this.dataset.i;this.replaceWith(i)">Hosted by @${esc(host)}</span>`
                   :`<span class="tm-org" title="Official JD Esports event"><img src="/logo.webp" alt="">JD Official</span>`;
     const bo3=!t.image&&(t.map2||t.map3);
     const media=`<div class="tcard-media${bo3?' bo3':''}" style="background-image:linear-gradient(180deg,rgba(17,24,39,0) 40%,rgba(17,24,39,.92) 100%)${bo3?'':`,url('${esc(t.image||('maps/ff-'+mapOf(t)+'.webp'))}')`}">${bo3?mapsStrip(t):''}${org}<div class="tm-over">${prizeTxt!=='—'?`<span class="tm-prize">🏆 ${esc(prizeTxt)}</span>`:''}<span class="tm-entry${/^free$/i.test(entryTxt.trim())?' free':''}">${/^free$/i.test(entryTxt.trim())?'Card or 15 points':'Entry '+esc(entryTxt)}</span></div>${urgency}</div>`;

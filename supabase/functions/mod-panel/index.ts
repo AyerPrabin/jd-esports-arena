@@ -107,8 +107,27 @@ Deno.serve(async (req: Request) => {
     return json({ ok: true, slug, squads });
   }
 
-  if (['mod_list', 'mod_add', 'mod_remove'].includes(action)) {
+  if (['mod_list', 'mod_add', 'mod_remove', 'host_photo'].includes(action)) {
     if (!ADMIN_SECRET || adminHeader !== ADMIN_SECRET) return fail('Unauthorized', 401);
+    // the admin sets an invited host's photo: the private copy for chats (avatars/<pid>/host.jpg, same as the host's own
+    // upload) and a small public copy for event cards (host-photos/<handle>.jpg, a public bucket made here on first use)
+    if (action === 'host_photo') {
+      const h = normHandle(p.handle);
+      const m = String(p.image || '').match(/^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/);
+      if (!h || !m) return fail('Pick a photo first.');
+      const bytes = Uint8Array.from(atob(m[1]), (c) => c.charCodeAt(0));
+      if (bytes.length > 300000) return fail('That photo is too big (300 KB max).');
+      if (bytes[0] !== 0xff || bytes[1] !== 0xd8) return fail('That is not a JPEG photo.');
+      const { data: mod } = await admin.from('moderators').select('email').eq('role', 'host').eq('handle', h).maybeSingle();
+      if (!mod) return fail(`@${h} isn't an invited host.`, 404);
+      const { data: pl } = await admin.from('players').select('id').ilike('email', String(mod.email).replace(/[\\%_]/g, '\\$&')).limit(1).maybeSingle();
+      const opts = { contentType: 'image/jpeg', upsert: true, cacheControl: '3600' };
+      if (pl) { const { error } = await admin.storage.from('avatars').upload(`${pl.id}/host.jpg`, bytes, opts); if (error) return fail(error.message, 500); }
+      await admin.storage.createBucket('host-photos', { public: true, fileSizeLimit: 300000, allowedMimeTypes: ['image/jpeg'] });   // an error just means it exists
+      const { error: e2 } = await admin.storage.from('host-photos').upload(`${h}.jpg`, bytes, opts);
+      if (e2) return fail(e2.message, 500);
+      return json({ ok: true, chat: !!pl });
+    }
     if (action === 'mod_list') {
       const { data, error } = await admin.from('moderators').select('email, note, role, handle, added_at, commission_pct, agreed_at').order('added_at', { ascending: false });
       if (error) return fail(error.message, 500);

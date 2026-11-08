@@ -2462,13 +2462,29 @@ async function hostNames(){
     b.disabled=true; const {error:e}=await sb.rpc('host_name_review',{p_handle:b.dataset.hn,p_ok:b.dataset.ok==='1'});
     if(e){ alert(e.message); b.disabled=false; return; } hostNames(); });
 }
+/* the admin uploads an invited host's photo: shrunk to a 256 px JPEG here, then mod-panel host_photo stores it for chats and event cards */
+function hostPhoto(h){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange=async()=>{
+    const f=inp.files&&inp.files[0]; if(!f)return;
+    modMsg('Uploading @'+h+'\u2019s photo…','');
+    try{
+      const img=await createImageBitmap(f), c=document.createElement('canvas'), s=Math.min(img.width,img.height);
+      c.width=c.height=256; c.getContext('2d').drawImage(img,(img.width-s)/2,(img.height-s)/2,s,s,0,0,256,256);
+      const r=await modCall({action:'host_photo',handle:h,image:c.toDataURL('image/jpeg',.85)});
+      modMsg('✓ @'+h+'\u2019s photo is set'+(r.chat?' (chats and event cards).':' for event cards. Chats get it once they sign up on JD Arena.'),'ok');
+    }catch(e){modMsg('Photo: '+e.message,'err');}
+  };
+  inp.click();
+}
 async function modList(){
   hostNames().catch(()=>{});
   const box=document.getElementById('mod-list'); modMsg('Loading…','');
   try{
     const rows=await modCall({action:'mod_list'});
-    box.innerHTML=rows.length?`<table style="width:100%;font-size:.8rem;border-collapse:collapse;margin-top:10px">${rows.map(m=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px"><b>${esc(m.email)}</b> <span class="tag">${m.role==='host'?'host @'+esc(m.handle||''):'staff'}</span>${m.commission_pct!=null?` <span class="tag">${+m.commission_pct}% · ${m.agreed_at?'accepted':'not accepted yet'}</span>`:''}${m.note?' <span class="hint">· '+esc(m.note)+'</span>':''}</td><td style="padding:6px 4px;text-align:right"><button class="btn ghost" style="font-size:.7rem;padding:4px 10px" data-e="${esc(m.email)}">Remove</button></td></tr>`).join('')}</table>`:'<p class="hint">No moderators yet.</p>';
+    box.innerHTML=rows.length?`<table style="width:100%;font-size:.8rem;border-collapse:collapse;margin-top:10px">${rows.map(m=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px"><b>${esc(m.email)}</b> <span class="tag">${m.role==='host'?'host @'+esc(m.handle||''):'staff'}</span>${m.commission_pct!=null?` <span class="tag">${+m.commission_pct}% · ${m.agreed_at?'accepted':'not accepted yet'}</span>`:''}${m.note?' <span class="hint">· '+esc(m.note)+'</span>':''}</td><td style="padding:6px 4px;text-align:right;white-space:nowrap">${m.role==='host'?`<button class="btn ghost" style="font-size:.7rem;padding:4px 10px" data-hp="${esc(m.handle||'')}">📷 Photo</button> `:''}<button class="btn ghost" style="font-size:.7rem;padding:4px 10px" data-e="${esc(m.email)}">Remove</button></td></tr>`).join('')}</table>`:'<p class="hint">No moderators yet.</p>';
     box.querySelectorAll('button[data-e]').forEach(b=>b.onclick=()=>modRemove(b.dataset.e));
+    box.querySelectorAll('button[data-hp]').forEach(b=>b.onclick=()=>hostPhoto(b.dataset.hp));
     modMsg('','');
   }catch(e){modMsg(e.message,'err');}
 }
