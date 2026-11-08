@@ -697,9 +697,9 @@
   var hostChats = [];
   function hostRow(t) {
     var active = cur && cur.kind === 'host' && cur.id === t.handle ? ' active' : '', dot = t.unread ? '<span class="dm-dot">' + (t.unread > 9 ? '9+' : t.unread) + '</span>' : '';
-    var prev = t.at ? (t.mine ? T('you') + ': ' : '') + t.body : 'Verified event host · ask about their events';
+    var prev = t.at ? (t.mine ? T('you') + ': ' : '') + t.body : 'Invited by JD · ask about their events, rooms and prizes';
     return '<button type="button" class="dm-row' + (t.unread ? ' unread' : '') + active + '" data-k="host" data-open="' + esc(t.handle) + '">' + avatar({ id: 'host:' + t.handle, username: t.handle }) +
-      '<span class="dm-mid"><span class="dm-name">@' + esc(t.handle) + ' ' + VERIFIED + '</span><span class="dm-prev"><span>' + esc(prev) + '</span>' + (t.at ? '<span>· ' + short(t.at) + '</span>' : '') + '</span></span>' + dot + '</button>';
+      '<span class="dm-mid"><span class="dm-name">@' + esc(t.handle) + ' · Host ' + VERIFIED + '</span><span class="dm-prev"><span>' + esc(prev) + '</span>' + (t.at ? '<span>· ' + short(t.at) + '</span>' : '') + '</span></span>' + dot + '</button>';
   }
   function alertsRow() {
     var n = zn[0], active = cur && cur.kind === 'alerts' ? ' active' : '', f = n ? alFrom(n.title) : null;

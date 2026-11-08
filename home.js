@@ -1731,7 +1731,7 @@ function updateAcctBtn(){
     ac.innerHTML=`<img class="acct-avatar-mini" src="${esc(_player.avatar||'/logo.webp')}" alt="">${esc(_player.username||'Account')}${_player.app?' <span class="app-badge" title="JD Arena app user">📱</span>':''}`;
     ac.onclick=()=>{location.href='/profile/';}; // profile has its own page; account settings stay reachable via /?account=1
     const adb=document.getElementById('admin-btn');
-    if(adb)adb.style.display=(window.JDApp||/JDArenaApp\//.test(navigator.userAgent)||JD_TWA)&&(_player.email||'').toLowerCase()==='ayerprabin95@gmail.com'?'':'none';
+    if(adb)adb.style.display=(_player.email||'').toLowerCase()==='ayerprabin95@gmail.com'?'':'none';   // owner only, site and app (8 Nov 2026); /admin/ checks on the server too
     const md=document.getElementById('mod-btn');
     if(md){ md.style.display='none'; if(typeof sb!=='undefined'&&sb) sb.rpc('is_moderator').then(r=>{ md.style.display=r.data?'':'none'; }).catch(()=>{}); }
   }else{
