@@ -1185,7 +1185,7 @@ function authRender(){
       </div>
       <div class="pm-list">
         <button class="pm-row" onclick="downloadAndroid()"><span class="pm-row-ic">🤖</span><span class="pm-row-txt">Download for Android</span><span class="pm-row-chev">›</span></button>
-        <button class="pm-row" onclick="downloadIOS()"><span class="pm-row-ic">🍎</span><span class="pm-row-txt">Download for iPhone</span><span class="pm-row-chev">›</span></button>
+        <button class="pm-row" onclick="downloadIOS()"><span class="pm-row-ic">🍎</span><span class="pm-row-txt">iPhone: add shortcut</span><span class="pm-row-chev">›</span></button>
       </div>
       ${_player?`<p class="sub" style="margin-top:16px"><button class="link" onclick="_authView='login';authRender();">Back to account</button></p>
       <p class="sub" style="text-align:center;margin-top:28px"><button class="link" style="font-size:.68rem;color:var(--pm-muted,#9CA8BE)" onclick="const d=document.getElementById('acct-danger-zone');d.style.display=d.style.display==='none'?'block':'none';">Account management</button></p>
@@ -3052,6 +3052,8 @@ function isIOSDevice(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(nav
 function isAndroidDevice(){return /Android/i.test(navigator.userAgent);}
 /* one tap on mobile: skip the picker and go straight to the right install flow.
    Desktop/unknown devices still get the picker since auto-detect doesn't apply there. */
+// iPhone: the site runs in Safari, so the button only adds a Home Screen shortcut (owner, 8 Nov 2026)
+if(isIOSDevice()){const b=document.getElementById('dl-btn');if(b){if(isStandaloneApp())b.hidden=true;else b.textContent='➕ Add shortcut';}}
 function handleDlClick(e){
   if(isAndroidDevice())return downloadAndroid();
   if(isIOSDevice())return downloadIOS();

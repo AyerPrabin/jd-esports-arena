@@ -25,15 +25,15 @@
 
   window.jdIosInstall = function () {
     if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
-      alert('JD Arena is already installed on this phone. 🎮'); return;
+      alert('The JD Arena shortcut is already on your Home Screen. 🎮'); return;
     }
     close();
     if (!document.getElementById('jdii-css')) { var st = document.createElement('style'); st.id = 'jdii-css'; st.textContent = css; document.head.appendChild(st); }
     var url = 'https://jdesport.co.uk/', o = document.createElement('div');
     o.id = 'jdii'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-label', 'Install JD Arena on iPhone');
     if (!inSafari()) {
-      o.innerHTML = '<div class="s"><button class="x" aria-label="Close">×</button><h3>📲 Open in Safari first</h3>' +
-        '<p class="sub">iPhone apps can only be added to the home screen from Safari.</p>' +
+      o.innerHTML = '<div class="s"><button class="x" aria-label="Close">×</button><h3>➕ Open in Safari first</h3>' +
+        '<p class="sub">A Home Screen shortcut can only be added from Safari.</p>' +
         '<button class="go" id="jdii-saf">Open in Safari</button>' +
         '<button class="go" id="jdii-copy" style="background:rgba(255,255,255,.1);color:#fff">Copy link</button>' +
         '<p class="sub" id="jdii-msg" style="margin-top:10px">Then paste it in Safari and tap Install again.</p></div>';
@@ -45,11 +45,11 @@
       };
       o.style.alignItems = 'center'; o.querySelector('.s').style.cssText = 'border-radius:22px;border-bottom:1px solid rgba(255,200,80,.35);padding-bottom:20px;margin:16px';
     } else {
-      o.innerHTML = '<div class="s"><button class="x" aria-label="Close">×</button><h3>📲 Install JD Arena: 2 taps</h3>' +
-        '<p class="sub">Free, no App Store. It opens like an app and gets alerts.</p>' +
+      o.innerHTML = '<div class="s"><button class="x" aria-label="Close">×</button><h3>➕ Add a JD Arena shortcut</h3>' +
+        '<p class="sub">No download. JD Arena runs in Safari; this puts its icon on your Home Screen.</p>' +
         '<div class="st"><span class="n">1</span><span class="ic">' + SHARE + '</span><span>Tap <b>Share</b> in Safari\'s bar below. No Share icon? Tap <b>•••</b> first.</span></div>' +
         '<div class="st"><span class="n">2</span><span class="ic d">' + PLUS + '</span><span>Scroll down, tap <b>Add to Home Screen</b>, then <b>Add</b>.</span></div>' +
-        '<p class="sub" style="margin:10px 0 0">Done: open <b>JD Arena</b> from your home screen and allow notifications.</p></div>' +
+        '<p class="sub" style="margin:10px 0 0">Done: tap the <b>JD Arena</b> icon on your Home Screen to open the site.</p></div>' +
         '<div class="ar"><span>Share is down here</span><i>⬇</i></div>';
     }
     o.addEventListener('click', function (e) { if (e.target === o || e.target.classList.contains('x')) close(); });
