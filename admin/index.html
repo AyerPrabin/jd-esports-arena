@@ -647,6 +647,8 @@ h2[id]{scroll-margin-top:64px}
   </div>
   <div class="row" style="margin:8px 0 0"><button class="btn" onclick="modAdd()">➕ Add moderator</button><button class="btn ghost" onclick="modList()">🔄 Refresh list</button><div id="mod-msg" class="hint"></div></div>
   <div id="mod-list"></div>
+  <h3 style="margin:18px 0 6px">Host names to approve</h3>
+  <div id="hn-list" class="hint">Loading…</div>
 
   <h2 id="commission">Mod commission <span class="tag">per event · no salary</span></h2>
   <p class="hint">The first staff mod with a commission rate to send an event's room code is put on that event. They earn their % of the entry points squads actually paid, once the event has a winner and they accepted the agreement in /mod/. Nothing moves by itself: pay them, then tap Mark paid.</p>
@@ -2443,7 +2445,18 @@ async function modCall(body){
   const r=await fetch(EDGE_FN_BASE+'/mod-panel',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify(body)});
   if(!r.ok)throw new Error(await r.text()); return r.json();
 }
+/* host names (host_profile.sql): a host asks for a display name, the owner approves it here (owner's Google session) */
+async function hostNames(){
+  const box=document.getElementById('hn-list'); if(!box||!sb) return;
+  const {data,error}=await sb.rpc('host_names_pending');
+  if(error){ box.textContent=error.code==='PGRST202'?'Run supabase/host_profile.sql to turn this on.':error.message; return; }
+  box.innerHTML=(data||[]).length?(data||[]).map(r=>`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid var(--line)"><span style="flex:1;min-width:180px">@${esc(r.handle)} wants <b>${esc(r.pending_name)}</b>${r.display_name?` <span class="hint">(now ${esc(r.display_name)})</span>`:''}</span><button class="btn" data-hn="${esc(r.handle)}" data-ok="1">Approve</button><button class="btn ghost" data-hn="${esc(r.handle)}" data-ok="0">Reject</button></div>`).join(''):'Nothing waiting.';
+  box.querySelectorAll('[data-hn]').forEach(b=>b.onclick=async()=>{
+    b.disabled=true; const {error:e}=await sb.rpc('host_name_review',{p_handle:b.dataset.hn,p_ok:b.dataset.ok==='1'});
+    if(e){ alert(e.message); b.disabled=false; return; } hostNames(); });
+}
 async function modList(){
+  hostNames().catch(()=>{});
   const box=document.getElementById('mod-list'); modMsg('Loading…','');
   try{
     const rows=await modCall({action:'mod_list'});

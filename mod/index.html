@@ -624,6 +624,17 @@ textarea{min-height:96px;resize:vertical}
 
   <!-- help -->
   <section class="tab help" id="tab-help" aria-labelledby="h-help">
+    <div class="panel" id="hp" hidden>
+      <div class="sec-h"><h2 id="h-hp">Your host profile</h2></div>
+      <p class="note">Players see this name and photo on your chat in Messages, next to the verified tick. Your @handle stays the same. A new name shows after the JD admin approves it; a new photo shows straight away.</p>
+      <div style="display:flex;gap:14px;align-items:center;margin:12px 0">
+        <img id="hp-img" alt="Your host photo" width="72" height="72" style="width:72px;height:72px;border-radius:50%;object-fit:cover;background:#1a2233;flex:none">
+        <label class="ghost" style="display:inline-block;cursor:pointer;padding:8px 14px;border-radius:999px;border:1px solid var(--line)">Upload photo<input type="file" id="hp-file" accept="image/*" hidden></label>
+      </div>
+      <label for="hp-name" style="display:block;font-size:.8rem;margin-bottom:4px">Host name</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><input id="hp-name" maxlength="24" autocomplete="off" placeholder="2 to 24 letters or numbers" style="flex:1;min-width:160px"><button type="button" id="hp-send">Send for approval</button></div>
+      <p class="note" id="hp-msg" role="status"></p>
+    </div>
     <div class="panel">
       <div class="sec-h"><h2 id="h-help">How it works</h2><span class="sp"></span><button type="button" class="ghost" id="tour-again">Show the tour</button></div>
       <h3>Match night</h3>
@@ -1495,6 +1506,30 @@ addEventListener('resize',setTopH);
 
 $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
 
+/* host profile (host_profile.sql): display name goes to the owner for approval, photo is <my id>/host.jpg */
+async function hostProfile(){
+  const r=await sb.rpc('host_profile_me'); const me=r.data; if(r.error||!me) return;
+  $('hp').hidden=false;
+  const msg=t=>$('hp-msg').textContent=t;
+  const show=m=>{ $('hp-name').value=m.pending_name||m.display_name||'';
+    msg(m.pending_name?`Waiting for approval: "${m.pending_name}".`+(m.display_name?` Players still see "${m.display_name}".`:''):m.display_name?`Players see you as "${m.display_name}".`:'No host name yet. Players see @'+m.handle+'.'); };
+  show(me);
+  const pic=async()=>{ const u=await sb.storage.from('avatars').createSignedUrl(me.pid+'/host.jpg',3600); if(u.data&&u.data.signedUrl) $('hp-img').src=u.data.signedUrl; };
+  pic().catch(()=>{});
+  $('hp-send').onclick=async()=>{ msg('Sending…'); const x=await sb.rpc('host_name_request',{p_name:$('hp-name').value});
+    if(x.error){ msg(x.error.message); return; } show(x.data); toast('Sent. The JD admin gets a notification to approve it.'); };
+  $('hp-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; msg('Uploading…');
+    try{
+      const img=await createImageBitmap(f), n=320, c=document.createElement('canvas'), k=Math.min(img.width,img.height);
+      c.width=c.height=n; c.getContext('2d').drawImage(img,(img.width-k)/2,(img.height-k)/2,k,k,0,0,n,n);   // square crop, 320 px
+      const blob=await new Promise(ok=>c.toBlob(ok,'image/jpeg',.82));
+      const up=await sb.storage.from('avatars').upload(me.pid+'/host.jpg',blob,{upsert:true,contentType:'image/jpeg',cacheControl:'3600'});
+      if(up.error) throw up.error;
+      await pic(); show(me); toast('Photo updated. Players see it on your chat now.');
+    }catch(err){ msg(err.message||'Upload failed. Try a JPG or PNG.'); }
+    e.target.value=''; };
+}
+
 (async function init(){
   setTopH();
   const {data:{session}}=await sb.auth.getSession();
@@ -1506,6 +1541,7 @@ $('signout').onclick=async()=>{ await sb.auth.signOut(); location.reload(); };
     if(!me.owner){ const all=document.querySelector('input[name=aud][value=all]'); all.closest('label').remove(); }
     if(me.commission_pct!=null){ document.querySelector('#tabs [data-tab=earnings]').hidden=false; if(!me.agreed_at) agreeAsk().catch(err=>toast(err.message,null,true)); }
     if(isHostMod()) $('n-invite-w').hidden=false;
+    if(isHostMod()) hostProfile().catch(()=>{});
     $('main').hidden=false; $('tabs').hidden=false;
     const h=(location.hash||'').slice(1); if(['results','room','notify','help','loads','challenges','promo','earnings'].concat(isHostMod()?[]:['chats']).includes(h)) showTab(h);
     setTopH();

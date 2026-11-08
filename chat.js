@@ -114,8 +114,8 @@
     if (!ids.length || !me) return;
     ids.forEach(function (i) { AV[i] = null; });
     try {
-      var r = await SB.storage.from('avatars').createSignedUrls(ids.map(function (i) { return i + '/avatar.jpg'; }), 3600);
-      (r.data || []).forEach(function (x, k) { var id = String(x.path || ids[k]).split('/')[0]; AV[id] = !x.error && x.signedUrl ? x.signedUrl : false; });
+      var r = await SB.storage.from('avatars').createSignedUrls(ids.map(function (i) { return i.indexOf('/') > 0 ? i : i + '/avatar.jpg'; }), 3600);
+      (r.data || []).forEach(function (x, k) { AV[ids[k]] = !x.error && x.signedUrl ? x.signedUrl : false; });
     } catch (e) {}
     var got = false;
     ids.forEach(function (i) { if (!AV[i]) AV[i] = false; else got = true; });
@@ -126,8 +126,8 @@
     p = p || {};
     var name = p.username || '?', h = hue(p.id || name);
     var bg = 'linear-gradient(145deg,hsl(' + h + ' 70% 52%),hsl(' + ((h + 40) % 360) + ' 75% 38%))';
-    var pic = p.id && /^[0-9a-f-]{36}$/i.test(p.id) ? AV[p.id] : false;
-    if (pic === undefined) wantAv(p.id);
+    var key = p.avkey || p.id, pic = key && /^[0-9a-f-]{36}(\/host\.jpg)?$/i.test(key) ? AV[key] : false;
+    if (pic === undefined) wantAv(key);
     var logo = pic ? '<img src="' + esc(pic) + '" alt="" loading="lazy" onerror="this.remove()">'
       : p.logo && /^(https:|data:image\/)/.test(p.logo) ? '<img src="' + esc(p.logo) + '" alt="" loading="lazy">' : esc(name.charAt(0));
     return '<span class="dm-av' + (size ? ' ' + size : '') + (p.online ? ' on' : '') + '" style="background:' + bg + '" aria-hidden="true">' + logo + '</span>';
@@ -695,11 +695,14 @@
   }
   // host chat (host_chat.sql): one chat per invited host, signed @handle, separate from JD Esports
   var hostChats = [];
+  function hostOf(h) { for (var i = 0; i < hostChats.length; i++) if (hostChats[i].handle === h) return hostChats[i]; return { handle: h }; }
+  function hostName(h) { var t = hostOf(h); return t.name || '@' + h; }
+  function hostAv(h, size) { var t = hostOf(h); return avatar({ id: 'host:' + h, username: t.name || h, avkey: t.photo && t.pid ? t.pid + '/host.jpg' : null }, size); }
   function hostRow(t) {
     var active = cur && cur.kind === 'host' && cur.id === t.handle ? ' active' : '', dot = t.unread ? '<span class="dm-dot">' + (t.unread > 9 ? '9+' : t.unread) + '</span>' : '';
-    var prev = t.at ? (t.mine ? T('you') + ': ' : '') + t.body : 'Invited by JD · ask about their events, rooms and prizes';
-    return '<button type="button" class="dm-row' + (t.unread ? ' unread' : '') + active + '" data-k="host" data-open="' + esc(t.handle) + '">' + avatar({ id: 'host:' + t.handle, username: t.handle }) +
-      '<span class="dm-mid"><span class="dm-name">@' + esc(t.handle) + ' · Host ' + VERIFIED + '</span><span class="dm-prev"><span>' + esc(prev) + '</span>' + (t.at ? '<span>· ' + short(t.at) + '</span>' : '') + '</span></span>' + dot + '</button>';
+    var prev = t.at ? (t.mine ? T('you') + ': ' : '') + t.body : (t.name ? '@' + t.handle + ' · ' : '') + 'Invited by JD · ask about their events, rooms and prizes';
+    return '<button type="button" class="dm-row' + (t.unread ? ' unread' : '') + active + '" data-k="host" data-open="' + esc(t.handle) + '">' + hostAv(t.handle) +
+      '<span class="dm-mid"><span class="dm-name">' + esc(hostName(t.handle)) + ' · Host ' + VERIFIED + '</span><span class="dm-prev"><span>' + esc(prev) + '</span>' + (t.at ? '<span>· ' + short(t.at) + '</span>' : '') + '</span></span>' + dot + '</button>';
   }
   function alertsRow() {
     var n = zn[0], active = cur && cur.kind === 'alerts' ? ' active' : '', f = n ? alFrom(n.title) : null;
@@ -1121,7 +1124,7 @@
       av = jdAv('sm'); name = MERGED ? 'JD Esports · ZULU' : 'JD Esports';
       st = MERGED ? 'ZULU AI replies in seconds · JD team joins for big issues' : 'Official JD team · we reply here';
     }
-    else if (p.kind === 'host') { av = avatar(p, 'sm'); name = '@' + p.id; st = 'Verified event host · invited by JD'; }
+    else if (p.kind === 'host') { av = hostAv(p.id, 'sm'); name = hostName(p.id); st = (hostOf(p.id).name ? '@' + p.id + ' · ' : '') + 'Verified event host · invited by JD'; }
     else if (p.kind === 'alerts') { av = alAv('sm'); name = 'Alerts'; st = 'Room IDs, reminders and results'; }
     else { av = zuluAv('sm'); name = 'ZULU'; st = 'AI assistant · replies in seconds'; on = true; }
     $('dm-th-av').innerHTML = av;
@@ -1277,7 +1280,7 @@
     else if (p.kind === 'match') h += '<div class="dm-hello">' + matchAv() + '<b>' + esc((p.mode || '') + ' Clash Squad') + '</b>Only you and the other captain can see this chat.<br>Agree the room, play, then report the result on the challenge.<br><span class="dm-hint">Type <b>@zulu</b> to ask ZULU (AI) about the rules. It reads the last few messages.</span></div>';
     else if (p.kind === 'jd' && MERGED) h += '<div class="dm-hello">' + jdAv() + '<b>JD Esports · ZULU ' + VERIFIED + '</b>One chat for everything. <strong>ZULU (AI) replies in seconds</strong> using your own tickets, points and the schedule.<br>For big issues (payments, prizes, refunds, results, bans) ZULU brings in the JD team and they reply right here.<br><span class="dm-hint">The JD team and ZULU never ask for your password, OTP or eSewa PIN.</span></div>';
     else if (p.kind === 'jd') h += '<div class="dm-hello">' + jdAv() + '<b>JD Esports ' + VERIFIED + '</b>The official JD Esports Arena team.<br>Real people from the JD team (moderators and admin) write here. Ask about events, slots, points or room IDs and we reply. For instant answers, ask ZULU.<br><span class="dm-hint">The JD team never asks for your password or eSewa PIN.</span></div>';
-    else if (p.kind === 'host') h += '<div class="dm-hello">' + avatar(p) + '<b>@' + esc(p.id) + ' ' + VERIFIED + '</b>A verified host, invited by JD. They run their own events on JD Arena and pay those prizes directly. They are not the JD team.<br><span class="dm-hint">Never share your password, OTP or eSewa PIN. Links and the host\'s phone numbers are blocked here. Report a problem in the JD Esports chat.</span></div>';
+    else if (p.kind === 'host') h += '<div class="dm-hello">' + hostAv(p.id) + '<b>' + esc(hostName(p.id)) + ' ' + VERIFIED + '</b>A verified host, invited by JD. They run their own events on JD Arena and pay those prizes directly. They are not the JD team.<br><span class="dm-hint">Never share your password, OTP or eSewa PIN. Links and the host\'s phone numbers are blocked here. Report a problem in the JD Esports chat.</span></div>';
     else if (p.kind === 'alerts') h += '<div class="dm-hello">' + alAv() + '<b>Alerts</b>Room IDs and passwords, slot reminders, results and messages from the JD team or an event\'s host. Tap a Room ID or password to copy it.</div>';
     else h += '<div class="dm-hello">' + zuluAv() + '<b>ZULU</b>Your JD Arena buddy. Chat about anything gaming, get Free Fire tips, or ask about tournaments and your own points, tickets and challenges. It never sees your private chats.</div>';
     var list = msgs;
