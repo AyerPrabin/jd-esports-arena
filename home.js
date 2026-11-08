@@ -1423,7 +1423,8 @@ async function authSignup(){
   if(taken){authMsg('That username is taken — try another.');return;}
   refFieldKeep();
   authMsg('Creating account…',true);
-  const {data:signUpData,error}=await sb.auth.signUp({email,password:pass,options:{data:Object.assign({username:uname},g?{ff_uid:g.uid,ff_name:g.name}:{}),emailRedirectTo:location.href.split('#')[0]}});
+  let ct;try{ct=window.jdCaptcha?await jdCaptcha():undefined;}catch(e){authMsg(e.message);return;}
+  const {data:signUpData,error}=await sb.auth.signUp({email,password:pass,options:{data:Object.assign({username:uname},g?{ff_uid:g.uid,ff_name:g.name}:{}),emailRedirectTo:location.href.split('#')[0],captchaToken:ct}});
   if(error){authMsg(/duplicate|unique|taken|constraint|saving new user/i.test(error.message)?'That username was just taken — try another.':error.message);return;}
   if(signUpData&&signUpData.session){
     // Email confirmation is off on this project — the account is live immediately, no
@@ -1451,7 +1452,8 @@ async function authLogin(){
   const email=document.getElementById('au-email').value.trim(),pass=document.getElementById('au-pass').value;
   if(!email||!pass){authMsg('Enter your email and password.');return;}
   authMsg('Logging in…',true);
-  const {error}=await sb.auth.signInWithPassword({email,password:pass});
+  let ct;try{ct=window.jdCaptcha?await jdCaptcha():undefined;}catch(e){authMsg(e.message);return;}
+  const {error}=await sb.auth.signInWithPassword({email,password:pass,options:{captchaToken:ct}});
   if(error){authMsg(/email not confirmed/i.test(error.message)?'Verify your email first — check your inbox for the link.':error.message);return;}
   await authRefreshPlayer();
   authClose();
@@ -1461,7 +1463,8 @@ async function authForgot(){
   const email=document.getElementById('au-email').value.trim();
   if(!email){authMsg('Enter your email.');return;}
   authMsg('Sending…',true);
-  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/reset-password/'});
+  let ct;try{ct=window.jdCaptcha?await jdCaptcha():undefined;}catch(e){authMsg(e.message);return;}
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/reset-password/',captchaToken:ct});
   if(error){authMsg(error.message);return;}
   authMsg('Reset link sent — check your email.',true);
 }
@@ -1516,7 +1519,8 @@ async function authRequestDelete(){
   if(!confirm("This starts account deletion. We'll email a confirmation link to "+_player.email+" — nothing is deleted until you click it and confirm again. Continue?"))return;
   authMsg('Sending confirmation email…',true);
   const redirectTo=location.origin+location.pathname+'?confirm_delete=1';
-  const {error}=await sb.auth.signInWithOtp({email:_player.email,options:{emailRedirectTo:redirectTo,shouldCreateUser:false}});
+  let ct;try{ct=window.jdCaptcha?await jdCaptcha():undefined;}catch(e){authMsg(e.message);return;}
+  const {error}=await sb.auth.signInWithOtp({email:_player.email,options:{emailRedirectTo:redirectTo,shouldCreateUser:false,captchaToken:ct}});
   if(error){authMsg(error.message);return;}
   authMsg("Check your email and click the link (it's sent via our normal sign-in email, that's expected) — you'll land back here to confirm deletion.",true);
 }

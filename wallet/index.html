@@ -386,6 +386,7 @@ input:focus{border-color:var(--gold)}
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
+<script src="/captcha.js?v=1"></script>
 <script>
 /* Same project + publishable key as the main site (index.html) — the login session is
    shared through localStorage on this origin, so a signed-in player lands straight in. */
@@ -594,7 +595,8 @@ $('pin-mail').onclick=async()=>{
   $('pin-mail').disabled=true;
   try{
     await pinResetBegin();
-    const {error}=await sb.auth.signInWithOtp({email:me.email,options:{emailRedirectTo:location.origin+'/wallet/',shouldCreateUser:false}});
+    const ct=window.jdCaptcha?await jdCaptcha():undefined;   // login captcha (captcha.js)
+    const {error}=await sb.auth.signInWithOtp({email:me.email,options:{emailRedirectTo:location.origin+'/wallet/',shouldCreateUser:false,captchaToken:ct}});
     if(error)throw error;
     b.classList.remove('err');b.textContent='We sent a link to your Gmail. Open it, then pick a new PIN in your wallet. No email? Use Google instead.';
   }catch(e){b.textContent=e.message||'Could not send the email. Use Google instead.';b.classList.add('err');}
