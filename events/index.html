@@ -173,6 +173,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 <footer>JD Esports Arena · AyerFire</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
+<script src="/roster.js?v=1"></script>
 <script>
 /* Past events: finished/cancelled entries from tournaments.json (the newer of the Pages
    file and the live site_content copy, same rule as the homepage), plus any older event
@@ -241,7 +242,7 @@ async function load(){
   const list=document.getElementById('pe-list');
   const [doc,roster,totals]=await Promise.all([
     getDoc().catch(()=>null),
-    sb?sb.rpc('get_public_roster').then(r=>r.data||[],()=>[]):[],
+    sb?jdRoster(sb).then(r=>r.data||[],()=>[]):[],
     sb?sb.rpc('get_arena_totals').then(r=>r.data||[],()=>[]):[]
   ]);
   const squads=new Map();
@@ -431,7 +432,7 @@ function renderEvents(){
   if(html!==evLast){evLast=html;document.getElementById('ev-list').innerHTML=html;}
 }
 async function refreshEvents(){
-  const [doc,roster,session]=await Promise.all([getDoc().catch(()=>null),sb?sb.rpc('get_public_roster').then(r=>r.data||[],()=>null):null,sb?sb.auth.getSession().then(r=>r.data.session,()=>null):null]);
+  const [doc,roster,session]=await Promise.all([getDoc().catch(()=>null),sb?jdRoster(sb).then(r=>r.data||[],()=>null):null,sb?sb.auth.getSession().then(r=>r.data.session,()=>null):null]);
   if(doc)evDoc=doc;
   if(roster){const c=new Map();roster.forEach(r=>c.set(r.tournament_slug,(c.get(r.tournament_slug)||0)+1));evCounts=c;}
   if(session){const {data}=await sb.from('registrations').select('tournament_slug,status').eq('player_id',session.user.id);

@@ -717,6 +717,7 @@ h2[id]{scroll-margin-top:64px}
 
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
+<script src="/roster.js?v=1"></script>
 <script>
 /* ── one passcode, not two ── typing anything here just saves it as the admin passcode
    and opens the editor; there's nothing to check it against client-side (this file is
@@ -990,7 +991,7 @@ function startFieldsFromLocal(value){
 let _liveCounts=new Map(); // tournament name -> real confirmed+approved registration count, from get_public_roster()
 async function loadLiveCounts(){
   if(!sb)return;
-  const {data:rows,error}=await sb.rpc('get_public_roster');
+  const {data:rows,error}=await jdRoster(sb);
   if(error)return;
   _liveCounts=new Map();
   for(const r of rows||[])_liveCounts.set(r.tournament_slug,(_liveCounts.get(r.tournament_slug)||0)+1);
@@ -1499,7 +1500,7 @@ async function loadSquadsFromRoster(ti){
   const t=data.tournaments[ti];if(!t)return;
   if(!sb){msg('Supabase isn\'t configured on this deploy — nothing to load.','err');return;}
   msg('Loading live roster…','');
-  const {data:rows,error}=await sb.rpc('get_public_roster');
+  const {data:rows,error}=await jdRoster(sb);
   if(error){msg('Could not load live roster: '+error.message,'err');return;}
   const roster=(rows||[]).filter(r=>r.tournament_slug===t.name).map(r=>({name:r.squad_name||'Squad',logo:r.squad_logo||''}));
   const existing=new Map((t.teams||[]).map(x=>[x.name,x]));
@@ -1633,7 +1634,7 @@ async function loadBo3Roster(){
   let roster=null;
   if(sb){
     bo3Msg('Loading live roster…');
-    const {data:rows,error}=await sb.rpc('get_public_roster');
+    const {data:rows,error}=await jdRoster(sb);
     if(!error)roster=(rows||[]).filter(r=>r.tournament_slug===tname).map(r=>({name:r.squad_name||'Squad',logo:r.squad_logo||''}));
   }
   if(roster===null)roster=t.teams||[]; // Supabase unavailable — fall back to the JSON field

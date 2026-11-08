@@ -425,6 +425,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 <footer>JD Esports Arena · AyerFire</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.min.js"></script>
+<script src="/roster.js?v=1"></script>
 <script>
 const TOURNAMENTS_URL='https://jdesport.co.uk/tournaments.json';
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
@@ -1323,7 +1324,7 @@ let _rosterAt=0;
 async function loadRoster(){
   if(!sb||Date.now()-_rosterAt<60000)return;
   _rosterAt=Date.now();
-  try{const {data,error}=await sb.rpc('get_public_roster');if(!error&&data){_roster=data;if(_season)renderSeason();if(_cs)renderClash();}}catch(e){}
+  try{const {data,error}=await jdRoster(sb);if(!error&&data){_roster=data;if(_season)renderSeason();if(_cs)renderClash();}}catch(e){}
 }
 function load(){
   const bust='v='+Math.floor(Date.now()/20000);

@@ -573,7 +573,7 @@ async function loadPublicRoster(poll){
     if(!v.error&&v.data===_rosterVer)return;
     if(!v.error)_rosterVer=v.data;
   }
-  const [{data,error},tot,st,ver]=await Promise.all([sb.rpc('get_public_roster'),sb.rpc('get_arena_totals'),sb.rpc('get_arena_stats'),poll?null:sb.rpc('public_roster_version')]);
+  const [{data,error},tot,st,ver]=await Promise.all([jdRoster(sb),sb.rpc('get_arena_totals'),sb.rpc('get_arena_stats'),poll?null:sb.rpc('public_roster_version')]);
   if(ver&&!ver.error)_rosterVer=ver.data;
   if(!st.error&&st.data&&st.data[0])_arenaStats=st.data[0];
   if(!tot.error&&tot.data)_allTime=new Map(tot.data.map(r=>[r.tournament_slug,r.squads||0]));
