@@ -696,8 +696,8 @@
       "name": "JD Free Fire Open #21",
       "time": "9:30 PM NPT",
       "entry": "50 points",
-      "prize": "1000",
-      "slots": 24,
+      "prize": "500",
+      "slots": 12,
       "start": "2026-11-14T21:30:00+05:45",
       "teams": [],
       "format": "BR · Best of 3",
@@ -708,23 +708,24 @@
       "platform_mode": "mobile"
     },
     {
-      "name": "@bs.gaming Bs gaming",
-      "game": "Free Fire BR · Squad",
+      "map": "bermuda",
       "date": "Mon, Nov 9",
+      "game": "Free Fire BR · Squad",
+      "host": "bs.gaming",
+      "name": "@bs.gaming Bs gaming",
       "time": "8:00 PM NPT",
-      "start": "2026-11-09T20:00:00+05:45",
-      "status": "upcoming",
-      "prize": "10",
       "entry": "Free",
+      "prize": "180",
+      "slots": 12,
+      "start": "2026-11-09T20:00:00+05:45",
+      "teams": [],
+      "format": "BR · Best of 3",
+      "status": "upcoming",
+      "winner": "",
       "platform": "Mobile only",
       "platform_mode": "mobile",
-      "slots": 12,
-      "format": "BR · 2 matches",
-      "map": "bermuda",
-      "host": "bs.gaming",
-      "winner": "",
-      "teams": []
+      "mode": "squad"
     }
   ],
-  "_published_at": "2026-11-07T18:22:53.045Z"
+  "_published_at": "2026-11-08T09:54:56.850Z"
 }
