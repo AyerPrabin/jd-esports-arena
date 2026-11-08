@@ -6,6 +6,24 @@
     "kill_pts": 1,
     "teams": [
       {
+        "team": "Ancient Ogs 1",
+        "logo": "",
+        "r": [
+          {
+            "kills": 16,
+            "pts": 9
+          },
+          {
+            "kills": 4,
+            "pts": 9
+          },
+          {
+            "kills": 19,
+            "pts": 12
+          }
+        ]
+      },
+      {
         "team": "CRZ ESPORTS",
         "logo": "",
         "r": [
@@ -20,24 +38,6 @@
           {
             "kills": 12,
             "pts": 6
-          }
-        ]
-      },
-      {
-        "team": "Ancient Ogs 1",
-        "logo": "",
-        "r": [
-          {
-            "kills": 16,
-            "pts": 9
-          },
-          {
-            "kills": 3,
-            "pts": 9
-          },
-          {
-            "kills": 19,
-            "pts": 12
           }
         ]
       },
@@ -698,5 +698,5 @@
       "platform_mode": "mobile"
     }
   ],
-  "_published_at": "2026-11-08T19:25:17.188Z"
+  "_published_at": "2026-11-08T19:33:07.759Z"
 }
