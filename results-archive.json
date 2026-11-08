@@ -10,142 +10,23 @@
     "bermuda"
    ],
    "prize": "180",
-   "winner": "CRZ ESPORTS",
+   "winner": "Ancient Ogs 1",
    "kill_pts": 1,
    "teams": [
-    {
-     "team": "CRZ ESPORTS",
-     "r": [
-      {
-       "kills": 12,
-       "pts": 12
-      },
-      {
-       "kills": 14,
-       "pts": 12
-      },
-      {
-       "kills": 12,
-       "pts": 6
-      }
-     ]
-    },
     {
      "team": "Ancient Ogs 1",
      "r": [
       {
-       "kills": 16,
-       "pts": 9
-      },
-      {
-       "kills": 3,
-       "pts": 9
-      },
-      {
-       "kills": 19,
+       "kills": 5,
        "pts": 12
-      }
-     ]
-    },
-    {
-     "team": "DAMAN ESP",
-     "r": [
-      {
-       "kills": 2,
-       "pts": 7
-      },
-      {
-       "kills": 11,
-       "pts": 5
-      },
-      {
-       "kills": 9,
-       "pts": 8
-      }
-     ]
-    },
-    {
-     "team": "Ancient Ogs 2",
-     "r": [
-      {
-       "kills": 7,
-       "pts": 8
-      },
-      {
-       "kills": 0,
-       "pts": 0
       },
       {
        "kills": 5,
-       "pts": 9
-      }
-     ]
-    },
-    {
-     "team": "PRIME FORCE",
-     "r": [
-      {
-       "kills": 6,
-       "pts": 5
+       "pts": 12
       },
       {
-       "kills": 2,
-       "pts": 8
-      },
-      {
-       "kills": 2,
-       "pts": 5
-      }
-     ]
-    },
-    {
-     "team": "MALVORAK",
-     "r": [
-      {
-       "kills": 0,
-       "pts": 3
-      },
-      {
-       "kills": 4,
-       "pts": 6
-      },
-      {
-       "kills": 3,
-       "pts": 7
-      }
-     ]
-    },
-    {
-     "team": "Raila gang",
-     "r": [
-      {
-       "kills": 0,
-       "pts": 4
-      },
-      {
-       "kills": 3,
-       "pts": 7
-      },
-      {
-       "kills": 0,
-       "pts": 0
-      }
-     ]
-    },
-    {
-     "team": "Genz eSports",
-     "r": [
-      {
-       "kills": 7,
-       "pts": 6
-      },
-      {
-       "kills": 0,
-       "pts": 0
-      },
-      {
-       "kills": 0,
-       "pts": 0
+       "kills": 5,
+       "pts": 12
       }
      ]
     }
