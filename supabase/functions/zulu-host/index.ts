@@ -17,6 +17,7 @@ const GLOBAL_DAILY = 200;
 const GEMINI_MODELS = (Deno.env.get('ZULU_CHAT_GEMINI_MODELS') || 'gemini-flash-lite-latest,gemini-flash-latest,gemini-2.5-flash-lite')
   .split(',').map((m) => m.trim()).filter(Boolean);
 const FLAG = /\[FLAG\]/gi;
+const exact = (v: unknown) => String(v ?? '').replace(/[\\%_]/g, '\\$&');   // ilike without wildcards: an _ in an email must not match any letter
 
 const rules = (h: string, name: string) => `
 
@@ -55,7 +56,7 @@ Deno.serve(async (req: Request) => {
 });
 
 async function answer(db: any, pid: string, h: string, day: Date, used: number, ids: number[]): Promise<boolean> {
-  const { data: host } = await db.from('moderators').select('email, display_name, zulu_on').eq('role', 'host').ilike('handle', h).maybeSingle();
+  const { data: host } = await db.from('moderators').select('email, display_name, zulu_on').eq('role', 'host').ilike('handle', exact(h)).limit(1).maybeSingle();
   if (!host?.zulu_on) return false;                                                   // turned off since the message
   const { data: hist } = await db.from('host_messages').select('id, from_staff, body, created_at')
     .eq('player_id', pid).eq('host_handle', h).order('id', { ascending: false }).limit(14);
@@ -63,7 +64,7 @@ async function answer(db: any, pid: string, h: string, day: Date, used: number, 
   const last = msgs[msgs.length - 1];
   if (!last || last.from_staff || !ids.includes(last.id)) return false;               // answered, or a newer message has its own worker
   const isZulu = (m: any) => m.from_staff && String(m.body).startsWith(TAG);
-  const { data: who } = await db.from('players').select('id').ilike('email', host.email).maybeSingle();
+  const { data: who } = await db.from('players').select('id').ilike('email', exact(host.email)).limit(1).maybeSingle();
   const { data: pl } = await db.from('players').select('username').eq('id', pid).maybeSingle();
   const ping = (title: string) => who ? db.from('notifications').insert({ player_id: who.id, push: true, title,
     body: `@${pl?.username || 'A player'} wrote to you. Open the Mod panel, then Chats.` }) : Promise.resolve();
@@ -79,7 +80,7 @@ async function answer(db: any, pid: string, h: string, day: Date, used: number, 
   if (lastHost && Date.now() - new Date(lastHost.created_at).getTime() < HOST_HOLD_MS) { await ping('[JD] New message in your host chat'); return false; }
 
   const { count: mine } = await db.from('host_messages').select('id', { count: 'exact', head: true })
-    .eq('player_id', pid).eq('host_handle', h).eq('from_staff', true).like('body', TAG + '%').gte('created_at', day.toISOString());
+    .eq('player_id', pid).eq('from_staff', true).like('body', TAG + '%').gte('created_at', day.toISOString());   // across every host
   if ((mine ?? 0) >= PER_PLAYER_DAILY || used >= GLOBAL_DAILY) {
     if (!msgs.some((m: any) => isZulu(m) && /host will reply/.test(m.body))) { await say(`Thanks! @${h} will reply here soon.`); await ping('[JD] A player is waiting in your host chat'); }
     return false;

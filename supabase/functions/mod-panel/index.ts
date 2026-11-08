@@ -731,7 +731,7 @@ Deno.serve(async (req: Request) => {
       .eq('tournament_slug', slug).in('status', ['confirmed', 'approved']).order('slot_key');
     const squads = [...new Set((regs || []).map((r: any) => String(r.squad_name || '').trim()).filter(Boolean))];
     // rule 10 (rules page): the owner plays for fun and never takes prize money; prize places move down past their squad
-    const { data: ownerPl } = await admin.from('players').select('id').ilike('email', OWNER_EMAIL).maybeSingle();
+    const { data: ownerPl } = await admin.from('players').select('id').ilike('email', OWNER_EMAIL.replace(/[\\%_]/g, '\\$&')).limit(1).maybeSingle();
     const ownerSquads = (regs || []).filter((r: any) => ownerPl && r.player_id === ownerPl.id)
       .map((r: any) => String(r.squad_name || '').trim().toLowerCase().replace(/\s+/g, ' ')).filter(Boolean);
     const board = doc?.bo3?.tournament === slug ? doc.bo3 : null;
