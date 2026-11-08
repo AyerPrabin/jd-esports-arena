@@ -88,7 +88,9 @@ ol{margin:14px 0 0;padding-left:20px;color:#dfe4ee;font-size:.9rem;display:grid;
 
   <section class="card" id="iphone">
     <h2>🍎 iPhone / iPad</h2>
-    <p class="meta">No download needed</p>
+    <p class="meta">No download needed: the web version installs on your home screen</p>
+    <button type="button" class="btn" id="ios-btn">📲 Install JD Arena on iPhone</button>
+    <p class="note" id="ios-hint" hidden style="color:var(--gold-l);font-weight:700">👇 Now tap Safari's <b>Share</b> button ⬆ in the bar at the bottom (on newer iPhones tap <b>•••</b> first), then <b>Add to Home Screen</b> ➕ and <b>Add</b>. Done: JD Arena opens from your home screen like an app.</p>
     <ol>
       <li>Open <b>jdesport.co.uk</b> in Safari.</li>
       <li>Tap the <b>Share</b> icon (square with an arrow ↑). On newer iPhones tap <b>•••</b> first, then <b>Share</b>.</li>
@@ -116,6 +118,19 @@ if(ios){const a=document.getElementById('android'),i=document.getElementById('ip
 else if(!inApp&&/Android/i.test(navigator.userAgent)&&/[?&]get=1/.test(location.search)){
   fetch('/download/android.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{location.href=d.url;}).catch(()=>{location.href=document.getElementById('apk-btn').href;});
 }
+/* install the web version: iPhone shows exactly where Safari's Add to Home Screen is (no site can do it for you),
+   Chrome on Android/PC shows its own install prompt; already installed = nothing to do */
+let installEv=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEv=e;});
+(()=>{const b=document.getElementById('ios-btn'),h=document.getElementById('ios-hint');if(!b)return;
+  if(!ios)b.textContent='📲 Install the web version';
+  if(matchMedia('(display-mode: standalone)').matches||navigator.standalone){b.textContent='✓ JD Arena is installed on this phone';b.disabled=true;return;}
+  b.onclick=async()=>{
+    if(installEv){installEv.prompt();installEv=null;return;}
+    h.hidden=false;
+    if(ios&&(!/Safari/.test(navigator.userAgent)||/CriOS|FxiOS|Instagram|FBAN|TikTok|musical_ly/.test(navigator.userAgent)))h.innerHTML='Open <b>jdesport.co.uk</b> in <b>Safari</b> first (other apps cannot add it), then tap <b>Share</b> ⬆ → <b>Add to Home Screen</b> ➕.';
+    h.scrollIntoView({block:'nearest',behavior:'smooth'});
+  };
+})();
 </script>
 </body>
 </html>
