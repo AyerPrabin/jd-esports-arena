@@ -176,8 +176,8 @@ input[type=text]:focus{border-color:var(--gold)}
 @media(max-width:380px){.qa a{font-size:.66rem}.ring{width:80px;height:80px}.ring div{width:62px;height:62px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
-<link rel="stylesheet" href="/ui.css?v=26">
-<link rel="stylesheet" href="/broadcast.css?v=5">
+<link rel="stylesheet" href="/ui.css?v=28">
+<link rel="stylesheet" href="/broadcast.css?v=7">
 </head>
 <body class="pg-profile">
 <div class="wrap">
@@ -380,7 +380,6 @@ async function loadProfile(){
 }
 function renderProfile(p){
   $('uname').textContent=me.username?'@'+me.username:'Player';
-  if(p&&p.app_installed_at&&!$('app-badge')){const ab=document.createElement('span');ab.id='app-badge';ab.title='JD Arena app user';ab.textContent=' 📱';$('uname').after(ab);}
   $('ptag').textContent=me.ff_uid?'🎮 '+(me.ff_name?me.ff_name+' · ':'')+'UID '+me.ff_uid:'';$('ptag').hidden=!me.ff_uid;   // Free Fire details (no player tag)
   $('pver').innerHTML=me.verified?'<span class="badge ok">✓ Verified</span>':'';
   $('pemail').textContent=me.email||'';
@@ -618,8 +617,8 @@ $('ref-save').onclick=async()=>{
   setInterval(()=>{if(!document.hidden)loadWallet();},60000);
 })();
 </script>
-<script src="/ui.js?v=28" defer></script>
-<script src="/chat.js?v=41" defer></script>
+<script src="/ui.js?v=29" defer></script>
+<script src="/chat.js?v=42" defer></script>
 <script src="/avcrop.js?v=1"></script>
 </body>
 </html>
