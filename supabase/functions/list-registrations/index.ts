@@ -25,6 +25,12 @@ Deno.serve(async (req: Request) => {
   if (!tournament_slug) return new Response('tournament_slug is required', { status: 400, headers: CORS_HEADERS });
 
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+  // ?lite=1: the admin dashboard only counts statuses, so no logos or screenshots (was ~540 KB a load, 8 Nov 2026)
+  if (url.searchParams.get('lite') === '1') {
+    const { data, error } = await supabase.from('registrations').select('status, verified_at').eq('tournament_slug', tournament_slug);
+    if (error) return new Response(error.message, { status: 500, headers: CORS_HEADERS });
+    return new Response(JSON.stringify(data || []), { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
+  }
   let q = supabase
     .from('registrations')
     .select('id, squad_name, squad_logo, status, payment_screenshot, device_type, checked_in_at, verified_at, lineup, lineup_at, created_at, whatsapp, players(player_tag, username, email, squad_logo, squad_name)')

@@ -1775,7 +1775,7 @@ async function loadDashboard(){
   _dashBusy=true;
   const open=data.tournaments.filter(t=>!['completed','cancelled'].includes(String(t.status||'upcoming').toLowerCase()));
   try{
-    const per=await Promise.all(open.map(t=>fetch(EDGE_FN_BASE+'/list-registrations?tournament_slug='+encodeURIComponent(t.name),{headers:{'x-admin-secret':secret}}).then(r=>r.ok?r.json():[]).then(rows=>({t,rows})).catch(()=>({t,rows:[]}))));
+    const per=await Promise.all(open.map(t=>fetch(EDGE_FN_BASE+'/list-registrations?tournament_slug='+encodeURIComponent(t.name)+'&lite=1',{headers:{'x-admin-secret':secret}}).then(r=>r.ok?r.json():[]).then(rows=>({t,rows})).catch(()=>({t,rows:[]}))));
     const reports=await fetch(EDGE_FN_BASE+'/list-reports?status=pending',{headers:{'x-admin-secret':secret}}).then(r=>r.ok?r.json():[]).catch(()=>[]);
     let active=0,slots=0,pending=0,unver=0,wait=0,firstPending='',firstUnver='';
     for(const {t,rows} of per){
