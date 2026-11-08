@@ -212,7 +212,7 @@
       '<div class="dm-tabs" role="tablist">' +
         ['all', 'friends', 'squads', 'matches', 'requests'].map(function (k, i) {
           return '<button type="button" role="tab" data-t="' + k + '" aria-selected="' + (i ? 'false' : 'true') + '">' + T(k) + '<b id="dm-tb-' + k + '" hidden></b></button>';
-        }).join('') + '</div>' +
+        }).join('') + '<button type="button" role="tab" data-t="official" aria-selected="false" hidden>As JD Esports<b id="dm-tb-official" hidden></b></button></div>' +
       '<div class="dm-list" id="dm-list" data-ptr="chat"></div>' +
       '<div class="dm-mytag" id="dm-mytag" hidden></div>' +
     '</div>' +
@@ -326,6 +326,7 @@
       try { caches.delete('jd-chat-media'); } catch (e) {}
       for (var k in mediaUrl) { try { URL.revokeObjectURL(mediaUrl[k]); } catch (e) {} delete mediaUrl[k]; }
     }
+    STAFF = false; staffInbox = null; staffAt = 0; var ofb = panel.querySelector('.dm-tabs [data-t="official"]'); if (ofb) ofb.hidden = true; if (tab === 'official') tab = 'all';
     me = id; polled = false; lastAt = 0; ov = null; th = null; cur = null; msgs = []; myCard = null; cursor = null;
     badge = { dm: 0, g: 0, m: 0, requests: 0, z: 0, jd: 0, al: 0 }; jdLast = null; zn = []; znTop = null; zf = []; zfTop = null; setBadges();
     fab.hidden = !me || !!PAGE; if (navRow) navRow.hidden = !me;
@@ -335,6 +336,7 @@
     liveJd();
     if (!me) { close(true); return; }
     var uid = me;
+    staffCheck();
     LS.get(lk('inbox')).then(function (c) {
       if (uid !== me) return;
       if (c && !polled) {   // what this device knew last time - shown at once, then jd_sync fills in what changed
@@ -417,6 +419,7 @@
     if (!s0) return;
     applyZn(true);
     applyPoll(s0.dm || {}, s0.jd || {});
+    if (isOpen && tab === 'official') loadStaffInbox();
   }
   async function pollLegacy() {
     var r = await SB.rpc('dm_poll');
@@ -574,7 +577,7 @@
     else if (cur && !wide()) showHome(); else if (!PAGE) close();
   });
   panel.querySelectorAll('.dm-tabs button').forEach(function (b) {
-    b.onclick = function () { tab = b.dataset.t; renderOverview(); };
+    b.onclick = function () { tab = b.dataset.t; renderOverview(); if (tab === 'official') loadStaffInbox(true); };
   });
 
   // phones: keep the composer above the on-screen keyboard
@@ -695,6 +698,36 @@
   }
   // host chat (host_chat.sql): one chat per invited host, signed @handle, separate from JD Esports
   var hostChats = [];
+  /* JD officials answer players as JD Esports right here (owner's ask, 8 Nov 2026): the "As JD Esports" tab, only for the
+     owner and staff mods (mod-panel whoami, role 'staff'), never invited hosts. Same calls as the Mod panel's Chats. */
+  var STAFF = false, staffInbox = null, staffAt = 0;
+  async function staffCall(body) {
+    var r = await SB.functions.invoke('mod-panel', { body: body });
+    if (r.error) { var t = ''; try { t = await r.error.context.text(); } catch (e) {} throw new Error(t || r.error.message || 'Failed'); }
+    return r.data;
+  }
+  async function staffCheck() {
+    if (!me || STAFF) return;
+    var m = await SB.rpc('is_moderator'); if (!m || !m.data) return;
+    try { var w = await staffCall({ action: 'whoami' }); STAFF = !!w && w.role !== 'host'; } catch (e) { STAFF = false; }
+    var b = panel.querySelector('.dm-tabs [data-t="official"]'); if (b) b.hidden = !STAFF;
+  }
+  async function loadStaffInbox(force) {
+    if (!STAFF || (!force && Date.now() - staffAt < 30000)) return;   // the inbox is heavy (players + photos): at most every 30 s
+    staffAt = Date.now();
+    try { staffInbox = await staffCall({ action: 'chat_inbox' }); } catch (e) { staffInbox = staffInbox || []; }
+    var n = (staffInbox || []).reduce(function (a, t) { return a + (t.unread ? 1 : 0); }, 0), tb = $('dm-tb-official');
+    if (tb) { tb.hidden = !n; tb.textContent = n > 9 ? '9+' : n; }
+    if (isOpen && tab === 'official' && !cur) renderOverview();
+  }
+  function staffRow(t) {
+    var pl = t.player || { id: t.player_id, name: 'Player' }, active = cur && cur.kind === 'staff' && cur.id === t.player_id ? ' active' : '';
+    var dot = t.unread ? '<span class="dm-dot">' + (t.unread > 9 ? '9+' : t.unread) + '</span>' : '';
+    var prev = (t.last_staff ? 'JD: ' : '') + (t.last || '');
+    return '<button type="button" class="dm-row' + (t.unread ? ' unread' : '') + active + '" data-k="staff" data-open="' + esc(t.player_id) + '">' +
+      avatar({ id: pl.id, username: String(pl.name || '').replace(/^@/, ''), logo: pl.avatar || pl.logo, online: pl.online }) +
+      '<span class="dm-mid"><span class="dm-name">' + esc(pl.name || 'Player') + (pl.squad ? ' <small>· ' + esc(pl.squad) + '</small>' : '') + '</span><span class="dm-prev"><span>' + esc(prev) + '</span><span>· ' + short(t.last_at) + '</span></span></span>' + dot + '</button>';
+  }
   function hostOf(h) { for (var i = 0; i < hostChats.length; i++) if (hostChats[i].handle === h) return hostChats[i]; return { handle: h }; }
   function hostName(h) { var t = hostOf(h); return t.name || '@' + h; }
   function hostAv(h, size) { var t = hostOf(h); return avatar({ id: 'host:' + h, username: t.name || h, avkey: t.photo && t.pid ? t.pid + '/host.jpg' : null }, size); }
@@ -731,6 +764,13 @@
     if (!ov) { list.innerHTML = '<div class="dm-skel"><i></i><i></i><i></i><i></i></div>'; return; }
     var h = '', q = filter.toLowerCase().replace(/^@/, '');
     var match = function (it) { return !q || String(it.search).toLowerCase().indexOf(q) >= 0; };
+    if (tab === 'official') {
+      if (!staffInbox) { list.innerHTML = '<div class="dm-skel"><i></i><i></i><i></i></div>'; return; }
+      var rowsO = staffInbox.filter(function (t) { var pl = t.player || {}; return !q || (String(pl.name || '') + ' ' + (pl.tag || '') + ' ' + (pl.squad || '')).toLowerCase().indexOf(q) >= 0; });
+      list.innerHTML = '<div class="dm-sec">Players\u2019 JD Esports chats · you reply as JD Esports ' + VERIFIED + '</div>' +
+        (rowsO.length ? rowsO.map(staffRow).join('') : '<div class="dm-empty"><b>No chats</b>Players who message JD Esports show up here.</div>');
+      return;
+    }
     if (tab === 'requests') {
       if (ov.incoming.length) h += '<div class="dm-sec">Friend requests</div>' + ov.incoming.map(function (p) {
         return '<div class="dm-row">' + avatar(p) + '<span class="dm-mid"><span class="dm-name">' + esc(nameOf(p)) + '</span><span class="dm-prev"><span>' + (p.squad ? esc(p.squad) + ' · ' : '') + short(p.at) + '</span></span></span>' +
@@ -805,6 +845,8 @@
     if (k === 'alerts') return openAlerts();
     if (k === 'jd') return openJd();
     if (k === 'host') return openThread({ kind: 'host', id: id, username: id });
+    if (k === 'staff') { var st0 = (staffInbox || []).find(function (t) { return t.player_id === id; }), pl0 = (st0 && st0.player) || {};
+      return openThread({ kind: 'staff', id: id, username: String(pl0.name || 'Player').replace(/^@/, ''), avatar: pl0.avatar, logo: pl0.logo, squad: pl0.squad }); }
     if (k === 'group') return openGroup(id);
     if (k === 'match') return openMatch(id);
     var f = ov && ov.friends.find(function (x) { return x.id === id; });
@@ -984,6 +1026,7 @@
     else if (p.kind === 'zulu') foot = composer(T('askZulu'), 500);
     else if (p.kind === 'jd') foot = composer(MERGED ? 'Message JD Esports · ZULU replies…' : 'Message the JD team…', 1000);
     else if (p.kind === 'host') foot = composer('Message @' + p.id + '…', 1000);
+    else if (p.kind === 'staff') foot = composer('Reply as JD Esports…', 1000);
     else if (p.kind === 'alerts') foot = '<div class="dm-locked">Alerts can\'t be answered. Questions? Message JD Esports or ask ZULU.</div>';
     else if (p.kind === 'match') foot = composer('Message… · @zulu asks AI', 300);
     else if (p.kind === 'group') foot = composer('Message… · @zulu asks AI', 500);
@@ -1124,6 +1167,7 @@
       av = jdAv('sm'); name = MERGED ? 'JD Esports · ZULU' : 'JD Esports';
       st = MERGED ? 'ZULU AI replies in seconds · JD team joins for big issues' : 'Official JD team · we reply here';
     }
+    else if (p.kind === 'staff') { av = avatar({ id: p.id, username: p.username, logo: p.avatar || p.logo }, 'sm'); name = '@' + p.username; st = 'You reply as JD Esports · the player sees the JD tick'; }
     else if (p.kind === 'host') { av = hostAv(p.id, 'sm'); name = hostName(p.id); st = (hostOf(p.id).name ? '@' + p.id + ' · ' : '') + 'Verified event host · invited by JD'; }
     else if (p.kind === 'alerts') { av = alAv('sm'); name = 'Alerts'; st = 'Room IDs, reminders and results'; }
     else { av = zuluAv('sm'); name = 'ZULU'; st = 'AI assistant · replies in seconds'; on = true; }
@@ -1140,6 +1184,16 @@
   var noAfter = {};
   async function fetchPage(p, before, after) {
     if (after && noAfter[p.kind]) after = null;
+    if (p.kind === 'staff') {   // the whole last 100 (mod-panel chat_thread also marks the player's messages read)
+      if (before) return { data: [] };
+      try {
+        var sd = await staffCall({ action: 'chat_thread', player_id: p.id });
+        return { data: (sd.messages || []).reverse().map(function (m) {
+          return { id: m.id, mine: !!m.staff, sender: m.staff ? me : p.id, kind: 'text', created_at: m.created_at, read_at: m.read_at,
+                   body: m.staff && m.by && m.by !== 'You' ? m.by + ': ' + m.body : m.body };
+        }) };
+      } catch (e) { return { error: e }; }
+    }
     var args = function (o) { if (before) o.p_before = before; if (after) o.p_after = after; return o; };
     if (p.kind === 'dm') {
       var r = await SB.rpc('dm_thread', args({ p_with: p.id }));
@@ -1208,6 +1262,7 @@
       else if (p.kind === 'group') { await SB.rpc('group_mark_read', { p_group: p.id }); poll(); }
       else if (p.kind === 'jd') { if (rows.some(function (m) { return !m.mine && !m.read_at; })) { await SB.rpc('jd_mark_read'); poll(); } }
       else if (p.kind === 'host') { if (rows.some(function (m) { return !m.mine && !m.read_at; })) { await SB.rpc('host_mark_read', { p_handle: p.id }); hostChats.forEach(function (t) { if (t.handle === p.id) t.unread = 0; }); } }
+      else if (p.kind === 'staff') { (staffInbox || []).forEach(function (t) { if (t.player_id === p.id) t.unread = 0; }); }   // chat_thread already marked them read
       else { await SB.rpc('challenge_mark_read', { p_id: p.id }); poll(); }
     }
   }
@@ -1590,6 +1645,7 @@
     else if (p.kind === 'group') r = await SB.rpc('send_group_message', { p_group: p.id, p_body: body, p_kind: kind || 'text' });
     else if (p.kind === 'jd') r = await SB.rpc('jd_send', { p_body: body });
     else if (p.kind === 'host') r = await SB.rpc('host_send', { p_handle: p.id, p_body: body });
+    else if (p.kind === 'staff') { try { r = { data: await staffCall({ action: 'chat_send', player_id: p.id, body: body }) }; } catch (e) { r = { error: e }; } staffAt = 0; }
     else r = await SB.rpc('send_challenge_message', { p_id: p.id, p_body: body });
     sending = false;
     if (cur !== p) return;
