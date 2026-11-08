@@ -3165,7 +3165,7 @@ setInterval(tick,1000);
    prefers-reduced-motion (handled purely in CSS there, so this observer just adds a class
    that a reduced-motion stylesheet rule already neutralizes) ── */
 if('IntersectionObserver' in window){
-  const io=new IntersectionObserver(entries=>{entries.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in-view');io.unobserve(en.target);}});},{threshold:.15});
+  const io=new IntersectionObserver(entries=>{entries.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in-view');io.unobserve(en.target);}});},{threshold:0,rootMargin:"0px 0px -10% 0px"});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 }else{
   document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in-view'));
