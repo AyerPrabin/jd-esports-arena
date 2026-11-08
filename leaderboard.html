@@ -1123,7 +1123,7 @@ async function rvFull(g){
   for(let i=0;i<3;i++){burstConfetti(innerWidth*(.25+.25*i),innerHeight*.3,120,true);await rvWait(600,g);}
 }
 function rvRun(fn){
-  const g=++RV.gen;RV.paused=false;$rv('rv').classList.remove('paused');$rv('rv-pause').innerHTML='<i class=ji-pause aria-hidden=true></i>';
+  const g=++RV.gen;RV.paused=false;$rv('rv').classList.remove('paused');$rv('rv-pause').textContent='';
   $rv('rv-champ').hidden=true;$rv('rv-card').hidden=true;
   fn(g).catch(()=>{/* stopped: another button, another event, or closed */});
 }
@@ -1147,7 +1147,7 @@ function rvClose(){
 $rv('rv-open').addEventListener('click',rvOpen);
 $rv('rv-close').addEventListener('click',rvClose);
 $rv('rv-sel').addEventListener('change',e=>rvPick(+e.target.value));
-$rv('rv-pause').addEventListener('click',()=>{RV.paused=!RV.paused;$rv('rv').classList.toggle('paused',RV.paused);$rv('rv-pause').innerHTML=RV.paused?'<i class=ji-play aria-hidden=true></i>':'<i class=ji-pause aria-hidden=true></i>';});
+$rv('rv-pause').addEventListener('click',()=>{RV.paused=!RV.paused;$rv('rv').classList.toggle('paused',RV.paused);$rv('rv-pause').textContent=RV.paused?'':'';});
 function rvSpeed(v){RV.speed=v;$rv('rv-spd').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.v===v));}
 $rv('rv-spd').addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b)return;rvSpeed(+b.dataset.v);try{localStorage.setItem('jd_rv_speed',b.dataset.v);}catch(x){}});
 try{const v=+localStorage.getItem('jd_rv_speed');if([0.5,1,2,3].includes(v))rvSpeed(v);}catch(x){}   // last speed this viewer picked

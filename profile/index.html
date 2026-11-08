@@ -381,7 +381,7 @@ async function loadProfile(){
 }
 function renderProfile(p){
   $('uname').textContent=me.username?'@'+me.username:'Player';
-  if(p&&p.app_installed_at&&!$('app-badge')){const ab=document.createElement('span');ab.id='app-badge';ab.title='JD Arena app user';ab.innerHTML='<i class=ji-phone aria-hidden=true></i>';$('uname').after(ab);}
+  if(p&&p.app_installed_at&&!$('app-badge')){const ab=document.createElement('span');ab.id='app-badge';ab.title='JD Arena app user';ab.textContent='';$('uname').after(ab);}
   $('ptag').textContent=me.ff_uid?''+(me.ff_name?me.ff_name+' · ':'')+'UID '+me.ff_uid:'';$('ptag').hidden=!me.ff_uid;   // Free Fire details (no player tag)
   $('pver').innerHTML=me.verified?'<span class="badge ok">✓ Verified</span>':'';
   $('pemail').textContent=me.email||'';
@@ -430,7 +430,7 @@ async function loadOptHistory(){
 }
 async function loadStats(){
   // daily check-in streak (daily_checkin.sql): badge only
-  sb.rpc('my_streak').then(({data})=>{ if(!data)return; $('s-streak').innerHTML=(+data.streak||0)+(data.streak?' <i class=ji-flame aria-hidden=true></i>':''); $('s-best').textContent=(data.best||0)+(data.best===1?' day':' days'); },()=>{});
+  sb.rpc('my_streak').then(({data})=>{ if(!data)return; $('s-streak').textContent=(data.streak||0)+(data.streak?'':''); $('s-best').textContent=(data.best||0)+(data.best===1?' day':' days'); },()=>{});
   if(!me.player_tag)return;
   const {data}=await sb.rpc('get_player_career_stats',{p_player_tag:me.player_tag});
   const s=(data&&data[0])||{};
