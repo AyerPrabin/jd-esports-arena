@@ -1,10 +1,10 @@
 {
-  "versionCode": 18,
-  "versionName": "2.1.1",
+  "versionCode": 19,
+  "versionName": "2.1.2",
   "minVersionCode": 13,
-  "url": "https://raw.githubusercontent.com/AyerPrabin/jd-esports-arena/master/download/jd-arena-2.1.1.apk",
-  "sha256": "58930fae778add7b0ba59e3b2cb3aec5e7a72f092be323d4b901690b3fd77b7d",
+  "url": "https://raw.githubusercontent.com/AyerPrabin/jd-esports-arena/master/download/jd-arena-2.1.2.apk",
+  "sha256": "00b48d25b3e8f33f88f55c70a4b2c75a095f1e31cce066e1b26bc806dbdb73b5",
   "size": 3638921,
-  "date": "2026-11-04",
-  "notes": "New FF Guide shortcut (long-press the app icon) with every Free Fire character, gun and pet. Plus: send result screenshots in challenge chats, gun and skill pictures in challenge settings, and your first game free."
+  "date": "2026-11-08",
+  "notes": "Fixes the black area that appeared while scrolling down the home page."
 }
