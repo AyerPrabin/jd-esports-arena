@@ -1,6 +1,208 @@
 {
  "events": [
   {
+   "name": "JD Free Fire Open #17",
+   "date": "Mon, Nov 9",
+   "start": "2026-11-09T21:30:00+05:45",
+   "maps": [
+    "solara",
+    "purgatory",
+    "kalahari"
+   ],
+   "prize": "180",
+   "winner": "Youtz Esp",
+   "kill_pts": 1,
+   "teams": [
+    {
+     "team": "Youtz Esp",
+     "r": [
+      {
+       "kills": 16,
+       "pts": 7
+      },
+      {
+       "kills": 16,
+       "pts": 12
+      },
+      {
+       "kills": 16,
+       "pts": 12
+      }
+     ]
+    },
+    {
+     "team": "DAMAN ESP",
+     "r": [
+      {
+       "kills": 13,
+       "pts": 12
+      },
+      {
+       "kills": 10,
+       "pts": 5
+      },
+      {
+       "kills": 7,
+       "pts": 9
+      }
+     ]
+    },
+    {
+     "team": "CRZ ESPORTS",
+     "r": [
+      {
+       "kills": 12,
+       "pts": 6
+      },
+      {
+       "kills": 1,
+       "pts": 7
+      },
+      {
+       "kills": 9,
+       "pts": 6
+      }
+     ]
+    },
+    {
+     "team": "Ancient Ogs 1",
+     "r": [
+      {
+       "kills": 7,
+       "pts": 9
+      },
+      {
+       "kills": 8,
+       "pts": 9
+      },
+      {
+       "kills": 2,
+       "pts": 3
+      }
+     ]
+    },
+    {
+     "team": "Zx jod",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 11,
+       "pts": 6
+      },
+      {
+       "kills": 5,
+       "pts": 8
+      }
+     ]
+    },
+    {
+     "team": "Genz eSports",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 19,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "T1h esp",
+     "r": [
+      {
+       "kills": 3,
+       "pts": 4
+      },
+      {
+       "kills": 7,
+       "pts": 3
+      },
+      {
+       "kills": 2,
+       "pts": 5
+      }
+     ]
+    },
+    {
+     "team": "xiingu Esports",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 5
+      },
+      {
+       "kills": 3,
+       "pts": 8
+      },
+      {
+       "kills": 0,
+       "pts": 2
+      }
+     ]
+    },
+    {
+     "team": "Goli eSports",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 1,
+       "pts": 2
+      },
+      {
+       "kills": 1,
+       "pts": 4
+      }
+     ]
+    },
+    {
+     "team": "Durga",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Gym_boys",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
    "name": "JD Free Fire Open #18",
    "date": "Sun, Nov 8",
    "start": "2026-11-08T21:30:00+05:45",
