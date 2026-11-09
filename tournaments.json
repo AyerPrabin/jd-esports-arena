@@ -1,155 +1,155 @@
 {
   "bo3": {
-    "tournament": "JD Free Fire Open #18",
-    "title": "JD Free Fire Open #18 – Standings",
-    "published": true,
-    "kill_pts": 1,
     "teams": [
       {
-        "team": "Ancient Ogs 1",
-        "logo": "",
         "r": [
           {
-            "kills": 16,
-            "pts": 9
+            "pts": 9,
+            "kills": 16
           },
           {
-            "kills": 4,
-            "pts": 9
+            "pts": 9,
+            "kills": 4
           },
           {
-            "kills": 19,
-            "pts": 12
+            "pts": 12,
+            "kills": 19
           }
-        ]
+        ],
+        "logo": "",
+        "team": "Ancient Ogs 1"
       },
       {
-        "team": "CRZ ESPORTS",
-        "logo": "",
         "r": [
           {
-            "kills": 12,
-            "pts": 12
+            "pts": 12,
+            "kills": 12
           },
           {
-            "kills": 14,
-            "pts": 12
+            "pts": 12,
+            "kills": 14
           },
           {
-            "kills": 12,
-            "pts": 6
+            "pts": 6,
+            "kills": 12
           }
-        ]
+        ],
+        "logo": "",
+        "team": "CRZ ESPORTS"
       },
       {
-        "team": "DAMAN ESP",
-        "logo": "",
         "r": [
           {
-            "kills": 2,
-            "pts": 7
+            "pts": 7,
+            "kills": 2
           },
           {
-            "kills": 11,
-            "pts": 5
+            "pts": 5,
+            "kills": 11
           },
           {
-            "kills": 9,
-            "pts": 8
+            "pts": 8,
+            "kills": 9
           }
-        ]
+        ],
+        "logo": "",
+        "team": "DAMAN ESP"
       },
       {
-        "team": "Ancient Ogs 2",
-        "logo": "",
         "r": [
           {
-            "kills": 7,
-            "pts": 8
+            "pts": 8,
+            "kills": 7
           },
           {
-            "kills": 0,
-            "pts": 0
+            "pts": 0,
+            "kills": 0
           },
           {
-            "kills": 5,
-            "pts": 9
+            "pts": 9,
+            "kills": 5
           }
-        ]
+        ],
+        "logo": "",
+        "team": "Ancient Ogs 2"
       },
       {
-        "team": "PRIME FORCE",
-        "logo": "",
         "r": [
           {
-            "kills": 6,
-            "pts": 5
+            "pts": 5,
+            "kills": 6
           },
           {
-            "kills": 2,
-            "pts": 8
+            "pts": 8,
+            "kills": 2
           },
           {
-            "kills": 2,
-            "pts": 5
+            "pts": 5,
+            "kills": 2
           }
-        ]
+        ],
+        "logo": "",
+        "team": "PRIME FORCE"
       },
       {
-        "team": "MALVORAK",
-        "logo": "",
         "r": [
           {
-            "kills": 0,
-            "pts": 3
+            "pts": 3,
+            "kills": 0
           },
           {
-            "kills": 4,
-            "pts": 6
+            "pts": 6,
+            "kills": 4
           },
           {
-            "kills": 3,
-            "pts": 7
+            "pts": 7,
+            "kills": 3
           }
-        ]
+        ],
+        "logo": "",
+        "team": "MALVORAK"
       },
       {
-        "team": "Genz eSports",
-        "logo": "",
         "r": [
           {
-            "kills": 7,
-            "pts": 6
+            "pts": 6,
+            "kills": 7
           },
           {
-            "kills": 0,
-            "pts": 0
+            "pts": 0,
+            "kills": 0
           },
           {
-            "kills": 0,
-            "pts": 0
+            "pts": 0,
+            "kills": 0
           }
-        ]
+        ],
+        "logo": "",
+        "team": "Genz eSports"
       },
       {
-        "team": "Raila gang",
-        "logo": "",
         "r": [
           {
-            "kills": 0,
-            "pts": 4
+            "pts": 4,
+            "kills": 0
           },
           {
-            "kills": 0,
-            "pts": 7
+            "pts": 7,
+            "kills": 0
           },
           {
-            "kills": 0,
-            "pts": 0
+            "pts": 0,
+            "kills": 0
           }
-        ]
+        ],
+        "logo": "",
+        "team": "Raila gang"
       }
-    ]
+    ],
+    "title": "JD Free Fire Open #18 – Standings",
+    "kill_pts": 1,
+    "published": true,
+    "tournament": "JD Free Fire Open #18"
   },
   "tagline": "JD Esports Arena · AyerFire",
   "tournaments": [
@@ -696,7 +696,26 @@
       "platform": "Mobile only",
       "registered": 0,
       "platform_mode": "mobile"
+    },
+    {
+      "name": "@bs.gaming Scrim #3",
+      "date": "Tue, Nov 10",
+      "time": "6:30 PM NPT",
+      "start": "2026-11-10T18:30:00+05:45",
+      "status": "upcoming",
+      "prize": "180",
+      "entry": "Free",
+      "platform": "Mobile only",
+      "platform_mode": "mobile",
+      "mode": "solo",
+      "game": "Free Fire BR · Solo",
+      "slots": 48,
+      "format": "BR · 1 match",
+      "map": "bermuda",
+      "host": "bs.gaming",
+      "winner": "",
+      "teams": []
     }
   ],
-  "_published_at": "2026-11-08T19:33:07.759Z"
+  "_published_at": "2026-11-09T05:37:18.103Z"
 }
