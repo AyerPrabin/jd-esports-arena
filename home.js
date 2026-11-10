@@ -1706,7 +1706,7 @@ async function claimInvite(){
   if(!code||!sb||!_player)return;
   try{localStorage.removeItem('jd_ref');}catch(e){}
   const {data,error}=await sb.rpc('set_referrer',{p_code:code});
-  if(!error&&data&&data.inviter)showMsg('Invite accepted',`You joined with ${data.inviter}'s invite. Save your Free Fire UID and play your first event: then they get a free entry card.`);
+  if(!error&&data&&data.inviter)showMsg('Invite accepted',`You joined with ${data.inviter}'s invite. Save your Free Fire UID and play an event you joined with 15 points: then they get a free entry card.`);
   else if(error&&!/already joined/i.test(error.message))showMsg('Invite code not used',error.message);
 }
 function refFieldHtml(){

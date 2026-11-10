@@ -295,7 +295,7 @@ input[type=text]:focus{border-color:var(--gold)}
         <p style="margin:0 0 10px;font-size:.84rem;color:var(--silver)">Share your code. When a friend you invited plays their first event, you get <b style="color:var(--gold-l)">a free entry card</b>. Invite up to 3 friends, so up to 3 free cards. No points, just cards.</p>
         <div class="squad"><span style="font-size:1.6rem">🤝</span><div><b id="ref-code">…</b><small id="ref-stats">Loading…</small></div></div>
         <div class="ref-bar" id="ref-bar" aria-hidden="true"><span></span><span></span><span></span></div>
-        <p class="ref-note">Your friend needs to save their own Free Fire UID and play one event with a confirmed squad. The card comes by itself.</p>
+        <p class="ref-note">Your friend saves their own Free Fire UID, then joins one event with 15 points (not a free card) and plays it. The card comes by itself.</p>
         <div class="row">
           <button class="btn wa" id="ref-wa" type="button">Send on WhatsApp</button>
           <button class="btn" id="ref-share" type="button">Share invite link</button>
@@ -618,7 +618,7 @@ $('ref-save').onclick=async()=>{
   if(!v){msg.className='msg err';msg.textContent='Enter your friend\'s invite code or username.';return;}
   const {data,error}=await sb.rpc('set_referrer',{p_code:v});
   if(error){msg.className='msg err';msg.textContent=error.message;return;}
-  msg.className='msg ok';msg.textContent=`Linked to ${data.inviter}. Save your Free Fire UID and play your first event: then they get a free entry card.`;
+  msg.className='msg ok';msg.textContent=`Linked to ${data.inviter}. Save your Free Fire UID and play an event you joined with 15 points: then they get a free entry card.`;
   loadInvite();
 };
 

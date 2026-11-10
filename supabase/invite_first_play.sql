@@ -2,9 +2,11 @@
 -- first event (was: only when their squad won its first prize, which almost never happened).
 -- Never points. Rules, all checked here:
 --   * the friend saved a Free Fire UID that no older account uses, and not the inviter's UID;
---   * the friend was in a confirmed squad that tapped "Confirm you're playing" (as captain, or by UID in the
---     verified line-up of a squad the inviter doesn't captain), the event started 2+ hours ago, still exists and isn't cancelled, and the squad
---     wasn't removed as a no-show;
+--   * the friend joined the event THEMSELVES and paid 15+ of their own points for it (not a free card), tapped
+--     "Confirm you're playing", the event started 2+ hours ago, still exists and isn't cancelled, and they
+--     weren't removed as a no-show. The 15 points are the anti-fake rule: a made-up account with a made-up
+--     UID would cost as much as the card it earns, so farming cards with fake friends gains nothing.
+--     (A UID in someone else's line-up is NOT proof: anyone can type any UID there.)
 --   * once per friend (referrals.bonus_paid_at), at most 3 friends per inviter (set_referrer already caps
 --     invites at 3; checked again here), inviter not banned.
 -- The old prize path (_award_one) still pays if a prize comes first: bonus_paid_at keeps it to one card.
@@ -34,7 +36,7 @@ begin
       and (select count(*) from public.referrals x where x.referrer_id = rf.referrer_id and x.bonus_paid_at is not null) < 3
       and exists (
         select 1 from public.registrations g
-        where (g.player_id = f.id or (g.player_id <> rf.referrer_id and g.lineup @> jsonb_build_array(jsonb_build_object('uid', trim(f.ff_uid)))))
+        where g.player_id = f.id and coalesce(g.paid_points, 0) >= 15
           and g.status in ('confirmed', 'approved') and g.checked_in_at is not null
           and public.tournament_start_at(g.tournament_slug) between f.created_at and now() - interval '2 hours'
           and exists (select 1 from public.site_content s, jsonb_array_elements(s.content->'tournaments') t
