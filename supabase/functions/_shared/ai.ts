@@ -164,6 +164,57 @@ export async function streamGemini(messages: AIMessage[], models: string[], onTe
   return null;
 }
 
+/**
+ * Streams from an OpenAI-compatible provider (Groq by default: the fastest first word). Same
+ * contract as streamGemini: onText gets each piece, a model that fails after sending text returns
+ * what it sent, null = nothing started (caller falls back). Only delta.content is sent; gpt-oss
+ * thinking arrives in delta.reasoning and is never shown.
+ */
+export async function streamOpenAICompat(name: string, messages: AIMessage[], onText: (t: string) => void, timeoutMs = 20000): Promise<{ text: string; model: string } | null> {
+  const cfg = OPENAI_COMPAT_PROVIDERS.find((p) => p.name === name);
+  const key = cfg && Deno.env.get(cfg.keyEnv);
+  if (!cfg || !key) return null;
+  for (const model of modelsFor(cfg.name, cfg.models)) {
+    const res = await post(cfg.base, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, messages, temperature: 0.6, max_tokens: 1024, stream: true, ...(/gpt-oss/.test(model) ? { reasoning_effort: 'low' } : {}) }),
+    }, timeoutMs);
+    if (!res || !res.ok || !res.body) {
+      if (res && !res.ok) {
+        lastAIError[model] = `${res.status}: ${(await res.text()).slice(0, 300)}`;
+        if (classify(res.status) === 'next-provider') return null;
+      }
+      continue;
+    }
+    let full = '';
+    try {
+      const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+      let buf = '';
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += value;
+        let nl: number;
+        while ((nl = buf.indexOf('\n')) >= 0) {
+          const line = buf.slice(0, nl).trim();
+          buf = buf.slice(nl + 1);
+          if (!line.startsWith('data:')) continue;
+          const d = line.slice(5).trim();
+          if (d === '[DONE]') continue;
+          const t = JSON.parse(d)?.choices?.[0]?.delta?.content;
+          if (typeof t === 'string' && t) { full += t; onText(t); }
+        }
+      }
+    } catch {
+      if (full.trim()) return { text: full.trim(), model };
+      continue;
+    }
+    if (full.trim()) return { text: full.trim(), model };
+  }
+  return null;
+}
+
 // Gemini's own native generateContent call (not its OpenAI-compat endpoint) -- this
 // request shape is the one already proven live in production.
 async function callGemini(model: string, key: string, messages: AIMessage[], inlineSystem = false, timeoutMs = TIMEOUT_MS, fast = false): Promise<Outcome> {

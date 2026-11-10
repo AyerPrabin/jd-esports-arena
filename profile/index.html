@@ -107,6 +107,12 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
 .squad .ph{display:grid;place-items:center;font-family:var(--display);font-size:1.8rem;color:var(--gold-l);background:rgba(255,200,61,.08)}
 .squad b{display:block;font-family:var(--display);font-size:1.5rem;line-height:1.1}
 .squad small{font-size:.74rem;color:var(--body)}
+/* invite progress: one bar per friend (max 3), green once that friend played */
+.ref-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0 4px}
+.ref-bar span{height:6px;border-radius:3px;background:rgba(255,255,255,.1)}
+.ref-bar .inv{background:rgba(255,200,61,.45)}.ref-bar .ok{background:#5EDB95}
+.ref-note{margin:0 0 10px;font-size:.74rem;color:var(--body)}
+#invite .btn.wa{background:#25D366;color:#06210f;border-color:#25D366;box-shadow:none}
 label.lbl{display:block;margin:12px 0 6px;font-size:.74rem;font-weight:600;color:var(--silver)}
 input[type=text]{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line-2);background:var(--bg-2);color:var(--cream);font-size:.92rem;outline:none}
 input[type=text]:focus{border-color:var(--gold)}
@@ -286,9 +292,12 @@ input[type=text]:focus{border-color:var(--gold)}
 
       <section class="card" id="invite">
         <h2>Invite friends</h2>
-        <p style="margin:0 0 10px;font-size:.84rem;color:var(--silver)">Share your code. When a friend you invited wins their first prize, you get <b style="color:var(--gold-l)">a free entry card</b>. Invite up to 3 friends, so up to 3 free cards.</p>
+        <p style="margin:0 0 10px;font-size:.84rem;color:var(--silver)">Share your code. When a friend you invited plays their first event, you get <b style="color:var(--gold-l)">a free entry card</b>. Invite up to 3 friends, so up to 3 free cards. No points, just cards.</p>
         <div class="squad"><span style="font-size:1.6rem">🤝</span><div><b id="ref-code">…</b><small id="ref-stats">Loading…</small></div></div>
+        <div class="ref-bar" id="ref-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+        <p class="ref-note">Your friend needs to save their own Free Fire UID and play one event with a confirmed squad. The card comes by itself.</p>
         <div class="row">
+          <button class="btn wa" id="ref-wa" type="button">Send on WhatsApp</button>
           <button class="btn" id="ref-share" type="button">Share invite link</button>
           <button class="btn ghost" id="ref-copy" type="button">Copy code</button>
         </div>
@@ -586,11 +595,18 @@ async function loadInvite(){
   if(!data)return;
   refCode=data.code||'';
   $('ref-code').textContent=refCode||'-';
-  $('ref-stats').textContent=`${data.invited||0} invited, ${data.won||0} won, ${data.cards||0} free card${data.cards===1?'':'s'} earned`+
+  const inv=Math.min(3,data.invited||0),played=Math.min(3,data.played??data.won??0);
+  $('ref-stats').textContent=`${inv} of 3 invited, ${played} played, ${data.cards||0} free card${data.cards===1?'':'s'} earned`+
     (data.inviter?`. You joined with ${data.inviter}'s code`:'');
+  $('ref-bar').querySelectorAll('span').forEach((b,i)=>b.className=i<played?'ok':i<inv?'inv':'');
   $('ref-enter').hidden=!data.can_enter;
 }
 const refLink=()=>'https://jdesport.co.uk/?ref='+encodeURIComponent(refCode);
+$('ref-wa').onclick=()=>{
+  if(!refCode)return;
+  const t=`Free Fire tournament khelna aau! JD Esports Arena ma join gara, mero invite code: ${refCode}. Yo link bata sign up gara: ${refLink()}`;
+  window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank','noopener');
+};
 $('ref-copy').onclick=async()=>{try{await navigator.clipboard.writeText(refCode);toast('Code copied');}catch(e){}};
 $('ref-share').onclick=async()=>{
   const text=`Join me on JD Esports Arena - Free Fire tournaments with real prizes. Use my invite code ${refCode} when you sign up.`;
@@ -602,7 +618,7 @@ $('ref-save').onclick=async()=>{
   if(!v){msg.className='msg err';msg.textContent='Enter your friend\'s invite code or username.';return;}
   const {data,error}=await sb.rpc('set_referrer',{p_code:v});
   if(error){msg.className='msg err';msg.textContent=error.message;return;}
-  msg.className='msg ok';msg.textContent=`Linked to ${data.inviter}. When your squad wins its first prize, they get a free entry card.`;
+  msg.className='msg ok';msg.textContent=`Linked to ${data.inviter}. Save your Free Fire UID and play your first event: then they get a free entry card.`;
   loadInvite();
 };
 
