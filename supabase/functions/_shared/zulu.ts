@@ -73,6 +73,36 @@ export async function teamAnswers(question: string, exclude?: string): Promise<s
   } catch { return ''; }
 }
 
+// Mode comes from the event itself (zulu_live_context: t.mode, else the "game" text). Never guess it.
+const modeOf = (t: any) => {
+  const m = String(t.mode || t.game || '').toLowerCase();
+  return m.includes('solo') ? 'solo' : m.includes('duo') ? 'duo' : m.includes('squad') ? 'squad' : 'unknown';
+};
+const unit = (t: any) => ({ solo: 'players', duo: 'duos', squad: 'squads' } as any)[modeOf(t)] || 'teams';
+const modeTxt = (t: any) => ({ solo: 'SOLO (1 player, no squad, no teammates, no line-up verify)', duo: 'DUO (2 players)', squad: 'SQUAD (4 players)' } as any)[modeOf(t)] || 'not in the data (tell them to check the event card)';
+const maps = (t: any) => [t.map, t.map2, t.map3].filter(Boolean).join(' / ');
+
+// "open 24", "#24", "scrim 3": the cheap chat model mixes event numbers up, so the event the player named is
+// found here and handed to it as a fact (called by zulu-ai-reply / zulu-auto with the player's message).
+export async function eventFocus(message: string): Promise<string> {
+  const asks = [...String(message || '').toLowerCase().matchAll(/(open|scrim|event|tournament|#)\s*#?\s*(\d{1,3})\b/g)].map((m) => ({ kind: m[1], n: m[2] }));
+  if (!asks.length) return '';
+  const nums = asks.map((a) => a.n);
+  const live = await liveContext().catch(() => null);
+  const tours: any[] = Array.isArray(live?.tournaments) ? live.tournaments : [];
+  // "scrim 3" must be a Scrim #3, "open 24" an Open #24; "#24" or "event 24" takes any name with #24
+  const hits = tours.filter((t) => {
+    const name = String(t.name || '').toLowerCase();
+    return asks.some((a) => new RegExp('#' + a.n + '(?!\\d)').test(name) && (!['open', 'scrim'].includes(a.kind) || name.includes(a.kind)));
+  }).map((t) => {
+    const ms = Date.parse(t.start);   // same rule as the event list: long past = finished, even if left "upcoming"
+    return (t.status || 'upcoming') === 'upcoming' && Number.isFinite(ms) && Date.now() - ms > 12 * 3600e3 ? { ...t, status: 'completed' } : t;
+  });
+  if (!hits.length) return `\nTHE PLAYER NAMED EVENT #${nums.join(', #')}: it is not in the live list (finished, removed or never made). Say so; never answer with another event's details.`;
+  return '\nTHE PLAYER IS ASKING ABOUT (answer about exactly this event, not the soonest one):\n' + hits.slice(0, 3).map((t) =>
+    `- ${t.name}: status=${t.status || 'upcoming'}, date=${t.date || 'TBA'}, time=${t.time || 'TBA'}, mode=${modeTxt(t)}, format=${t.format || 'BR'}${maps(t) ? ', maps=' + maps(t) : ''}, prize=${t.prize || '-'}, entry=${t.entry || 'Free'}${t.cancel_reason ? ', cancelled because: ' + t.cancel_reason : ''}`).join('\n');
+}
+
 export async function zuluSystemPrompt(lang: 'en' | 'ne'): Promise<string> {
   const live = await liveContext();
   // Real-time context: the broadcast announcements JD Arena recently pushed to players,
@@ -103,14 +133,6 @@ export async function zuluSystemPrompt(lang: 'en' | 'ne'): Promise<string> {
     return st;
   };
   const startMs = (t: any) => Date.parse(t.start) || Number.MAX_SAFE_INTEGER; // TBA dates last
-  // Mode comes from the event itself (zulu_live_context: t.mode, else the "game" text). Never guess it.
-  const modeOf = (t: any) => {
-    const m = String(t.mode || t.game || '').toLowerCase();
-    return m.includes('solo') ? 'solo' : m.includes('duo') ? 'duo' : m.includes('squad') ? 'squad' : 'unknown';
-  };
-  const unit = (t: any) => ({ solo: 'players', duo: 'duos', squad: 'squads' } as any)[modeOf(t)] || 'teams';
-  const modeTxt = (t: any) => ({ solo: 'SOLO (1 player, no squad, no teammates, no line-up verify)', duo: 'DUO (2 players)', squad: 'SQUAD (4 players)' } as any)[modeOf(t)] || 'not in the data (tell them to check the event card)';
-  const maps = (t: any) => [t.map, t.map2, t.map3].filter(Boolean).join(' / ');
   const seats = (t: any) => {
     const slots = parseInt(t.slots, 10);
     if (!Number.isFinite(slots) || t.confirmed == null) return `slots=${t.slots ?? '—'}`;

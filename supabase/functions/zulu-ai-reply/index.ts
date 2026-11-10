@@ -17,7 +17,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { askAI, lastAIError, streamGemini, streamOpenAICompat, type AIMessage } from '../_shared/ai.ts';
 import { kbFallback, kbPrompt, kbReplyLang, kbSmallTalk } from '../_shared/zulu_kb.ts';
-import { contextVersion, safeReply, teamAnswers, zuluSystemPrompt } from '../_shared/zulu.ts';
+import { contextVersion, eventFocus, safeReply, teamAnswers, zuluSystemPrompt } from '../_shared/zulu.ts';
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -142,6 +142,7 @@ Deno.serve(async (req: Request) => {
   // Built while the rate-limit checks run, not after them.
   const promptP = zuluSystemPrompt(lang);
   const learnedP = teamAnswers(message);   // how the JD team answered similar questions
+  const focusP = eventFocus(message);       // the exact event the player named ("open 24")
 
   const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
@@ -180,7 +181,7 @@ Deno.serve(async (req: Request) => {
   // the team's answers help but never hold a reply up
   const learned = await Promise.race([learnedP, new Promise<string>((r) => setTimeout(() => r(''), 500))]);
   const mine = [...history.filter((h) => h.role === 'user').map((h) => h.content), message];
-  const systemPrompt = (await promptP) + learned + kbPrompt(message) + (role ? ROLE_GUIDE[role] : '') + kbReplyLang(mine, lang);
+  const systemPrompt = (await promptP) + (await focusP) + learned + kbPrompt(message) + (role ? ROLE_GUIDE[role] : '') + kbReplyLang(mine, lang);
 
   const messages: AIMessage[] = [
     { role: 'system', content: systemPrompt + (account ? `

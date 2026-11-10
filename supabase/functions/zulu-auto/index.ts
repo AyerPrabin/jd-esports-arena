@@ -11,7 +11,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { askAI, lastAIError, type AIMessage } from '../_shared/ai.ts';
 import { kbFallback, kbPrompt, kbReplyLang, kbSmallTalk } from '../_shared/zulu_kb.ts';
-import { safeReply, teamAnswers, zuluSystemPrompt } from '../_shared/zulu.ts';
+import { eventFocus, safeReply, teamAnswers, zuluSystemPrompt } from '../_shared/zulu.ts';
 
 // owner, 8 Nov 2026 (was a 12-hour hold): a mod who replied in the last 10 minutes is "in the chat". A player
 // message then waits 2 minutes for that mod; if the mod has left, ZULU answers so nobody waits for hours.
@@ -180,7 +180,7 @@ async function answer(db: any, pid: string, day: Date, used: number, ids: number
   }
   if (turns[0]?.role === 'assistant') turns.unshift({ role: 'user', content: '(opened the JD Esports chat)' });
   const messages: AIMessage[] = [
-    { role: 'system', content: (await promptP) + (await learnedP) + kbPrompt(burst) + RULES + kbReplyLang(msgs.filter((m: any) => !m.from_staff).slice(-4).map((m: any) => String(m.body)), lang) },
+    { role: 'system', content: (await promptP) + (await eventFocus(burst)) + (await learnedP) + kbPrompt(burst) + RULES + kbReplyLang(msgs.filter((m: any) => !m.from_staff).slice(-4).map((m: any) => String(m.body)), lang) },
     { role: 'user', content: 'MY ACCOUNT (from the JD server):\n' + account + '\n\n' + style },
     { role: 'assistant', content: 'Got it.' },
     ...turns,
