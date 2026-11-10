@@ -921,7 +921,7 @@ Deno.serve(async (req: Request) => {
     // shown on the Events page under the cancelled card: plain text, no links or numbers
     const why = String(p.cancel_reason || '').replace(/\s+/g, ' ').trim().slice(0, 120);
     if (status === 'cancelled' && (why.length < 4 || !/^[\p{L}\p{N}\p{M} .,'!?()#:\-]*$/u.test(why) || /\p{Nd}{7,}/u.test(why)
-        || /(https?:|www\.|t\.me|wa\.me|\b[a-z0-9-]+\s?\.\s?(com|net|org|me|io|gg|site|xyz|np|uk|link|app|in)\b)/iu.test(why)))
+        || /(https?:|www\.|t\.me|wa\.me|\b[a-z0-9-]+\s?\.\s?(com|net|org|me|io|gg|site|xyz|np|uk|link|app|in|ly|co|tk|cc|to)\b)/iu.test(why)))
       return fail('Write why the event is cancelled (letters and numbers only, no links or phone numbers).');
     const startMs = Date.parse(start);
     if (!Number.isFinite(startMs)) return fail('Pick a day and a time.');
