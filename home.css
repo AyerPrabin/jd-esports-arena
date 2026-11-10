@@ -125,6 +125,8 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
   #main-content .feature-strip{display:none}
   /* event cards: the map pictures already name the maps; the partner-host note is kept to 2 lines */
   .tcard .tmeta .r-maps{display:none}
+  /* the stats row fades at the right edge so it reads as swipeable */
+  .arena-stats{-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 40px),transparent)}
   .tcard .thost-note{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 }
 /* section */
@@ -1367,3 +1369,12 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
   .ws-title{filter:none}
   *,*::before,*::after{mix-blend-mode:normal!important}
 }
+
+/* Join on the first (soonest) event card: a light sweep, the same signature effect as the Events page */
+#arena-grid .tcard:not(.past):first-child .inapp-reg{position:relative;overflow:hidden;isolation:isolate;box-shadow:0 6px 22px rgba(255,190,50,.3)}
+#arena-grid .tcard:not(.past):first-child .inapp-reg::after{content:'';position:absolute;inset:-40% auto -40% -60%;width:40%;z-index:-1;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.75),transparent);transform:skewX(-18deg);animation:jdSheen 3.4s ease-in-out 1s infinite}
+@keyframes jdSheen{0%,62%{left:-60%}100%{left:130%}}
+.inapp-reg{transition:transform .16s cubic-bezier(.2,.8,.3,1.2),filter .16s}
+.inapp-reg:active{transform:scale(.97);filter:brightness(.92)}
+@media (prefers-reduced-motion:reduce){#arena-grid .inapp-reg::after{animation:none}.inapp-reg:active{transform:none}}

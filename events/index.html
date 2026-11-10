@@ -151,7 +151,24 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
   .ev-top{grid-template-columns:56px minmax(0,1fr) auto;gap:10px}
   .ev-top .pe-img{width:56px;height:56px}
   .ev-name{font-size:1.06rem}
+  /* the right edge fades so the next tile peeks out: players can see the row swipes */
+  .mt{-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 44px),transparent)}
+  .ev-chips{-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 28px),transparent)}
 }
+/* touch feedback: a card or tile answers the tap */
+.ev-top,.mt-t,.ev-act{transition:transform .16s cubic-bezier(.2,.8,.3,1.2),filter .16s}
+.ev-top:active{transform:scale(.985)}
+.mt-t:active{transform:scale(.96)}
+.ev-act:active{transform:scale(.95);filter:brightness(.92)}
+/* the one signature effect: a light sweep across the next event's Join, and a warm glow on
+   seat bars with 3 or fewer seats left */
+.ev-hero .ev-act:not(.off){position:relative;overflow:hidden;isolation:isolate;box-shadow:0 6px 22px rgba(255,190,50,.32)}
+.ev-hero .ev-act:not(.off)::after{content:'';position:absolute;inset:-40% auto -40% -60%;width:45%;z-index:-1;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.75),transparent);transform:skewX(-18deg);animation:evSheen 3.4s ease-in-out 1s infinite}
+@keyframes evSheen{0%,62%{left:-60%}100%{left:130%}}
+.ev-seats:has(.hot) .ev-track i{background:linear-gradient(90deg,#FFB020,#FF7A2F);box-shadow:0 0 10px rgba(255,140,40,.7);animation:evEmber 1.8s ease-in-out infinite}
+@keyframes evEmber{50%{filter:brightness(1.25)}}
+@media (prefers-reduced-motion:reduce){.ev-hero .ev-act::after,.ev-seats .ev-track i{animation:none!important}.ev-top:active,.ev-act:active{transform:none}}
 .mt-t:active{transform:scale(.98)}
 @media (min-width:700px){.mt{grid-template-columns:repeat(4,1fr)}}
 @media (prefers-reduced-motion:reduce){.mt-t{transition:none}.mt-t:active{transform:none}}
