@@ -8,7 +8,9 @@
 --     needed to report.
 --   * After one side reports a WIN with its photo, the other side has 10 minutes to send theirs (Lost = pays out
 --     at once as before; Won too = dispute, a mod decides as before). No answer = the win stands (challenge_sweep,
---     now every minute). Claims made before this file (no photo) keep the old 2-hour rule.
+--     now every minute). Guards: the photo must be uploaded after the challenge was accepted, and a win claimed
+--     less than 10 min after accepting (too quick for a real match) goes to a mod instead (old 2-hour rule).
+--     Claims made before this file (no photo) keep the old 2-hour rule.
 -- Run: npx supabase db query --remote --yes -f supabase/challenge_result_shots.sql
 -- Undo: drop trigger challenge_false_claim on public.challenges; drop function public.challenge_unlock_pay();
 --       drop function public.report_challenge(uuid, text, text); run report_challenge from
@@ -35,11 +37,14 @@ begin
   if coalesce(v_uid, '') = '' then
     raise exception 'Save your Free Fire UID first (tap your name > Game UID & name), so the mod can match you in the screenshot.';
   end if;
-  select o.metadata->>'mimetype' into v_mime from storage.objects o where o.bucket_id = 'chat-media' and o.name = p_shot;
+  select * into c from public.challenges where id = p_id;
+  -- the photo must be taken for THIS match: uploaded after the challenge was accepted (no old Victory screens)
+  select o.metadata->>'mimetype' into v_mime from storage.objects o where o.bucket_id = 'chat-media' and o.name = p_shot
+    and c.accepted_at is not null and o.created_at >= c.accepted_at;
   if split_part(p_shot, '/', 1) <> auth.uid()::text or v_mime is null
      or exists(select 1 from public.challenge_messages where media = p_shot)
      or exists(select 1 from public.dm_messages where media = p_shot) then
-    raise exception 'Upload the screenshot first.';
+    raise exception 'Upload a screenshot of this match (taken after the challenge was accepted).';
   end if;
   if v_mime not like 'image/%' then raise exception 'The result must be a photo or screenshot.'; end if;
   select * into c from public.challenges where id = p_id for update;
@@ -105,6 +110,7 @@ begin
   -- one side reported a WIN with its screenshot and the other side sent nothing in 10 minutes: the win stands
   for r in select id, case when creator_claim = 'won' then creator else opponent end as winner from public.challenges
            where status = 'accepted' and claim_at < now() - interval '10 minutes'
+             and claim_at >= accepted_at + interval '10 minutes'   -- too quick for a real match: a mod decides (2-hour rule below)
              and ((creator_claim = 'won' and creator_shot is not null and opponent_claim is null)
                or (opponent_claim = 'won' and opponent_shot is not null and creator_claim is null))
            for update loop
