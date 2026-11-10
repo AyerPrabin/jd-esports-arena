@@ -110,7 +110,7 @@ Deno.serve(async (req: Request) => {
     const nameOf = (id: string) => who.get(id) || 'A player';
     // newest message per chat
     const latest = new Map<string, any>();
-    for (const m of msgs) latest.set(kind === 'group' ? m.group_id : m.challenge_id, m);
+    for (const m of msgs) latest.set(kind === 'group' ? (m as any).group_id : (m as any).challenge_id, m);
     let sent = 0;
     for (const [chat, m] of latest) {
       const text = m.kind === 'room' ? '🎮 shared a room — tap to see the ID and password' : String(m.body || '');

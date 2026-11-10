@@ -15,7 +15,7 @@
 // below -- index.html's zuluAsk() already treats a null reply as "fall back to the local
 // canned answer", so a maxed-out quota degrades gracefully instead of erroring visibly.
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { askAI, lastAIError, streamGemini, type AIMessage } from '../_shared/ai.ts';
+import { askAI, lastAIError, streamGemini, streamOpenAICompat, type AIMessage } from '../_shared/ai.ts';
 import { kbFallback, kbPrompt, kbReplyLang, kbSmallTalk } from '../_shared/zulu_kb.ts';
 import { contextVersion, safeReply, teamAnswers, zuluSystemPrompt } from '../_shared/zulu.ts';
 
@@ -200,8 +200,12 @@ This player is signed in, and the conversation starts with a MY ACCOUNT note the
       async start(ctrl) {
         let full = '', provider = '';
         try {
-          const s = await streamGemini(messages, CHAT_GEMINI_MODELS, (t) => { full += t; ctrl.enqueue(enc.encode(t)); });
-          if (s) provider = 'gemini:' + s.model + ':stream';
+          const send = (t: string) => { full += t; ctrl.enqueue(enc.encode(t)); };
+          // Groq first: its first word lands in well under a second; Gemini streams if Groq is down.
+          const g = await streamOpenAICompat('groq', messages, send, MODEL_TIMEOUT_MS);
+          const s = g || (full ? null : await streamGemini(messages, CHAT_GEMINI_MODELS, send));
+          if (g) provider = 'groq:' + g.model + ':stream';
+          else if (s) provider = 'gemini:' + s.model + ':stream';
           else if (!full) {                         // no model started: the normal chain, sent in one piece
             const r = await askAI(messages, undefined, { geminiModels: CHAT_GEMINI_MODELS, timeoutMs: MODEL_TIMEOUT_MS, fast: true });
             if (r) { full = safeReply(r.text).text; provider = r.provider; ctrl.enqueue(enc.encode(full)); }

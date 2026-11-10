@@ -51,13 +51,14 @@ Deno.serve(async (req: Request) => {
   if (!ids.length) return Response.json({ queued: 0 });
 
   const work = (async () => {
-    await new Promise((r) => setTimeout(r, 600));       // let a quick burst of messages land first (was 1.2 s)
+    await new Promise((r) => setTimeout(r, 350));       // let a quick burst of messages land first (was 1.2 s, then 600 ms)
     const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-    const { data: rows } = await db.from('jd_messages').select('player_id').in('id', ids).eq('from_staff', false);
-    const players = [...new Set((rows || []).map((r: any) => r.player_id))];
     const day = new Date(); day.setUTCHours(0, 0, 0, 0);
-    const { count: globalCount } = await db.from('jd_messages').select('id', { count: 'exact', head: true })
-      .eq('staff_email', 'zulu-ai').gte('created_at', day.toISOString());
+    const [{ data: rows }, { count: globalCount }] = await Promise.all([
+      db.from('jd_messages').select('player_id').in('id', ids).eq('from_staff', false),
+      db.from('jd_messages').select('id', { count: 'exact', head: true }).eq('staff_email', 'zulu-ai').gte('created_at', day.toISOString()),
+    ]);
+    const players = [...new Set((rows || []).map((r: any) => r.player_id))];
     let used = globalCount ?? 0;
     for (const pid of players) {
       try { if (await answer(db, pid, day, used, ids)) used++; } catch (e) { console.error('zulu-auto', pid, e); }
@@ -122,8 +123,19 @@ async function answer(db: any, pid: string, day: Date, used: number, ids: number
     return false;
   }
 
-  const { count: mine } = await db.from('jd_messages').select('id', { count: 'exact', head: true })
+  // the daily-limit count and the account reads below run together (one round trip, faster replies)
+  const mineP = db.from('jd_messages').select('id', { count: 'exact', head: true })
     .eq('player_id', pid).eq('channel', 'jd').eq('staff_email', 'zulu-ai').gte('created_at', day.toISOString());
+  const accountP = Promise.all([
+    db.from('players').select('username, player_tag, squad_name').eq('id', pid).maybeSingle(),
+    db.from('wallets').select('balance').eq('player_id', pid).maybeSingle(),
+    db.from('registrations').select('tournament_slug, squad_name, status, checked_in_at, whatsapp').eq('player_id', pid).order('created_at', { ascending: false }).limit(5),
+    db.from('notifications').select('title, created_at').eq('player_id', pid).is('room_id', null).order('created_at', { ascending: false }).limit(5),
+    // how this player writes: only their own messages in this chat (never their private chats with other players)
+    db.from('jd_messages').select('body').eq('player_id', pid).eq('channel', 'jd').eq('from_staff', false).order('id', { ascending: false }).limit(40),
+    db.from('moderators').select('handle, display_name').eq('role', 'host').limit(40),
+  ]);
+  const { count: mine } = await mineP;
   const say = (body: string) => say0(body.slice(0, 1000));
   if ((mine ?? 0) >= PER_PLAYER_DAILY || used >= GLOBAL_DAILY) {
     // out of AI for today: one hand-off note, then quiet
@@ -137,15 +149,7 @@ async function answer(db: any, pid: string, day: Date, used: number, ids: number
   const promptP = zuluSystemPrompt(lang);
   const learnedP = teamAnswers(burst, pid);
   // the player's own account, the same kind of note their app sends to ZULU in Messages
-  const [{ data: pl }, { data: wal }, { data: regs }, { data: notes }, { data: own }, { data: hosts }] = await Promise.all([
-    db.from('players').select('username, player_tag, squad_name').eq('id', pid).maybeSingle(),
-    db.from('wallets').select('balance').eq('player_id', pid).maybeSingle(),
-    db.from('registrations').select('tournament_slug, squad_name, status, checked_in_at, whatsapp').eq('player_id', pid).order('created_at', { ascending: false }).limit(5),
-    db.from('notifications').select('title, created_at').eq('player_id', pid).is('room_id', null).order('created_at', { ascending: false }).limit(5),
-    // how this player writes: only their own messages in this chat (never their private chats with other players)
-    db.from('jd_messages').select('body').eq('player_id', pid).eq('channel', 'jd').eq('from_staff', false).order('id', { ascending: false }).limit(40),
-    db.from('moderators').select('handle, display_name').eq('role', 'host').limit(40),
-  ]);
+  const [{ data: pl }, { data: wal }, { data: regs }, { data: notes }, { data: own }, { data: hosts }] = await accountP;
   const samples = (own || []).map((m: any) => String(m.body || '').trim()).filter((b: string) => b && !HUMAN_ASK.test(b)).slice(0, 12);
   const words = samples.join(' ');
   const style = samples.length ? [
