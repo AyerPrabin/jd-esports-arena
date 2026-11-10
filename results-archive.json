@@ -1,6 +1,225 @@
 {
  "events": [
   {
+   "name": "JD Free Fire Open #19",
+   "date": "Tue, Nov 10",
+   "start": "2026-11-10T21:30:00+05:45",
+   "maps": [
+    "purgatory",
+    "kalahari",
+    "nexterra"
+   ],
+   "prize": "180",
+   "winner": "Youtz Esp",
+   "kill_pts": 1,
+   "teams": [
+    {
+     "team": "Youtz Esp",
+     "r": [
+      {
+       "kills": 12,
+       "pts": 12
+      },
+      {
+       "kills": 17,
+       "pts": 9
+      },
+      {
+       "kills": 22,
+       "pts": 12
+      }
+     ]
+    },
+    {
+     "team": "DAMAN ESP",
+     "r": [
+      {
+       "kills": 3,
+       "pts": 5
+      },
+      {
+       "kills": 18,
+       "pts": 12
+      },
+      {
+       "kills": 4,
+       "pts": 9
+      }
+     ]
+    },
+    {
+     "team": "Xiingu Ξsports",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 7
+      },
+      {
+       "kills": 10,
+       "pts": 7
+      },
+      {
+       "kills": 3,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "CRZ ESPORTS ( 2 )",
+     "r": [
+      {
+       "kills": 15,
+       "pts": 9
+      },
+      {
+       "kills": 1,
+       "pts": 1
+      },
+      {
+       "kills": 3,
+       "pts": 5
+      }
+     ]
+    },
+    {
+     "team": "team gorkhaX",
+     "r": [
+      {
+       "kills": 8,
+       "pts": 4
+      },
+      {
+       "kills": 5,
+       "pts": 3
+      },
+      {
+       "kills": 4,
+       "pts": 3
+      }
+     ]
+    },
+    {
+     "team": "T1h esp",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 3
+      },
+      {
+       "kills": 3,
+       "pts": 5
+      },
+      {
+       "kills": 10,
+       "pts": 6
+      }
+     ]
+    },
+    {
+     "team": "DLK ESP.",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 2,
+       "pts": 6
+      },
+      {
+       "kills": 9,
+       "pts": 8
+      }
+     ]
+    },
+    {
+     "team": "Paragon esports",
+     "r": [
+      {
+       "kills": 6,
+       "pts": 8
+      },
+      {
+       "kills": 5,
+       "pts": 2
+      },
+      {
+       "kills": 0,
+       "pts": 2
+      }
+     ]
+    },
+    {
+     "team": "SᴍɢㅤESP",
+     "r": [
+      {
+       "kills": 2,
+       "pts": 6
+      },
+      {
+       "kills": 5,
+       "pts": 8
+      },
+      {
+       "kills": 1,
+       "pts": 1
+      }
+     ]
+    },
+    {
+     "team": "CRZ ESPORTS 1",
+     "r": [
+      {
+       "kills": 1,
+       "pts": 2
+      },
+      {
+       "kills": 3,
+       "pts": 4
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Ancient Ogs 1",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Sage Gang",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
    "name": "JD Free Fire Open #17",
    "date": "Mon, Nov 9",
    "start": "2026-11-09T21:30:00+05:45",
