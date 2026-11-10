@@ -1100,7 +1100,11 @@ function markFinished(i){
   if(!String(t.winner||'').trim()){const top=bo3TopTeam(t.name);if(top)t.winner=top;}
   renderT();msg('"'+esc(t.name)+'" moved to History'+(t.winner?' (winner: '+esc(t.winner)+')':'')+'. Hit Publish to save.','ok');
 }
-function markCancelled(i){const t=data.tournaments[i];t.status='cancelled';renderT();msg('"'+esc(t.name)+'" marked cancelled and moved to History. Hit Publish to save.','ok');}
+// the reason shows on the Events page under the cancelled card (and ZULU reads it)
+function markCancelled(i,why){const t=data.tournaments[i];
+  if(why==null){why=prompt('Why is "'+t.name+'" cancelled? Players see this on the Events page.',t.cancel_reason||'');if(why===null)return;}
+  t.status='cancelled';if(String(why).trim())t.cancel_reason=String(why).trim().slice(0,120);
+  renderT();msg('"'+esc(t.name)+'" marked cancelled and moved to History. Hit Publish to save.','ok');}
 /* "What's going on": one line each for what's live, what's next, anything overdue and the
    last event that finished, worked out from the loaded tournaments (no extra requests). */
 function renderNow(){
@@ -1304,7 +1308,7 @@ setInterval(()=>{const f=document.getElementById('zc-fab'),app=document.getEleme
 /* Chips follow what's actually waiting: the inbox counts and the next event come first. */
 function zcSuggest(){
   const {loads,wds,disputes}=_ibRows,nx=mdEvents()[0],chips=[];
-  if(loads.length)chips.push(loads.length>1?`✅ Approve all ${loads.length} point loads`:'✅ Approve the point load');
+  if(loads.length)chips.push(loads.length>1?`🧾 Check the ${loads.length} point loads`:'🧾 Check the point load');
   if(wds.length)chips.push(`💸 Show the ${wds.length} withdrawal${wds.length>1?'s':''} to pay`);
   if(disputes.length)chips.push(`⚖️ Explain the ${disputes.length} challenge dispute${disputes.length>1?'s':''}`);
   if(nx)chips.push(`🔑 Room code for ${nx.t.name}`);
@@ -1327,7 +1331,8 @@ function zcMic(){
   _zcRec=rec;btn.classList.add('on');rec.start();
 }
 if(window.SpeechRecognition||window.webkitSpeechRecognition)document.addEventListener('DOMContentLoaded',()=>{const m=document.getElementById('zc-mic');if(m)m.hidden=false;});
-function zcConfirmAll(btn){btn.remove();document.querySelectorAll('.zc-act:not(.done) .zc-btns .btn:not(.ghost)').forEach(b=>b.click());}
+// point loads are real money: each one is confirmed on its own card after looking at the screenshot
+function zcConfirmAll(btn){btn.remove();document.querySelectorAll('.zc-act:not(.done):not(.zc-money) .zc-btns .btn:not(.ghost)').forEach(b=>b.click());}
 function zcClose(){document.getElementById('zc').classList.remove('open');document.getElementById('zc-fab').hidden=false;}
 function zcBubble(who,text){const d=document.createElement('div');d.className='zc-msg '+who;d.textContent=text;const log=document.getElementById('zc-log');log.appendChild(d);log.scrollTop=log.scrollHeight;return d;}
 function nptNowText(){return new Date().toLocaleString('en-GB',{timeZone:'Asia/Kathmandu',weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});}
@@ -1428,7 +1433,8 @@ function zcDescribe(a){
     case 'open':return {title:'🔎 Open '+a.section,html:'',err:''};
     case 'approve_load':case 'reject_load':{const l=_zcLoads.get(a.id);if(!l)return {title:'💰 Point load',html:'',err:'That load is no longer waiting (already handled?).'};
       const who=(l.players&&(l.players.username||l.players.player_tag))||'player';
-      return a.type==='approve_load'?{title:'💰 Approve load · '+who,html:li('Points',a.amount||l.amount)+(a.amount&&a.amount!==l.amount?li('They asked for',l.amount):'')+'<li>Check the screenshot in Wallets if unsure</li>',err:''}
+      const proof=(l.esewa_code?li('eSewa code',l.esewa_code):'')+(l.sender_name?li('Paid from',l.sender_name):'')+(l.screenshot?`<li><img src="${esc(l.screenshot)}" alt="Payment screenshot" style="width:100%;max-width:260px;border-radius:10px;margin-top:6px"></li>`:'');
+      return a.type==='approve_load'?{title:'💰 Approve load · '+who,html:li('Points',a.amount||l.amount)+(a.amount&&a.amount!==l.amount?li('They asked for',l.amount):'')+proof+'<li>Approve only if the screenshot shows this amount and code, taken on the phone itself (not a photo of a screen)</li>',err:''}
         :{title:'✕ Reject load · '+who,html:li('Points asked',l.amount)+li('Reason shown',a.note||'(none)'),err:''};}
     case 'pay_withdrawal':case 'reject_withdrawal':{const w=_zcWds.get(a.id);if(!w)return {title:'💸 Withdrawal',html:'',err:'That withdrawal is no longer waiting (already handled?).'};
       const who=(w.players&&(w.players.username||w.players.player_tag))||'player';
@@ -1447,7 +1453,7 @@ async function zcLoadMoney(){
 function zcCard(a){
   const id=++_zcSeq;_zcActs.set(id,a);
   const d=zcDescribe(a);
-  const el=document.createElement('div');el.className='zc-act';el.id='zc-act-'+id;
+  const el=document.createElement('div');el.className='zc-act'+(/^(approve_load|pay_withdrawal)$/.test(a.type)?' zc-money':'');el.id='zc-act-'+id;
   el.innerHTML=`<h4>${esc(d.title)}</h4><ul>${d.html}</ul>`+(d.err?`<div class="zc-res err">⚠️ ${esc(d.err)}</div>`:
     `<div class="zc-btns"><button class="btn" onclick="zcRun(${id})">✅ Confirm</button><button class="btn ghost" onclick="zcSkip(${id})">Cancel</button></div><div class="zc-res"></div>`);
   const log=document.getElementById('zc-log');log.appendChild(el);log.scrollTop=log.scrollHeight;
@@ -1467,7 +1473,7 @@ async function zcRun(id){
       case 'create_event':{const {t,err}=zcBuildEvent(a);if(err)return bad(err);data.tournaments.push(t);renderAll();ok('Created '+t.name+'.'+await zcPublishIf(a));break;}
       case 'edit_event':{const i=zcFindEvent(a.event);if(i<0)return bad('Event not found.');zcApplyFields(data.tournaments[i],a.set);renderAll();ok('Updated '+data.tournaments[i].name+'.'+await zcPublishIf(a));break;}
       case 'finish_event':{const i=zcFindEvent(a.event);if(i<0)return bad('Event not found.');if(a.winner)data.tournaments[i].winner=a.winner;markFinished(i);ok(zcText('msg').replace('Hit Publish to save.','')+await zcPublishIf(a));break;}
-      case 'cancel_event':{const i=zcFindEvent(a.event);if(i<0)return bad('Event not found.');markCancelled(i);ok('Cancelled.'+await zcPublishIf(a));break;}
+      case 'cancel_event':{const i=zcFindEvent(a.event);if(i<0)return bad('Event not found.');markCancelled(i,a.reason||'');ok('Cancelled.'+await zcPublishIf(a));break;}
       case 'room_code':{const i=zcFindEvent(a.event);if(i<0)return bad('Event not found.');renderRcTourney();
         document.getElementById('rc-tourney').value=data.tournaments[i].name;document.getElementById('rc-room-id').value=a.room_id;document.getElementById('rc-room-pass').value=a.room_pass||'';
         await (a.when==='stage'?stageRoomCode():sendRoomCode());const m=zcText('rc-msg');(/fail|enter|pick/i.test(m)?bad:ok)(m);break;}
@@ -2716,6 +2722,7 @@ async function loadLoads(){
       <div style="flex:1;min-width:200px">
         <b style="font-size:1.05rem">${esc(r.players?('@'+(r.players.username||r.players.player_tag)):'player')}</b>
         <div class="hint" style="margin:2px 0 8px">${esc(r.players&&r.players.player_tag||'')} · sent ${esc(new Date(r.created_at).toLocaleString())}</div>
+        ${r.esewa_code||r.sender_name?`<div class="hint" style="margin:0 0 8px">eSewa code <b>${esc(r.esewa_code||'-')}</b> · paid from <b>${esc(r.sender_name||'-')}</b> · check both are on the screenshot</div>`:''}
         <div class="grid">
           <div class="f"><label>Points to add (they said Rs ${r.amount})</label><input id="wl-amt-${r.id}" type="number" min="1" value="${r.amount}"></div>
           <div class="f"><label>Note to player <span class="tag">optional</span></label><input id="wl-note-${r.id}" placeholder="e.g. reason for rejecting"></div>

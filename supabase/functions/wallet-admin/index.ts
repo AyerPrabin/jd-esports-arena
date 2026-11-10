@@ -220,7 +220,7 @@ Deno.serve(async (req: Request) => {
   // points loads: players upload the eSewa screenshot on /wallet/ (request_wallet_load)
   if (p.action === 'loads') {
     const { data, error } = await supabase.from('wallet_load_requests')
-      .select('id, player_id, amount, screenshot, created_at, players(username, player_tag)')
+      .select('*, players(username, player_tag)')   // * = also esewa_code / sender_name (load_proof.sql) when present
       .eq('status', 'pending').order('created_at', { ascending: true }).limit(50);
     if (error) return fail(error.message, 500);
     return json(data || []);

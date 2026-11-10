@@ -532,7 +532,7 @@ Deno.serve(async (req: Request) => {
     }
     const since = new Date(Date.now() - 48 * 3600e3).toISOString();
     const [{ data: loads, error: e1 }, { data: pays, error: e2 }, { data: skipped }] = await Promise.all([
-      admin.from('wallet_load_requests').select('id, amount, screenshot, created_at, players(username, player_tag)')
+      admin.from('wallet_load_requests').select('*, players(username, player_tag)')   // * = also esewa_code / sender_name
         .eq('status', 'pending').order('created_at', { ascending: true }).limit(30),
       admin.from('payments_in').select('id, provider, amount, sender, raw, received_at, load_id, matched_at').gt('received_at', since)
         .order('received_at', { ascending: false }).limit(60),
@@ -547,7 +547,7 @@ Deno.serve(async (req: Request) => {
         const t = new Date(r.created_at).getTime();
         const fits = open.filter((x: any) => x.amount === r.amount && new Date(x.received_at).getTime() >= t - 3 * 3600e3 && new Date(x.received_at).getTime() <= t + 30 * 60e3)
           .map((x: any) => x.id);
-        return { id: r.id, amount: r.amount, at: r.created_at, who: r.players?.username ? '@' + r.players.username : (r.players?.player_tag || 'Player'),
+        return { id: r.id, amount: r.amount, at: r.created_at, code: r.esewa_code || null, from: r.sender_name || null, who: r.players?.username ? '@' + r.players.username : (r.players?.player_tag || 'Player'),
           shot: typeof r.screenshot === 'string' && /^data:image\/(jpeg|png|webp);base64,/.test(r.screenshot) && r.screenshot.length < 900000 ? r.screenshot : null, fits };
       }),
     });
@@ -918,6 +918,10 @@ Deno.serve(async (req: Request) => {
     const [, y, mo, d, h, mi] = m;
     const start = `${y}-${mo}-${d}T${h}:${mi}:00+05:45`;
     const status = p.status === 'cancelled' ? 'cancelled' : 'upcoming';
+    // shown on the Events page under the cancelled card: plain text, no links or numbers
+    const why = String(p.cancel_reason || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+    if (status === 'cancelled' && (why.length < 4 || !/^[\p{L}\p{N}\p{M} .,'!?()\-]*$/u.test(why) || /\p{Nd}{7,}/u.test(why)))
+      return fail('Write why the event is cancelled (letters and numbers only, no links or phone numbers).');
     const startMs = Date.parse(start);
     if (!Number.isFinite(startMs)) return fail('Pick a day and a time.');
     if (status === 'upcoming' && startMs <= Date.now()) return fail('That time is in the past.');
@@ -929,7 +933,7 @@ Deno.serve(async (req: Request) => {
     const hh = +h % 12 || 12;
     const fields = {
       date: new Date(Date.UTC(+y, +mo - 1, +d)).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }),
-      time: `${hh}:${mi} ${+h < 12 ? 'AM' : 'PM'} NPT`, start, status,
+      time: `${hh}:${mi} ${+h < 12 ? 'AM' : 'PM'} NPT`, start, status, ...(status === 'cancelled' ? { cancel_reason: why } : {}),
       prize: prizeText.slice(0, 40),
       entry: 'Free', platform: DEV[device], platform_mode: device,
       mode, game: `Free Fire BR · ${mode === 'solo' ? 'Solo' : mode === 'duo' ? 'Duo' : 'Squad'}`,

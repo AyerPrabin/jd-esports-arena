@@ -92,6 +92,7 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .pe-maps i{position:relative;background-size:cover;background-position:center;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px}
 .pe-maps i.rnd{background:repeating-linear-gradient(135deg,#1a2233 0 6px,#151c2b 6px 12px);align-items:center;padding:0;font-style:normal;font-size:.9rem}
 .pe-win.hw{color:#FFB15C;background:linear-gradient(90deg,rgba(90,30,140,.35),rgba(255,122,28,.18));border-color:rgba(255,122,28,.55);box-shadow:0 0 14px rgba(150,80,255,.35);text-shadow:0 0 8px rgba(255,122,28,.6)}
+.pe-why{margin:8px 0 0;max-width:62ch;padding:7px 10px;border-radius:10px;border-left:3px solid #ff8a8a;background:rgba(255,138,138,.07);font-size:.78rem;color:#ffd6d6;line-height:1.4}
 .pe-maps b{font-size:.55rem;font-weight:800;color:#111;background:#FFC83D;border-radius:3px;padding:0 3px;line-height:1.4}
 /* drawn icons instead of phone emoji: the same on every phone, in the page's own colours */
 .ic{width:1.05em;height:1.05em;vertical-align:-.16em;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -329,6 +330,7 @@ async function load(){
         <div class="pe-name">${esc(t.name)}${t.host?` <small style="font-size:.72em;color:#CFE0FF;font-weight:600">· hosted by @${esc(String(t.host).replace(/^@+/,''))}</small>`:''}</div>
         <div class="pe-meta">${fmtDate(t)?`<span>${ic('cal')}<b>${esc(fmtDate(t))}</b></span>`:''}${n?`<span>${ic('users')}<b>${n}</b> squad${n===1?'':'s'}</span>`:''}${t.prize?`<span>${ic('trophy')}<b>${esc(t.prize)}</b></span>`:''}<span>${/^free$/i.test(entry)?'Free entry':'Entry '+esc(entry)}</span>${isBo3(t)?`<span>${ic('map')}<b>${esc(mapsLine(t))}</b></span>`:''}</div>
         ${st==='completed'&&String(t.winner||'').trim()?`<div class="pe-win${/hallowe?en/i.test(t.name||'')?' hw':''}">${ic('crown')} ${esc(t.winner)}</div>`:''}
+        ${st==='cancelled'&&t.cancel_reason?`<p class="pe-why">Why: ${esc(t.cancel_reason)}</p>`:''}
       </div>
       <span class="pe-status ${st}">${st==='cancelled'?'Cancelled':'Finished'}</span>
       ${squadChips(t.name)}

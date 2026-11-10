@@ -778,19 +778,25 @@ function hostEventForm(t,mode0){
     q('hev-room').textContent=n>cap?`One room holds ${cap}. If more join, JD draws groups and stages by itself 2 hours before the start.`:`Fits one room (up to ${cap}).`; };
   bg.querySelector('#hev-mode').addEventListener('change',()=>{ bg.querySelector('#hev-slots').value=ROOM[bg.querySelector('#hev-mode').value]; roomHint(); });
   bg.querySelector('#hev-slots').addEventListener('input',roomHint); roomHint();
-  const save=async(status)=>{
+  const save=async(status,why)=>{
     const q=id=>bg.querySelector('#'+id), msg=q('hev-msg'), name=ed?t.name:q('hev-name').value.trim();
     msg.textContent=status==='cancelled'?'Cancelling…':'Publishing…'; msg.className='msg';
     try{
       const r=await call({action:'event_save',edit:ed,name,start:q('hev-start').value,prize:host?q('hev-prize').value:'',mode:q('hev-mode').value,slots:+q('hev-slots').value,
-        matches:+q('hev-m').value,map:q('hev-map').value,device:q('hev-dev').value,status});
+        matches:+q('hev-m').value,map:q('hev-map').value,device:q('hev-dev').value,status,cancel_reason:status==='cancelled'?(why||''):''});
       close(); toast(status==='cancelled'?r.name+' cancelled.':(r.created?r.name+' is live.':r.name+' updated.'));
       selected={name:r.name}; await loadTournaments();
     }catch(err){ msg.textContent=err.message; msg.className='msg err'; }
   };
   bg.querySelector('form').addEventListener('submit',e=>{e.preventDefault();save('upcoming');});
   const c=bg.querySelector('[data-cancel-ev]');
-  if(c) c.onclick=async()=>{ if(await sheet({title:'Cancel '+t.name+'?',text:'It shows as cancelled on the site. Tell your squads.',ok:'Cancel event',danger:true})) save('cancelled'); };
+  if(c) c.onclick=async()=>{
+    const why=await sheet({title:'Cancel '+t.name+'?',text:'It stays on the Events page as cancelled, with your reason, so players know why.',input:'text',placeholder:'Why? e.g. not enough squads joined',chips:['Not enough squads joined','Host not available','Game server problem'],required:true,ok:'Cancel event',danger:true});
+    if(why===null||why===false) return;
+    const r=String(why===true?'':why).trim();
+    if(r.length<4){ toast('Write why the event is cancelled'); return; }
+    save('cancelled',r);
+  };
   setTimeout(()=>{const f=bg.querySelector('input');if(f)f.focus();},50);
 }
 document.addEventListener('click',e=>{
@@ -1385,7 +1391,7 @@ async function ldLoad(){
   try{ ldData=await call({action:'loads_list'}); }catch(e){ q.innerHTML='<p class="msg err">'+esc(e.message)+'</p>'; return; }
   const pays=new Map(ldData.payments.map(x=>[x.id,x]));
   const b=$('badge-loads'); if(b){ b.hidden=!ldData.loads.length; b.textContent=ldData.loads.length; }
-  q.innerHTML=ldData.loads.length?ldData.loads.map(r=>`<div class="ld" data-ld="${esc(r.id)}"><div class="ld-top"><span><b>Rs ${+r.amount}</b> · ${esc(r.who)}</span><small>${esc(npt(r.at))}</small></div>`+
+  q.innerHTML=ldData.loads.length?ldData.loads.map(r=>`<div class="ld" data-ld="${esc(r.id)}"><div class="ld-top"><span><b>Rs ${+r.amount}</b> · ${esc(r.who)}</span><small>${esc(npt(r.at))}</small></div>`+(r.code||r.from?`<p class="note" style="margin:4px 0">eSewa code <b>${esc(r.code||'-')}</b> · from <b>${esc(r.from||'-')}</b>. Check both are on the screenshot.</p>`:'')+
     (r.shot?`<img src="${esc(r.shot)}" alt="Payment screenshot from ${esc(r.who)}" loading="lazy">`:'<p class="note">No screenshot preview.</p>')+
     `<div class="ld-m">${r.fits.length?r.fits.map(id=>{const x=pays.get(id);return `<button type="button" class="btn" data-match="${+id}">✓ Match &amp; add ${+r.amount} points · ${esc(x.provider)} ${esc(npt(x.received_at))}${x.sender?' · '+esc(x.sender):''}</button>`;}).join('')
       :'<p class="note" style="margin:0">No matching payment yet. Wait for the "money received" alert, or leave it for the admin.</p>'}</div></div>`).join('')
