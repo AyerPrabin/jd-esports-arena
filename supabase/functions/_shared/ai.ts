@@ -80,7 +80,8 @@ async function callOpenAICompatible(base: string, model: string, key: string, me
   const res = await post(base, {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, messages, temperature: 0.6, max_tokens: 1024 }),
+    // gpt-oss models think first; 'low' keeps chat replies under a second
+    body: JSON.stringify({ model, messages, temperature: 0.6, max_tokens: 1024, ...(/gpt-oss/.test(model) ? { reasoning_effort: 'low' } : {}) }),
   }, timeoutMs);
   if (!res) return 'next-provider';
   if (!res.ok) return classify(res.status);
@@ -174,8 +175,10 @@ async function callGemini(model: string, key: string, messages: AIMessage[], inl
     body: fast ? JSON.stringify({ ...JSON.parse(geminiBody(messages, inlineSystem)), generationConfig: { thinkingConfig: { thinkingBudget: 0 } } }) : geminiBody(messages, inlineSystem),
   }, timeoutMs);
   // A timeout on one Gemini model (Flash can think for a long time) shouldn't skip Flash-Lite.
-  if (!res) return 'next-model';
+  if (!res) { lastAIError[model] = `timeout after ${timeoutMs} ms`; return 'next-model'; }
   if (!res.ok) lastAIError[model] = `${res.status}: ${(await res.clone().text()).slice(0, 300)}`;
+  // a model that refuses the "no thinking" setting (400) still answers the same request without it
+  if (fast && res.status === 400) return callGemini(model, key, messages, inlineSystem, timeoutMs, false);
   // Gemini answers 429 per MODEL (Flash and Flash-Lite have separate quotas), so a
   // quota hit on one model should still try the next one, unlike other providers.
   // Gemini/Gemma: quota (429) and server errors (5xx, e.g. gemma-4-31b-it answering 500
@@ -289,6 +292,7 @@ export async function describeMedia(instruction: string, media: { mime: string; 
 // to the next in seconds instead of holding the player for the default 20 s.
 // opts.fast: no thinking step on Gemini (chat replies: seconds faster, same quality for short answers)
 export async function askAI(messages: AIMessage[], order?: string[], opts: { geminiModels?: string[]; timeoutMs?: number; fast?: boolean } = {}): Promise<AIResult | null> {
+  for (const k of Object.keys(lastAIError)) delete lastAIError[k];   // a failure log shows this request's errors only
   const ms = opts.timeoutMs || TIMEOUT_MS;
   const tryOrder = order || (Deno.env.get('AI_PROVIDER_ORDER') || 'groq,gemini,cerebras,mistral,openrouter,together,deepseek')
     .split(',').map((s) => s.trim()).filter(Boolean);

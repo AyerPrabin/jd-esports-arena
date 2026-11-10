@@ -107,6 +107,26 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 .arena-stats .stat span{display:block;font-size:.66rem;letter-spacing:.01em;color:var(--body);margin-top:5px}
 @media(max-width:900px){.hero{flex-direction:column;justify-content:center;align-items:stretch;min-height:auto;padding:36px 0 48px}.arena-stats{position:static;margin:32px clamp(24px,7vw,120px) 0;right:auto;bottom:auto;justify-content:center}}
 @media(max-width:640px){.hero{padding:28px 0 32px}.hero-content{padding-left:28px;padding-right:28px}}
+/* Phones: a short hero so the events and their Join buttons come sooner; the marketing tiles
+   (Real prize pools, Fair play...) are left out there, the same facts are in About */
+@media(max-width:640px){
+  .hero{padding:20px 0 22px}
+  .hero-content{padding-left:var(--gutter);padding-right:var(--gutter)}
+  .hero .eye{margin-bottom:10px}
+  .hero h1{font-size:clamp(2.4rem,11vw,3rem);margin:0 0 12px}
+  .hero p{font-size:.98rem;line-height:1.5;margin:0 0 18px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .hero .btns{gap:10px}
+  .hero .btns>a{flex:1 1 auto;justify-content:center;text-align:center}
+  .arena-stats{display:flex;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;margin:18px var(--gutter) 0;justify-content:flex-start}
+  .arena-stats::-webkit-scrollbar{display:none}
+  .arena-stats .stat{flex:0 0 auto;min-width:108px;padding:12px 10px;border-bottom:none;scroll-snap-align:start}
+  .arena-stats .stat:nth-child(2n){border-right:1px solid var(--border)}
+  .arena-stats .stat b{font-size:1.6rem}
+  #main-content .feature-strip{display:none}
+  /* event cards: the map pictures already name the maps; the partner-host note is kept to 2 lines */
+  .tcard .tmeta .r-maps{display:none}
+  .tcard .thost-note{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+}
 /* section */
 .sec{padding:clamp(48px,7vw,100px) 0 20px}
 .sec-h{display:flex;align-items:baseline;gap:14px;margin-bottom:32px}
