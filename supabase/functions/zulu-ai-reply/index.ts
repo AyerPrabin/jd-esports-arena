@@ -15,7 +15,8 @@
 // below -- index.html's zuluAsk() already treats a null reply as "fall back to the local
 // canned answer", so a maxed-out quota degrades gracefully instead of erroring visibly.
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { askAI, streamGemini, type AIMessage } from '../_shared/ai.ts';
+import { askAI, lastAIError, streamGemini, type AIMessage } from '../_shared/ai.ts';
+import { kbFallback, kbPrompt, kbReplyLang, kbSmallTalk } from '../_shared/zulu_kb.ts';
 import { contextVersion, safeReply, teamAnswers, zuluSystemPrompt } from '../_shared/zulu.ts';
 
 const CORS_HEADERS: Record<string, string> = {
@@ -124,6 +125,12 @@ Deno.serve(async (req: Request) => {
   // so it appears word by word. Everyone else (Discord bot, @zulu in chats, old cached pages)
   // keeps getting the JSON {reply} as before. Limits and caps answer JSON in both modes.
   const stream = payload.stream === true;
+  // "hlo", "thanks", "ok": answered at once from the answer book (no AI, no quota, never a wrong old topic)
+  const prev = history[history.length - 1];
+  const small = prev?.role === 'assistant' && /\?\s*$/.test(prev.content) ? null : kbSmallTalk(message);
+  if (small) return stream ? text(small) : json({ reply: small, provider: 'kb' });
+  // when every AI model fails, the answer book's checked answer is sent instead of nothing
+  const fallback = () => { const f = kbFallback(message); return f ? f.text : null; };
   // keyed by the live-context fingerprint too: an event edit or a new squad makes old answers miss at once
   const authed = /^Bearer\s+\S+\.\S+\.\S+/i.test(req.headers.get('authorization') || '');   // signed in: may be a mod, so no shared cache
   const cacheKey = !history.length && !account && !authed ? (await contextVersion()) + '|' + answerKey(lang, message) : '';
@@ -172,7 +179,8 @@ Deno.serve(async (req: Request) => {
   const role = await roleP;
   // the team's answers help but never hold a reply up
   const learned = await Promise.race([learnedP, new Promise<string>((r) => setTimeout(() => r(''), 500))]);
-  const systemPrompt = (await promptP) + learned + (role ? ROLE_GUIDE[role] : '');
+  const mine = [...history.filter((h) => h.role === 'user').map((h) => h.content), message];
+  const systemPrompt = (await promptP) + learned + kbPrompt(message) + (role ? ROLE_GUIDE[role] : '') + kbReplyLang(mine, lang);
 
   const messages: AIMessage[] = [
     { role: 'system', content: systemPrompt + (account ? `
@@ -197,6 +205,11 @@ This player is signed in, and the conversation starts with a MY ACCOUNT note the
           else if (!full) {                         // no model started: the normal chain, sent in one piece
             const r = await askAI(messages, undefined, { geminiModels: CHAT_GEMINI_MODELS, timeoutMs: MODEL_TIMEOUT_MS, fast: true });
             if (r) { full = safeReply(r.text).text; provider = r.provider; ctrl.enqueue(enc.encode(full)); }
+            else {
+              console.error('zulu-ai-reply: every AI model failed', JSON.stringify(lastAIError));
+              const f = fallback();
+              if (f) { full = f; ctrl.enqueue(enc.encode(f)); }
+            }
           }
         } catch { /* whatever was sent stays; the page falls back if nothing came */ }
         if (cacheKey && full.trim() && provider) {
@@ -212,6 +225,9 @@ This player is signed in, and the conversation starts with a MY ACCOUNT note the
   try {
     const result = await askAI(messages, undefined, { geminiModels: CHAT_GEMINI_MODELS, timeoutMs: MODEL_TIMEOUT_MS, fast: true });
     if (!result) {
+      console.error('zulu-ai-reply: every AI model failed', JSON.stringify(lastAIError));
+      const f = fallback();
+      if (f) return json({ reply: f, provider: 'kb' });
       return new Response(JSON.stringify({ reply: null, note: 'No AI provider configured or all failed -- set at least one of GEMINI_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY, CEREBRAS_API_KEY, OPENROUTER_API_KEY in Edge Function secrets.' }), {
         status: 200,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },

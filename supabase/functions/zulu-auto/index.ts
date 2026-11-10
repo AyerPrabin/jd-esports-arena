@@ -9,7 +9,8 @@
 // Must be deployed with --no-verify-jwt (the pg_net caller has no JWT, only x-cron-secret).
 //   body: { ids: number[] }   header: x-cron-secret
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { askAI, type AIMessage } from '../_shared/ai.ts';
+import { askAI, lastAIError, type AIMessage } from '../_shared/ai.ts';
+import { kbFallback, kbPrompt, kbReplyLang, kbSmallTalk } from '../_shared/zulu_kb.ts';
 import { safeReply, teamAnswers, zuluSystemPrompt } from '../_shared/zulu.ts';
 
 // owner, 8 Nov 2026 (was a 12-hour hold): a mod who replied in the last 10 minutes is "in the chat". A player
@@ -18,6 +19,8 @@ const MOD_ACTIVE_MS = 10 * 60000;
 const MOD_GRACE_MS = 120000;
 const PER_PLAYER_DAILY = 25;
 const GLOBAL_DAILY = 400;
+// turns older than this are left out, so "hlo" today doesn't bring back yesterday's topic
+const FRESH_MS = 6 * 3600e3;
 const GEMINI_MODELS = (Deno.env.get('ZULU_CHAT_GEMINI_MODELS') || 'gemini-flash-lite-latest,gemini-flash-latest,gemini-2.5-flash-lite')
   .split(',').map((m) => m.trim()).filter(Boolean);
 
@@ -106,6 +109,19 @@ async function answer(db: any, pid: string, day: Date, used: number, ids: number
     return false;
   }
 
+  // what the player wrote since the last answer (one burst), the thing to reply to
+  const lastAnswer = [...msgs].reverse().find((m: any) => m.from_staff);
+  const burst = msgs.filter((m: any) => !m.from_staff && (!lastAnswer || m.id > lastAnswer.id)).slice(-3).map((m: any) => String(m.body)).join('\n');
+  // "hlo", "thanks", "ok 👍": answered at once from the answer book, no AI and no hand-off
+  // not when an issue is open, or when the team just asked something ("Is your squad ready…?" → "ok" means yes)
+  const asked = !!lastAnswer && /\?\s*$|reply here to confirm/i.test(String(lastAnswer.body));
+  const small = !openFlag && !asked ? kbSmallTalk(burst) : null;
+  if (small) {
+    await say0(small);
+    await handled();
+    return false;
+  }
+
   const { count: mine } = await db.from('jd_messages').select('id', { count: 'exact', head: true })
     .eq('player_id', pid).eq('channel', 'jd').eq('staff_email', 'zulu-ai').gte('created_at', day.toISOString());
   const say = (body: string) => say0(body.slice(0, 1000));
@@ -119,7 +135,7 @@ async function answer(db: any, pid: string, day: Date, used: number, ids: number
   // started now, in parallel with the account reads below (faster replies)
   const lang = /[ऀ-ॿ]/.test(last.body) ? 'ne' : 'en';
   const promptP = zuluSystemPrompt(lang);
-  const learnedP = teamAnswers(msgs.filter((m: any) => !m.from_staff).slice(-3).map((m: any) => m.body).join(' '), pid);
+  const learnedP = teamAnswers(burst, pid);
   // the player's own account, the same kind of note their app sends to ZULU in Messages
   const [{ data: pl }, { data: wal }, { data: regs }, { data: notes }, { data: own }, { data: hosts }] = await Promise.all([
     db.from('players').select('username, player_tag, squad_name').eq('id', pid).maybeSingle(),
@@ -151,7 +167,8 @@ async function answer(db: any, pid: string, day: Date, used: number, ids: number
   ].join('\n');
 
   const turns: AIMessage[] = [];
-  for (const m of msgs) {
+  const lastAt = new Date(last.created_at).getTime();
+  for (const m of msgs.filter((x: any) => x === last || lastAt - new Date(x.created_at).getTime() < FRESH_MS)) {
     const role = m.from_staff ? 'assistant' : 'user';
     const content = (m.from_staff && !String(m.staff_email || '').startsWith('zulu') ? '(JD moderator) ' : '') + String(m.body).slice(0, 600);
     if (turns.length && turns[turns.length - 1].role === role) turns[turns.length - 1].content += '\n' + content;
@@ -159,16 +176,20 @@ async function answer(db: any, pid: string, day: Date, used: number, ids: number
   }
   if (turns[0]?.role === 'assistant') turns.unshift({ role: 'user', content: '(opened the JD Esports chat)' });
   const messages: AIMessage[] = [
-    { role: 'system', content: (await promptP) + (await learnedP) + RULES },
+    { role: 'system', content: (await promptP) + (await learnedP) + kbPrompt(burst) + RULES + kbReplyLang(msgs.filter((m: any) => !m.from_staff).slice(-4).map((m: any) => String(m.body)), lang) },
     { role: 'user', content: 'MY ACCOUNT (from the JD server):\n' + account + '\n\n' + style },
     { role: 'assistant', content: 'Got it.' },
     ...turns,
   ];
-  const r = await askAI(messages, undefined, { geminiModels: GEMINI_MODELS, timeoutMs: 8000, fast: true });
+  const r = await askAI(messages, undefined, { geminiModels: GEMINI_MODELS, timeoutMs: 10000, fast: true });
+  if (!r) console.error('zulu-auto: every AI model failed', JSON.stringify(lastAIError));
   // a newer player message may have arrived while the AI was thinking: that one triggers its own answer
   const { data: newest } = await db.from('jd_messages').select('id, from_staff').eq('player_id', pid).eq('channel', 'jd').order('id', { ascending: false }).limit(1).maybeSingle();
   if (!newest || newest.id !== last.id) return false;
-  const raw = String(r?.text || '').trim();
+  let raw = String(r?.text || '').trim();
+  // every model failed: the answer book's checked answer, not a hand-off (a hand-off only when nothing fits)
+  const kb = raw ? null : kbFallback(burst);
+  if (kb) raw = kb.text + (kb.flag ? ' [FLAG]' : '');
   let big = !raw || /\[FLAG\]/i.test(raw) || /(moderator|team member|JD team).{0,30}(reply|join|check|contact)/i.test(raw);
   const safe = safeReply(raw.replace(FLAG, '').trim()), text = safe.text.trim();
   if (safe.risky) big = true;   // a promise only a person may make: the team checks it

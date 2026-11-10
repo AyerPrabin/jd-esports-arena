@@ -68,7 +68,29 @@ Deno.serve(async (req: Request) => {
     before = live?.content || null;
     const have = new Set((doc.tournaments || []).map((t: any) => String(t?.name || '').toLowerCase()));
     const keep = ((live?.content as any)?.tournaments || []).filter((t: any) => t?.host && !have.has(String(t.name || '').toLowerCase()));
-    if (keep.length && Array.isArray(doc.tournaments)) { doc.tournaments.push(...keep); content = JSON.stringify(doc, null, 2); }
+    if (keep.length && Array.isArray(doc.tournaments)) doc.tournaments.push(...keep);
+    // Best of 3: 3 different maps, same rule as the site_content trigger (bo3_auto_maps.sql), so the
+    // GitHub copy never shows "random" while the live copy has real maps.
+    const POOL = ['bermuda', 'purgatory', 'kalahari', 'nexterra', 'solara'];
+    const liveBy = new Map(((live?.content as any)?.tournaments || []).map((t: any) => [t?.name, t]));
+    for (const t of Array.isArray(doc.tournaments) ? doc.tournaments : []) {
+      if (!/best of 3/i.test(String(t?.format || '')) || t.image || String(t.winner || '').trim()
+          || ['completed', 'cancelled'].includes(String(t.status || 'upcoming').toLowerCase())) continue;
+      const keys = ['map', 'map2', 'map3'], m = keys.map((k) => String(t[k] || '').toLowerCase());
+      const prev = keys.map((k) => String((liveBy.get(t.name) as any)?.[k] || '').toLowerCase());
+      const used: string[] = [];
+      m.forEach((k, i) => {
+        const later = m.slice(i + 1);
+        if (!POOL.includes(k) || used.includes(k)) k = POOL.includes(prev[i]) && !used.includes(prev[i]) && !later.includes(prev[i]) ? prev[i] : '';
+        if (!k) {
+          const free = POOL.filter((p) => !used.includes(p) && !later.includes(p));
+          const any = free.length ? free : POOL.filter((p) => !used.includes(p));
+          k = any[Math.floor(Math.random() * any.length)];
+        }
+        used.push(k); t[keys[i]] = k;
+      });
+    }
+    content = JSON.stringify(doc, null, 2);
   } catch { /* not JSON: publish as sent */ }
 
   const api = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_PATH}`;
