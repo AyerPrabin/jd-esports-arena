@@ -270,6 +270,8 @@ textarea{min-height:96px;resize:vertical}
 .cpchips button{cursor:pointer;color:var(--gold-l)}
 .ld{border:1px solid var(--line);border-radius:14px;padding:12px;margin:0 0 10px;background:var(--panel-2)}
 .ld-top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.ld-top b{font-size:1.15rem}
+.shot-view{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;padding:12px;cursor:zoom-out;overflow:auto}
+.shot-view img{max-width:100%;max-height:100%;object-fit:contain}
 .ld img{display:block;width:100%;max-height:420px;object-fit:contain;border-radius:10px;margin:8px 0;background:#000;cursor:zoom-in}
 .ld-m{display:grid;gap:6px;margin-top:6px}.ld-m button{text-align:left}
 .ld-p{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);font-size:.84rem}.ld-p.used{opacity:.5}
@@ -670,6 +672,13 @@ let ME={role:'staff'};   // whoami: role 'host' = invited scrim host (own events
 const isHostMod=()=>ME.role==='host';
 
 /* ── sheet (replaces confirm / prompt / alert) and toast ── */
+// full-screen payment screenshot (in-page: window.open is unreliable inside the app); tap or Esc closes
+function shotView(src,alt){
+  const v=document.createElement('div');v.className='shot-view';v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-label',alt||'Payment screenshot');
+  const im=new Image();im.src=src;im.alt=alt||'Payment screenshot';v.appendChild(im);
+  const close=()=>{v.remove();document.removeEventListener('keydown',k);};const k=e=>{if(e.key==='Escape')close();};
+  v.onclick=close;document.addEventListener('keydown',k);document.body.appendChild(v);
+}
 function sheet(o){
   return new Promise(res=>{
     const prev=document.activeElement;
@@ -1404,7 +1413,7 @@ async function ldLoad(){
 }
 $('ld-reload')&&($('ld-reload').onclick=ldLoad);
 $('tab-loads')&&$('tab-loads').addEventListener('click',async e=>{
-  const im=e.target.closest('.ld img'); if(im){ window.open().document.write('<img src="'+im.src.replace(/"/g,'')+'" style="max-width:100%">'); return; }
+  const im=e.target.closest('.ld img'); if(im){ shotView(im.src,im.alt); return; }
   const b=e.target.closest('[data-match]'); if(!b) return;
   const card=b.closest('[data-ld]'), r=ldData.loads.find(x=>x.id===card.dataset.ld);
   if(!await sheet({title:'Add '+r.amount+' points to '+r.who+'?',text:'Only if the screenshot shows the same amount and time as this payment. Each payment can be used once.',ok:'Add points'}))return;

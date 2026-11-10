@@ -548,7 +548,7 @@ Deno.serve(async (req: Request) => {
         const fits = open.filter((x: any) => x.amount === r.amount && new Date(x.received_at).getTime() >= t - 3 * 3600e3 && new Date(x.received_at).getTime() <= t + 30 * 60e3)
           .map((x: any) => x.id);
         return { id: r.id, amount: r.amount, at: r.created_at, code: r.esewa_code || null, from: r.sender_name || null, who: r.players?.username ? '@' + r.players.username : (r.players?.player_tag || 'Player'),
-          shot: typeof r.screenshot === 'string' && /^data:image\/(jpeg|png|webp);base64,/.test(r.screenshot) && r.screenshot.length < 900000 ? r.screenshot : null, fits };
+          shot: typeof r.screenshot === 'string' && /^data:image\/(jpe?g|png|webp);base64,/.test(r.screenshot) && r.screenshot.length < 900000 ? r.screenshot : null, fits };
       }),
     });
   }
