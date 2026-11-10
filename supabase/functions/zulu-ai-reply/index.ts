@@ -203,7 +203,7 @@ This player is signed in, and the conversation starts with a MY ACCOUNT note the
           const send = (t: string) => { full += t; ctrl.enqueue(enc.encode(t)); };
           // Groq first: its first word lands in well under a second; Gemini streams if Groq is down.
           const g = await streamOpenAICompat('groq', messages, send, MODEL_TIMEOUT_MS);
-          const s = g || (full ? null : await streamGemini(messages, CHAT_GEMINI_MODELS, send));
+          const s = g || (full ? null : await streamGemini(messages, CHAT_GEMINI_MODELS, send, MODEL_TIMEOUT_MS));   // a stalled model is skipped after 9 s, not 25
           if (g) provider = 'groq:' + g.model + ':stream';
           else if (s) provider = 'gemini:' + s.model + ':stream';
           else if (!full) {                         // no model started: the normal chain, sent in one piece

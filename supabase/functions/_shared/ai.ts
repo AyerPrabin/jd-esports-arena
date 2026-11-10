@@ -55,6 +55,15 @@ const TIMEOUT_MS = 20000;
 // Last provider error per model (status + start of the body), for ai-review's selftest.
 export const lastAIError: Record<string, string> = {};
 
+// Groq's free tier refuses any request over its tokens-per-minute limit (8k on gpt-oss), and ZULU's full
+// prompt is ~10-12k tokens, so those calls only waste a round trip. GROQ_MAX_TOKENS raises it on a paid tier.
+const GROQ_MAX_TOKENS = Number(Deno.env.get('GROQ_MAX_TOKENS') || '7500');
+function tooBigFor(name: string, messages: AIMessage[]): boolean {
+  if (name !== 'groq') return false;
+  const chars = messages.reduce((a, m) => a + m.content.length, 0);
+  return chars / 3.5 + 1024 > GROQ_MAX_TOKENS;
+}
+
 function modelsFor(name: string, defaults: string[]): string[] {
   const env = Deno.env.get(name.toUpperCase() + '_MODEL');
   return env ? env.split(',').map((m) => m.trim()).filter(Boolean) : defaults;
@@ -173,7 +182,7 @@ export async function streamGemini(messages: AIMessage[], models: string[], onTe
 export async function streamOpenAICompat(name: string, messages: AIMessage[], onText: (t: string) => void, timeoutMs = 20000): Promise<{ text: string; model: string } | null> {
   const cfg = OPENAI_COMPAT_PROVIDERS.find((p) => p.name === name);
   const key = cfg && Deno.env.get(cfg.keyEnv);
-  if (!cfg || !key) return null;
+  if (!cfg || !key || tooBigFor(name, messages)) return null;
   for (const model of modelsFor(cfg.name, cfg.models)) {
     const res = await post(cfg.base, {
       method: 'POST',
@@ -357,7 +366,7 @@ export async function askAI(messages: AIMessage[], order?: string[], opts: { gem
       continue;
     }
     const cfg = OPENAI_COMPAT_PROVIDERS.find((p) => p.name === name);
-    if (!cfg) continue;
+    if (!cfg || tooBigFor(name, messages)) continue;
     const key = Deno.env.get(cfg.keyEnv);
     if (!key) continue;
     const hit = await tryModels(modelsFor(cfg.name, cfg.models), (model) => callOpenAICompatible(cfg.base, model, key, messages, ms));
