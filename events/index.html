@@ -139,6 +139,19 @@ footer{padding:30px 28px 50px;text-align:center;color:var(--body);font-size:.8re
 .mt-t:hover{border-color:color-mix(in srgb,var(--c) 70%,transparent)}
 .mt-t[aria-pressed=true]{border:2px solid var(--c);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 25%,transparent)}
 .mt-t:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+/* Phones: the mode tiles are one swipeable row, so the first events and their Join buttons show on the first screen */
+@media (max-width:640px){
+  .mt{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;margin:14px calc(-1 * var(--gutter,16px)) 6px;padding:2px var(--gutter,16px) 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .mt::-webkit-scrollbar{display:none}
+  .mt-t{flex:0 0 136px;aspect-ratio:1/1.18;scroll-snap-align:start;border-radius:16px}
+  .mt-n{font-size:1.3rem;bottom:26px;left:9px;right:9px}
+  .mt-n::before{width:26px;height:3px;margin-bottom:5px}
+  .mt-f{left:9px;right:9px;bottom:8px;font-size:.68rem}
+  .mt-x{font-size:1rem}
+  .ev-top{grid-template-columns:56px minmax(0,1fr) auto;gap:10px}
+  .ev-top .pe-img{width:56px;height:56px}
+  .ev-name{font-size:1.06rem}
+}
 .mt-t:active{transform:scale(.98)}
 @media (min-width:700px){.mt{grid-template-columns:repeat(4,1fr)}}
 @media (prefers-reduced-motion:reduce){.mt-t{transition:none}.mt-t:active{transform:none}}
