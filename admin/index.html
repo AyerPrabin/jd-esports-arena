@@ -282,6 +282,20 @@ h2[id]{scroll-margin-top:64px}
 .au-ch .ax{display:flex;justify-content:space-between;font-size:.66rem;opacity:.6;margin-top:2px}
 .au-tip{position:absolute;top:6px;right:12px;font-size:.74rem;opacity:.85}
 @media(max-width:560px){.au-k{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Phones (10 Nov 2026): a smaller title, the section tabs show they swipe, a smaller ZULU
+   button that doesn't sit on the Quick actions, and room at the bottom so it never covers the last item */
+.hist-more{display:block;width:100%;margin:10px 0 4px}
+@media(max-width:640px){
+  h1{font-size:1.3rem;line-height:1.15}
+  .adm-nav{-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 36px),transparent)}
+  .adm-nav a,.adm-nav .nav-pub{padding:8px 13px}
+  .zc-fab{right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));padding:10px 15px;font-size:.84rem;box-shadow:0 6px 20px rgba(0,0,0,.45)}
+  #app{padding-bottom:84px}
+  /* long help text: 2 lines, tap it for the rest */
+  #app p.hint:not([id]):not(.open){display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer;position:relative}
+  #app p.hint.cut:not([id]):not(.open)::after{content:'more';position:absolute;right:0;bottom:0;padding-left:18px;font-size:.72rem;font-weight:700;color:var(--gold);
+    background:linear-gradient(90deg,transparent,var(--bg,#05080F) 14px)}
+}
 </style>
 </head>
 <body>
@@ -1025,6 +1039,7 @@ function tEditorHtml(t,i){
    upcoming/live hours after its start is "overdue": it stays with the active events with a
    one-tap button to finish it, so nothing lingers by accident. */
 const OVERDUE_MS=4*3600e3;
+let _histAll=false;const HIST_FIRST=5;
 let _histEdit=new WeakSet(); // history events opened for editing (by object, so deletes can't shift it)
 function tStatus(t){return String(t.status||'upcoming').toLowerCase();}
 // same rule as the live site's effectiveStatus(): a typed winner means it's over, even if the status was left on upcoming
@@ -1072,7 +1087,10 @@ function renderT(){
   }).join('')||'<p class="hint">No upcoming events. Tap "➕ New Event" to make one.</p>';
   hist.sort((a,b)=>(tStartMs(data.tournaments[b])||0)-(tStartMs(data.tournaments[a])||0));
   const hb=document.getElementById('thist');
-  if(hb){hb.innerHTML=hist.map(i=>histCardHtml(data.tournaments[i],i)).join('')||'<p class="hint">Nothing here yet. Finished and cancelled events show up here.</p>';staggerReveal(hb);}
+  // newest 5 first; the rest one tap away, so the page isn't 20 finished cards long on a phone
+  const histShow=_histAll?hist:hist.slice(0,HIST_FIRST);
+  if(hb){hb.innerHTML=(histShow.map(i=>histCardHtml(data.tournaments[i],i)).join('')||'<p class="hint">Nothing here yet. Finished and cancelled events show up here.</p>')+
+    (hist.length>HIST_FIRST?`<button type="button" class="btn ghost hist-more" onclick="_histAll=!_histAll;renderT()">${_histAll?'Show fewer':'Show all '+hist.length+' finished events'}</button>`:'');staggerReveal(hb);}
   renderNow();
 }
 function histEdit(i){_histEdit.add(data.tournaments[i]);renderT();const c=document.querySelectorAll('#tlist .card');const el=[...c].find(x=>x.querySelector('[data-i="'+i+'"]'));if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
@@ -3374,6 +3392,14 @@ dismissAiRecommendation=guard(dismissAiRecommendation);confirmAiRecommendation=g
   <div class="zc-sugg" id="zc-sugg"></div>
   <div class="zc-in"><button class="btn ghost zc-mic" id="zc-mic" type="button" onclick="zcMic()" aria-label="Speak" title="Speak (English or Nepali)" hidden>🎤</button><textarea id="zc-input" rows="1" placeholder="e.g. approve all loads · room code 1234567 pass jd22"></textarea><button class="btn" onclick="zcSend()">Send</button></div>
 </div>
-<script src="/activity.js?v=4"></script>
+<script src="/activity.js?v=4">
+/* phones: help text is cut to 2 lines (see CSS); tapping it shows the rest */
+document.addEventListener('click',e=>{const h=e.target.closest&&e.target.closest('#app p.hint:not([id])');if(h&&!e.target.closest('a,button,input,select,textarea')&&matchMedia('(max-width:640px)').matches)h.classList.toggle('open');});
+// "more" only on help text that really is cut off
+(()=>{const app=document.getElementById('app');if(!app)return;let t=0;
+  const mark=()=>{t=0;if(!matchMedia('(max-width:640px)').matches)return;app.querySelectorAll('p.hint:not([id]):not(.open)').forEach(h=>h.classList.toggle('cut',h.scrollHeight>h.clientHeight+2));};
+  new MutationObserver(()=>{if(!t)t=setTimeout(mark,250);}).observe(app,{childList:true,subtree:true,attributes:true,attributeFilter:['style']});
+  addEventListener('resize',()=>{if(!t)t=setTimeout(mark,250);});mark();})();
+</script>
 </body>
 </html>
