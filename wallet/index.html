@@ -82,6 +82,19 @@ h1{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.04e
 .pr-row{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line-2)}.pr-row:first-child{border-top:none}
 .pr-row a{color:var(--gold-l);font-weight:700;font-size:.86rem;word-break:break-all}.cap{text-transform:capitalize}.pr-row small{display:block;font-size:.76rem;color:var(--body);margin-top:2px}
 .pr-row.rejected a{color:var(--body)}.pr-ic{width:22px;text-align:center}
+/* follow card: tick list before Send; video kit: ready text to copy */
+.chk{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:6px}
+.chk label{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:var(--bg-2);border:1px solid var(--line-2);font-size:.8rem;color:var(--cream);cursor:pointer;transition:border-color .2s}
+.chk input{flex:none;width:18px;height:18px;margin:1px 0 0;accent-color:var(--gold)}
+.chk label:has(input:checked){border-color:rgba(94,219,149,.5)}
+.chk small{display:block;color:var(--body);font-size:.74rem;margin-top:2px}
+.why{margin:0 0 10px;padding:8px 12px;border-left:3px solid var(--red);font-size:.76rem;color:var(--body);background:rgba(255,138,138,.06);border-radius:0 10px 10px 0}
+.kit{margin:0 0 12px;border-radius:14px;border:1px solid var(--gold-m);background:rgba(255,200,61,.05)}
+.kit summary{padding:11px 14px;font-weight:800;font-size:.84rem;color:var(--gold-l);cursor:pointer;list-style:none}
+.kit summary::-webkit-details-marker{display:none}.kit summary::after{content:' +';float:right}.kit[open] summary::after{content:' −'}
+.kit>div{padding:0 14px 12px;display:grid;gap:8px}
+.kit p{margin:0;font-size:.78rem;color:var(--body)}
+.kit .copy{padding:10px 10px 10px 12px;text-align:left;align-items:flex-start}.kit .copy code{white-space:normal;font-family:inherit;font-size:.76rem;font-weight:500;line-height:1.45;color:var(--cream)}
 .card h2{margin:0 0 4px;font-size:1rem;font-weight:800}
 .card p.sub{margin:0 0 12px;font-size:.82rem;color:var(--body)}
 label{display:block;margin:14px 0 6px;font-size:.7rem;font-weight:700;letter-spacing:.01em;color:var(--silver)}
@@ -118,6 +131,21 @@ input:focus{border-color:var(--gold)}
 .copy em{flex:none;font-style:normal;font-size:.72rem;font-weight:800;letter-spacing:.01em;padding:6px 12px;border-radius:999px;background:var(--gold);color:#0a0a12}
 .copy.done{border-style:solid;border-color:var(--green)}.copy.done em{background:var(--green)}
 .wait{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:rgba(94,219,149,.07);border:1px solid rgba(94,219,149,.3);font-size:.8rem;color:#bff2d6}
+/* trust: real numbers from the server (load_speed.sql, payout_stats.sql), totals only */
+.trust{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 18px}
+.trust div{padding:10px 12px;border-radius:14px;background:var(--bg-2);border:1px solid var(--line-2);font-size:.74rem;color:var(--body);line-height:1.35}
+.trust b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:1.25rem;font-weight:700;color:var(--cream);letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.trust .tr-ref b{color:var(--green)}
+.trust .tr-help{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.trust .tr-help a{flex:none;font-weight:800;font-size:.76rem;color:#0a0a12;background:var(--wa);padding:7px 12px;border-radius:999px;text-decoration:none}
+.trust .tr-help a:active{transform:scale(.97)}
+/* pending load: Sent > Being checked > Added */
+.track{display:flex;gap:4px;margin:6px 0 2px;font-size:.66rem;font-weight:700;color:var(--body);white-space:nowrap}
+.track span{flex:1;padding-top:6px;border-top:3px solid var(--line)}
+.track .ok{color:var(--green);border-color:var(--green)}
+.track .now{color:var(--gold-l);border-color:var(--gold);animation:trk 1.6s ease-in-out infinite}
+@keyframes trk{50%{border-color:rgba(255,200,61,.35)}}
+@media (prefers-reduced-motion:reduce){.track .now{animation:none}}
 
 /* withdraw */
 .summary{margin-top:14px;padding:14px;border-radius:14px;background:var(--bg-2);border:1px solid var(--line-2)}
@@ -247,15 +275,29 @@ input:focus{border-color:var(--gold)}
         <h2>Get a free card for free tournaments</h2>
         <p class="sub">Every free tournament asks for a free card. Your first card comes from following us, one time only. After that, every free card needs a video about JD Arena. A JD mod checks it, and each card joins one free tournament. Don't want to? You can pay 15 points when you join instead.</p>
         <ol class="steps">
-          <li class="step"><h3>Follow, comment, repost 3 videos (one time only)</h3><p class="sub">From your TikTok, follow <a href="https://www.tiktok.com/@ayer_fire" target="_blank" rel="noopener noreferrer">@ayer_fire</a>, then comment on and repost 3 of our videos. Write your JD username in each comment so we can find you. Send your TikTok username. This gives one card per player, once.</p>
+          <li class="step"><h3>Follow, comment, repost 3 videos (one time only)</h3><p class="sub">On TikTok, open <a href="https://www.tiktok.com/@ayer_fire" target="_blank" rel="noopener noreferrer">@ayer_fire</a> and do all 3 below, then send your TikTok username. One card per player, once.</p>
             <p class="sub" id="pe-done" hidden><b>✓ You already got this card.</b> For another free card, make a video about JD Arena below.</p>
             <form id="pe-form" novalidate>
+              <ul class="chk">
+                <li><label><input type="checkbox" class="pe-c"> <span>I follow <b>@ayer_fire</b> on TikTok</span></label></li>
+                <li><label><input type="checkbox" class="pe-c"> <span>I commented my JD username on 3 of its videos<small>Your JD username: <b id="pe-user">…</b></small></span></label></li>
+                <li><label><input type="checkbox" class="pe-c"> <span>I reposted the same 3 videos</span></label></li>
+              </ul>
+              <p class="why">Most refused requests miss one of these: not following yet, a comment without the JD username, or no repost. Use your exact TikTok username so the mod can find you.</p>
               <input id="pe-handle" type="text" placeholder="@yourname" maxlength="60" autocomplete="off" autocapitalize="none" aria-label="Your TikTok username">
               <button class="btn" id="pe-send" type="submit" style="margin-top:10px">Send for a check</button>
               <p class="pr-msg" id="pe-msg" role="status"></p>
             </form>
           </li>
           <li class="step"><h3>Make a video about JD Arena</h3><p class="sub">Make your own public video and say how to download the app: <b>jdesport.co.uk/download</b>. Send the link to your video. Photos and text posts don't count. Each video earns one card.</p>
+            <details class="kit">
+              <summary>Video kit: what to say and post</summary>
+              <div>
+                <p>15 to 30 seconds is enough. Record your screen with the JD Arena app open and say the link out loud.</p>
+                <button class="copy" type="button" data-copy="Free Fire tournament khelna man cha? JD Arena app download gara: jdesport.co.uk/download. Free card wa 15 points ma join huncha, JD event ko prize sidhai wallet ma aaucha. Ma pani yahi khelchu, timi pani aau!"><code>Free Fire tournament khelna man cha? JD Arena app download gara: jdesport.co.uk/download. Free card wa 15 points ma join huncha, JD event ko prize sidhai wallet ma aaucha. Ma pani yahi khelchu, timi pani aau!</code><em>Copy</em></button>
+                <button class="copy" type="button" data-copy="Free Fire tournaments in Nepal 🔥 Download JD Arena: jdesport.co.uk/download @ayer_fire #AyerFire #JDEsports #FreeFireNepal"><code>Free Fire tournaments in Nepal 🔥 Download JD Arena: jdesport.co.uk/download @ayer_fire #AyerFire #JDEsports #FreeFireNepal</code><em>Copy</em></button>
+              </div>
+            </details>
             <form id="pf-form" novalidate>
               <input id="pf-url" type="url" inputmode="url" placeholder="https://www.tiktok.com/@you/video/…" maxlength="300" autocomplete="off" aria-label="Link to your video">
               <button class="btn" id="pf-send" type="submit" style="margin-top:10px">Send for a check</button>
@@ -293,6 +335,12 @@ input:focus{border-color:var(--gold)}
     <!-- LOAD -->
     <section class="pane" id="p-load">
       <div class="card">
+        <div class="trust" id="trust">
+          <div id="tr-speed" hidden><b id="tr-speed-n"></b><span id="tr-speed-t"></span></div>
+          <div id="tr-paid" hidden><b id="tr-paid-n"></b>prizes paid to players</div>
+          <div class="tr-ref"><b>100% back</b>if an event is cancelled</div>
+          <div class="tr-help"><span>Payment not added? Message us with your username and screenshot.</span><a href="https://wa.me/9779868813682" target="_blank" rel="noopener noreferrer">WhatsApp</a></div>
+        </div>
         <ol class="steps">
           <li class="step">
             <h3>Choose an amount</h3>
@@ -326,7 +374,7 @@ input:focus{border-color:var(--gold)}
           </li>
           <li class="step">
             <h3>Wait for verification</h3>
-            <div class="wait"><span>⏳</span><span>We check the payment and add the points to your wallet — usually within a few hours. You'll get a notification, and the balance above updates by itself.</span></div>
+            <div class="wait"><span>⏳</span><span>We check the payment and add the points to your wallet<span id="wait-speed"> — usually within a few hours</span>. You'll get a notification, and the balance above updates by itself.</span></div>
             <div class="list" id="load-list"></div>
           </li>
         </ol>
@@ -441,14 +489,19 @@ async function loadPromo(){
 $('pe-form').onsubmit=async e=>{
   e.preventDefault();
   const h=$('pe-handle').value.trim(),m=$('pe-msg');
+  if([...document.querySelectorAll('.pe-c')].some(c=>!c.checked)){m.textContent='Tick all 3 first. The mod checks each one.';m.className='pr-msg err';return;}
   if(!h){m.textContent='Type your TikTok username, like @yourname.';m.className='pr-msg err';$('pe-handle').focus();return;}
   $('pe-send').disabled=true;m.textContent='Sending…';m.className='pr-msg';
   const {error}=await sb.rpc('promo_submit_engage',{p_handle:h});
   $('pe-send').disabled=false;
   if(error){m.textContent=error.message;m.className='pr-msg err';return;}
   m.textContent='Sent. A JD mod will check it, and you’ll get a notification.';m.className='pr-msg ok';
-  $('pe-handle').value='';loadPromo();
+  $('pe-handle').value='';document.querySelectorAll('.pe-c').forEach(c=>c.checked=false);loadPromo();
 };
+// video kit copy buttons
+document.querySelectorAll('.kit .copy').forEach(b=>b.onclick=()=>{
+  (navigator.clipboard?navigator.clipboard.writeText(b.dataset.copy):Promise.reject()).then(()=>{b.classList.add('done');b.querySelector('em').textContent='Copied';setTimeout(()=>{b.classList.remove('done');b.querySelector('em').textContent='Copy';},1800);}).catch(()=>toast('Copy failed: hold the text to copy it'));
+});
 $('pf-form').onsubmit=async e=>{
   e.preventDefault();
   const url=$('pf-url').value.trim(),m=$('pf-msg');
@@ -617,7 +670,7 @@ function renderLoad(){
   $('amt-chips').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{loadAmt=+c.dataset.a;$('amt-custom').value='';renderLoad();});
   $('qr-amt').textContent='Rs '+loadAmt.toLocaleString();
   const user=me.username||me.player_tag||'';
-  $('uname').textContent=user;
+  $('uname').textContent=user;$('pe-user').textContent=user||'…';
   $('load-btn').textContent=`Send Rs ${loadAmt.toLocaleString()} screenshot for verification`;
 }
 $('amt-custom').oninput=e=>{const v=parseInt(e.target.value,10);if(v>0){loadAmt=v;renderLoad();}};
@@ -675,7 +728,23 @@ $('load-btn').onclick=async()=>{
 async function loadLoadRequests(){
   const {data}=await sb.from('wallet_load_requests').select('amount, status, note, created_at').eq('player_id',me.id).order('created_at',{ascending:false}).limit(10);
   const L={pending:'Checking',approved:'Added',rejected:'Not added'};
-  $('load-list').innerHTML=(data||[]).map(r=>`<div class="row"><div class="ic in">🧾</div><div class="t"><b>Rs ${r.amount.toLocaleString()} payment</b><small>${new Date(r.created_at).toLocaleString([],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${r.note?' · '+esc(r.note):''}</small></div><span class="pill ${r.status}">${L[r.status]||r.status}</span></div>`).join('');
+  const track=r=>r.status==='pending'?'<div class="track" aria-label="Sent, being checked"><span class="ok">✓ Sent</span><span class="now">Checking</span><span>Added</span></div>':'';
+  $('load-list').innerHTML=(data||[]).map(r=>`<div class="row"><div class="ic in">🧾</div><div class="t"><b>Rs ${r.amount.toLocaleString()} payment</b>${track(r)}<small>${new Date(r.created_at).toLocaleString([],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${r.note?' · '+esc(r.note):''}</small></div><span class="pill ${r.status}">${L[r.status]||r.status}</span></div>`).join('');
+}
+// Trust numbers: read once per page open (no polling). Hidden if a number isn't there.
+let trustDone=false;
+function loadTrust(){
+  if(trustDone)return;trustDone=true;
+  sb.rpc('load_speed').then(({data:d})=>{
+    if(!d||!d.approved||d.median_min==null)return;
+    const m=Math.max(1,+d.median_min),t=m<60?`${m} min`:`${Math.round(m/60)} h`;
+    $('tr-speed-n').textContent='~'+t;$('tr-speed-t').textContent='to add your points';$('tr-speed').title=`Median of ${d.approved} loads in the last 30 days`;$('tr-speed').hidden=false;
+    $('wait-speed').textContent=` — usually in about ${t}`;
+  },()=>{});
+  sb.rpc('payout_stats').then(({data:d})=>{
+    if(!d||!+d.prizes)return;
+    $('tr-paid-n').textContent='Rs '+Number(d.prizes).toLocaleString('en-IN');$('tr-paid').hidden=false;
+  },()=>{});
 }
 
 /* ── withdraw ── */
@@ -755,7 +824,7 @@ async function refresh(){
   const pend=(p.data||[]).reduce((a,x)=>a+x.amount,0);
   $('pend-note').hidden=!pend;$('pend-note').textContent=pend?`⏳ Rs ${pend.toLocaleString()} withdrawal on its way to your eSewa`:'';
   if(!unl&&bal>prev&&prev!==0)toast(`+${bal-prev} JD points added`);
-  renderWithdrawForm();loadLoadRequests();
+  renderWithdrawForm();loadLoadRequests();loadTrust();
   if($('p-history').classList.contains('on'))renderHistory();
 }
 
