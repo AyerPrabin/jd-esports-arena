@@ -205,6 +205,8 @@ input:focus,textarea:focus{border-color:var(--gold)}
 .rec small{font-size:.66rem;color:var(--body)}
 .rec .pos{color:var(--green)}.rec .neg{color:var(--red)}
 .cxl{margin:10px 0 0;font-size:.8rem;color:var(--body)}.cxl.in{display:grid;gap:8px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,90,90,.35);background:rgba(255,90,90,.07);color:var(--silver)}.cxl-b{margin-top:10px;width:100%;font-size:.8rem}
+.lock{display:grid;gap:8px;margin:0 0 12px;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,90,90,.45);background:rgba(255,90,90,.08);font-size:.82rem;color:#ffd6d6}
+.shot-note{margin:0 0 8px;font-size:.8rem;color:var(--silver)}
 .timer{display:flex;align-items:center;gap:8px;margin:0 0 12px;padding:10px 12px;border-radius:12px;background:rgba(255,200,61,.07);border:1px solid var(--line);font-size:.8rem;color:var(--gold-l)}
 .empty .btn{margin-top:12px}
 .toast{position:fixed;left:50%;bottom:22px;z-index:60;transform:translate(-50%,20px);opacity:0;padding:11px 18px;border-radius:999px;background:#1d2638;border:1px solid var(--gold-m);font-size:.84rem;font-weight:600;transition:.25s;pointer-events:none}
@@ -252,6 +254,7 @@ input:focus,textarea:focus{border-color:var(--gold)}
 
   <div id="app" hidden>
     <div class="alerts" id="alerts" hidden><span class="ic" id="alerts-ic">🔔</span><span id="alerts-t"></span><button class="btn" id="alerts-btn" type="button">Turn on</button></div>
+    <div class="lock" id="lock" hidden><span id="lock-t"></span><button class="btn red" id="lock-pay" type="button">Pay 5 points and play now</button></div>
     <nav class="tabs">
       <button class="tab" data-tab="lobby" type="button">Lobby</button>
       <button class="tab" data-tab="create" type="button">＋ Create</button>
@@ -376,9 +379,17 @@ function left(iso,h){const ms=Date.parse(iso)+h*3600e3-Date.now();if(ms<=0)retur
 function ago(iso){const s=(Date.now()-Date.parse(iso))/1000;return s<60?'just now':s<3600?Math.floor(s/60)+'m ago':s<86400?Math.floor(s/3600)+'h ago':Math.floor(s/86400)+'d ago';}
 
 async function loadBalance(){
-  const {data}=await sb.from('wallets').select('balance, unlimited').eq('player_id',me.id).maybeSingle();
+  const [{data},lk]=await Promise.all([sb.from('wallets').select('balance, unlimited').eq('player_id',me.id).maybeSingle(),
+    sb.from('challenge_bans').select('until, strikes').eq('player_id',me.id).maybeSingle()]);
   bal=(data&&data.balance)||0;$('bal').textContent=data&&data.unlimited?'100B':bal.toLocaleString();$('bal-pill').hidden=false;
+  const l=lk&&!lk.error&&lk.data,on=!!l&&Date.parse(l.until)>Date.now();$('lock').hidden=!on;
+  if(on)$('lock-t').textContent=`⚠️ Challenges are locked until ${new Date(l.until).toLocaleString([],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} because a result you reported didn't match the screenshots (warning ${l.strikes}).`;
 }
+$('lock-pay').onclick=async()=>{
+  if(!await confirmBox('Play now for 5 points?','5 points are taken from your wallet and challenges unlock straight away. The warning stays on your account.','Pay 5 points'))return;
+  const {error}=await sb.rpc('challenge_unlock_pay');if(error){toast(error.message);return;}
+  toast('Challenges unlocked');await loadBalance();
+};
 function setTab(t){
   tab=t;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
   document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));
@@ -512,14 +523,15 @@ async function renderRoom(quiet){
     action=isCreator?`<p style="color:var(--silver);font-size:.86rem">Waiting for ${c.invited?nm(c.invited):'someone in the lobby'} to accept. Your ${c.stake} points are held safely.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${c.invited?'':'<button class="btn" id="r-share" type="button">📤 Share link</button>'}<button class="btn ghost" id="r-cancel" type="button"${c.invited?' style="grid-column:1/-1"':''}>Cancel &amp; refund</button></div>`
       :`<div style="display:grid;grid-template-columns:2fr 1fr;gap:8px"><button class="btn" id="r-accept" type="button">Accept for ${c.stake} points</button>${c.invited===me.id?'<button class="btn ghost" id="r-decline" type="button">Decline</button>':''}</div>`;
   }else if(c.status==='accepted'){
-    action=myClaim?`<p style="color:var(--gold-l);font-size:.88rem;margin:0">You reported: <b>${myClaim==='won'?'We won':'We lost'}</b>. ${theirClaim?'':'Waiting for your opponent. If they don\'t answer within 2 hours, a JD mod decides, so send your result screenshot with 📷 below.'}</p>`
-      :`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn green" id="r-won" type="button">🏆 We won</button><button class="btn red" id="r-lost" type="button">We lost</button></div>${!theirClaim?(c.cancel_by===me.id?'<p class="cxl">You asked to cancel. Waiting for your opponent to agree, then both stakes come back.</p>':c.cancel_by?`<div class="cxl in"><span>${nm(other)} wants to cancel. Agree and both of you get ${c.stake} points back.</span><button class="btn ghost" id="r-cxl" type="button">Agree &amp; refund</button></div>`:'<button class="btn ghost cxl-b" id="r-cxl" type="button">Can’t play? Cancel match &amp; refund both</button>'):''}${theirClaim==='won'?'<p style="color:var(--red);font-size:.82rem;margin:8px 0 0">Your opponent says they won. Confirm with "We lost", or tap "We won" and send your screenshot with 📷 so a JD mod can decide.</p>':''}`;
+    action=myClaim?`<p style="color:var(--gold-l);font-size:.88rem;margin:0">You reported: <b>${myClaim==='won'?'We won':'We lost'}</b>. ${theirClaim?'':(c.creator_shot||c.opponent_shot)?'Your screenshot is in the chat. Waiting for your opponent: if they send nothing within 10 minutes, your win stands.':'Waiting for your opponent. If they don\'t answer within 2 hours, a JD mod decides, so send your result screenshot with 📷 below.'}</p>`
+      :`<p class="shot-note">📷 After the match, take a screenshot of the result screen (Victory or Defeat, with the players' names) and send it with your result.${theirClaim==='won'?' Your opponent already sent theirs.':''}</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn green" id="r-won" type="button">🏆 We won + photo</button><button class="btn red" id="r-lost" type="button">We lost + photo</button></div><input type="file" id="r-shot" accept="image/*" hidden>${!theirClaim?(c.cancel_by===me.id?'<p class="cxl">You asked to cancel. Waiting for your opponent to agree, then both stakes come back.</p>':c.cancel_by?`<div class="cxl in"><span>${nm(other)} wants to cancel. Agree and both of you get ${c.stake} points back.</span><button class="btn ghost" id="r-cxl" type="button">Agree &amp; refund</button></div>`:'<button class="btn ghost cxl-b" id="r-cxl" type="button">Can’t play? Cancel match &amp; refund both</button>'):''}${theirClaim==='won'?'<p style="color:var(--red);font-size:.82rem;margin:8px 0 0">Your opponent says they won. Confirm with "We lost", or tap "We won" and send your screenshot with 📷 so a JD mod can decide.</p>':''}`;
   }else if(c.status==='disputed'){
     action=`<p style="color:var(--red);font-size:.88rem;margin:0">${c.creator_claim&&c.opponent_claim?'Both sides said they won':'Nobody answered the result in time'}, so a JD mod will decide. Tap 📷 in the chat below and send your result screenshot. No decision within 24 hours = both stakes refunded.</p>`;
   }else if(c.status==='completed'){
     action=`<p style="font-size:1rem;margin:0;font-weight:700;color:${c.winner===me.id?'var(--green)':'var(--silver)'}">${c.winner===me.id?`🏆 You won! +${pot(c.stake).toLocaleString()} coins added to your wallet`:`This one went to your opponent · −${c.stake.toLocaleString()} coins`}</p><p style="margin:4px 0 0;font-size:.8rem;color:var(--body)">${c.winner===me.id?`That's +${(pot(c.stake)-c.stake).toLocaleString()} profit on your ${c.stake} stake (pot ${c.stake*2} − ${2*FEE} fee).`:`Your opponent got ${pot(c.stake).toLocaleString()} (pot ${c.stake*2} − ${2*FEE} fee). Win it back with a rematch.`}</p><button class="btn" id="r-rematch" type="button" style="margin-top:10px">🔁 Rematch · ${c.stake} points</button>`;
   }else{action=`<p style="color:var(--silver);font-size:.88rem;margin:0">${esc(l)}${c.resolution?' — '+esc(c.resolution):''}.</p>`;}
   const timer=c.status==='open'?`⏳ Expires in ${left(c.created_at,2)} if nobody accepts — stakes are refunded`
+    :c.status==='accepted'&&c.claim_at&&!(myClaim&&theirClaim)&&(c.creator_shot||c.opponent_shot)?`⏳ ${myClaim?'Your opponent has':'You have'} ${left(c.claim_at,1/6)} to send ${myClaim?'their':'your'} result screenshot, or the reported win stands`
     :c.status==='accepted'&&c.claim_at&&!(myClaim&&theirClaim)?`⏳ ${myClaim?'Your opponent has':'You have'} ${left(c.claim_at,2)} to answer — after that a JD mod decides`
     :c.status==='accepted'&&c.accepted_at&&!c.claim_at?`⏳ Report the result within ${left(c.accepted_at,3)} or both stakes are refunded`:'';
   const roomBlock=(c.status==='accepted'||c.status==='disputed')?`<label>Room (shared only with your opponent)</label>${c.room_id?`<div class="roombox"><button class="copy" type="button" data-copy="${esc(c.room_id)}"><span>Room ID · tap to copy</span><b>${esc(c.room_id)}</b></button><button class="copy" type="button" data-copy="${esc(c.room_pass||'')}"><span>Password · tap to copy</span><b>${esc(c.room_pass||'—')}</b></button></div>`:'<p style="color:var(--body);font-size:.84rem;margin:0">No room yet — whoever makes the custom room, add it here.</p>'}${c.room_id&&window.jdChat?`<div class="room-share"><button class="btn ghost" id="r-share" type="button">📣 Share room to my squad chat</button></div>`:''}${c.status==='accepted'?`<div class="chat-in" style="margin-top:8px"><input id="r-rid" placeholder="Room ID" maxlength="30" value="${esc(c.room_id||'')}"><input id="r-rpw" placeholder="Password" maxlength="30" value="${esc(c.room_pass||'')}"><button class="btn ghost" id="r-setroom" type="button">Save</button></div>`:''}`:'';
@@ -548,11 +560,22 @@ function bindRoom(c){
     (navigator.clipboard?navigator.clipboard.writeText(text+' '+url):Promise.reject()).then(()=>toast('Link copied — paste it in your squad chat')).catch(()=>toast(url));
   });
   on('r-accept',async()=>{if(!await confirmBox(`Accept for ${c.stake} points?`,`The winner gets ${pot(c.stake)}.`,'Accept'))return;const {error}=await sb.rpc('accept_challenge',{p_id:c.id});if(error){toast(error.message);return;}await loadBalance();renderRoom();});
-  const report=async r=>{
-    const txt=r==='won'?'Report that your side WON? If your opponent agrees you get the pot; if they don\'t answer in 2 hours a JD mod decides from your screenshot. Lying means losing your stake and a ban.':`Report that your side LOST? ${pot(c.stake)} points go to your opponent straight away.`;
-    if(!await confirmBox(r==='won'?'We won':'We lost',txt,'Confirm'))return;
-    const {data,error}=await sb.rpc('report_challenge',{p_id:c.id,p_result:r});if(error){toast(error.message);return;}
-    toast(data==='completed'?'Result settled':data==='disputed'?'Sent to a JD mod: send your screenshot':'Waiting for your opponent');await loadBalance();renderRoom();
+  // a result always goes with its screenshot: pick the photo first (needs the tap), then confirm and send
+  const report=r=>{
+    const f=$('r-shot');if(!f)return;
+    f.onchange=async()=>{
+      const file=f.files&&f.files[0];f.value='';if(!file)return;
+      const txt=r==='won'?'Report a WIN with this screenshot? Your opponent has 10 minutes to send theirs, or your win stands. If both say they won, a JD mod decides from the screenshots. A false win = a warning and 2 days without challenges.':`Report that your side LOST with this screenshot? ${pot(c.stake)} points go to your opponent straight away.`;
+      if(!await confirmBox(r==='won'?'We won':'We lost',txt,'Send result'))return;
+      toast('Sending screenshot…');
+      try{
+        const path=await uploadShot(file);
+        const {data,error}=await sb.rpc('report_challenge',{p_id:c.id,p_result:r,p_shot:path});if(error)throw error;
+        toast(data==='completed'?'Result settled':data==='disputed'?'Both sides said they won: a JD mod decides':'Sent. Your opponent has 10 minutes');
+      }catch(e){toast(e.message||'Result not sent');}
+      await loadBalance();renderRoom();
+    };
+    f.click();
   };
   on('r-won',()=>report('won'));on('r-lost',()=>report('lost'));
   on('r-setroom',async()=>{const {error}=await sb.rpc('set_challenge_room',{p_id:c.id,p_room_id:$('r-rid').value,p_room_pass:$('r-rpw').value});if(error){toast(error.message);return;}toast('Room saved');renderRoom();});
@@ -610,15 +633,19 @@ function shrinkShot(file){
     img.src=u;
   });
 }
+async function uploadShot(file){
+  if(!/^image\//.test(file.type))throw new Error('Pick a photo or screenshot');
+  if(file.size>30*1024*1024)throw new Error('That photo is too big');
+  const blob=await shrinkShot(file);if(!blob)throw new Error('Could not read that photo');
+  const ext=blob.type==='image/webp'?'webp':'jpg',path=`${me.id}/cs-${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+  const up=await sb.storage.from('chat-media').upload(path,blob,{contentType:blob.type,upsert:false});
+  if(up.error)throw up.error;
+  return path;
+}
 async function sendPhoto(file){
-  if(!/^image\//.test(file.type)){toast('Pick a photo or screenshot');return;}
-  if(file.size>30*1024*1024){toast('That photo is too big');return;}
   const btn=$('chat-ph');if(btn)btn.disabled=true;toast('Sending photo…');
   try{
-    const blob=await shrinkShot(file);if(!blob)throw new Error('Could not read that photo');
-    const ext=blob.type==='image/webp'?'webp':'jpg',path=`${me.id}/cs-${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
-    const up=await sb.storage.from('chat-media').upload(path,blob,{contentType:blob.type,upsert:false});
-    if(up.error)throw up.error;
+    const path=await uploadShot(file);
     const cap=($('chat-in')||{}).value||'';
     const {error}=await sb.rpc('send_challenge_image',{p_id:roomId,p_path:path,p_caption:cap.trim()});
     if(error)throw error;
