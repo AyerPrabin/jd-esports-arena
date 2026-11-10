@@ -51,7 +51,10 @@ begin
      and p.received_at between r.created_at - interval '3 hours' and r.created_at + interval '30 minutes'
      and public._pay_name(p.sender) = public._pay_name(r.sender_name)
    for update;
-  update public.payments_in set load_id = r.id, matched_by = 'auto: amount + eSewa name', matched_at = now() where id = pay.id;
+  if pay.id is null then return false; end if;
+  update public.payments_in set load_id = r.id, matched_by = 'auto: amount + eSewa name', matched_at = now()
+   where id = pay.id and load_id is null and matched_at is null;
+  if not found then return false; end if;
   perform public.admin_resolve_load(r.id, true, r.amount,
     'Auto: eSewa Rs ' || pay.amount || ' from ' || coalesce(public._pay_name(pay.sender), '?') || ' at '
     || to_char(pay.received_at at time zone 'Asia/Kathmandu', 'DD Mon HH24:MI') || ', code ' || coalesce(r.esewa_code, '-'));
