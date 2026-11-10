@@ -30,14 +30,16 @@ declare c public.challenges; v_me_creator boolean; v_other uuid; v_mine text; v_
 begin
   if auth.uid() is null then raise exception 'Please sign in first.'; end if;
   if p_result not in ('won','lost') then raise exception 'Report won or lost.'; end if;
+  select * into c from public.challenges where id = p_id;
+  -- only the WINNER sends a screenshot; "we lost" needs no photo (owner, 10 Nov 2026)
+  if p_result = 'won' then
   if p_shot is null or btrim(p_shot) = '' then
-    raise exception 'Send your result screenshot (the Victory or Defeat screen). Refresh the page if you don''t see the photo step.';
+    raise exception 'Send your Victory screenshot. Refresh the page if you don''t see the photo step.';
   end if;
   select coalesce(trim(ff_uid), ''), coalesce(trim(ff_name), '') into v_uid, v_name from public.players where id = auth.uid();
-  if coalesce(v_uid, '') = '' then
-    raise exception 'Save your Free Fire UID first (tap your name > Game UID & name), so the mod can match you in the screenshot.';
+  if coalesce(v_uid, '') = '' or coalesce(v_name, '') = '' then
+    raise exception 'Save your Free Fire UID and in-game name first (tap your name > Game UID & name), so the mod can match you in the screenshot.';
   end if;
-  select * into c from public.challenges where id = p_id;
   -- the photo must be taken for THIS match: uploaded after the challenge was accepted (no old Victory screens)
   select o.metadata->>'mimetype' into v_mime from storage.objects o where o.bucket_id = 'chat-media' and o.name = p_shot
     and c.accepted_at is not null and o.created_at >= c.accepted_at;
@@ -47,6 +49,9 @@ begin
     raise exception 'Upload a screenshot of this match (taken after the challenge was accepted).';
   end if;
   if v_mime not like 'image/%' then raise exception 'The result must be a photo or screenshot.'; end if;
+  else
+    p_shot := null;
+  end if;
   select * into c from public.challenges where id = p_id for update;
   if c.id is null or auth.uid() not in (c.creator, c.opponent) then raise exception 'Challenge not found.'; end if;
   if c.status <> 'accepted' then raise exception 'This challenge isn''t waiting for a result.'; end if;
@@ -60,10 +65,11 @@ begin
   else
     update public.challenges set opponent_claim = p_result, opponent_shot = p_shot, claim_at = coalesce(claim_at, now()) where id = p_id returning * into c;
   end if;
-  insert into public.challenge_messages (challenge_id, sender, kind, body, media)
-  values (p_id, auth.uid(), 'image',
-    '📷 Result: ' || case when p_result = 'won' then 'Victory' else 'Defeat' end ||
-    ' · FF ' || case when v_name <> '' then v_name || ' · ' else '' end || 'UID ' || v_uid, p_shot);
+  if p_shot is not null then
+    insert into public.challenge_messages (challenge_id, sender, kind, body, media)
+    values (p_id, auth.uid(), 'image',
+      '📷 Result: Victory · FF ' || case when v_name <> '' then v_name || ' · ' else '' end || 'UID ' || v_uid, p_shot);
+  end if;
   v_mine := p_result;
   v_theirs := case when v_me_creator then c.opponent_claim else c.creator_claim end;
 
@@ -86,7 +92,7 @@ begin
   end if;
   insert into public.notifications (player_id, title, body)
   values (v_other, '⚔️ Send your result in 10 minutes', public._challenge_name(auth.uid()) || ' says they won the ' || c.mode
-    || ' challenge and sent their Victory screenshot. Open the challenge and send your result screenshot within 10 minutes, or their win stands.');
+    || ' challenge and sent their Victory screenshot. Open the challenge within 10 minutes: tap We lost, or We won with your own Victory screenshot. No answer = their win stands.');
   return 'waiting';
 end;
 $function$;
@@ -209,6 +215,9 @@ begin
   end if;
   if exists(select 1 from public.banned_players where player_id = p_player) then
     raise exception 'Your account is banned.';
+  end if;
+  if exists(select 1 from public.players where id = p_player and (coalesce(trim(ff_uid), '') = '' or coalesce(trim(ff_name), '') = '')) then
+    raise exception 'Save your Free Fire UID and in-game name first (tap your name > Game UID & name). Challenges need them so results can be checked.';
   end if;
   select until into v_until from public.challenge_bans where player_id = p_player and until > now();
   if v_until is not null then
