@@ -197,7 +197,10 @@ async function answer(db: any, pid: string, day: Date, used: number, ids: number
   let big = !raw || /\[FLAG\]/i.test(raw) || /(moderator|team member|JD team).{0,30}(reply|join|check|contact)/i.test(raw);
   const safe = safeReply(raw.replace(FLAG, '').trim()), text = safe.text.trim();
   if (safe.risky) big = true;   // a promise only a person may make: the team checks it
-  await say(text || 'Thanks! A JD moderator will reply here soon.');
+  // the hand-off line once, not after every "hlo": skip it when ZULU's last message already said it
+  const lastSaid = [...msgs].reverse().find((m: any) => m.from_staff);
+  if (text) await say(text);
+  else if (!lastSaid || !/moderator will reply/.test(lastSaid.body)) await say('Thanks! A JD moderator will reply here soon.');
   if (big) await flag(); else if (!openFlag) await handled();
   return !!raw;
 }
