@@ -296,6 +296,7 @@ h2[id]{scroll-margin-top:64px}
   #app p.hint.cut:not([id]):not(.open)::after{content:'more';position:absolute;right:0;bottom:0;padding-left:18px;font-size:.72rem;font-weight:700;color:var(--gold);
     background:linear-gradient(90deg,transparent,var(--bg,#05080F) 14px)}
 }
+.wl-fits{display:flex;flex-direction:column;gap:6px;margin:0 0 10px}.wl-fits .btn{justify-content:flex-start;text-align:left;white-space:normal}
 </style>
 </head>
 <body>
@@ -2723,6 +2724,8 @@ async function loadLoads(){
         <b style="font-size:1.05rem">${esc(r.players?('@'+(r.players.username||r.players.player_tag)):'player')}</b>
         <div class="hint" style="margin:2px 0 8px">${esc(r.players&&r.players.player_tag||'')} · sent ${esc(new Date(r.created_at).toLocaleString())}</div>
         ${r.esewa_code||r.sender_name?`<div class="hint" style="margin:0 0 8px">eSewa code <b>${esc(r.esewa_code||'-')}</b> · paid from <b>${esc(r.sender_name||'-')}</b> · check both are on the screenshot</div>`:''}
+        ${(r.fits||[]).length?`<div class="wl-fits">${r.fits.map(f=>`<button class="btn${f.same_name?'':' ghost'}" data-wl-match="${esc(r.id)}" data-pay="${+f.id}">📲 Match: Rs ${+f.amount} from ${esc(f.sender||'?')} · ${esc(new Date(f.at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}))}${f.same_name?' · ✓ same name':''}</button>`).join('')}</div>`
+          :'<div class="hint" style="margin:0 0 8px">No eSewa alert on the JD phone fits this one yet. Check eSewa, then approve below.</div>'}
         <div class="grid">
           <div class="f"><label>Points to add (they said Rs ${r.amount})</label><input id="wl-amt-${r.id}" type="number" min="1" value="${r.amount}"></div>
           <div class="f"><label>Note to player <span class="tag">optional</span></label><input id="wl-note-${r.id}" placeholder="e.g. reason for rejecting"></div>
@@ -2731,6 +2734,12 @@ async function loadLoads(){
       </div></div>`).join(''):'<p class="hint">No screenshots waiting. 🎉</p>';
     box.querySelectorAll('[data-wl-ok]').forEach(b=>b.onclick=()=>resolveLoad(b,b.dataset.wlOk,true));
     box.querySelectorAll('[data-wl-no]').forEach(b=>b.onclick=()=>resolveLoad(b,b.dataset.wlNo,false));
+    box.querySelectorAll('[data-wl-match]').forEach(b=>b.onclick=async()=>{
+      if(!confirm(b.textContent.replace('📲 ','')+'\n\nAdd these points to the player?'))return;
+      b.disabled=true;
+      try{await waCall({action:'match_load',id:b.dataset.wlMatch,payment_id:+b.dataset.pay});wlMsg('Matched and added. The player was notified.','ok');loadLoads();}
+      catch(e){b.disabled=false;wlMsg(e.message,'err');}
+    });
     wlMsg(rows.length+' waiting.','ok');
   }catch(e){wlMsg(e.message,'err');}
 }

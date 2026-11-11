@@ -219,11 +219,37 @@ Deno.serve(async (req: Request) => {
 
   // points loads: players upload the eSewa screenshot on /wallet/ (request_wallet_load)
   if (p.action === 'loads') {
-    const { data, error } = await supabase.from('wallet_load_requests')
-      .select('*, players(username, player_tag)')   // * = also esewa_code / sender_name (load_proof.sql) when present
-      .eq('status', 'pending').order('created_at', { ascending: true }).limit(50);
+    // each waiting load gets the JD phone's eSewa alerts that fit it (same amount, paid up to 3 h before or 30 min
+    // after the request, not used yet), so the admin can match it in one tap instead of opening eSewa
+    const since = new Date(Date.now() - 72 * 3600e3).toISOString();
+    const [{ data, error }, { data: pays }] = await Promise.all([
+      supabase.from('wallet_load_requests')
+        .select('*, players(username, player_tag)')   // * = also esewa_code / sender_name (load_proof.sql)
+        .eq('status', 'pending').order('created_at', { ascending: true }).limit(50),
+      supabase.from('payments_in').select('id, amount, sender, received_at').gt('received_at', since)
+        .is('load_id', null).is('matched_at', null).order('received_at', { ascending: false }).limit(80),
+    ]);
     if (error) return fail(error.message, 500);
-    return json(data || []);
+    // same rule as _pay_name_fit (load_name_fit.sql): equal, or one is the other plus words and the shorter has 2+ words
+    const fitName = (a: string, b: string) => !!a && !!b && (a === b || (a.split(' ').length >= 2 && b.startsWith(a + ' ')) || (b.split(' ').length >= 2 && a.startsWith(b + ' ')));
+    const nm = (s: unknown) => String(s || '').replace(/\s+in your e-?sewa account.*$/i, '').replace(/\s+/g, ' ').trim().toLowerCase();
+    return json((data || []).map((r: any) => {
+      const t = new Date(r.created_at).getTime();
+      const fits = (pays || []).filter((x: any) => x.amount === r.amount
+        && new Date(x.received_at).getTime() >= t - 3 * 3600e3 && new Date(x.received_at).getTime() <= t + 30 * 60e3)
+        .map((x: any) => ({ id: x.id, amount: x.amount, sender: nm(x.sender), at: x.received_at, same_name: fitName(nm(x.sender), nm(r.sender_name)) }))
+        .sort((a: any, b: any) => Number(b.same_name) - Number(a.same_name));
+      return { ...r, fits };
+    }));
+  }
+
+  // one-tap: link a waiting load to the eSewa alert it fits; the database re-checks amount, time and reuse
+  if (p.action === 'match_load') {
+    const pid = Number(p.payment_id);
+    if (!/^[0-9a-f-]{36}$/i.test(String(p.id || '')) || !Number.isInteger(pid)) return fail('id and payment_id required');
+    const { data, error } = await supabase.rpc('match_load_payment', { p_load: p.id, p_payment: pid, p_by: 'admin' });
+    if (error) return fail(error.message);
+    return json(data);
   }
 
   if (p.action === 'resolve_load') {
