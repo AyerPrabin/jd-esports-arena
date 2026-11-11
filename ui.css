@@ -266,7 +266,7 @@ img{max-width:100%}
 .howto-step .snum{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;flex:none;background:linear-gradient(135deg,var(--gold,#FFC83D),var(--gold-2,#FFAE00));color:#07090F;font-weight:800;font-size:.95rem;box-shadow:0 0 0 5px var(--bg,#07090F)}
 .howto-step b{display:block;font-size:1rem;margin-bottom:4px;color:var(--cream,#fff)}
 .howto-step span:not(.snum){display:block;font-size:.84rem;line-height:1.5;color:var(--silver,#A6AFC2)}
-.howto-link{display:inline-block;margin-top:8px;font-size:.82rem;font-weight:700;color:var(--gold-l,#FFDD85)}
+.howto-link{display:inline-block;margin-top:4px;padding:8px 0;font-size:.82rem;font-weight:700;color:var(--gold-l,#FFDD85)}
 .howto-link:hover{text-decoration:underline;text-underline-offset:3px}
 @media(max-width:1024px){
   .howto-list{grid-template-columns:1fr;gap:0}

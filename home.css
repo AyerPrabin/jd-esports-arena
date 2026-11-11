@@ -1286,7 +1286,7 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 @media (max-width:420px){.promo-strip .ps-go{display:none}}
 /* home preview of Find Teammates: links to the full page /squad/ */
 .tm-bar a.tm-postbtn{text-decoration:none}
-.tm-seeall{margin-left:auto;color:var(--gold-l);font-weight:700;font-size:.86rem;text-decoration:none;white-space:nowrap}
+.tm-seeall{margin-left:auto;color:var(--gold-l);font-weight:700;font-size:.86rem;text-decoration:none;white-space:nowrap;padding:10px 0;display:inline-block}
 .tm-uid span{color:var(--silver);font-weight:500;margin-left:4px}
 .tm-more{scroll-snap-align:start;display:grid;place-content:center;text-align:center;gap:4px;min-height:160px;border-radius:18px;border:1px dashed var(--gold-m);color:var(--gold-l);text-decoration:none;font-size:.86rem}
 .tm-more b{font:700 2rem 'Barlow Condensed',sans-serif}
@@ -1401,7 +1401,7 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
   #arena-grid .tcard:not(.past) .tmeta .r-plat span{display:none}
   #arena-grid .tcard:not(.past) .tmeta .r-plat b{font-size:.76rem;color:var(--silver,#A6AFC2);font-weight:600}
   #arena-grid .tcard:not(.past) .thost-note{display:none}
-  #arena-grid .tcard:not(.past) .tslots-label{min-height:24px;margin-bottom:4px}
+  #arena-grid .tcard:not(.past) .tslots-label{min-height:36px;margin-bottom:2px}
   #arena-grid .tcard:not(.past) .inapp-reg{padding:11px;margin-top:4px}
   #arena-grid .tcard:not(.past) .tm-evbtn{padding:6px;font-size:.78rem;margin-top:6px}
 }

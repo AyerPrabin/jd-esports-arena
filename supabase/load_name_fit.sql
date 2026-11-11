@@ -1,7 +1,7 @@
 -- load_name_fit.sql (11 Nov 2026): auto-approve missed a real payment because the player typed their full name
 -- ("Suhana begam khan") and eSewa's alert shows a shorter one ("Suhana Begam"). Names now fit when they are equal, or
 -- one is the other plus more words, and the shorter one has at least 2 words. Amount, time window and "only one fit"
--- checks are unchanged. Run: npx supabase db query --remote --yes -f supabase/load_name_fit.sql
+-- checks are unchanged. Literal starts_with (never LIKE: a typed '%' would match anyone); names with symbols never auto-match. Run: npx supabase db query --remote --yes -f supabase/load_name_fit.sql
 create or replace function public._pay_name_fit(a text, b text)
 returns boolean
 language sql
@@ -10,9 +10,10 @@ set search_path = public
 as $$
   with n as (select public._pay_name(a) x, public._pay_name(b) y)
   select coalesce(x = y
-    or (array_length(regexp_split_to_array(x, ' '), 1) >= 2 and y like x || ' %')
-    or (array_length(regexp_split_to_array(y, ' '), 1) >= 2 and x like y || ' %'), false)
-  from n where x is not null and y is not null;
+    or (array_length(regexp_split_to_array(x, ' '), 1) >= 2 and starts_with(y, x || ' '))
+    or (array_length(regexp_split_to_array(y, ' '), 1) >= 2 and starts_with(x, y || ' ')), false)
+  from n where x is not null and y is not null
+    and x ~ '^[[:alpha:][:space:].''-]+$' and y ~ '^[[:alpha:][:space:].''-]+$';   -- letters only: no wildcards or symbols
 $$;
 
 create or replace function public._load_try_auto(p_load uuid)
