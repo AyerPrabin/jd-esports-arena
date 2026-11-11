@@ -1,6 +1,225 @@
 {
  "events": [
   {
+   "name": "JD Free Fire Open #22",
+   "date": "Wed, Nov 11",
+   "start": "2026-11-11T21:30:00+05:45",
+   "maps": [
+    "bermuda",
+    "nexterra",
+    "kalahari"
+   ],
+   "prize": "180",
+   "winner": "PARAGON E-SPORTS",
+   "kill_pts": 1,
+   "teams": [
+    {
+     "team": "PARAGON E-SPORTS",
+     "r": [
+      {
+       "kills": 23,
+       "pts": 12
+      },
+      {
+       "kills": 6,
+       "pts": 4
+      },
+      {
+       "kills": 3,
+       "pts": 6
+      }
+     ]
+    },
+    {
+     "team": "Youtz Esp",
+     "r": [
+      {
+       "kills": 5,
+       "pts": 8
+      },
+      {
+       "kills": 14,
+       "pts": 5
+      },
+      {
+       "kills": 13,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "SᴍɢㅤESP",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 1
+      },
+      {
+       "kills": 6,
+       "pts": 8
+      },
+      {
+       "kills": 20,
+       "pts": 12
+      }
+     ]
+    },
+    {
+     "team": "Goli eSports",
+     "r": [
+      {
+       "kills": 18,
+       "pts": 7
+      },
+      {
+       "kills": 4,
+       "pts": 7
+      },
+      {
+       "kills": 1,
+       "pts": 8
+      }
+     ]
+    },
+    {
+     "team": "Team Novela",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 6
+      },
+      {
+       "kills": 10,
+       "pts": 3
+      },
+      {
+       "kills": 10,
+       "pts": 9
+      }
+     ]
+    },
+    {
+     "team": "team gorkhaX",
+     "r": [
+      {
+       "kills": 5,
+       "pts": 9
+      },
+      {
+       "kills": 8,
+       "pts": 12
+      },
+      {
+       "kills": 2,
+       "pts": 3
+      }
+     ]
+    },
+    {
+     "team": "DAMAN ESP",
+     "r": [
+      {
+       "kills": 5,
+       "pts": 5
+      },
+      {
+       "kills": 6,
+       "pts": 6
+      },
+      {
+       "kills": 1,
+       "pts": 5
+      }
+     ]
+    },
+    {
+     "team": "Ancient Ogs 1",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 10,
+       "pts": 9
+      },
+      {
+       "kills": 2,
+       "pts": 4
+      }
+     ]
+    },
+    {
+     "team": "DLK ESP.",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 3
+      },
+      {
+       "kills": 5,
+       "pts": 1
+      },
+      {
+       "kills": 1,
+       "pts": 2
+      }
+     ]
+    },
+    {
+     "team": "RF ESPORTS",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 4
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "CRZ ESPORTS ( 2 )",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 3,
+       "pts": 2
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Nosquad",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
    "name": "JD Free Fire Open #19",
    "date": "Tue, Nov 10",
    "start": "2026-11-10T21:30:00+05:45",
