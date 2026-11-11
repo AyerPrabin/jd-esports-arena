@@ -38,7 +38,7 @@
   var PAGE = document.getElementById('chat-page');
 
   var css = document.createElement('link');
-  css.rel = 'stylesheet'; css.href = '/chat.css?v=16';
+  css.rel = 'stylesheet'; css.href = '/chat.css?v=17';
   document.head.appendChild(css);
 
   var NE = false;
@@ -228,9 +228,45 @@
   if (PAGE) { panel.classList.add('page'); PAGE.appendChild(panel); fab.classList.add('page-hide'); }
   else document.body.appendChild(panel);
 
-  var banner = document.createElement('button');
-  banner.type = 'button'; banner.className = 'dm-banner'; banner.setAttribute('aria-live', 'polite');
+  // new-message pop-up: tap the text = open, x or a swipe (left, right or up) = dismiss; it waits while touched
+  var banner = document.createElement('div');
+  banner.className = 'dm-banner'; banner.setAttribute('role', 'status'); banner.setAttribute('aria-live', 'polite');
   document.body.appendChild(banner);
+  var bannerMs = 5500, bannerMoved = false;
+  function bannerHide(dx, dy) {
+    clearTimeout(bannerTimer);
+    if (dx || dy) {
+      banner.style.transform = 'translate(calc(-50% + ' + (dx > 0 ? 120 : dx < 0 ? -120 : 0) + 'vw),' + (dy < 0 ? '-160%' : '0') + ')'; banner.style.opacity = '0';
+      setTimeout(function () { banner.classList.remove('show'); banner.style.transform = ''; banner.style.opacity = ''; }, 260);
+    } else banner.classList.remove('show');
+  }
+  function showBanner(html, onOpen, ms) {
+    banner.innerHTML = '<button type="button" class="dm-bo">' + html + '</button><button type="button" class="dm-bx" aria-label="Dismiss">\u00d7</button>';
+    banner.querySelector('.dm-bo').onclick = function () { if (bannerMoved) return; bannerHide(); onOpen(); };
+    banner.querySelector('.dm-bx').onclick = function () { bannerHide(); };
+    banner.style.transform = ''; banner.style.opacity = '';
+    banner.classList.add('show');
+    bannerMs = ms || 5500; clearTimeout(bannerTimer); bannerTimer = setTimeout(bannerHide, bannerMs);
+  }
+  (function () {
+    var x0 = 0, y0 = 0, dx = 0, dy = 0, on = false;
+    banner.addEventListener('pointerdown', function (e) {
+      if (e.target.closest('.dm-bx')) return;
+      on = true; bannerMoved = false; x0 = e.clientX; y0 = e.clientY; dx = dy = 0; clearTimeout(bannerTimer); banner.classList.add('dm-drag');
+    }, { passive: true });
+    banner.addEventListener('pointermove', function (e) {
+      if (!on) return; dx = e.clientX - x0; dy = Math.min(0, e.clientY - y0);
+      if (!bannerMoved && (Math.abs(dx) > 8 || dy < -8)) { bannerMoved = true; try { banner.setPointerCapture(e.pointerId); } catch (x) {} }
+      if (bannerMoved) { banner.style.transform = 'translate(calc(-50% + ' + dx + 'px),' + dy + 'px)'; banner.style.opacity = String(Math.max(0.2, 1 - Math.max(Math.abs(dx) / 260, -dy / 120))); }
+    }, { passive: true });
+    function end() {
+      if (!on) return; on = false; banner.classList.remove('dm-drag');
+      if (Math.abs(dx) > 90) bannerHide(dx, 0); else if (dy < -40) bannerHide(0, dy);
+      else { banner.style.transform = ''; banner.style.opacity = ''; bannerTimer = setTimeout(bannerHide, bannerMs); }
+      setTimeout(function () { bannerMoved = false; }, 0);
+    }
+    banner.addEventListener('pointerup', end); banner.addEventListener('pointercancel', end);
+  })();
 
   // homepage drawer: a "💬 Messages" row next to Notifications
   var navRow = null;
@@ -503,19 +539,13 @@
   function notifyAlert(n) {
     var f = alFrom(n.title);
     pop(); buzz(); bump();
-    banner.innerHTML = alAv('sm') + '<span class="dm-bt"><b>' + esc(f.from || 'Alert') + '</b><small>' + esc(f.title + (n.room_id ? ' · Room ' + n.room_id : '')) + '</small></span><span class="dm-bk">Open</span>';
-    banner.onclick = function () { banner.classList.remove('show'); openAlerts(); };
-    banner.classList.add('show');
-    clearTimeout(bannerTimer);
-    bannerTimer = setTimeout(function () { banner.classList.remove('show'); }, 5500);
+    showBanner(alAv('sm') + '<span class="dm-bt"><b>' + esc(f.from || 'Alert') + '</b><small>' + esc(f.title + (n.room_id ? ' · Room ' + n.room_id : '')) + '</small></span><span class="dm-bk">Open</span>',
+      openAlerts, n.room_id ? 12000 : 5500);
   }
   function notifyZulu(n) {
     pop(); buzz(); bump();
-    banner.innerHTML = zuluAv('sm') + '<span class="dm-bt"><b>ZULU</b><small>' + esc(n.title + (n.room_id ? ' · Room ' + n.room_id : '')) + '</small></span><span class="dm-bk">Open</span>';
-    banner.onclick = function () { banner.classList.remove('show'); openZulu(); };
-    banner.classList.add('show');
-    clearTimeout(bannerTimer);
-    bannerTimer = setTimeout(function () { banner.classList.remove('show'); }, 5500);
+    showBanner(zuluAv('sm') + '<span class="dm-bt"><b>ZULU</b><small>' + esc(n.title + (n.room_id ? ' · Room ' + n.room_id : '')) + '</small></span><span class="dm-bk">Open</span>',
+      openZulu, n.room_id ? 12000 : 5500);
   }
   function bump() { if (reduced()) return; fab.classList.remove('bump'); void fab.offsetWidth; fab.classList.add('bump'); }
   function notify(m) {
@@ -524,14 +554,9 @@
     var av = m.kind === 'group' ? groupAv({ id: m.key }, 'sm') : m.kind === 'match' ? matchAv('sm') : avatar(who, 'sm');
     var title = m.kind === 'group' ? '👥 ' + (m.title || 'Squad chat') : m.kind === 'match' ? '⚔️ ' + (m.title || 'Challenge') : (m.name || 'New message');
     var body = (m.kind === 'dm' || !m.kind ? '' : (m.name || '') + ': ') + (m.body || '');
-    banner.innerHTML = av + '<span class="dm-bt"><b>' + esc(title) + '</b><small>' + esc(body) + '</small></span><span class="dm-bk">Reply</span>';
-    banner.onclick = function () {
-      banner.classList.remove('show');
+    showBanner(av + '<span class="dm-bt"><b>' + esc(title) + '</b><small>' + esc(body) + '</small></span><span class="dm-bk">Reply</span>', function () {
       if (m.kind === 'group') openGroup(m.key); else if (m.kind === 'match') openMatch(m.key); else openWith(m.from);
-    };
-    banner.classList.add('show');
-    clearTimeout(bannerTimer);
-    bannerTimer = setTimeout(function () { banner.classList.remove('show'); }, 5500);
+    });
   }
   setInterval(poll, 15000);   // was 5 s: one of the reads that used up the Supabase data allowance (8 Nov 2026)
   document.addEventListener('visibilitychange', function () { if (!document.hidden) { poll(); if (cur) refreshThread(); } });

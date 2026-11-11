@@ -2908,18 +2908,45 @@ document.addEventListener('pointerdown',function unlockChime(){
 function buzz(kind){try{if(navigator.vibrate)navigator.vibrate(kind==='roomcode'?[600,200,600,200,600]:kind==='result'?[120,60,120,60,120,60,500]:[180,90,180]);}catch(e){}}
 // Room ID/password and results get their own sound, buzz and banner (same split as /sw.js)
 function alertKind(n){if(!n)return '';const t=n.title||'';return /^room code/i.test(t)||n.room_id?'roomcode':/^results are in/i.test(t)?'result':'';}
-// app-style banner that slides in with the newest notification; tap to open it
+// app-style banner that slides in with the newest notification.
+// Tap the text = open it. × or a swipe (left, right or up) = dismiss. It waits while a finger is on it.
 function notifBanner(n){
   let b=document.getElementById('notif-banner');
-  if(!b){b=document.createElement('button');b.id='notif-banner';b.type='button';b.className='notif-banner';document.body.appendChild(b);}
+  if(!b){
+    b=document.createElement('div');b.id='notif-banner';b.className='notif-banner';b.setAttribute('role','status');b.setAttribute('aria-live','polite');
+    b.innerHTML='<button type="button" class="nb-open"></button><button type="button" class="nb-x" aria-label="Dismiss notification">×</button>';
+    document.body.appendChild(b);nbSwipe(b);
+  }
   const isFriend=/^(👋 Friend request from|🤝 )/.test(n.title||'')&&!!window.jdChat;
   const isChallenge=!isFriend&&/challenge/i.test(n.title||'');
   const ak=alertKind(n);b.classList.toggle('nb-room',ak==='roomcode');b.classList.toggle('nb-result',ak==='result');
   const body=String(n.body||'').startsWith('TICKET::')?'Your ticket is ready — tap to view.':String(n.body||'');
-  b.innerHTML=`<span class="nb-ic">${ak==='roomcode'?'🔑':ak==='result'?'🏆':isChallenge?'⚔️':isFriend?'👋':'🔔'}</span><span class="nb-t"><b>${esc(n.title||'New notification')}</b><small>${esc(body.slice(0,110))}${body.length>110?'…':''}</small></span>`;
-  b.onclick=()=>{b.classList.remove('show');if(isChallenge)location.href='/challenges/';else if(isFriend)window.jdChat.open();else notifHistOpen();};
+  const o=b.querySelector('.nb-open');
+  o.innerHTML=`<span class="nb-ic">${ak==='roomcode'?'🔑':ak==='result'?'🏆':isChallenge?'⚔️':isFriend?'👋':'🔔'}</span><span class="nb-t"><b>${esc(n.title||'New notification')}</b><small>${esc(body.slice(0,110))}${body.length>110?'…':''}</small></span>`;
+  o.onclick=()=>{if(b._moved)return;nbHide(b);if(isChallenge)location.href='/challenges/';else if(isFriend)window.jdChat.open();else notifHistOpen();};
+  b.querySelector('.nb-x').onclick=()=>nbHide(b);
+  b.style.transform='';b.style.opacity='';
   b.classList.remove('show');void b.offsetWidth;b.classList.add('show');
-  clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('show'),6500);
+  nbTimer(b,ak?12000:6500);   // room codes and results stay longer
+}
+function nbTimer(b,ms){clearTimeout(b._t);b._ms=ms||b._ms||6500;b._t=setTimeout(()=>nbHide(b),b._ms);}
+function nbHide(b,dx,dy){
+  clearTimeout(b._t);
+  if(dx||dy){b.style.transform=`translate(calc(-50% + ${dx>0?120:dx<0?-120:0}vw),${dy<0?'-160%':'0'})`;b.style.opacity='0';
+    setTimeout(()=>{b.classList.remove('show');b.style.transform='';b.style.opacity='';},260);}
+  else b.classList.remove('show');
+}
+function nbSwipe(b){
+  let x0=0,y0=0,dx=0,dy=0,on=false;
+  b.addEventListener('pointerdown',e=>{if(e.target.closest('.nb-x'))return;on=true;b._moved=false;x0=e.clientX;y0=e.clientY;dx=dy=0;clearTimeout(b._t);b.classList.add('nb-drag');},{passive:true});
+  b.addEventListener('pointermove',e=>{if(!on)return;dx=e.clientX-x0;dy=Math.min(0,e.clientY-y0);
+    if(!b._moved&&(Math.abs(dx)>8||dy<-8)){b._moved=true;try{b.setPointerCapture(e.pointerId);}catch(x){}}
+    if(b._moved){b.style.transform=`translate(calc(-50% + ${dx}px),${dy}px)`;b.style.opacity=String(Math.max(.2,1-Math.max(Math.abs(dx)/260,-dy/120)));}},{passive:true});
+  const end=()=>{if(!on)return;on=false;b.classList.remove('nb-drag');
+    if(Math.abs(dx)>90)nbHide(b,dx,0);else if(dy<-40)nbHide(b,0,dy);
+    else{b.style.transform='';b.style.opacity='';nbTimer(b);}
+    setTimeout(()=>{b._moved=false;},0);};
+  b.addEventListener('pointerup',end);b.addEventListener('pointercancel',end);
 }
 function playChime(kind){
   if(kind==='notify'&&_notifSound){

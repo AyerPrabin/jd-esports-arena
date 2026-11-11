@@ -290,11 +290,16 @@ button.dm-row:hover{background:rgba(255,255,255,.05)}
 .dm-sheet-note{min-height:1em;margin:6px 6px 0;font-size:.76rem;color:#FF8A9B}
 
 /* new-message banner (Messenger "chat head" style) */
-.dm-banner{position:fixed;top:calc(12px + var(--safe-t,0px));left:50%;z-index:91;display:flex;align-items:center;gap:12px;width:min(420px,calc(100% - 24px));padding:10px 14px 10px 10px;
+.dm-banner{position:fixed;top:calc(12px + var(--safe-t,0px));left:50%;z-index:91;display:flex;align-items:stretch;gap:0;width:min(420px,calc(100% - 24px));padding:0;touch-action:none;user-select:none;
   border-radius:20px;border:1px solid var(--dm-line-2);background:rgba(17,23,38,.97);box-shadow:0 18px 44px rgba(0,0,0,.6);color:var(--dm-text);text-align:left;cursor:pointer;
   transform:translate(-50%,-150%);opacity:0;transition:transform .45s var(--dm-ease),opacity .3s}
 .dm-banner.show{transform:translate(-50%,0);opacity:1}
 .dm-banner .dm-bt{flex:1;min-width:0}
+.dm-banner.dm-drag{transition:none}
+.dm-banner .dm-bo{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:10px 6px 10px 10px;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:20px 0 0 20px}
+.dm-banner .dm-bx{flex:none;width:42px;border:0;background:none;color:#9AA3B5;font-size:1.35rem;line-height:1;cursor:pointer;border-radius:0 20px 20px 0}
+.dm-banner .dm-bx:hover,.dm-banner .dm-bx:focus-visible{color:var(--dm-text);background:rgba(255,255,255,.06)}
+.dm-banner .dm-bo:focus-visible,.dm-banner .dm-bx:focus-visible{outline:2px solid var(--dm-gold);outline-offset:-3px}
 .dm-banner b{display:block;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dm-banner small{display:block;font-size:.8rem;color:#C9D0DD;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dm-banner .dm-bk{flex:none;font-size:.7rem;color:var(--dm-gold);font-weight:700}
