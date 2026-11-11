@@ -37,6 +37,14 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
 .chip-link{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);font-size:.8rem;font-weight:600;color:var(--gold-l)}
 .chip-link:hover{border-color:var(--gold-m)}
 
+.ffid{margin-bottom:14px}
+.ffid.missing{border-color:var(--gold);box-shadow:inset 3px 0 0 var(--gold)}
+.ffid-why{margin:0 0 12px;font-size:.82rem;color:var(--body);line-height:1.45;max-width:60ch}
+.ffid.missing .ffid-why{color:var(--cream);font-weight:600}
+.ffid-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ffid-help{display:block;margin-top:8px;font-size:.74rem;color:var(--body)}
+#ff-uid{font-variant-numeric:tabular-nums;letter-spacing:.04em}
+@media (max-width:520px){.ffid-grid{grid-template-columns:1fr}}
 .card{border-radius:20px;background:var(--panel);border:1px solid var(--line-2);padding:18px}
 /* JD Frag Engine session history (optimizer_my_sessions, optimizer_v57.sql) */
 .oh-pc{color:var(--silver);font-size:.82rem;margin:-4px 0 12px}
@@ -220,6 +228,25 @@ input[type=text]:focus{border-color:var(--gold)}
       </nav>
     </section>
 
+    <!-- Free Fire UID + in-game name (set_my_game_id): needed to join events, clash and be paid -->
+    <section class="card ffid" id="ffid">
+      <h2>Free Fire ID</h2>
+      <p class="ffid-why" id="ffid-why">Hosts check this UID in the room. You need it to join events, play a clash and get prize points.</p>
+      <div class="ffid-grid">
+        <div>
+          <label class="lbl" for="ff-uid">Free Fire UID</label>
+          <input type="text" id="ff-uid" inputmode="numeric" maxlength="13" autocomplete="off" spellcheck="false" placeholder="e.g. 2120145979">
+        </div>
+        <div>
+          <label class="lbl" for="ff-name">In-game name</label>
+          <input type="text" id="ff-name" maxlength="30" autocomplete="off" spellcheck="false" placeholder="Exactly as in Free Fire">
+        </div>
+      </div>
+      <small class="ffid-help">Find both in Free Fire: tap your avatar (top left). The UID is the number under your name.</small>
+      <div class="row"><button class="btn" id="ff-save" type="button">Save Free Fire ID</button></div>
+      <div class="msg" id="ff-msg" role="status"></div>
+    </section>
+
     <div class="grid2">
       <section class="card wallet">
         <h2>Points wallet <a href="/wallet/#history">History →</a></h2>
@@ -394,6 +421,16 @@ function renderProfile(p){
   $('pemail').textContent=me.email||'';
   $('chg-user-s').textContent=me.username?'@'+me.username:'';
   renderSquad();
+  renderFF();
+}
+function renderFF(){
+  const has=!!me.ff_uid;
+  $('ffid').classList.toggle('missing',!has);
+  $('ffid-why').textContent=has?'Saved. Hosts check this UID in the room, so change it only if you play from a new Free Fire account.'
+    :'Add it now: you need it to join events, play a clash and get prize points.';
+  if(document.activeElement!==$('ff-uid'))$('ff-uid').value=me.ff_uid||'';
+  if(document.activeElement!==$('ff-name'))$('ff-name').value=me.ff_name||'';
+  $('ff-save').textContent=has?'Update Free Fire ID':'Save Free Fire ID';
 }
 function renderSquad(){
   $('sq-name').textContent=me.squad_name||'No squad saved yet';
@@ -510,6 +547,19 @@ async function loadFx(){
 }
 
 /* squad actions */
+$('ff-uid').oninput=e=>{const v=e.target.value.replace(/\D/g,'');if(v!==e.target.value)e.target.value=v;};
+$('ff-save').onclick=async()=>{
+  const uid=$('ff-uid').value.replace(/\D/g,''),name=$('ff-name').value.trim(),msg=$('ff-msg'),b=$('ff-save');
+  if(!/^[0-9]{6,13}$/.test(uid)){msg.className='msg err';msg.textContent='Free Fire UID is 6 to 13 numbers. Copy it from your Free Fire profile.';$('ff-uid').focus();return;}
+  if(!name||name.length>30){msg.className='msg err';msg.textContent='Type your in-game name (up to 30 characters).';$('ff-name').focus();return;}
+  if(uid===me.ff_uid&&name===me.ff_name){msg.className='msg ok';msg.textContent='Already saved.';return;}
+  b.disabled=true;msg.className='msg';msg.textContent='Saving…';
+  const {data,error}=await sb.rpc('set_my_game_id',{p_uid:uid,p_name:name});
+  b.disabled=false;
+  if(error){msg.className='msg err';msg.textContent=error.message;return;}
+  me.ff_uid=uid;me.ff_name=name;profSave({p:Object.assign({},profCache().p||{},{ff_uid:uid,ff_name:name})});renderProfile(me);
+  msg.className='msg ok';msg.textContent=data&&data.free_game?'Saved. Welcome gift: 1 free event card is in your wallet.':'Saved. Hosts will see this UID and name.';
+};
 $('sq-save').onclick=async()=>{
   const n=$('sq-input').value.trim(),msg=$('sq-msg');
   if(n.length<2){msg.className='msg err';msg.textContent='Squad name must be at least 2 characters.';return;}
