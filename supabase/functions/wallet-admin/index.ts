@@ -218,6 +218,16 @@ Deno.serve(async (req: Request) => {
   }
 
   // points loads: players upload the eSewa screenshot on /wallet/ (request_wallet_load)
+  // is the JD phone (JD Admin app) still sending eSewa alerts? Its 15-min health check + the last alert it sent
+  if (p.action === 'relay_status') {
+    const [{ data: f }, { data: last }] = await Promise.all([
+      supabase.storage.from('admin-tools').download('relay-beat.json'),
+      supabase.from('payments_in').select('received_at').order('received_at', { ascending: false }).limit(1),
+    ]);
+    let beat: any = null; try { beat = f ? JSON.parse(await f.text()) : null; } catch { beat = null; }
+    return json({ beat, last_alert: last?.[0]?.received_at || null });
+  }
+
   if (p.action === 'loads') {
     // each waiting load gets the JD phone's eSewa alerts that fit it (same amount, paid up to 3 h before or 30 min
     // after the request, not used yet), so the admin can match it in one tap instead of opening eSewa

@@ -19,8 +19,8 @@ Deno.serve(async (req: Request) => {
   if (TOKEN.length < 24 || !same(got, TOKEN)) return new Response('Unauthorized', { status: 401 });
 
   const raw = await req.text();
-  let text = raw, app = '';
-  try { const j = JSON.parse(raw); text = [j.title, j.text].filter(Boolean).join(' · '); app = String(j.app || ''); } catch { /* plain text */ }
+  let text = raw, app = '', j: any = {};
+  try { j = JSON.parse(raw); text = [j.title, j.text].filter(Boolean).join(' · '); app = String(j.app || ''); } catch { /* plain text */ }
   text = String(text || '').replace(/\s+/g, ' ').trim().slice(0, 600);
 
   const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
@@ -48,6 +48,12 @@ Deno.serve(async (req: Request) => {
     if (!/^jd-pay-relay-[\d.]+\.apk$/.test(file)) return Response.json({ versionCode: 0 });
     const { data: s } = await db.storage.from('admin-tools').createSignedUrl(file, 3600);
     return Response.json({ versionCode: +v.versionCode || 0, versionName: String(v.versionName || ''), notes: String(v.notes || '').slice(0, 200), url: s?.signedUrl || '' });
+  }
+  // JD Admin 2.2+: every 15 min the phone says it is alive (admin-tools/relay-beat.json, read by wallet-admin)
+  if (app === 'jd-relay-beat') {
+    const beat = { at: new Date().toISOString(), v: +j.v || 0, access: !!j.access, listening: !!j.listening, battery: !!j.battery, queued: Math.min(+j.queued || 0, 99) };
+    await db.storage.from('admin-tools').upload('relay-beat.json', new Blob([JSON.stringify(beat)], { type: 'application/json' }), { upsert: true });
+    return Response.json({ ok: true });
   }
   // JD Admin's "Needs you" card: counts only, no names or amounts
   if (app === 'jd-relay-stats') {
@@ -83,10 +89,16 @@ Deno.serve(async (req: Request) => {
   const sender = (text.match(/from\s+([A-Za-z][A-Za-z .'-]{1,40}?)(?=\s*(?:[.,(·]|on |at |rs|npr|$))/i) || [])[1] || null;
   const provider = /khalti/i.test(app) ? 'khalti' : /ime/i.test(app) ? 'imepay' : 'esewa';
 
-  // the same notification can fire twice: skip a repeat within 2 minutes
-  const { data: dup } = await db.from('payments_in').select('id').eq('raw', text).gt('created_at', new Date(Date.now() - 120000).toISOString()).limit(1);
+  // JD Admin 2.2+ sends when the alert reached the phone, so an alert sent late (no internet) still fits its load.
+  // Only the last 48 h, never the future.
+  const now = Date.now(), posted = Number(j.posted);
+  const at = Number.isFinite(posted) && posted > now - 48 * 3600e3 && posted <= now + 120e3 ? Math.min(posted, now) : now;
+  // the same notification can come twice (fired twice, or re-sent after the listener restarts): same text and a
+  // time within 90 s is the same payment
+  const { data: dup } = await db.from('payments_in').select('id').eq('raw', text)
+    .gte('received_at', new Date(at - 90e3).toISOString()).lte('received_at', new Date(at + 90e3).toISOString()).limit(1);
   if (dup?.length) return Response.json({ saved: false, why: 'duplicate' });
-  const { data: row, error } = await db.from('payments_in').insert({ provider, amount, sender, raw: text }).select('id').single();
+  const { data: row, error } = await db.from('payments_in').insert({ provider, amount, sender, raw: text, received_at: new Date(at).toISOString() }).select('id').single();
   if (error) return new Response(error.message, { status: 500 });
 
   const { count } = await db.from('wallet_load_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending').eq('amount', amount);
