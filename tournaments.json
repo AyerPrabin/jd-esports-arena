@@ -1,82 +1,100 @@
 {
   "bo3": {
-    "tournament": "JD Free Fire Open #19",
-    "title": "JD Free Fire Open #19 – Final Standings",
+    "tournament": "JD Free Fire Open #22",
+    "title": "JD Free Fire Open #22 – Final Standings",
     "published": true,
     "kill_pts": 1,
     "teams": [
       {
-        "team": "Youtz Esp",
+        "team": "PARAGON E-SPORTS",
         "logo": "",
         "r": [
           {
-            "kills": 12,
+            "kills": 23,
             "pts": 12
           },
           {
-            "kills": 17,
-            "pts": 9
+            "kills": 6,
+            "pts": 4
           },
           {
-            "kills": 22,
-            "pts": 12
+            "kills": 3,
+            "pts": 6
           }
         ],
         "prize_won": 90
       },
       {
-        "team": "DAMAN ESP",
+        "team": "Youtz Esp",
         "logo": "",
         "r": [
           {
-            "kills": 3,
+            "kills": 5,
+            "pts": 8
+          },
+          {
+            "kills": 14,
             "pts": 5
           },
           {
-            "kills": 18,
-            "pts": 12
-          },
-          {
-            "kills": 4,
-            "pts": 9
+            "kills": 13,
+            "pts": 7
           }
         ],
         "prize_won": 54
       },
       {
-        "team": "Xiingu Ξsports",
+        "team": "SᴍɢㅤESP",
         "logo": "",
         "r": [
           {
-            "kills": 4,
-            "pts": 7
+            "kills": 0,
+            "pts": 1
           },
           {
-            "kills": 10,
-            "pts": 7
+            "kills": 6,
+            "pts": 8
           },
           {
-            "kills": 3,
-            "pts": 7
+            "kills": 20,
+            "pts": 12
           }
         ],
         "prize_won": 36
       },
       {
-        "team": "CRZ ESPORTS ( 2 )",
+        "team": "Goli eSports",
         "logo": "",
         "r": [
           {
-            "kills": 15,
-            "pts": 9
+            "kills": 18,
+            "pts": 7
+          },
+          {
+            "kills": 4,
+            "pts": 7
           },
           {
             "kills": 1,
-            "pts": 1
+            "pts": 8
+          }
+        ]
+      },
+      {
+        "team": "Team Novela",
+        "logo": "",
+        "r": [
+          {
+            "kills": 4,
+            "pts": 6
           },
           {
-            "kills": 3,
-            "pts": 5
+            "kills": 10,
+            "pts": 3
+          },
+          {
+            "kills": 10,
+            "pts": 9
           }
         ]
       },
@@ -85,106 +103,34 @@
         "logo": "",
         "r": [
           {
-            "kills": 8,
-            "pts": 4
-          },
-          {
             "kills": 5,
-            "pts": 3
+            "pts": 9
           },
           {
-            "kills": 4,
+            "kills": 8,
+            "pts": 12
+          },
+          {
+            "kills": 2,
             "pts": 3
           }
         ]
       },
       {
-        "team": "T1h esp",
+        "team": "DAMAN ESP",
         "logo": "",
         "r": [
           {
-            "kills": 0,
-            "pts": 3
-          },
-          {
-            "kills": 3,
+            "kills": 5,
             "pts": 5
           },
           {
-            "kills": 10,
-            "pts": 6
-          }
-        ]
-      },
-      {
-        "team": "DLK ESP.",
-        "logo": "",
-        "r": [
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 2,
-            "pts": 6
-          },
-          {
-            "kills": 9,
-            "pts": 8
-          }
-        ]
-      },
-      {
-        "team": "Paragon esports",
-        "logo": "",
-        "r": [
-          {
             "kills": 6,
-            "pts": 8
-          },
-          {
-            "kills": 5,
-            "pts": 2
-          },
-          {
-            "kills": 0,
-            "pts": 2
-          }
-        ]
-      },
-      {
-        "team": "SᴍɢㅤESP",
-        "logo": "",
-        "r": [
-          {
-            "kills": 2,
             "pts": 6
           },
           {
-            "kills": 5,
-            "pts": 8
-          },
-          {
             "kills": 1,
-            "pts": 1
-          }
-        ]
-      },
-      {
-        "team": "CRZ ESPORTS 1",
-        "logo": "",
-        "r": [
-          {
-            "kills": 1,
-            "pts": 2
-          },
-          {
-            "kills": 3,
-            "pts": 4
-          },
-          {
-            "kills": 0,
-            "pts": 0
+            "pts": 5
           }
         ]
       },
@@ -197,6 +143,42 @@
             "pts": 0
           },
           {
+            "kills": 10,
+            "pts": 9
+          },
+          {
+            "kills": 2,
+            "pts": 4
+          }
+        ]
+      },
+      {
+        "team": "DLK ESP.",
+        "logo": "",
+        "r": [
+          {
+            "kills": 0,
+            "pts": 3
+          },
+          {
+            "kills": 5,
+            "pts": 1
+          },
+          {
+            "kills": 1,
+            "pts": 2
+          }
+        ]
+      },
+      {
+        "team": "RF ESPORTS",
+        "logo": "",
+        "r": [
+          {
+            "kills": 4,
+            "pts": 4
+          },
+          {
             "kills": 0,
             "pts": 0
           },
@@ -207,7 +189,25 @@
         ]
       },
       {
-        "team": "Sage Gang",
+        "team": "CRZ ESPORTS ( 2 )",
+        "logo": "",
+        "r": [
+          {
+            "kills": 0,
+            "pts": 0
+          },
+          {
+            "kills": 3,
+            "pts": 2
+          },
+          {
+            "kills": 0,
+            "pts": 0
+          }
+        ]
+      },
+      {
+        "team": "Nosquad",
         "logo": "",
         "r": [
           {
@@ -690,11 +690,11 @@
       "teams": [],
       "format": "BR · Best of 3",
       "status": "completed",
+      "winner": "Youtz Esp",
       "platform": "Mobile only",
       "registered": 0,
       "early_access": "yes",
-      "platform_mode": "mobile",
-      "winner": "Youtz Esp"
+      "platform_mode": "mobile"
     },
     {
       "map": "bermuda",
@@ -730,11 +730,12 @@
       "start": "2026-11-11T21:30:00+05:45",
       "teams": [],
       "format": "BR · Best of 3",
-      "status": "upcoming",
+      "status": "completed",
       "platform": "Mobile only",
       "registered": 0,
       "early_access": "yes",
-      "platform_mode": "mobile"
+      "platform_mode": "mobile",
+      "winner": "PARAGON E-SPORTS"
     },
     {
       "map": "bermuda",
@@ -877,5 +878,5 @@
       "platform_mode": "mobile"
     }
   ],
-  "_published_at": "2026-11-10T17:08:30.503Z"
+  "_published_at": "2026-11-11T17:10:39.113Z"
 }
