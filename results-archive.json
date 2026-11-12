@@ -1,6 +1,225 @@
 {
  "events": [
   {
+   "name": "JD Free Fire Open #23",
+   "date": "Thu, Nov 12",
+   "start": "2026-11-12T21:30:00+05:45",
+   "maps": [
+    "bermuda",
+    "kalahari",
+    "nexterra"
+   ],
+   "prize": "180",
+   "winner": "Paragon esports",
+   "kill_pts": 1,
+   "teams": [
+    {
+     "team": "Paragon esports",
+     "r": [
+      {
+       "kills": 12,
+       "pts": 6
+      },
+      {
+       "kills": 14,
+       "pts": 8
+      },
+      {
+       "kills": 9,
+       "pts": 12
+      }
+     ]
+    },
+    {
+     "team": "DAMAN ESP",
+     "r": [
+      {
+       "kills": 7,
+       "pts": 3
+      },
+      {
+       "kills": 15,
+       "pts": 12
+      },
+      {
+       "kills": 14,
+       "pts": 8
+      }
+     ]
+    },
+    {
+     "team": "MALVORAK",
+     "r": [
+      {
+       "kills": 9,
+       "pts": 8
+      },
+      {
+       "kills": 5,
+       "pts": 5
+      },
+      {
+       "kills": 14,
+       "pts": 9
+      }
+     ]
+    },
+    {
+     "team": "Ancient Ogs 1",
+     "r": [
+      {
+       "kills": 22,
+       "pts": 12
+      },
+      {
+       "kills": 1,
+       "pts": 1
+      },
+      {
+       "kills": 7,
+       "pts": 6
+      }
+     ]
+    },
+    {
+     "team": "Goli eSports",
+     "r": [
+      {
+       "kills": 13,
+       "pts": 9
+      },
+      {
+       "kills": 9,
+       "pts": 6
+      },
+      {
+       "kills": 2,
+       "pts": 1
+      }
+     ]
+    },
+    {
+     "team": "BH HOOD",
+     "r": [
+      {
+       "kills": 5,
+       "pts": 2
+      },
+      {
+       "kills": 12,
+       "pts": 9
+      },
+      {
+       "kills": 3,
+       "pts": 2
+      }
+     ]
+    },
+    {
+     "team": "team gorkhaX",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 5
+      },
+      {
+       "kills": 0,
+       "pts": 7
+      },
+      {
+       "kills": 7,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "REVENGE ESPORTS",
+     "r": [
+      {
+       "kills": 7,
+       "pts": 1
+      },
+      {
+       "kills": 0,
+       "pts": 4
+      },
+      {
+       "kills": 4,
+       "pts": 5
+      }
+     ]
+    },
+    {
+     "team": "RF ESPORTS",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 3,
+       "pts": 3
+      },
+      {
+       "kills": 10,
+       "pts": 4
+      }
+     ]
+    },
+    {
+     "team": "Brotherhood",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 1,
+       "pts": 0
+      },
+      {
+       "kills": 2,
+       "pts": 3
+      }
+     ]
+    },
+    {
+     "team": "DgxTamang",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "THARU々LEGEND",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
    "name": "JD Free Fire Open #22",
    "date": "Wed, Nov 11",
    "start": "2026-11-11T21:30:00+05:45",
