@@ -2117,7 +2117,7 @@ async function submitRegister(){
 function teamSize(t){const m=String(t&&t.mode||'').toLowerCase();return m==='solo'?[1,0]:m==='duo'?[2,1]:[4,2];}
 function sqvTicketHtml(t,r){
   if(!r||!r.id||_roomCodes.has(t.name))return r&&r.lineup_at?`<div class="mt-next">🛡️ <b>Squad verified</b> · ${(r.lineup||[]).length} players</div>`:'';
-  if(r.lineup_at)return `<div class="mt-next">🛡️ <b>Squad verified</b> · ${(r.lineup||[]).map(m=>esc(m.name)).join(', ')} <button type="button" class="link" data-sqv="${esc(t.name)}" style="background:none;border:none;color:var(--gold-l);text-decoration:underline;cursor:pointer;font:inherit">Edit</button></div>`;
+  if(r.lineup_at)return `<div class="mt-next mt-line">🛡️ <b>Squad verified</b> · ${(r.lineup||[]).length} players <button type="button" class="link" data-sqv="${esc(t.name)}" style="background:none;border:none;color:var(--gold-l);text-decoration:underline;cursor:pointer;font:inherit">Edit</button></div>`;
   return `<button type="button" class="inapp-reg mt-checkin mt-sqv-btn" data-sqv="${esc(t.name)}">🛡️ Verify your squad</button><div class="mt-next warn">Add your real ${teamSize(t)[0]===1?'player':'team'} name and ${teamSize(t)[0]===1?'your':'your '+teamSize(t)[0]+' players\''} Free Fire name${teamSize(t)[0]===1?'':'s'} + UID${teamSize(t)[0]===1?'':'s'}. Random names like "abc" or "test" aren't accepted.</div>`;
 }
 function sqvEnsure(){
@@ -2216,6 +2216,8 @@ function calBtnHtml(t){
   const g='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent('JD Arena: '+t.name)+'&dates='+calStamp(c.start)+'/'+calStamp(c.end)+'&details='+encodeURIComponent('Free Fire tournament on JD Esports Arena. Your Room ID and password appear on your ticket at https://jdesport.co.uk about 5 minutes before the start.')+'&location='+encodeURIComponent('https://jdesport.co.uk');
   return `<div class="mt-cal"><button type="button" class="mt-cal-btn" data-cal="${esc(t.name)}">📅 Add to calendar</button><a class="mt-cal-g" data-gcal href="${esc(g)}" target="_blank" rel="noopener">Google Calendar</a></div>`;
 }
+// ticket footer: one calendar link (the .ics opens the phone's own calendar: Google / Samsung / iPhone)
+function calLinkHtml(t){const c=calTimes(t);if(!c||c.start<Date.now())return '';return `<button type="button" class="mt-flink" data-cal="${esc(t.name)}">📅 Calendar</button>`;}
 function calAdd(name){
   const t=((_lastData||ARENA_SAMPLE).tournaments||[]).find(x=>x.name===name),c=calTimes(t);
   if(!c){showMsg('No start time yet','This tournament doesn\'t have a start time yet. Add it to your calendar once the time is announced.');return;}
@@ -2294,9 +2296,9 @@ function matchTicketHtml(t,r){
   const rc=_roomCodes.get(t.name),checked=!!r.checked_in_at,win=checkinWindowOpen(t);
   const code=regTicketCode(r);
   const steps=CONFIRM_REQUIRED?[['Registered',true],['Confirmed',checked],['Room code',!!rc]]:(CHECKIN_REQUIRED?[['Registered',true],['Checked in',checked],['Room code',!!rc]]:[['Registered',true],['Slot kept',true],['Room code',!!rc]]);
-  const cur=steps.findIndex(x=>!x[1]);
+  const cur=steps.findIndex(x=>!x[1]),needSteps=!rc&&cur>=0&&cur<2;
   const stepHtml=steps.map(([l,done],i)=>`<li class="${done?'done':(i===cur?'now':'')}"><i>${done?'✓':i+1}</i><span>${l}</span></li>`).join('');
-  const slot=r.slot?`<div class="mt-slot" role="note" aria-label="Your slot: number ${r.slot}"><span class="mt-slot-no" aria-hidden="true"><i>SLOT</i><b>${r.slot}</b></span><span class="mt-slot-tx"><b>Your slot: #${r.slot}</b><small>Sit in seat ${r.slot} when you enter the room</small></span></div>`:'';
+  const slot=r.slot?`<span class="mt-seat" role="note" aria-label="Your slot: number ${r.slot}. Sit in seat ${r.slot} in the room" title="Sit in seat ${r.slot} when you enter the room"><i>SLOT</i><b>${r.slot}</b></span>`:'';
   let next;
   if(rc){
     next=`<div class="mt-room"><div class="mt-room-h"><span class="mt-live-dot"></span>Room is open — join now</div><div class="mt-room-row"><button type="button" class="mt-copy" data-copy="${esc(rc.room_id)}"><span>Room ID</span><b>${esc(rc.room_id)}</b><em>Tap to copy</em></button>${rc.room_pass?`<button type="button" class="mt-copy" data-copy="${esc(rc.room_pass)}"><span>Password</span><b>${esc(rc.room_pass)}</b><em>Tap to copy</em></button>`:''}</div></div>`;
@@ -2320,14 +2322,14 @@ function matchTicketHtml(t,r){
     next=`<div class="mt-next">⏰ Check-in opens 12 hours before start${opens?` (<b>${esc(opens)}</b>)`:''} — we will send you a reminder.</div>`;
   }
   const logo=r.squad_logo?`<img class="mt-logo" src="${esc(r.squad_logo)}" alt="">`:`<span class="mt-logo mt-logo-empty">${esc((r.squad_name||'?').trim().charAt(0).toUpperCase()||'?')}</span>`;
-  return `<div class="mt"><div class="mt-head">${logo}<div class="mt-squad"><b>${esc(r.squad_name||'Your squad')}</b><small>${checked?'Confirmed ✓':(CONFIRM_REQUIRED?'Confirm needed':'You\'re in')}${r.verified_at?' · <span class="mt-ver">✅ Verified</span>':''}</small></div><button type="button" class="mt-code" data-copy="${esc(code)}" title="Tap to copy your ticket code">🎫 ${esc(code)}</button></div><ol class="mt-steps">${stepHtml}</ol>${slot}${sqvTicketHtml(t,r)}${next}${calBtnHtml(t)}${fxTicketHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}</div>`;
+  const foot=[calLinkHtml(t),fxTicketHtml(t,r),canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw</button>`:''].filter(Boolean).join('');
+  return `<div class="mt"><div class="mt-head">${logo}<div class="mt-squad"><b>${esc(r.squad_name||'Your squad')}</b><small>${checked?'<span class="mt-ver">Confirmed ✓</span>':(CONFIRM_REQUIRED?'Confirm needed':'You\'re in')} · <button type="button" class="mt-code" data-copy="${esc(code)}" title="Tap to copy your ticket code">🎫 ${esc(code)}</button></small></div>${slot}</div>${needSteps?`<ol class="mt-steps">${stepHtml}</ol>`:''}<div class="mt-body">${sqvTicketHtml(t,r)}${next}</div>${foot?`<div class="mt-foot">${foot}</div>`:''}</div>`;
 }
 function fxTicketHtml(t,r){
   const own=SQUAD_FX[r.effect],pass=fxPassNow(),pk=pass&&SQUAD_FX[pass.effect];
-  if(own)return `<div class="mt-fx on">✨ ${esc(own.tag)} effect active for this tournament</div>`;
-  if(pk)return `<div class="mt-fx on">✨ ${esc(pk.tag)} · ${pass.tier==='pro'?'Pro':'Lite'} pass until ${esc(fxDate(_myPassEnd||pass.expires_at))} <button type="button" class="link" data-fx-buy="${esc(t.name)}" style="margin-left:6px;background:none;border:none;color:var(--gold-l);text-decoration:underline;cursor:pointer;font:inherit">Change</button></div>`;
+  if(own||pk)return `<button type="button" class="mt-flink" data-fx-buy="${esc(t.name)}" title="Change your squad effect">✨ ${esc((own||pk).tag)}</button>`;
   if(!canWithdraw(t))return '';
-  return `<button type="button" class="mt-fx-buy" data-fx-buy="${esc(t.name)}">✨ Squad effects · from Rs 2</button>`;
+  return `<button type="button" class="mt-flink" data-fx-buy="${esc(t.name)}">✨ Effects</button>`;
 }
 function entryCodeBoxHtml(t,r){
   const price=entryAmount(t);

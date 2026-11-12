@@ -1405,3 +1405,19 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
   #arena-grid .tcard:not(.past) .inapp-reg{padding:11px;margin-top:4px}
   #arena-grid .tcard:not(.past) .tm-evbtn{padding:6px;font-size:.78rem;margin-top:6px}
 }
+
+/* 12 Nov 2026: simpler match ticket: slot + code in the head, steps only while an action is needed, one footer row */
+.mt{padding:12px 12px 8px}
+.mt-squad small{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.mt-squad .mt-code{padding:1px 6px;font-size:.7rem;border-radius:6px}
+.mt-seat{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--gold-2));color:#0a0a12;line-height:1}
+.mt-seat i{font-style:normal;font-size:.52rem;font-weight:800;letter-spacing:.12em;opacity:.75}
+.mt-seat b{font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:700;margin-top:1px}
+.mt-body{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.mt-body .mt-next.warn{margin-top:0}
+.mt-line .link{margin-left:2px}
+.mt-foot{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:10px;padding-top:6px;border-top:1px solid var(--line)}
+.mt-flink,.mt-foot .mt-withdraw{margin:0;background:none;border:0;padding:8px 6px;min-height:36px;font:inherit;font-size:.76rem;font-weight:700;color:var(--gold-l);cursor:pointer;text-decoration:none}
+.mt-flink:hover{color:var(--cream)}
+.mt-foot .mt-withdraw{color:var(--silver);font-weight:600}
+.mt-foot .mt-withdraw:hover{color:#ff9d9d}
