@@ -181,7 +181,21 @@ if (window.JDApp || /JDArenaApp\//.test(navigator.userAgent)) document.documentE
   if (!document.querySelector('link[rel="manifest"]')) {
     var l = document.createElement('link'); l.rel = 'manifest'; l.href = '/manifest.json'; document.head.appendChild(l);
   }
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' }).catch(function () {});
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' }).then(function (reg) {
+      // the app is often resumed, not reopened: look for a new version each time it comes back
+      document.addEventListener('visibilitychange', function () { if (!document.hidden) reg.update().catch(function () {}); });
+    }).catch(function () {});
+    // a new version took over (sw.js skipWaiting + clients.claim): reload once so the player sees it now,
+    // not on the next open. Not on the very first install (no old version was running), and not while typing.
+    var hadSw = !!navigator.serviceWorker.controller, swReloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (!hadSw || swReloaded) return;
+      var a = document.activeElement;
+      if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.value) return;
+      swReloaded = true; location.reload();
+    });
+  }
 
   var inApp = /FBAN|FBAV|FB_IAB|Instagram|musical_ly|BytedanceWebview|TikTok|Snapchat|Line\/|MicroMessenger|; wv\)|GSA\//i.test(ua);
   var iosNonSafari = ios && /CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
