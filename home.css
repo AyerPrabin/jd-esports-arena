@@ -1421,3 +1421,7 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 .mt-flink:hover{color:var(--cream)}
 .mt-foot .mt-withdraw{color:var(--silver);font-weight:600}
 .mt-foot .mt-withdraw:hover{color:#ff9d9d}
+/* slot plate: the one bold thing on the ticket (top-right, where the ticket code used to be) */
+.mt-seat{width:auto;min-width:56px;height:56px;padding:0 10px;border-radius:14px;box-shadow:0 6px 18px rgba(255,174,0,.22),inset 0 1px 0 rgba(255,255,255,.35)}
+.mt-seat i{font-size:.62rem;letter-spacing:.06em;text-transform:none;font-weight:700}
+.mt-seat b{font-size:1.9rem}

@@ -1201,7 +1201,7 @@ function authRender(){
     regRows.sort((a,b)=>stRank(a[0])-stRank(b[0]));
     const statusLabel=r=>r.checked_in_at&&(r.status==='confirmed'||r.status==='approved')?'Checked in':r.status==='no_show'?'No-show':(r.status.charAt(0).toUpperCase()+r.status.slice(1));
     const historyBlock=regRows.length?`<div class="pm-history"><div class="pm-history-title">Your tournaments</div>${regRows.map(([slug,r])=>{const t=tByName.get(slug);const st=t?effectiveStatus(t):'';const when=t&&t.date&&t.date!=='TBA'?esc(t.date)+(t.time&&t.time!=='TBA'?' · '+esc(t.time):''):'';
-      return `<button type="button" class="pm-history-row pm-history-btn" onclick="authClose();setTimeout(()=>nmJump(this.dataset.t),250)" data-t="${esc(slug)}">${r.squad_logo?`<img class="pm-history-logo" src="${esc(r.squad_logo)}" alt="">`:`<span class="pm-history-logo">${st==='live'?'🔴':st==='upcoming'?'⚔️':'🏁'}</span>`}<span class="pm-history-main"><span class="pm-history-name">${esc(slug)}</span><span class="pm-history-squad">${[r.squad_name&&esc(r.squad_name),when||(st&&esc(st)),esc(regTicketCode(r))].filter(Boolean).join(' · ')}</span></span><span class="pm-history-status pm-status-${esc(r.checked_in_at&&r.status==='confirmed'?'confirmed':r.status)}">${esc(statusLabel(r))}</span></button>`;}).join('')}</div>`:'';
+      return `<button type="button" class="pm-history-row pm-history-btn" onclick="authClose();setTimeout(()=>nmJump(this.dataset.t),250)" data-t="${esc(slug)}">${r.squad_logo?`<img class="pm-history-logo" src="${esc(r.squad_logo)}" alt="">`:`<span class="pm-history-logo">${st==='live'?'🔴':st==='upcoming'?'⚔️':'🏁'}</span>`}<span class="pm-history-main"><span class="pm-history-name">${esc(slug)}</span><span class="pm-history-squad">${[r.squad_name&&esc(r.squad_name),when||(st&&esc(st))].filter(Boolean).join(' · ')}</span></span><span class="pm-history-status pm-status-${esc(r.checked_in_at&&r.status==='confirmed'?'confirmed':r.status)}">${esc(statusLabel(r))}</span></button>`;}).join('')}</div>`:'';
     el.innerHTML=`<h3 class="pm-title">Signed in</h3>${avatarBlock}<div class="auth-tag">@${esc(_player.username||'…')}</div><div class="pm-meta"><span>${esc(_player.email)}</span>${verifiedBadge}</div>${_player.ff_uid?`<div class="pm-meta"><span>🎮 ${esc(_player.ff_name||'')}</span><span class="pm-dot">●</span><span>UID ${esc(_player.ff_uid)}</span></div>`:''}<div id="career-stats"></div><div class="msg" id="au-msg"></div>${historyBlock}<div class="pm-list">
         <a class="pm-row" href="/wallet/#withdraw"><span class="pm-row-ic">💸</span><span class="pm-row-txt">Withdraw points<small class="pm-row-sub">To your eSewa · minimum 100 points</small></span><span class="pm-row-chev">›</span></a>
         <a class="pm-row" href="/wallet/#load"><span class="pm-row-ic">🪙</span><span class="pm-row-txt">Load points</span><span class="pm-row-chev">›</span></a>
@@ -2186,7 +2186,6 @@ function regSuccessOpen(t,status,reg){
       ?"Your place is held. Load points in your <a href=\"/wallet/\">JD wallet</a> (pay the eSewa QR, then upload the payment screenshot), then tap <b>Pay</b> on your ticket to confirm your slot."
       :"Your <b>Room ID and Password</b> will appear in Notification History once released by the host. Please arrive 15 minutes before the match starts.");
   document.getElementById('rs-tournament').textContent=t.name;
-  document.getElementById('rs-ticket').textContent=regTicketCode(reg);
   const prizeRow=document.getElementById('rs-prize-row');
   if(t.prize){prizeRow.style.display='';document.getElementById('rs-prize').textContent=prizeSplit(t)?fmtPrize(t.prize)+' ('+prizeSplitText(t)+')':t.prize;}
   else prizeRow.style.display='none';
@@ -2197,7 +2196,6 @@ function regSuccessOpen(t,status,reg){
   const statusEl=document.getElementById('rs-status');
   statusEl.textContent=waitlisted?'Waitlisted':(pending?'Pending verification':'Registered ✓');
   statusEl.className='rs-val'+(waitlisted||pending?' warn':' ok');
-  const rc=document.getElementById('rs-cal');if(rc){rc.innerHTML=calBtnHtml(t);const b=rc.querySelector('[data-cal]');if(b)b.onclick=()=>calAdd(t.name);}
   document.getElementById('regsuccess-overlay').classList.add('open');
   if(!pending&&!waitlisted&&window.jdSuccess)jdSuccess();else if(window.jdHaptic)jdHaptic('tap');
 }
@@ -2294,11 +2292,10 @@ async function confirmAttendance(name){
    re-renders when its HTML changes) — the live countdown lives in the next-match bar. */
 function matchTicketHtml(t,r){
   const rc=_roomCodes.get(t.name),checked=!!r.checked_in_at,win=checkinWindowOpen(t);
-  const code=regTicketCode(r);
   const steps=CONFIRM_REQUIRED?[['Registered',true],['Confirmed',checked],['Room code',!!rc]]:(CHECKIN_REQUIRED?[['Registered',true],['Checked in',checked],['Room code',!!rc]]:[['Registered',true],['Slot kept',true],['Room code',!!rc]]);
   const cur=steps.findIndex(x=>!x[1]),needSteps=!rc&&cur>=0&&cur<2;
   const stepHtml=steps.map(([l,done],i)=>`<li class="${done?'done':(i===cur?'now':'')}"><i>${done?'✓':i+1}</i><span>${l}</span></li>`).join('');
-  const slot=r.slot?`<span class="mt-seat" role="note" aria-label="Your slot: number ${r.slot}. Sit in seat ${r.slot} in the room" title="Sit in seat ${r.slot} when you enter the room"><i>SLOT</i><b>${r.slot}</b></span>`:'';
+  const slot=r.slot?`<span class="mt-seat" role="note" aria-label="Your slot: number ${r.slot}. Sit in seat ${r.slot} in the room"><i>Slot</i><b>${r.slot}</b></span>`:'';
   let next;
   if(rc){
     next=`<div class="mt-room"><div class="mt-room-h"><span class="mt-live-dot"></span>Room is open — join now</div><div class="mt-room-row"><button type="button" class="mt-copy" data-copy="${esc(rc.room_id)}"><span>Room ID</span><b>${esc(rc.room_id)}</b><em>Tap to copy</em></button>${rc.room_pass?`<button type="button" class="mt-copy" data-copy="${esc(rc.room_pass)}"><span>Password</span><b>${esc(rc.room_pass)}</b><em>Tap to copy</em></button>`:''}</div></div>`;
@@ -2322,8 +2319,8 @@ function matchTicketHtml(t,r){
     next=`<div class="mt-next">⏰ Check-in opens 12 hours before start${opens?` (<b>${esc(opens)}</b>)`:''} — we will send you a reminder.</div>`;
   }
   const logo=r.squad_logo?`<img class="mt-logo" src="${esc(r.squad_logo)}" alt="">`:`<span class="mt-logo mt-logo-empty">${esc((r.squad_name||'?').trim().charAt(0).toUpperCase()||'?')}</span>`;
-  const foot=[calLinkHtml(t),fxTicketHtml(t,r),canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw</button>`:''].filter(Boolean).join('');
-  return `<div class="mt"><div class="mt-head">${logo}<div class="mt-squad"><b>${esc(r.squad_name||'Your squad')}</b><small>${checked?'<span class="mt-ver">Confirmed ✓</span>':(CONFIRM_REQUIRED?'Confirm needed':'You\'re in')} · <button type="button" class="mt-code" data-copy="${esc(code)}" title="Tap to copy your ticket code">🎫 ${esc(code)}</button></small></div>${slot}</div>${needSteps?`<ol class="mt-steps">${stepHtml}</ol>`:''}<div class="mt-body">${sqvTicketHtml(t,r)}${next}</div>${foot?`<div class="mt-foot">${foot}</div>`:''}</div>`;
+  const foot=[fxTicketHtml(t,r),canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw</button>`:''].filter(Boolean).join('');
+  return `<div class="mt"><div class="mt-head">${logo}<div class="mt-squad"><b>${esc(r.squad_name||'Your squad')}</b><small>${checked?'<span class="mt-ver">Confirmed ✓</span>':(CONFIRM_REQUIRED?'Confirm needed':'You\'re in')}${r.slot?` · sit in seat ${r.slot}`:''}</small></div>${slot}</div>${needSteps?`<ol class="mt-steps">${stepHtml}</ol>`:''}<div class="mt-body">${sqvTicketHtml(t,r)}${next}</div>${foot?`<div class="mt-foot">${foot}</div>`:''}</div>`;
 }
 function fxTicketHtml(t,r){
   const own=SQUAD_FX[r.effect],pass=fxPassNow(),pk=pass&&SQUAD_FX[pass.effect];
@@ -2369,14 +2366,14 @@ function inAppRegBtn(t,st,full){if(t&&t.parent)return '';
   if(!sb)return '';
   if(_myRegs.has(t.name)){
     const r=_myRegs.get(t.name);
-    if(r.status==='waitlisted')return `<div class="inapp-reg-done pending"><span>🕒 Waitlisted${r.squad_name?' as '+esc(r.squad_name):''}${wlDeposit(t)?" — we'll move you up automatically if a slot opens":''} · Ticket ${esc(regTicketCode(r))}</span></div>${wlDeposit(t)?'':`<button type="button" class="pts-btn" data-wbuy="${esc(t.name)}">🎟 Pay 20 points for a place</button>`}${r.wpos?`<div class="mt-wpos"><b>${r.wpos===1?"You're next in line":'#'+r.wpos+' in line'}</b><span>${r.wtotal} squad${r.wtotal===1?'':'s'} waiting${r.wpro?' · ⭐ your Pro pass puts you ahead':' · Pro pass holders move up first'}. Squads that don't confirm lose their slot, so keep alerts on.</span></div>`:''}${sqvTicketHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
-    if(r.status==='pending')return `<div class="inapp-reg-done pending">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>${r.squad_name?esc(r.squad_name)+' · ':''}Ticket ${esc(regTicketCode(r))}</span></div>${entryCodeBoxHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
+    if(r.status==='waitlisted')return `<div class="inapp-reg-done pending"><span>🕒 Waitlisted${r.squad_name?' as '+esc(r.squad_name):''}${wlDeposit(t)?" — we'll move you up automatically if a slot opens":''}</span></div>${wlDeposit(t)?'':`<button type="button" class="pts-btn" data-wbuy="${esc(t.name)}">🎟 Pay 20 points for a place</button>`}${r.wpos?`<div class="mt-wpos"><b>${r.wpos===1?"You're next in line":'#'+r.wpos+' in line'}</b><span>${r.wtotal} squad${r.wtotal===1?'':'s'} waiting${r.wpro?' · ⭐ your Pro pass puts you ahead':' · Pro pass holders move up first'}. Squads that don't confirm lose their slot, so keep alerts on.</span></div>`:''}${sqvTicketHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
+    if(r.status==='pending')return `<div class="inapp-reg-done pending">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>${r.squad_name?esc(r.squad_name)+' · ':''}Place held</span></div>${entryCodeBoxHtml(t,r)}${canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw squad</button>`:''}`;
     if(r.status==='rejected')return `<div class="inapp-reg-done rejected"><span>✕ Payment could not be verified — please contact the organiser on Discord</span></div>`;
     if(r.status==='no_show')return `<div class="inapp-reg-done rejected"><span>✕ Check-in was missed, so this slot was released</span></div>`;
     if(r.status==='confirmed'||r.status==='approved'||!r.status)return matchTicketHtml(t,r);
-    if(r.checked_in_at)return `<div class="inapp-reg-done">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>✓ Checked in${r.squad_name?' as '+esc(r.squad_name):''} — see you there! · Ticket ${esc(regTicketCode(r))}</span>${r.verified_at?'<span class="reg-verified">✅ Verified</span>':''}</div>`;
+    if(r.checked_in_at)return `<div class="inapp-reg-done">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>✓ Checked in${r.squad_name?' as '+esc(r.squad_name):''} — see you there!</span>${r.verified_at?'<span class="reg-verified">✅ Verified</span>':''}</div>`;
     if(checkinWindowOpen(t))return `<button class="inapp-reg" data-checkin="${esc(t.name)}">✅ Check In Now</button>`;
-    return `<div class="inapp-reg-done">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>✓ Registered${r.squad_name?' as '+esc(r.squad_name):''} — Ticket ${esc(regTicketCode(r))} · room details will be sent to Notification History</span>${r.verified_at?'<span class="reg-verified">✅ Verified</span>':''}</div>`;
+    return `<div class="inapp-reg-done">${r.squad_logo?`<img class="reg-logo" src="${esc(r.squad_logo)}" alt="">`:''}<span>✓ Registered${r.squad_name?' as '+esc(r.squad_name):''} — room details will be sent to Notification History</span>${r.verified_at?'<span class="reg-verified">✅ Verified</span>':''}</div>`;
   }
   // Paid tournaments still have no waitlist (see registerInApp's early gate) — only free
   // ones show "Join Waitlist" here; the button still opens the normal registration modal,
@@ -2774,7 +2771,7 @@ async function withdrawSquad(name){
         ?`Late cancellation: the match starts within 24 hours, so ${back} of your ${r.paid_points} points (10%) go back to your wallet.`
         :`All ${r.paid_points} points go back to your wallet straight away.`)
       :(r.status==='approved'||r.status==='confirmed')
-        ?`This entry was paid with a join code, so the refund is sent by hand (${rf.late?'10% on the last day':'full refund'}). Message us on WhatsApp (${PAY_WHATSAPP_LABEL}) with your ticket code ${code}.`
+        ?`This entry was paid with a join code, so the refund is sent by hand (${rf.late?'10% on the last day':'full refund'}). Message us on WhatsApp (${PAY_WHATSAPP_LABEL}) with your squad name and the event name.`
         :'No points were taken for this held place.';
   const ok=await confirmBox(`Withdraw ${squad}?`,
     `${squad} will be removed from ${name} and the slot released to the next team.\n\n${fee}\n\nYou can register again later if a slot is still open.`,
@@ -2822,7 +2819,7 @@ function notifTicketHtml(n,unreadClass){
   const [st,cls]=withdrawn?['Withdrawn','off']:waitlisted?['Waitlisted','warn']:pending?['Pending check','warn']:['Registered','ok'];
   const meta=[t.prize?'💰 '+t.prize:'',paid?(t.entry?'🎫 '+t.entry:''):'🎫 Free',t.name?''+platText(t):''].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('');
   return `<div class="notif-item k-tour nf-ticket${unreadClass}"><span class="ni-ic" aria-hidden="true">🎟️</span><div class="ni-main"><div class="ni-top"><div class="t">${esc(notifTitle(n.title))}</div>${notifTimeHtml(n.created_at)}</div>`
-    +`<div class="nf-tk"><code>${esc(ticket)}</code><span class="nf-st ${cls}">${st}</span></div>${meta?`<div class="nf-meta">${meta}</div>`:''}</div></div>`;
+    +`<div class="nf-tk"><span class="nf-st ${cls}">${st}</span></div>${meta?`<div class="nf-meta">${meta}</div>`:''}</div></div>`;
 }
 function notifTimeHtml(iso){
   const d=new Date(iso),s=(Date.now()-d)/1000;if(isNaN(s))return '';
