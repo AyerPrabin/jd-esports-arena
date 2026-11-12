@@ -3085,7 +3085,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMobileNav();});
 function hostPic(h){return ['bs.gaming'].includes(String(h||'').toLowerCase());}
 // Solo / Duo / Squad at a glance on every event card (owner, 8 Nov 2026: "hard to find which is duo squad solo")
 function evMode(t){const m=String(t&&t.mode||'').toLowerCase();return m==='solo'||m==='duo'?m:(/solo/i.test(t&&t.game||'')?'solo':/duo/i.test(t&&t.game||'')?'duo':'squad');}
-function modeTag(t){const m=evMode(t);return `<span class="tmode m-${m}">${{solo:'👤 Solo',duo:'👥 Duo',squad:'👥 Squad'}[m]}</span>`;}
+function modeTag(t){const m=evMode(t);return `<span class="tmode m-${m}">${{solo:'Solo',duo:'Duo',squad:'Squad'}[m]}</span>`;}
 function isIOSDevice(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
 function isAndroidDevice(){return /Android/i.test(navigator.userAgent);}
 /* one tap on mobile: skip the picker and go straight to the right install flow.
