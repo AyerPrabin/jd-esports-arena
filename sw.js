@@ -68,7 +68,7 @@ const STATIC = /\.(?:png|jpe?g|webp|gif|svg|ico|css|js|woff2?)$/i;   // not audi
 const STATIC_CACHE = "jd-static-v1";
 // Pages are cached by path (no ?query) after every good load, so a page opened once also opens offline.
 // Staff pages (admin, mod, secret links) are never kept on the phone.
-const PAGE_CACHE = "jd-pages-v10";   // v8 (12 Nov 2026): one-line prize/entry/mode (home.js v79) must reach phones now, not in 3 days
+const PAGE_CACHE = "jd-pages-v11";   // v8 (12 Nov 2026): one-line prize/entry/mode (home.js v79) must reach phones now, not in 3 days
 const NO_KEEP = /^\/(admin|mod)(\/|$)|admin|private|secret|zulu-|jd-arena\.html/i;
 // The bottom-tab pages open from the phone's copy at once (like a native app) while the network copy replaces
 // it in the background for next time. A copy older than TAB_FRESH (or none) waits on the network as before, so an

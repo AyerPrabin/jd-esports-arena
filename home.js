@@ -33,7 +33,7 @@ const SUPPORT_PHONE='9779868813682',SUPPORT_PHONE_TXT='+977 986-8813682';
 const SQUAD_FX={
   glow:{key:'glow',cls:'sq-fx-glow',badge:'',particles:0,tag:'Glow',tier:'lite'},
   steel:{key:'steel',cls:'sq-fx-steel',badge:'',particles:0,tag:'Steel',tier:'lite'},
-  gold:{key:'gold',cls:'sq-fx-gold',badge:'👑',particles:0,tag:'Champion',tier:'game'},
+  gold:{key:'gold',cls:'sq-fx-gold',badge:'👑',particles:0,tag:'Champion',tier:'pro'},
   fire:{key:'fire',cls:'sq-fx-fire',badge:'',particles:4,tag:'On fire',tier:'game'},
   ice:{key:'ice',cls:'sq-fx-ice',badge:'',particles:2,tag:'Frozen',tier:'game'},
   neon:{key:'neon',cls:'sq-fx-neon',badge:'',particles:0,tag:'Neon',tier:'game'},
@@ -2642,7 +2642,7 @@ function fxShopOpen(name,mode){
   const pass=fxPassNow();
   const targets=fxGameTargets();
   if(!name||!targets.includes(name))name=targets[0]||null;
-  _fxShop={name,plan:name?'fx_game':'fx_month',effect:name?'gold':'bullets',mode:mode||(pass?'change':'buy')};
+  _fxShop={name,plan:name?'fx_game':'fx_month',effect:name?'fire':'bullets',mode:mode||(pass?'change':'buy')};
   if(_fxShop.mode==='change'&&pass)_fxShop.effect=pass.effect;
   document.getElementById('fx-sub').textContent=`Make ${_player.squad_name||'your squad'} stand out on every tournament card, squad list and challenge. Effects are cosmetic only.`;
   const fc=document.getElementById('fx-code');if(fc)fc.value='';
@@ -2656,14 +2656,16 @@ function fxShopRender(){
   const targets=fxGameTargets();
   const pass=fxPassNow(),change=_fxShop.mode==='change'&&pass;
   const tier=change?pass.tier:FX_PLANS[_fxShop.plan].tier;
-  if(!fxTierOk(tier,_fxShop.effect))_fxShop.effect=Object.keys(SQUAD_FX).find(k=>fxTierOk(tier,k));
+  if(!fxTierOk(tier,_fxShop.effect))_fxShop.effect=Object.keys(SQUAD_FX).find(k=>fxTierOk(tier,k)&&(tier!=='pro'||SQUAD_FX[k].tier==='pro'));
   const info=document.getElementById('fx-passinfo');
   if(pass){info.hidden=false;info.innerHTML=`✨ ${pass.tier==='pro'?'Pro':'Lite'} pass active until <b>${esc(fxDate(_myPassEnd||pass.expires_at))}</b>`+(change?`<button type="button" onclick="_fxShop.mode='buy';fxShopRender()">Buy or extend a plan</button>`:`<button type="button" onclick="_fxShop.mode='change';_fxShop.effect=fxPassNow().effect;fxShopRender()">Just change my effect</button>`);}
   else{info.hidden=true;info.innerHTML='';}
   document.getElementById('fx-plans-wrap').hidden=!!change;
   document.getElementById('fx-pay').hidden=!!change;
   document.getElementById('fx-plans').innerHTML=Object.entries(FX_PLANS).map(([k,pl])=>`<button type="button" class="fx-plan${k===_fxShop.plan?' on':''}" onclick="_fxShop.plan='${k}';fxShopRender()">${pl.best?'<span class="best">Best value</span>':(pl.popular?'<span class="best pop">Popular</span>':'')}<b>${esc(pl.name)}</b><span class="pr">${esc(pl.price)}</span><small>${esc(pl.per)}</small></button>`).join('');
-  document.getElementById('fx-pick').innerHTML=Object.values(SQUAD_FX).map(f=>{
+  // Pro effects first, the cheaper ones (Rs 2 match / Lite) below
+  const FXR={pro:0,game:1,lite:2};
+  document.getElementById('fx-pick').innerHTML=Object.values(SQUAD_FX).sort((a,b)=>(FXR[a.tier]??3)-(FXR[b.tier]??3)).map(f=>{
     const ok=fxTierOk(tier,f.key);
     return `<button type="button" data-fx="${f.key}" class="${f.key===_fxShop.effect?'on':''}${ok?'':' lock'}" ${ok?`onclick="_fxShop.effect='${f.key}';fxShopRender()"`:`disabled title="Included in Pro plans"`}>${ok?'':'🔒 '}${esc(f.tag)}${f.hot?'<span class="hot">🔥</span>':''}${f.tier==='pro'?'<span class="pro">PRO</span>':''}</button>`;
   }).join('');
