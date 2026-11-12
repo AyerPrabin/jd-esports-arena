@@ -477,9 +477,12 @@ Deno.serve(async (req: Request) => {
       const { data: c } = await admin.from('challenges').select('status, mode, stake, creator, opponent, rule_at, rule_done_at').eq('id', cid).maybeSingle();
       if (!c || (c.status !== 'disputed' && !(['rule_void', 'rule_reject'].includes(outcome) && c.rule_at && !c.rule_done_at))) return fail('This challenge is not waiting for a decision any more. Refresh.');
       if (myId && (c.creator === myId || c.opponent === myId)) return fail('You play in this challenge, so another mod has to decide it.', 403);
-      const { error } = await admin.rpc('admin_resolve_challenge', { p_id: cid, p_outcome: outcome });
+      // punishment for a broken rule: 0 warning, 1/3/7/30 day lock, -1 challenge ban
+      const lock = outcome === 'rule_void' ? Number(p.lock_days ?? 0) : 0;
+      if (![-1, 0, 1, 3, 7, 30].includes(lock)) return fail('Pick a punishment: warning, 1, 3, 7 or 30 days, or a challenge ban.');
+      const { error } = await admin.rpc('admin_resolve_challenge', { p_id: cid, p_outcome: outcome, p_lock_days: lock });
       if (error) return fail(error.message);
-      await log('challenge_resolve', `${c.mode} · ${c.stake * 2} pts · ${outcome} · ${cid.slice(0, 8)}`);
+      await log('challenge_resolve', `${c.mode} · ${c.stake * 2} pts · ${outcome}${lock ? ' · lock ' + (lock < 0 ? 'ban' : lock + 'd') : ''} · ${cid.slice(0, 8)}`);
       return json({ ok: true });
     }
     const cols = 'id, ref_no, mode, stake, status, note, room_id, creator, opponent, creator_claim, opponent_claim, claim_at, resolution, created_at, accepted_at, rule_by, rule_reason, rule_at, rule_winner, rule_held, rule_done_at';
