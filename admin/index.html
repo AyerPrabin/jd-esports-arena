@@ -704,7 +704,7 @@ h2[id]{scroll-margin-top:64px}
 
   <h2 id="challenges">Challenges <span class="tag">player vs player · disputes</span></h2>
   <p class="hint">When both captains claim the win, the challenge waits here. Read the chat and screenshots, then pay the winner or refund both. Everything else settles automatically.</p>
-  <div class="row"><button class="btn ghost" onclick="loadChallenges()">↻ Load challenges</button><div id="chg-msg" class="hint"></div></div>
+  <div class="row"><button class="btn ghost" onclick="loadChallenges()">↻ Load challenges</button><input id="chg-ref" placeholder="Find #C-1043" style="max-width:150px" onkeydown="if(event.key==='Enter')loadChallenges()"><button class="btn ghost" onclick="loadChallenges()">🔎 Find</button><div id="chg-msg" class="hint"></div></div>
   <div id="chg-list"></div>
 
   <details>
@@ -1882,9 +1882,10 @@ function inboxRender(){
         <div class="ib-row"><input data-ref placeholder="eSewa transaction ID"><button class="btn" data-paid>✓ Paid</button><button class="btn ghost" data-rej>✕ Reject</button></div>
         <div class="ib-res"></div></div></div>`).join('')+
     disputes.map(c=>`<div class="ib dispute" data-id="${esc(c.id)}"><span class="ib-ic">⚖️</span>
-      <div><h4>⚖️ Dispute · ${esc(c.mode)} · ${esc(c.stake*2)} pts pot</h4>
+      <div><h4>⚖️ Dispute ${c.ref_no?'#C-'+esc(c.ref_no)+' ':''}· ${esc(c.mode)} · ${esc(c.stake*2)} pts pot</h4>
         <div class="sub">${esc(ibName(c.creator))} says <b>${esc(c.creator_claim||'-')}</b> · ${esc(ibName(c.opponent))} says <b>${esc(c.opponent_claim||'-')}</b>${(c.chat||[]).length?' · '+c.chat.length+' chat messages':''}</div>
-        <div class="ib-row"><button class="btn" data-o="creator">🏆 ${esc(ibName(c.creator))}</button><button class="btn" data-o="opponent">🏆 ${esc(ibName(c.opponent))}</button><button class="btn ghost" data-o="refund">↩ Refund</button><a class="btn ghost" href="#challenges" onclick="setTimeout(loadChallenges,60)">💬 Chat</a></div>
+        ${c.rule_at?`<div class="sub" style="color:#ff8a8a">🚩 Rule report: “${esc(c.rule_reason)}”${c.status==='completed'?' · already paid, nothing held':c.rule_held?' · '+c.rule_held+' pts held':''}</div>`:''}
+        <div class="ib-row">${c.rule_at?`<button class="btn" data-o="rule_void">🚩 Rule broken</button>${c.rule_winner||c.status==='completed'?'<button class="btn ghost" data-o="rule_reject">✓ Result stands</button>':''}`:''}${c.status==='completed'?'':`<button class="btn" data-o="creator">🏆 ${esc(ibName(c.creator))}</button><button class="btn" data-o="opponent">🏆 ${esc(ibName(c.opponent))}</button><button class="btn ghost" data-o="refund">↩ Refund</button>`}<a class="btn ghost" href="#challenges" onclick="setTimeout(loadChallenges,60)">💬 Chat</a></div>
         <div class="ib-res"></div></div></div>`).join('');
   box.querySelectorAll('[data-zoom]').forEach(i=>i.onclick=()=>ibZoom(i.dataset.zoom));
   box.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(b.dataset.copy);b.textContent='Copied ✓';});
@@ -1901,7 +1902,7 @@ function inboxRender(){
     card.querySelector('[data-rej]').onclick=e=>ibArm(e.target,'Tap again: return points',async()=>{try{await waCall({action:'resolve',id,paid:false,payout_ref:''});done(card,'Rejected, points returned.');}catch(x){done(card,x.message,true);}});
   });
   box.querySelectorAll('.ib.dispute').forEach(card=>{
-    card.querySelectorAll('[data-o]').forEach(b=>b.onclick=e=>ibArm(e.target,b.dataset.o==='refund'?'Tap again: refund both':'Tap again: pay the pot',async()=>{try{await waCall({action:'resolve_challenge',id:card.dataset.id,outcome:b.dataset.o});done(card,'✓ Settled. Both players notified.');}catch(x){done(card,x.message,true);}}));
+    card.querySelectorAll('[data-o]').forEach(b=>b.onclick=e=>ibArm(e.target,b.dataset.o==='refund'||b.dataset.o==='rule_void'?'Tap again: refund both':b.dataset.o==='rule_reject'?'Tap again: result stands':'Tap again: pay the pot',async()=>{try{await waCall({action:'resolve_challenge',id:card.dataset.id,outcome:b.dataset.o});done(card,'✓ Settled. Both players notified.');}catch(x){done(card,x.message,true);}}));
   });
   staggerReveal(box);
 }
@@ -2695,17 +2696,18 @@ function chgName(p){return p?('@'+(p.username||p.player_tag||'player')):'—';}
 async function loadChallenges(){
   chgMsg('Loading…','');
   try{
-    const d=await waCall({action:'challenges'});
+    const d=await waCall({action:'challenges',ref:(document.getElementById('chg-ref')||{}).value||''});
     const box=document.getElementById('chg-list');
-    const disp=(d.disputed||[]).map(c=>`<div class="card" style="border-color:#ff6b6b"><div class="row" style="margin:0 0 8px;justify-content:space-between;flex-wrap:wrap;gap:8px"><b>⚖️ ${esc(c.mode)} · ${c.stake*2} pts pot</b><span class="hint" style="margin:0">${esc(new Date(c.created_at).toLocaleString())}</span></div>
+    const disp=(d.disputed||[]).map(c=>`<div class="card" style="border-color:#ff6b6b"><div class="row" style="margin:0 0 8px;justify-content:space-between;flex-wrap:wrap;gap:8px"><b>⚖️ ${c.ref_no?'#C-'+esc(c.ref_no)+' · ':''}${esc(c.mode)} · ${c.stake*2} pts pot</b><span class="hint" style="margin:0">${esc(new Date(c.created_at).toLocaleString())}</span></div>
       <p class="hint" style="margin:0 0 8px">Creator ${esc(chgName(c.creator))} says <b>${esc(c.creator_claim||'—')}</b> · Opponent ${esc(chgName(c.opponent))} says <b>${esc(c.opponent_claim||'—')}</b>${c.room_id?' · room '+esc(c.room_id):''}${c.note?' · '+esc(c.note):''}</p>
       <div style="max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px;font-size:.8rem;margin-bottom:8px">${(c.chat||[]).map(m=>`<div><b>${esc(chgName(m.sender))}:</b> ${esc(m.body)} <span class="hint" style="margin:0">${esc(new Date(m.created_at).toLocaleTimeString())}</span></div>`).join('')||'<span class="hint">No chat.</span>'}</div>
-      <div class="row" style="margin:0"><button class="btn" data-chg="${esc(c.id)}" data-o="creator">🏆 ${esc(chgName(c.creator))} won</button><button class="btn" data-chg="${esc(c.id)}" data-o="opponent">🏆 ${esc(chgName(c.opponent))} won</button><button class="btn ghost" data-chg="${esc(c.id)}" data-o="refund">↩ Refund both</button></div></div>`).join('');
-    const rec=(d.recent||[]).length?`<div class="card"><table style="width:100%;font-size:.78rem;border-collapse:collapse">${d.recent.map(c=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px">${esc(c.mode)}</td><td>${esc(chgName(c.creator))} vs ${esc(chgName(c.opponent))}</td><td>${c.stake*2} pts</td><td>${esc(c.status)}${c.resolution?' · '+esc(c.resolution):''}</td><td class="hint" style="margin:0">${esc(new Date(c.created_at).toLocaleDateString())}</td></tr>`).join('')}</table></div>`:'';
+      ${c.rule_at?`<p class="hint err" style="margin:0 0 8px">🚩 ${esc(chgName(c.rule_by===c.creator_id?c.creator:c.opponent))} reports a broken rule: “${esc(c.rule_reason)}”${c.status==='completed'?' · already paid, nothing held':c.rule_held?' · '+c.rule_held+' pts held':''}</p><div class="row" style="margin:0 0 8px"><button class="btn" data-chg="${esc(c.id)}" data-o="rule_void">🚩 Rule broken: refund both + warn</button>${c.rule_winner||c.status==='completed'?`<button class="btn ghost" data-chg="${esc(c.id)}" data-o="rule_reject">✓ No proof: result stands</button>`:''}</div>`:''}
+      ${c.status==='completed'?'':`<div class="row" style="margin:0"><button class="btn" data-chg="${esc(c.id)}" data-o="creator">🏆 ${esc(chgName(c.creator))} won</button><button class="btn" data-chg="${esc(c.id)}" data-o="opponent">🏆 ${esc(chgName(c.opponent))} won</button><button class="btn ghost" data-chg="${esc(c.id)}" data-o="refund">↩ Refund both</button></div>`}</div>`).join('');
+    const rec=(d.recent||[]).length?`<div class="card"><table style="width:100%;font-size:.78rem;border-collapse:collapse">${d.recent.map(c=>`<tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px">${c.ref_no?'#C-'+esc(c.ref_no)+' ':''}${esc(c.mode)}</td><td>${esc(chgName(c.creator))} vs ${esc(chgName(c.opponent))}</td><td>${c.stake*2} pts</td><td>${esc(c.status)}${c.resolution?' · '+esc(c.resolution):''}</td><td class="hint" style="margin:0">${esc(new Date(c.created_at).toLocaleDateString())}</td></tr>`).join('')}</table></div>`:'';
     box.innerHTML=(disp||'<p class="hint">No disputes 🎉</p>')+rec;
     box.querySelectorAll('[data-chg]').forEach(b=>b.onclick=async()=>{
       const o=b.dataset.o;
-      if(!confirm(o==='refund'?'Refund both players their stake?':'Pay the whole pot to this side?'))return;
+      if(!confirm(o==='refund'?'Refund both players their stake?':o==='rule_void'?'Rule broken: refund both stakes and warn the rule breaker?':o==='rule_reject'?'No proof: the result stands?':'Pay the whole pot to this side?'))return;
       b.disabled=true;
       try{await waCall({action:'resolve_challenge',id:b.dataset.chg,outcome:o});chgMsg('Done — both players were notified.','ok');loadChallenges();}catch(e){chgMsg(e.message,'err');b.disabled=false;}
     });

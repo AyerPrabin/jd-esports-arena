@@ -109,10 +109,14 @@ Deno.serve(async (req: Request) => {
   }
 
   if (p.action === 'challenges') {
-    const cols = 'id, mode, stake, status, note, room_id, creator_claim, opponent_claim, claim_at, resolution, created_at, accepted_at, resolved_at, creator:players!challenges_creator_fkey(username, player_tag), opponent:players!challenges_opponent_fkey(username, player_tag)';
+    const cols = 'id, ref_no, mode, stake, status, note, room_id, creator_claim, opponent_claim, claim_at, resolution, created_at, accepted_at, resolved_at, rule_by, rule_reason, rule_held, rule_winner, rule_at, rule_done_at, creator_id:creator, opponent_id:opponent, creator:players!challenges_creator_fkey(username, player_tag), opponent:players!challenges_opponent_fkey(username, player_tag)';
+    // find one challenge by its number (#C-1043, C1043 or 1043)
+    const refNo = parseInt(String(p.ref || '').replace(/\D/g, ''), 10);
+    let recentQ = supabase.from('challenges').select(cols).neq('status', 'disputed').or('rule_at.is.null,rule_done_at.not.is.null').order('created_at', { ascending: false }).limit(30);
+    if (refNo > 0) recentQ = supabase.from('challenges').select(cols).eq('ref_no', refNo).limit(1);
     const [{ data: disputed, error: e1 }, { data: recent, error: e2 }] = await Promise.all([
-      supabase.from('challenges').select(cols).eq('status', 'disputed').order('created_at', { ascending: true }),
-      supabase.from('challenges').select(cols).neq('status', 'disputed').order('created_at', { ascending: false }).limit(30),
+      supabase.from('challenges').select(cols).or('status.eq.disputed,and(rule_at.not.is.null,rule_done_at.is.null)').order('created_at', { ascending: true }),
+      recentQ,
     ]);
     if (e1 || e2) return fail((e1 || e2)!.message, 500);
     const ids = (disputed || []).map((c: any) => c.id);

@@ -473,17 +473,17 @@ Deno.serve(async (req: Request) => {
     const myId: string | null = (meRow as any)?.id || null;
     if (action === 'challenge_resolve') {
       const cid = String(p.id || ''), outcome = String(p.outcome || '');
-      if (!/^[0-9a-f-]{36}$/i.test(cid) || !['creator', 'opponent', 'refund'].includes(outcome)) return fail('id and outcome required');
-      const { data: c } = await admin.from('challenges').select('status, mode, stake, creator, opponent').eq('id', cid).maybeSingle();
-      if (!c || c.status !== 'disputed') return fail('This challenge is not waiting for a decision any more. Refresh.');
+      if (!/^[0-9a-f-]{36}$/i.test(cid) || !['creator', 'opponent', 'refund', 'rule_void', 'rule_reject'].includes(outcome)) return fail('id and outcome required');
+      const { data: c } = await admin.from('challenges').select('status, mode, stake, creator, opponent, rule_at, rule_done_at').eq('id', cid).maybeSingle();
+      if (!c || (c.status !== 'disputed' && !(['rule_void', 'rule_reject'].includes(outcome) && c.rule_at && !c.rule_done_at))) return fail('This challenge is not waiting for a decision any more. Refresh.');
       if (myId && (c.creator === myId || c.opponent === myId)) return fail('You play in this challenge, so another mod has to decide it.', 403);
       const { error } = await admin.rpc('admin_resolve_challenge', { p_id: cid, p_outcome: outcome });
       if (error) return fail(error.message);
       await log('challenge_resolve', `${c.mode} · ${c.stake * 2} pts · ${outcome} · ${cid.slice(0, 8)}`);
       return json({ ok: true });
     }
-    const cols = 'id, mode, stake, status, note, room_id, creator, opponent, creator_claim, opponent_claim, claim_at, resolution, created_at, accepted_at';
-    const { data: list, error } = await admin.from('challenges').select(cols).eq('status', 'disputed').order('claim_at', { ascending: true }).limit(20);
+    const cols = 'id, ref_no, mode, stake, status, note, room_id, creator, opponent, creator_claim, opponent_claim, claim_at, resolution, created_at, accepted_at, rule_by, rule_reason, rule_at, rule_winner, rule_held, rule_done_at';
+    const { data: list, error } = await admin.from('challenges').select(cols).or('status.eq.disputed,and(rule_at.not.is.null,rule_done_at.is.null)').order('claim_at', { ascending: true }).limit(20);
     if (error) return fail(error.message, 500);
     const ids = (list || []).map((c: any) => c.id);
     const pids = [...new Set((list || []).flatMap((c: any) => [c.creator, c.opponent]).filter(Boolean))];
@@ -502,8 +502,10 @@ Deno.serve(async (req: Request) => {
     }
     return json({
       disputed: (list || []).filter((c: any) => !myId || (c.creator !== myId && c.opponent !== myId)).map((c: any) => ({
-        id: c.id, mode: c.mode, stake: c.stake, pot: c.stake * 2, note: c.note, resolution: c.resolution,
-        claim_at: c.claim_at, created_at: c.created_at,
+        id: c.id, ref_no: c.ref_no, mode: c.mode, stake: c.stake, pot: c.stake * 2, note: c.note, resolution: c.resolution,
+        claim_at: c.claim_at, created_at: c.created_at, status: c.status,
+        rule: c.rule_at && !c.rule_done_at ? { by: c.rule_by === c.creator ? 'creator' : 'opponent', reason: c.rule_reason, at: c.rule_at,
+          held: c.rule_held || 0, winner: c.rule_winner === c.creator ? 'creator' : c.rule_winner === c.opponent ? 'opponent' : null } : null,
         creator: { name: nameOf(c.creator), ign: (who.get(c.creator) as any)?.ff_name || null, uid: (who.get(c.creator) as any)?.ff_uid || null, claim: c.creator_claim },
         opponent: { name: nameOf(c.opponent), ign: (who.get(c.opponent) as any)?.ff_name || null, uid: (who.get(c.opponent) as any)?.ff_uid || null, claim: c.opponent_claim },
         chat: (msgs || []).filter((m: any) => m.challenge_id === c.id).map((m: any) => ({
