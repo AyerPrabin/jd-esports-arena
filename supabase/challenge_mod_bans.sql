@@ -2,20 +2,24 @@
 -- When a mod rules a challenge "Rule broken" they pick the punishment for the rule breaker: a warning, a 1 / 3 / 7 / 30
 -- day challenge lock, or a permanent challenge ban (challenges only; the account still works). A mod lock can't be
 -- lifted with the 5-point unlock; automatic locks (false results / false reports) still can.
+-- 13 Nov: the mod also picks a fine of 0-20 points (10 by default) that moves from the rule breaker to the reporter
+-- (if the rule breaker has less, what they have is taken).
 -- Run: npx supabase db query --remote --yes -f supabase/challenge_mod_bans.sql
--- Undo: drop function public.admin_resolve_challenge(uuid, text, int); re-run admin_resolve_challenge from
+-- Undo: drop function public.admin_resolve_challenge(uuid, text, int, int); re-run admin_resolve_challenge from
 --       challenge_rule_report.sql, and challenge_unlock_pay / _challenge_player_ok from their earlier definitions.
 begin;
 alter table public.challenge_bans add column if not exists mod_until timestamptz, add column if not exists mod_reason text;
 
 drop function if exists public.admin_resolve_challenge(uuid, text);
-create or replace function public.admin_resolve_challenge(p_id uuid, p_outcome text, p_lock_days int default 0)
+drop function if exists public.admin_resolve_challenge(uuid, text, int);
+create or replace function public.admin_resolve_challenge(p_id uuid, p_outcome text, p_lock_days int default 0, p_fine int default 0)
 returns void language plpgsql security definer set search_path = public as $$
-declare c public.challenges; v_accused uuid; v_pot int; v_n int; v_strikes int; v_until timestamptz; v_pun text;
+declare c public.challenges; v_accused uuid; v_pot int; v_n int; v_strikes int; v_until timestamptz; v_pun text; v_fine int := 0;
 begin
   if p_lock_days is null or p_lock_days not in (-1, 0, 1, 3, 7, 30) then
     raise exception 'Punishment must be a warning, 1, 3, 7 or 30 days, or a permanent challenge ban.';
   end if;
+  if p_fine is null or p_fine not between 0 and 20 then raise exception 'The fine must be 0 to 20 points.'; end if;
   select * into c from public.challenges where id = p_id for update;
   if c.id is null then raise exception 'Challenge not found.'; end if;
   if p_outcome in ('rule_void', 'rule_reject') and (c.rule_at is null or c.rule_done_at is not null) then
@@ -50,13 +54,26 @@ begin
         mod_until = greatest(coalesce(challenge_bans.mod_until, '-infinity'), v_until), mod_reason = c.rule_reason,
         strikes = challenge_bans.strikes + 1, last_challenge = c.id, updated_at = now();
     end if;
+    -- the mod's fine (0-20 points) goes from the rule breaker to the reporter; less if the rule breaker has less
+    if p_fine > 0 then
+      select least(p_fine, greatest(balance, 0)) into v_fine from public.wallets where player_id = v_accused;
+      v_fine := coalesce(v_fine, 0);
+      if v_fine > 0 then
+        perform public._wallet_apply(v_accused, -v_fine, 'adjust', c.id::text, 'Fine: broke the rule in ' || c.mode || ' challenge #C-' || c.ref_no);
+        perform public._wallet_apply(c.rule_by, v_fine, 'adjust', c.id::text, 'Fine paid to you: rule broken in ' || c.mode || ' challenge #C-' || c.ref_no);
+        insert into public.notifications (player_id, title, body) values (c.rule_by, '✅ Rule report upheld',
+          'A JD mod agreed the rule was broken in ' || c.mode || ' challenge #C-' || c.ref_no || '. Your stake is refunded and '
+          || public._challenge_name(v_accused) || ' paid you a ' || v_fine || '-point fine.');
+      end if;
+    end if;
     v_pun := case p_lock_days when 0 then 'This is a warning. Breaking a rule again can get you banned from challenges.'
       when -1 then 'You are banned from challenges.'
       else 'Your challenges are locked for ' || p_lock_days || ' day' || case when p_lock_days = 1 then '' else 's' end || '.' end;
     insert into public.notifications (player_id, title, body) values (v_accused,
       case p_lock_days when 0 then '⚠️ Warning: challenge rule broken' when -1 then '⛔ Banned from challenges' else '⛔ Challenges locked: rule broken' end,
       'A JD mod checked your ' || c.mode || ' challenge #C-' || c.ref_no || ' against ' || public._challenge_name(c.rule_by) || ': the rule was broken ("'
-      || c.rule_reason || '"). The win is cancelled and both stakes are refunded. ' || v_pun);
+      || c.rule_reason || '"). The win is cancelled and both stakes are refunded. '
+      || case when v_fine > 0 then 'You are fined ' || v_fine || ' points, paid to ' || public._challenge_name(c.rule_by) || '. ' else '' end || v_pun);
   elsif p_outcome = 'rule_reject' then
     if c.status = 'disputed' then
       if c.rule_winner is null then raise exception 'Nobody had reported a win yet: pick who won, or refund both.'; end if;
@@ -89,8 +106,8 @@ begin
   update public.challenges set rule_done_at = now() where id = p_id and rule_at is not null and rule_done_at is null;
 end;
 $$;
-revoke all on function public.admin_resolve_challenge(uuid, text, int) from public, anon, authenticated;
-grant execute on function public.admin_resolve_challenge(uuid, text, int) to service_role;
+revoke all on function public.admin_resolve_challenge(uuid, text, int, int) from public, anon, authenticated;
+grant execute on function public.admin_resolve_challenge(uuid, text, int, int) to service_role;
 
 create or replace function public.challenge_unlock_pay()
 returns integer language plpgsql security definer set search_path = public as $$

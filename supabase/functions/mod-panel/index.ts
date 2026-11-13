@@ -480,9 +480,12 @@ Deno.serve(async (req: Request) => {
       // punishment for a broken rule: 0 warning, 1/3/7/30 day lock, -1 challenge ban
       const lock = outcome === 'rule_void' ? Number(p.lock_days ?? 0) : 0;
       if (![-1, 0, 1, 3, 7, 30].includes(lock)) return fail('Pick a punishment: warning, 1, 3, 7 or 30 days, or a challenge ban.');
-      const { error } = await admin.rpc('admin_resolve_challenge', { p_id: cid, p_outcome: outcome, p_lock_days: lock });
+      // fine 0-20 points, rule breaker -> reporter (10 if an old page sends none)
+      const fine = outcome === 'rule_void' ? Number(p.fine ?? 10) : 0;
+      if (!Number.isInteger(fine) || fine < 0 || fine > 20) return fail('The fine must be 0 to 20 points.');
+      const { error } = await admin.rpc('admin_resolve_challenge', { p_id: cid, p_outcome: outcome, p_lock_days: lock, p_fine: fine });
       if (error) return fail(error.message);
-      await log('challenge_resolve', `${c.mode} · ${c.stake * 2} pts · ${outcome}${lock ? ' · lock ' + (lock < 0 ? 'ban' : lock + 'd') : ''} · ${cid.slice(0, 8)}`);
+      await log('challenge_resolve', `${c.mode} · ${c.stake * 2} pts · ${outcome}${lock ? ' · lock ' + (lock < 0 ? 'ban' : lock + 'd') : ''}${fine ? ' · fine ' + fine : ''} · ${cid.slice(0, 8)}`);
       return json({ ok: true });
     }
     const cols = 'id, ref_no, mode, stake, status, note, room_id, creator, opponent, creator_claim, opponent_claim, claim_at, resolution, created_at, accepted_at, rule_by, rule_reason, rule_at, rule_winner, rule_held, rule_done_at';

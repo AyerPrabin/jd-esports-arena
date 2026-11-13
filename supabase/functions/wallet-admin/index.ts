@@ -132,7 +132,10 @@ Deno.serve(async (req: Request) => {
   if (p.action === 'resolve_challenge') {
     const lock = p.outcome === 'rule_void' ? Number(p.lock_days ?? 0) : 0;
     if (![-1, 0, 1, 3, 7, 30].includes(lock)) return fail('Pick a punishment: warning, 1, 3, 7 or 30 days, or a challenge ban.');
-    const { error } = await supabase.rpc('admin_resolve_challenge', { p_id: p.id, p_outcome: p.outcome, p_lock_days: lock });
+    // fine 0-20 points, rule breaker -> reporter (10 if an old page sends none)
+    const fine = p.outcome === 'rule_void' ? Number(p.fine ?? 10) : 0;
+    if (!Number.isInteger(fine) || fine < 0 || fine > 20) return fail('The fine must be 0 to 20 points.');
+    const { error } = await supabase.rpc('admin_resolve_challenge', { p_id: p.id, p_outcome: p.outcome, p_lock_days: lock, p_fine: fine });
     if (error) return fail(error.message);
     return json({ ok: true });
   }
