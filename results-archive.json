@@ -1,6 +1,208 @@
 {
  "events": [
   {
+   "name": "JD Free Fire Open #24",
+   "date": "Fri, Nov 13",
+   "start": "2026-11-13T21:30:00+05:45",
+   "maps": [
+    "bermuda",
+    "solara",
+    "kalahari"
+   ],
+   "prize": "180",
+   "winner": "BH HOOD",
+   "kill_pts": 1,
+   "teams": [
+    {
+     "team": "BH HOOD",
+     "r": [
+      {
+       "kills": 25,
+       "pts": 12
+      },
+      {
+       "kills": 6,
+       "pts": 6
+      },
+      {
+       "kills": 8,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "Ancient Ogs 1",
+     "r": [
+      {
+       "kills": 3,
+       "pts": 2
+      },
+      {
+       "kills": 18,
+       "pts": 12
+      },
+      {
+       "kills": 15,
+       "pts": 8
+      }
+     ]
+    },
+    {
+     "team": "OG CLASSIC",
+     "r": [
+      {
+       "kills": 10,
+       "pts": 9
+      },
+      {
+       "kills": 6,
+       "pts": 8
+      },
+      {
+       "kills": 4,
+       "pts": 5
+      }
+     ]
+    },
+    {
+     "team": "MALVORAK",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 6
+      },
+      {
+       "kills": 2,
+       "pts": 4
+      },
+      {
+       "kills": 14,
+       "pts": 9
+      }
+     ]
+    },
+    {
+     "team": "YETI:ESPORTS",
+     "r": [
+      {
+       "kills": 1,
+       "pts": 7
+      },
+      {
+       "kills": 3,
+       "pts": 9
+      },
+      {
+       "kills": 5,
+       "pts": 12
+      }
+     ]
+    },
+    {
+     "team": "PARAGON E-SPORTS",
+     "r": [
+      {
+       "kills": 6,
+       "pts": 4
+      },
+      {
+       "kills": 5,
+       "pts": 5
+      },
+      {
+       "kills": 13,
+       "pts": 4
+      }
+     ]
+    },
+    {
+     "team": "DAMAN ESP",
+     "r": [
+      {
+       "kills": 6,
+       "pts": 8
+      },
+      {
+       "kills": 10,
+       "pts": 7
+      },
+      {
+       "kills": 3,
+       "pts": 2
+      }
+     ]
+    },
+    {
+     "team": "PRIME FORCE",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 1
+      },
+      {
+       "kills": 1,
+       "pts": 3
+      },
+      {
+       "kills": 14,
+       "pts": 6
+      }
+     ]
+    },
+    {
+     "team": "Redzone",
+     "r": [
+      {
+       "kills": 1,
+       "pts": 5
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 5,
+       "pts": 3
+      }
+     ]
+    },
+    {
+     "team": "REVENGE ESPORTS",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 3
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 1,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Goli eSports",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 1,
+       "pts": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
    "name": "JD Free Fire Open #23",
    "date": "Thu, Nov 12",
    "start": "2026-11-12T21:30:00+05:45",
