@@ -171,6 +171,7 @@ input:focus{border-color:var(--gold)}
 .row .amt small{display:block;font-family:var(--font-body);font-size:.64rem;color:var(--body);letter-spacing:0;margin-top:3px}
 .amt.plus{color:var(--green)}.amt.minus{color:var(--cream)}
 .pill{flex:none;font-size:.66rem;font-weight:800;letter-spacing:.01em;padding:4px 9px;border-radius:999px}
+.ld-rules{margin:12px 0 0;font-size:.8rem;color:var(--silver)}
 .pill.pending{background:rgba(255,200,61,.14);color:var(--gold-l)}.pill.paid{background:rgba(94,219,149,.14);color:var(--green)}.pill.rejected{background:rgba(255,138,138,.12);color:var(--red)}.pill.approved{background:rgba(94,219,149,.14);color:var(--green)}
 .shot-pick{position:relative;display:flex;align-items:center;gap:12px;padding:14px;border:1.5px dashed var(--gold-m);border-radius:14px;cursor:pointer;margin-bottom:4px;transition:.2s}
 .shot-pick:hover{background:rgba(255,200,61,.05)}
@@ -380,6 +381,7 @@ input:focus{border-color:var(--gold)}
               <img id="shot-prev" alt="" hidden>
               <span id="shot-txt"><b>📷 Choose screenshot</b><small>PNG or JPG from your gallery</small></span>
             </label>
+            <p class="ld-rules">Choose the <b>exact amount you paid</b>. A wrong amount can't be matched automatically and takes longer, because we check it by hand. Paid more than once? Send each payment separately with its own Transaction Code and screenshot (up to 3 can wait at once).</p>
             <div class="msg" id="load-msg"></div>
             <button class="btn" id="load-btn" type="button">Send for verification</button>
           </li>
@@ -735,7 +737,7 @@ $('load-btn').onclick=async()=>{
   const {data:res,error}=await sb.rpc('request_wallet_load',{p_amount:loadAmt,p_screenshot:shotData,p_pin_token:pinToken,p_code:code,p_sender:sender});
   $('load-btn').disabled=false;
   if(error){msg.className='msg err';msg.textContent=pinClean(error.message);return;}
-  msg.className='msg ok';msg.textContent=res&&res.status==='approved'?`Done: we matched your Rs ${loadAmt.toLocaleString()} eSewa payment and added the points.`:`Sent! We'll check your Rs ${loadAmt.toLocaleString()} payment and add the points.`;
+  msg.className='msg ok';msg.textContent=res&&res.status==='approved'?`Done: we matched your Rs ${loadAmt.toLocaleString()} eSewa payment and added the points.`:`Sent. Your Rs ${loadAmt.toLocaleString()} payment is waiting for approval; the points are added once it is checked.`;
   $('ld-code').value='';
   try{localStorage.setItem('jd_esewa_from',sender);}catch(e){}
   if(res&&res.status==='approved')refresh();

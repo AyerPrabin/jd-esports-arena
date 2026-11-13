@@ -308,7 +308,7 @@ def _looks_like_deflection(reply):
 ZULU_WEB_URL = SUPABASE_URL.rstrip("/") + "/functions/v1/zulu-ai-reply"
 ZULU_WEB_KEY = "sb_publishable_5n7uzH5crKrLe8A75K6OVQ_C_di-jil"   # public publishable key, same as the website
 JD_TOPIC = re.compile(r"(tournament|pass|weekly|slot|seat|join|regist|entry|prize|point|wallet|esewa|challenge|rule|ban|"
-                      r"effect|optimi[sz]er|room|squad|jd|arena|next|when|kahile|kati|winner|won|result|leaderboard|waitlist|refund)", re.I)
+                      r"load|approv|pending|screenshot|transaction|reference|effect|optimi[sz]er|room|squad|jd|arena|next|when|kahile|kati|winner|won|result|leaderboard|waitlist|refund)", re.I)
 
 
 SITE_PATH = re.compile(r"(^|\s)(/(?:[a-z-]+/(?:#[a-z]+)?|[a-z-]+\.html))(?=[\s.,;:!?)]|$)")
