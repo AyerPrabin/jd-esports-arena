@@ -40,6 +40,11 @@ You are answering inside the player's official "JD Esports" / "JD Support" chat,
 - If they say their squad is ready / confirm, tell them to tap "Confirm you're playing" on their ticket, and that a moderator can also mark it.
 - Never ask for passwords, OTPs or eSewa PINs.
 - Lines marked (JD moderator) were written by the team. Stay consistent with them, don't repeat them, and never write that label yourself.
+- Never say you alerted, notified, messaged, pinged or "sent it again" to the team, and never say a moderator is "on the way", "checking right now" or will come "tomorrow". The [FLAG] tag is what reaches the team; just say the JD team will see it here.
+- Never guess how long something takes (results, loads, withdrawals, a moderator's reply). Give a time only when the answer book or the rules give one.
+- Waitlists: a FREE event's waitlist never moves up for free; the player taps "Pay 20 points for a place" on the ticket (closes 30 min before the start). Paying half the entry as a deposit is ONLY for paid and partner-host events. Check which kind the event is in the live schedule before you explain it.
+- You CAN see the player's tickets in MY ACCOUNT (event, status, confirmed or not): use them instead of saying you can't check.
+- "Rules" / "all the rules": give the main rules from the answer book and the /rules/ link yourself. That is never a hand-off.
 - You handle this chat on your own. The JD team only joins when you flag it. Flag ONLY big issues: points/payment not received, prize or withdrawal problems, refunds, result disputes, bans, cheating/hacker reports, a hacked account, a very upset player, or a scrim host asking to become a partner host (after you have their TikTok ID and JD account email), or anything you truly cannot solve. To flag, end your reply with the exact tag [FLAG] and tell them a JD team member will reply here soon. Never flag simple questions.`;
 const FLAG = /\[FLAG\]/gi;
 
@@ -92,8 +97,13 @@ async function answer(db: any, pid: string, day: Date, used: number, ids: number
     modLeft = true;
   }
   // an issue ZULU handed to the team that no mod has answered yet: ZULU keeps talking, but leaves it unread for the mods
-  const lastZ = [...msgs].reverse().find((m: any) => m.from_staff && !isMod(m));
-  const openFlag = !!lastZ && /(team member|moderator) will reply/i.test(lastZ.body) && (!lastMod || lastMod.id < lastZ.id);
+  // (open until a mod writes: ZULU's later replies don't close it; hand-offs older than 12 hours are left behind)
+  const firstFlag = msgs.find((m: any) => m.from_staff && !isMod(m) && (!lastMod || m.id > lastMod.id) &&
+    Date.now() - new Date(m.created_at).getTime() < 12 * 3600e3 && /(team member|moderator|JD team).{0,30}(will reply|reply here)/i.test(m.body));
+  const openFlag = !!firstFlag;
+  // how long that hand-off has waited (13 Nov 2026: one player was told "a moderator is coming" ~15 times over 2+ hours)
+  const waitedMin = firstFlag ? Math.round((Date.now() - new Date(firstFlag.created_at).getTime()) / 60000) : 0;
+  const gaveNumber = msgs.some((m: any) => m.from_staff && /986-?8813682|9779868813682/.test(m.body));
 
   // flagged: player messages stay unread in /mod/ and the moderators' phones RING (dm-push kind 'staff', ring);
   // handled by ZULU: marked read, so the team's inbox only lights up for the big issues
@@ -167,6 +177,9 @@ async function answer(db: any, pid: string, day: Date, used: number, ids: number
     'Recent alerts: ' + ((notes || []).map((n: any) => n.title).join('; ') || 'none'),
     'Invited partner hosts on JD Arena (each runs and pays its own events; players can message a host in Messages): ' +
       ((hosts || []).map((h: any) => '@' + String(h.handle || '').toLowerCase() + (h.display_name ? ` ("${h.display_name}")` : '')).join(', ') || 'none'),
+    ...(waitedMin >= 15 ? [`NOTE: this issue was handed to the JD team ${waitedMin} minutes ago and no moderator has answered yet. Do NOT say again that a moderator is coming, checking or on the way, and don't say you alerted anyone. Be honest: nobody from the team has picked it up yet. ` +
+      (gaveNumber ? 'The support number is already in this chat; remind them it is the fastest way. ' : 'Give the support line once: call or WhatsApp +977 986-8813682 with their username and a screenshot. ') +
+      'Then help with anything you can answer yourself from MY ACCOUNT, the live schedule and the rules (for example why a ticket was removed or is on the waitlist).'] : []),
     ...(modLeft ? ['NOTE: a JD moderator was chatting here a few minutes ago and has stepped away. Carry on helping; if the player waits for that mod\'s answer, say the team will see it.'] : []),
   ].join('\n');
 
@@ -200,6 +213,7 @@ async function answer(db: any, pid: string, day: Date, used: number, ids: number
   // the hand-off line once, not after every "hlo": skip it when ZULU's last message already said it
   const lastSaid = [...msgs].reverse().find((m: any) => m.from_staff);
   if (text) await say(text);
+  else if (waitedMin >= 15 && !gaveNumber) await say('Sorry for the wait, nobody from the team has picked this up yet. Fastest help: call or WhatsApp +977 986-8813682 with your username and a screenshot.');
   else if (!lastSaid || !/moderator will reply/.test(lastSaid.body)) await say('Thanks! A JD moderator will reply here soon.');
   if (big) await flag(); else if (!openFlag) await handled();
   return !!raw;

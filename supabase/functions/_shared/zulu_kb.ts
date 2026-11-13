@@ -175,10 +175,10 @@ const K: KBEntry[] = [
   { id: 'prize', q: 'prize|prize kati|prize money|1st prize|2nd prize|3rd prize|prize distribution|prize kasari bandcha|prize split|reward|reward kati|kati paincha|winner lai kati|prize pool',
     en: 'Every JD prize pool splits 50% / 30% / 20% for 1st, 2nd and 3rd. Free events pay Rs 180: Rs 90, Rs 54 and Rs 36. Partner-host events are paid by that host.',
     ne: 'JD ko har prize 1st 50%, 2nd 30%, 3rd 20%. Free event ko Rs 180: Rs 90, Rs 54 ra Rs 36. Partner host ko event ko prize tyo host le nai dincha.' },
-  { id: 'prizewhere', q: 'prize kaha aaucha|prize aayena|prize kaile|prize kasari paune|prize money kaha|jiteko paisa|prize pako chaina|winner prize|prize wallet',
+  { id: 'prizewhere', q: 'prize kaha aaucha|prize aayena|prize kaile|prize kasari paune|prize money kaha|jiteko paisa|prize pako chaina|winner prize|prize wallet|how will i get the prize|how will i get prize pool|how can we get prize pool|how to get prize|send qr for prize|qr code for prize|prize pool kasari paune',
     en: 'JD prizes are paid automatically into your points wallet when results are published; check /wallet/ history. Then withdraw to eSewa from the wallet. If it\'s missing, send your username and a screenshot to +977 986-8813682.',
     ne: 'Result publish huna sath JD prize aafai points wallet ma aaucha; /wallet/ history hera. Ani wallet bata eSewa ma withdraw gara. Aayena bhane username ra screenshot +977 986-8813682 ma pathau.', flag: true },
-  { id: 'results', q: 'result|results|result kaha|who won|ko jityo|winner ko|standings|result aayo|result kaile|point table kaha',
+  { id: 'results', q: 'result|results|result kaha|who won|ko jityo|winner ko|standings|result aayo|result kaile|point table kaha|result kati time|result kati time lagcha|result kati bela|when result|when will result come|result time|result kaile aaucha|result kahile aaucha',
     en: 'Results go up on the home page and in your Alerts after each event; the season table is at /leaderboard.html',
     ne: 'Har event pachi result home page ra Alerts ma aaucha; season table /leaderboard.html ma.' },
   { id: 'leaderboard', q: 'leaderboard|rank|ranking|top team|season ranking|mero rank',
@@ -213,7 +213,7 @@ const K: KBEntry[] = [
     ne: 'Thulo prize paid ra MEGA event ma huncha (/events/). MEGA ma minimum team pugena bhane sabai ko entry pharkancha.' },
 
   // ── wallet and points ──
-  { id: 'load', q: 'load points|points load|points kasari load|load kasari|load garne|esewa|topup|top up|recharge|point kinne|points kasari halne|buy points|paisa halne|qr|esewa qr|esewa bata',
+  { id: 'load', q: 'load points|points load|points kasari load|load kasari|load garne|esewa|topup|top up|recharge|point kinne|points kasari halne|buy points|paisa halne|qr|esewa qr|esewa bata|qr points|qr 20 points|qr for points',
     en: 'Wallet > Load: pay the eSewa QR, then type the eSewa Transaction Code (like 1VDLJI9) and the name on your eSewa account, and upload the payment screenshot. When it matches our eSewa alert, the points come within a minute. 1 point = Rs 1. /wallet/#load',
     ne: 'Wallet > Load: eSewa QR ma paisa pathau, ani Transaction Code (jastai 1VDLJI9) ra eSewa account ko name lekha, payment screenshot upload gara. Hamro eSewa alert sanga milyo bhane 1 minute mai points aaucha. 1 point = Rs 1. /wallet/#load' },
   { id: 'loadpending', q: 'points aayena|load aayena|load pending|plz fast load|fast load|load bhayena|paisa pathaye tara|points add bhayena|screenshot pathaye|load kaile|point aako chaina|load check',
@@ -360,10 +360,32 @@ interface Phrase { e: KBEntry; t: string[]; joined: string }
 const PHRASES: Phrase[] = K.flatMap((e) => e.q.split('|').map((p) => { const t = tokens(p); return { e, t, joined: t.join(' ') }; }));
 export const KB_SIZE = { topics: K.length, phrasings: PHRASES.length };
 
+// typos (13 Nov 2026: "Can u tell me all the rukes" got a hand-off instead of the rules): a player word of 4+ letters
+// that isn't in the answer book is read as the one answer-book word it is a single letter away from
+const VOCAB = new Set(PHRASES.flatMap((p) => p.t).filter((w) => w.length >= 4));
+function oneEdit(a: string, b: string): boolean {
+  if (Math.abs(a.length - b.length) > 1) return false;
+  let i = 0, j = 0, edits = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) { i++; j++; continue; }
+    if (++edits > 1) return false;
+    if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; }
+  }
+  return edits + (a.length - i) + (b.length - j) <= 1;
+}
+function fixTypo(w: string): string {
+  if (w.length < 4 || VOCAB.has(w) || !/^[a-z]+$/.test(w)) return w;
+  let found = '';
+  for (const v of VOCAB) {
+    if (v !== w && oneEdit(w, v)) { if (found) return w; found = v; }   // two candidates: too unsure, keep the word
+  }
+  return found || w;
+}
+
 export interface KBHit { entry: KBEntry; score: number }
 /** Topics that match a player message best, best first. score 1 = an exact known phrasing. */
 export function kbMatch(message: string, limit = 3): KBHit[] {
-  const q = tokens(message);
+  const q = [...new Set(tokens(message).map(fixTypo))];
   if (!q.length) return [];
   const qs = new Set(q), joined = q.join(' ');
   const best = new Map<string, KBHit>();
