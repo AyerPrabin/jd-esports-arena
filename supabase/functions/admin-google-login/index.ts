@@ -34,7 +34,12 @@ Deno.serve(async (req: Request) => {
   if (error || !user?.email) return new Response('Invalid or expired session.', { status: 401, headers: CORS_HEADERS });
 
   const allowedEmail = (Deno.env.get('ADMIN_EMAIL') || 'ayerprabin95@gmail.com').toLowerCase();
-  if (user.email.toLowerCase() !== allowedEmail) {
+  // The email must come from a verified Google identity, not just the account's email field:
+  // email sign-up confirmation is off, so an email/password account proves nothing (nOAuth-style spoof).
+  const google = (user.identities || []).find((i) =>
+    i.provider === 'google' && String(i.identity_data?.email || '').toLowerCase() === allowedEmail &&
+    i.identity_data?.email_verified !== false);
+  if (user.email.toLowerCase() !== allowedEmail || !google) {
     return new Response('This Google account is not authorized for admin access.', { status: 403, headers: CORS_HEADERS });
   }
 
