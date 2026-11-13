@@ -1,114 +1,132 @@
 {
   "bo3": {
-    "tournament": "JD Free Fire Open #23",
-    "title": "JD Free Fire Open #23 – Final Standings",
+    "tournament": "JD Free Fire Open #24",
+    "title": "JD Free Fire Open #24 – Final Standings",
     "published": true,
     "kill_pts": 1,
     "teams": [
       {
-        "team": "Paragon esports",
+        "team": "BH HOOD",
         "logo": "",
         "r": [
           {
-            "kills": 12,
+            "kills": 25,
+            "pts": 12
+          },
+          {
+            "kills": 6,
             "pts": 6
           },
           {
-            "kills": 14,
-            "pts": 8
-          },
-          {
-            "kills": 9,
-            "pts": 12
+            "kills": 8,
+            "pts": 7
           }
         ],
         "prize_won": 90
-      },
-      {
-        "team": "DAMAN ESP",
-        "logo": "",
-        "r": [
-          {
-            "kills": 7,
-            "pts": 3
-          },
-          {
-            "kills": 15,
-            "pts": 12
-          },
-          {
-            "kills": 14,
-            "pts": 8
-          }
-        ],
-        "prize_won": 54
-      },
-      {
-        "team": "MALVORAK",
-        "logo": "",
-        "r": [
-          {
-            "kills": 9,
-            "pts": 8
-          },
-          {
-            "kills": 5,
-            "pts": 5
-          },
-          {
-            "kills": 14,
-            "pts": 9
-          }
-        ],
-        "prize_won": 36
       },
       {
         "team": "Ancient Ogs 1",
         "logo": "",
         "r": [
           {
-            "kills": 22,
+            "kills": 3,
+            "pts": 2
+          },
+          {
+            "kills": 18,
             "pts": 12
           },
           {
-            "kills": 1,
-            "pts": 1
-          },
-          {
-            "kills": 7,
-            "pts": 6
+            "kills": 15,
+            "pts": 8
           }
-        ]
+        ],
+        "prize_won": 54
       },
       {
-        "team": "Goli eSports",
+        "team": "OG CLASSIC",
         "logo": "",
         "r": [
           {
-            "kills": 13,
+            "kills": 10,
             "pts": 9
           },
           {
-            "kills": 9,
+            "kills": 6,
+            "pts": 8
+          },
+          {
+            "kills": 4,
+            "pts": 5
+          }
+        ],
+        "prize_won": 36
+      },
+      {
+        "team": "MALVORAK",
+        "logo": "",
+        "r": [
+          {
+            "kills": 4,
             "pts": 6
           },
           {
             "kills": 2,
-            "pts": 1
+            "pts": 4
+          },
+          {
+            "kills": 14,
+            "pts": 9
           }
         ]
       },
       {
-        "team": "BH HOOD",
+        "team": "YETI:ESPORTS",
         "logo": "",
         "r": [
           {
-            "kills": 5,
-            "pts": 2
+            "kills": 1,
+            "pts": 7
           },
           {
-            "kills": 12,
+            "kills": 3,
             "pts": 9
+          },
+          {
+            "kills": 5,
+            "pts": 12
+          }
+        ]
+      },
+      {
+        "team": "PARAGON E-SPORTS",
+        "logo": "",
+        "r": [
+          {
+            "kills": 6,
+            "pts": 4
+          },
+          {
+            "kills": 5,
+            "pts": 5
+          },
+          {
+            "kills": 13,
+            "pts": 4
+          }
+        ]
+      },
+      {
+        "team": "DAMAN ESP",
+        "logo": "",
+        "r": [
+          {
+            "kills": 6,
+            "pts": 8
+          },
+          {
+            "kills": 10,
+            "pts": 7
           },
           {
             "kills": 3,
@@ -117,20 +135,38 @@
         ]
       },
       {
-        "team": "team gorkhaX",
+        "team": "PRIME FORCE",
         "logo": "",
         "r": [
           {
-            "kills": 4,
+            "kills": 0,
+            "pts": 1
+          },
+          {
+            "kills": 1,
+            "pts": 3
+          },
+          {
+            "kills": 14,
+            "pts": 6
+          }
+        ]
+      },
+      {
+        "team": "Redzone",
+        "logo": "",
+        "r": [
+          {
+            "kills": 1,
             "pts": 5
           },
           {
             "kills": 0,
-            "pts": 7
+            "pts": 0
           },
           {
-            "kills": 7,
-            "pts": 7
+            "kills": 5,
+            "pts": 3
           }
         ]
       },
@@ -139,41 +175,9 @@
         "logo": "",
         "r": [
           {
-            "kills": 7,
-            "pts": 1
-          },
-          {
             "kills": 0,
-            "pts": 4
-          },
-          {
-            "kills": 4,
-            "pts": 5
-          }
-        ]
-      },
-      {
-        "team": "RF ESPORTS",
-        "logo": "",
-        "r": [
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 3,
             "pts": 3
           },
-          {
-            "kills": 10,
-            "pts": 4
-          }
-        ]
-      },
-      {
-        "team": "Brotherhood",
-        "logo": "",
-        "r": [
           {
             "kills": 0,
             "pts": 0
@@ -181,15 +185,11 @@
           {
             "kills": 1,
             "pts": 0
-          },
-          {
-            "kills": 2,
-            "pts": 3
           }
         ]
       },
       {
-        "team": "DgxTamang",
+        "team": "Goli eSports",
         "logo": "",
         "r": [
           {
@@ -201,26 +201,8 @@
             "pts": 0
           },
           {
-            "kills": 0,
-            "pts": 0
-          }
-        ]
-      },
-      {
-        "team": "THARU々LEGEND",
-        "logo": "",
-        "r": [
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
+            "kills": 1,
+            "pts": 1
           }
         ]
       }
@@ -752,11 +734,11 @@
       "teams": [],
       "format": "BR · Best of 3",
       "status": "completed",
+      "winner": "Paragon esports",
       "platform": "Mobile only",
       "registered": 0,
       "early_access": "yes",
-      "platform_mode": "mobile",
-      "winner": "Paragon esports"
+      "platform_mode": "mobile"
     },
     {
       "map": "bermuda",
@@ -772,11 +754,12 @@
       "start": "2026-11-13T21:30:00+05:45",
       "teams": [],
       "format": "BR · Best of 3",
-      "status": "upcoming",
+      "status": "completed",
       "platform": "Mobile only",
       "registered": 0,
       "early_access": "yes",
-      "platform_mode": "mobile"
+      "platform_mode": "mobile",
+      "winner": "BH HOOD"
     },
     {
       "map": "bermuda",
@@ -879,5 +862,5 @@
       "platform_mode": "mobile"
     }
   ],
-  "_published_at": "2026-11-13T16:20:50.000Z"
+  "_published_at": "2026-11-13T18:00:31.000Z"
 }
