@@ -2754,7 +2754,9 @@ async function relayStatus(){
     const s=await waCall({action:'relay_status'}),b=s.beat,ago=t=>{const m=Math.round((Date.now()-new Date(t))/60000);return m<1?'just now':m<60?m+' min ago':m<2880?Math.round(m/60)+' h ago':Math.round(m/1440)+' days ago';};
     const last=s.last_alert?' Last eSewa alert '+ago(s.last_alert)+'.':'';
     if(!b){el.innerHTML='📵 The JD phone has not checked in yet. Install JD Admin 2.2 on it so missed eSewa alerts show here.'+esc(last);el.style.color='var(--gold,#f5b83d)';return;}
-    const quiet=Date.now()-new Date(b.at)>40*60000,bad=quiet||!b.access||!b.listening;
+    // a real eSewa alert from the phone also proves it is online (13 Nov: alerts arrived while check-ins had stopped)
+    const seen=Math.max(new Date(b.at)||0,s.last_alert?new Date(s.last_alert)||0:0);
+    const quiet=Date.now()-seen>40*60000,bad=quiet||!b.access||!b.listening;
     const why=!b.access?' Notification access is off.':!b.listening?' The alert listener is stopped: open JD Admin on the phone.':quiet?' Check the phone has internet and battery.':'';
     el.innerHTML=(bad?'⚠️ ':'📲 ')+'JD phone checked in '+esc(ago(b.at))+(b.battery?'':' · battery limits on')+(b.queued?' · '+(+b.queued)+' alerts waiting to send':'')+'.'+esc(why+last);
     el.style.color=bad?'var(--bad,#ff6b6b)':'';
