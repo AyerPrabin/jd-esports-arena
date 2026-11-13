@@ -66,6 +66,13 @@ Deno.serve(async (req: Request) => {
     const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
     const { data: live } = await sb.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
     before = live?.content || null;
+    // 13 Nov 2026: an admin page with an empty list published and wiped every JD event. Refuse a publish
+    // that drops more than half of the live JD events unless the admin explicitly sends force: true.
+    const jd = (d: any) => (Array.isArray(d?.tournaments) ? d.tournaments : []).filter((t: any) => t?.name && !t.host).length;
+    const was = jd(before), now = jd(doc);
+    if (was >= 3 && now < Math.ceil(was / 2) && payload.force !== true) {
+      return new Response(`Not published: this would remove ${was - now} of ${was} events (the admin page may not have loaded the list). Reload the admin page and try again.`, { status: 409, headers: CORS_HEADERS });
+    }
     const have = new Set((doc.tournaments || []).map((t: any) => String(t?.name || '').toLowerCase()));
     const keep = ((live?.content as any)?.tournaments || []).filter((t: any) => t?.host && !have.has(String(t.name || '').toLowerCase()));
     if (keep.length && Array.isArray(doc.tournaments)) doc.tournaments.push(...keep);
