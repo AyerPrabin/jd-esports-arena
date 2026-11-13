@@ -1384,27 +1384,6 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 .inapp-reg:active{transform:scale(.97);filter:brightness(.92)}
 @media (prefers-reduced-motion:reduce){#arena-grid .inapp-reg::after{animation:none}.inapp-reg:active{transform:none}}
 
-/* Phones: short event cards like the Events page, so more events fit on one screen.
-   Kept: picture (prize, entry, maps), mode, name, start countdown, device rule, seats, Join.
-   The full facts stay on the Events page. */
-@media(max-width:640px){
-  #arena-grid .tcard:not(.past) .tcard-media,#arena-grid .tcard:not(.past) .tcard-media.bo3{height:104px;min-height:104px}
-  #arena-grid .tcard:not(.past) .tcard-body{padding:10px 14px 12px}
-  #arena-grid .tcard:not(.past) .tbadge.upcoming{display:none}
-  #arena-grid .tcard:not(.past) .tbadge{margin-bottom:4px}
-  #arena-grid .tcard:not(.past) .tname{font-size:1.28rem;margin:2px 0 0}
-  #arena-grid .tcard:not(.past) .tgame{font-size:.76rem;margin-bottom:4px}
-  #arena-grid .tcard:not(.past) .tcount{margin:0 0 4px}
-  #arena-grid .tcard:not(.past) .tcount-bar{margin:0 0 6px}
-  #arena-grid .tcard:not(.past) .tmeta{display:block;margin:0 0 6px}
-  #arena-grid .tcard:not(.past) .tmeta .row:not(.r-plat){display:none}
-  #arena-grid .tcard:not(.past) .tmeta .r-plat span{display:none}
-  #arena-grid .tcard:not(.past) .tmeta .r-plat b{font-size:.76rem;color:var(--silver,#A6AFC2);font-weight:600}
-  #arena-grid .tcard:not(.past) .thost-note{display:none}
-  #arena-grid .tcard:not(.past) .tslots-label{min-height:36px;margin-bottom:2px}
-  #arena-grid .tcard:not(.past) .inapp-reg{padding:11px;margin-top:4px}
-  #arena-grid .tcard:not(.past) .tm-evbtn{padding:6px;font-size:.78rem;margin-top:6px}
-}
 
 /* 12 Nov 2026: simpler match ticket: slot + code in the head, steps only while an action is needed, one footer row */
 .mt{padding:12px 12px 8px}
@@ -1425,21 +1404,3 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 .mt-seat{width:auto;min-width:56px;height:56px;padding:0 10px;border-radius:14px;box-shadow:0 6px 18px rgba(255,174,0,.22),inset 0 1px 0 rgba(255,255,255,.35)}
 .mt-seat i{font-size:.62rem;letter-spacing:.06em;text-transform:none;font-weight:700}
 .mt-seat b{font-size:1.9rem}
-
-/* 12 Nov 2026: prize, entry and mode on one line under the picture; no dark fade over the maps */
-.tcard-media{background-image:url('event-card.webp')}
-.tcard-media.bo3{background-image:none}
-.tm-maps{padding:0}
-.tm-maps::after{display:none}
-.tm-map{margin:0;padding:4px!important}
-.tfacts{display:flex;align-items:center;gap:6px;margin:0 0 10px;min-width:0;overflow:hidden}
-.tfacts>span{flex:none;display:inline-flex;align-items:center;height:30px;white-space:nowrap;border-radius:9px}
-.tf-prize{padding:0 11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.12rem;letter-spacing:.02em;background:linear-gradient(135deg,var(--gold-l),var(--gold));color:#0a0a12}
-.tf-entry{padding:0 10px;font-size:.74rem;font-weight:700;border:1px solid var(--line);color:var(--cream)}
-.tf-entry.free{border-color:rgba(94,219,149,.5);color:var(--green,#5EDB95)}
-.tfacts .tmode{margin:0;padding:0 10px;border-radius:9px;font-size:.7rem;letter-spacing:.03em;text-transform:none}
-.tfacts>span:last-child{flex-shrink:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
-@media(max-width:640px){#arena-grid .tcard:not(.past) .tcard-media,#arena-grid .tcard:not(.past) .tcard-media.bo3{height:84px;min-height:84px}}
-.tm-map{align-content:flex-end;padding:0 4px 6px!important}
-@media(min-width:641px){.tm-map{align-content:center;padding:4px!important}}
-@media(min-width:641px){#arena-grid .tcard:not(.past) .tbadge.upcoming{display:none}#arena-grid .tcard:not(.past) .tcard-media,#arena-grid .tcard:not(.past) .tcard-media.bo3{height:160px;min-height:160px}.tm-map span{padding:1px 6px;border-radius:5px;background:rgba(7,9,15,.55)}}
