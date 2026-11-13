@@ -124,7 +124,7 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
   .arena-stats .stat b{font-size:1.6rem}
   #main-content .feature-strip{display:none}
   /* event cards: the map pictures already name the maps; the partner-host note is kept to 2 lines */
-  .tcard .tmeta .r-maps{display:none}
+  /* maps row shown again (13 Nov: owner wants the full card) */
   /* the stats row fades at the right edge so it reads as swipeable */
   .arena-stats{-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 40px),transparent)}
   .tcard .thost-note{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -1404,3 +1404,7 @@ html.is-pc .dl-menu a.pc-only{display:block!important}
 .mt-seat{width:auto;min-width:56px;height:56px;padding:0 10px;border-radius:14px;box-shadow:0 6px 18px rgba(255,174,0,.22),inset 0 1px 0 rgba(255,255,255,.35)}
 .mt-seat i{font-size:.62rem;letter-spacing:.06em;text-transform:none;font-weight:700}
 .mt-seat b{font-size:1.9rem}
+
+/* 13 Nov 2026: full event cards. Prize split under the other facts at full width; logged-out visitors never see an empty streak box */
+.tcard:not(.past) .tmeta .r-split{grid-column:1/-1}
+.streak[hidden]{display:none}
