@@ -688,6 +688,9 @@ function updatePodium(rows){
   if(!_prevTop3||curTop3.join('|')!==_prevTop3.join('|')){revealPodium(rows);return;}
   [['.p1',top[0]],['.p2',top[1]],['.p3',top[2]]].forEach(([sel,r])=>{
     if(!r)return;
+    // logos load after the first paint (get_squad_logos): put them on the podium when they arrive
+    const img=document.querySelector('.pod-slot'+sel+' .pod-logo');
+    if(img&&r.logo&&img.getAttribute('src')!==r.logo){img.src=r.logo;img.hidden=false;}
     animateCount(document.querySelector('.pod-slot'+sel+' .num-val'),r.totalPts,{stiffness:150,damping:20});
   });
 }
