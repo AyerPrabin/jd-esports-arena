@@ -13,6 +13,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Geist:wght@300..800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#05080f;--panel:#0e1424;--panel-2:#0a0f1c;--line:#1c2840;--gold:#c9a84c;--gold-l:#e2c97e;--gold-m:#7e6630;--cream:#f4efe6;--silver:#aab4cc;--body:#93a2c4;--cta:#FFC83D;--cta-2:#FFAE00;--ok:#5EDB95;--warn:#ff9f1c;--bad:#ff6b6b;--tabh:62px}
+.busy{margin:10px max(16px,calc((100% - 1248px)/2)) 0;padding:10px 14px;border:1px solid var(--warn);border-radius:10px;background:rgba(255,159,28,.08);color:var(--cream);font-size:.9rem;line-height:1.4}
+.busy b{color:var(--warn)}
+.busy.soon{border-color:var(--line);background:var(--panel);color:var(--body)}
 *{box-sizing:border-box}
 html{-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--cream);font-family:'Geist',system-ui,sans-serif;font-weight:400;line-height:1.5;min-height:100vh;touch-action:manipulation}
@@ -464,6 +467,8 @@ textarea{min-height:96px;resize:vertical}
   </div>
   <nav class="evbar" id="evbar" aria-label="Events"></nav>
 </header>
+
+<p class="busy" id="busy" role="status" hidden></p>
 
 <div id="gate" class="panel gate" hidden>
   <h1>Moderator sign-in</h1>
@@ -1560,6 +1565,17 @@ async function hostProfile(){
     e.target.value=''; };
 }
 
+/* admin busy (admin_busy.sql): times only, from the admin's phone calendar via the JD Admin app */
+async function busyLoad(){
+  const el=$('busy'); const {data,error}=await sb.rpc('admin_busy_now'); if(error||!data||!data.known){ el.hidden=true; return; }
+  const t=x=>new Date(x).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+  const soon=data.next&&(new Date(data.next)-Date.now())<3*3600e3;
+  el.classList.toggle('soon',!data.busy);
+  if(data.busy){ el.innerHTML='<b>Admin is busy right now.</b> '; el.append('Back after '+t(data.until)+'. Handle what you can; urgent things can wait for the admin.'); el.hidden=false; }
+  else if(soon){ el.textContent='Admin will be busy from '+t(data.next)+'.'; el.hidden=false; }
+  else el.hidden=true;
+  setTopH();
+}
 (async function init(){
   setTopH();
   const {data:{session}}=await sb.auth.getSession();
@@ -1574,6 +1590,7 @@ async function hostProfile(){
     if(isHostMod()) $('n-invite-w').hidden=false;
     if(isHostMod()) hostProfile().catch(()=>{});
     $('main').hidden=false; $('tabs').hidden=false;
+    busyLoad().catch(()=>{}); setInterval(()=>{ if(!document.hidden) busyLoad().catch(()=>{}); },300000);
     const h=(location.hash||'').slice(1); if(['results','room','notify','help','loads','challenges','promo','earnings'].concat(isHostMod()?[]:['chats']).includes(h)) showTab(h);
     setTopH();
     loadTournaments(); modTourFirst();
