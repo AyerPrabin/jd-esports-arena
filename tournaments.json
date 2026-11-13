@@ -1,212 +1,212 @@
 {
   "bo3": {
-    "tournament": "JD Free Fire Open #24",
-    "title": "JD Free Fire Open #24 – Final Standings",
-    "published": true,
-    "kill_pts": 1,
     "teams": [
       {
-        "team": "BH HOOD",
-        "logo": "",
         "r": [
           {
-            "kills": 25,
-            "pts": 12
+            "pts": 12,
+            "kills": 25
           },
           {
-            "kills": 6,
-            "pts": 6
+            "pts": 6,
+            "kills": 6
           },
           {
-            "kills": 8,
-            "pts": 7
+            "pts": 7,
+            "kills": 8
           }
         ],
+        "logo": "",
+        "team": "BH HOOD",
         "prize_won": 90
       },
       {
-        "team": "Ancient Ogs 1",
-        "logo": "",
         "r": [
           {
-            "kills": 3,
-            "pts": 2
+            "pts": 2,
+            "kills": 3
           },
           {
-            "kills": 18,
-            "pts": 12
+            "pts": 12,
+            "kills": 18
           },
           {
-            "kills": 15,
-            "pts": 8
+            "pts": 8,
+            "kills": 15
           }
         ],
+        "logo": "",
+        "team": "Ancient Ogs 1",
         "prize_won": 54
       },
       {
-        "team": "OG CLASSIC",
-        "logo": "",
         "r": [
           {
-            "kills": 10,
-            "pts": 9
+            "pts": 9,
+            "kills": 10
           },
           {
-            "kills": 6,
-            "pts": 8
+            "pts": 8,
+            "kills": 6
           },
           {
-            "kills": 4,
-            "pts": 5
+            "pts": 5,
+            "kills": 4
           }
         ],
+        "logo": "",
+        "team": "OG CLASSIC",
         "prize_won": 36
       },
       {
-        "team": "MALVORAK",
-        "logo": "",
         "r": [
           {
-            "kills": 4,
-            "pts": 6
+            "pts": 6,
+            "kills": 4
           },
           {
-            "kills": 2,
-            "pts": 4
+            "pts": 4,
+            "kills": 2
           },
           {
-            "kills": 14,
-            "pts": 9
+            "pts": 9,
+            "kills": 14
           }
-        ]
+        ],
+        "logo": "",
+        "team": "MALVORAK"
       },
       {
-        "team": "YETI:ESPORTS",
-        "logo": "",
         "r": [
           {
-            "kills": 1,
-            "pts": 7
+            "pts": 7,
+            "kills": 1
           },
           {
-            "kills": 3,
-            "pts": 9
+            "pts": 9,
+            "kills": 3
           },
           {
-            "kills": 5,
-            "pts": 12
+            "pts": 12,
+            "kills": 5
           }
-        ]
+        ],
+        "logo": "",
+        "team": "YETI:ESPORTS"
       },
       {
-        "team": "PARAGON E-SPORTS",
-        "logo": "",
         "r": [
           {
-            "kills": 6,
-            "pts": 4
+            "pts": 4,
+            "kills": 6
           },
           {
-            "kills": 5,
-            "pts": 5
+            "pts": 5,
+            "kills": 5
           },
           {
-            "kills": 13,
-            "pts": 4
+            "pts": 4,
+            "kills": 13
           }
-        ]
+        ],
+        "logo": "",
+        "team": "PARAGON E-SPORTS"
       },
       {
-        "team": "DAMAN ESP",
-        "logo": "",
         "r": [
           {
-            "kills": 6,
-            "pts": 8
+            "pts": 8,
+            "kills": 6
           },
           {
-            "kills": 10,
-            "pts": 7
+            "pts": 7,
+            "kills": 10
           },
           {
-            "kills": 3,
-            "pts": 2
+            "pts": 2,
+            "kills": 3
           }
-        ]
+        ],
+        "logo": "",
+        "team": "DAMAN ESP"
       },
       {
-        "team": "PRIME FORCE",
-        "logo": "",
         "r": [
           {
-            "kills": 0,
-            "pts": 1
+            "pts": 1,
+            "kills": 0
           },
           {
-            "kills": 1,
-            "pts": 3
+            "pts": 3,
+            "kills": 1
           },
           {
-            "kills": 14,
-            "pts": 6
+            "pts": 6,
+            "kills": 14
           }
-        ]
+        ],
+        "logo": "",
+        "team": "PRIME FORCE"
       },
       {
-        "team": "Redzone",
-        "logo": "",
         "r": [
           {
-            "kills": 1,
-            "pts": 5
+            "pts": 5,
+            "kills": 1
           },
           {
-            "kills": 0,
-            "pts": 0
+            "pts": 0,
+            "kills": 0
           },
           {
-            "kills": 5,
-            "pts": 3
+            "pts": 3,
+            "kills": 5
           }
-        ]
+        ],
+        "logo": "",
+        "team": "Redzone"
       },
       {
-        "team": "REVENGE ESPORTS",
-        "logo": "",
         "r": [
           {
-            "kills": 0,
-            "pts": 3
+            "pts": 3,
+            "kills": 0
           },
           {
-            "kills": 0,
-            "pts": 0
+            "pts": 0,
+            "kills": 0
           },
           {
-            "kills": 1,
-            "pts": 0
+            "pts": 0,
+            "kills": 1
           }
-        ]
+        ],
+        "logo": "",
+        "team": "REVENGE ESPORTS"
       },
       {
-        "team": "Goli eSports",
-        "logo": "",
         "r": [
           {
-            "kills": 0,
-            "pts": 0
+            "pts": 0,
+            "kills": 0
           },
           {
-            "kills": 0,
-            "pts": 0
+            "pts": 0,
+            "kills": 0
           },
           {
-            "kills": 1,
-            "pts": 1
+            "pts": 1,
+            "kills": 1
           }
-        ]
+        ],
+        "logo": "",
+        "team": "Goli eSports"
       }
-    ]
+    ],
+    "title": "JD Free Fire Open #24 – Final Standings",
+    "kill_pts": 1,
+    "published": true,
+    "tournament": "JD Free Fire Open #24"
   },
   "tagline": "JD Esports Arena · AyerFire",
   "tournaments": [
@@ -755,11 +755,11 @@
       "teams": [],
       "format": "BR · Best of 3",
       "status": "completed",
+      "winner": "BH HOOD",
       "platform": "Mobile only",
       "registered": 0,
       "early_access": "yes",
-      "platform_mode": "mobile",
-      "winner": "BH HOOD"
+      "platform_mode": "mobile"
     },
     {
       "map": "bermuda",
@@ -793,6 +793,126 @@
       "prize": "180",
       "slots": 12,
       "start": "2026-11-15T21:30:00+05:45",
+      "teams": [],
+      "format": "BR · Best of 3",
+      "status": "upcoming",
+      "platform": "Mobile only",
+      "registered": 0,
+      "early_access": "yes",
+      "platform_mode": "mobile"
+    },
+    {
+      "map": "bermuda",
+      "date": "Mon, Nov 16",
+      "game": "Free Fire BR · Squad",
+      "map2": "solara",
+      "map3": "kalahari",
+      "name": "JD Free Fire Open #27",
+      "time": "9:30 PM NPT",
+      "entry": "Free",
+      "prize": "175",
+      "slots": 12,
+      "start": "2026-11-16T21:30:00+05:45",
+      "teams": [],
+      "format": "BR · Best of 3",
+      "status": "upcoming",
+      "platform": "Mobile only",
+      "registered": 0,
+      "early_access": "yes",
+      "platform_mode": "mobile"
+    },
+    {
+      "map": "bermuda",
+      "date": "Tue, Nov 17",
+      "game": "Free Fire BR · Squad",
+      "map2": "nexterra",
+      "map3": "solara",
+      "name": "JD Free Fire Open #28",
+      "time": "9:30 PM NPT",
+      "entry": "Free",
+      "prize": "175",
+      "slots": 12,
+      "start": "2026-11-17T21:30:00+05:45",
+      "teams": [],
+      "format": "BR · Best of 3",
+      "status": "upcoming",
+      "platform": "Mobile only",
+      "registered": 0,
+      "early_access": "yes",
+      "platform_mode": "mobile"
+    },
+    {
+      "map": "bermuda",
+      "date": "Wed, Nov 18",
+      "game": "Free Fire BR · Squad",
+      "map2": "kalahari",
+      "map3": "nexterra",
+      "name": "JD Free Fire Open #29",
+      "time": "9:30 PM NPT",
+      "entry": "Free",
+      "prize": "175",
+      "slots": 12,
+      "start": "2026-11-18T21:30:00+05:45",
+      "teams": [],
+      "format": "BR · Best of 3",
+      "status": "upcoming",
+      "platform": "Mobile only",
+      "registered": 0,
+      "early_access": "yes",
+      "platform_mode": "mobile"
+    },
+    {
+      "map": "bermuda",
+      "date": "Thu, Nov 19",
+      "game": "Free Fire BR · Squad",
+      "map2": "solara",
+      "map3": "nexterra",
+      "name": "JD Free Fire Open #30",
+      "time": "9:30 PM NPT",
+      "entry": "Free",
+      "prize": "175",
+      "slots": 12,
+      "start": "2026-11-19T21:30:00+05:45",
+      "teams": [],
+      "format": "BR · Best of 3",
+      "status": "upcoming",
+      "platform": "Mobile only",
+      "registered": 0,
+      "early_access": "yes",
+      "platform_mode": "mobile"
+    },
+    {
+      "map": "bermuda",
+      "date": "Fri, Nov 20",
+      "game": "Free Fire BR · Squad",
+      "map2": "kalahari",
+      "map3": "solara",
+      "name": "JD Free Fire Open #31",
+      "time": "9:30 PM NPT",
+      "entry": "Free",
+      "prize": "175",
+      "slots": 12,
+      "start": "2026-11-20T21:30:00+05:45",
+      "teams": [],
+      "format": "BR · Best of 3",
+      "status": "upcoming",
+      "platform": "Mobile only",
+      "registered": 0,
+      "early_access": "yes",
+      "platform_mode": "mobile"
+    },
+    {
+      "map": "bermuda",
+      "date": "Sat, Nov 21",
+      "game": "Free Fire BR · Squad",
+      "map2": "nexterra",
+      "map3": "kalahari",
+      "name": "JD Free Fire Open #32",
+      "time": "9:30 PM NPT",
+      "entry": "Free",
+      "prize": "175",
+      "slots": 12,
+      "start": "2026-11-21T21:30:00+05:45",
       "teams": [],
       "format": "BR · Best of 3",
       "status": "upcoming",
@@ -862,5 +982,5 @@
       "platform_mode": "mobile"
     }
   ],
-  "_published_at": "2026-11-13T18:00:31.000Z"
+  "_published_at": "2026-11-13T21:01:38.000Z"
 }
