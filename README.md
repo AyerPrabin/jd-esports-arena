@@ -53,4 +53,4 @@ zulu_*.py                      Zulu's local/offline logic (Discord bot, personal
 ## Notes
 
 - Real secrets (`zulu_secrets.py`, `zulu-key.js`), private strategy notes (`zulu_private.py`, `zulu-private.js`), and runtime state (registrations, feedback, payouts, raw recordings) are all gitignored — see `.gitignore`.
-- This repo is private; the public site is the static output served through GitHub Pages.
+- This repo is public and is also the live site (GitHub Pages). Keys and personal data never go in it: server secrets live in Supabase, and players' data is only reachable through RLS and the Edge Functions.
