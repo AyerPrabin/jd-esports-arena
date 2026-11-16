@@ -191,7 +191,7 @@ const K: KBEntry[] = [
     en: 'The season leaderboard (squad events only) is at /leaderboard.html. Your own rank and stats are on /profile/.',
     ne: 'Season leaderboard (squad event matra) /leaderboard.html ma. Aafno rank ra stats /profile/ ma.' },
   { id: 'adminplay', q: 'admin khelcha|admin plays|owner plays|admin le khelyo|ancient ogs|admin ko team|admin cheat|admin le prize|is it fair admin',
-    en: 'The owner sometimes plays just for fun with the same rules and never takes a prize: if his squad places, that prize goes to the next squad and everyone below moves up.',
+    en: 'The owner sometimes plays just for fun with the same rules and never takes a prize: if his squad places, that prize goes to the next squad and everyone below moves up. From 16 Nov 2026 to 3 Jan 2027 he is not playing: JD ESPORTS is his teammates on mobile and is paid like any other squad.',
     ne: 'Owner kahile kahi ramailo ko lagi same rule ma khelnu huncha, tara prize kahile lidainan: unko team top ma aaye prize arko team lai jancha, tala ka sabai ek step mathi.' },
   { id: 'host', q: 'host|hosted by|host ko event|partner host|host event|bs gaming|host le prize|host ko prize|scrim host|host ko scrim',
     en: 'Events marked "Hosted by @name" are run by a partner scrim host on JD Arena. You join like a free event (card or 15 points), and that host runs the room and pays the prize directly, not JD.',
