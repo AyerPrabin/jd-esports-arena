@@ -1,63 +1,44 @@
 {
   "bo3": {
-    "tournament": "JD Free Fire Open #26",
-    "title": "JD Free Fire Open #26 – Final Standings",
+    "tournament": "JD Free Fire Open #28",
+    "title": "JD Free Fire Open #28 – Final Standings",
     "published": true,
     "kill_pts": 1,
     "teams": [
       {
-        "team": "PARAGON E-SPORTS",
-        "logo": "",
-        "r": [
-          {
-            "kills": 8,
-            "pts": 2
-          },
-          {
-            "kills": 13,
-            "pts": 12
-          },
-          {
-            "kills": 16,
-            "pts": 12
-          }
-        ],
-        "prize_won": 90
-      },
-      {
-        "team": "BH HOOD",
+        "team": "Gym_boys",
         "logo": "",
         "r": [
           {
             "kills": 0,
-            "pts": 1
+            "pts": 0
           },
           {
-            "kills": 14,
-            "pts": 8
+            "kills": 0,
+            "pts": 0
           },
           {
-            "kills": 19,
-            "pts": 9
+            "kills": 0,
+            "pts": 0
           }
         ],
-        "prize_won": 54
+        "prize_won": 52
       },
       {
         "team": "JD ESPORTS",
         "logo": "",
         "r": [
           {
-            "kills": 10,
-            "pts": 9
+            "kills": 0,
+            "pts": 0
           },
           {
-            "kills": 10,
-            "pts": 7
+            "kills": 0,
+            "pts": 0
           },
           {
-            "kills": 6,
-            "pts": 6
+            "kills": 0,
+            "pts": 0
           }
         ]
       },
@@ -66,130 +47,22 @@
         "logo": "",
         "r": [
           {
-            "kills": 11,
-            "pts": 8
+            "kills": 0,
+            "pts": 0
           },
           {
-            "kills": 10,
-            "pts": 8
+            "kills": 0,
+            "pts": 0
           },
           {
-            "kills": 2,
-            "pts": 2
+            "kills": 0,
+            "pts": 0
           }
         ],
-        "prize_won": 36
+        "prize_won": 35
       },
       {
-        "team": "Team Novela",
-        "logo": "",
-        "r": [
-          {
-            "kills": 12,
-            "pts": 12
-          },
-          {
-            "kills": 1,
-            "pts": 1
-          },
-          {
-            "kills": 4,
-            "pts": 7
-          }
-        ]
-      },
-      {
-        "team": "MALVORAK",
-        "logo": "",
-        "r": [
-          {
-            "kills": 9,
-            "pts": 7
-          },
-          {
-            "kills": 3,
-            "pts": 3
-          },
-          {
-            "kills": 8,
-            "pts": 4
-          }
-        ]
-      },
-      {
-        "team": "Gym_boys",
-        "logo": "",
-        "r": [
-          {
-            "kills": 3,
-            "pts": 3
-          },
-          {
-            "kills": 5,
-            "pts": 5
-          },
-          {
-            "kills": 9,
-            "pts": 8
-          }
-        ]
-      },
-      {
-        "team": "SᴍɢㅤESP",
-        "logo": "",
-        "r": [
-          {
-            "kills": 10,
-            "pts": 6
-          },
-          {
-            "kills": 5,
-            "pts": 4
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          }
-        ]
-      },
-      {
-        "team": "WNP-ESP",
-        "logo": "",
-        "r": [
-          {
-            "kills": 4,
-            "pts": 4
-          },
-          {
-            "kills": 2,
-            "pts": 2
-          },
-          {
-            "kills": 6,
-            "pts": 5
-          }
-        ]
-      },
-      {
-        "team": "Goli eSports",
-        "logo": "",
-        "r": [
-          {
-            "kills": 0,
-            "pts": 5
-          },
-          {
-            "kills": 9,
-            "pts": 6
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          }
-        ]
-      },
-      {
-        "team": "✡Ṁ.ƘĬŊᎶℌ✡",
+        "team": "Youtz Esp",
         "logo": "",
         "r": [
           {
@@ -204,25 +77,8 @@
             "kills": 0,
             "pts": 0
           }
-        ]
-      },
-      {
-        "team": "Af gamer",
-        "logo": "",
-        "r": [
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          },
-          {
-            "kills": 0,
-            "pts": 0
-          }
-        ]
+        ],
+        "prize_won": 88
       }
     ]
   },
@@ -795,11 +651,11 @@
       "teams": [],
       "format": "BR · Best of 3",
       "status": "completed",
+      "winner": "PARAGON E-SPORTS",
       "platform": "Mobile only",
       "registered": 0,
       "early_access": "yes",
-      "platform_mode": "mobile",
-      "winner": "PARAGON E-SPORTS"
+      "platform_mode": "mobile"
     },
     {
       "map": "bermuda",
@@ -835,11 +691,12 @@
       "start": "2026-11-17T21:30:00+05:45",
       "teams": [],
       "format": "BR · Best of 3",
-      "status": "upcoming",
+      "status": "completed",
       "platform": "Mobile only",
       "registered": 0,
       "early_access": "yes",
-      "platform_mode": "mobile"
+      "platform_mode": "mobile",
+      "winner": "Gym_boys"
     },
     {
       "map": "bermuda",
@@ -1003,5 +860,5 @@
       "platform_mode": "mixed"
     }
   ],
-  "_published_at": "2026-11-16T03:43:04.920Z"
+  "_published_at": "2026-11-16T13:28:49.602Z"
 }
