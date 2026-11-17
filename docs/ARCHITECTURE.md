@@ -178,7 +178,7 @@ Next steps, in order:
 - **Nothing secret is in the repo.** Edge Functions read their keys at runtime from Supabase function secrets (`Deno.env.get`).
 - **The browser holds only the public anon key.** Row Level Security is what makes that key safe to publish. The service role is used only on the server.
 - **A local pre-commit gate** blocks private keys, service-role keys, API tokens, keystores and `.env` files before they can be committed.
-- **The admin secret is rotated** whenever an admin is removed.
+- **The admin secret must be rotated** whenever an admin is removed (the written procedure).
 - **Gap:** there is no secrets manager and no rotation schedule beyond that.
 
 ## 11. Threat model (short)
