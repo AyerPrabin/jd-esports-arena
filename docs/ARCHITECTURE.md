@@ -151,3 +151,58 @@ The script stops if the wallet is already normal, so running it twice is safe. A
 - SQL changes live in many migration files run by hand. Some functions are redefined in several files, so the newest file wins. There is no migration runner.
 - There are no automated tests for the SQL functions in this repo.
 - Like any system, it has open issues that are tracked and fixed privately.
+
+## 9. Observability: how problems get noticed
+
+What exists today:
+
+- **Money check.** `security_sweep()` runs on a schedule (`pg_cron`). It compares every wallet with its ledger. On any mismatch it locks payments and alerts the admin (`supabase/schema.sql:2082-2112`, `:2182`).
+- **Payment relay heartbeat.** The relay phone sends a heartbeat, and the admin page warns when it goes quiet (`supabase/functions/payment-in/index.ts:52-57`).
+- **Moderator audit trail.** Every moderator action is written to `mod_actions` with who, what and when (`supabase/functions/mod-panel/index.ts:14`).
+- **Integration health.** Scheduled jobs record their last error, and failed push notifications are retried by a sweep job (`push-retry-sweep`).
+- **Daily report.** A read-only check runs every morning, outside this repo. It reports pending loads, withdrawals, disputes and new sign-ups.
+- **Function logs.** Logs and errors for every Edge Function are kept in the Supabase dashboard.
+
+**Gaps, honestly.**
+- There is no error tracking (Sentry or similar) for the browser or the functions.
+- There is no external uptime monitor and no latency target.
+- There is no alert on data-transfer usage. That alert would have caught the 7 Nov incident earlier.
+
+Next steps, in order:
+1. Error tracking for the front end and the Edge Functions.
+2. An uptime check on the site and on `payment-in`.
+3. A usage alert set well below the plan limit.
+
+## 10. Secrets
+
+- **Nothing secret is in the repo.** Edge Functions read their keys at runtime from Supabase function secrets (`Deno.env.get`).
+- **The browser holds only the public anon key.** Row Level Security is what makes that key safe to publish. The service role is used only on the server.
+- **A local pre-commit gate** blocks private keys, service-role keys, API tokens, keystores and `.env` files before they can be committed.
+- **The admin secret is rotated** whenever an admin is removed.
+- **Gap:** there is no secrets manager and no rotation schedule beyond that.
+
+## 11. Threat model (short)
+
+| Threat | Defence | What is left |
+| --- | --- | --- |
+| A player reads or changes another player's wallet | RLS, plus writes only through checked functions (section 3) | Bugs inside those functions, reduced by the money check |
+| Double spending through parallel requests | Row lock, conditional update and a CHECK constraint (section 4) | None known |
+| One payment credited twice | Unique payment references; one payment can pay only one load | None known |
+| A fake or edited "money received" alert | The alert is a hint; the database matching and staff review decide (section 5) | Depends on staff review for unclear loads |
+| A stolen session spends or withdraws points | Wallet PIN, hashed with bcrypt, with lockout | The session itself is still valuable for reading data |
+| A rogue moderator | No free credit, prizes capped by the event's posted pool, every action logged | The admin must read the log |
+| An admin mistake wipes data | The server refuses a publish that removes more than half the events; old versions are kept | Other tables rely on rollback scripts |
+| Cost or denial of service through heavy reads | Polling budgets and data-transfer rules (section 6) | No rate limit per user yet |
+| A secret leaked through git | Pre-commit gate; only the anon key goes to the browser | Mistakes made outside git |
+
+## 12. Personal data (UK GDPR and players in Nepal)
+
+- **Data minimisation.** A nightly job, `purge_old_personal_data()`, deletes three things on a schedule (`supabase/schema.sql:3390-3428`):
+  - payment screenshots, 30 days after review
+  - registration screenshots, 30 days after the registration
+  - the optional WhatsApp reminder number, 2 days after the event starts
+- **Payment alerts.** One-time codes and PINs are never stored, and long numbers are masked before staff see them (`supabase/functions/payment-in/index.ts:79-92`).
+- **Notices.** A privacy page (`/privacy/`) and terms (`terms.html`) are published.
+- **Gaps:**
+  - There is no formal data protection impact assessment and no written retention register.
+  - Requests from players about their data are handled by hand.
