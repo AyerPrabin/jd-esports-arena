@@ -1,6 +1,225 @@
 {
  "events": [
   {
+   "name": "JD Free Fire Open #28",
+   "date": "Tue, Nov 17",
+   "start": "2026-11-17T21:30:00+05:45",
+   "maps": [
+    "bermuda",
+    "nexterra",
+    "solara"
+   ],
+   "prize": "175",
+   "winner": "",
+   "kill_pts": 1,
+   "teams": [
+    {
+     "team": "Youtz Esp",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 3
+      },
+      {
+       "kills": 19,
+       "pts": 8
+      },
+      {
+       "kills": 19,
+       "pts": 12
+      }
+     ]
+    },
+    {
+     "team": "Paragon esports",
+     "r": [
+      {
+       "kills": 24,
+       "pts": 9
+      },
+      {
+       "kills": 1,
+       "pts": 4
+      },
+      {
+       "kills": 15,
+       "pts": 9
+      }
+     ]
+    },
+    {
+     "team": "Infinity",
+     "r": [
+      {
+       "kills": 7,
+       "pts": 6
+      },
+      {
+       "kills": 11,
+       "pts": 9
+      },
+      {
+       "kills": 5,
+       "pts": 6
+      }
+     ]
+    },
+    {
+     "team": "Team bankai",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 4
+      },
+      {
+       "kills": 9,
+       "pts": 12
+      },
+      {
+       "kills": 4,
+       "pts": 3
+      }
+     ]
+    },
+    {
+     "team": "SᴍɢㅤESP",
+     "r": [
+      {
+       "kills": 10,
+       "pts": 8
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 10,
+       "pts": 8
+      }
+     ]
+    },
+    {
+     "team": "JD ESPORTS",
+     "r": [
+      {
+       "kills": 8,
+       "pts": 7
+      },
+      {
+       "kills": 5,
+       "pts": 3
+      },
+      {
+       "kills": 5,
+       "pts": 2
+      }
+     ]
+    },
+    {
+     "team": "Goli eSports",
+     "r": [
+      {
+       "kills": 1,
+       "pts": 5
+      },
+      {
+       "kills": 9,
+       "pts": 7
+      },
+      {
+       "kills": 4,
+       "pts": 4
+      }
+     ]
+    },
+    {
+     "team": "MALVORAK",
+     "r": [
+      {
+       "kills": 6,
+       "pts": 12
+      },
+      {
+       "kills": 1,
+       "pts": 6
+      },
+      {
+       "kills": 1,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "PRIME FORCE",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 6,
+       "pts": 5
+      },
+      {
+       "kills": 5,
+       "pts": 1
+      }
+     ]
+    },
+    {
+     "team": "Gym_boys",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 1
+      },
+      {
+       "kills": 3,
+       "pts": 2
+      },
+      {
+       "kills": 3,
+       "pts": 5
+      }
+     ]
+    },
+    {
+     "team": "Xiingu Ξsports",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 1
+      },
+      {
+       "kills": 2,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "Team Novela",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
    "name": "JD Free Fire Open #27",
    "date": "Mon, Nov 16",
    "start": "2026-11-16T21:30:00+05:45",
