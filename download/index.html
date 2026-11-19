@@ -41,6 +41,12 @@ h1 em{font-style:normal;color:var(--gold)}
 .card.gold{background:radial-gradient(120% 120% at 100% 0%,rgba(255,200,61,.18),transparent 55%),linear-gradient(150deg,#1a1a12,#0f1320 60%);border-color:var(--gold-m)}
 .card h2{margin:0 0 4px;font-size:1.1rem}
 .meta{font-size:.8rem;color:var(--body);margin:0 0 14px}
+.faq details{border-top:1px solid var(--line-2);padding:12px 0}
+.faq summary{cursor:pointer;font-weight:600;font-size:.92rem;color:var(--cream);list-style:none;display:flex;justify-content:space-between;gap:12px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'+';color:var(--gold);font-weight:700}
+.faq details[open] summary::after{content:'−'}
+.faq details p{margin:8px 0 0;font-size:.86rem;color:var(--silver)}
 .btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:15px 16px;border:0;border-radius:14px;font-weight:800;font-size:1rem;cursor:pointer;background:linear-gradient(180deg,#FFD25C,#FFAE00);color:#2b1d00;transition:transform .15s,filter .2s}
 .btn:hover{filter:brightness(1.06)}
 .btn:active{transform:scale(.98)}
@@ -62,7 +68,7 @@ ol{margin:14px 0 0;padding-left:20px;color:#dfe4ee;font-size:.9rem;display:grid;
     <img src="/icon-192.png" alt="JD Arena app icon">
     <div>
       <h1>JD Arena <em>app</em></h1>
-      <p class="lede">Tournaments, tickets, room IDs, results and challenges - with real app notifications that arrive like WhatsApp's.</p>
+      <p class="lede">The Free Fire tournament app for Nepal: tournaments, tickets, room IDs, results and challenges - with real app notifications that arrive like WhatsApp's.</p>
     </div>
   </div>
 
@@ -99,7 +105,23 @@ ol{margin:14px 0 0;padding-left:20px;color:#dfe4ee;font-size:.9rem;display:grid;
     <p class="meta">Playing on MSI App Player / BlueStacks?</p>
     <a class="btn" href="/optimizer/" style="background:rgba(255,255,255,.08);color:var(--cream)">🚀 JD Frag Engine (FPS booster)</a>
   </section>
+
+  <section class="card faq" id="about-app">
+    <h2>What is JD Arena?</h2>
+    <p class="meta">JD Esports Arena is a Free Fire tournament app and website for players in Nepal: squad, duo and solo custom-room tournaments, 1v1 to 4v4 Clash Squad challenges, a season leaderboard and a points wallet.</p>
+    <p class="meta" lang="ne">नेपालका खेलाडीका लागि फ्री फायर टुर्नामेन्ट एप: कस्टम रुम टुर्नामेन्ट, क्ल्यास स्क्वाड च्यालेन्ज र इनाम सिधै वालेटमा।</p>
+    <details><summary>Is the app free?</summary><p>Yes, the app is free to download. Free events need a free card or 15 points; paid events have bigger prize pools (for example 50 points entry for a Rs 500 prize).</p></details>
+    <details><summary>How do I get the room ID and password?</summary><p>They arrive in the app as a notification, in Alerts and on your ticket about 5 minutes before the match.</p></details>
+    <details><summary>How are prizes paid?</summary><p>Prizes go straight into your JD wallet when results are published, split 50 / 30 / 20 for 1st, 2nd and 3rd. You can withdraw to eSewa from 100 points.</p></details>
+    <details><summary>Free Fire tournament kasari khelne? (romanised Nepali)</summary><p>App download garnus, account banaunus, Events ma gayera squad register garnus. Room ID match bhanda 5 minute agadi app ma aauchha.</p></details>
+    <details><summary>Is there an iPhone app?</summary><p>No download is needed on iPhone or iPad: JD Arena works fully in Safari at jdesport.co.uk.</p></details>
+  </section>
 </div>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is the JD Arena Free Fire tournament app free?","acceptedAnswer":{"@type":"Answer","text":"Yes, the app is free to download. Free events need a free card or 15 points; paid events have bigger prize pools (for example 50 points entry for a Rs 500 prize)."}},
+{"@type":"Question","name":"How do I get the Free Fire room ID and password?","acceptedAnswer":{"@type":"Answer","text":"They arrive in the JD Arena app as a notification, in Alerts and on your ticket about 5 minutes before the match."}},
+{"@type":"Question","name":"How are JD Arena tournament prizes paid?","acceptedAnswer":{"@type":"Answer","text":"Prizes go straight into your JD wallet when results are published, split 50/30/20 for 1st, 2nd and 3rd. You can withdraw to eSewa from 100 points."}},
+{"@type":"Question","name":"Is there a JD Arena iPhone app?","acceptedAnswer":{"@type":"Answer","text":"No download is needed on iPhone or iPad: JD Arena works fully in Safari at jdesport.co.uk."}}]}</script>
 <script>
 fetch('/download/android.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{
   document.getElementById('apk-btn').href=d.url;
