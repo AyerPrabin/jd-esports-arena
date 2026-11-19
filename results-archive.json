@@ -1,6 +1,225 @@
 {
  "events": [
   {
+   "name": "JD Free Fire Open #29",
+   "date": "Wed, Nov 18",
+   "start": "2026-11-18T20:00:00+05:45",
+   "maps": [
+    "bermuda",
+    "kalahari",
+    "nexterra"
+   ],
+   "prize": "175",
+   "winner": "",
+   "kill_pts": 1,
+   "teams": [
+    {
+     "team": "OG CLASSIC",
+     "r": [
+      {
+       "kills": 19,
+       "pts": 12
+      },
+      {
+       "kills": 11,
+       "pts": 6
+      },
+      {
+       "kills": 7,
+       "pts": 5
+      }
+     ]
+    },
+    {
+     "team": "Gym_boys",
+     "r": [
+      {
+       "kills": 3,
+       "pts": 2
+      },
+      {
+       "kills": 10,
+       "pts": 5
+      },
+      {
+       "kills": 19,
+       "pts": 12
+      }
+     ]
+    },
+    {
+     "team": "PARAGON E-SPORTS",
+     "r": [
+      {
+       "kills": 18,
+       "pts": 9
+      },
+      {
+       "kills": 1,
+       "pts": 9
+      },
+      {
+       "kills": 5,
+       "pts": 1
+      }
+     ]
+    },
+    {
+     "team": "Infinity",
+     "r": [
+      {
+       "kills": 5,
+       "pts": 6
+      },
+      {
+       "kills": 4,
+       "pts": 3
+      },
+      {
+       "kills": 12,
+       "pts": 9
+      }
+     ]
+    },
+    {
+     "team": "Goli eSports",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 5
+      },
+      {
+       "kills": 4,
+       "pts": 8
+      },
+      {
+       "kills": 8,
+       "pts": 8
+      }
+     ]
+    },
+    {
+     "team": "JD ESPORTS",
+     "r": [
+      {
+       "kills": 12,
+       "pts": 7
+      },
+      {
+       "kills": 0,
+       "pts": 4
+      },
+      {
+       "kills": 2,
+       "pts": 3
+      }
+     ]
+    },
+    {
+     "team": "PRIME FORCE",
+     "r": [
+      {
+       "kills": 3,
+       "pts": 8
+      },
+      {
+       "kills": 4,
+       "pts": 2
+      },
+      {
+       "kills": 4,
+       "pts": 6
+      }
+     ]
+    },
+    {
+     "team": "BANKAI ESPORTS",
+     "r": [
+      {
+       "kills": 2,
+       "pts": 1
+      },
+      {
+       "kills": 4,
+       "pts": 7
+      },
+      {
+       "kills": 3,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "Youtz Esp",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 3
+      },
+      {
+       "kills": 0,
+       "pts": 1
+      },
+      {
+       "kills": 9,
+       "pts": 4
+      }
+     ]
+    },
+    {
+     "team": "BANKAI ESPORTS 2",
+     "r": [
+      {
+       "kills": 4,
+       "pts": 4
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 7,
+       "pts": 2
+      }
+     ]
+    },
+    {
+     "team": "MALVORAK",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "THE DOWZ",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
    "name": "JD Free Fire Open #28",
    "date": "Tue, Nov 17",
    "start": "2026-11-17T21:30:00+05:45",
