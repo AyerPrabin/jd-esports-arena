@@ -1,7 +1,7 @@
 {
   "bo3": {
     "tournament": "JD Free Fire Open #29",
-    "title": "JD Free Fire Open #29 – Standings",
+    "title": "JD Free Fire Open #29 – Final Standings",
     "published": true,
     "kill_pts": 1,
     "teams": [
@@ -21,7 +21,8 @@
             "kills": 7,
             "pts": 5
           }
-        ]
+        ],
+        "prize_won": 88
       },
       {
         "team": "Gym_boys",
@@ -39,7 +40,8 @@
             "kills": 19,
             "pts": 12
           }
-        ]
+        ],
+        "prize_won": 52
       },
       {
         "team": "PARAGON E-SPORTS",
@@ -57,7 +59,8 @@
             "kills": 5,
             "pts": 1
           }
-        ]
+        ],
+        "prize_won": 35
       },
       {
         "team": "Infinity",
@@ -858,7 +861,8 @@
       "platform": "Mobile only",
       "registered": 0,
       "early_access": "yes",
-      "platform_mode": "mobile"
+      "platform_mode": "mobile",
+      "winner": "OG CLASSIC"
     },
     {
       "map": "bermuda",
@@ -1002,5 +1006,5 @@
       "platform_mode": "mixed"
     }
   ],
-  "_published_at": "2026-11-19T13:12:15.265Z"
+  "_published_at": "2026-11-19T14:10:49.746Z"
 }
