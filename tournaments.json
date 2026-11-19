@@ -629,7 +629,7 @@
       "slots": 12,
       "start": "2026-11-18T20:00:00+05:45",
       "format": "BR · Best of 3",
-      "status": "upcoming",
+      "status": "completed",
       "platform": "Mobile only",
       "early_access": "yes",
       "platform_mode": "mobile",
@@ -1002,5 +1002,5 @@
       }
     ]
   },
-  "_published_at": "2026-11-19T01:56:22.060Z"
+  "_published_at": "2026-11-19T12:44:59.385Z"
 }
