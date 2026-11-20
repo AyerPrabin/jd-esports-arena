@@ -62,4 +62,5 @@ fcm-key.json
 .playwright-cli/
 
 # local Android build output (not part of the site)
-app/
+app/*
+!app/index.html
