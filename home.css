@@ -624,7 +624,8 @@ header{padding-left:clamp(20px,5vw,80px);padding-right:28px}
 }
 @media(prefers-reduced-motion:reduce){.ws-bg,.ws::after,.ws-rays,.ws-av::before,.ws-crown{animation:none!important}.ws.celebrate .ws-av,.ws.celebrate .ws-title,.ws.celebrate .ws-name,.ws.celebrate .ws-ru{animation:none!important}}
 /* footer */
-footer{position:relative;margin-top:70px;padding:44px 0 36px;text-align:center;color:var(--silver);font-size:.84rem}
+footer{position:relative;text-align:center;color:var(--silver);font-size:.84rem}
+footer,footer.wrap{margin-top:70px;padding-top:44px;padding-bottom:36px}
 footer::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:min(600px,80%);height:1px;background:linear-gradient(90deg,transparent,var(--gold-m),transparent)}
 footer .soc{display:flex;gap:2px 22px;justify-content:center;margin-bottom:12px;flex-wrap:wrap}
 footer .soc a{color:var(--gold-l);font-size:.85rem;transition:.2s;min-height:36px;display:inline-flex;align-items:center}

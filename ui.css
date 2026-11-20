@@ -108,6 +108,8 @@ img{max-width:100%}
   .tabbar a[aria-current="page"]::before{
     content:'';position:absolute;top:0;left:30%;right:30%;height:2px;border-radius:0 0 2px 2px;background:var(--ui-gold)}
   body.has-tabbar{padding-bottom:calc(var(--tabbar-h) + var(--safe-b))}
+  /* room for the Ask ZULU button so it never covers the last line */
+  body.has-tabbar:has(> .fab){padding-bottom:calc(var(--tabbar-h) + var(--safe-b) + 56px)}
   /* everything that floats at the bottom moves up above the bar */
   body.has-tabbar .fab{bottom:calc(var(--tabbar-h) + var(--safe-b) + 12px);right:14px;padding:9px 13px;font-size:.78rem;box-shadow:0 6px 18px rgba(3,5,10,.5)}
   body.has-tabbar .fab-nudge{bottom:calc(var(--tabbar-h) + var(--safe-b) + 66px)}

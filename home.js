@@ -3297,6 +3297,7 @@ function showNudge(){
   if(!n||!t)return;
   t.textContent=pickNudge();
   n.classList.add('show');
+  setTimeout(function(){n.classList.remove('show');},9000);
   try{sessionStorage.setItem('zulu_nudge_seen','1');}catch(e){}
 }
 function dismissNudge(){
