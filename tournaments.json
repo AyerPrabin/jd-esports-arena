@@ -28,8 +28,8 @@
         "logo": "",
         "r": [
           {
-            "kills": 0,
-            "pts": 0
+            "kills": 9,
+            "pts": 4
           },
           {
             "kills": 8,
@@ -1129,5 +1129,5 @@
       "platform_mode": "mobile"
     }
   ],
-  "_published_at": "2026-11-20T05:55:43.235Z"
+  "_published_at": "2026-11-20T09:21:31.103Z"
 }
