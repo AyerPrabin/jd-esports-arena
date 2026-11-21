@@ -83,10 +83,13 @@ Deno.serve(async (req: Request) => {
   };
   // only "received" money: skip "sent", "paid", OTPs and promos
   if (!/receiv|credited|प्राप्त|aayo|jamma/i.test(text) || /\b(sent|paid to|otp|cashback offer)\b/i.test(text)) return skip('not a money-received notification');
-  const m = text.match(/(?:rs\.?|npr|रु\.?)\s*([\d,]+(?:\.\d{1,2})?)/i);
+  // "NPR 50.0" from a person, "NPR. 35.0" from a bank load (21 Nov: 4 bank loads were skipped)
+  const m = text.match(/(?:rs\.?|npr\.?|रु\.?)\s*([\d,]+(?:\.\d{1,2})?)/i);
   const amount = m ? Math.round(parseFloat(m[1].replace(/,/g, ''))) : 0;
   if (!(amount >= 1 && amount <= 100000)) return skip('no amount found');
-  const sender = (text.match(/from\s+([A-Za-z][A-Za-z .'-]{1,40}?)(?=\s*(?:[.,(·]|on |at |rs|npr|$))/i) || [])[1] || null;
+  const from = (text.match(/from\s+([A-Za-z][A-Za-z .'-]{1,40}?)(?=\s*(?:[.,(·]|on |at |rs|npr|$))/i) || [])[1] || null;
+  // a bank is never the player's name: no sender, so it never auto-matches and the admin links it with one tap
+  const sender = from && !/\b(bank|ltd|limited|finance|cooperative)\b/i.test(from) ? from : null;
   const provider = /khalti/i.test(app) ? 'khalti' : /ime/i.test(app) ? 'imepay' : 'esewa';
 
   // JD Admin 2.2+ sends when the alert reached the phone, so an alert sent late (no internet) still fits its load.
