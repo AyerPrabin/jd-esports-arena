@@ -1004,6 +1004,7 @@ Deno.serve(async (req: Request) => {
     const title = String(p.title || '').trim();
     const body = String(p.body || '').trim();
     if (!title || !body) return fail('Title and message are required');
+    if (title.length > 120 || body.length > 1000) return fail('Keep the title under 120 and the message under 1000 characters.');
     let player_tags: string[] | undefined;
     if (!p.slug && !isOwner) return fail('Pick an event: notifications go only to the squads in that event.', 403);
     if (p.slug && !await canEvent(String(p.slug))) return notYours();

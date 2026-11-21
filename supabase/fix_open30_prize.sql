@@ -1,5 +1,5 @@
 -- fix_open30_prize.sql (21 Nov 2026)
--- 1) JD Free Fire Open #30 (prize 175): award_prizes paid ALL 175 to the winner PARAGON E-SPORTS (PE_ROCKY) at 11:07 UTC,
+-- 1) JD Free Fire Open #30 (prize 175): award_prizes paid ALL 175 to the winner PARAGON E-SPORTS at 11:07 UTC,
 --    because the event had a winner but no per-squad prizes (old "winner takes all" fallback). Correct split 50/30/20:
 --    PARAGON 88 (take back 87), WeNvrDie 52, leghey Esp 35. Ranks from the board: 83 / 56 / 40 points.
 -- 2) award_prizes fallback now pays the winner only the 1st-place share (50%), never the whole pool.

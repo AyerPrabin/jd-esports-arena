@@ -1,11 +1,11 @@
 -- load_first_name.sql (21 Nov 2026): faster point loads.
--- eSewa's alert often shows only the sender's first name ("Jilani") while the player types the full name ("Jilani Ansari").
+-- eSewa's alert often shows only the sender's first name ("Ram") while the player types the full name ("Ram Bahadur Thapa").
 -- load_name_fit.sql needs 2+ words on the shorter side, so 8 of 20 real loads since 11 Nov waited for the admin (median
 -- 12 min, up to 10 h). Now a one-word name (3+ letters) also fits when it is the first word of the other name, but only
 -- for a payment within 30 minutes of the request (full-name fits keep -3 h / +30 min). Amount, "only one payment fits"
 -- and the other-request check stay. The other-request check now compares against the PAYMENT's name, so an alert
--- "Jilani" with two waiting "Jilani X" requests of the same amount always goes to the admin.
--- Tested read-only on every load since 11 Nov: 8 more auto, 0 wrong pairs (md majid / md shekh, parbin / amar stay manual).
+-- "Ram" with two waiting "Ram X" requests of the same amount always goes to the admin.
+-- Tested read-only on every load since 11 Nov: 8 more auto, 0 wrong pairs (different names stay manual).
 -- Run: npx supabase db query --remote --yes -f supabase/load_first_name.sql
 -- Undo: npx supabase db query --remote --yes -f supabase/load_name_fit.sql
 

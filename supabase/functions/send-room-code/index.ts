@@ -9,6 +9,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { sendPush } from '../_shared/push.ts';
 import { slotMap, slotLine } from '../_shared/slots.ts';
+import { escHtml } from '../_shared/email.ts';
 
 // Browser calls this cross-origin with a custom x-admin-secret header, which makes the
 // browser send a CORS preflight OPTIONS request first — without these headers that
@@ -138,7 +139,7 @@ Deno.serve(async (req: Request) => {
             from,
             to: t.email,
             subject: title,
-            html: `<p>${bodyFor(t.id)}</p><p><b>Room ID:</b> ${room_id}${room_pass ? `<br><b>Password:</b> ${room_pass}` : ''}</p><p style="color:#888;font-size:12px">Player ID: ${t.player_tag || ''}</p>`,
+            html: `<p>${escHtml(bodyFor(t.id))}</p><p><b>Room ID:</b> ${escHtml(room_id)}${room_pass ? `<br><b>Password:</b> ${escHtml(room_pass)}` : ''}</p><p style="color:#888;font-size:12px">Player ID: ${escHtml(t.player_tag)}</p>`,
           }),
         });
         if (res.ok) emailed++;

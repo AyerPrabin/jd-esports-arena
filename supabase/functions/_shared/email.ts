@@ -17,6 +17,9 @@ async function hmac(text: string): Promise<string> {
   return Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
 }
 
+// mod/host-typed text in JD emails: shown as text, never as links or markup
+export const escHtml = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' } as Record<string, string>)[c]);
+
 export async function unsubToken(playerId: string): Promise<string> {
   return hmac(playerId);
 }

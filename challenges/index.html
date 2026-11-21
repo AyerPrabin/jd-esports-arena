@@ -525,7 +525,7 @@ async function openRoom(id){
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
   document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-room'));
   await renderRoom();
-  clearInterval(chatTimer);chatTimer=setInterval(()=>{if(!document.hidden&&roomId===id)renderRoom(true);},8000);
+  clearInterval(chatTimer);chatTimer=setInterval(()=>{if(!document.hidden&&roomId===id)renderRoom(true);},20000);   // egress rule: >=20 s
   window.scrollTo({top:0,behavior:'smooth'});
 }
 // "Add friend / message" for the other player (💬 Messages, /chat.js)
@@ -581,6 +581,7 @@ function ruleBox(c){
 }
 async function renderRoom(quiet){
   const {data:c}=await sb.from('challenges').select('*').eq('id',roomId).maybeSingle();
+  if(c&&['completed','cancelled','expired','refunded'].includes(c.status))clearInterval(chatTimer);   // finished: stop polling
   if(!c){
     if(!_lobbyRows.length)await loadLobby();
     const o=_lobbyRows.find(x=>x.id===roomId);
@@ -704,8 +705,8 @@ function bindRoom(c){
 let _lastMsgCount=-1;
 async function loadChat(c){
   const box=$('chat');if(!box)return;
-  const {data}=await sb.from('challenge_messages').select('sender, kind, body, media, created_at').eq('challenge_id',c.id).order('id').limit(200);
-  const rows=data||[];
+  const {data}=await sb.from('challenge_messages').select('sender, kind, body, media, created_at').eq('challenge_id',c.id).order('id',{ascending:false}).limit(200);   // newest 200
+  const rows=(data||[]).reverse();
   const atBottom=box.scrollTop+box.clientHeight>=box.scrollHeight-30;
   box.innerHTML=rows.length?rows.map(m=>`<div class="bubble${m.sender===me.id?' me':''}${m.kind==='ai'?' ai':''}">${m.media?(m.body.length>2&&m.body!=='📷 Photo'?esc(m.body.replace(/^📷 /,''))+'<br>':'')+`<span class="shot" data-shot="${esc(m.media)}">${shotUrl[m.media]?`<img src="${shotUrl[m.media]}" alt="Screenshot">`:'<span>📷 Loading photo…</span>'}</span>`:esc(m.body)}<small>${m.sender===me.id?'You':m.kind==='ai'?'🤖 ZULU · AI':esc((names.get(m.sender)||{}).name||'Opponent')} · ${ago(m.created_at)}</small></div>`).join(''):'<div class="empty" style="padding:10px">Say hi and share the room details 👋</div>';
   if(atBottom||rows.length!==_lastMsgCount)box.scrollTop=box.scrollHeight;

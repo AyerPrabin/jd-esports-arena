@@ -8,7 +8,7 @@
 // their account (zulu_discord.py's !link) and DISCORD_BOT_TOKEN is set.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { sendPush } from '../_shared/push.ts';
-import { optionalEmailExtras } from '../_shared/email.ts';
+import { optionalEmailExtras, escHtml } from '../_shared/email.ts';
 
 // Browser calls this cross-origin with a custom x-admin-secret header, which makes the
 // browser send a CORS preflight OPTIONS request first — without these headers that
@@ -117,7 +117,7 @@ Deno.serve(async (req: Request) => {
         const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ from, to: t.email, subject: title, html: `<p>${body}</p>${extra.footer}`, headers: extra.headers }),
+          body: JSON.stringify({ from, to: t.email, subject: title, html: `<p>${escHtml(body)}</p>${extra.footer}`, headers: extra.headers }),
         });
         if (res.ok) emailed++;
       } catch {

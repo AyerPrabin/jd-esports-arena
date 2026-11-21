@@ -67,3 +67,6 @@ app/*
 
 # Claude napkin runbook (local notes, never public)
 .claude/napkin.md
+
+# one-off data fixes with player names/ids: local only, never public
+supabase/oneoff/

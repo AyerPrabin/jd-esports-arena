@@ -1216,7 +1216,7 @@ function openChat(who,draft){
   autoGrow();
   if(matchMedia('(max-width:1079px)').matches) showTab('chats'); else $('tab-chats').scrollIntoView({block:'nearest'});
   refreshChat();
-  clearInterval(chatTimer); chatTimer=setInterval(()=>{ if(!document.hidden) refreshChat(); },liveOn?10000:3000);
+  clearInterval(chatTimer); let _chatAt=Date.now(); chatTimer=setInterval(()=>{ if(document.hidden||Date.now()-_chatAt<(liveOn?60000:20000)) return; _chatAt=Date.now(); refreshChat(); },20000);   // live pushes new messages: 60 s backup, 20 s without live
   setTimeout(()=>$('c-in').focus(),30);
 }
 const ST={confirmed:'In a slot',approved:'In a slot',pending:'Waiting for approval',waitlisted:'Waitlist',rejected:'Rejected',no_show:'No-show'};
@@ -1289,7 +1289,8 @@ function startLive(){
       });
   }catch(e){}
 }
-setInterval(()=>{ if(!document.hidden&&!chatWith&&$('main')&&!$('main').hidden) loadInbox(); },liveOn?45000:15000);
+let _inboxAt=0;   // liveOn is read each tick: 60 s with live updates, 20 s without
+setInterval(()=>{ if(document.hidden||chatWith||!$('main')||$('main').hidden||Date.now()-_inboxAt<(liveOn?60000:20000)) return; _inboxAt=Date.now(); loadInbox(); },20000);
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&$('main')&&!$('main').hidden){ if(chatWith) refreshChat(); inboxSoon(); } });
 
 /* ── results: points per match, live positions, publish, finish + prizes ── */
