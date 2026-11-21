@@ -1,7 +1,7 @@
 {
   "bo3": {
     "tournament": "JD Free Fire Open #31",
-    "title": "JD Free Fire Open #31 – Standings",
+    "title": "JD Free Fire Open #31 – Final Standings",
     "published": true,
     "kill_pts": 1,
     "teams": [
@@ -21,7 +21,8 @@
             "kills": 24,
             "pts": 12
           }
-        ]
+        ],
+        "prize_won": 88
       },
       {
         "team": "BH HOOD",
@@ -39,7 +40,8 @@
             "kills": 5,
             "pts": 6
           }
-        ]
+        ],
+        "prize_won": 52
       },
       {
         "team": "WeNvrDie",
@@ -57,7 +59,8 @@
             "kills": 1,
             "pts": 2
           }
-        ]
+        ],
+        "prize_won": 35
       },
       {
         "team": "JD ESPORTS",
@@ -896,11 +899,12 @@
       "start": "2026-11-21T21:00:00+05:45",
       "teams": [],
       "format": "BR · Best of 3",
-      "status": "upcoming",
+      "status": "completed",
       "platform": "Mobile only",
       "registered": 0,
       "early_access": "yes",
-      "platform_mode": "mobile"
+      "platform_mode": "mobile",
+      "winner": "Youtz Esp"
     },
     {
       "map": "bermuda",
@@ -1067,5 +1071,5 @@
       "platform_mode": "mobile"
     }
   ],
-  "_published_at": "2026-11-21T16:28:37.776Z"
+  "_published_at": "2026-11-21T16:29:32.830Z"
 }
