@@ -124,10 +124,24 @@ function toBase64(buf: ArrayBuffer): string {
 // Only downloads links that serve raw image/video bytes (Discord CDN attachment, Drive direct
 // download). A YouTube/Drive viewer page answers text/html and is skipped, falling back to the
 // text-only judgment, same as the desktop version.
-async function fetchEvidence(url: string): Promise<{ mime: string; base64: string } | null> {
-  if (!/^https:\/\//i.test(url || '')) return null;
+// player-typed link: https to a public host name only, never an IP, localhost or internal name (also after redirects)
+const publicHttps = (u: string) => {
   try {
-    const r = await fetch(url, { signal: AbortSignal.timeout(15000), redirect: 'follow' });
+    const h = new URL(u); const n = h.hostname.toLowerCase();
+    return h.protocol === 'https:' && n.includes('.') && !/^\[|^[\d.]+$|(^|\.)(localhost|local|internal|lan|home)$/.test(n);
+  } catch { return false; }
+};
+async function fetchEvidence(url: string): Promise<{ mime: string; base64: string } | null> {
+  try {
+    let r: Response | null = null;
+    for (let hop = 0; hop < 4; hop++) {   // follow at most 3 redirects by hand, checking each address
+      if (!publicHttps(url)) return null;
+      r = await fetch(url, { signal: AbortSignal.timeout(15000), redirect: 'manual' });
+      const next = r.status >= 300 && r.status < 400 ? r.headers.get('location') : null;
+      if (!next) break;
+      await r.body?.cancel(); url = new URL(next, url).href; r = null;
+    }
+    if (!r) return null;
     const mime = (r.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
     if (!r.ok || !(mime.startsWith('image/') || mime.startsWith('video/'))) { await r.body?.cancel(); return null; }
     const len = Number(r.headers.get('content-length') || 0);

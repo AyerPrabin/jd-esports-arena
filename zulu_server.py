@@ -10,6 +10,10 @@ import tempfile
 import operator
 import subprocess
 import threading
+import hmac
+import socket
+import ipaddress
+from urllib.parse import urlparse, urljoin
 import xml.etree.ElementTree as ET
 from html import unescape
 from urllib.parse import quote
@@ -1530,13 +1534,20 @@ except ImportError:
 
 
 def _auth_ok(req):
-    if not SECRET_KEY:
-        return True
-    key = ""
-    if req.is_json:
+    if not SECRET_KEY:   # no key configured = locked, never open to anyone (audit 21 Nov 2026)
+        return False
+    key = req.headers.get("X-Zulu-Key", "")
+    if not key and req.is_json:
         key = (req.get_json(silent=True) or {}).get("key", "")
     key = key or req.args.get("key", "")
-    return key == SECRET_KEY
+    return hmac.compare_digest(str(key).encode(), SECRET_KEY.encode())
+
+
+@app.before_request
+def _graph_needs_key():
+    # /graph/* rebuilds and lists every file and function name: owner only
+    if request.path.startswith("/graph/") and request.method != "OPTIONS" and not _auth_ok(request):
+        return jsonify({"error": "unauthorized"}), 401
 
 
 def sse_stream(text):
@@ -1651,11 +1662,16 @@ def knowledge_json():
         return Response('{"count":0,"facts":[]}', mimetype="application/json")
 
 
+_feedback_lock = threading.Lock()
+
+
 @app.route("/feedback", methods=["POST", "OPTIONS"])
 def feedback():
     # public: visitors can leave feedback/complaints (no key required)
     if request.method == "OPTIONS":
         return ("", 204)
+    if _public_rate_limited():
+        return jsonify({"error": "slow down"}), 429
     body = request.get_json(silent=True) or {}
     msg = (body.get("message") or "").strip()
     if not msg:
@@ -1666,15 +1682,19 @@ def feedback():
            "at": time.strftime("%Y-%m-%d %H:%M:%S")}
     try:
         path = os.path.join(_HERE, "feedback.json")
-        data = []
-        if os.path.exists(path):
-            with open(path, encoding="utf-8") as f:
-                data = json.load(f)
-        data.append(rec)
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
+        with _feedback_lock:   # threaded server: two posts at once must not lose or corrupt entries
+            data = []
+            if os.path.exists(path):
+                with open(path, encoding="utf-8") as f:
+                    data = json.load(f)
+            data = (data + [rec])[-2000:]   # newest 2000 only, the file can't grow forever
+            tmp = path + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+            os.replace(tmp, path)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print("feedback save failed:", e)
+        return jsonify({"error": "could not save"}), 500
     return jsonify({"ok": True})
 
 
@@ -1714,9 +1734,11 @@ _public_rate_lock = threading.Lock()
 
 
 def _client_ip():
+    # the LAST X-Forwarded-For entry is the one our own proxy (Caddy / tunnel) added; the first is whatever the
+    # client typed, so trusting it let one script dodge the rate limit with fake IPs
     fwd = request.headers.get("X-Forwarded-For", "")
     if fwd:
-        return fwd.split(",")[0].strip()
+        return fwd.split(",")[-1].strip()
     return request.remote_addr or "unknown"
 
 
@@ -1724,6 +1746,9 @@ def _public_rate_limited():
     ip = _client_ip()
     now = time.time()
     with _public_rate_lock:
+        if len(_public_rate_state) > 5000:   # drop IPs with nothing in the last day, so the dict can't only grow
+            for k in [k for k, v in _public_rate_state.items() if not v or now - v[-1] > 86400]:
+                del _public_rate_state[k]
         dq = _public_rate_state.setdefault(ip, deque())
         while dq and now - dq[0] > 86400:
             dq.popleft()
@@ -3002,6 +3027,21 @@ def _gemini_vision_extract(image_data_uri):
 EVIDENCE_MAX_BYTES = 25 * 1024 * 1024   # cap download size so a huge/streaming file can't hang a review pass
 
 
+def _public_https(url):
+    """A player-typed evidence link may only reach the public internet: https, and every address the host
+    resolves to is public (never this machine, the LAN or cloud metadata at 169.254.169.254)."""
+    try:
+        u = urlparse(url)
+        if u.scheme != "https" or not u.hostname:
+            return False
+        for info in socket.getaddrinfo(u.hostname, u.port or 443, proto=socket.IPPROTO_TCP):
+            if not ipaddress.ip_address(info[4][0].split("%")[0]).is_global:
+                return False
+        return True
+    except Exception:
+        return False
+
+
 def _fetch_media_if_direct(url):
     """Downloads `url` ONLY if it serves raw image/video bytes directly (a Discord CDN
     attachment link, a Google Drive share link that redirects straight to a download, etc.) --
@@ -3016,7 +3056,17 @@ def _fetch_media_if_direct(url):
     (unreachable, not direct media, too large) -- always fails closed to the caller's existing
     text-only behavior, never raises."""
     try:
-        r = requests.get(url, stream=True, timeout=15)
+        for _hop in range(4):   # follow at most 3 redirects by hand, checking every address
+            if not _public_https(url):
+                return None
+            r = requests.get(url, stream=True, timeout=15, allow_redirects=False)
+            if r.is_redirect and r.headers.get("Location"):
+                url = urljoin(url, r.headers["Location"])
+                r.close()
+                continue
+            break
+        else:
+            return None
     except Exception as e:
         print("evidence fetch failed:", e)
         return None
