@@ -791,10 +791,13 @@ Deno.serve(async (req: Request) => {
     const killPts = typeof board?.kill_pts === 'number' ? board.kill_pts : 1;
     const total = (x: any) => x.pts.reduce((a: number, b: number, k: number) => a + b + (x.kills[k] || 0) * killPts, 0);
     const killSum = (x: any) => x.kills.reduce((a: number, b: number) => a + b, 0);
-    // official Free Fire tie-break: points, booyahs, eliminations, placement in the last match
+    // tie-break: points, then (boards from 22 Nov 2026, tb 'place') more placement points, booyahs, eliminations,
+    // placement in the last match. A board already live without tb (Open #31) keeps the old order.
+    const placeTb = !board || board.tb === 'place';
+    const plSum = (x: any) => placeTb ? x.pts.reduce((a: number, b: number) => a + b, 0) : 0;
     const boo = (x: any) => x.pts.filter((v: number) => v === 12).length;
     const lastPl = (x: any) => x.pts[x.pts.length - 1] || 0;
-    const ranked = [...teams].sort((a, b) => total(b) - total(a) || boo(b) - boo(a) || killSum(b) - killSum(a) ||
+    const ranked = [...teams].sort((a, b) => total(b) - total(a) || plSum(b) - plSum(a) || boo(b) - boo(a) || killSum(b) - killSum(a) ||
       lastPl(b) - lastPl(a) || a.team.localeCompare(b.team));
     const prizes: Record<string, number> = {};
     const earlier = unfinishedBefore(doc, t);
@@ -839,6 +842,7 @@ Deno.serve(async (req: Request) => {
     const prevLogos = new Map(((board?.teams || []) as any[]).concat(t.teams || []).map((x: any) => [norm(String(x.team || x.name || '')), x.logo || '']));
     doc.bo3 = {
       tournament: slug, title: `${slug} – ${final ? 'Final Standings' : 'Standings'}`, published: true, kill_pts: killPts,
+      ...(placeTb ? { tb: 'place' } : {}),
       teams: ranked.map((x) => ({ team: x.team, logo: prevLogos.get(norm(x.team)) || '',
         r: x.pts.map((v: number, k: number) => ({ kills: x.kills[k] || 0, pts: v })),
         // a host's prize is shown, never paid from JD wallets: award_prizes only reads prize_won

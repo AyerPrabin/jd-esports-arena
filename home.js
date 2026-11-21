@@ -832,15 +832,16 @@ function cardTap(e,el){
    they gain or lose position once that round's score was added in. ── */
 /* Official Free Fire tie-break (2026-10-30): total points, then booyahs, then eliminations,
    then placement in the most recent match. Same order in leaderboard.html, home.js, admin and mod-panel. */
-function ffRank(a,b){return b.pts-a.pts||b.boo-a.boo||b.kills-a.kills||b.last-a.last||String(a.team).localeCompare(String(b.team));}
+function ffRank(a,b){return b.pts-a.pts||(b.pp||0)-(a.pp||0)||b.boo-a.boo||b.kills-a.kills||b.last-a.last||String(a.team).localeCompare(String(b.team));}
 function bo3Standings(bo3){
   const teams=(bo3&&bo3.teams)||[];
   const kp=+(bo3&&bo3.kill_pts)||0;   // points per kill (2026-10-25: 1); boards from before have none = kills 0 pts
+  const tbp=!!(bo3&&bo3.tb==='place');   // boards from 22 Nov 2026: same total -> more placement points (pp) first
   // boo = booyahs (12 placement pts), last = placement pts in the latest match counted (tie-breaks, see ffRank)
   const stageTotals=upto=>teams.map(t=>{
-    let pts=0,kills=0,boo=0,last=0;
-    for(let i=0;i<=upto;i++){const k=+((t.r&&t.r[i]&&t.r[i].kills)||0),p=+((t.r&&t.r[i]&&t.r[i].pts)||0);pts+=p+k*kp;kills+=k;boo+=p===12?1:0;last=p;}
-    return {team:t.team,pts,kills,boo,last};
+    let pts=0,kills=0,boo=0,last=0,pp=0;
+    for(let i=0;i<=upto;i++){const k=+((t.r&&t.r[i]&&t.r[i].kills)||0),p=+((t.r&&t.r[i]&&t.r[i].pts)||0);pts+=p+k*kp;kills+=k;boo+=p===12?1:0;last=p;if(tbp)pp+=p;}
+    return {team:t.team,pts,kills,boo,last,pp};
   });
   const rankOf=stage=>{
     const sorted=stage.slice().sort(ffRank);

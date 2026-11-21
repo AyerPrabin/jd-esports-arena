@@ -910,7 +910,7 @@ function renderAllPlayers(){
 }
 function areaText(p){return [p.area_city,p.area_district,p.area_country].filter((x,i,a)=>x&&a.indexOf(x)===i).join(', ');}
 
-function bo3Default(){return {kill_pts:1,tournament:'',title:'',published:false,teams:[]};}
+function bo3Default(){return {kill_pts:1,tb:'place',tournament:'',title:'',published:false,teams:[]};}
 function bo3Round(){return {kills:0,pts:0};}
 let data={tagline:'JD Esports Arena · AyerFire',tournaments:[],bo3:bo3Default()};
 let _loadedSnapshot=null; // tournaments.json exactly as last fetched from the live site — lets Publish detect a stale tab about to overwrite newer changes (e.g. a team someone else added)
@@ -1592,13 +1592,13 @@ function renderBo3(){
 function bo3FinalStandings(bo3){
   const teams=(bo3&&bo3.teams)||[];
   const rows=teams.map(t=>{
-    let pts=0,kills=0,boo=0,last=0;
-    const kp=+((bo3&&bo3.kill_pts)||0);
-    for(const r of (t.r||[])){const k=+((r&&r.kills)||0),p=+((r&&r.pts)||0);pts+=p+k*kp;kills+=k;boo+=p===12?1:0;last=p;}
-    return {team:t.team,pts,kills,boo,last,prize_won:+(t.prize_won||0)};
+    let pts=0,kills=0,boo=0,last=0,pp=0;
+    const kp=+((bo3&&bo3.kill_pts)||0),tbp=!!(bo3&&bo3.tb==='place');
+    for(const r of (t.r||[])){const k=+((r&&r.kills)||0),p=+((r&&r.pts)||0);pts+=p+k*kp;kills+=k;boo+=p===12?1:0;last=p;if(tbp)pp+=p;}
+    return {team:t.team,pts,kills,boo,last,pp,prize_won:+(t.prize_won||0)};
   }).filter(r=>r.team);
-  // official Free Fire tie-break: points, booyahs, eliminations, placement in the last match
-  rows.sort((a,b)=>b.pts-a.pts||b.boo-a.boo||b.kills-a.kills||b.last-a.last||String(a.team).localeCompare(String(b.team)));
+  // tie-break: points, more placement points (boards with tb 'place', from 22 Nov 2026), booyahs, eliminations, last match
+  rows.sort((a,b)=>b.pts-a.pts||b.pp-a.pp||b.boo-a.boo||b.kills-a.kills||b.last-a.last||String(a.team).localeCompare(String(b.team)));
   return rows.map((r,i)=>({squad_name:r.team,placement:i+1,kills:r.kills,points:r.pts,prize_won:r.prize_won}));
 }
 async function archiveResults(){

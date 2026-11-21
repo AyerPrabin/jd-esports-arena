@@ -30,6 +30,7 @@ for h in log:                                  # newest first: the first board s
         "maps": [ev.get("map", ""), ev.get("map2", ""), ev.get("map3", "")],
         "prize": ev.get("prize", ""), "winner": ev.get("winner", ""),
         "kill_pts": b.get("kill_pts") or 0,
+        "tb": b.get("tb") or "",   # 'place' = same total -> more placement points first (boards from 22 Nov 2026)
         "teams": [{"team": x.get("team", ""), "r": [{"kills": int(r.get("kills") or 0), "pts": int(r.get("pts") or 0)}
                                                      for r in (x.get("r") or [])]} for x in teams if x.get("team")],
     }
