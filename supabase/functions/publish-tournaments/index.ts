@@ -61,7 +61,8 @@ Deno.serve(async (req: Request) => {
   }
   // Host mods publish their own events from /mod/ (mod-panel event_save). An admin page that was opened
   // before that would otherwise drop them, so live events with a "host" that are missing here are kept.
-  let before: any = null;   // the live copy before this publish, for the event_changes log (ZULU reads it)
+  let before: any = null;
+  let claimed = false;   // live copy already written by the `expect` check   // the live copy before this publish, for the event_changes log (ZULU reads it)
   try {
     const doc = JSON.parse(content);
     const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
@@ -99,6 +100,18 @@ Deno.serve(async (req: Request) => {
       });
     }
     content = JSON.stringify(doc, null, 2);
+    // 21 Nov 2026: a caller that read the live copy sends its _published_at as `expect`. The live copy is written only
+    // if nobody published since (one atomic update), BEFORE GitHub, so two mods saving at once can't erase each other.
+    if (typeof payload.expect === 'string' || payload.expect === null) {
+      if (!doc._published_at || doc._published_at === payload.expect) doc._published_at = new Date().toISOString();
+      content = JSON.stringify(doc, null, 2);
+      let q = sb.from('site_content').update({ content: doc, updated_at: new Date().toISOString() }).eq('key', 'tournaments');
+      q = payload.expect === null ? q.is('content->>_published_at', null) : q.eq('content->>_published_at', payload.expect);
+      const { data: won, error: we } = await q.select('key');
+      if (we) return new Response(we.message, { status: 500, headers: CORS_HEADERS });
+      if (!won?.length) return new Response('Someone else saved events a moment ago. Nothing was lost: try again.', { status: 409, headers: CORS_HEADERS });
+      claimed = true;
+    }
   } catch { /* not JSON: publish as sent */ }
 
   const api = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_PATH}`;
@@ -148,7 +161,7 @@ Deno.serve(async (req: Request) => {
     const doc = JSON.parse(content);
     if (!doc._published_at) doc._published_at = new Date().toISOString();
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-    const { error } = await supabase.from('site_content')
+    const { error } = claimed ? { error: null } : await supabase.from('site_content')
       .upsert({ key: 'tournaments', content: doc, updated_at: new Date().toISOString() }, { onConflict: 'key' });
     if (error) warning = `Published to GitHub, but the instant-update copy failed (site updates in a few minutes instead): ${error.message}`;
   } catch (e) {

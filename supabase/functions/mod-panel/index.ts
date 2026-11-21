@@ -91,6 +91,7 @@ Deno.serve(async (req: Request) => {
     if (e1) return fail(e1.message, 500);
     // the event card: added once, then prize / entry / slots kept in step (date and start are the admin's, in /admin/)
     const { data: sc } = await admin.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
+    const expect = (sc?.content as any)?._published_at ?? null;   // publish only if nobody saved since (publish-tournaments)
     const doc: any = sc?.content;
     if (!doc?.tournaments) return fail('Saved, but the events list could not be loaded - publish from /admin/.', 500);
     const prize = 'Rs ' + pool.toLocaleString('en-IN');
@@ -103,7 +104,7 @@ Deno.serve(async (req: Request) => {
     Object.assign(t, { prize, entry: entry ? entry + ' points' : 'Free', slots: max, format: 'Qualifier groups → Semi-finals → Final', mega: true });
     doc._published_at = new Date().toISOString();
     const H = { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET, 'Authorization': `Bearer ${SERVICE}`, 'apikey': SERVICE };
-    const pub = await fetch(`${URL_}/functions/v1/publish-tournaments`, { method: 'POST', headers: H, body: JSON.stringify({ content: JSON.stringify(doc, null, 2) }) });
+    const pub = await fetch(`${URL_}/functions/v1/publish-tournaments`, { method: 'POST', headers: H, body: JSON.stringify({ content: JSON.stringify(doc, null, 2), expect }) });
     if (!pub.ok) return fail('Saved, but publishing the event card failed: ' + (await pub.text()), 502);
     return json({ ok: true, slug, squads });
   }
@@ -750,6 +751,7 @@ Deno.serve(async (req: Request) => {
     if (!slug) return fail('Pick the event first.');
     if (!await canEvent(slug)) return notYours();
     const { data: sc } = await admin.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
+    const expect = (sc?.content as any)?._published_at ?? null;   // publish only if nobody saved since (publish-tournaments)
     const doc: any = sc?.content;
     const t = doc?.tournaments?.find((x: any) => x.name === slug);
     if (!t) return fail('That event is not on the site.', 404);
@@ -847,7 +849,7 @@ Deno.serve(async (req: Request) => {
     doc._published_at = new Date().toISOString();
 
     const H = { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET, 'Authorization': `Bearer ${SERVICE}`, 'apikey': SERVICE };
-    const pub = await fetch(`${URL_}/functions/v1/publish-tournaments`, { method: 'POST', headers: H, body: JSON.stringify({ content: JSON.stringify(doc, null, 2) }) });
+    const pub = await fetch(`${URL_}/functions/v1/publish-tournaments`, { method: 'POST', headers: H, body: JSON.stringify({ content: JSON.stringify(doc, null, 2), expect }) });
     if (!pub.ok) return fail('Could not publish: ' + (await pub.text()), 502);
     let paidOut: any[] = [], advanced: string[] = [];
     if (final) {
@@ -896,12 +898,13 @@ Deno.serve(async (req: Request) => {
     if (!slug || !await canEvent(slug)) return notYours();
     if (!isHost && !isOwner) return fail('Groups draw by themselves 2 hours before the start.', 403);
     const { data: sc } = await admin.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
+    const expect = (sc?.content as any)?._published_at ?? null;   // publish only if nobody saved since (publish-tournaments)
     const doc: any = sc?.content, t = doc?.tournaments?.find((x: any) => x.name === slug);
     if (!t) return fail('That event is not on the site.', 404);
     if ((Date.parse(t.start) || 0) - Date.now() > 24 * 3600000) return fail('Groups can be drawn from 24 hours before the start, once unconfirmed squads are out.', 409);
     const H = { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET, 'Authorization': `Bearer ${SERVICE}`, 'apikey': SERVICE };
     try {
-      const r = await drawEvent(admin, doc, t, async (d) => { const x = await fetch(`${URL_}/functions/v1/publish-tournaments`, { method: 'POST', headers: H, body: JSON.stringify({ content: JSON.stringify(d, null, 2) }) }); return x.ok ? null : await x.text(); }, tagT);
+      const r = await drawEvent(admin, doc, t, async (d) => { const x = await fetch(`${URL_}/functions/v1/publish-tournaments`, { method: 'POST', headers: H, body: JSON.stringify({ content: JSON.stringify(d, null, 2), expect }) }); return x.ok ? null : await x.text(); }, tagT);
       await log('groups_draw', `${slug} · ${r.teams} into ${r.groups} groups, top ${r.advance}${r.semis ? ' to semi-finals' : ' to the Grand Final'}`);
       return json({ ok: true, ...r });
     } catch (e) { return fail(String((e as Error).message || e), 409); }
@@ -954,6 +957,7 @@ Deno.serve(async (req: Request) => {
       map: MAPS.includes(p.map) ? p.map : 'bermuda', ...(isHost ? { host: handle } : { by_mod: true }),
     };
     const { data: sc } = await admin.from('site_content').select('content').eq('key', 'tournaments').maybeSingle();
+    const expect = (sc?.content as any)?._published_at ?? null;   // publish only if nobody saved since (publish-tournaments)
     const doc: any = sc?.content;
     if (!doc?.tournaments) return fail('Could not load the events. Try again.', 500);
     const same = (n: string) => doc.tournaments.find((x: any) => String(x.name).trim().toLowerCase() === n.toLowerCase());
@@ -975,7 +979,7 @@ Deno.serve(async (req: Request) => {
     else doc.tournaments.push({ name, ...fields, winner: '', teams: [] });
     doc._published_at = new Date().toISOString();
     const H = { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET, 'Authorization': `Bearer ${SERVICE}`, 'apikey': SERVICE };
-    const pub = await fetch(`${URL_}/functions/v1/publish-tournaments`, { method: 'POST', headers: H, body: JSON.stringify({ content: JSON.stringify(doc, null, 2) }) });
+    const pub = await fetch(`${URL_}/functions/v1/publish-tournaments`, { method: 'POST', headers: H, body: JSON.stringify({ content: JSON.stringify(doc, null, 2), expect }) });
     if (!pub.ok) return fail('Could not publish: ' + (await pub.text()), 502);
     await log(ex ? 'event_edit' : 'event_create', `${name} · ${fields.date} ${fields.time} · ${status}`);
     return json({ ok: true, created: !ex, name });
