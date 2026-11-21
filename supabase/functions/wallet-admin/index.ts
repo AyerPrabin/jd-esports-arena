@@ -189,6 +189,15 @@ Deno.serve(async (req: Request) => {
     return json({ balance: data });
   }
 
+  // take points back (wrong prize, mistake credit): never below 0, the reason is shown to the player (fix_open30_prize.sql)
+  if (p.action === 'remove') {
+    const { data, error } = await supabase.rpc('admin_wallet_remove', {
+      p_player: p.player_id, p_amount: parseInt(p.amount), p_note: String(p.note || ''),
+    });
+    if (error) return fail(error.message);
+    return json({ balance: data });
+  }
+
   // refunds: the player's refundable charges, and the refund itself (rules in admin_refund.sql)
   // a forgotten wallet PIN: only the admin can clear it, after checking this is the real owner
   if (p.action === 'reset_pin') {
