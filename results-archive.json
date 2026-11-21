@@ -1,6 +1,225 @@
 {
  "events": [
   {
+   "name": "JD Free Fire Open #31",
+   "date": "Sat, Nov 21",
+   "start": "2026-11-21T21:00:00+05:45",
+   "maps": [
+    "bermuda",
+    "kalahari",
+    "solara"
+   ],
+   "prize": "175",
+   "winner": "",
+   "kill_pts": 1,
+   "teams": [
+    {
+     "team": "Youtz Esp",
+     "r": [
+      {
+       "kills": 12,
+       "pts": 9
+      },
+      {
+       "kills": 10,
+       "pts": 8
+      },
+      {
+       "kills": 24,
+       "pts": 12
+      }
+     ]
+    },
+    {
+     "team": "BH HOOD",
+     "r": [
+      {
+       "kills": 13,
+       "pts": 8
+      },
+      {
+       "kills": 11,
+       "pts": 5
+      },
+      {
+       "kills": 5,
+       "pts": 6
+      }
+     ]
+    },
+    {
+     "team": "WeNvrDie",
+     "r": [
+      {
+       "kills": 6,
+       "pts": 3
+      },
+      {
+       "kills": 19,
+       "pts": 12
+      },
+      {
+       "kills": 1,
+       "pts": 2
+      }
+     ]
+    },
+    {
+     "team": "JD ESPORTS",
+     "r": [
+      {
+       "kills": 12,
+       "pts": 12
+      },
+      {
+       "kills": 0,
+       "pts": 9
+      },
+      {
+       "kills": 2,
+       "pts": 8
+      }
+     ]
+    },
+    {
+     "team": "MALVORAK",
+     "r": [
+      {
+       "kills": 8,
+       "pts": 7
+      },
+      {
+       "kills": 2,
+       "pts": 6
+      },
+      {
+       "kills": 11,
+       "pts": 9
+      }
+     ]
+    },
+    {
+     "team": "Gurukul eSports",
+     "r": [
+      {
+       "kills": 7,
+       "pts": 6
+      },
+      {
+       "kills": 6,
+       "pts": 3
+      },
+      {
+       "kills": 9,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "Paragon esports",
+     "r": [
+      {
+       "kills": 11,
+       "pts": 2
+      },
+      {
+       "kills": 10,
+       "pts": 4
+      },
+      {
+       "kills": 5,
+       "pts": 3
+      }
+     ]
+    },
+    {
+     "team": "BRC ESP",
+     "r": [
+      {
+       "kills": 2,
+       "pts": 4
+      },
+      {
+       "kills": 7,
+       "pts": 7
+      },
+      {
+       "kills": 1,
+       "pts": 5
+      }
+     ]
+    },
+    {
+     "team": "WNP-ESP",
+     "r": [
+      {
+       "kills": 5,
+       "pts": 1
+      },
+      {
+       "kills": 0,
+       "pts": 2
+      },
+      {
+       "kills": 4,
+       "pts": 4
+      }
+     ]
+    },
+    {
+     "team": "Anni_esport",
+     "r": [
+      {
+       "kills": 5,
+       "pts": 5
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Elite squad",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Loyal boy",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
    "name": "JD Free Fire Open #30",
    "date": "Thu, Nov 19",
    "start": "2026-11-19T20:00:00+05:45",
