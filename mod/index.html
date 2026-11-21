@@ -1279,7 +1279,7 @@ let liveOn=false, inboxT=null;
 const inboxSoon=()=>{ clearTimeout(inboxT); inboxT=setTimeout(loadInbox,250); };
 function startLive(){
   try{
-    sb.channel('jd-staff')
+    sb.channel('jd-staff',{config:{private:true}})   // private: moderators only (realtime_private.sql)
       .on('broadcast',{event:'new'},()=>{ if(chatWith) refreshChat(); inboxSoon(); })
       .on('broadcast',{event:'seen'},()=>{ if(chatWith) refreshChat(); })
       .subscribe(st=>{

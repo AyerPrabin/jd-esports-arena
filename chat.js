@@ -397,7 +397,8 @@
     try { if (liveCh) { SB.removeChannel(liveCh); liveCh = null; } } catch (e) {}
     if (!me || !SB.channel) return;
     try {
-      liveCh = SB.channel('jd-p-' + me).on('broadcast', { event: 'new' }, function (m) {
+      liveCh = SB.channel('jd-p-' + me, { config: { private: true } }).on(   // private: only this player hears it (realtime_private.sql)
+        'broadcast', { event: 'new' }, function (m) {
         var c = m && m.payload && m.payload.c;
         if (c === 'zulu') loadZn(true).then(function () { setBadges(); if (isOpen && (!cur || wide())) renderOverview(); });
         else { poll(); if (cur && cur.kind === 'jd') refreshThread(); }
