@@ -23,6 +23,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { askAI } from '../_shared/ai.ts';
 import { drawEvent, modeOf, nextStage, ROOM, unfinishedBefore } from '../_shared/stages.ts';
+import { isAdmin as adminOk } from '../_shared/admin.ts';
 
 // only the owner may notify every player on JD Arena
 const OWNER_EMAIL = (Deno.env.get('ADMIN_EMAIL') || 'ayerprabin95@gmail.com').toLowerCase();
@@ -54,11 +55,11 @@ Deno.serve(async (req: Request) => {
   const action = String(p.action || '');
 
   // ── admin-only: manage the moderator list ──
-  const adminHeader = req.headers.get('x-admin-secret');
+  const adminReq = await adminOk(req);   // master secret or a short-lived admin token (_shared/admin.ts)
   // ── admin-only: MEGA event settings (mega.sql). Saves mega_events and creates / updates the event card in
   //    tournaments.json (same Join / pay / ticket flow as every event), then publishes. ──
   if (action === 'mega_list' || action === 'mega_save') {
-    if (!ADMIN_SECRET || adminHeader !== ADMIN_SECRET) return fail('Unauthorized', 401);
+    if (!adminReq) return fail('Unauthorized', 401);
     if (action === 'mega_list') {
       const { data, error } = await admin.from('mega_events').select('*').order('created_at', { ascending: false });
       if (error) return fail(error.message, 500);
@@ -108,7 +109,7 @@ Deno.serve(async (req: Request) => {
   }
 
   if (['mod_list', 'mod_add', 'mod_remove', 'host_photo'].includes(action)) {
-    if (!ADMIN_SECRET || adminHeader !== ADMIN_SECRET) return fail('Unauthorized', 401);
+    if (!adminReq) return fail('Unauthorized', 401);
     // the admin sets an invited host's photo: the private copy for chats (avatars/<pid>/host.jpg, same as the host's own
     // upload) and a small public copy for event cards (host-photos/<handle>.jpg, a public bucket made here on first use)
     if (action === 'host_photo') {
@@ -158,7 +159,7 @@ Deno.serve(async (req: Request) => {
   }
 
   if (['commission_list', 'commission_settle', 'commission_assign', 'referrals_list'].includes(action)) {
-    if (!ADMIN_SECRET || adminHeader !== ADMIN_SECRET) return fail('Unauthorized', 401);
+    if (!adminReq) return fail('Unauthorized', 401);
     if (action === 'referrals_list') {
       const { data, error } = await admin.rpc('referrals_report');
       return error ? fail(error.message, 500) : json(data);
@@ -184,7 +185,7 @@ Deno.serve(async (req: Request) => {
 
   // ── moderator actions: require a signed-in moderator (the JD Esports chat also takes the admin secret) ──
   let email = '', role = 'staff', handle = '', pct: number | null = null, agreedAt: string | null = null;
-  if ((action.startsWith('chat_') || action.startsWith('load')) && ADMIN_SECRET && adminHeader === ADMIN_SECRET) email = 'admin';
+  if ((action.startsWith('chat_') || action.startsWith('load')) && adminReq) email = 'admin';
   else {
     const jwt = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
     if (!jwt) return fail('Sign in first', 401);

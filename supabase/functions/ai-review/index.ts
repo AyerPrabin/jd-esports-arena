@@ -21,6 +21,7 @@
 // capped per pass, so a cron tick doesn't re-judge the same thing every 30 minutes.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { askMember, councilMembers, describeMedia, lastAIError, type AIMessage } from '../_shared/ai.ts';
+import { isAdmin as adminOk } from '../_shared/admin.ts';
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -144,7 +145,7 @@ Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: CORS_HEADERS });
   const ADMIN_SECRET = Deno.env.get('ADMIN_SECRET');
   const CRON_SECRET = Deno.env.get('CRON_SECRET');
-  const okAdmin = ADMIN_SECRET && req.headers.get('x-admin-secret') === ADMIN_SECRET;
+  const okAdmin = await adminOk(req);
   const okCron = CRON_SECRET && req.headers.get('x-cron-secret') === CRON_SECRET;
   if (!okAdmin && !okCron) return new Response('Unauthorized', { status: 401, headers: CORS_HEADERS });
 

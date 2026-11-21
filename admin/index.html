@@ -747,20 +747,32 @@ h2[id]{scroll-margin-top:64px}
 function unlock(){
   const v=document.getElementById('code').value.trim();
   if(!v){document.getElementById('gate-msg').innerHTML='<span class="err">Enter your admin passcode.</span>';return;}
-  localStorage.setItem('jd_admin_secret',v);
+  sessionStorage.setItem('jd_admin_secret',v);   // typed passcode: this tab only, never kept on the device
   document.getElementById('gate').style.display='none';
   document.getElementById('app').style.display='';
   loadLive();loadSecurity();loadLoads();
   document.getElementById('zc-fab').hidden=false;
 }
 function changePasscode(){
-  localStorage.removeItem('jd_admin_secret');
+  clearAdminAuth();
   document.getElementById('app').style.display='none';
   document.getElementById('code').value='';
   document.getElementById('gate-msg').innerHTML='';
   document.getElementById('gate').style.display='';
 }
-function adminSecret(){return (localStorage.getItem('jd_admin_secret')||'').trim();}
+/* 21 Nov 2026: the device keeps only a 12 h admin token from admin-google-login, never the master passcode
+   (outside scripts on the site could read it). A typed passcode lives in this tab only (sessionStorage). */
+try{localStorage.removeItem('jd_admin_secret');}catch(e){}   // the old saved master passcode: gone on first visit
+function clearAdminAuth(){try{localStorage.removeItem('jd_admin_tok');sessionStorage.removeItem('jd_admin_secret');}catch(e){}}
+function saveAdminAuth(j){
+  if(j&&j.token&&j.exp){try{localStorage.setItem('jd_admin_tok',JSON.stringify({token:j.token,exp:j.exp}));}catch(e){}return true;}
+  if(j&&j.secret){try{sessionStorage.setItem('jd_admin_secret',j.secret);}catch(e){}return true;}   // server not updated yet
+  return false;
+}
+function adminSecret(){
+  try{const t=JSON.parse(localStorage.getItem('jd_admin_tok')||'null');if(t&&t.exp>Date.now()+60e3)return t.token;}catch(e){}
+  try{return (sessionStorage.getItem('jd_admin_secret')||'').trim();}catch(e){return '';}
+}
 
 /* ── Sign in with Google: a second, server-verified way to populate the same
    jd_admin_secret value unlock() sets by hand. admin-google-login (Edge Function)
@@ -788,8 +800,7 @@ async function tryGoogleSession(){
       msg.innerHTML='<span class="err">'+(r.status===403?'This Google account isn\'t authorized for admin access.':'Could not verify Google sign-in — use the passcode below.')+'</span>';
       return;
     }
-    const {secret}=await r.json();
-    localStorage.setItem('jd_admin_secret',secret);
+    if(!saveAdminAuth(await r.json()))throw new Error('no admin access in the reply');
     document.getElementById('gate').style.display='none';
     document.getElementById('app').style.display='';
     loadLive();
@@ -928,14 +939,11 @@ async function refreshAdminSecret(){
     if(!session)return false;
     const r=await _rawFetch(EDGE_FN_BASE+'/admin-google-login',{headers:{Authorization:'Bearer '+session.access_token}});
     if(!r.ok)return false;
-    const {secret}=await r.json();
-    if(!secret)return false;
-    localStorage.setItem('jd_admin_secret',secret);
-    return true;
+    return saveAdminAuth(await r.json());
   }catch(e){return false;}
 }
 function adminAuthExpired(){
-  localStorage.removeItem('jd_admin_secret');
+  clearAdminAuth();
   document.getElementById('app').style.display='none';
   document.getElementById('gate').style.display='';
   const m=document.getElementById('gate-msg');
@@ -952,6 +960,7 @@ window.fetch=async function(input,init){
   h.set('x-admin-secret',adminSecret());
   return _rawFetch(input,Object.assign({},init||{},{headers:h}));
 };
+setInterval(()=>{try{const t=JSON.parse(localStorage.getItem('jd_admin_tok')||'null');if(t&&t.exp-Date.now()<3600e3)refreshAdminSecret();}catch(e){}},600e3);   // renew in the last hour
 (async function(){
   if(await refreshAdminSecret()){document.getElementById('gate').style.display='none';document.getElementById('app').style.display='';loadLive();loadSecurity();loadLoads();return;}
   if(adminSecret()){document.getElementById('gate').style.display='none';document.getElementById('app').style.display='';loadLive();loadSecurity();loadLoads();return;}

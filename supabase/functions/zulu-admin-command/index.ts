@@ -9,6 +9,7 @@
 // ever sees it.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { askAI, type AIMessage } from '../_shared/ai.ts';
+import { isAdmin as adminOk } from '../_shared/admin.ts';
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -308,7 +309,7 @@ Deno.serve(async (req: Request) => {
   // Either the admin passcode, OR a Google sign-in as the admin email (same server-side check as
   // admin-google-login) - so one Google sign-in is enough, no second passcode step.
   const ADMIN_SECRET = Deno.env.get('ADMIN_SECRET');
-  let authorized = !!ADMIN_SECRET && req.headers.get('x-admin-secret') === ADMIN_SECRET;
+  let authorized = await adminOk(req);
   if (!authorized) {
     const bearer = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
     if (bearer && bearer.split('.').length === 3) {

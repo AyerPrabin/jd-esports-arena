@@ -5,6 +5,7 @@
 // and the player redeems it on the site with redeem_code(). Entry codes are bound to one
 // tournament at creation, so a cheap entry's code can't be used on an expensive one.
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { isAdmin as adminOk } from '../_shared/admin.ts';
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -28,7 +29,7 @@ Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: CORS_HEADERS });
   const ADMIN_SECRET = Deno.env.get('ADMIN_SECRET');
-  if (!ADMIN_SECRET || req.headers.get('x-admin-secret') !== ADMIN_SECRET) {
+  if (!(await adminOk(req))) {
     return new Response('Unauthorized', { status: 401, headers: CORS_HEADERS });
   }
   let payload: any;

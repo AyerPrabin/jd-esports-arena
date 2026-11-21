@@ -2,6 +2,7 @@
 // replay, clean" or "banned via report #..."). Doesn't itself ban anyone -- that's a
 // separate, deliberate step via action-report/banDirectly in the admin panel.
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { isAdmin as adminOk } from '../_shared/admin.ts';
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +13,7 @@ const CORS_HEADERS: Record<string, string> = {
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
   const ADMIN_SECRET = Deno.env.get('ADMIN_SECRET');
-  if (!ADMIN_SECRET || req.headers.get('x-admin-secret') !== ADMIN_SECRET) {
+  if (!(await adminOk(req))) {
     return new Response('Unauthorized', { status: 401, headers: CORS_HEADERS });
   }
 

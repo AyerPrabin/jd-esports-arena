@@ -11,6 +11,7 @@
 import { Buffer } from 'node:buffer';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { sendPush } from '../_shared/push.ts';
+import { isAdmin as adminOk } from '../_shared/admin.ts';
 
 const GITHUB_OWNER = 'AyerPrabin';
 const GITHUB_REPO = 'jd-esports-arena';
@@ -40,7 +41,7 @@ Deno.serve(async (req: Request) => {
     return new Response('Method not allowed', { status: 405, headers: CORS_HEADERS });
   }
   const ADMIN_SECRET = Deno.env.get('ADMIN_SECRET');
-  if (!ADMIN_SECRET || req.headers.get('x-admin-secret') !== ADMIN_SECRET) {
+  if (!(await adminOk(req))) {
     return new Response('Unauthorized', { status: 401, headers: CORS_HEADERS });
   }
   const githubToken = Deno.env.get('GITHUB_TOKEN');

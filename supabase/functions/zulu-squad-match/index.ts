@@ -6,6 +6,7 @@
 // Auth: x-cron-secret (the weekly job) or x-admin-secret (admin: { dry_run: true } previews without creating).
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { askAI } from '../_shared/ai.ts';
+import { isAdmin as adminOk } from '../_shared/admin.ts';
 
 const LANGS = ['ne', 'ne-roman', 'hi', 'en'] as const;
 type Lang = typeof LANGS[number];
@@ -32,7 +33,7 @@ Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   const cron = Deno.env.get('CRON_SECRET'), adminS = Deno.env.get('ADMIN_SECRET');
   const isCron = !!cron && req.headers.get('x-cron-secret') === cron;
-  const isAdmin = !!adminS && req.headers.get('x-admin-secret') === adminS;
+  const isAdmin = await adminOk(req);
   if (!isCron && !isAdmin) return new Response('Unauthorized', { status: 401, headers: CORS });
   let body: any = {}; try { body = await req.json(); } catch { /* empty */ }
   const dry = isAdmin && !!body.dry_run;

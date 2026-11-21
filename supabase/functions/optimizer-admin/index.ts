@@ -7,6 +7,7 @@
 //   { action: 'revoke_device', id }                      -> unlink a PC (the app asks to sign in again)
 //   { action: 'gpu_board' }                              -> FPS by graphics card from the anonymous stats (best renderer + cap)
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { isAdmin as adminOk } from '../_shared/admin.ts';
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -24,7 +25,7 @@ Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
   if (req.method !== 'POST') return fail('Method not allowed', 405);
   const ADMIN_SECRET = Deno.env.get('ADMIN_SECRET');
-  if (!ADMIN_SECRET || req.headers.get('x-admin-secret') !== ADMIN_SECRET) return fail('Unauthorized', 401);
+  if (!(await adminOk(req))) return fail('Unauthorized', 401);
   let p: any;
   try {
     p = await req.json();

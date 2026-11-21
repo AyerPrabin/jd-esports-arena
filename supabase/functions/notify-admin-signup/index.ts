@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { sendPush } from '../_shared/push.ts';
+import { isAdmin as adminOk } from '../_shared/admin.ts';
 // Fires from a Supabase Database Webhook (INSERT on public.players — see
 // SUPABASE_SETUP.md step 9), so this only ever runs off a real signup, never
 // something a client could fake by calling this URL directly. Sends a
@@ -21,7 +22,7 @@ Deno.serve(async (req: Request) => {
     return new Response('Method not allowed', { status: 405, headers: CORS_HEADERS });
   }
   const ADMIN_SECRET = Deno.env.get('ADMIN_SECRET');
-  if (!ADMIN_SECRET || req.headers.get('x-admin-secret') !== ADMIN_SECRET) {
+  if (!(await adminOk(req))) {
     return new Response('Unauthorized', { status: 401, headers: CORS_HEADERS });
   }
 

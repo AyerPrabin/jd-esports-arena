@@ -1,4 +1,4 @@
-// Hands the admin passcode (ADMIN_SECRET) back to the browser after verifying the caller
+// Hands a 12 h ADMIN TOKEN (never the master ADMIN_SECRET, since 21 Nov 2026) to the browser after verifying the caller
 // signed in with Google as the one allowed admin email — lets admin/index.html offer
 // "Sign in with Google" as a second way to populate the same localStorage value unlock()
 // already uses, without touching how any other Edge Function checks x-admin-secret.
@@ -15,6 +15,7 @@
 // layer, not something that risks breaking the x-admin-secret / x-cron-secret callers
 // elsewhere, since none of them touch this function.
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { adminToken, adminEmails } from '../_shared/admin.ts';
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -33,13 +34,11 @@ Deno.serve(async (req: Request) => {
   const { data: { user }, error } = await anon.auth.getUser(token);
   if (error || !user?.email) return new Response('Invalid or expired session.', { status: 401, headers: CORS_HEADERS });
 
-  const allowedEmail = (Deno.env.get('ADMIN_EMAIL') || 'ayerprabin95@gmail.com').toLowerCase();
-  // Extra admins (14 Nov 2026, owner's go): Og_Bloody / Mahesh. Removing someone here does NOT revoke
-  // a secret they already fetched - rotate ADMIN_SECRET too.
-  const allowed = [allowedEmail, 'saudmahesh059saudmahesh059@gmail.com'];
+  // owner + ADMIN_EMAILS (_shared/admin.ts). Removing someone there also stops their token at once.
+  const allowed = adminEmails();
   const email = user.email.toLowerCase();
   // The email must come from a verified Google identity, not just the account's email field:
-  // email sign-up confirmation is off, so an email/password account proves nothing (nOAuth-style spoof).
+  // an email/password account proves nothing about owning that Gmail (nOAuth-style spoof).
   const google = (user.identities || []).find((i) =>
     i.provider === 'google' && String(i.identity_data?.email || '').toLowerCase() === email &&
     i.identity_data?.email_verified !== false);
@@ -50,5 +49,6 @@ Deno.serve(async (req: Request) => {
   const secret = Deno.env.get('ADMIN_SECRET');
   if (!secret) return new Response('Server not configured (ADMIN_SECRET missing).', { status: 500, headers: CORS_HEADERS });
 
-  return new Response(JSON.stringify({ secret }), { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
+  // a 12 h token, not the master: the browser's storage can be read by outside scripts on the site
+  return new Response(JSON.stringify(await adminToken(email, secret)), { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
 });
