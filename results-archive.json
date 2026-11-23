@@ -1,6 +1,141 @@
 {
  "events": [
   {
+   "name": "JD Free Fire Open #36",
+   "date": "Mon, Nov 23",
+   "start": "2026-11-23T19:15:00+05:45",
+   "maps": [
+    "bermuda",
+    "kalahari",
+    "purgatory"
+   ],
+   "prize": "175",
+   "winner": "PARAGON E-SPORTS",
+   "kill_pts": 1,
+   "tb": "place",
+   "teams": [
+    {
+     "team": "PARAGON E-SPORTS",
+     "r": [
+      {
+       "kills": 14,
+       "pts": 12
+      },
+      {
+       "kills": 8,
+       "pts": 9
+      },
+      {
+       "kills": 16,
+       "pts": 12
+      }
+     ]
+    },
+    {
+     "team": "OG CLASSIC",
+     "r": [
+      {
+       "kills": 10,
+       "pts": 8
+      },
+      {
+       "kills": 7,
+       "pts": 12
+      },
+      {
+       "kills": 2,
+       "pts": 9
+      }
+     ]
+    },
+    {
+     "team": "RYL-ESPORT",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 5
+      },
+      {
+       "kills": 10,
+       "pts": 8
+      },
+      {
+       "kills": 8,
+       "pts": 8
+      }
+     ]
+    },
+    {
+     "team": "JD ESPORTS",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 7
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 7,
+       "pts": 7
+      }
+     ]
+    },
+    {
+     "team": "Hora eSports",
+     "r": [
+      {
+       "kills": 1,
+       "pts": 6
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "ANNI ESPORT",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    },
+    {
+     "team": "Nepal king",
+     "r": [
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      },
+      {
+       "kills": 0,
+       "pts": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
    "name": "JD Free Fire Open #32",
    "date": "Sun, Nov 22",
    "start": "2026-11-22T21:30:00+05:45",
