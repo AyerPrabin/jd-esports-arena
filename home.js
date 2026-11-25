@@ -2324,7 +2324,7 @@ function matchTicketHtml(t,r){
     next=`<div class="mt-next">⏰ Check-in opens 12 hours before start${opens?` (<b>${esc(opens)}</b>)`:''} — we will send you a reminder.</div>`;
   }
   const logo=r.squad_logo?`<img class="mt-logo" src="${esc(r.squad_logo)}" alt="">`:`<span class="mt-logo mt-logo-empty">${esc((r.squad_name||'?').trim().charAt(0).toUpperCase()||'?')}</span>`;
-  const foot=[fxTicketHtml(t,r),canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw</button>`:''].filter(Boolean).join('');
+  const foot=[fxTicketHtml(t,r),canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw${wdLateTag(t,r)}</button>`:''].filter(Boolean).join('');
   return `<div class="mt"><div class="mt-head">${logo}<div class="mt-squad"><b>${esc(r.squad_name||'Your squad')}</b><small>${checked?'<span class="mt-ver">Confirmed ✓</span>':(CONFIRM_REQUIRED?'Confirm needed':'You\'re in')}${r.slot?` · sit in seat ${r.slot}`:''}</small></div>${slot}</div>${needSteps?`<ol class="mt-steps">${stepHtml}</ol>`:''}<div class="mt-body">${sqvTicketHtml(t,r)}${next}</div>${foot?`<div class="mt-foot">${foot}</div>`:''}</div>`;
 }
 function fxTicketHtml(t,r){
@@ -2756,6 +2756,8 @@ function refundInfo(t){
   const pct=late?10:100;
   return {late,pct,amount:Math.floor(entryAmount(t)*pct/100)};
 }
+/* on the ticket's Withdraw button inside the last 24 h: say up front that only 10% comes back */
+function wdLateTag(t,r){if(!r||!(r.paid_points>0)||r.status==='waitlisted'||!refundInfo(t).late)return '';const b=Math.floor(r.paid_points*0.1);return ` (only ${b} of ${r.paid_points} pts back)`;}
 function canWithdraw(t){
   if(!t||_roomCodes.has(t.name))return false;
   const st=String(t.status||'upcoming').toLowerCase();
@@ -2775,20 +2777,21 @@ async function withdrawSquad(name){
   const fee=r.status==='waitlisted'&&r.paid_points>0?`Your ${r.paid_points} point deposit goes back to your wallet straight away.`:!isPaid&&!(r.paid_points>0)?'This was a free entry, so there is nothing to refund.'
     :r.paid_points>0
       ?(rf.late
-        ?`Late cancellation: the match starts within 24 hours, so ${back} of your ${r.paid_points} points (10%) go back to your wallet.`
+        ?`⚠️ LATE WITHDRAW: the match starts in less than 24 hours.\n\nYou paid: ${r.paid_points} points\nYou get back: ${back} point${back===1?'':'s'} (10%)\nYou lose: ${r.paid_points-back} points\n\nThis is the late-cancel rule, not a mistake: a slot freed this late usually stays empty. Withdraw 24 hours or more before the start to get everything back.\n\n२४ घण्टा भित्र छोड्दा ${r.paid_points} मध्ये ${back} पोइन्ट मात्र फिर्ता हुन्छ (१०%)।`
         :`All ${r.paid_points} points go back to your wallet straight away.`)
       :(r.status==='approved'||r.status==='confirmed')
         ?`This entry was paid with a join code, so the refund is sent by hand (${rf.late?'10% on the last day':'full refund'}). Message us on WhatsApp (${PAY_WHATSAPP_LABEL}) with your squad name and the event name.`
         :'No points were taken for this held place.';
-  const ok=await confirmBox(`Withdraw ${squad}?`,
+  const lateLoss=rf.late&&r.paid_points>0&&r.status!=='waitlisted';
+  const ok=await confirmBox(lateLoss?`Withdraw ${squad}? Only ${back} of ${r.paid_points} points back`:`Withdraw ${squad}?`,
     `${squad} will be removed from ${name} and the slot released to the next team.\n\n${fee}\n\nYou can register again later if a slot is still open.`,
-    'Withdraw squad','Keep my spot');
+    lateLoss?`Withdraw, get ${back} back`:'Withdraw squad','Keep my spot');
   if(!ok)return;
   const {data,error}=await sb.rpc('withdraw_registration',{p_tournament_slug:name});
   if(error){showMsg('Withdrawal failed',error.message,true);return;}
   _myRegs.delete(name);
   const got=(data&&data.refund)||0;
-  showMsg('Squad withdrawn',`${squad} has been removed from ${name} and the slot has been released.`+(got?`\n\n${got} points were refunded to your wallet.`:(isPaid&&r.paid_points===0&&(r.status==='approved'||r.status==='confirmed')?`\n\n${fee}`:'')));
+  showMsg('Squad withdrawn',`${squad} has been removed from ${name} and the slot has been released.`+(got?(lateLoss?`\n\n${got} of your ${r.paid_points} points were refunded to your wallet (10% late-withdraw rule, as shown before you confirmed).`:`\n\n${got} points were refunded to your wallet.`):(isPaid&&r.paid_points===0&&(r.status==='approved'||r.status==='confirmed')?`\n\n${fee}`:'')));
   await loadWallet();
   await loadPublicRoster();
   renderCur();
