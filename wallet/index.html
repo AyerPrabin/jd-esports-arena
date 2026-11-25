@@ -361,15 +361,16 @@ input:focus{border-color:var(--gold)}
               <div class="qr-links"><a href="/payment-qr.png" download="jd-arena-esewa-qr.png">⬇ Save QR</a><a href="/payment-qr.png" target="_blank" rel="noopener">⤢ Full size</a></div>
             </div>
             <p style="margin-top:10px">Paying from this phone? Save the QR, then in eSewa choose <b>Scan → from gallery</b>.</p>
+            <p style="margin-top:6px;font-size:.85em;opacity:.85">eSewa only. Khalti, IME Pay and bank transfers can't be matched.</p>
           </li>
           <li class="step">
-            <h3>Put your username in the remarks</h3>
-            <p>So we know the payment is yours. Tap to copy, then paste it into the eSewa remarks before you send.</p>
+            <h3>Username in the remarks <small style="font-weight:400;opacity:.75">(helps, not required)</small></h3>
+            <p>We match your payment by the <b>amount</b> and your <b>eSewa name</b>, so remarks are optional. If eSewa won't accept the <code>_</code> in your username, leave the remarks empty or type it without the <code>_</code>.</p>
             <button class="copy" id="copy-user" type="button"><code id="uname">…</code><em>Copy</em></button>
           </li>
           <li class="step">
             <h3>Upload the payment screenshot</h3>
-            <p>A screenshot is required — no screenshot, no points. Make sure the amount, date, Transaction Code and your username in the remarks are visible. A photo of another screen is not accepted. We delete it 30 days after checking (<a href="/privacy/" style="color:var(--gold-l)">privacy</a>).</p>
+            <p>A screenshot is required — no screenshot, no points. Make sure the amount, date and Transaction Code are visible. A photo of another screen is not accepted. We delete it 30 days after checking (<a href="/privacy/" style="color:var(--gold-l)">privacy</a>).</p>
             <div class="proof">
               <label for="ld-code">eSewa Transaction Code<small>Shown on the "Payment Successful" screen, like 1VDLJI9</small></label>
               <input id="ld-code" type="text" maxlength="15" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="1VDLJI9">
@@ -387,7 +388,7 @@ input:focus{border-color:var(--gold)}
           </li>
           <li class="step">
             <h3>Wait for verification</h3>
-            <div class="wait"><span>⏳</span><span>We check the payment and add the points to your wallet<span id="wait-speed"> — usually within a few hours</span>. You'll get a notification, and the balance above updates by itself.</span></div>
+            <div class="wait"><span>⏳</span><span>When the amount and your eSewa name match, points are added by themselves, usually in about a minute. If not, a person checks it<span id="wait-speed"> — usually within an hour (10 AM to 10 PM Nepal time)</span>. You'll get a notification, and the balance above updates by itself. Still waiting after an hour? Tap <b>Ask JD</b> on the payment below.</span></div>
             <div class="list" id="load-list"></div>
           </li>
         </ol>
@@ -749,7 +750,10 @@ async function loadLoadRequests(){
   const {data}=await sb.from('wallet_load_requests').select('amount, status, note, created_at').eq('player_id',me.id).order('created_at',{ascending:false}).limit(10);
   const L={pending:'Checking',approved:'Added',rejected:'Not added'};
   const track=r=>r.status==='pending'?'<div class="track" aria-label="Sent, being checked"><span class="ok">✓ Sent</span><span class="now">Checking</span><span>Added</span></div>':'';
-  $('load-list').innerHTML=(data||[]).map(r=>`<div class="row"><div class="ic in">🧾</div><div class="t"><b>Rs ${r.amount.toLocaleString()} payment</b>${track(r)}<small>${new Date(r.created_at).toLocaleString([],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${r.note?' · '+esc(r.note):''}</small></div><span class="pill ${r.status}">${L[r.status]||r.status}</span></div>`).join('');
+  /* pending more than 60 min: tell the player plainly and give them one tap to reach a person */
+  const late=r=>r.status==='pending'&&Date.now()-Date.parse(r.created_at)>3600000;
+  $('load-list').innerHTML=(data||[]).map(r=>`<div class="row"><div class="ic in">🧾</div><div class="t"><b>Rs ${r.amount.toLocaleString()} payment</b>${track(r)}<small>${new Date(r.created_at).toLocaleString([],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${r.note?' · '+esc(r.note):''}</small>${late(r)?`<small style="display:block;margin-top:4px;color:var(--gold-l)">Taking longer than usual: the name or amount didn't match, so a person is checking it. Your money is safe.</small><button type="button" class="btn" data-askjd style="margin-top:6px;padding:7px 12px;font-size:.8rem;width:auto">💬 Still not added? Ask JD</button>`:''}</div><span class="pill ${r.status}">${L[r.status]||r.status}</span></div>`).join('');
+  $('load-list').querySelectorAll('[data-askjd]').forEach(b=>b.onclick=()=>{if(window.jdChat&&window.jdChat.support)window.jdChat.support();});
 }
 // Trust numbers: read once per page open (no polling). Hidden if a number isn't there.
 let trustDone=false;

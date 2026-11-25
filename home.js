@@ -2295,6 +2295,8 @@ async function confirmAttendance(name){
    code), and whatever the next action is. Once the room code is sent it shows right
    here with copy buttons. Deliberately nothing that changes every second (the grid only
    re-renders when its HTML changes) — the live countdown lives in the next-match bar. */
+// roughly when the last match ends: 2.5 h after the start for best of 3, 75 min for one match
+function matchOver(t){const s=Date.parse(t&&t.start);return !isNaN(s)&&Date.now()>s+((t.map2||t.map3)?150:75)*60000;}
 function matchTicketHtml(t,r){
   const rc=_roomCodes.get(t.name),checked=!!r.checked_in_at,win=checkinWindowOpen(t);
   const steps=CONFIRM_REQUIRED?[['Registered',true],['Confirmed',checked],['Room code',!!rc]]:(CHECKIN_REQUIRED?[['Registered',true],['Checked in',checked],['Room code',!!rc]]:[['Registered',true],['Slot kept',true],['Room code',!!rc]]);
@@ -2323,6 +2325,10 @@ function matchTicketHtml(t,r){
     const opens=isNaN(startMs)?'':new Date(startMs-CHECKIN_WINDOW_MS).toLocaleString([],{weekday:'short',hour:'2-digit',minute:'2-digit'});
     next=`<div class="mt-next">⏰ Check-in opens 12 hours before start${opens?` (<b>${esc(opens)}</b>)`:''} — we will send you a reminder.</div>`;
   }
+  /* match-night honesty: say when the room is late, and when the match is over and results are being checked */
+  const sMs=Date.parse(t.start),lateMin=isNaN(sMs)?0:Math.floor((Date.now()-sMs)/60000);
+  if(rc&&matchOver(t))next=next.replace(/<span class="mt-live-dot"><\/span>[^<]*/,'🏁 Match played: results are being checked by our team, usually tonight. You get an alert when they are out.');
+  else if(!rc&&lateMin>=0&&!isNaN(sMs)&&(checked||!CONFIRM_REQUIRED))next=`<div class="mt-next warn">⏳ ${lateMin<20?'The host is a few minutes late.':'This match is running late, sorry.'} Stay ready: the Room ID and password appear here and you get an alert. Any time change is posted here and in Alerts.</div>`;
   const logo=r.squad_logo?`<img class="mt-logo" src="${esc(r.squad_logo)}" alt="">`:`<span class="mt-logo mt-logo-empty">${esc((r.squad_name||'?').trim().charAt(0).toUpperCase()||'?')}</span>`;
   const foot=[fxTicketHtml(t,r),canWithdraw(t)?`<button type="button" class="mt-withdraw" data-withdraw="${esc(t.name)}">Withdraw${wdLateTag(t,r)}</button>`:''].filter(Boolean).join('');
   return `<div class="mt"><div class="mt-head">${logo}<div class="mt-squad"><b>${esc(r.squad_name||'Your squad')}</b><small>${checked?'<span class="mt-ver">Confirmed ✓</span>':(CONFIRM_REQUIRED?'Confirm needed':'You\'re in')}${r.slot?` · sit in seat ${r.slot}`:''}</small></div>${slot}</div>${needSteps?`<ol class="mt-steps">${stepHtml}</ol>`:''}<div class="mt-body">${sqvTicketHtml(t,r)}${next}</div>${foot?`<div class="mt-foot">${foot}</div>`:''}</div>`;
@@ -2367,7 +2373,14 @@ function earlyAccess(t){
 function fmtOpen(iso){const d=new Date(iso);return isNaN(d)?'soon':d.toLocaleString([],{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}
 function inAppRegBtn(t,st,full){if(t&&t.parent)return '';
   if(st==='cancelled')return _myRegs.has(t.name)?`<div class="inapp-reg-done rejected"><span>✕ This tournament was cancelled — sorry for the mix-up, watch Discord for the reschedule</span></div>`:'';
-  if(st==='completed')return sb?`<div class="review-summary" data-review-summary="${esc(t.name)}"></div>`:'';
+  if(st==='completed'){
+    /* your result on the finished card: prize paid ✓ (from your own wallet history), so nobody has to ask "where is my prize?" */
+    const mr=_myRegs.get(t.name),mine=mr&&(mr.status==='confirmed'||mr.status==='approved');
+    const won=mine&&_myPrizes&&_myPrizes.get(t.name);
+    const res=!mine?'':won?`<div class="inapp-reg-done"><span>🏆 Prize paid: +${won} points to your wallet ✓</span></div>`
+      :`<div class="inapp-reg-done"><span>🏁 Results are out. Prizes are paid straight into the top 3 squads' wallets (the player who registered the squad).</span></div>`;
+    return res+(sb?`<div class="review-summary" data-review-summary="${esc(t.name)}"></div>`:'');
+  }
   if(!sb)return '';
   if(_myRegs.has(t.name)){
     const r=_myRegs.get(t.name);
@@ -2605,8 +2618,16 @@ let _freeOk,_regWlDep=0,_regPayPts=false,_wallet=0,_walletLoaded=false,_walletUn
 const vFit=price=>_cards.filter(c=>!c.max_npr||c.max_npr>=price).length;   /* free-entry cards that cover this fee (promo_cards.sql) */   /* _vouchers: free-entry vouchers from promoting JD Arena (promo_vouchers.sql) */
 function canAfford(n){return _walletUnlimited||_wallet>=n;}
 function walletLabel(){return _walletUnlimited?'100B':String(_wallet);}
+/* my prizes from the last 14 days (event name -> points), for "Prize paid ✓" on finished cards; at most every 5 min */
+let _myPrizes=null,_myPrizesAt=0;
+function loadMyPrizes(){
+  if(!sb||!_player||Date.now()-_myPrizesAt<300000)return;_myPrizesAt=Date.now();
+  sb.from('wallet_ledger').select('ref, delta').eq('player_id',_player.id).eq('reason','prize').gte('created_at',new Date(Date.now()-14*864e5).toISOString()).limit(30)
+    .then(({data})=>{if(!data)return;const m=new Map();data.forEach(x=>{const ev=String(x.ref||'').replace(/^prize:/,'').replace(/:[^:]*$/,'');if(ev&&x.delta>0)m.set(ev,(m.get(ev)||0)+x.delta);});_myPrizes=m;renderCur();},()=>{});
+}
 async function loadWallet(){
   if(!sb||!_player){_wallet=0;return;}
+  loadMyPrizes();
   const [{data},vr]=await Promise.all([sb.from('wallets').select('balance, unlimited').eq('player_id',_player.id).maybeSingle(),sb.rpc('promo_mine').then(r=>r,()=>null)]);
   _vouchers=(vr&&vr.data&&vr.data.vouchers)||0;_cards=(vr&&vr.data&&vr.data.cards)||[];_freeOk=vr&&vr.data?vr.data.free_ok:undefined;
   const prev=_wallet;_wallet=(data&&data.balance)||0;_walletUnlimited=!!(data&&data.unlimited);_walletLoaded=true;

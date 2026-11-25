@@ -545,6 +545,7 @@ textarea{min-height:96px;resize:vertical}
             <button type="button" class="chead" id="c-head" aria-label="View profile"><span id="c-av"></span><span class="tx"><b id="c-name" translate="no"></b><small id="c-sub" translate="no"></small></span></button></div>
           <div id="cprof-wrap" hidden></div>
           <div class="cmsgs" id="c-msgs" aria-live="polite"></div>
+          <div id="c-canned" style="display:flex;gap:6px;overflow-x:auto;padding:6px 10px 0;scrollbar-width:none" aria-label="Quick replies"></div>
           <form class="ccomp" id="c-form"><textarea id="c-in" rows="1" maxlength="1000" placeholder="Aa" aria-label="Message as JD Esports"></textarea>
             <button class="csend" type="submit" id="c-send" aria-label="Send"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.99.99 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/></svg></button></form>
         </div>
@@ -1244,12 +1245,32 @@ function renderProfile(d){
 }
 function toggleProfile(){
   const w=$('cprof-wrap'), d=chatPid&&threads.get(chatPid);
-  if(w.hidden){ if(!d) return; renderProfile(d); w.hidden=false; $('c-msgs').hidden=true; $('c-form').hidden=true; }
-  else { w.hidden=true; $('c-msgs').hidden=false; $('c-form').hidden=false; $('c-msgs').scrollTop=$('c-msgs').scrollHeight; }
+  if(w.hidden){ if(!d) return; renderProfile(d); w.hidden=false; $('c-msgs').hidden=true; $('c-form').hidden=true; $('c-canned').style.display='none'; }
+  else { w.hidden=true; $('c-msgs').hidden=false; $('c-form').hidden=false; $('c-canned').style.display='flex'; $('c-msgs').scrollTop=$('c-msgs').scrollHeight; }
 }
 $('c-head').onclick=toggleProfile;
 $('cprof-wrap').addEventListener('click',e=>{const b=e.target.closest('[data-copy]');if(b){navigator.clipboard&&navigator.clipboard.writeText(b.dataset.copy);toast('Copied '+b.dataset.copy);}});
 function closeChat(){ if(!$('cprof-wrap').hidden) toggleProfile(); chatWith=null; chatPid=null; clearInterval(chatTimer); $('cview').hidden=true; $('cinbox').hidden=false; renderInbox(); loadInbox(); }
+/* one-tap quick replies (English + Roman Nepali). They only fill the box: you still read it and press Send. */
+const CANNED=[
+  ['⏳ Sorry, checking','Sorry for the wait! I am checking this now. / Dhilo bhayo, maaf garnus. Ahile check gardai chu.'],
+  ['🏆 Results','Results for {ev} are being checked by our team and usually go up tonight. You will get an alert when they are out. / {ev} ko result check hudai cha, aaja rati samma aaucha. Alert aaucha.'],
+  ['💰 Load checking','We got your top-up. If the amount and your eSewa name match, points come in about 1 minute. If not, a person checks it, usually within 1 hour (10 AM to 10 PM). / Tapai ko load aayo. Naam ra amount milyo bhane 1 minute ma points aaucha, namilye 1 ghanta bhitra manche le check garcha.'],
+  ['↩ 10% rule','Leaving an event 24 hours or more before the start gives all your points back. Inside the last 24 hours only 10% comes back (e.g. 1 of 15), because the slot usually stays empty. This was shown before you confirmed. / 24 ghanta bhanda agadi chhode sabai firta, 24 ghanta bhitra 10% matra firta huncha.'],
+  ['🎟 Free card','Free entry: open Wallet, then Free entry. First card: follow @ayer_fire and repost 3 of our videos with your JD username in a comment. After that, each new card needs a video about JD. / Wallet ma Free entry kholnus: @ayer_fire follow garera 3 video repost + comment ma JD username.'],
+  ['🔑 Room ID','Your Room ID and password show on your ticket on the home page about 5 minutes before the start, and you also get an alert. / Room ID ra password start hunu bhanda 5 minute agadi ticket ma aaucha, alert pani aaucha.'],
+  ['🚫 Not confirmed','Squads that do not confirm before the 24-hour deadline lose their slot to the waitlist, and paid entries go back to the wallet. Confirm opens 48 hours before the start. / 24 ghanta agadi confirm nagare slot waitlist lai jancha, paisa wallet ma firta aaucha.'],
+  ['🥇 Prize split','Prize pool is split 50% / 30% / 20% for 1st, 2nd and 3rd, and paid into your JD wallet as points after results. You can cash out from 100 points to eSewa. / Prize 50/30/20 % ma 1st, 2nd, 3rd lai wallet ma aaucha, 100 points bhaye eSewa ma nikalna milcha.'],
+  ['⏰ Time moved','Sorry, {ev} has moved to __:__ PM Nepal time. Your slot is safe. / Maaf garnus, {ev} __:__ baje ma sareko cha. Tapai ko slot surakshit cha.'],
+  ['📸 Send screenshot','Please send your result screenshot here in this chat so we can check it. / Result ko screenshot yahi chat ma pathaunus.']];
+function cannedRender(){
+  const box=$('c-canned');if(!box)return;
+  box.innerHTML=CANNED.map(([l],i)=>`<button type="button" class="ghost" data-cn="${i}" style="flex:0 0 auto;width:auto;font-size:.74rem;padding:6px 10px;border-radius:16px;white-space:nowrap">${esc(l)}</button>`).join('');
+  box.onclick=e=>{const b=e.target.closest('[data-cn]');if(!b)return;
+    const d=chatPid&&threads.get(chatPid),ev=((d&&d.tickets||[])[0]||{}).event||'the event';
+    const t=$('c-in');t.value=CANNED[+b.dataset.cn][1].replace(/\{ev\}/g,ev);autoGrow();t.focus();};
+}
+cannedRender();
 function autoGrow(){ const t=$('c-in'); t.style.height='auto'; t.style.height=Math.min(t.scrollHeight,160)+'px'; $('c-send').disabled=!t.value.trim(); }
 $('c-in').addEventListener('input',autoGrow);
 $('c-back').onclick=closeChat;
