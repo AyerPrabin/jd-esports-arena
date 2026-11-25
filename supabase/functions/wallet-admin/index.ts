@@ -163,6 +163,17 @@ Deno.serve(async (req: Request) => {
     return json({ player: who, balance: w?.balance ?? 0, unlimited: !!w?.unlimited, rows,
       added: rows.reduce((s, r) => s + Math.max(r.delta, 0), 0), taken: rows.reduce((s, r) => s + Math.max(-r.delta, 0), 0) });
   }
+  // every player's point moves, newest first (admin "All history" feed); read only, max 300 rows
+  if (p.action === 'recent') {
+    const days = Math.min(Math.max(parseInt(p.days, 10) || 7, 1), 90);
+    let q = supabase.from('wallet_ledger').select('player_id, delta, balance_after, reason, ref, note, created_at, players(username, player_tag)')
+      .gte('created_at', new Date(Date.now() - days * 864e5).toISOString())
+      .order('created_at', { ascending: false }).limit(300);
+    if (p.reason && /^[a-z_]{2,30}$/.test(String(p.reason))) q = q.eq('reason', p.reason);
+    const { data, error } = await q;
+    if (error) return fail(error.message, 500);
+    return json({ rows: data || [] });
+  }
   if (p.action === 'balances') {
     const { data, error } = await supabase.from('players')
       .select('id, username, player_tag, email, wallets(balance, unlimited, staff, updated_at)');

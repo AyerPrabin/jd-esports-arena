@@ -371,7 +371,7 @@ h2[id]{scroll-margin-top:64px}
     <button class="qa-tile" onclick="payPrizesNow()"><span class="qa-ic">🏆</span>Pay prizes</button>
     <a class="qa-tile" href="#wallets" onclick="setTimeout(loadWithdrawals,60)"><span class="qa-ic">💸</span>Withdrawals</a>
     <a class="qa-tile" href="#wallets" onclick="setTimeout(loadMoney,60)"><span class="qa-ic">💰</span>Money in/out</a>
-    <a class="qa-tile" href="#wallets" onclick="setTimeout(loadBalances,60)"><span class="qa-ic">📜</span>Point history</a>
+    <a class="qa-tile" href="#wallets" onclick="setTimeout(allHistory,60)"><span class="qa-ic">📜</span>Point history</a>
     <a class="qa-tile" href="#promo" onclick="setTimeout(pvLoad,60)"><span class="qa-ic">🎬</span>Promo videos <b id="qa-promo-n" hidden></b></a>
     <a class="qa-tile" href="#moderators"><span class="qa-ic">🛡</span>Mods</a>
     <a class="qa-tile" href="#tournaments"><span class="qa-ic">🏆</span>Events</a>
@@ -629,6 +629,7 @@ h2[id]{scroll-margin-top:64px}
   <div class="row" style="margin-top:10px">
     <button class="btn ghost" onclick="loadWithdrawals()">💸 Withdrawal requests</button>
     <button class="btn ghost" onclick="loadBalances()">📊 Everyone's points and history</button>
+    <button class="btn ghost" onclick="allHistory()">🧾 All history (every player)</button>
     <button class="btn ghost" onclick="loadMoney()">💰 Money in / out</button>
     <button class="btn ghost" onclick="payPrizesNow()" title="Prizes pay automatically when you publish a winner — use this only to retry">🏆 Pay prizes now</button>
     <div id="wa-msg" class="hint"></div>
@@ -1851,12 +1852,23 @@ function dashGo(sectionId,selectId,value,loader){
    on a phone and easy to wave through. ── */
 let _ibSeen=null,_ibBusy=false,_ibRows={loads:[],wds:[],disputes:[]};
 function ibArm(btn,label,fn){
-  if(btn.classList.contains('arm')){btn.classList.remove('arm');clearTimeout(btn._t);fn();return;}
+  if(btn.classList.contains('arm')){btn.classList.remove('arm');clearTimeout(btn._t);
+    /* lock the card while the request runs, so a fast double tap can't approve/pay twice */
+    const card=btn.closest('.ib'),bs=card?[...card.querySelectorAll('button')]:[btn];bs.forEach(b=>b.disabled=true);
+    Promise.resolve().then(fn).finally(()=>{if(!card||!card.querySelector('.ib-done'))bs.forEach(b=>b.disabled=false);});return;}
   btn._orig=btn._orig||btn.textContent;btn.textContent=label;btn.classList.add('arm');
   btn._t=setTimeout(()=>{btn.classList.remove('arm');btn.textContent=btn._orig;},4000);
 }
 function ibName(p){return p?('@'+(p.username||p.player_tag||'player')):'player';}
 function ibZoom(src){const z=document.createElement('div');z.className='ib-zoom';z.innerHTML=`<img src="${esc(src)}" alt="Payment screenshot">`;z.onclick=()=>z.remove();document.body.appendChild(z);}
+/* busy = a "Tap again" is armed, or a card is mid-request (buttons locked, no result yet) */
+function ibBusy(box){return !!box.querySelector('.arm')||[...box.querySelectorAll('.ib')].some(c=>c.querySelector('button:disabled')&&!c.querySelector('.ib-done,.ib-err'));}
+function ibNewBadge(box){
+  if(box.querySelector('.ib-new'))return;
+  try{new Audio('/notify.mp3').play().catch(()=>{});}catch(e){}
+  const b=document.createElement('button');b.type='button';b.className='btn ib-new';b.style.cssText='width:100%;margin:0 0 8px';
+  b.textContent='🔔 New items waiting: tap to show';b.onclick=()=>inboxLoad(true);box.prepend(b);
+}
 async function inboxLoad(force){
   const box=document.getElementById('inbox');
   if(!box||!adminSecret()||_ibBusy)return;
@@ -1865,7 +1877,11 @@ async function inboxLoad(force){
   try{
     const [loads,wds,ch]=await Promise.all([waCall({action:'loads'}),waCall({action:'withdrawals'}),waCall({action:'challenges'}).catch(()=>({disputed:[]}))]);
     _ibRows={loads:loads||[],wds:wds||[],disputes:(ch&&ch.disputed)||[]};
-    inboxRender();
+    /* auto-refresh must not wipe what you're doing: skip it when nothing changed or a "Tap again" is armed / a request is running */
+    const ids=[..._ibRows.loads,..._ibRows.wds,..._ibRows.disputes].map(x=>x.id);
+    const same=_ibSeen&&ids.length===_ibSeen.size&&ids.every(id=>_ibSeen.has(id));
+    if(!force&&(same||ibBusy(box))){if(!same)ibNewBadge(box);}
+    else inboxRender();
   }catch(e){box.innerHTML=`<p class="ib-err">Couldn't load the inbox: ${esc(e.message||e)}</p>`;}
   _ibBusy=false;
 }
@@ -1876,6 +1892,8 @@ function inboxRender(){
   if(_ibSeen&&ids.some(id=>!_ibSeen.has(id))){try{new Audio('/notify.mp3').play().catch(()=>{});}catch(e){}}
   _ibSeen=new Set(ids);
   document.title=(n?`(${n}) `:'')+document.title.replace(/^\(\d+\)\s*/,'');
+  /* keep what you typed (amount, note, eSewa ID) when the list redraws */
+  const kept={};box.querySelectorAll('.ib').forEach(c=>c.querySelectorAll('input,select').forEach((x,k)=>{if(x.value!==x.defaultValue)kept[c.dataset.id+'|'+k]=x.value;}));
   if(!n){box.innerHTML='<div class="ib-clear">✅ All clear: no point loads, withdrawals or disputes waiting.</div>';return;}
   box.innerHTML=
     loads.map(r=>`<div class="ib load" data-id="${esc(r.id)}">
@@ -1913,6 +1931,7 @@ function inboxRender(){
   box.querySelectorAll('.ib.dispute').forEach(card=>{
     card.querySelectorAll('[data-o]').forEach(b=>b.onclick=e=>ibArm(e.target,b.dataset.o==='refund'||b.dataset.o==='rule_void'?'Tap again: refund both':b.dataset.o==='rule_reject'?'Tap again: result stands':'Tap again: pay the pot',async()=>{try{await waCall({action:'resolve_challenge',id:card.dataset.id,outcome:b.dataset.o,lock_days:b.dataset.o==='rule_void'?parseInt(card.querySelector('[data-pun]').value,10):0,fine:b.dataset.o==='rule_void'?(()=>{const f=Math.round(+(card.querySelector('[data-fine]')||{}).value||0);return f<0?0:f>20?20:f;})():0});done(card,'✓ Settled. Both players notified.');}catch(x){done(card,x.message,true);}}));
   });
+  box.querySelectorAll('.ib').forEach(c=>c.querySelectorAll('input,select').forEach((x,k)=>{const v=kept[c.dataset.id+'|'+k];if(v!=null)x.value=v;}));
   staggerReveal(box);
 }
 setInterval(()=>inboxLoad(false),45000);
@@ -2249,6 +2268,8 @@ function waSearch(){
 }
 async function walletLookup(id){
   const box=document.getElementById('wa-player');
+  /* don't leave another player's history open under this one */
+  {const h=document.getElementById('wa-history');if(h&&h.innerHTML&&!h.querySelector('#ah-q')&&_phId!==id)h.innerHTML='';}
   waMsg('Loading…','');
   try{
     const d=await waCall({action:'lookup',player_id:id});
@@ -2386,11 +2407,35 @@ function renderBalances(){
   document.querySelectorAll('[data-bal-q]').forEach(tr=>tr.onclick=()=>{walletLookup(tr.dataset.balId);document.getElementById('wallets').scrollIntoView({behavior:'smooth'});});
   document.querySelectorAll('[data-ph]').forEach(b=>b.onclick=e=>{e.stopPropagation();pointHistory(b.dataset.ph);});
 }
+/* 🧾 every player's point moves in one list: filter by type, days and name; tap a row to open that player */
+let _ah={rows:[],days:7,reason:'',q:''};
+async function allHistory(){
+  const box=document.getElementById('wa-history');box.innerHTML='<div class="card"><p class="hint" style="margin:0">Loading all history…</p></div>';box.scrollIntoView({behavior:'smooth',block:'start'});
+  try{const d=await waCall({action:'recent',days:_ah.days,reason:_ah.reason||null});_ah.rows=d.rows||[];ahRender();}
+  catch(e){box.innerHTML=`<div class="card"><p class="hint" style="margin:0;color:#ff9d9d">${esc(e.message)}</p></div>`;}
+}
+function ahRender(){
+  const ql=_ah.q.trim().toLowerCase();
+  const rows=_ah.rows.filter(x=>!ql||[x.players&&x.players.username,x.players&&x.players.player_tag,x.note,x.ref].some(v=>String(v||'').toLowerCase().includes(ql)));
+  const inn=rows.reduce((s,x)=>s+Math.max(x.delta,0),0),out=rows.reduce((s,x)=>s+Math.max(-x.delta,0),0);
+  const opt=(v,l,cur)=>`<option value="${v}"${String(cur)===String(v)?' selected':''}>${l}</option>`;
+  document.getElementById('wa-history').innerHTML=`<div class="card" style="margin-top:12px">
+    <div class="row" style="margin:0 0 8px;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><b style="font-size:1.05rem">🧾 All history</b><button type="button" class="btn ghost" style="font-size:.74rem;padding:6px 12px" onclick="document.getElementById('wa-history').innerHTML=''">Close</button></div>
+    <div class="row" style="margin:0 0 8px;gap:8px;flex-wrap:wrap">
+      <select aria-label="Period" style="width:auto" onchange="_ah.days=+this.value;allHistory()">${opt(1,'Today + yesterday',_ah.days)}${opt(7,'Last 7 days',_ah.days)}${opt(30,'Last 30 days',_ah.days)}${opt(90,'Last 90 days',_ah.days)}</select>
+      <select aria-label="Type" style="width:auto" onchange="_ah.reason=this.value;allHistory()">${opt('','All types',_ah.reason)}${Object.keys(WA_REASON).map(k=>opt(k,WA_REASON[k],_ah.reason)).join('')}</select>
+      <input id="ah-q" placeholder="Filter by name, note or eSewa ID" value="${esc(_ah.q)}" oninput="_ah.q=this.value;ahRender();const i=document.getElementById('ah-q');i.focus();i.setSelectionRange(i.value.length,i.value.length)" style="flex:1;min-width:160px">
+    </div>
+    <div class="row" style="margin:0 0 8px;gap:16px;flex-wrap:wrap"><span>${rows.length} moves${_ah.rows.length>=300?' (newest 300: pick a shorter period or a type to see older)':''}</span><span>In <b style="color:var(--green,#5EDB95)">+${inn.toLocaleString()}</b></span><span>Out <b style="color:#ff9d9d">-${out.toLocaleString()}</b></span></div>
+    ${rows.map(x=>`<div data-ah="${esc(x.player_id)}" title="Open this player's wallet" style="cursor:pointer;display:flex;gap:10px;justify-content:space-between;padding:8px 2px;border-bottom:1px solid var(--line);font-size:.8rem"><div style="min-width:0;overflow-wrap:anywhere"><b>${esc(x.players&&x.players.username?'@'+x.players.username:(x.players&&x.players.player_tag)||'player')}</b> · ${esc(WA_REASON[x.reason]||x.reason)}${x.note?` · ${esc(x.note)}`:''}${x.ref?` <span class="hint" style="margin:0">(${esc(String(x.ref).slice(0,40))})</span>`:''}<div class="hint" style="margin:2px 0 0">${esc(new Date(x.created_at).toLocaleString())}</div></div><div style="text-align:right;white-space:nowrap"><b style="color:${x.delta>0?'var(--green,#5EDB95)':'#ff9d9d'}">${x.delta>0?'+':''}${x.delta}</b><div class="hint" style="margin:2px 0 0">bal ${esc(x.balance_after)}</div></div></div>`).join('')||'<p class="hint">Nothing in this period.</p>'}
+  </div>`;
+  document.querySelectorAll('[data-ah]').forEach(r=>r.onclick=()=>{walletLookup(r.dataset.ah);document.getElementById('wallets').scrollIntoView({behavior:'smooth'});});
+}
 /* one player's whole point history: every point added or taken (wallet-admin 'history') */
-let _ph=null,_phF='all',_phN=100;
+let _ph=null,_phF='all',_phN=100,_phId=null;
 async function pointHistory(id){
   const box=document.getElementById('wa-history');box.innerHTML='<div class="card"><p class="hint" style="margin:0">Loading point history…</p></div>';box.scrollIntoView({behavior:'smooth',block:'start'});
-  try{_ph=await waCall({action:'history',player_id:id});_phF='all';_phN=100;phRender();}
+  _phId=id;try{_ph=await waCall({action:'history',player_id:id});_phF='all';_phN=100;phRender();}
   catch(e){box.innerHTML=`<div class="card"><p class="hint" style="margin:0;color:#ff9d9d">${esc(e.message)}</p></div>`;}
 }
 function phShow(f){_phF=f;_phN=100;phRender();}
