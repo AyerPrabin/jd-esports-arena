@@ -967,7 +967,7 @@ setInterval(()=>{try{const t=JSON.parse(localStorage.getItem('jd_admin_tok')||'n
   if(adminSecret()){document.getElementById('gate').style.display='none';document.getElementById('app').style.display='';loadLive();loadSecurity();loadLoads();return;}
   tryGoogleSession();
 })();
-const TF=[['name','Name','text'],['game','Game / mode','text'],['date','Date (display)','text'],['time','Time','text'],['start','Start (ISO, for countdown)','text'],['prize','Prize pool (Rs the winners share, e.g. 500)','text'],['entry','Entry fee (each squad pays, e.g. 50 points, or Free)','text'],['slots','Slots (max squads, one room holds 12)','number'],['mode','Mode (squad, duo or solo)','text'],['format','Format','text'],['register_url','Register URL','text'],['winner','Winner (if done)','text'],['host','Host mod handle (only that host mod sees this event in /mod/)','text']];
+const TF=[['name','Name','text'],['game','Game / mode','text'],['date','Date (display)','text'],['time','Time','text'],['start','Start (ISO, for countdown)','text'],['prize','Prize pool (Rs the winners share, e.g. 500)','text'],['prize_per_squad','Prize grows per squad (Rs each squad adds, e.g. 45; blank = fixed prize)','number'],['entry','Entry fee (each squad pays, e.g. 50 points, or Free)','text'],['slots','Slots (max squads, one room holds 12)','number'],['mode','Mode (squad, duo or solo)','text'],['format','Format','text'],['register_url','Register URL','text'],['winner','Winner (if done)','text'],['host','Host mod handle (only that host mod sees this event in /mod/)','text']];
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 // only real image data URIs / https images may reach an <img src> (squad logos are player-uploaded)
@@ -1027,6 +1027,7 @@ async function loadLiveCounts(){
 function tEditorHtml(t,i){
   {
     const fields=TF.map(([k,lbl,type])=>{
+      if(k==='prize'&&+t.prize_per_squad){k='prize_base';lbl='Starting prize (Rs, grows with each squad)';t.prize_base=t.prize_base||String(t.prize||'').replace(/[^\d]/g,'');}
       return `<div class="f ${['format','register_url','name'].includes(k)?'full':''}"><label>${lbl}</label><input data-i="${i}" data-k="${k}" type="${type}" value="${esc(t[k]??'')}"></div>`;
     }).join('');
     const sel=`<div class="f"><label>Status</label><select data-i="${i}" data-k="status">${STATUSES.map(s=>`<option ${(t.status||'upcoming')===s?'selected':''}>${s}</option>`).join('')}</select></div>`;
@@ -1725,8 +1726,11 @@ function publishMsg(t,c){
   setMsg(document.getElementById('publish-msg'),t,c);
   setMsg(document.getElementById('publish-top-msg'),t,c);
 }
+/* growing prize pool: prize = max(starting prize, Rs per squad x squads in) */
+function growPrize(t,n){const per=+t.prize_per_squad||0;if(!per||t.host||t.mega)return;const base=+String(t.prize_base||t.prize||'').replace(/[^\d]/g,'')||0;if(!t.prize_base)t.prize_base=String(base);t.prize=String(Math.max(base,per*(+n||0)));}
 async function publishToGitHub(){
   gen();
+  data.tournaments.forEach(t=>growPrize(t,_liveCounts.get(t.name)||0));
   const secret=adminSecret();
   if(!secret){publishMsg('Enter the admin passcode first.','err');return;}
   if(false&&_lastCleanDropped>0&&!confirm(_lastCleanDropped+' completely blank squad row(s) (no name, logo, or members/scores) will be left out of this publish — that\'s normal for an unused "+ Add squad" row, but Cancel first if you expected one of them to have a name. Publish anyway?')){

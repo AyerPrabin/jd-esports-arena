@@ -723,8 +723,11 @@ function bcTick(){
   el.textContent=(dd?dd+'D ':'')+p(hh)+':'+p(mm)+':'+p(ss);
 }
 setInterval(bcTick,1000);
+/* growing prize pool: prize = max(starting prize, Rs per squad x squads in) */
+function growPrize(t,n){const per=+t.prize_per_squad||0;if(!per||t.host||t.mega)return;const base=+String(t.prize_base||t.prize||'').replace(/[^\d]/g,'')||0;if(!t.prize_base)t.prize_base=String(base);t.prize=String(Math.max(base,per*(+n||0)));}
 function render(d){
   linkBo3(d);
+  (d.tournaments||[]).forEach(t=>growPrize(t,(_liveRoster.get(t.name)||[]).length));
   _lastData=d;
   saveSnap();
   try{bcRender(d);}catch(e){}

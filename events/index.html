@@ -522,6 +522,8 @@ function renderEvents(){
   }
   if(html!==evLast){evLast=html;document.getElementById('ev-list').innerHTML=html;}
 }
+/* growing prize pool: prize = max(starting prize, Rs per squad x squads in) */
+function growPrize(t,n){const per=+t.prize_per_squad||0;if(!per||t.host||t.mega)return;const base=+String(t.prize_base||t.prize||'').replace(/[^\d]/g,'')||0;if(!t.prize_base)t.prize_base=String(base);t.prize=String(Math.max(base,per*(+n||0)));}
 async function refreshEvents(){
   const [doc,roster,session]=await Promise.all([getDoc().catch(()=>null),sb?jdRoster(sb).then(r=>r.data||[],()=>null):null,sb?sb.auth.getSession().then(r=>r.data.session,()=>null):null]);
   if(doc)evDoc=doc;
@@ -529,6 +531,7 @@ async function refreshEvents(){
   if(session&&!csOpen){csOpen={};sb.rpc('get_open_challenges').then(({data})=>{(data||[]).forEach(c=>{csOpen[c.mode]=(csOpen[c.mode]||0)+1;});renderEvents();},()=>{});}
   if(session){const {data}=await sb.from('registrations').select('tournament_slug,status').eq('player_id',session.user.id);
     if(data)evMine=new Map(data.filter(r=>['confirmed','approved','pending','waitlisted'].includes(r.status)).map(r=>[r.tournament_slug,r.status]));}
+  if(evDoc&&evCounts&&evCounts.get)(evDoc.tournaments||[]).forEach(t=>growPrize(t,evCounts.get(t.name)||0));
   if(!evDoc){if(evFilter!=='past')document.getElementById('ev-list').innerHTML=`<div class="pe-empty">${TXT.err}</div>`;return;}
   renderEvents();
 }
