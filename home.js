@@ -1739,7 +1739,8 @@ function updateAcctBtn(){
     ac.onclick=()=>{location.href='/profile/';}; // profile has its own page; account settings stay reachable via /?account=1
     const adb=document.getElementById('admin-btn');
     // + Og_Bloody admin (14 Nov 2026)
-    if(adb)adb.style.display=(_player.email||'').toLowerCase()==='saudmahesh059saudmahesh059@gmail.com'?'':(_player.email||'').toLowerCase()==='ayerprabin95@gmail.com'?'':'none';   // owner only, site and app (8 Nov 2026); /admin/ checks on the server too
+    // owner (ayerprabin) + Og_Bloody, matched by account id so no email sits in the public code; /admin/ checks on the server too
+    if(adb)adb.style.display=['1b1dd73e-0328-4bb4-a22b-87542d36da0d','ec5ee85a-9fd6-42f8-8e04-7235e9a861d2'].includes(_player.id)?'':'none';
     const md=document.getElementById('mod-btn');
     if(md){ md.style.display='none'; if(typeof sb!=='undefined'&&sb) sb.rpc('is_moderator').then(r=>{ md.style.display=r.data?'':'none'; }).catch(()=>{}); }
   }else{
